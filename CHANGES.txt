@@ -1,0 +1,6 @@
+0.0.2
+-----
+
+0.0.1 - 2007-10-19
+-------------------
+- Starting project based on previous work done in the RTMPy (http://dev.collab.com/rtmpy) project.

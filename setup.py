@@ -31,7 +31,7 @@ use_setuptools()
 from setuptools import setup, find_packages
 
 setup(name = "PyAMF",
-    version = "0.0.1",
+    version = "0.0.2",
     description = "AMF encoder and decoder for Python",
     url = "http://dev.collab.com/pyamf",
     packages = ["pyamf"],
