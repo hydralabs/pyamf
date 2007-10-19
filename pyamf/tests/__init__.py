@@ -29,11 +29,11 @@ import unittest
 
 def suite():
     import pyamf
-    from pyamf.tests import amf
-    
+    from pyamf.tests import amf0
+
     suite = unittest.TestSuite()
-    suite.addTest(amf.suite())
-    
+    suite.addTest(amf0.suite())
+
     return suite
 
 if __name__ == '__main__':

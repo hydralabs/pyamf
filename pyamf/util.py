@@ -29,6 +29,14 @@ import struct
 import time
 from StringIO import StringIO
 
+try:
+    import xml.etree.ElementTree as ET
+except ImportError:
+    try:
+        import cElementTree as ET
+    except ImportError:
+        import elementtree.ElementTree as ET
+
 class NetworkIOMixIn:
     """Provides mix-in methods for file like objects to read and write basic
     datatypes in network (= big-endian) byte-order."""
