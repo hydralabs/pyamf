@@ -4,6 +4,7 @@
 # 
 # Arnar Birgisson
 # Thijs Triemstra
+# Nick Joyce
 # 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -25,14 +26,21 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 #
-# AMF parser
-# sources:
+# Resources:
 #   http://www.vanrijkom.org/archives/2005/06/amf_format.html
 #   http://osflash.org/documentation/amf/astypes
 
+from pyamf import util
+from pyamf.util import BufferedByteStream
+
 """AMF3 Implementation"""
 
-class AMF3Types:
+class ASTypes:
+    """
+    A placeholder for all AMF3 ActionScript types.
+    Ref: http://osflash.org/documentation/amf/astypes
+    """
+    
     UNDEFINED       =           0x00
     NULL            =           0x01
     BOOL_FALSE      =           0x02
@@ -85,7 +93,7 @@ class AMF3ObjectTypes:
         # (ObjectProxy, "flex.messaging.io.ObjectProxy"),
     ]
     
-class AMF3Parser:
+class Decoder:
 
     def __init__(self, data):
         self.obj_refs = list()
@@ -98,43 +106,43 @@ class AMF3Parser:
 
     def readElement(self):
         type = self.input.read_uchar()
-        if type == AMF3Types.UNDEFINED:
+        if type == ASTypes.UNDEFINED:
             return None
         
-        if type == AMF3Types.NULL:
+        if type == ASTypes.NULL:
             return None
         
-        if type == AMF3Types.BOOL_FALSE:
+        if type == ASTypes.BOOL_FALSE:
             return False
         
-        if type == AMF3Types.BOOL_TRUE:
+        if type == ASTypes.BOOL_TRUE:
             return True
         
-        if type == AMF3Types.INTEGER:
+        if type == ASTypes.INTEGER:
             return self.readInteger()
         
-        if type == AMF3Types.NUMBER:
+        if type == ASTypes.NUMBER:
             return self.input.read_double()
         
-        if type == AMF3Types.STRING:
+        if type == ASTypes.STRING:
             return self.readString()
         
-        if type == AMF3Types.XML:
+        if type == ASTypes.XML:
             return self.readXML()
         
-        if type == AMF3Types.DATE:
+        if type == ASTypes.DATE:
             return self.readDate()
         
-        if type == AMF3Types.ARRAY:
+        if type == ASTypes.ARRAY:
             return self.readArray()
         
-        if type == AMF3Types.OBJECT:
+        if type == ASTypes.OBJECT:
             return self.readObject()
         
-        if type == AMF3Types.XMLSTRING:
+        if type == ASTypes.XMLSTRING:
             return self.readString(use_references=False)
         
-        if type == AMF3Types.BYTEARRAY:
+        if type == ASTypes.BYTEARRAY:
             raise self.readByteArray()
         
         else:

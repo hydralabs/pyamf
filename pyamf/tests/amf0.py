@@ -4,6 +4,7 @@
 # 
 # Arnar Birgisson
 # Thijs Triemstra
+# Nick Joyce
 # 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -69,7 +70,8 @@ class EncoderTestCase(unittest.TestCase):
             (0,    '\x00\x00\x00\x00\x00\x00\x00\x00\x00'),
             (0.2,  '\x00\x3f\xc9\x99\x99\x99\x99\x99\x9a'),
             (1,    '\x00\x3f\xf0\x00\x00\x00\x00\x00\x00'),
-            (42,   '\x00\x40\x45\x00\x00\x00\x00\x00\x00'),            (-123, '\x00\xc0\x5e\xc0\x00\x00\x00\x00\x00'),
+            (42,   '\x00\x40\x45\x00\x00\x00\x00\x00\x00'),
+            (-123, '\x00\xc0\x5e\xc0\x00\x00\x00\x00\x00'),
             (1.23456789, '\x00\x3f\xf3\xc0\xca\x42\x83\xde\x1b')]
 
         # XXX nick: Should we be testing python longs here?

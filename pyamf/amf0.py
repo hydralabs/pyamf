@@ -4,6 +4,7 @@
 # 
 # Arnar Birgisson
 # Thijs Triemstra
+# Nick Joyce
 # 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -67,7 +68,7 @@ class ASTypes:
 ACTIONSCRIPT_TYPES = set(
     ASTypes.__dict__[x] for x in ASTypes.__dict__ if not x.startswith('__'))
 
-class Parser(object):
+class Decoder(object):
     """
     Parses an AMF0 stream
     """
@@ -75,7 +76,7 @@ class Parser(object):
     # XXX nick: Do we need to support ASTypes.MOVIECLIP here?
     type_map = {
         ASTypes.NUMBER: 'readNumber',
-        ASTypes.BOOL: 'readBool',
+        ASTypes.BOOL: 'readBoolean',
         ASTypes.STRING: 'readString',
         ASTypes.OBJECT: 'readObject',
         ASTypes.NULL: 'readNull',
@@ -164,7 +165,7 @@ class Parser(object):
         from pyamf import amf3
 
         # XXX: Does the amf3 parser have access to the same references as amf0?
-        p = amf3.Parser(self.input)
+        p = amf3.Decoder(self.input)
 
         return p.readElement()
 

@@ -4,6 +4,7 @@
 # 
 # Arnar Birgisson
 # Thijs Triemstra
+# Nick Joyce
 # 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -26,7 +27,7 @@
 #
 #
 # AMF parser
-# sources:
+# Resources:
 #   http://www.vanrijkom.org/archives/2005/06/amf_format.html
 #   http://osflash.org/documentation/amf/astypes
 
@@ -41,7 +42,7 @@ except ImportError:
     except ImportError:
         import elementtree.ElementTree as ET
 
-from pyamf import util
+from pyamf import util, amf0, amf3
 from pyamf.util import BufferedByteStream
 
 class GeneralTypes:
@@ -78,10 +79,10 @@ class AMFMessageDecoder:
         self.msg.amfVersion = self.input.read_uchar()
         if self.msg.amfVersion == GeneralTypes.AMF0:
             # AMF0
-            parser_class = AMF0Parser
+            decoder_class = amf0.Decoder
         elif self.msg.amfVersion == GeneralTypes.AMF3:
             # AMF3
-            parser_class = AMF3Parser
+            decoder_class = amf3.Decoder
         else:
             raise Exception("Invalid AMF version: " + str(self.msg.amfVersion))
         # The second byte is the client type.
@@ -101,7 +102,7 @@ class AMFMessageDecoder:
             # Long - Length in bytes of header.
             header.length = self.input.read_ulong()
             # Variable - Actual self.input (including a type code).
-            header.data = parser_class(self.input).readElement()
+            header.data = decoder_class(self.input).readElement()
             self.msg.headers.append(header)
         # Between the headers and the start of the bodies is a int 
         # specifying the number of bodies.
@@ -129,7 +130,7 @@ class AMFMessageDecoder:
             # Body length in bytes.
             body.length = self.input.read_ulong()
             # Actual data (including a type code).
-            body.data = parser_class(self.input).readElement()
+            body.data = decoder_class(self.input).readElement()
             # Bodies contain actual Remoting requests and responses.
             self.msg.bodies.append(body)
 
