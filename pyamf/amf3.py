@@ -30,6 +30,8 @@
 #   http://www.vanrijkom.org/archives/2005/06/amf_format.html
 #   http://osflash.org/documentation/amf/astypes
 
+import datetime
+
 from pyamf import util
 from pyamf.util import BufferedByteStream
 
