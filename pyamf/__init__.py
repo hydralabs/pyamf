@@ -144,7 +144,7 @@ class AMFMessageEncoder:
         
     def encode(self):
         #
-        encoder_class = AMF0Encoder
+        encoder_class = amf0.Encoder
         # Write AMF version.
         self.output.write_uchar(self.msg.amfVersion)
         # Client type.
