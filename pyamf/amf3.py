@@ -25,11 +25,13 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-#
-# AMF parser
-# sources:
+# Resources:
 #   http://www.vanrijkom.org/archives/2005/06/amf_format.html
 #   http://osflash.org/documentation/amf/astypes
+
+import datetime
+
+from pyamf.util import BufferedByteStream
 
 """AMF3 Implementation"""
 
