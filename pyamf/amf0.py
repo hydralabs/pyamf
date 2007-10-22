@@ -4,7 +4,6 @@
 # 
 # Arnar Birgisson
 # Thijs Triemstra
-# Nick Joyce
 # 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -33,9 +32,9 @@
 
 """AMF0 Implementation"""
 
-import datetime
-from types import *
+import datetime, time, types
 
+import pyamf
 from pyamf import util
 
 class ASTypes:
@@ -68,7 +67,7 @@ class ASTypes:
 ACTIONSCRIPT_TYPES = set(
     ASTypes.__dict__[x] for x in ASTypes.__dict__ if not x.startswith('__'))
 
-class Decoder(object):
+class Parser(object):
     """
     Parses an AMF0 stream
     """
@@ -94,7 +93,7 @@ class Decoder(object):
         ASTypes.AMF3: 'readAMF3'
     }
 
-    def __init__(self, data):
+    def __init__(self, data=None):
         # coersce data to BufferedByteStream
         if isinstance(data, util.BufferedByteStream):
             self.input = data
@@ -109,7 +108,7 @@ class Decoder(object):
         type = self.input.read_uchar()
 
         if type not in ACTIONSCRIPT_TYPES:
-            raise ValueError("Unknown AMF0 type 0x%02x at %d" % (
+            raise pyamf.ParseError("Unknown AMF0 type 0x%02x at %d" % (
                 type, self.input.tell() - 1))
 
         return type
@@ -132,7 +131,8 @@ class Decoder(object):
         Returns an array
         """
         len = self.input.read_ulong()
-        obj = self.readObject()
+        obj = {}
+        self._readObject(obj)
 
         for key in obj.keys():
             try:
@@ -165,7 +165,7 @@ class Decoder(object):
         from pyamf import amf3
 
         # XXX: Does the amf3 parser have access to the same references as amf0?
-        p = amf3.Decoder(self.input)
+        p = amf3.Parser(self.input)
 
         return p.readElement()
 
@@ -176,7 +176,7 @@ class Decoder(object):
         try:
             func = getattr(self, self.type_map[type])
         except KeyError, e:
-            raise NotImplementedError(
+            raise pyamf.ParseError(
                 "Unknown ActionScript type 0x%02x" % type)
 
         return func()
@@ -184,15 +184,27 @@ class Decoder(object):
     def readString(self):
         len = self.input.read_ushort()
         return self.input.read_utf8_string(len)
-
-    def readObject(self):
-        obj = dict()
-        self.obj_refs.append(obj)
+        
+    def _readObject(self, obj):
         key = self.readString()
         while self.input.peek() != chr(ASTypes.OBJECTTERM):
             obj[key] = self.readElement()
             key = self.readString()
-        self.input.read(1) # discard the end marker (ASTypes.OBJECTTERM = 0x09)
+
+        # discard the end marker (ASTypes.OBJECTTERM)
+        self.input.read(len(chr(ASTypes.OBJECTTERM)))
+
+    def readObject(self):
+        """
+        Reads an object from the AMF stream
+
+        @return The object
+        @rettype __builtin__.object
+        """
+        obj = {}
+        self.obj_refs.append(obj)
+        self._readObject(obj)
+
         return obj
 
     def readReference(self):
@@ -208,34 +220,31 @@ class Decoder(object):
         timezone in minutes."""
         ms = self.input.read_double()
         tz = self.input.read_short()
-        class TZ(datetime.tzinfo):
-            def utcoffset(self, dt):
-                return datetime.timedelta(minutes=tz)
-            def dst(self,dt):
-                return None
-            def tzname(self,dt):
-                return None
-        return datetime.datetime.fromtimestamp(ms/1000.0, TZ())
+
+        return datetime.datetime.fromtimestamp(ms/100, None)
 
     def readLongString(self):
         len = self.input.read_ulong()
         return self.input.read_utf8_string(len)
 
     def readXML(self):
-        data = readLongString()
-        return ET.fromstring(data)
+        data = self.readLongString()
+        return util.ET.fromstring(data)
 
 class Encoder(object):
 
     type_map = [
+        # Unsupported types go first
+        ((types.BuiltinFunctionType, types.BuiltinMethodType,), "writeUnsupported"),
         ((bool,), "writeBoolean"),
         ((int,long,float), "writeNumber"), # Maybe add decimal ?
-        ((StringTypes,), "writeString"),
-        ((InstanceType,DictType,), "writeObject"),
-        ((ListType,TupleType,), "writeArray"),
-        ((datetime.date, datetime.datetime), "writeDate"),
+        ((types.StringTypes,), "writeString"),
         ((util.ET._ElementInterface,), "writeXML"),
-        ((NoneType,), "writeNull"),
+        ((types.DictType,), "writeMixedArray"),
+        ((types.ListType,types.TupleType,), "writeArray"),
+        ((datetime.date, datetime.datetime), "writeDate"),
+        ((types.NoneType,), "writeNull"),
+        ((types.InstanceType,types.ObjectType,), "writeObject"),
     ]
 
     def __init__(self, output):
@@ -251,9 +260,12 @@ class Encoder(object):
         """
         if type not in ACTIONSCRIPT_TYPES:
             raise ValueError("Unknown AMF0 type 0x%02x at %d" % (
-                type, self.input.tell() - 1))
+                type, self.output.tell() - 1))
 
         self.output.write_uchar(type)
+
+    def writeUnsupported(self, data):
+        self.writeType(ASTypes.UNSUPPORTED)
 
     def writeElement(self, data):
         """Writes the data."""
@@ -262,12 +274,15 @@ class Encoder(object):
                 if isinstance(data, t):
                     return getattr(self, method)(data)
 
+        self.writeUnsupported(data)
+
     def writeNull(self, n):
         self.writeType(ASTypes.NULL)
 
     def writeArray(self, a):
         self.writeType(ASTypes.ARRAY)
-        self.output.write_ushort(len(a))
+        self.output.write_ulong(len(a))
+
         for data in a:
             self.writeElement(data)
 
@@ -295,35 +310,76 @@ class Encoder(object):
             self.output.write_ushort(len(s))
         self.output.write(s)
 
+    def writeReference(self, o):
+        idx = self.obj_refs.index(o)
+
+        self.writeType(ASTypes.REFERENCE)
+        self.output.write_ushort(idx)
+
+    def _writeDict(self, o):
+        for key, val in o.items():
+            self.writeString(key, False)
+            self.writeElement(val)
+
+    def writeMixedArray(self, o):
+        self.writeType(ASTypes.MIXEDARRAY)
+
+        # TODO optimise this
+        # work out the highest integer index
+        try:
+            # list comprehensions to save the day
+            max_index = max([y[0] for y in o.items()
+                if isinstance(y[0], (int, long))])
+
+            if max_index < 0:
+                max_index = 0
+        except ValueError, e:
+            max_index = 0
+
+        self.output.write_ulong(max_index)
+
+        self._writeDict(o)
+        self._writeEndObject()
+
+    def _writeEndObject(self):
+        self.writeString("", False)
+        self.writeType(ASTypes.OBJECTTERM)
+
     def writeObject(self, o):
-        if o in self.obj_refs:
-            self.writeType(ASTypes.REFERENCE)
-            self.output.write_ushort(self.obj_refs.index(o))
-        else:
-            self.obj_refs.append(o)
-            self.writeType(ASTypes.OBJECT)
-            # TODO: give objects a chance of controlling what we send
-            o = o.__dict_
-            for key, val in o.items():
-                self.writeString(key, False)
-                self.writeElement(o)
-            self.writeString("", False)
-            self.writeType(ASTypes.OBJECTTERM)
+        try:
+            self.writeReference(o)
+            return
+        except ValueError, e:
+            pass
+
+        self.obj_refs.append(o)
+        self.writeType(ASTypes.OBJECT)
+
+        # TODO: give objects a chance of controlling what we send
+        for key, val in o.__dict__.items():
+            self.writeString(key, False)
+            self.writeElement(val)
+
+        self._writeEndObject()
 
     def writeDate(self, d):
         if isinstance(d, datetime.date):
             d = datetime.datetime.combine(d, datetime.time(0))
-        self.writeType(ASTypes.DATE)
-        ms = time.mktime(d.timetuple)
+
+        ms = time.mktime(d.timetuple())
+        tz = 0
+
         if d.tzinfo:
-            tz = d.tzinfo.utcoffset.days*1440 + d.tzinfo.utcoffset.seconds/60
-        else:
-            tz = 0
-        self.output.write_double(ms)
+            gmt = datetime.datetime(*time.gmtime(ms)[0:6])
+            # TODO: complete support for timezones
+
+        self.writeType(ASTypes.DATE)
+        self.output.write_double(ms * 100.0)
         self.output.write_short(tz)
 
     def writeXML(self, e):
+        data = util.ET.tostring(e, 'utf8')
+        
         self.writeType(ASTypes.XML)
-        data = ET.tostring(e, 'utf8')
         self.output.write_ulong(len(data))
         self.output.write(data)

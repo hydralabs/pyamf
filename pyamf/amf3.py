@@ -26,23 +26,14 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 #
-# Resources:
+# AMF parser
+# sources:
 #   http://www.vanrijkom.org/archives/2005/06/amf_format.html
 #   http://osflash.org/documentation/amf/astypes
-
-import datetime
-
-from pyamf import util
-from pyamf.util import BufferedByteStream
 
 """AMF3 Implementation"""
 
 class ASTypes:
-    """
-    A placeholder for all AMF3 ActionScript types.
-    Ref: http://osflash.org/documentation/amf/astypes
-    """
-    
     UNDEFINED       =           0x00
     NULL            =           0x01
     BOOL_FALSE      =           0x02
@@ -95,7 +86,7 @@ class AMF3ObjectTypes:
         # (ObjectProxy, "flex.messaging.io.ObjectProxy"),
     ]
     
-class Decoder:
+class Parser(object):
 
     def __init__(self, data):
         self.obj_refs = list()

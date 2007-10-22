@@ -4,7 +4,6 @@
 # 
 # Arnar Birgisson
 # Thijs Triemstra
-# Nick Joyce
 # 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -27,23 +26,11 @@
 #
 #
 # AMF parser
-# Resources:
+# sources:
 #   http://www.vanrijkom.org/archives/2005/06/amf_format.html
 #   http://osflash.org/documentation/amf/astypes
 
-import datetime
-from types import *
-
-try:
-    import xml.etree.ElementTree as ET
-except ImportError:
-    try:
-        import cElementTree as ET
-    except ImportError:
-        import elementtree.ElementTree as ET
-
-from pyamf import util, amf0, amf3
-from pyamf.util import BufferedByteStream
+from pyamf import util, amf0
 
 class GeneralTypes:
     """
@@ -67,22 +54,28 @@ class GeneralTypes:
     AMF3               = 3
     # AMF mimetype
     AMF_MIMETYPE       = 'application/x-amf'
-    
+
+class BaseError(Exception):
+    pass
+
+class ParseError(BaseError):
+    pass
+
 class AMFMessageDecoder:
     
     def __init__(self, data):
-        self.input = BufferedByteStream(data)
+        self.input = util.BufferedByteStream(data)
         self.msg = AMFMessage()
         
     def decode(self):
         # The first byte of the AMF file/stream is the AMF type.
         self.msg.amfVersion = self.input.read_uchar()
         if self.msg.amfVersion == GeneralTypes.AMF0:
-            # AMF0
-            decoder_class = amf0.Decoder
+            parser_class = amf0.Parser
         elif self.msg.amfVersion == GeneralTypes.AMF3:
-            # AMF3
-            decoder_class = amf3.Decoder
+            from pyamf import amf3
+
+            parser_class = amf3.Parser
         else:
             raise Exception("Invalid AMF version: " + str(self.msg.amfVersion))
         # The second byte is the client type.
@@ -102,7 +95,7 @@ class AMFMessageDecoder:
             # Long - Length in bytes of header.
             header.length = self.input.read_ulong()
             # Variable - Actual self.input (including a type code).
-            header.data = decoder_class(self.input).readElement()
+            header.data = parser_class(self.input).readElement()
             self.msg.headers.append(header)
         # Between the headers and the start of the bodies is a int 
         # specifying the number of bodies.
@@ -127,10 +120,11 @@ class AMFMessageDecoder:
             # tracked by the client.
             response_len = self.input.read_ushort()
             body.response = self.input.read_utf8_string(response_len)
-            # Body length in bytes.
+            # Body length in bytes.            from pyamf import amf0
+
             body.length = self.input.read_ulong()
             # Actual data (including a type code).
-            body.data = decoder_class(self.input).readElement()
+            body.data = parser_class(self.input).readElement()
             # Bodies contain actual Remoting requests and responses.
             self.msg.bodies.append(body)
 
@@ -139,11 +133,11 @@ class AMFMessageDecoder:
 class AMFMessageEncoder:
 
     def __init__(self, msg):
-        self.output = BufferedByteStream()
+        self.output = util.BufferedByteStream()
         self.msg = msg
         
     def encode(self):
-        #
+        
         encoder_class = amf0.Encoder
         # Write AMF version.
         self.output.write_uchar(self.msg.amfVersion)
@@ -299,30 +293,3 @@ class Client:
     def getResponse(self, data):
         self.response = AMFMessageDecoder(data).decode()
         return self.response.bodies
-        
-if __name__ == "__main__":
-    import sys, glob
-    debug = False
-    print "\nStarting AMF parser...\n"
-    for arg in sys.argv[1:]:
-        if arg == 'debug':
-            debug = True
-        for fname in glob.glob(arg):
-            f = file(fname, "r")
-            data = f.read()
-            size = str(f.tell())
-            f.close()
-            p = AMFMessageDecoder(data)
-            if debug:
-                print "=" * 120
-            print " Parsing file:", fname.rsplit("\\",1)[-1], 
-            try:
-                obj = p.decode()
-            except:
-                raise
-                print "   ---> FAILED"
-            else:
-                print "   ---> OK"
-                if debug:
-                    print repr(obj)
-

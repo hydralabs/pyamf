@@ -4,7 +4,6 @@
 # 
 # Arnar Birgisson
 # Thijs Triemstra
-# Nick Joyce
 # 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -41,56 +40,55 @@ except ImportError:
 class NetworkIOMixIn:
     """Provides mix-in methods for file like objects to read and write basic
     datatypes in network (= big-endian) byte-order."""
-    
+
     def read_uchar(self):
         return struct.unpack("!B", self.read(1))[0]
-    
+
     def write_uchar(self, c):
         self.write(struct.pack("!B", c))
 
     def read_char(self):
         return struct.unpack("!b", self.read(1))[0]
-    
+
     def write_char(self, c):
         self.write(struct.pack("!b", c))
-    
+
     def read_ushort(self):
         return struct.unpack("!H", self.read(2))[0]
-    
+
     def write_ushort(self, s):
         self.write(struct.pack("!H", s))
-    
+
     def read_short(self):
         return struct.unpack("!h", self.read(2))[0]
-    
+
     def write_short(self, s):
         self.write(struct.pack("!h", s))
-    
+
     def read_ulong(self):
         return struct.unpack("!L", self.read(4))[0]
-    
+
     def write_ulong(self, l):
         self.write(struct.pack("!L", l))
-    
+
     def read_long(self):
         return struct.unpack("!l", self.read(4))[0]
-    
+
     def write_long(self, l):
         self.write(struct.pack("!l", l))
-    
+
     def read_double(self):
         return struct.unpack("!d", self.read(8))[0]
-    
+
     def write_double(self, d):
         self.write(struct.pack("!d", d))
-    
+
     def read_utf8_string(self, length):
         str = struct.unpack("%ds" % length, self.read(length))[0]
         return unicode(str, "utf8")
-    
+
     def write_utf8_string(self, u):
         self.write(u.encode("utf8"))
-
 
 class BufferedByteStream(StringIO, NetworkIOMixIn):
     """An extension of StringIO that:
