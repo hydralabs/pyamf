@@ -31,7 +31,7 @@
 #   http://www.vanrijkom.org/archives/2005/06/amf_format.html
 #   http://osflash.org/documentation/amf/astypes
 
-from pyamf import util, amf0
+from pyamf import util, amf0, amf3
 
 CLASS_CACHE = {}
 CLASS_LOADERS = []
@@ -40,7 +40,7 @@ class GeneralTypes:
     """
     PyAMF global constants
     """
-    # Specifies aFlash Player 6.0 - 8.0 client.
+    # Specifies a Flash Player 6.0 - 8.0 client.
     AC_Flash           = 0
     # Specifies a FlashCom / Flash Media Server client.
     AC_FlashCom        = 1
@@ -326,8 +326,6 @@ class AMFMessageDecoder:
         if self.msg.amfVersion == GeneralTypes.AMF0:
             parser_class = amf0.Parser
         elif self.msg.amfVersion == GeneralTypes.AMF3:
-            from pyamf import amf3
-
             parser_class = amf3.Parser
         else:
             raise Exception("Invalid AMF version: " + str(self.msg.amfVersion))
