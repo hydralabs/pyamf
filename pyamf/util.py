@@ -36,7 +36,7 @@ except ImportError:
     except ImportError:
         import elementtree.ElementTree as ET
 
-class NetworkIOMixIn:
+class NetworkIOMixIn(object):
     """Provides mix-in methods for file like objects to read and write basic
     datatypes in network (= big-endian) byte-order."""
 
@@ -105,18 +105,28 @@ class BufferedByteStream(StringIO, NetworkIOMixIn):
             length = self.len - self.tell()
         return StringIO.read(self, length)
 
-    def peek(self):
-        if self.at_eof():
-            return None
-        else:
-            c = self.read(1)
-            self.seek(self.tell()-1)
-            return c
+    def peek(self, size=1):
+        """
+        Looks size bytes ahead in the stream, returning what it finds,
+        returning the stream pointer to its initial position.
+        """
+        if size == -1:
+            return self.peek(self.len - self.tell())
+
+        bytes = ''
+        pos = self.tell()
+
+        while not self.at_eof() and len(bytes) != size:
+            bytes += self.read(1)
+
+        self.seek(pos)
+
+        return bytes
 
     def at_eof(self):
         "Returns true if next .read(1) will trigger EOFError"
         return self.tell() >= self.len
-    
+
     def remaining(self):
         "Returns number of remaining bytes"
         return self.len - self.tell()
@@ -139,28 +149,3 @@ def hexdump(data):
     if len(ascii):
         buf += "%04x:  %-24s %-24s %s\n" % (index, hex[:24], hex[24:], ascii)
     return buf
-
-def decode_utf8_modified(data):
-    """Decodes a unicode string from Modified UTF-8 data.
-    See http://en.wikipedia.org/wiki/UTF-8#Java for details."""
-    # Ported from http://viewvc.rubyforge.mmmultiworks.com/cgi/viewvc.cgi/trunk/lib/ruva/class.rb
-    # Ruby version is Copyright (c) 2006 Ross Bamford (rosco AT roscopeco DOT co DOT uk).
-    # The string is first converted to UTF16 BE
-    utf16 = []
-    i = 0
-    while i < len(data):
-        c = ord(data[i])
-        if 0x00 < c < 0x80:
-            utf16.append(c)
-            i += 1
-        elif c & 0xc0 == 0xc0:
-            utf16.append(((c & 0x1f) << 6) | (ord(data[i+1]) & 0x3f))
-            i += 2
-        elif c & 0xe0 == 0xe0:
-            utf16.append(((c & 0x0f) << 12) | ((ord(data[i+1]) & 0x3f) << 6) | (ord(data[i+2]) & 0x3f))
-            i += 3
-        else:
-            raise ValueError("Data is not valid modified UTF-8")
-    
-    utf16 = "".join([chr((c >> 8) & 0xff) + chr(c & 0xff) for c in utf16])
-    return unicode(utf16, "utf_16_be")

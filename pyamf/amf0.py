@@ -71,7 +71,6 @@ class Parser(object):
     """
     Parses an AMF0 stream
     """
-    obj_refs = []
     # XXX nick: Do we need to support ASTypes.MOVIECLIP here?
     type_map = {
         ASTypes.NUMBER: 'readNumber',
@@ -93,12 +92,17 @@ class Parser(object):
         ASTypes.AMF3: 'readAMF3'
     }
 
-    def __init__(self, data=None):
+    def __init__(self, data=None, context=None):
         # coersce data to BufferedByteStream
         if isinstance(data, util.BufferedByteStream):
             self.input = data
         else:
             self.input = util.BufferedByteStream(data)
+
+        if context == None:
+            self.context = pyamf.Context()
+        else:
+            self.context = context
 
     def readType(self):
         """
@@ -147,30 +151,42 @@ class Parser(object):
 
     def readList(self):
         len = self.input.read_ulong()
-        obj = []
-        self.obj_refs.append(obj)
+        obj = [self.readElement() for i in xrange(len)]
 
-        obj.extend(self.readElement() for i in xrange(len))
-
+        self.context.addObject(obj)
         return obj
 
     def readTypedObject(self):
+        """
+        Reads an object from the stream and attempts to 'cast' it. See
+        L{pyamf.load_class} for more info.
+        """
         classname = self.readString()
-        obj = self.readObject()
+        klass = pyamf.load_class(classname)
 
-        # TODO do some class mapping?
-        return obj
+        ret = klass()
+        obj = {}
+        self._readObject(obj)
+
+        for k, v in obj.iteritems():
+            setattr(ret, k, v)
+
+        self.context.addObject(ret)
+
+        return ret
 
     def readAMF3(self):
         from pyamf import amf3
 
         # XXX: Does the amf3 parser have access to the same references as amf0?
-        p = amf3.Parser(self.input)
+        p = amf3.Parser(self.input, self.context)
 
         return p.readElement()
 
     def readElement(self):
-        """Reads the data type."""
+        """
+        Reads an element from the data stream
+        """
         type = self.readType()
 
         try:
@@ -182,9 +198,12 @@ class Parser(object):
         return func()
 
     def readString(self):
+        """
+        Reads a string from the data stream
+        """
         len = self.input.read_ushort()
         return self.input.read_utf8_string(len)
-        
+
     def _readObject(self, obj):
         key = self.readString()
         while self.input.peek() != chr(ASTypes.OBJECTTERM):
@@ -202,17 +221,20 @@ class Parser(object):
         @rettype __builtin__.object
         """
         obj = {}
-        self.obj_refs.append(obj)
         self._readObject(obj)
+
+        self.context.addObject(obj)
 
         return obj
 
     def readReference(self):
         idx = self.input.read_ushort()
-        return self.obj_refs[idx]
+        return self.context.getObject(idx)
 
     def readDate(self):
-        """Reads a date.
+        """
+        Reads a date from the data stream
+        
         Date: 0x0B T7 T6 .. T0 Z1 Z2 T7 to T0 form a 64 bit Big Endian number
         that specifies the number of nanoseconds that have passed since
         1/1/1970 0:00 to the specified time. This format is UTC 1970. Z1 an
@@ -247,11 +269,15 @@ class Encoder(object):
         ((types.InstanceType,types.ObjectType,), "writeObject"),
     ]
 
-    def __init__(self, output):
+    def __init__(self, output, context=None):
         """Constructs a new Encoder. output should be a writable
         file-like object."""
         self.output = output
-        self.obj_refs = []
+
+        if context == None:
+            self.context = pyamf.Context()
+        else:
+            self.context = context
 
     def writeType(self, type):
         """
@@ -311,7 +337,7 @@ class Encoder(object):
         self.output.write(s)
 
     def writeReference(self, o):
-        idx = self.obj_refs.index(o)
+        idx = self.context.getObjectReference(o)
 
         self.writeType(ASTypes.REFERENCE)
         self.output.write_ushort(idx)
@@ -349,14 +375,26 @@ class Encoder(object):
         try:
             self.writeReference(o)
             return
-        except ValueError, e:
+        except pyamf.ReferenceError:
             pass
 
-        self.obj_refs.append(o)
-        self.writeType(ASTypes.OBJECT)
+        self.context.addObject(o)
+
+        # Need to check here if this object has a registered alias
+        try:
+            alias = pyamf.get_class_alias(o)
+            self.writeType(ASTypes.TYPEDOBJECT)
+            self.writeString(alias, False)
+        except LookupError:
+            self.writeType(ASTypes.OBJECT)
 
         # TODO: give objects a chance of controlling what we send
-        for key, val in o.__dict__.items():
+        if 'iteritems' in dir(o):
+            it = o.iteritems()
+        else:
+            it = o.__dict__.iteritems()
+
+        for key, val in it:
             self.writeString(key, False)
             self.writeElement(val)
 

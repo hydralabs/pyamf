@@ -30,6 +30,7 @@ import unittest
 
 import pyamf
 from pyamf import amf0, util
+from pyamf.tests.util import GenericObject, EncoderTester, ParserTester
 
 class TypesTestCase(unittest.TestCase):
     def test_types(self):
@@ -51,36 +52,6 @@ class TypesTestCase(unittest.TestCase):
         self.assertEquals(amf0.ASTypes.XML, 0x0f)
         self.assertEquals(amf0.ASTypes.TYPEDOBJECT, 0x10)
         self.assertEquals(amf0.ASTypes.AMF3, 0x11)
-
-class GenericObject(object):
-    def __init__(self, dict):
-        self.__dict__ = dict
-
-    def __cmp__(self, other):
-        return cmp(self.__dict__, other)
-
-class EncoderTester(object):
-    """
-    A helper object that takes some input, runs over the encoder and checks
-    the output
-    """
-
-    def __init__(self, encoder, data):
-        self.encoder = encoder
-        self.buf = encoder.output
-        self.data = data
-
-    def getval(self):
-        t = self.buf.getvalue()
-        self.buf.truncate(0)
-
-        return t
-
-    def run(self, testcase):
-        for n, s in self.data:
-            self.encoder.writeElement(n)
-
-            testcase.assertEqual(self.getval(), s)
 
 class EncoderTestCase(unittest.TestCase):
     """
@@ -177,30 +148,22 @@ class EncoderTestCase(unittest.TestCase):
             (GenericObject({'a': 'b'}),
                 '\x03\x00\x01a\x02\x00\x01b\x00\x00\x09')])
 
-class ParserTester(object):
-    """
-    A helper object that takes some input, runs over the parser and checks
-    the output
-    """
+    def test_typed_object(self):
+        class Foo(object):
+            pass
 
-    def __init__(self, parser, data):
-        self.parser = parser
-        self.buf = parser.input
-        self.data = data
+        pyamf.CLASS_CACHE = {}
+        pyamf.register_class(Foo, alias='com.collab.dev.pyamf.foo')
 
-    def getval(self):
-        t = self.buf.getvalue()
-        self.buf.truncate(0)
+        x = Foo()
+        x.baz = 'hello'
 
-        return t
-
-    def run(self, testcase):
-        for n, s in self.data:
-            self.buf.truncate(0)
-            self.buf.write(s)
-            self.buf.seek(0)
-
-            testcase.assertEqual(self.parser.readElement(), n)
+        self.e.writeElement(x)
+        
+        self.assertEquals(self.buf.getvalue(),
+            '\x10\x00\x18\x63\x6f\x6d\x2e\x63\x6f\x6c\x6c\x61\x62\x2e\x64\x65'
+            '\x76\x2e\x70\x79\x61\x6d\x66\x2e\x66\x6f\x6f\x00\x03\x62\x61\x7a'
+            '\x02\x00\x05\x68\x65\x6c\x6c\x6f\x00\x00\x09')
 
 class ParserTestCase(unittest.TestCase):
     def setUp(self):
@@ -288,6 +251,25 @@ class ParserTestCase(unittest.TestCase):
         self._run([
             (GenericObject({'a': 'b'}),
                 '\x03\x00\x01a\x02\x00\x01b\x00\x00\x09')])
+
+    def test_registered_class(self):
+        class Foo(object):
+            pass
+
+        pyamf.CLASS_CACHE = {}
+        pyamf.register_class(Foo, alias='com.collab.dev.pyamf.foo')
+
+        self.buf.write('\x10\x00\x18\x63\x6f\x6d\x2e\x63\x6f\x6c\x6c\x61\x62'
+            '\x2e\x64\x65\x76\x2e\x70\x79\x61\x6d\x66\x2e\x66\x6f\x6f\x00\x03'
+            '\x62\x61\x7a\x02\x00\x05\x68\x65\x6c\x6c\x6f\x00\x00\x09')
+        self.buf.seek(0)
+
+        obj = self.parser.readElement()
+
+        self.assertEquals(obj.__class__, Foo)
+
+        self.failUnless(hasattr(obj, 'baz'))
+        self.assertEquals(obj.baz, 'hello')
 
 def suite():
     suite = unittest.TestSuite()
