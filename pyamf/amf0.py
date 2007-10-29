@@ -33,7 +33,7 @@
 
 """AMF0 Implementation"""
 
-import datetime, time, types
+import datetime, calendar, types
 
 import pyamf
 from pyamf import util
@@ -234,17 +234,20 @@ class Parser(object):
 
     def readDate(self):
         """
-        Reads a date from the data stream
-        
+        Reads a UTC date from the data stream
+
         Date: 0x0B T7 T6 .. T0 Z1 Z2 T7 to T0 form a 64 bit Big Endian number
         that specifies the number of nanoseconds that have passed since
         1/1/1970 0:00 to the specified time. This format is UTC 1970. Z1 an
         Z0 for a 16 bit Big Endian number indicating the indicated time's
-        timezone in minutes."""
-        ms = self.input.read_double()
+        timezone in minutes.
+        """
+        ms = self.input.read_double() / 1000.0
         tz = self.input.read_short()
 
-        return datetime.datetime.fromtimestamp(ms/100, None)
+        # Timezones are ignored
+
+        return datetime.datetime.utcfromtimestamp(ms)
 
     def readLongString(self):
         len = self.input.read_ulong()
@@ -402,18 +405,16 @@ class Encoder(object):
         self._writeEndObject()
 
     def writeDate(self, d):
-        if isinstance(d, datetime.date):
-            d = datetime.datetime.combine(d, datetime.time(0))
+        """
+        Writes a date to the data stream.
 
-        ms = time.mktime(d.timetuple())
+        If d.tzinfo is None, d will be assumed to be in UTC
+        """
+        secs = util.get_timestamp(d)
         tz = 0
 
-        if d.tzinfo:
-            gmt = datetime.datetime(*time.gmtime(ms)[0:6])
-            # TODO: complete support for timezones
-
         self.writeType(ASTypes.DATE)
-        self.output.write_double(ms * 100.0)
+        self.output.write_double(secs * 1000.0)
         self.output.write_short(tz)
 
     def writeXML(self, e):

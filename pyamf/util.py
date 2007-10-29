@@ -26,7 +26,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
-import struct, time
+import struct, calendar, datetime
 from StringIO import StringIO
 
 try:
@@ -38,8 +38,10 @@ except ImportError:
         import elementtree.ElementTree as ET
 
 class NetworkIOMixIn(object):
-    """Provides mix-in methods for file like objects to read and write basic
-    datatypes in network (= big-endian) byte-order."""
+    """
+    Provides mix-in methods for file like objects to read and write basic
+    datatypes in network (= big-endian) byte-order.
+    """
 
     def read_uchar(self):
         return struct.unpack("!B", self.read(1))[0]
@@ -91,9 +93,10 @@ class NetworkIOMixIn(object):
         self.write(u.encode("utf8"))
 
 class BufferedByteStream(StringIO, NetworkIOMixIn):
-    """An extension of StringIO that:
-        - Raises EOFError if reading past end
-        - Allows you to peek() at the next byte
+    """
+    An extension of StringIO that:
+     - Raises EOFError if reading past end
+     - Allows you to peek() at the next byte
     """
 
     def __init__(self, *args, **kwargs):
@@ -125,28 +128,51 @@ class BufferedByteStream(StringIO, NetworkIOMixIn):
         return bytes
 
     def at_eof(self):
-        "Returns true if next .read(1) will trigger EOFError"
+        """
+        Returns true if next .read(1) will trigger EOFError
+        """
         return self.tell() >= self.len
 
     def remaining(self):
-        "Returns number of remaining bytes"
+        """
+        Returns number of remaining bytes
+        """
         return self.len - self.tell()
 
 def hexdump(data):
     import string
-    hex = ascii = ""
-    buf = ""
+
+    hex = ascii = bug = ""
     index = 0
+
     for c in data:
         hex += "%02x " % ord(c)
         if c in string.printable and c not in string.whitespace:
             ascii += c
         else:
             ascii += "."
+
         if len(ascii) == 16:
             buf += "%04x:  %s %s %s\n" % (index, hex[:24], hex[24:], ascii)
             hex = ascii = ""
             index += 16
+
     if len(ascii):
         buf += "%04x:  %-24s %-24s %s\n" % (index, hex[:24], hex[24:], ascii)
+
     return buf
+
+def get_timestamp(d):
+    """
+    Returns a UTC timestamp for a datetime.datetime object.
+
+    Inspiration taken from:
+    http://intertwingly.net/blog/2007/09/02/Dealing-With-Dates
+    """
+    return calendar.timegm(d.utctimetuple())
+
+def get_datetime(ms):
+    """
+    Return a UTC date from a timestamp
+    """
+    return datetime.datetime.utcfromtimestamp(ms)

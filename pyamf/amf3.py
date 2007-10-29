@@ -245,12 +245,12 @@ class Parser(object):
 
     def readDate(self):
         ref = self.readInteger()
-        
+
         if ref & REFERENCE_BIT == 0:
             return self.context.getObject(ref >> 1)
 
         ms = self.input.read_double()
-        result = datetime.datetime.fromtimestamp(ms / 100)
+        result = util.get_datetime(ms / 1000.0)
 
         self.context.addObject(result)
 
@@ -501,9 +501,6 @@ class Encoder(object):
         """
         Writes a datetime instance to the stream.
         """
-        if isinstance(n, datetime.date):
-            n = datetime.datetime.combine(n, datetime.time(0))
-
         self.writeType(ASTypes.DATE)
 
         try:
@@ -517,8 +514,8 @@ class Encoder(object):
         self.context.addObject(n)
         self._writeInteger(REFERENCE_BIT)
 
-        ms = time.mktime(n.timetuple())
-        self.output.write_double(ms * 100.0)
+        ms = util.get_timestamp(n)
+        self.output.write_double(ms * 1000.0)
 
     def writeList(self, n):
         """

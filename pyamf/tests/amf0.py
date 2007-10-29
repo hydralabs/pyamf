@@ -125,11 +125,11 @@ class EncoderTestCase(unittest.TestCase):
                 '\x00\x00\x09')])
 
     def test_date(self):
-        import datetime, time
+        import datetime
 
         self._run([
-            (datetime.datetime(1999, 9, 9), '\x0b\x42\x35\xcf\xf3\x93\xc0\x00'
-                '\x00\x00\x00')])
+            (datetime.datetime(2005, 3, 18, 1, 58, 31),
+                 '\x0bBp+6!\x15\x80\x00\x00\x00')])
 
     # TODO testing for timezones
 
@@ -159,7 +159,7 @@ class EncoderTestCase(unittest.TestCase):
         x.baz = 'hello'
 
         self.e.writeElement(x)
-        
+
         self.assertEquals(self.buf.getvalue(),
             '\x10\x00\x18\x63\x6f\x6d\x2e\x63\x6f\x6c\x6c\x61\x62\x2e\x64\x65'
             '\x76\x2e\x70\x79\x61\x6d\x66\x2e\x66\x6f\x6f\x00\x03\x62\x61\x7a'
@@ -233,8 +233,8 @@ class ParserTestCase(unittest.TestCase):
         import datetime, time
 
         self._run([
-            (datetime.datetime(1999, 9, 9), '\x0b\x42\x35\xcf\xf3\x93\xc0\x00'
-                '\x00\x00\x00')])
+            (datetime.datetime(2005, 3, 18, 1, 58, 31),
+                '\x0bBp+6!\x15\x80\x00\x00\x00')])
 
     # TODO testing for timezones
 

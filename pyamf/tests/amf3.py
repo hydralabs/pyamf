@@ -95,21 +95,21 @@ class EncoderTestCase(unittest.TestCase):
             ('hello', '\x06\x00')])
 
     def test_date(self):
-        import datetime, time
+        import datetime
 
         self._run([
-            (datetime.datetime(1999, 9, 9, 3, 4, 43),
-                '\x08\x01B5\xcf\xf3\x93\xc0\x00\x00')])
+            (datetime.datetime(2005, 3, 18, 1, 58, 31),
+                '\x08\x01Bp+6!\x15\x80\x00')])
 
     def test_date_references(self):
-        import datetime, time
+        import datetime
 
         self.e.obj_refs = []
 
-        x = datetime.datetime(1999, 9, 9, 3, 4, 43)
+        x = datetime.datetime(2005, 3, 18, 1, 58, 31)
 
         self._run([
-            (x, '\x08\x01B5\xcf\xf3\x93\xc0\x00\x00'),
+            (x, '\x08\x01Bp+6!\x15\x80\x00'),
             (x, '\x08\x00'),
             (x, '\x08\x00')])
 
@@ -335,6 +335,13 @@ class ParserTestCase(unittest.TestCase):
 
     def test_byte_array(self):
         self._run([(amf3.ByteArray('hello'), '\x0c\x0bhello')])
+
+    def test_date(self):
+        import datetime
+
+        self._run([
+            (datetime.datetime(2005, 3, 18, 1, 58, 31),
+                '\x08\x01Bp+6!\x15\x80\x00')])
 
 class ModifiedUTF8TestCase(unittest.TestCase):
     data = [
