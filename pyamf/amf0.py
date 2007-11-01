@@ -41,7 +41,8 @@ from pyamf import util
 class ASTypes:
     """
     A placeholder for all AMF0 ActionScript types.
-    Ref: http://osflash.org/documentation/amf/astypes
+
+    Reference: U{http://osflash.org/documentation/amf/astypes}
     """
 
     NUMBER      = 0x00
@@ -186,7 +187,7 @@ class Parser(object):
 
     def readElement(self):
         """
-        Reads an element from the data stream
+        Reads an element from the data stream.
         """
         type = self.readType()
 
@@ -200,7 +201,7 @@ class Parser(object):
 
     def readString(self):
         """
-        Reads a string from the data stream
+        Reads a string from the data stream.
         """
         len = self.input.read_ushort()
         return self.input.read_utf8_string(len)
@@ -216,7 +217,7 @@ class Parser(object):
 
     def readObject(self):
         """
-        Reads an object from the AMF stream
+        Reads an object from the AMF stream.
 
         @return The object
         @rettype __builtin__.object

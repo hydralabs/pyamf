@@ -26,6 +26,10 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
+"""
+Test for AMF0 Implementation
+"""
+
 import unittest
 
 import pyamf

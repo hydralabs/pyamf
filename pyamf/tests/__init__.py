@@ -26,6 +26,10 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
+"""
+Tests for PyAMF
+"""
+
 import unittest
 
 def suite():

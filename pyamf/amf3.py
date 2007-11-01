@@ -25,11 +25,15 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-# Resources:
-#   http://www.vanrijkom.org/archives/2005/06/amf_format.html
-#   http://osflash.org/documentation/amf3
 
-"""AMF3 Implementation"""
+"""
+AMF3 Implementation.
+
+Resources:
+ - U{http://www.vanrijkom.org/archives/2005/06/amf_format.html}
+ - U{http://osflash.org/documentation/amf3}
+
+"""
 
 import types, datetime, time, copy
 
@@ -184,9 +188,10 @@ class Parser(object):
 
     def readInteger(self):
         """
-        Reads and returns an integer from the stream
-        See http://osflash.org/amf3/parsing_integers for AMF3 integer data
-        format
+        Reads and returns an integer from the stream.
+
+        See U{http://osflash.org/amf3/parsing_integers} for AMF3 integer data
+        format.
         """
         n = 0
         b = self.input.read_uchar()
@@ -261,9 +266,9 @@ class Parser(object):
         Reads an array from the stream.
 
         There is a very specific problem with AMF3 where the first three bytes
-        of an encoded empty dict will mirror that of an encoded {'': 1, '2': 2}
+        of an encoded empty dict will mirror that of an encoded C{{'': 1, '2': 2}}
 
-        See http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug
+        See U{http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug}
         for more information.
         """
         if self.input.peek(2) == '\x01\x01':
@@ -370,6 +375,7 @@ class Parser(object):
 
 class Encoder(object):
 
+    #: Python to AMF type mapping.
     type_map = [
         # Unsupported types go first
         ((types.BuiltinFunctionType, types.BuiltinMethodType,), "writeUnsupported"),
@@ -387,8 +393,10 @@ class Encoder(object):
     ]
 
     def __init__(self, output, context=None):
-        """Constructs a new Encoder. output should be a writable
-        file-like object."""
+        """
+        Constructs a new Encoder. Output should be a writable
+        file-like object.
+        """
         self.output = output
 
         if context == None:
@@ -433,7 +441,7 @@ class Encoder(object):
         """
         AMF Integers are encoded.
         
-        See http://osflash.org/documentation/amf3/parsing_integers for more
+        See U{http://osflash.org/documentation/amf3/parsing_integers} for more
         info.
         """
         bytes = []
@@ -455,14 +463,14 @@ class Encoder(object):
 
     def writeInteger(self, n):
         """
-        Writes an integer to the data stream
+        Writes an integer to the data stream.
         """
         self.writeType(ASTypes.INTEGER)
         self._writeInteger(n)
 
     def writeNumber(self, n):
         """
-        Writes a non integer to the data stream
+        Writes a non integer to the data stream.
         """
         self.writeType(ASTypes.NUMBER)
         self.output.write_double(n)
@@ -746,16 +754,16 @@ class ErrorMessage(AbstractMessage):
         This is the receipt for Error Messages.
         """
         AbstractMessage.__init__(self)
-        # Extended data that the remote destination has chosen to associate with 
-        # this error to facilitate custom error processing on the client.
+        #: Extended data that the remote destination has chosen to associate with 
+        #: this error to facilitate custom error processing on the client.
         self.extendedData = {}
-        # The fault code for the error. 
+        #: The fault code for the error. 
         self.faultCode = None
-        # Detailed description of what caused the error. 
+        #: Detailed description of what caused the error. 
         self.faultDetail = None
-        # A simple description of the error. 
+        #: A simple description of the error. 
         self.faultString = None
-        # Should a root cause exist for the error, this property contains those details.
+        #: Should a root cause exist for the error, this property contains those details.
         self.rootCause = {}
 
     def __repr__(self):
@@ -775,7 +783,7 @@ class RemotingMessage(AbstractMessage):
 def encode_utf8_modified(data):
     """
     Encodes a unicode string to Modified UTF-8 data.
-    See http://en.wikipedia.org/wiki/UTF-8#Java for details.
+    See U{http://en.wikipedia.org/wiki/UTF-8#Java} for details.
     """
     if not isinstance(data, unicode):
         data = unicode(data, "utf8")
@@ -808,7 +816,7 @@ def encode_utf8_modified(data):
 def decode_utf8_modified(data):
     """
     Decodes a unicode string from Modified UTF-8 data.
-    See http://en.wikipedia.org/wiki/UTF-8#Java for details.
+    See U{http://en.wikipedia.org/wiki/UTF-8#Java} for details.
     """
     size = ((ord(data[0]) << 8) & 0xff) + ((ord(data[1]) << 0) & 0xff)
     data = data[2:]

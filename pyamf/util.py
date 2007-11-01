@@ -26,6 +26,10 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
+"""
+Utility for PyAMF
+"""
+
 import struct, calendar, datetime
 from StringIO import StringIO
 

@@ -25,11 +25,10 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-#
-# AMF parser
-# sources:
-#   http://www.vanrijkom.org/archives/2005/06/amf_format.html
-#   http://osflash.org/documentation/amf/astypes
+
+"""
+I am a Action Message Format (AMF) decoder and encoder.
+"""
 
 from pyamf import util, amf0, amf3
 
@@ -38,25 +37,25 @@ CLASS_LOADERS = []
 
 class GeneralTypes:
     """
-    PyAMF global constants
+    PyAMF global constants.
     """
-    # Specifies a Flash Player 6.0 - 8.0 client.
+    #: Specifies a Flash Player 6.0 - 8.0 client.
     AC_Flash           = 0
-    # Specifies a FlashCom / Flash Media Server client.
+    #: Specifies a FlashCom / Flash Media Server client.
     AC_FlashCom        = 1
-    # Specifies a Flash Player 9.0 client.
+    #: Specifies a Flash Player 9.0 client.
     AC_Flash9          = 3
-    # Normal result to a methodcall.
+    #: Normal result to a methodcall.
     REMOTING_RESULT    = 1
-    # Faulty result.
+    #: Faulty result.
     REMOTING_STATUS    = 2
-    # Result to a debug-header.
+    #: Result to a debug-header.
     REMOTING_DEBUG     = 3
-    # AMF0 Encoding
+    #: AMF0 Encoding
     AMF0               = 0
-    # AMF3 Encoding
+    #: AMF3 Encoding
     AMF3               = 3
-    # AMF mimetype
+    #: AMF mimetype
     AMF_MIMETYPE       = 'application/x-amf'
 
 class BaseError(Exception):
@@ -86,6 +85,7 @@ class EncodeError(BaseError):
 
 class Context(object):
     """
+
     """
     objects = []
     strings = []
@@ -188,7 +188,7 @@ class Context(object):
 class Bag(dict):
     """
     I supply a thin layer over the __builtin__.dict type to support
-    get/setattr calls
+    get/setattr calls.
     """
 
     def __init__(self, d={}):
@@ -247,12 +247,12 @@ def get_module(mod_name):
 
 def load_class(alias):
     """
-    Finds the class registered to the alias. Raises LookupError if not found
+    Finds the class registered to the alias. Raises LookupError if not found.
 
     The search is done in order:
-    1. Checks if the class name has been registered via pyamf.register_class
-    2. Checks all functions registered via register_class_loader
-    3. Attempts to load the class via standard module loading techniques
+      1. Checks if the class name has been registered via pyamf.register_class
+      2. Checks all functions registered via register_class_loader
+      3. Attempts to load the class via standard module loading techniques
     """
     alias = str(alias)
 
@@ -296,7 +296,7 @@ def load_class(alias):
 
 def get_class_alias(obj):
     """
-    Finds the alias registered to the class. Raises LookupError if not found
+    Finds the alias registered to the class. Raises LookupError if not found.
     
     See L{load_class} for more info
     """
@@ -315,12 +315,18 @@ register_class(Bag, 'flex.messaging.io.ArrayCollection')
 register_class(Bag, 'flex.messaging.io.ObjectProxy')
 
 class AMFMessageDecoder:
+    """
+    Decodes AMF data into Python data.
+    """
     
     def __init__(self, data):
         self.input = util.BufferedByteStream(data)
         self.msg = AMFMessage()
         
     def decode(self):
+        """
+        Start decoding.
+        """
         # The first byte of the AMF file/stream is the AMF type.
         self.msg.amfVersion = self.input.read_uchar()
         if self.msg.amfVersion == GeneralTypes.AMF0:
@@ -382,13 +388,18 @@ class AMFMessageDecoder:
         return self.msg
 
 class AMFMessageEncoder:
-
+    """
+    Encodes Python data into AMF data.
+    """
+    
     def __init__(self, msg):
         self.output = util.BufferedByteStream()
         self.msg = msg
         
     def encode(self):
-        
+        """
+        Start encoding.
+        """
         encoder_class = amf0.Encoder
         # Write AMF version.
         self.output.write_uchar(self.msg.amfVersion)
