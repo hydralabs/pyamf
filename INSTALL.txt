@@ -1,0 +1,30 @@
+====================
+ Installing PyAMF
+====================
+
+:Web-Site: http://collab.com/pyamf
+
+.. contents::
+
+
+Pre-requisites
+----------------
+
+The following software packages are pre-requisites:
+
+- **Python 2.3 or newer**
+
+Installing
+-------------------------------------------------
+
+::
+
+    $ tar zxf PyAMF-<version>.tar.gz
+    $ cd PyAMF-<version>
+    $ python setup.py build
+    $ python setup.py install
+
+If you have installed setuptools you can also optionally run tests like this:
+
+    $ python setup.py test
+
