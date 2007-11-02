@@ -27,7 +27,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
-import sys, glob
+import glob
 from optparse import OptionParser
 
 import pyamf
@@ -56,7 +56,6 @@ def main():
         for fname in glob.glob(arg):
             
             data = read_file(fname)
-            p = pyamf.AMFMessageDecoder(data)
 
             if options.debug:
                 print "=" * 120
@@ -64,15 +63,15 @@ def main():
             print "Decoding file:", fname.rsplit("\\",1)[-1]
 
             try:
-                obj = p.decode()
+                p = pyamf.decode(data)
             except:
                 raise
             else:
                 if options.dump:
                     print pyamf.util.hexdump(data)
-
+                    
                 if options.debug:
-                    print repr(obj)
-    
+                    print repr(p)
+                    
 if __name__ == '__main__':
     main()
