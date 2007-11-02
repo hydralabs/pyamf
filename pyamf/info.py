@@ -54,26 +54,25 @@ def main():
 
     for arg in args:
         for fname in glob.glob(arg):
-            where = fname.find(".py")
-            if where == -1:
-                data = read_file(fname)
-                p = pyamf.AMFMessageDecoder(data)
+            
+            data = read_file(fname)
+            p = pyamf.AMFMessageDecoder(data)
+
+            if options.debug:
+                print "=" * 120
+
+            print "Decoding file:", fname.rsplit("\\",1)[-1]
+
+            try:
+                obj = p.decode()
+            except:
+                raise
+            else:
+                if options.dump:
+                    print pyamf.util.hexdump(data)
 
                 if options.debug:
-                    print "=" * 120
-
-                print "Decoding file:", fname.rsplit("\\",1)[-1]
-
-                try:
-                    obj = p.decode()
-                except:
-                    raise
-                else:
-                    if options.dump:
-                        print pyamf.util.hexdump(data)
-
-                    if options.debug:
-                        print repr(obj)
+                    print repr(obj)
     
 if __name__ == '__main__':
     main()
