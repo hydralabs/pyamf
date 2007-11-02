@@ -2,7 +2,6 @@
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
 # 
-# Thijs Triemstra
 # Nick Joyce
 # 
 # Permission is hereby granted, free of charge, to any person obtaining
@@ -22,11 +21,24 @@
 # NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
 # LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
+# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
 
-"""
-Server/client implementations for PyAMF
-"""
+from pyamf.gateway.wsgi import Gateway
+from wsgiref import simple_server
 
-CONTENT_TYPE = 'application/x-amf'
+def echo(data):
+    return data
+
+if __name__ == '__main__':
+    services = {
+        'echo': echo
+    }
+
+    gw = Gateway(services)
+
+    httpd = simple_server.WSGIServer(
+        ('',8000),
+        simple_server.WSGIRequestHandler,
+    )
+    httpd.set_app(gw)
+    httpd.serve_forever()

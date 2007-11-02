@@ -99,7 +99,7 @@ class Envelope(dict):
         dict.__setitem__(self, idx, value)
 
     def __iter__(self):
-        return iter([(k, v) for (k, v) in self.iteritems()])
+        return iter([v for (k, v) in self.iteritems()])
 
 class Message(object):
     """
