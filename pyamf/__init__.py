@@ -2,6 +2,8 @@
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
 # 
+# Arnar Birgisson
+# Thijs Triemstra
 # Nick Joyce
 # 
 # Permission is hereby granted, free of charge, to any person obtaining
