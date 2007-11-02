@@ -26,10 +26,6 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
-"""
-Utility for PyAMF
-"""
-
 import struct, calendar, datetime
 from StringIO import StringIO
 
@@ -146,7 +142,7 @@ class BufferedByteStream(StringIO, NetworkIOMixIn):
 def hexdump(data):
     import string
 
-    hex = ascii = bug = ""
+    hex = ascii = buf = ""
     index = 0
 
     for c in data:

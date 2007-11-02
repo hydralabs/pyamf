@@ -26,10 +26,6 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
-"""
-Test for AMF3 Implementation
-"""
-
 import unittest
 
 import pyamf
@@ -262,6 +258,7 @@ class ParserTestCase(unittest.TestCase):
 
     def test_list(self):
         self._run([
+            ([], '\x09\x01\x01'),
             ([0, 1, 2, 3], '\x09\x09\x01\x04\x00\x04\x01\x04\x02\x04\x03'),
             (["Hello", 2, 3, 4, 5], '\x09\x0b\x01\x06\x0b\x48\x65\x6c\x6c\x6f'
                 '\x04\x02\x04\x03\x04\x04\x04\x05')])
@@ -296,25 +293,6 @@ class ParserTestCase(unittest.TestCase):
         self._run([
             ({'baz': u'hello'}, '\x0a\x13\x01\x07\x62\x61\x7a\x06\x0b\x68\x65'
                 '\x6c\x6c\x6f')])
-
-    def test_empty_dict(self):
-        """
-        There is a very specific problem with AMF3 where the first three bytes
-        of an encoded empty dict will mirror that of an encoded {'': 1, '2': 2}
-
-        See http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug
-        for more information.
-        """
-        self.buf.truncate(0)
-        self.buf.write('\x09\x01\x01')
-        self.buf.seek(0)
-
-        self.failUnlessRaises(pyamf.ParseError, self.parser.readElement)
-
-        def x():
-            self._run([({'': 1}, '\x09\x01\x01\x04\x01\x01')])
-
-        self.failUnlessRaises(pyamf.ParseError, x)
 
     def test_object(self):
         class Foo(object):

@@ -271,9 +271,6 @@ class Parser(object):
         See U{http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug}
         for more information.
         """
-        if self.input.peek(2) == '\x01\x01':
-            raise pyamf.ParseError("empty dict bug encountered")
-
         size = self.readInteger()
 
         if size & REFERENCE_BIT == 0:
@@ -327,11 +324,12 @@ class Parser(object):
         Reads an object from the stream.
         """
         ref = self.readInteger()
-
+        
         if ref & REFERENCE_BIT == 0:
             return self.context.getObject(ref >> 1)
 
         ref >>= 1
+
         (class_ref, class_def) = self._getClassDefinition(ref)
         ref >>= 3
 
@@ -698,87 +696,47 @@ class Encoder(object):
             self.output.write_uchar(ord(ch))
 
 class AbstractMessage(object):
-
-    def __init__(self):
-        # The body of the message.
-        self.data = None
-        # Unique client ID.
-        self.clientId = None
-        # Destination.
-        self.destination = None
-        # Message headers.
-        self.headers = []
-        # Unique message ID 
-        self.messageId = None
-        # timeToLive
-        self.timeToLive = None
-        # timestamp
-        self.timestamp = None
-
-    def __repr__(self):
-        return "<AbstractMessage clientId=%s data=%r>" % (self.clientId, self.data)
-
-class AcknowledgeMessage(AbstractMessage):
-
-    def __init__(self):
-        """
-        This is the receipt for any message thats being sent.
-        """
-        AbstractMessage.__init__(self)
-        # The ID of the message where this is a receipt of.
-        self.correlationId = None
-
-    def __repr__(self):
-        return "<AcknowledgeMessage correlationId=%s>" % (self.correlationId)
-
-class CommandMessage(AbstractMessage):
-
-    def __init__(self):
-        """
-        This class is used for service commands, like pinging the server.
-        """
-        AbstractMessage.__init__(self)
-        self.operation = None
-        # The ID of the message where this is a receipt of.
-        self.correlationId = None
-        self.messageRefType = None
+    data = None
+    clientId = None
+    destination = None
+    headers = []
+    messageId = None
+    timeToLive = None
+    timestamp = None
     
     def __repr__(self):
-        return "<CommandMessage correlationId=%s operation=%r messageRefType=%d>" % (
-            self.correlationId, self.operation, self.messageRefType)
+        m = '<%s ' % self.__class__.__name__
+
+        for k, v in self.__dict__.iteritems():
+            m += ' %s=%s' % (k, v)
+
+        return m + " />"
+
+class AsyncMessage(AbstractMessage):
+    correlationId = None
+
+class AcknowledgeMessage(AsyncMessage):
+    pass
+
+class CommandMessage(AsyncMessage):
+    operation = None
+    messageRefType = None
 
 class ErrorMessage(AbstractMessage):
-
-    def __init__(self):
-        """
-        This is the receipt for Error Messages.
-        """
-        AbstractMessage.__init__(self)
-        #: Extended data that the remote destination has chosen to associate with 
-        #: this error to facilitate custom error processing on the client.
-        self.extendedData = {}
-        #: The fault code for the error. 
-        self.faultCode = None
-        #: Detailed description of what caused the error. 
-        self.faultDetail = None
-        #: A simple description of the error. 
-        self.faultString = None
-        #: Should a root cause exist for the error, this property contains those details.
-        self.rootCause = {}
-
-    def __repr__(self):
-        return "<ErrorMessage faultCode=%s faultString=%r>" % (
-            self.faultCode, self.faultString)
+    extendedData = {}
+    faultCode = None
+    faultDetail = None
+    faultString = None
+    rootCause = {}
 
 class RemotingMessage(AbstractMessage):
+    operation = None
+    source = None
 
-    def __init__(self):
-        AbstractMessage.__init__(self)
-        self.operation = None
-        self.source = None
-
-    def __repr__(self):
-        return "<RemotingMessage operation=%s source=%r>" % (self.operation, self.source)
+pyamf.register_class(RemotingMessage, 'flex.messaging.messages.RemotingMessage')
+pyamf.register_class(ErrorMessage, 'flex.messaging.messages.ErrorMessage')
+pyamf.register_class(CommandMessage, 'flex.messaging.messages.CommandMessage')
+pyamf.register_class(AcknowledgeMessage, 'flex.messaging.messages.AcknowledgeMessage')
 
 def encode_utf8_modified(data):
     """
@@ -845,3 +803,25 @@ def decode_utf8_modified(data):
     utf16 = "".join([chr((c >> 8) & 0xff) + chr(c & 0xff) for c in utf16])
 
     return unicode(utf16, "utf_16_be")
+
+def decode(stream, context=None):
+    """
+    A helper function to decode an AMF3 datastream. 
+    """
+    decoder = Parser(stream, context)
+    
+    for el in decoder.readElement():
+        yield el
+
+def encode(element, context=None):
+    """
+    A helper function to encode an element into AMF3 format.
+
+    Returns a StringIO object
+    """
+    buf = util.BufferedByteStream()
+    encoder = Encoder(buf, context)
+
+    encoder.writeElement(element)
+
+    return buf

@@ -34,11 +34,12 @@ import unittest
 
 def suite():
     import pyamf
-    from pyamf.tests import amf0, amf3
+    from pyamf.tests import amf0, amf3, remoting
 
     suite = unittest.TestSuite()
     suite.addTest(amf0.suite())
     suite.addTest(amf3.suite())
+    suite.addTest(remoting.suite())
 
     return suite
 

@@ -424,3 +424,25 @@ class Encoder(object):
         self.writeType(ASTypes.XML)
         self.output.write_ulong(len(data))
         self.output.write(data)
+
+def decode(stream, context=None):
+    """
+    A helper function to decode an AMF0 datastream. 
+    """
+    decoder = Parser(stream, context)
+    
+    for el in decoder.readElement():
+        yield el
+
+def encode(element, context=None):
+    """
+    A helper function to encode an element into AMF0 format.
+    
+    Returns a StringIO object
+    """
+    buf = util.BufferedByteStream()
+    encoder = Encoder(buf, context)
+
+    encoder.writeElement(element)
+
+    return buf
