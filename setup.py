@@ -38,10 +38,17 @@ setup(name = "PyAMF",
     packages = ["pyamf"],
     test_suite = "pyamf.tests.suite",
     license = "MIT License",
+    entry_points={
+        'console_scripts': [
+            'amfinfo = pyamf.info:main',
+        ],
+    },
     classifiers = [
         "Development Status :: 2 - Pre-Alpha",
+        "Natural Language :: English",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
+        "Topic :: Software Development :: Libraries :: Python Modules",
     ])
