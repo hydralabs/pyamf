@@ -117,7 +117,7 @@ class ClassDefinition(object):
     static = property(is_static)
     dynamic = property(is_dynamic)
 
-class Parser(object):
+class Decoder(object):
     """
     Parses an AMF3 data stream
     """
@@ -808,7 +808,7 @@ def decode(stream, context=None):
     """
     A helper function to decode an AMF3 datastream. 
     """
-    decoder = Parser(stream, context)
+    decoder = Decoder(stream, context)
     
     for el in decoder.readElement():
         yield el

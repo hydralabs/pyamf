@@ -64,15 +64,15 @@ class EncoderTester(object):
 
             testcase.assertEqual(self.getval(), s)
 
-class ParserTester(object):
+class DecoderTester(object):
     """
-    A helper object that takes some input, runs over the parser and checks
+    A helper object that takes some input, runs over the decoder and checks
     the output
     """
 
-    def __init__(self, parser, data):
-        self.parser = parser
-        self.buf = parser.input
+    def __init__(self, decoder, data):
+        self.decoder = decoder
+        self.buf = decoder.input
         self.data = data
 
     def run(self, testcase):
@@ -81,7 +81,7 @@ class ParserTester(object):
             self.buf.write(s)
             self.buf.seek(0)
 
-            testcase.assertEqual(self.parser.readElement(), n)
+            testcase.assertEqual(self.decoder.readElement(), n)
             
             if self.buf.remaining() != 0:
                 from pyamf.util import hexdump

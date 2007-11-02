@@ -34,7 +34,7 @@ import unittest
 
 import pyamf
 from pyamf import amf0, util
-from pyamf.tests.util import GenericObject, EncoderTester, ParserTester
+from pyamf.tests.util import GenericObject, EncoderTester, DecoderTester
 
 class TypesTestCase(unittest.TestCase):
     def test_types(self):
@@ -169,26 +169,26 @@ class EncoderTestCase(unittest.TestCase):
             '\x76\x2e\x70\x79\x61\x6d\x66\x2e\x66\x6f\x6f\x00\x03\x62\x61\x7a'
             '\x02\x00\x05\x68\x65\x6c\x6c\x6f\x00\x00\x09')
 
-class ParserTestCase(unittest.TestCase):
+class DecoderTestCase(unittest.TestCase):
     def setUp(self):
         self.buf = util.BufferedByteStream()
-        self.parser = amf0.Parser()
-        self.parser.input = self.buf
+        self.decoder = amf0.Decoder()
+        self.decoder.input = self.buf
 
     def _run(self, data):
-        e = ParserTester(self.parser, data)
+        e = DecoderTester(self.decoder, data)
         e.run(self)
 
     def test_types(self):
         for x in amf0.ACTIONSCRIPT_TYPES:
             self.buf.write(chr(x))
             self.buf.seek(0)
-            self.parser.readType()
+            self.decoder.readType()
             self.buf.truncate(0)
 
         self.buf.write('x')
         self.buf.seek(0)
-        self.assertRaises(pyamf.ParseError, self.parser.readType)
+        self.assertRaises(pyamf.ParseError, self.decoder.readType)
 
     def test_number(self):
         self._run([
@@ -249,7 +249,7 @@ class ParserTestCase(unittest.TestCase):
 
         self.assertEquals(
             util.ET.tostring(util.ET.fromstring('<a><b>hello world</b></a>')),
-            util.ET.tostring(self.parser.readElement()))
+            util.ET.tostring(self.decoder.readElement()))
 
     def test_object(self):
         self._run([
@@ -268,7 +268,7 @@ class ParserTestCase(unittest.TestCase):
             '\x62\x61\x7a\x02\x00\x05\x68\x65\x6c\x6c\x6f\x00\x00\x09')
         self.buf.seek(0)
 
-        obj = self.parser.readElement()
+        obj = self.decoder.readElement()
 
         self.assertEquals(obj.__class__, Foo)
 
@@ -280,7 +280,7 @@ def suite():
 
     suite.addTest(unittest.makeSuite(TypesTestCase, 'test'))
     suite.addTest(unittest.makeSuite(EncoderTestCase, 'test'))
-    suite.addTest(unittest.makeSuite(ParserTestCase, 'test'))
+    suite.addTest(unittest.makeSuite(DecoderTestCase, 'test'))
 
     return suite
 

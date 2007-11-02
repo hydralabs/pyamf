@@ -30,7 +30,7 @@ import unittest
 
 import pyamf
 from pyamf import amf3, util
-from pyamf.tests.util import GenericObject, EncoderTester, ParserTester
+from pyamf.tests.util import GenericObject, EncoderTester, DecoderTester
 
 class TypesTestCase(unittest.TestCase):
     def test_types(self):
@@ -134,7 +134,7 @@ class EncoderTestCase(unittest.TestCase):
             '\x09\x0d\x03\x61\x06\x00\x01\x04\x00\x04\x01\x04\x02\x04\x03\x04'
             '\x04\x04\x05')])
 
-        x = amf3.Parser('\x09\x09\x03\x62\x06\x00\x03\x64\x06\x02\x03\x61\x06'
+        x = amf3.Decoder('\x09\x09\x03\x62\x06\x00\x03\x64\x06\x02\x03\x61\x06'
         '\x04\x03\x63\x06\x06\x01\x04\x00\x04\x01\x04\x02\x04\x03')
 
         self.assertEqual(
@@ -175,28 +175,28 @@ class EncoderTestCase(unittest.TestCase):
     def test_byte_array(self):
         self._run([(amf3.ByteArray('hello'), '\x0c\x0bhello')])
 
-class ParserTestCase(unittest.TestCase):
+class DecoderTestCase(unittest.TestCase):
     def setUp(self):
         self.buf = util.BufferedByteStream()
         self.context = pyamf.Context()
-        self.parser = amf3.Parser(context=self.context)
-        self.parser.input = self.buf
+        self.decoder = amf3.Decoder(context=self.context)
+        self.decoder.input = self.buf
 
     def _run(self, data):
         self.context.clear()
-        e = ParserTester(self.parser, data)
+        e = DecoderTester(self.decoder, data)
         e.run(self)
 
     def test_types(self):
         for x in amf3.ACTIONSCRIPT_TYPES:
             self.buf.write(chr(x))
             self.buf.seek(0)
-            self.parser.readType()
+            self.decoder.readType()
             self.buf.truncate(0)
 
         self.buf.write('x')
         self.buf.seek(0)
-        self.assertRaises(pyamf.ParseError, self.parser.readType)
+        self.assertRaises(pyamf.ParseError, self.decoder.readType)
 
     def test_number(self):
         self._run([
@@ -235,7 +235,7 @@ class ParserTestCase(unittest.TestCase):
                 )])
 
     def test_string_references(self):
-        self.parser.str_refs = []
+        self.decoder.str_refs = []
 
         self._run([
             ('hello', '\x06\x0bhello'),
@@ -249,7 +249,7 @@ class ParserTestCase(unittest.TestCase):
 
         self.assertEquals(
             util.ET.tostring(util.ET.fromstring('<a><b>hello world</b></a>')),
-            util.ET.tostring(self.parser.readElement()))
+            util.ET.tostring(self.decoder.readElement()))
 
     def test_xmlstring(self):
         self._run([
@@ -308,7 +308,7 @@ class ParserTestCase(unittest.TestCase):
             '\x61\x7a\x06\x0b\x68\x65\x6c\x6c\x6f')
         self.buf.seek(0)
 
-        obj = self.parser.readElement()
+        obj = self.decoder.readElement()
 
         self.assertEquals(obj.__class__, Foo)
 
@@ -366,7 +366,7 @@ def suite():
     suite.addTest(unittest.makeSuite(TypesTestCase, 'test'))
     suite.addTest(unittest.makeSuite(ModifiedUTF8TestCase, 'test'))
     suite.addTest(unittest.makeSuite(EncoderTestCase, 'test'))
-    suite.addTest(unittest.makeSuite(ParserTestCase, 'test'))
+    suite.addTest(unittest.makeSuite(DecoderTestCase, 'test'))
 
     return suite
 

@@ -26,7 +26,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 #
-# AMF parser
+# AMF decoder
 # sources:
 #   http://www.vanrijkom.org/archives/2005/06/amf_format.html
 #   http://osflash.org/documentation/amf/astypes
@@ -69,7 +69,7 @@ class ASTypes:
 ACTIONSCRIPT_TYPES = set(
     ASTypes.__dict__[x] for x in ASTypes.__dict__ if not x.startswith('__'))
 
-class Parser(object):
+class Decoder(object):
     """
     Parses an AMF0 stream
     """
@@ -180,8 +180,8 @@ class Parser(object):
     def readAMF3(self):
         from pyamf import amf3
 
-        # XXX: Does the amf3 parser have access to the same references as amf0?
-        p = amf3.Parser(self.input, self.context)
+        # XXX: Does the amf3 decoder have access to the same references as amf0?
+        p = amf3.Decoder(self.input, self.context)
 
         return p.readElement()
 
@@ -429,7 +429,7 @@ def decode(stream, context=None):
     """
     A helper function to decode an AMF0 datastream. 
     """
-    decoder = Parser(stream, context)
+    decoder = Decoder(stream, context)
     
     for el in decoder.readElement():
         yield el

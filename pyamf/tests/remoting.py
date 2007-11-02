@@ -120,7 +120,7 @@ class DecoderTestCase(unittest.TestCase):
         self.assertEquals('/1' in msg, True)
         
         m = msg['/1']
-        
+
         self.assertEquals(m.target, 'test.test')
         self.assertEquals(m.body, {'a': 'a'})
 
@@ -128,9 +128,8 @@ class DecoderTestCase(unittest.TestCase):
 
         self.assertEquals(len(y), 1)
 
-        target, x = y[0]
+        x = y[0]
         self.assertEquals(m, x)
-        self.assertEquals(target, '/1')
 
     def test_invalid_body_data_length(self):
         self.failUnlessRaises(pyamf.ParseError, remoting.decode,

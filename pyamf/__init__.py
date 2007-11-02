@@ -26,7 +26,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 #
-# AMF parser
+# AMF decoder
 # sources:
 #   http://www.vanrijkom.org/archives/2005/06/amf_format.html
 #   http://osflash.org/documentation/amf/astypes
@@ -359,11 +359,11 @@ def _get_decoder(encoding):
     if encoding == pyamf.AMF0:
         import pyamf.amf0
 
-        return pyamf.amf0.Parser
+        return pyamf.amf0.Decoder
     elif encoding == pyamf.AMF3:
         import pyamf.amf3
 
-        return pyamf.amf3.Parser
+        return pyamf.amf3.Decoder
 
     raise ValueError("Unknown encoding")
 
