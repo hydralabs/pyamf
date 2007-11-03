@@ -67,6 +67,8 @@ class EncoderTestCase(unittest.TestCase):
         self.e = amf0.Encoder(self.buf)
 
     def _run(self, data):
+        self.e.context.clear()
+
         e = EncoderTester(self.e, data)
         e.run(self)
 
@@ -135,8 +137,6 @@ class EncoderTestCase(unittest.TestCase):
             (datetime.datetime(2005, 3, 18, 1, 58, 31),
                  '\x0bBp+6!\x15\x80\x00\x00\x00')])
 
-    # TODO testing for timezones
-
     def test_xml(self):
         self._run([
             (util.ET.fromstring('<a><b>hello world</b></a>'), '\x0f\x00\x00'
@@ -149,7 +149,7 @@ class EncoderTestCase(unittest.TestCase):
 
     def test_object(self):
         self._run([
-            (GenericObject({'a': 'b'}),
+            (pyamf.Bag({'a': 'b'}),
                 '\x03\x00\x01a\x02\x00\x01b\x00\x00\x09')])
 
     def test_typed_object(self):
@@ -174,6 +174,25 @@ class EncoderTestCase(unittest.TestCase):
             '\x02\x00\x05\x68\x65\x6c\x6c\x6f\x00\x00\x09')
 
         del pyamf.CLASS_CACHE['com.collab.dev.pyamf.foo']
+
+    def test_complex_list(self):
+        x = pyamf.Bag({'a': 'foo', 'b': 'bar'})
+
+        self._run([
+            ([[1.0]], '\x0A\x00\x00\x00\x01\x0A\x00\x00\x00\x01\x00\x3F\xF0\x00'
+                '\x00\x00\x00\x00\x00')])
+
+        self._run([
+            ([['test','test','test','test']], '\x0A\x00\x00\x00\x01\x0A\x00\x00'
+                '\x00\x04\x02\x00\x04\x74\x65\x73\x74\x02\x00\x04\x74\x65\x73'
+                '\x74\x02\x00\x04\x74\x65\x73\x74\x02\x00\x04\x74\x65\x73\x74')
+        ])
+
+        self._run([
+            ([[x, x]],
+                '\x0A\x00\x00\x00\x01\x0A\x00\x00\x00\x02\x03\x00\x01\x62\x02'
+                '\x00\x03\x62\x61\x72\x00\x01\x61\x02\x00\x03\x66\x6F\x6F\x00'
+                '\x00\x09\x07\x00\x01')])
 
 class DecoderTestCase(unittest.TestCase):
     def setUp(self):
@@ -260,7 +279,7 @@ class DecoderTestCase(unittest.TestCase):
 
     def test_object(self):
         self._run([
-            (GenericObject({'a': 'b'}),
+            (pyamf.Bag({'a': 'b'}),
                 '\x03\x00\x01a\x02\x00\x01b\x00\x00\x09')])
 
     def test_registered_class(self):
@@ -281,7 +300,7 @@ class DecoderTestCase(unittest.TestCase):
 
         obj = self.decoder.readElement()
 
-        self.assertEquals(obj.__class__, Foo)
+        self.assertEquals(type(obj), Foo)
 
         self.failUnless(hasattr(obj, 'baz'))
         self.assertEquals(obj.baz, 'hello')
@@ -292,9 +311,19 @@ class DecoderTestCase(unittest.TestCase):
         x = datetime.datetime(2007, 11, 3, 8, 7, 37, 437000)
 
         self._run([
-            ([[x, x]], '\x0A\x00\x00\x00\x01\x0A\x00\x00\x00\x02\x0B\x42\x71'
-                '\x60\x48\xCF\xED\xD0\x00\x00\x00\x07\x00\x01'),
+            ([['test','test','test','test']], '\x0A\x00\x00\x00\x01\x0A\x00\x00\x00\x04\x02\x00\x04\x74\x65\x73\x74\x02\x00\x04\x74\x65\x73\x74\x02\x00\x04\x74\x65\x73\x74\x02\x00\x04\x74\x65\x73\x74')
         ])
+        self._run([
+            ([x], '\x0A\x00\x00\x00\x01\x0B\x42\x71\x60\x48\xCF\xED\xD0\x00'
+                '\x00\x00')])
+        self._run([
+            ([[{u'a': u'foo', u'b': u'bar'}, {u'a': u'foo', u'b': u'bar'}]],
+                '\x0A\x00\x00\x00\x01\x0A\x00\x00\x00\x02\x03\x00\x01\x62\x02'
+                '\x00\x03\x62\x61\x72\x00\x01\x61\x02\x00\x03\x66\x6F\x6F\x00'
+                '\x00\x09\x07\x00\x01')])
+        self._run([
+            ([[1.0]], '\x0A\x00\x00\x00\x01\x0A\x00\x00\x00\x01\x00\x3F\xF0\x00'
+                '\x00\x00\x00\x00\x00')])
 
 def suite():
     suite = unittest.TestSuite()

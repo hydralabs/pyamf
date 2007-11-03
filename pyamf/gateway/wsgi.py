@@ -96,8 +96,8 @@ class Gateway(object):
         self.request_number += 1
 
         body = self.get_request_body(environ)
-        x = open('request_' + str(self.request_number), 'wb')
-        x.write(body)
+        #x = open('request_' + str(self.request_number), 'wb')
+        #x.write(body)
         envelope = remoting.decode(body)
         processor = self.get_processor(envelope)
 
@@ -110,8 +110,8 @@ class Gateway(object):
             ('Content-Type', gateway.CONTENT_TYPE),
             ('Content-Length', str(stream.tell())),
         ])
-        x.write('=' * 80)
-        x.write(stream.getvalue())
-        x.close()
+        #x.write('=' * 80)
+        #x.write(stream.getvalue())
+        #x.close()
 
         return [stream.getvalue()]

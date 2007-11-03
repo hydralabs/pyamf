@@ -31,7 +31,7 @@
 #   http://www.vanrijkom.org/archives/2005/06/amf_format.html
 #   http://osflash.org/documentation/amf/astypes
 
-from pyamf import util, amf0
+from pyamf import util
 
 __all__ = [
     'register_class',
@@ -101,10 +101,11 @@ class EncodeError(BaseError):
 
 class Context(object):
     """
+    I hold the amf context for en/decoding streams.
     """
-    objects = []
-    strings = []
-    classes = []
+
+    def __init__(self):
+        self.clear()
 
     def clear(self):
         """
@@ -121,15 +122,15 @@ class Context(object):
         Raises L{pyamf.ReferenceError} if the object could not be found
         """
         try:
-            return self.objects[ref]
+            return self.objects[ref - 1]
         except IndexError:
             raise ReferenceError("Object reference %d not found" % ref)
 
     def getObjectReference(self, obj):
         try:
-            return self.objects.index(obj)
+            return self.objects.index(obj) + 1
         except ValueError:
-            raise ReferenceError("Reference for object %r not found" % obj)
+            raise ReferenceError("Reference for object %r not found" % str(obj))
 
     def addObject(self, obj):
         """
@@ -200,7 +201,7 @@ class Context(object):
 
         return load_class(class_def.name)
 
-class Bag(dict):
+class Bag(object):
     """
     I supply a thin layer over the __builtin__.dict type to support
     get/setattr calls
@@ -208,13 +209,21 @@ class Bag(dict):
 
     def __init__(self, d={}):
         for k, v in d.items():
-            self[k] = v
+            setattr(self, k, v)
 
-    def __setattr__(self, name, value):
-        self[name] = value
+    def __getitem__(self, k):
+        return getattr(self, k)
 
-    def __getattr__(self, name):
-        return self[name]
+    def __setitem__(self, k, v):
+        return setattr(self, k, v)
+
+    def __eq__(self, other):
+        if isinstance(other, dict):
+            return self.__dict__ == other
+        if isinstance(other, Bag):
+            return self.__dict__ == other.__dict__
+
+        return False
 
 def register_class(klass, alias):
     """
@@ -326,8 +335,8 @@ def get_class_alias(obj):
     raise LookupError("Unknown alias for class %s" % klass)
 
 # Register some basic classes
-register_class(Bag, 'flex.messaging.io.ArrayCollection')
-register_class(Bag, 'flex.messaging.io.ObjectProxy')
+#register_class(Bag, 'flex.messaging.io.ArrayCollection')
+#register_class(Bag, 'flex.messaging.io.ObjectProxy')
 
 def decode(stream, encoding=AMF0, context=None):
     """

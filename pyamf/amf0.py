@@ -149,16 +149,18 @@ class Decoder(object):
                 # XXX: do we want to ignore this?
                 pass
 
+        self.context.addObject(obj)
+
         return obj
 
     def readList(self):
+        obj = []
         len = self.input.read_ulong()
 
-        obj = []
-        self.context.addObject(obj)
-        
         for i in xrange(len):
-            obj.append(self.readElement()) 
+            obj.append(self.readElement())
+
+        self.context.addObject(obj)
 
         return obj
 
@@ -177,7 +179,7 @@ class Decoder(object):
         for k, v in obj.iteritems():
             setattr(ret, k, v)
 
-        self.context.addObject(ret)
+        self.context.addObject(obj)
 
         return ret
 
@@ -212,6 +214,7 @@ class Decoder(object):
 
     def _readObject(self, obj):
         key = self.readString()
+
         while self.input.peek() != chr(ASTypes.OBJECTTERM):
             obj[key] = self.readElement()
             key = self.readString()
@@ -226,9 +229,9 @@ class Decoder(object):
         @return The object
         @rettype __builtin__.object
         """
-        obj = {}
-        self._readObject(obj)
+        obj = pyamf.Bag()
 
+        self._readObject(obj)
         self.context.addObject(obj)
 
         return obj
@@ -270,9 +273,10 @@ class Encoder(object):
         # Unsupported types go first
         ((types.BuiltinFunctionType, types.BuiltinMethodType,), "writeUnsupported"),
         ((bool,), "writeBoolean"),
-        ((int,long,float), "writeNumber"), # Maybe add decimal ?
+        ((int,long,float), "writeNumber"),
         ((types.StringTypes,), "writeString"),
         ((util.ET._ElementInterface,), "writeXML"),
+        ((pyamf.Bag,), "writeObject"),
         ((types.DictType,), "writeMixedArray"),
         ((types.ListType,types.TupleType,), "writeArray"),
         ((datetime.date, datetime.datetime), "writeDate"),
@@ -317,11 +321,19 @@ class Encoder(object):
         self.writeType(ASTypes.NULL)
 
     def writeArray(self, a):
+        try:
+            self.writeReference(a)
+            return
+        except pyamf.ReferenceError:
+            pass
+
         self.writeType(ASTypes.ARRAY)
         self.output.write_ulong(len(a))
 
         for data in a:
             self.writeElement(data)
+
+        self.context.addObject(a)
 
     def writeNumber(self, n):
         self.writeType(ASTypes.NUMBER)
@@ -359,6 +371,12 @@ class Encoder(object):
             self.writeElement(val)
 
     def writeMixedArray(self, o):
+        try:
+            self.writeReference(o)
+            return
+        except pyamf.ReferenceError:
+            pass
+
         self.writeType(ASTypes.MIXEDARRAY)
 
         # TODO optimise this
@@ -377,6 +395,7 @@ class Encoder(object):
 
         self._writeDict(o)
         self._writeEndObject()
+        self.context.addObject(o)
 
     def _writeEndObject(self):
         self.writeString("", False)
@@ -388,8 +407,6 @@ class Encoder(object):
             return
         except pyamf.ReferenceError:
             pass
-
-        self.context.addObject(o)
 
         # Need to check here if this object has a registered alias
         try:
@@ -410,6 +427,7 @@ class Encoder(object):
             self.writeElement(val)
 
         self._writeEndObject()
+        self.context.addObject(o)
 
     def writeDate(self, d):
         """
@@ -421,7 +439,7 @@ class Encoder(object):
             self.writeReference(d)
             return
         except pyamf.ReferenceError:
-            pass
+            self.context.addObject(d)
 
         secs = util.get_timestamp(d)
         tz = 0
@@ -432,7 +450,7 @@ class Encoder(object):
 
     def writeXML(self, e):
         data = util.ET.tostring(e, 'utf8')
-        
+
         self.writeType(ASTypes.XML)
         self.output.write_ulong(len(data))
         self.output.write(data)
@@ -442,14 +460,14 @@ def decode(stream, context=None):
     A helper function to decode an AMF0 datastream. 
     """
     decoder = Decoder(stream, context)
-    
+
     for el in decoder.readElement():
         yield el
 
 def encode(element, context=None):
     """
     A helper function to encode an element into AMF0 format.
-    
+
     Returns a StringIO object
     """
     buf = util.BufferedByteStream()

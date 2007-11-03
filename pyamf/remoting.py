@@ -234,11 +234,11 @@ def decode(stream, context=None):
     msg.clientType = stream.read_uchar()
 
     header_count = stream.read_ushort()
-    
+
     for i in xrange(header_count):
         name, required, data = _read_header(stream, decoder)
         msg.headers[name] = data
-        
+
         if required:
             msg.headers.set_required(name)
 
