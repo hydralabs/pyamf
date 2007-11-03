@@ -33,11 +33,12 @@ import sys, traceback
 from types import ClassType
 
 from pyamf import remoting, gateway
-from pyamf.util import BufferedByteStream
+from pyamf.util import BufferedByteStream, hexdump
 
 __all__ = ['Gateway']
 
 class Gateway(object):
+    request_number = 0
 
     def __init__(self, services):
         self.services = services
@@ -92,7 +93,12 @@ class Gateway(object):
         return environ['wsgi.input'].read(int(environ['CONTENT_LENGTH']))
 
     def __call__(self, environ, start_response):
-        envelope = remoting.decode(self.get_request_body(environ))
+        self.request_number += 1
+
+        body = self.get_request_body(environ)
+        x = open('request_' + str(self.request_number), 'wb')
+        x.write(body)
+        envelope = remoting.decode(body)
         processor = self.get_processor(envelope)
 
         for message in envelope:
@@ -104,5 +110,8 @@ class Gateway(object):
             ('Content-Type', gateway.CONTENT_TYPE),
             ('Content-Length', str(stream.tell())),
         ])
+        x.write('=' * 80)
+        x.write(stream.getvalue())
+        x.close()
 
         return [stream.getvalue()]

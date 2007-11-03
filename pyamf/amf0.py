@@ -153,9 +153,13 @@ class Decoder(object):
 
     def readList(self):
         len = self.input.read_ulong()
-        obj = [self.readElement() for i in xrange(len)]
 
+        obj = []
         self.context.addObject(obj)
+        
+        for i in xrange(len):
+            obj.append(self.readElement()) 
+
         return obj
 
     def readTypedObject(self):
@@ -247,8 +251,10 @@ class Decoder(object):
         tz = self.input.read_short()
 
         # Timezones are ignored
+        d = datetime.datetime.utcfromtimestamp(ms)
+        self.context.addObject(d)
 
-        return datetime.datetime.utcfromtimestamp(ms)
+        return d
 
     def readLongString(self):
         len = self.input.read_ulong()
@@ -411,6 +417,12 @@ class Encoder(object):
 
         If d.tzinfo is None, d will be assumed to be in UTC
         """
+        try:
+            self.writeReference(d)
+            return
+        except pyamf.ReferenceError:
+            pass
+
         secs = util.get_timestamp(d)
         tz = 0
 

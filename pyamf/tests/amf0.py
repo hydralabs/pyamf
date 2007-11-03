@@ -30,7 +30,7 @@
 Test for AMF0 Implementation
 """
 
-import unittest
+import unittest, datetime
 
 import pyamf
 from pyamf import amf0, util
@@ -156,7 +156,11 @@ class EncoderTestCase(unittest.TestCase):
         class Foo(object):
             pass
 
-        pyamf.CLASS_CACHE = {}
+        try:
+            del pyamf.CLASS_CACHE['com.collab.dev.pyamf.foo']
+        except KeyError:
+            pass
+
         pyamf.register_class(Foo, alias='com.collab.dev.pyamf.foo')
 
         x = Foo()
@@ -169,6 +173,8 @@ class EncoderTestCase(unittest.TestCase):
             '\x76\x2e\x70\x79\x61\x6d\x66\x2e\x66\x6f\x6f\x00\x03\x62\x61\x7a'
             '\x02\x00\x05\x68\x65\x6c\x6c\x6f\x00\x00\x09')
 
+        del pyamf.CLASS_CACHE['com.collab.dev.pyamf.foo']
+
 class DecoderTestCase(unittest.TestCase):
     def setUp(self):
         self.buf = util.BufferedByteStream()
@@ -176,6 +182,8 @@ class DecoderTestCase(unittest.TestCase):
         self.decoder.input = self.buf
 
     def _run(self, data):
+        self.decoder.context.clear()
+
         e = DecoderTester(self.decoder, data)
         e.run(self)
 
@@ -217,7 +225,6 @@ class DecoderTestCase(unittest.TestCase):
         self._run([(None, '\x05')])
 
     def test_list(self):
-        # XXX no obvious way to convert back to sets here
         self._run([
             ([], '\x0a\x00\x00\x00\x00'),
             ([1, 2, 3], '\x0a\x00\x00\x00\x03\x00\x3f\xf0\x00\x00\x00\x00\x00'
@@ -260,7 +267,11 @@ class DecoderTestCase(unittest.TestCase):
         class Foo(object):
             pass
 
-        pyamf.CLASS_CACHE = {}
+        try:
+            del pyamf.CLASS_CACHE['com.collab.dev.pyamf.foo']
+        except KeyError:
+            pass
+
         pyamf.register_class(Foo, alias='com.collab.dev.pyamf.foo')
 
         self.buf.write('\x10\x00\x18\x63\x6f\x6d\x2e\x63\x6f\x6c\x6c\x61\x62'
@@ -274,6 +285,16 @@ class DecoderTestCase(unittest.TestCase):
 
         self.failUnless(hasattr(obj, 'baz'))
         self.assertEquals(obj.baz, 'hello')
+        
+        del pyamf.CLASS_CACHE['com.collab.dev.pyamf.foo']
+
+    def test_complex_list(self):
+        x = datetime.datetime(2007, 11, 3, 8, 7, 37, 437000)
+
+        self._run([
+            ([[x, x]], '\x0A\x00\x00\x00\x01\x0A\x00\x00\x00\x02\x0B\x42\x71'
+                '\x60\x48\xCF\xED\xD0\x00\x00\x00\x07\x00\x01'),
+        ])
 
 def suite():
     suite = unittest.TestSuite()
