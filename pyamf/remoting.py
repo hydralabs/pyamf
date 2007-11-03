@@ -148,16 +148,16 @@ def _read_header(stream, decoder):
 
     return (name, required, data)
 
-def _write_header(name, header, stream, encoder):
+def _write_header(name, header, required, stream, encoder):
     stream.write_ushort(len(name))
     stream.write_utf8_string(name)
 
-    stream.write_uchar(header[0])
+    stream.write_uchar(required)
     write_pos = stream.tell()
 
     stream.write_ulong(0)
     old_pos = stream.tell()
-    encoder.writeElement(header[1])
+    encoder.writeElement(header)
     new_pos = stream.tell()
 
     stream.seek(write_pos)
@@ -263,7 +263,7 @@ def encode(msg, context=None):
     stream.write_short(len(msg.headers))
 
     for name, header in msg.headers.iteritems():
-        _write_header(name, header, stream, encoder)
+        _write_header(name, header, msg.headers.is_required(name), stream, encoder)
 
     stream.write_short(len(msg))
 
