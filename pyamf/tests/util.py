@@ -27,7 +27,7 @@
 #
 
 """
-Utility for PyAMF tests
+Utility for PyAMF tests.
 """
 
 class GenericObject(object):

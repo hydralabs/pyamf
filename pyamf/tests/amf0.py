@@ -27,7 +27,7 @@
 #
 
 """
-Test for AMF0 Implementation
+Test for AMF0 Implementation.
 """
 
 import unittest, datetime

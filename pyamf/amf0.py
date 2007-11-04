@@ -25,13 +25,15 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-#
-# AMF decoder
-# sources:
-#   http://www.vanrijkom.org/archives/2005/06/amf_format.html
-#   http://osflash.org/documentation/amf/astypes
 
-"""AMF0 Implementation"""
+"""
+AMF0 Implementation.
+
+Resources:
+ - U{http://www.vanrijkom.org/archives/2005/06/amf_format.html}
+ - U{http://osflash.org/documentation/amf}
+
+"""
 
 import datetime, calendar, types
 
@@ -109,7 +111,7 @@ class Decoder(object):
     def readType(self):
         """
         Read and returns the next byte in the stream and determine its type.
-        Raises ValueError if not recognized
+        Raises ValueError if not recognized.
         """
         type = self.input.read_uchar()
 
@@ -127,14 +129,20 @@ class Decoder(object):
         return self.input.read_double()
 
     def readBoolean(self):
+        """
+        Returns a bool.
+        """
         return bool(self.input.read_uchar())
 
     def readNull(self):
+        """
+        Reads null and returns None.
+        """
         return None
 
     def readMixedArray(self):
         """
-        Returns an array
+        Returns an array.
         """
         len = self.input.read_ulong()
         obj = {}
@@ -242,7 +250,7 @@ class Decoder(object):
 
     def readDate(self):
         """
-        Reads a UTC date from the data stream
+        Reads a UTC date from the data stream.
 
         Date: 0x0B T7 T6 .. T0 Z1 Z2 T7 to T0 form a 64 bit Big Endian number
         that specifies the number of nanoseconds that have passed since
@@ -260,10 +268,16 @@ class Decoder(object):
         return d
 
     def readLongString(self):
+        """
+        Read utf8 string.
+        """
         len = self.input.read_ulong()
         return self.input.read_utf8_string(len)
 
     def readXML(self):
+        """
+        Read XML.
+        """
         data = self.readLongString()
         return util.ET.fromstring(data)
 
@@ -296,8 +310,9 @@ class Encoder(object):
 
     def writeType(self, type):
         """
-        Writes the type to the stream. Raises ValueError if type is not
-        recognized
+        Writes the type to the stream.
+
+        Raises ValueError if type is not recognized.
         """
         if type not in ACTIONSCRIPT_TYPES:
             raise ValueError("Unknown AMF0 type 0x%02x at %d" % (
@@ -309,7 +324,9 @@ class Encoder(object):
         self.writeType(ASTypes.UNSUPPORTED)
 
     def writeElement(self, data):
-        """Writes the data."""
+        """
+        Writes the data.
+        """
         for tlist, method in self.type_map:
             for t in tlist:
                 if isinstance(data, t):
@@ -318,6 +335,9 @@ class Encoder(object):
         self.writeUnsupported(data)
 
     def writeNull(self, n):
+        """
+        Write null type.
+        """
         self.writeType(ASTypes.NULL)
 
     def writeArray(self, a):

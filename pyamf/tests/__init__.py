@@ -27,7 +27,7 @@
 #
 
 """
-Tests for PyAMF
+Tests for PyAMF.
 """
 
 import unittest

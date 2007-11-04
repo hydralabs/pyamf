@@ -24,6 +24,10 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
+"""
+Test for AMF Remoting.
+"""
+
 import unittest
 
 import pyamf

@@ -25,11 +25,10 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-#
-# AMF decoder
-# sources:
-#   http://www.vanrijkom.org/archives/2005/06/amf_format.html
-#   http://osflash.org/documentation/amf/astypes
+
+"""
+AMF for Python.
+"""
 
 from pyamf import util
 
@@ -49,11 +48,11 @@ AMF3 = 3
 ENCODING_TYPES = (AMF0, AMF3)
 
 class ClientTypes:
-    # Specifies a Flash Player 6.0 - 8.0 client.
+    #: Specifies a Flash Player 6.0 - 8.0 client.
     Flash    = 0
-    # Specifies a FlashCom / Flash Media Server client.
+    #: Specifies a FlashCom / Flash Media Server client.
     FlashCom = 1
-    # Specifies a Flash Player 9.0 client.
+    #: Specifies a Flash Player 9.0 client.
     Flash9   = 3
 
 CLIENT_TYPES = set(
@@ -62,16 +61,15 @@ CLIENT_TYPES = set(
 
 class GeneralTypes:
     """
-    PyAMF global constants
+    PyAMF global constants.
     """
-    # Normal result to a methodcall.
+    #: Normal result to a methodcall.
     REMOTING_RESULT    = 1
-    # Faulty result.
+    #: Faulty result.
     REMOTING_STATUS    = 2
-    # Result to a debug-header.
+    #: Result to a debug-header.
     REMOTING_DEBUG     = 3
-    # AMF0 Encoding
-    # AMF mimetype
+    #: AMF mimetype
     AMF_MIMETYPE       = 'application/x-amf'
 
 class BaseError(Exception):
@@ -95,13 +93,13 @@ class EncodeError(BaseError):
     Raised if the element could not be encoded to the stream. This is mainly
     used to pick up the empty key string array bug.
     
-    See http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug for
+    See U{http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug} for
     more info
     """
 
 class Context(object):
     """
-    I hold the amf context for en/decoding streams.
+    I hold the AMF context for en/decoding streams.
     """
 
     def __init__(self):
@@ -109,7 +107,7 @@ class Context(object):
 
     def clear(self):
         """
-        Resets the context
+        Resets the context.
         """
         self.objects = []
         self.strings = []
@@ -117,9 +115,9 @@ class Context(object):
 
     def getObject(self, ref):
         """
-        Gets an object based on a reference ref
+        Gets an object based on a reference.
 
-        Raises L{pyamf.ReferenceError} if the object could not be found
+        Raises L{pyamf.ReferenceError} if the object could not be found.
         """
         try:
             return self.objects[ref - 1]
@@ -134,7 +132,7 @@ class Context(object):
 
     def addObject(self, obj):
         """
-        Gets a reference to obj, creating one if necessary
+        Gets a reference to obj, creating one if necessary.
         """
         try:
             return self.objects.index(obj)
@@ -147,7 +145,7 @@ class Context(object):
         """
         Gets a string based on a reference ref
 
-        Raises L{pyamf.ReferenceError} if the string could not be found
+        Raises L{pyamf.ReferenceError} if the string could not be found.
         """
         try:
             return self.strings[ref]
@@ -162,7 +160,7 @@ class Context(object):
 
     def addString(self, s):
         """
-        Creates a reference to s
+        Creates a reference to s.
         """
         try:
             return self.strings.index(s)
@@ -186,7 +184,7 @@ class Context(object):
 
     def addClassDefinition(self, class_def):
         """
-        Creates a reference to class_def
+        Creates a reference to class_def.
         """
         try:
             return self.classes.index(class_def)
@@ -204,7 +202,7 @@ class Context(object):
 class Bag(object):
     """
     I supply a thin layer over the __builtin__.dict type to support
-    get/setattr calls
+    get/setattr calls.
     """
 
     def __init__(self, d={}):
@@ -259,7 +257,7 @@ def register_class_loader(loader):
 
 def get_module(mod_name):
     """
-    Load a module based on mod_name
+    Load a module based on mod_name.
     """
     mod = __import__(mod_name)
     components = mod_name.split('.')
@@ -271,12 +269,12 @@ def get_module(mod_name):
 
 def load_class(alias):
     """
-    Finds the class registered to the alias. Raises LookupError if not found
+    Finds the class registered to the alias. Raises LookupError if not found.
 
     The search is done in order:
-    1. Checks if the class name has been registered via pyamf.register_class
-    2. Checks all functions registered via register_class_loader
-    3. Attempts to load the class via standard module loading techniques
+      1. Checks if the class name has been registered via pyamf.register_class
+      2. Checks all functions registered via register_class_loader.
+      3. Attempts to load the class via standard module loading techniques.
     """
     alias = str(alias)
 
@@ -320,9 +318,9 @@ def load_class(alias):
 
 def get_class_alias(obj):
     """
-    Finds the alias registered to the class. Raises LookupError if not found
+    Finds the alias registered to the class. Raises LookupError if not found.
     
-    See L{load_class} for more info
+    See L{load_class} for more info.
     """
     klass = obj.__class__
 
@@ -342,7 +340,7 @@ def decode(stream, encoding=AMF0, context=None):
     """
     A generator function to decode a datastream.
     
-    Returns each element in the stream
+    Returns each element in the stream.
     """
     decoder = _get_decoder(encoding)(stream, context)
 
@@ -351,9 +349,9 @@ def decode(stream, encoding=AMF0, context=None):
 
 def encode(element, encoding=AMF0, context=None):
     """
-    A helper function to encode an element
+    A helper function to encode an element.
 
-    Returns a file like object
+    Returns a file like object.
     """
     stream = util.BufferedByteStream()
     encoder = _get_encoder(encoding)(stream, context)

@@ -41,6 +41,14 @@ import pyamf
 from pyamf import util
 
 class ASTypes:
+    """
+    Actionscript object types.
+    
+    AMF represents ActionScript objects by a single byte representing
+    type, and then by a type-specific byte array that may be of fixed
+    length, may contain length information, or may come with its own end
+    code.
+    """
     UNDEFINED  = 0x00
     NULL       = 0x01
     BOOL_FALSE = 0x02
@@ -65,38 +73,38 @@ ACTIONSCRIPT_TYPES = set(
 REFERENCE_BIT = 0x01
 
 class ObjectEncoding:
-    # Property list encoding.
-    # The remaining integer-data represents the number of
-    # class members that exist. The property names are read
-    # as string-data. The values are then read as AMF3-data.
+    #: Property list encoding.
+    #: The remaining integer-data represents the number of
+    #: class members that exist. The property names are read
+    #: as string-data. The values are then read as AMF3-data.
     STATIC = 0x00
 
-    # Externalizable object.
-    # What follows is the value of the "inner" object,
-    # including type code. This value appears for objects
-    # that implement IExternalizable, such as
-    # ArrayCollection and ObjectProxy.
+    #: Externalizable object.
+    #: What follows is the value of the "inner" object,
+    #: including type code. This value appears for objects
+    #: that implement IExternalizable, such as
+    #: ArrayCollection and ObjectProxy.
     EXTERNAL = 0x01
     
-    # Name-value encoding.
-    # The property names and values are encoded as string-data
-    # followed by AMF3-data until there is an empty string
-    # property name. If there is a class-def reference there
-    # are no property names and the number of values is equal
-    # to the number of properties in the class-def.
+    #: Name-value encoding.
+    #: The property names and values are encoded as string-data
+    #: followed by AMF3-data until there is an empty string
+    #: property name. If there is a class-def reference there
+    #: are no property names and the number of values is equal
+    #: to the number of properties in the class-def.
     DYNAMIC = 0x02
     
-    # Proxy object
+    #: Proxy object.
     PROXY = 0x03
 
 class ByteArray(str):
     """
-    I am a file type object containing byte data from the AMF stream
+    I am a file type object containing byte data from the AMF stream.
     """
 
 class ClassDefinition(object):
     """
-    I contain meta relating to the class definition
+    I contain meta relating to the class definition.
     """
     attrs = []
 
@@ -119,23 +127,23 @@ class ClassDefinition(object):
 
 class Decoder(object):
     """
-    Parses an AMF3 data stream
+    Decodes an AMF3 data stream.
     """
 
     type_map = {
-        ASTypes.UNDEFINED: 'readNull',
-        ASTypes.NULL: 'readNull',
-        ASTypes.BOOL_FALSE: 'readBoolFalse',
-        ASTypes.BOOL_TRUE: 'readBoolTrue',
-        ASTypes.INTEGER: 'readInteger',
-        ASTypes.NUMBER: 'readNumber',
-        ASTypes.STRING: 'readString',
-        ASTypes.XML: 'readXML',
-        ASTypes.DATE: 'readDate',
-        ASTypes.ARRAY: 'readArray',
-        ASTypes.OBJECT: 'readObject',
-        ASTypes.XMLSTRING: 'readString',
-        ASTypes.BYTEARRAY: 'readByteArray',
+        ASTypes.UNDEFINED:      'readNull',
+        ASTypes.NULL:           'readNull',
+        ASTypes.BOOL_FALSE:     'readBoolFalse',
+        ASTypes.BOOL_TRUE:      'readBoolTrue',
+        ASTypes.INTEGER:        'readInteger',
+        ASTypes.NUMBER:         'readNumber',
+        ASTypes.STRING:         'readString',
+        ASTypes.XML:            'readXML',
+        ASTypes.DATE:           'readDate',
+        ASTypes.ARRAY:          'readArray',
+        ASTypes.OBJECT:         'readObject',
+        ASTypes.XMLSTRING:      'readString',
+        ASTypes.BYTEARRAY:      'readByteArray',
     }
 
     def __init__(self, data=None, context=None):
@@ -152,7 +160,7 @@ class Decoder(object):
     def readType(self):
         """
         Read and returns the next byte in the stream and determine its type.
-        Raises ValueError if not recognized
+        Raises ValueError if not recognized.
         """
         type = self.input.read_uchar()
 
@@ -372,7 +380,10 @@ class Decoder(object):
         return ByteArray(self.input.read(length >> 1))
 
 class Encoder(object):
-
+    """
+    Encodes an AMF3 data stream.
+    """
+    
     #: Python to AMF type mapping.
     type_map = [
         # Unsupported types go first
@@ -405,7 +416,7 @@ class Encoder(object):
     def writeType(self, type):
         """
         Writes the type to the stream. Raises ValueError if type is not
-        recognized
+        recognized.
         """
         if type not in ACTIONSCRIPT_TYPES:
             raise ValueError("Unknown AMF0 type 0x%02x at %d" % (
@@ -415,7 +426,7 @@ class Encoder(object):
 
     def writeElement(self, data):
         """
-        Writes an encoded version of data to the output stream
+        Writes an encoded version of data to the output stream.
         """
         for tlist, method in self.type_map:
             for t in tlist:
@@ -730,7 +741,12 @@ class ErrorMessage(AbstractMessage):
     rootCause = {}
 
 class RemotingMessage(AbstractMessage):
+    """
+    """
+    #: Name of the method to be called.
     operation = None
+    #: Name of the service to be called
+    #" including package name.
     source = None
 
 pyamf.register_class(RemotingMessage, 'flex.messaging.messages.RemotingMessage')
@@ -741,6 +757,7 @@ pyamf.register_class(AcknowledgeMessage, 'flex.messaging.messages.AcknowledgeMes
 def encode_utf8_modified(data):
     """
     Encodes a unicode string to Modified UTF-8 data.
+    
     See U{http://en.wikipedia.org/wiki/UTF-8#Java} for details.
     """
     if not isinstance(data, unicode):
@@ -817,7 +834,7 @@ def encode(element, context=None):
     """
     A helper function to encode an element into AMF3 format.
 
-    Returns a StringIO object
+    Returns a StringIO object.
     """
     buf = util.BufferedByteStream()
     encoder = Encoder(buf, context)

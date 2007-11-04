@@ -24,7 +24,9 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-AMF Remoting support
+AMF Remoting support.
+
+Reference: U{http://osflash.org/documentation/amf/envelopes/remoting}
 """
 
 import pyamf
@@ -32,8 +34,13 @@ from pyamf import util
 
 __all__ = ['Envelope', 'Request', 'decode', 'encode']
 
+#: Succesful call.
 STATUS_OK = 0
+#: Reserved for runtime errors.
 STATUS_ERROR = 1
+#: Debug information.
+#: 
+#: Reference: U{http://osflash.org/documentation/amf/envelopes/remoting/debuginfo}
 STATUS_DEBUG = 2
 
 STATUS_CODES = {
@@ -127,6 +134,8 @@ class Message(object):
 
 def _read_header(stream, decoder):
     """
+    Read AMF message header.
+    
     I return a tuple of:
      - The name of the header
      - A boolean determining if understanding this header is required
@@ -149,6 +158,9 @@ def _read_header(stream, decoder):
     return (name, required, data)
 
 def _write_header(name, header, required, stream, encoder):
+    """
+    Write AMF message header.
+    """
     stream.write_ushort(len(name))
     stream.write_utf8_string(name)
 
@@ -166,6 +178,8 @@ def _write_header(name, header, required, stream, encoder):
 
 def _read_body(stream, decoder):
     """
+    Read AMF message body.
+
     I return a tuple containing:
      - The target of the body
      - The id (as sent by the client) of the body
@@ -195,6 +209,9 @@ def _read_body(stream, decoder):
     return (target, response, status, data)
 
 def _write_body(name, body, stream, encoder):
+    """
+    Write AMF message body.
+    """
     response = "%s%s" % (name, _get_status(body.status))
 
     stream.write_ushort(len(response))
@@ -222,7 +239,7 @@ def _get_status(status):
 
 def decode(stream, context=None):
     """
-    Decodes the incoming stream and returns a L{Envelope} object
+    Decodes the incoming stream and returns a L{Envelope} object.
     """
     if not isinstance(stream, util.BufferedByteStream):
         stream = util.BufferedByteStream(stream)
@@ -254,6 +271,9 @@ def decode(stream, context=None):
     return msg
 
 def encode(msg, context=None):
+    """
+    Encodes AMF stream and returns file object.
+    """
     stream = util.BufferedByteStream()
 
     encoder = pyamf._get_encoder(msg.amfVersion)(stream, context=context)
