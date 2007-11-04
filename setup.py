@@ -36,6 +36,7 @@ setup(name = "PyAMF",
     description = "AMF encoder and decoder for Python",
     url = "http://dev.collab.com/pyamf",
     packages = ["pyamf"],
+    install_requires = ["elementtree>=1.2.6"], 
     test_suite = "pyamf.tests.suite",
     license = "MIT License",
     entry_points={
