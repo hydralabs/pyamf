@@ -24,7 +24,6 @@
 # LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
 
 """
 AMF0 Implementation.
@@ -73,27 +72,27 @@ ACTIONSCRIPT_TYPES = set(
 
 class Decoder(object):
     """
-    Parses an AMF0 stream
+    Decodes an AMF0 stream.
     """
     # XXX nick: Do we need to support ASTypes.MOVIECLIP here?
     type_map = {
-        ASTypes.NUMBER: 'readNumber',
-        ASTypes.BOOL: 'readBoolean',
-        ASTypes.STRING: 'readString',
-        ASTypes.OBJECT: 'readObject',
-        ASTypes.NULL: 'readNull',
+        ASTypes.NUMBER:     'readNumber',
+        ASTypes.BOOL:       'readBoolean',
+        ASTypes.STRING:     'readString',
+        ASTypes.OBJECT:     'readObject',
+        ASTypes.NULL:       'readNull',
         # TODO: do we need a special value here?
-        ASTypes.UNDEFINED: 'readNull',
-        ASTypes.REFERENCE: 'readReference',
+        ASTypes.UNDEFINED:  'readNull',
+        ASTypes.REFERENCE:  'readReference',
         ASTypes.MIXEDARRAY: 'readMixedArray',
-        ASTypes.ARRAY: 'readList',
-        ASTypes.DATE: 'readDate',
+        ASTypes.ARRAY:      'readList',
+        ASTypes.DATE:       'readDate',
         ASTypes.LONGSTRING: 'readLongString',
         # TODO: do we need a special value here?
-        ASTypes.UNSUPPORTED: 'readNull',
-        ASTypes.XML: 'readXML',
-        ASTypes.TYPEDOBJECT: 'readTypedObject',
-        ASTypes.AMF3: 'readAMF3'
+        ASTypes.UNSUPPORTED:'readNull',
+        ASTypes.XML:        'readXML',
+        ASTypes.TYPEDOBJECT:'readTypedObject',
+        ASTypes.AMF3:       'readAMF3'
     }
 
     def __init__(self, data=None, context=None):
@@ -111,7 +110,8 @@ class Decoder(object):
     def readType(self):
         """
         Read and returns the next byte in the stream and determine its type.
-        Raises ValueError if not recognized.
+        
+        Raises L{ValueError} if not recognized.
         """
         type = self.input.read_uchar()
 
@@ -123,8 +123,10 @@ class Decoder(object):
 
     def readNumber(self):
         """
-        Reads a Number. In ActionScript 1 and 2 NumberASTypes type
-        represents all numbers, both floats and integers.
+        Reads a Number.
+
+        In ActionScript 1 and 2 NumberASTypes type represents all numbers,
+        both floats and integers.
         """
         return self.input.read_double()
 
@@ -175,7 +177,7 @@ class Decoder(object):
     def readTypedObject(self):
         """
         Reads an object from the stream and attempts to 'cast' it. See
-        L{pyamf.load_class} for more info.
+        L{load_class<pyamf.load_class>} for more info.
         """
         classname = self.readString()
         klass = pyamf.load_class(classname)
@@ -221,6 +223,10 @@ class Decoder(object):
         return self.input.read_utf8_string(len)
 
     def _readObject(self, obj):
+        """
+        @type   obj:
+        @param  obj:
+        """
         key = self.readString()
 
         while self.input.peek() != chr(ASTypes.OBJECTTERM):
@@ -245,6 +251,9 @@ class Decoder(object):
         return obj
 
     def readReference(self):
+        """
+        Reads a reference from the AMF stream.
+        """
         idx = self.input.read_ushort()
         return self.context.getObject(idx)
 
@@ -282,7 +291,9 @@ class Decoder(object):
         return util.ET.fromstring(data)
 
 class Encoder(object):
-
+    """
+    AMF0 Encoder.
+    """
     type_map = [
         # Unsupported types go first
         ((types.BuiltinFunctionType, types.BuiltinMethodType,), "writeUnsupported"),
@@ -299,8 +310,16 @@ class Encoder(object):
     ]
 
     def __init__(self, output, context=None):
-        """Constructs a new Encoder. output should be a writable
-        file-like object."""
+        """
+        Constructs a new Encoder.
+
+        Output should be a writable file-like object.
+
+        @type   output: StringIO
+        @param  output: file-like object
+        @type   context: L{Context}
+        @param  context: Context
+        """
         self.output = output
 
         if context == None:
@@ -312,7 +331,10 @@ class Encoder(object):
         """
         Writes the type to the stream.
 
-        Raises ValueError if type is not recognized.
+        Raises L{ValueError} if type is not recognized.
+
+        @type   type: 
+        @param  type: ActionScript type
         """
         if type not in ACTIONSCRIPT_TYPES:
             raise ValueError("Unknown AMF0 type 0x%02x at %d" % (
@@ -321,11 +343,20 @@ class Encoder(object):
         self.output.write_uchar(type)
 
     def writeUnsupported(self, data):
+        """
+        Writes unsupported data type to the stream.
+
+        @type   data: 
+        @param  data:
+        """
         self.writeType(ASTypes.UNSUPPORTED)
 
     def writeElement(self, data):
         """
         Writes the data.
+
+        @type   data: 
+        @param  data:
         """
         for tlist, method in self.type_map:
             for t in tlist:
@@ -336,11 +367,20 @@ class Encoder(object):
 
     def writeNull(self, n):
         """
-        Write null type.
+        Write null type to data stream.
+
+        @type   n: 
+        @param  n:
         """
         self.writeType(ASTypes.NULL)
 
     def writeArray(self, a):
+        """
+        Write array to the stream.
+
+        @type   a: L{BufferedByteStream}
+        @param  a: AMF data
+        """
         try:
             self.writeReference(a)
             return
@@ -356,10 +396,22 @@ class Encoder(object):
         self.context.addObject(a)
 
     def writeNumber(self, n):
+        """
+        Write number to data stream.
+
+        @type   n: L{BufferedByteStream}
+        @param  n: AMF data
+        """
         self.writeType(ASTypes.NUMBER)
         self.output.write_double(float(n))
 
     def writeBoolean(self, b):
+        """
+        Write boolean to data stream.
+
+        @type   b: L{BufferedByteStream}
+        @param  b: AMF data
+        """
         self.writeType(ASTypes.BOOL)
 
         if b:
@@ -368,6 +420,14 @@ class Encoder(object):
             self.output.write_uchar(0)
 
     def writeString(self, s, writeType=True):
+        """
+        Write string to data stream.
+
+        @type   s: L{BufferedByteStream}
+        @param  s: AMF data
+        @type   writeType: bool
+        @param  writeType: Write data type
+        """
         s = unicode(s).encode('utf8')
         if len(s) > 0xffff:
             if writeType:
@@ -380,17 +440,35 @@ class Encoder(object):
         self.output.write(s)
 
     def writeReference(self, o):
+        """
+        Write reference to data stream.
+
+        @type   o: L{BufferedByteStream}
+        @param  o: AMF data
+        """
         idx = self.context.getObjectReference(o)
 
         self.writeType(ASTypes.REFERENCE)
         self.output.write_ushort(idx)
 
     def _writeDict(self, o):
+        """
+        Write dict to data stream.
+
+        @type   o: L{BufferedByteStream}
+        @param  o: AMF data
+        """
         for key, val in o.items():
             self.writeString(key, False)
             self.writeElement(val)
 
     def writeMixedArray(self, o):
+        """
+        Write mixed array to data stream.
+
+        @type   o: L{BufferedByteStream}
+        @param  o: AMF data
+        """
         try:
             self.writeReference(o)
             return
@@ -399,7 +477,7 @@ class Encoder(object):
 
         self.writeType(ASTypes.MIXEDARRAY)
 
-        # TODO optimise this
+        # TODO: optimise this
         # work out the highest integer index
         try:
             # list comprehensions to save the day
@@ -418,10 +496,18 @@ class Encoder(object):
         self.context.addObject(o)
 
     def _writeEndObject(self):
+        """
+        """
         self.writeString("", False)
         self.writeType(ASTypes.OBJECTTERM)
 
     def writeObject(self, o):
+        """
+        Write object to the stream.
+
+        @type   o: L{BufferedByteStream}
+        @param  o: AMF data
+        """
         try:
             self.writeReference(o)
             return
@@ -453,7 +539,10 @@ class Encoder(object):
         """
         Writes a date to the data stream.
 
-        If d.tzinfo is None, d will be assumed to be in UTC
+        If d.tzinfo is None, d will be assumed to be in UTC.
+
+        @type   d: L{BufferedByteStream}
+        @param  d: AMF data
         """
         try:
             self.writeReference(d)
@@ -469,6 +558,12 @@ class Encoder(object):
         self.output.write_short(tz)
 
     def writeXML(self, e):
+        """
+        Write XML to data stream.
+
+        @type   e: L{BufferedByteStream}
+        @param  e: AMF data
+        """
         data = util.ET.tostring(e, 'utf8')
 
         self.writeType(ASTypes.XML)
@@ -477,7 +572,12 @@ class Encoder(object):
 
 def decode(stream, context=None):
     """
-    A helper function to decode an AMF0 datastream. 
+    A helper function to decode an AMF0 datastream.
+
+    @type   stream: L{BufferedByteStream}
+    @param  stream: AMF0 data
+    @type   context: L{Context}
+    @param  context: Context
     """
     decoder = Decoder(stream, context)
 
@@ -488,7 +588,12 @@ def encode(element, context=None):
     """
     A helper function to encode an element into AMF0 format.
 
-    Returns a StringIO object
+    Returns a StringIO object.
+
+    @type   element: 
+    @param  element:
+    @type   context: L{Context}
+    @param  context: Context
     """
     buf = util.BufferedByteStream()
     encoder = Encoder(buf, context)

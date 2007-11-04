@@ -25,7 +25,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Server/client implementations for PyAMF
+Server/client implementations for PyAMF.
 """
 
 CONTENT_TYPE = 'application/x-amf'

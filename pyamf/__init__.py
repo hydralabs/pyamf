@@ -27,7 +27,9 @@
 #
 
 """
-AMF for Python.
+PyAMF is a B{A}ction B{M}essage B{F}ormat (AMF) decoder and encoder
+for Python that is compatible with the
+U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>} 6 and newer.
 """
 
 from pyamf import util
@@ -38,16 +40,21 @@ __all__ = [
     'encode',
     'decode']
 
+#: Class mapping support for Flex.
 CLASS_CACHE = {}
 CLASS_LOADERS = []
 
-# Encoding types
+#: Encoding type for AMF0.
 AMF0 = 0
+#: Encoding type for AMF3.
 AMF3 = 3
-
+#: Supported AMF encoding types.
 ENCODING_TYPES = (AMF0, AMF3)
 
 class ClientTypes:
+    """
+    Typecodes used to identify AMF clients and servers.
+    """
     #: Specifies a Flash Player 6.0 - 8.0 client.
     Flash    = 0
     #: Specifies a FlashCom / Flash Media Server client.
@@ -153,6 +160,9 @@ class Context(object):
             raise ReferenceError("String reference %d not found" % ref)
 
     def getStringReference(self, s):
+        """
+        Return string reference.
+        """
         try:
             return self.strings.index(s)
         except ValueError:
@@ -161,6 +171,9 @@ class Context(object):
     def addString(self, s):
         """
         Creates a reference to s.
+
+        @type s: string
+        @param s: Reference
         """
         try:
             return self.strings.index(s)
@@ -243,9 +256,12 @@ def register_class(klass, alias):
 def register_class_loader(loader):
     """
     Registers a loader that is called to provide the Class for a specific
-    alias. loader is provided with one argument, the class alias. If the loader
+    alias. L{loader} is provided with one argument, the Class alias. If the loader
     succeeds in finding a suitable class then it should return that class,
-    otherwise it should return None.
+    otherwise it should return L{None}.
+
+    @type loader:
+    @param loader:
     """
     if not callable(loader):
         raise TypeError("loader must be callable")
@@ -258,6 +274,9 @@ def register_class_loader(loader):
 def get_module(mod_name):
     """
     Load a module based on mod_name.
+
+    @type mod_name: string
+    @param mod_name: module name
     """
     mod = __import__(mod_name)
     components = mod_name.split('.')
@@ -269,12 +288,15 @@ def get_module(mod_name):
 
 def load_class(alias):
     """
-    Finds the class registered to the alias. Raises LookupError if not found.
+    Finds the class registered to the alias. Raises L{LookupError} if not found.
 
     The search is done in order:
-      1. Checks if the class name has been registered via pyamf.register_class
-      2. Checks all functions registered via register_class_loader.
+      1. Checks if the class name has been registered via L{register_class}.
+      2. Checks all functions registered via L{register_class_loader}.
       3. Attempts to load the class via standard module loading techniques.
+
+    @type alias: string
+    @param alias: class name
     """
     alias = str(alias)
 
@@ -318,9 +340,12 @@ def load_class(alias):
 
 def get_class_alias(obj):
     """
-    Finds the alias registered to the class. Raises LookupError if not found.
+    Finds the alias registered to the class. Raises L{LookupError} if not found.
     
     See L{load_class} for more info.
+
+    @type obj:
+    @param obj:
     """
     klass = obj.__class__
 
@@ -341,6 +366,13 @@ def decode(stream, encoding=AMF0, context=None):
     A generator function to decode a datastream.
     
     Returns each element in the stream.
+
+    @type   stream: L{BufferedByteStream}
+    @param  stream: AMF data
+    @type   encoding: int
+    @param  encoding: AMF encoding type
+    @type   context: L{Context}
+    @param  context: Context
     """
     decoder = _get_decoder(encoding)(stream, context)
 
@@ -351,7 +383,14 @@ def encode(element, encoding=AMF0, context=None):
     """
     A helper function to encode an element.
 
-    Returns a file like object.
+    Returns a file-like object.
+
+    @type   element: 
+    @param  element: Python data
+    @type   encoding: int
+    @param  encoding: AMF encoding type
+    @type   context: L{Context}
+    @param  context: Context
     """
     stream = util.BufferedByteStream()
     encoder = _get_encoder(encoding)(stream, context)

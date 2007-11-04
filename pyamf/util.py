@@ -24,7 +24,10 @@
 # LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
+
+"""
+PyAMF utilities.
+"""
 
 import struct, calendar, datetime
 from StringIO import StringIO
@@ -94,15 +97,18 @@ class NetworkIOMixIn(object):
 
 class BufferedByteStream(StringIO, NetworkIOMixIn):
     """
-    An extension of StringIO that:
-     - Raises EOFError if reading past end
-     - Allows you to peek() at the next byte
+    An extension of L{StringIO} that:
+     - Raises EOFError if reading past end.
+     - Allows you to peek() at the next byte.
     """
 
     def __init__(self, *args, **kwargs):
         StringIO.__init__(self, *args, **kwargs)
 
     def read(self, length=-1):
+        """
+        Read bytes from stream.
+        """
         if length > 0 and self.at_eof():
             raise EOFError
         if length > 0 and self.tell() + length > self.len:
@@ -129,17 +135,20 @@ class BufferedByteStream(StringIO, NetworkIOMixIn):
 
     def at_eof(self):
         """
-        Returns true if next .read(1) will trigger EOFError
+        Returns true if next .read(1) will trigger L{EOFError}.
         """
         return self.tell() >= self.len
 
     def remaining(self):
         """
-        Returns number of remaining bytes
+        Returns number of remaining bytes.
         """
         return self.len - self.tell()
 
 def hexdump(data):
+    """
+    Hexadecimal representation of StringIO data.
+    """
     import string
 
     hex = ascii = buf = ""
@@ -167,12 +176,12 @@ def get_timestamp(d):
     Returns a UTC timestamp for a datetime.datetime object.
 
     Inspiration taken from:
-    http://intertwingly.net/blog/2007/09/02/Dealing-With-Dates
+    U{http://intertwingly.net/blog/2007/09/02/Dealing-With-Dates}
     """
     return calendar.timegm(d.utctimetuple())
 
 def get_datetime(ms):
     """
-    Return a UTC date from a timestamp
+    Return a UTC date from a timestamp.
     """
     return datetime.datetime.utcfromtimestamp(ms)

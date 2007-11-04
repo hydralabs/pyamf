@@ -73,6 +73,9 @@ ACTIONSCRIPT_TYPES = set(
 REFERENCE_BIT = 0x01
 
 class ObjectEncoding:
+    """
+    AMF object encodings.
+    """
     #: Property list encoding.
     #: The remaining integer-data represents the number of
     #: class members that exist. The property names are read
@@ -160,7 +163,8 @@ class Decoder(object):
     def readType(self):
         """
         Read and returns the next byte in the stream and determine its type.
-        Raises ValueError if not recognized.
+        
+        Raises L{ValueError} if not recognized.
         """
         type = self.input.read_uchar()
 
@@ -171,19 +175,33 @@ class Decoder(object):
         return type
 
     def readNull(self):
+        """
+        Read null and return None.
+        """
         return None
 
     def readBoolFalse(self):
+        """
+        Returns False.
+        """
         return False
 
     def readBoolTrue(self):
+        """
+        Returns True.
+        """
         return True
 
     def readNumber(self):
+        """
+        Read number.
+        """
         return self.input.read_double()
 
     def readElement(self):
-        """Reads the data type."""
+        """
+        Reads the data type.
+        """
         type = self.readType()
 
         try:
@@ -254,9 +272,17 @@ class Decoder(object):
         return result
 
     def readXML(self):
+        """
+        Read XML from the stream.
+        """
         return util.ET.fromstring(self.readString(False))
 
     def readDate(self):
+        """
+        Read date from the stream.
+
+        The timezone can be ignored as the date is always in UTC.
+        """
         ref = self.readInteger()
 
         if ref & REFERENCE_BIT == 0:
@@ -346,6 +372,7 @@ class Decoder(object):
 
         if class_def.external:
             # TODO: implement externalizeable interface here
+            # Reference: U{http://livedocs.adobe.com/flex/2/langref/flash/utils/IExternalizable.html}
             obj.__amf_externalized_data = self.readElement()
 
         elif class_def.dynamic:
@@ -374,6 +401,8 @@ class Decoder(object):
     def readByteArray(self):
         """
         Reads a string of data from the stream.
+
+        This is not supported by the AMF0 decoder.
         """
         length = self.readInteger()
 
@@ -403,8 +432,9 @@ class Encoder(object):
 
     def __init__(self, output, context=None):
         """
-        Constructs a new Encoder. Output should be a writable
-        file-like object.
+        Constructs a new Encoder.
+
+        Output should be a writable file-like object.
         """
         self.output = output
 
@@ -415,11 +445,12 @@ class Encoder(object):
 
     def writeType(self, type):
         """
-        Writes the type to the stream. Raises ValueError if type is not
-        recognized.
+        Writes the type to the stream.
+
+        Raises L{ValueError} if type is not recognized.
         """
         if type not in ACTIONSCRIPT_TYPES:
-            raise ValueError("Unknown AMF0 type 0x%02x at %d" % (
+            raise ValueError("Unknown AMF3 type 0x%02x at %d" % (
                 type, self.output.tell() - 1))
 
         self.output.write_uchar(type)
@@ -438,9 +469,15 @@ class Encoder(object):
                         raise
 
     def writeNull(self, n):
+        """
+        Writes a null value to the stream.
+        """
         self.writeType(ASTypes.NULL)
 
     def writeBoolean(self, n):
+        """
+        Writes a boolean to the stream.
+        """
         if n:
             self.writeType(ASTypes.BOOL_TRUE)
         else:
@@ -472,14 +509,14 @@ class Encoder(object):
 
     def writeInteger(self, n):
         """
-        Writes an integer to the data stream.
+        Writes an integer to the stream.
         """
         self.writeType(ASTypes.INTEGER)
         self._writeInteger(n)
 
     def writeNumber(self, n):
         """
-        Writes a non integer to the data stream.
+        Writes a non integer to the stream.
         """
         self.writeType(ASTypes.NUMBER)
         self.output.write_double(n)
@@ -620,6 +657,9 @@ class Encoder(object):
             self.writeElement(n[k])
 
     def _getClassDefinition(self, obj):
+        """
+        Read class definition.
+        """
         try:
             alias = pyamf.get_class_alias(obj)
         except LookupError:
@@ -707,6 +747,9 @@ class Encoder(object):
             self.output.write_uchar(ord(ch))
 
 class AbstractMessage(object):
+    """
+    Base class for all Flex compatibility messages.
+    """
     data = None
     clientId = None
     destination = None
@@ -724,16 +767,30 @@ class AbstractMessage(object):
         return m + " />"
 
 class AsyncMessage(AbstractMessage):
+    """
+    Base class for for asynchronous Flex compatibility messages.
+    """
     correlationId = None
 
 class AcknowledgeMessage(AsyncMessage):
+    """
+    Flex compatibility message that is returned to the client.
+    """
     pass
 
 class CommandMessage(AsyncMessage):
+    """
+    Command message as sent by the C{<mx:RemoteObject>} MXML tag.
+
+    Reference: U{http://livedocs.adobe.com/flex/2/langref/mx/rpc/remoting/mxml/RemoteObject.html}
+    """
     operation = None
     messageRefType = None
 
 class ErrorMessage(AbstractMessage):
+    """
+    Flex error message to be returned to the client.
+    """
     extendedData = {}
     faultCode = None
     faultDetail = None
@@ -742,6 +799,7 @@ class ErrorMessage(AbstractMessage):
 
 class RemotingMessage(AbstractMessage):
     """
+    Flex compatibility message that is sent by the C{<mx:RemoteObject>} MXML tag.
     """
     #: Name of the method to be called.
     operation = None
@@ -791,6 +849,7 @@ def encode_utf8_modified(data):
 def decode_utf8_modified(data):
     """
     Decodes a unicode string from Modified UTF-8 data.
+    
     See U{http://en.wikipedia.org/wiki/UTF-8#Java} for details.
     """
     size = ((ord(data[0]) << 8) & 0xff) + ((ord(data[1]) << 0) & 0xff)
@@ -823,7 +882,12 @@ def decode_utf8_modified(data):
 
 def decode(stream, context=None):
     """
-    A helper function to decode an AMF3 datastream. 
+    A helper function to decode an AMF3 datastream.
+
+    @type   stream: L{BufferedByteStream}
+    @param  stream: AMF3 data
+    @type   context: L{Context}
+    @param  context: Context
     """
     decoder = Decoder(stream, context)
     
@@ -834,7 +898,12 @@ def encode(element, context=None):
     """
     A helper function to encode an element into AMF3 format.
 
-    Returns a StringIO object.
+    Returns a StringIO object containing the encoded AMF3 data.
+
+    @type   element: 
+    @param  element:
+    @type   context: L{Context}
+    @param  context: Context
     """
     buf = util.BufferedByteStream()
     encoder = Encoder(buf, context)

@@ -24,7 +24,6 @@
 # LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
 
 """
 Test for AMF0 Implementation.
@@ -59,7 +58,7 @@ class TypesTestCase(unittest.TestCase):
 
 class EncoderTestCase(unittest.TestCase):
     """
-    Tests the output from the Encoder class.
+    Tests the output from the AMF0 L{Encoder<pyamf.amf0.Encoder>} class.
     """
 
     def setUp(self):
@@ -195,6 +194,9 @@ class EncoderTestCase(unittest.TestCase):
                 '\x00\x09\x07\x00\x01')])
 
 class DecoderTestCase(unittest.TestCase):
+    """
+    Tests the output from the AMF0 L{Decoder<pyamf.amf0.Decoder>} class.
+    """
     def setUp(self):
         self.buf = util.BufferedByteStream()
         self.decoder = amf0.Decoder()
@@ -266,7 +268,7 @@ class DecoderTestCase(unittest.TestCase):
             (datetime.datetime(2005, 3, 18, 1, 58, 31),
                 '\x0bBp+6!\x15\x80\x00\x00\x00')])
 
-    # TODO testing for timezones
+    # TODO: testing for timezones
 
     def test_xml(self):
         self.buf.truncate(0)

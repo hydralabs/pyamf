@@ -24,7 +24,6 @@
 # LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
 
 """
 Utility for PyAMF tests.
@@ -44,7 +43,7 @@ class GenericObject(object):
 class EncoderTester(object):
     """
     A helper object that takes some input, runs over the encoder and checks
-    the output
+    the output.
     """
 
     def __init__(self, encoder, data):
@@ -67,7 +66,7 @@ class EncoderTester(object):
 class DecoderTester(object):
     """
     A helper object that takes some input, runs over the decoder and checks
-    the output
+    the output.
     """
 
     def __init__(self, decoder, data):

@@ -25,7 +25,10 @@
 # LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
+
+"""
+Extracts and displays information for files that contain AMF data.
+"""
 
 import glob
 from optparse import OptionParser
@@ -33,6 +36,9 @@ from optparse import OptionParser
 import pyamf
 
 def parse_options():
+    """
+    Parse command-line arguments.
+    """
     parser = OptionParser()
 
     parser.add_option("-d", "--debug", action="store_true", dest="debug",
@@ -43,6 +49,9 @@ def parse_options():
     return parser.parse_args()
 
 def read_file(fname):
+    """
+    Read file containing AMF data.
+    """
     f = file(fname, "r")
     data = f.read()
     f.close()
@@ -50,6 +59,9 @@ def read_file(fname):
     return data
 
 def main():
+    """
+    Run AMF decoder on input file.
+    """
     (options, args) = parse_options()
 
     for arg in args:

@@ -24,7 +24,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-WSGI Server implementation
+U{WSGI<http://wsgi.org>} Server implementation.
 """
 
 # Heavily borrowed from Flashticle http://osflash.org/flashticle

@@ -24,7 +24,6 @@
 # LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
 
 """
 Test for AMF3 Implementation.
@@ -53,6 +52,9 @@ class TypesTestCase(unittest.TestCase):
         self.assertEquals(amf3.ASTypes.BYTEARRAY, 0x0c)
 
 class EncoderTestCase(unittest.TestCase):
+    """
+    Tests the output from the L{Decoder<pyamf.amf3.Encoder>} class.
+    """
     def setUp(self):
         self.buf = util.BufferedByteStream()
         self.context = pyamf.Context()
@@ -151,7 +153,7 @@ class EncoderTestCase(unittest.TestCase):
         Test to see if there is an empty key in the dict. There is a design
         bug in Flash 9 which means that it cannot read this specific data.
         
-        See http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug
+        See U{http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug}
         for more info.
         """
         def x():
@@ -180,6 +182,9 @@ class EncoderTestCase(unittest.TestCase):
         self._run([(amf3.ByteArray('hello'), '\x0c\x0bhello')])
 
 class DecoderTestCase(unittest.TestCase):
+    """
+    Tests the output from the AMF3 L{Decoder<pyamf.amf3.Decoder>} class.
+    """
     def setUp(self):
         self.buf = util.BufferedByteStream()
         self.context = pyamf.Context()

@@ -26,7 +26,9 @@
 """
 AMF Remoting support.
 
-Reference: U{http://osflash.org/documentation/amf/envelopes/remoting}
+References:
+ - U{http://osflash.org/documentation/amf/envelopes/remoting}
+ - U{http://osflash.org/amf/envelopes/remoting/headers}
 """
 
 import pyamf
@@ -50,6 +52,9 @@ STATUS_CODES = {
 }
 
 class HeaderCollection(dict):
+    """
+    Collection of AMF message headers.
+    """
     def __init__(self, raw_headers={}):
         self.required = []
 
@@ -135,11 +140,16 @@ class Message(object):
 def _read_header(stream, decoder):
     """
     Read AMF message header.
-    
-    I return a tuple of:
-     - The name of the header
-     - A boolean determining if understanding this header is required
-     - value of the header
+
+    I return a tuple containing:
+     - The name of the header.
+     - A boolean determining if understanding this header is required.
+     - value of the header.
+     
+    @type   stream: L{BufferedByteStream}
+    @param  stream: AMF data
+    @type   decoder: L{pyamf.amf0.Decoder} or L{pyamf.amf3.Decoder}
+    @param  decoder: AMF decoder instance      
     """
     name_len = stream.read_ushort()
     name = stream.read_utf8_string(name_len)
@@ -160,6 +170,17 @@ def _read_header(stream, decoder):
 def _write_header(name, header, required, stream, encoder):
     """
     Write AMF message header.
+
+    @type   name: string
+    @param  name: Name of header
+    @type   header: 
+    @param  header: Raw header data
+    @type   required: L{bool}
+    @param  required: Required header
+    @type   stream: L{BufferedByteStream}
+    @param  stream: AMF data
+    @type   encoder: L{pyamf.amf0.Encoder} or L{pyamf.amf3.Encoder}
+    @param  encoder: AMF encoder instance
     """
     stream.write_ushort(len(name))
     stream.write_utf8_string(name)
@@ -181,9 +202,14 @@ def _read_body(stream, decoder):
     Read AMF message body.
 
     I return a tuple containing:
-     - The target of the body
-     - The id (as sent by the client) of the body
-     - The data of the body
+     - The target of the body.
+     - The id (as sent by the client) of the body.
+     - The data of the body.
+
+    @type   stream: L{BufferedByteStream}
+    @param  stream: AMF data
+    @type   decoder: L{pyamf.amf0.Decoder} or L{pyamf.amf3.Decoder}
+    @param  decoder: AMF decoder instance  
     """
     target_len = stream.read_ushort()
     target = stream.read_utf8_string(target_len)
@@ -211,6 +237,15 @@ def _read_body(stream, decoder):
 def _write_body(name, body, stream, encoder):
     """
     Write AMF message body.
+
+    @type   name: string
+    @param  name: Name of body
+    @type   body: 
+    @param  body: Raw body data
+    @type   stream: L{BufferedByteStream}
+    @param  stream: AMF data
+    @type   encoder: 
+    @param  encoder: L{pyamf.amf0.Encoder} or L{pyamf.amf3.Encoder}
     """
     response = "%s%s" % (name, _get_status(body.status))
 
@@ -240,6 +275,11 @@ def _get_status(status):
 def decode(stream, context=None):
     """
     Decodes the incoming stream and returns a L{Envelope} object.
+
+    @type   stream: L{BufferedByteStream}
+    @param  stream: AMF data
+    @type   context: L{Context}
+    @param  context: Context
     """
     if not isinstance(stream, util.BufferedByteStream):
         stream = util.BufferedByteStream(stream)
@@ -273,6 +313,11 @@ def decode(stream, context=None):
 def encode(msg, context=None):
     """
     Encodes AMF stream and returns file object.
+
+    @type   msg: 
+    @param  msg: Python data
+    @type   context: L{Context}
+    @param  context: Context
     """
     stream = util.BufferedByteStream()
 
