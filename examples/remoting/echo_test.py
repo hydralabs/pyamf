@@ -24,9 +24,10 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Simple Python echo server for Flash Remoting.
+Simple Python echo test U{WGSI<http://wsgi.org>} server for Flash Remoting.
 
-This example uses the U{WGSI<http://wsgi.org>} webserver.
+You can use this example with the echo_test.swf client found on:
+U{http://dev.collab.com/pyamf/raw-attachment/ticket/22/echotest.swf}
 """
 
 import pyamf
@@ -36,8 +37,6 @@ from wsgiref import simple_server
 class RemoteClass(object):
     """
     This Python class is mapped to the clientside Actionscript class.
-
-    TODO how do I access the clientside class name ('org.red5.server.webapp.echo.RemoteClass')?
     """
     pass
 
@@ -61,10 +60,10 @@ if __name__ == '__main__':
 
     gw = Gateway(services)
     port = 8000
-    print "Started echo server on port", port
+    print "Started echo test server on port", port
     
     httpd = simple_server.WSGIServer(
-        ('',8000),
+        ('',port),
         simple_server.WSGIRequestHandler,
     )
     httpd.set_app(gw)
