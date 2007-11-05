@@ -371,9 +371,8 @@ class Encoder(object):
                     if isinstance(data, t):
                         return getattr(self, method)
                 except TypeError:
-                    if callable(t):
-                        if t(data):
-                            return getattr(self, method)
+                    if callable(t) and t(data):
+                        return getattr(self, method)
 
         return None
 

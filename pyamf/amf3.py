@@ -109,11 +109,11 @@ class ClassDefinition(object):
     """
     I contain meta relating to the class definition.
     """
-    attrs = []
 
     def __init__(self, name, encoding):
         self.name = name
         self.encoding = encoding
+        self.attrs = []
 
     def is_external(self):
         return self.encoding == ObjectEncoding.EXTERNAL
@@ -145,7 +145,7 @@ class Decoder(object):
         ASTypes.DATE:           'readDate',
         ASTypes.ARRAY:          'readArray',
         ASTypes.OBJECT:         'readObject',
-        ASTypes.XMLSTRING:      'readString',
+        ASTypes.XMLSTRING:      'readXMLString',
         ASTypes.BYTEARRAY:      'readByteArray',
     }
 
@@ -203,7 +203,7 @@ class Decoder(object):
         Reads the data type.
         """
         type = self.readType()
-
+        
         try:
             func = getattr(self, self.type_map[type])
         except KeyError, e:
@@ -398,6 +398,14 @@ class Decoder(object):
 
         return obj
 
+    def readXMLString(self):
+        """
+        Reads a string from the data stream and converts it into an XML Tree
+        """
+        xmlstring = self.readString(False)
+
+        return util.ET.XML(xmlstring)
+
     def readByteArray(self):
         """
         Reads a string of data from the stream.
@@ -421,8 +429,8 @@ class Encoder(object):
         ((int,long), "writeInteger"),
         ((float,), "writeNumber"),
         ((ByteArray,), "writeByteArray"),
-        ((types.StringTypes,), "writeString"),
         ((util.ET.iselement,), "writeXML"),
+        ((types.StringTypes,), "writeString"),
         ((types.DictType,), "writeDict"),
         ((types.ListType,types.TupleType,), "writeList"),
         ((datetime.date, datetime.datetime), "writeDate"),
@@ -450,7 +458,7 @@ class Encoder(object):
         Raises L{ValueError} if type is not recognized.
         """
         if type not in ACTIONSCRIPT_TYPES:
-            raise ValueError("Unknown AMF3 type 0x%02x at %d" % (
+            raise pyamf.EncodeError("Unknown AMF3 type 0x%02x at %d" % (
                 type, self.output.tell() - 1))
 
         self.output.write_uchar(type)
@@ -471,9 +479,8 @@ class Encoder(object):
                     if isinstance(data, t):
                         return getattr(self, method)
                 except TypeError:
-                    if callable(t):
-                        if t(data):
-                            return getattr(self, method)
+                    if callable(t) and t(data):
+                        return getattr(self, method)
 
         return None
 
@@ -697,7 +704,7 @@ class Encoder(object):
 
         class_def = ClassDefinition(alias, ObjectEncoding.STATIC)
 
-        for name in obj.__dict__.keys():
+        for name, value in obj.__dict__.iteritems():
             class_def.attrs.append(name)
 
         return class_def
@@ -752,7 +759,6 @@ class Encoder(object):
             if not class_ref:
                 for attr in class_def.attrs:
                     self._writeString(attr)
-
             for attr in class_def.attrs:
                 self.writeElement(getattr(obj, attr))
 
