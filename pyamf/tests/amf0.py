@@ -59,7 +59,7 @@ class TypesTestCase(unittest.TestCase):
 
 class EncoderTestCase(unittest.TestCase):
     """
-    Tests the output from the Encoder class.
+    Tests the output from the AMF0 L{Encoder<pyamf.amf0.Encoder>} class.
     """
 
     def setUp(self):
@@ -194,6 +194,9 @@ class EncoderTestCase(unittest.TestCase):
                 'foo\x00\x01b\x02\x00\x03bar\x00\x00\t\x07\x00\x01')])
 
 class DecoderTestCase(unittest.TestCase):
+    """ 
+    Tests the output from the AMF0 L{Decoder<pyamf.amf0.Decoder>} class. 
+    """ 
     def setUp(self):
         self.buf = util.BufferedByteStream()
         self.decoder = amf0.Decoder()
@@ -264,8 +267,6 @@ class DecoderTestCase(unittest.TestCase):
         self._run([
             (datetime.datetime(2005, 3, 18, 1, 58, 31),
                 '\x0bBp+6!\x15\x80\x00\x00\x00')])
-
-    # TODO testing for timezones
 
     def test_xml(self):
         self.buf.truncate(0)
