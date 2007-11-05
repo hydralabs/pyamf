@@ -102,22 +102,21 @@ class EncoderTestCase(unittest.TestCase):
 
     def test_date(self):
         import datetime
+        
+        x = datetime.datetime(2005, 3, 18, 1, 58, 31)
 
         self._run([
-            (datetime.datetime(2005, 3, 18, 1, 58, 31),
-                '\x08\x01Bp+6!\x15\x80\x00')])
+            (x, '\x08\x01Bp+6!\x15\x80\x00')])
 
     def test_date_references(self):
         import datetime
-
-        self.e.obj_refs = []
 
         x = datetime.datetime(2005, 3, 18, 1, 58, 31)
 
         self._run([
             (x, '\x08\x01Bp+6!\x15\x80\x00'),
-            (x, '\x08\x00'),
-            (x, '\x08\x00')])
+            (x, '\x08\x02'),
+            (x, '\x08\x02')])
 
     def test_list(self):
         self._run([
@@ -128,8 +127,8 @@ class EncoderTestCase(unittest.TestCase):
 
         self._run([
             (y, '\x09\x09\x01\x04\x00\x04\x01\x04\x02\x04\x03'),
-            (y, '\x09\x00'),
-            (y, '\x09\x00')])
+            (y, '\x09\x02'),
+            (y, '\x09\x02')])
 
     def test_dict(self):
         self._run([
@@ -165,7 +164,10 @@ class EncoderTestCase(unittest.TestCase):
         class Foo(object):
             pass
 
-        pyamf.CLASS_CACHE = {}
+        try:
+            del pyamf.CLASS_CACHE['com.collab.dev.pyamf.foo']
+        except KeyError:
+            pass
 
         pyamf.register_class(Foo, 'com.collab.dev.pyamf.foo')
 
@@ -177,6 +179,8 @@ class EncoderTestCase(unittest.TestCase):
         self.assertEqual(self.buf.getvalue(), '\x0a\x13\x31\x63\x6f\x6d\x2e\x63\x6f\x6c\x6c\x61\x62'
             '\x2e\x64\x65\x76\x2e\x70\x79\x61\x6d\x66\x2e\x66\x6f\x6f\x07\x62'
             '\x61\x7a\x06\x0b\x68\x65\x6c\x6c\x6f')
+
+        del pyamf.CLASS_CACHE['com.collab.dev.pyamf.foo']
 
     def test_byte_array(self):
         self._run([(amf3.ByteArray('hello'), '\x0c\x0bhello')])
@@ -307,7 +311,10 @@ class DecoderTestCase(unittest.TestCase):
         class Foo(object):
             pass
 
-        pyamf.CLASS_CACHE = {}
+        try:
+            del pyamf.CLASS_CACHE['com.collab.dev.pyamf.foo']
+        except KeyError:
+            pass
 
         pyamf.register_class(Foo, 'com.collab.dev.pyamf.foo')
 
@@ -323,6 +330,8 @@ class DecoderTestCase(unittest.TestCase):
 
         self.failUnless(hasattr(obj, 'baz'))
         self.assertEquals(obj.baz, 'hello')
+
+        del pyamf.CLASS_CACHE['com.collab.dev.pyamf.foo']
 
     def test_byte_array(self):
         self._run([(amf3.ByteArray('hello'), '\x0c\x0bhello')])

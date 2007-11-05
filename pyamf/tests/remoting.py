@@ -154,14 +154,15 @@ class EncoderTestCase(unittest.TestCase):
 
         msg.headers['foo'] = (False, 'bar')
         self.assertEquals(remoting.encode(msg).getvalue(), '\x00\x00\x00\x01'
-            '\x00\x03foo\x00\x00\x00\x00\x06\x02\x00\x03bar\x00\x00')
+            '\x00\x03foo\x00\x00\x00\x00\r\n\x00\x00\x00\x02\x01\x00\x02\x00'
+            '\x03bar\x00\x00')
 
         msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash)
 
         msg.headers['foo'] = (True, ['a', 'b', 'c'])
         self.assertEquals(remoting.encode(msg).getvalue(), '\x00\x00\x00\x01'
-            '\x00\x03foo\x01\x00\x00\x00\x11\n\x00\x00\x00\x03\x02\x00\x01a'
-            '\x02\x00\x01b\x02\x00\x01c\x00\x00')
+            '\x00\x03foo\x00\x00\x00\x00\x18\n\x00\x00\x00\x02\x01\x01\n\x00'
+            '\x00\x00\x03\x02\x00\x01a\x02\x00\x01b\x02\x00\x01c\x00\x00')
 
     def test_body(self):
         msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash)
