@@ -24,7 +24,9 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Remoting Echo example.
+Simple Python echo server for Flash Remoting.
+
+This example uses the U{WGSI<http://wsgi.org>} webserver.
 """
 
 import pyamf
@@ -32,20 +34,35 @@ from pyamf.gateway.wsgi import Gateway
 from wsgiref import simple_server
 
 class RemoteClass(object):
+    """
+    This Python class is mapped to the clientside Actionscript class.
+
+    TODO how do I access the clientside class name ('org.red5.server.webapp.echo.RemoteClass')?
+    """
     pass
 
+#: Map ActionScript class to Python class
 pyamf.register_class(RemoteClass, 'org.red5.server.webapp.echo.RemoteClass')
 
 def echo(data):
+    """
+    Return data back to the client.
+
+    @type data:
+    @param data: Decoded AS->Python data
+    """
     return data
 
 if __name__ == '__main__':
+    #: Define remote calls from the Flash Player.
     services = {
         'echo': echo
     }
 
     gw = Gateway(services)
-
+    port = 8000
+    print "Started echo server on port", port
+    
     httpd = simple_server.WSGIServer(
         ('',8000),
         simple_server.WSGIRequestHandler,

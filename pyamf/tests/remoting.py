@@ -34,6 +34,9 @@ import pyamf
 from pyamf import remoting, util
 
 class DecoderTestCase(unittest.TestCase):
+    """
+    Tests the AMF version (AMF0 or AMF3) decode process.
+    """
     def test_amf_version(self):
         for x in ('\x00', '\x03'):
             try:
@@ -44,6 +47,9 @@ class DecoderTestCase(unittest.TestCase):
         self.failUnlessRaises(ValueError, remoting.decode, '\x01')
 
     def test_client_version(self):
+        """
+        Tests the AMF client version decode process.
+        """
         for x in ('\x00', '\x01', '\x03'):
             try:
                 remoting.decode('\x00' + x)
@@ -85,7 +91,7 @@ class DecoderTestCase(unittest.TestCase):
         self.assertTrue(msg.headers.is_required('name'))
 
     def test_invalid_header_data_length(self):
-        self.failUnlessRaises(pyamf.ParseError, remoting.decode,
+        self.failUnlessRaises(pyamf.DecodeError, remoting.decode,
             '\x00\x00\x00\x01\x00\x04name\x00\x00\x00\x00\x06\x0a\x00\x00\x00'
             '\x00\x00\x00')
 
@@ -136,7 +142,7 @@ class DecoderTestCase(unittest.TestCase):
         self.assertEquals(m, x)
 
     def test_invalid_body_data_length(self):
-        self.failUnlessRaises(pyamf.ParseError, remoting.decode,
+        self.failUnlessRaises(pyamf.DecodeError, remoting.decode,
             '\x00\x00\x00\x00\x00\x01\x00\x09test.test\x00\x02/1\x00\x00\x00'
             '\x0d\x08\x00\x00\x00\x00\x00\x01\x61\x02\x00\x01\x61\x00\x00\x09')
 

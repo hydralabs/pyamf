@@ -31,7 +31,6 @@ AMF0 Implementation.
 Resources:
  - U{http://www.vanrijkom.org/archives/2005/06/amf_format.html}
  - U{http://osflash.org/documentation/amf}
-
 """
 
 import datetime, calendar, types
@@ -45,12 +44,11 @@ class ASTypes:
 
     Reference: U{http://osflash.org/documentation/amf/astypes}
     """
-
     NUMBER      = 0x00
     BOOL        = 0x01
     STRING      = 0x02
     OBJECT      = 0x03
-    # Not available in remoting
+    #: Not available in remoting
     MOVIECLIP   = 0x04
     NULL        = 0x05
     UNDEFINED   = 0x06
@@ -67,6 +65,7 @@ class ASTypes:
     TYPEDOBJECT = 0x10
     AMF3        = 0x11
 
+#: List of available ActionScript types in AMF0.
 ACTIONSCRIPT_TYPES = set(
     ASTypes.__dict__[x] for x in ASTypes.__dict__ if not x.startswith('__'))
 
@@ -74,6 +73,7 @@ class Decoder(object):
     """
     Decodes an AMF0 stream.
     """
+    #: Decoder type mappings.
     # XXX nick: Do we need to support ASTypes.MOVIECLIP here?
     type_map = {
         ASTypes.NUMBER:     'readNumber',
@@ -96,6 +96,12 @@ class Decoder(object):
     }
 
     def __init__(self, data=None, context=None):
+        """
+        @type   data: L{BufferedByteStream}
+        @param  data: AMF0 data
+        @type   context: L{Context}
+        @param  context: Context
+        """
         # coersce data to BufferedByteStream
         if isinstance(data, util.BufferedByteStream):
             self.input = data
@@ -116,7 +122,7 @@ class Decoder(object):
         type = self.input.read_uchar()
 
         if type not in ACTIONSCRIPT_TYPES:
-            raise pyamf.ParseError("Unknown AMF0 type 0x%02x at %d" % (
+            raise pyamf.DecodeError("Unknown AMF0 type 0x%02x at %d" % (
                 type, self.input.tell() - 1))
 
         return type
@@ -164,6 +170,9 @@ class Decoder(object):
         return obj
 
     def readList(self):
+        """
+        Read a list from the data stream.
+        """
         obj = []
         len = self.input.read_ulong()
 
@@ -194,6 +203,9 @@ class Decoder(object):
         return ret
 
     def readAMF3(self):
+        """
+        Read AMF3 elements from the data stream.
+        """
         from pyamf import amf3
 
         # XXX: Does the amf3 decoder have access to the same references as amf0?
@@ -203,14 +215,14 @@ class Decoder(object):
 
     def readElement(self):
         """
-        Reads an element from the data stream.
+        Reads an AMF0 element from the data stream.
         """
         type = self.readType()
 
         try:
             func = getattr(self, self.type_map[type])
         except KeyError, e:
-            raise pyamf.ParseError(
+            raise pyamf.DecodeError(
                 "Unknown ActionScript type 0x%02x" % type)
 
         return func()
@@ -238,7 +250,7 @@ class Decoder(object):
 
     def readObject(self):
         """
-        Reads an object from the AMF stream.
+        Reads an object from the data stream.
 
         @return The object
         @rettype __builtin__.object
@@ -252,7 +264,7 @@ class Decoder(object):
 
     def readReference(self):
         """
-        Reads a reference from the AMF stream.
+        Reads a reference from the data stream.
         """
         idx = self.input.read_ushort()
         return self.context.getObject(idx)
@@ -292,12 +304,13 @@ class Decoder(object):
 
 class Encoder(object):
     """
-    AMF0 Encoder.
+    Encodes an AMF0 stream.
     
     The type map is a list of types -> functions. The types is a list of
     possible instances or functions to call (that return a bool) to determine
     the correct function to call to encode the data
     """
+    #: Python to AMF type mappings.
     type_map = [
         # Unsupported types go first
         ((types.BuiltinFunctionType, types.BuiltinMethodType,), "writeUnsupported"),
@@ -378,7 +391,7 @@ class Encoder(object):
 
     def writeElement(self, data):
         """
-        Writes the data.
+        Writes an encoded version of data to the output stream.
 
         @type   data: mixed
         @param  data: 
@@ -524,6 +537,7 @@ class Encoder(object):
 
     def _writeEndObject(self):
         """
+        Write end of object in the data stream.
         """
         # Write a null string, this is an optimisation so that we don't have to
         # wasting precious cycles by encoding the string etc. 
@@ -602,7 +616,7 @@ def decode(stream, context=None):
     A helper function to decode an AMF0 datastream.
 
     @type   stream: L{BufferedByteStream}
-    @param  stream: AMF0 data
+    @param  stream: AMF0 datastream
     @type   context: L{Context}
     @param  context: Context
     """
@@ -613,7 +627,7 @@ def decode(stream, context=None):
 
 def encode(element, context=None):
     """
-    A helper function to encode an element into AMF0 format.
+    A helper function to encode an element into the AMF0 format.
 
     Returns a StringIO object.
 

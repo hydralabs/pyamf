@@ -36,6 +36,9 @@ from pyamf import amf3, util
 from pyamf.tests.util import GenericObject, EncoderTester, DecoderTester
 
 class TypesTestCase(unittest.TestCase):
+    """
+    Tests the type mappings.
+    """
     def test_types(self):
         self.assertEquals(amf3.ASTypes.UNDEFINED, 0x00)
         self.assertEquals(amf3.ASTypes.NULL, 0x01)
@@ -53,7 +56,7 @@ class TypesTestCase(unittest.TestCase):
 
 class EncoderTestCase(unittest.TestCase):
     """
-    Tests the output from the L{Decoder<pyamf.amf3.Encoder>} class.
+    Tests the output from the L{Encoder<pyamf.amf3.Encoder>} class.
     """
     def setUp(self):
         self.buf = util.BufferedByteStream()
@@ -209,7 +212,7 @@ class DecoderTestCase(unittest.TestCase):
 
         self.buf.write('x')
         self.buf.seek(0)
-        self.assertRaises(pyamf.ParseError, self.decoder.readType)
+        self.assertRaises(pyamf.DecodeError, self.decoder.readType)
 
     def test_number(self):
         self._run([

@@ -37,6 +37,9 @@ from pyamf import amf0, util
 from pyamf.tests.util import GenericObject, EncoderTester, DecoderTester
 
 class TypesTestCase(unittest.TestCase):
+    """
+    Tests the type mappings.
+    """
     def test_types(self):
         self.assertEquals(amf0.ASTypes.NUMBER, 0x00)
         self.assertEquals(amf0.ASTypes.BOOL, 0x01)
@@ -217,7 +220,7 @@ class DecoderTestCase(unittest.TestCase):
 
         self.buf.write('x')
         self.buf.seek(0)
-        self.assertRaises(pyamf.ParseError, self.decoder.readType)
+        self.assertRaises(pyamf.DecodeError, self.decoder.readType)
 
     def test_number(self):
         self._run([

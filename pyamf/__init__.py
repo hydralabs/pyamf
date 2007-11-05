@@ -76,17 +76,19 @@ class GeneralTypes:
     REMOTING_STATUS    = 2
     #: Result to a debug-header.
     REMOTING_DEBUG     = 3
-    #: AMF mimetype
+    #: AMF mimetype.
     AMF_MIMETYPE       = 'application/x-amf'
 
 class BaseError(Exception):
     """
-    Base AMF Error. All AMF related errors should be subclassed from this.
+    Base AMF Error.
+
+    All AMF related errors should be subclassed from this.
     """
 
-class ParseError(BaseError):
+class DecodeError(BaseError):
     """
-    Raised if there is an error in parsing an AMF data stream.
+    Raised if there is an error in decoding an AMF data stream.
     """
 
 class ReferenceError(BaseError):
@@ -183,12 +185,20 @@ class Context(object):
             return len(self.strings)
 
     def getClassDefinition(self, ref):
+        """
+        @type ref:
+        @param ref:
+        """
         try:
             return self.classes[ref]
         except IndexError:
             raise ReferenceError("Class reference %d not found" % ref)
 
     def getClassDefinitionReference(self, class_def):
+        """
+        @type class_def:
+        @param class_def:
+        """
         try:
             return self.classes.index(class_def)
         except ValueError:
@@ -238,7 +248,10 @@ class Bag(object):
 
 def register_class(klass, alias):
     """
-    Registers a class to be used in the data streaming. 
+    Registers a class to be used in the data streaming.
+
+    @type alias:
+    @param alias:
     """
     if not callable(klass):
         raise TypeError("klass must be callable")

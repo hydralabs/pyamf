@@ -32,7 +32,6 @@ AMF3 Implementation.
 Resources:
  - U{http://www.vanrijkom.org/archives/2005/06/amf_format.html}
  - U{http://osflash.org/documentation/amf3}
-
 """
 
 import types, datetime, time, copy
@@ -132,7 +131,7 @@ class Decoder(object):
     """
     Decodes an AMF3 data stream.
     """
-
+    #: Decoder type mappings.
     type_map = {
         ASTypes.UNDEFINED:      'readNull',
         ASTypes.NULL:           'readNull',
@@ -148,8 +147,14 @@ class Decoder(object):
         ASTypes.XMLSTRING:      'readXMLString',
         ASTypes.BYTEARRAY:      'readByteArray',
     }
-
+    
     def __init__(self, data=None, context=None):
+        """
+        @type   data: L{BufferedByteStream}
+        @param  data: AMF0 data
+        @type   context: L{Context}
+        @param  context: Context
+        """
         if isinstance(data, util.BufferedByteStream):
             self.input = data
         else:
@@ -169,7 +174,7 @@ class Decoder(object):
         type = self.input.read_uchar()
 
         if type not in ACTIONSCRIPT_TYPES:
-            raise pyamf.ParseError("Unknown AMF3 type 0x%02x at %d" % (
+            raise pyamf.DecodeError("Unknown AMF3 type 0x%02x at %d" % (
                 type, self.input.tell() - 1))
 
         return type
@@ -200,7 +205,7 @@ class Decoder(object):
 
     def readElement(self):
         """
-        Reads the data type.
+        Reads an AMF3 element from the data stream.
         """
         type = self.readType()
         
@@ -281,7 +286,7 @@ class Decoder(object):
         """
         Read date from the stream.
 
-        The timezone can be ignored as the date is always in UTC.
+        The timezone is ignored as the date is always in UTC.
         """
         ref = self.readInteger()
 
@@ -341,6 +346,12 @@ class Decoder(object):
         return result
 
     def _getClassDefinition(self, ref):
+        """
+        Reads class definition from the stream.
+        
+        @type   ref:
+        @param  ref:
+        """
         class_ref = ref & REFERENCE_BIT == 0
         
         ref >>= 1
@@ -371,7 +382,7 @@ class Decoder(object):
         obj = klass()
 
         if class_def.external:
-            # TODO: implement externalizeable interface here
+            # TODO implement externalizeable interface here
             # Reference: U{http://livedocs.adobe.com/flex/2/langref/flash/utils/IExternalizable.html}
             obj.__amf_externalized_data = self.readElement()
 
@@ -410,7 +421,7 @@ class Decoder(object):
         """
         Reads a string of data from the stream.
 
-        This is not supported by the AMF0 decoder.
+        This is not supported by the AMF0 {decoder<pyamf.amf0.Decoder>}.
         """
         length = self.readInteger()
 
@@ -420,7 +431,6 @@ class Encoder(object):
     """
     Encodes an AMF3 data stream.
     """
-    
     #: Python to AMF type mapping.
     type_map = [
         # Unsupported types go first
@@ -456,6 +466,9 @@ class Encoder(object):
         Writes the type to the stream.
 
         Raises L{ValueError} if type is not recognized.
+
+        @type   type: 
+        @param  type: ActionScript type
         """
         if type not in ACTIONSCRIPT_TYPES:
             raise pyamf.EncodeError("Unknown AMF3 type 0x%02x at %d" % (
@@ -469,6 +482,9 @@ class Encoder(object):
         
         @rettype: callable or None
         @return: The function used to encode data to the stream
+
+        @type   data: 
+        @param  data: Python data
         """
         func = None
         td = type(data)
@@ -502,13 +518,17 @@ class Encoder(object):
     def writeNull(self, n):
         """
         Writes a null value to the stream.
+
+        @type   n:
+        @param  n: null data
         """
         self.writeType(ASTypes.NULL)
 
     def writeBoolean(self, n):
         """
         Writes a boolean to the stream.
-        
+
+        @type   n:
         @type n: bool
         """
         if n:
@@ -522,6 +542,9 @@ class Encoder(object):
         
         See U{http://osflash.org/documentation/amf3/parsing_integers} for more
         info.
+
+        @type   n:
+        @param  n: integer data
         """
         bytes = []
 
@@ -543,6 +566,9 @@ class Encoder(object):
     def writeInteger(self, n):
         """
         Writes an integer to the stream.
+
+        @type   n:
+        @param  n: integer data
         """
         self.writeType(ASTypes.INTEGER)
         self._writeInteger(n)
@@ -550,6 +576,9 @@ class Encoder(object):
     def writeNumber(self, n):
         """
         Writes a non integer to the stream.
+
+        @type   n:
+        @param  n: number data
         """
         self.writeType(ASTypes.NUMBER)
         self.output.write_double(n)
@@ -557,6 +586,9 @@ class Encoder(object):
     def _writeString(self, n):
         """
         Writes a raw string to the stream.
+
+        @type   n:
+        @param  n: string data
         """
         if len(n) == 0:
             self._writeInteger(REFERENCE_BIT)
@@ -580,6 +612,9 @@ class Encoder(object):
     def writeString(self, n):
         """
         Writes a unicode string to the stream.
+
+        @type   n:
+        @param  n: string data
         """
         self.writeType(ASTypes.STRING)
         self._writeString(n)
@@ -589,6 +624,7 @@ class Encoder(object):
         Writes a datetime instance to the stream.
 
         @type n: Instance of L{datetime.datetime}
+        @param  n: date data
         """
         self.writeType(ASTypes.DATE)
 
@@ -609,8 +645,9 @@ class Encoder(object):
     def writeList(self, n):
         """
         Writes a list to the stream.
-        
-        @type n: One of __builtin__.tuple, __builtin__.set or __builtin__.list 
+
+        @type n: One of __builtin__.tuple, __builtin__.set or __builtin__.list
+        @param  n: list data
         """
         self.writeType(ASTypes.ARRAY)
 
@@ -632,6 +669,9 @@ class Encoder(object):
     def writeDict(self, n):
         """
         Writes a dict to the stream.
+
+        @type   n:
+        @param  n: dict data
         """
         self.writeType(ASTypes.ARRAY)
 
@@ -696,6 +736,9 @@ class Encoder(object):
     def _getClassDefinition(self, obj):
         """
         Read class definition.
+
+        @type   obj:
+        @param  obj:
         """
         try:
             alias = pyamf.get_class_alias(obj)
@@ -712,6 +755,9 @@ class Encoder(object):
     def writeObject(self, obj):
         """
         Writes an object to the stream.
+
+        @type   obj:
+        @param  obj:
         """
         self.writeType(ASTypes.OBJECT)
         try:
@@ -765,6 +811,9 @@ class Encoder(object):
     def writeByteArray(self, n):
         """
         Writes a L{ByteArray} to the data stream.
+
+        @type   n:
+        @param  n: data
         """
         self.writeType(ASTypes.BYTEARRAY)
         
@@ -853,6 +902,9 @@ def encode_utf8_modified(data):
     Encodes a unicode string to Modified UTF-8 data.
     
     See U{http://en.wikipedia.org/wiki/UTF-8#Java} for details.
+
+    @type   data:
+    @param  data:
     """
     if not isinstance(data, unicode):
         data = unicode(data, "utf8")
@@ -887,6 +939,9 @@ def decode_utf8_modified(data):
     Decodes a unicode string from Modified UTF-8 data.
     
     See U{http://en.wikipedia.org/wiki/UTF-8#Java} for details.
+
+    @type   data:
+    @param  data:
     """
     size = ((ord(data[0]) << 8) & 0xff) + ((ord(data[1]) << 0) & 0xff)
     data = data[2:]

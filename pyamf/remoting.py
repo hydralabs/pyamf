@@ -162,7 +162,7 @@ def _read_header(stream, decoder):
     data = decoder.readElement()
 
     if pos + data_len != stream.tell():
-        raise pyamf.ParseError(
+        raise pyamf.DecodeError(
             "Data read from stream does not match header length")
 
     return (name, required, data)
@@ -229,7 +229,7 @@ def _read_body(stream, decoder):
     data = decoder.readElement()
 
     if pos + data_len != stream.tell():
-        raise pyamf.ParseError(
+        raise pyamf.DecodeError(
             "Data read from stream does not match body length")
 
     return (target, response, status, data)
