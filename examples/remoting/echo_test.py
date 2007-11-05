@@ -42,6 +42,7 @@ class RemoteClass(object):
 
 #: Map ActionScript class to Python class
 pyamf.register_class(RemoteClass, 'org.red5.server.webapp.echo.RemoteClass')
+pyamf.register_class(RemoteClass, 'org.red5.server.webapp.echo.ExternalizableClass')
 
 def echo(data):
     """

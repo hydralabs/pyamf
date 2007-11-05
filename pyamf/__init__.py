@@ -44,10 +44,14 @@ __all__ = [
 CLASS_CACHE = {}
 CLASS_LOADERS = []
 
-#: Encoding type for AMF0.
+#: Specifies that objects are serialized using AMF
+#: for ActionScript 1.0 and 2.0.
 AMF0 = 0
-#: Encoding type for AMF3.
+#: Specifies that objects are serialized using AMF
+#: for ActionScript 3.0.
 AMF3 = 3
+#:Specifies the default (latest) format for the current player.
+AMF_DEFAULT = AMF3
 #: Supported AMF encoding types.
 ENCODING_TYPES = (AMF0, AMF3)
 
