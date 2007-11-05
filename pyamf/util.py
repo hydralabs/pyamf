@@ -37,6 +37,7 @@ try:
 except ImportError:
     try:
         import cElementTree as ET
+        ET._ElementInterface = ET.ElementTree
     except ImportError:
         import elementtree.ElementTree as ET
 

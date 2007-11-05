@@ -422,7 +422,7 @@ class Encoder(object):
         ((float,), "writeNumber"),
         ((ByteArray,), "writeByteArray"),
         ((types.StringTypes,), "writeString"),
-        ((util.ET._ElementInterface,), "writeXML"),
+        ((util.ET.iselement,), "writeXML"),
         ((types.DictType,), "writeDict"),
         ((types.ListType,types.TupleType,), "writeList"),
         ((datetime.date, datetime.datetime), "writeDate"),
@@ -455,18 +455,42 @@ class Encoder(object):
 
         self.output.write_uchar(type)
 
-    def writeElement(self, data):
+    def _writeElementFunc(self, data):
         """
-        Writes an encoded version of data to the output stream.
+        Gets a function based on the type of data
+        
+        @rettype: callable or None
+        @return: The function used to encode data to the stream
         """
+        func = None
+        td = type(data)
+
         for tlist, method in self.type_map:
             for t in tlist:
-                if isinstance(data, t):
-                    try:
-                        return getattr(self, method)(data)
-                    except AttributeError:
-                        # Should NotImplementedError be raised here?
-                        raise
+                try:
+                    if isinstance(data, t):
+                        return getattr(self, method)
+                except TypeError:
+                    if callable(t):
+                        if t(data):
+                            return getattr(self, method)
+
+        return None
+
+    def writeElement(self, data):
+        """
+        Writes the data.
+
+        @type   data: mixed
+        @param  data: 
+        """
+        func = self._writeElementFunc(data)
+
+        if func is not None:
+            func(data)
+        else:
+            # XXX nick: Should we be generating a warning here?
+            self.writeUnsupported(data)
 
     def writeNull(self, n):
         """
@@ -477,6 +501,8 @@ class Encoder(object):
     def writeBoolean(self, n):
         """
         Writes a boolean to the stream.
+        
+        @type n: bool
         """
         if n:
             self.writeType(ASTypes.BOOL_TRUE)
@@ -554,6 +580,8 @@ class Encoder(object):
     def writeDate(self, n):
         """
         Writes a datetime instance to the stream.
+
+        @type n: Instance of L{datetime.datetime}
         """
         self.writeType(ASTypes.DATE)
 
@@ -574,6 +602,8 @@ class Encoder(object):
     def writeList(self, n):
         """
         Writes a list to the stream.
+        
+        @type n: One of __builtin__.tuple, __builtin__.set or __builtin__.list 
         """
         self.writeType(ASTypes.ARRAY)
 

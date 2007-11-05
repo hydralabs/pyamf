@@ -293,6 +293,10 @@ class Decoder(object):
 class Encoder(object):
     """
     AMF0 Encoder.
+    
+    The type map is a list of types -> functions. The types is a list of
+    possible instances or functions to call (that return a bool) to determine
+    the correct function to call to encode the data
     """
     type_map = [
         # Unsupported types go first
@@ -300,7 +304,7 @@ class Encoder(object):
         ((bool,), "writeBoolean"),
         ((int,long,float), "writeNumber"),
         ((types.StringTypes,), "writeString"),
-        ((util.ET._ElementInterface,), "writeXML"),
+        ((util.ET.iselement,), "writeXML"),
         ((pyamf.Bag,), "writeObject"),
         ((types.DictType,), "writeMixedArray"),
         ((types.ListType,types.TupleType,), "writeArray"),
@@ -331,13 +335,13 @@ class Encoder(object):
         """
         Writes the type to the stream.
 
-        Raises L{ValueError} if type is not recognized.
+        Raises L{pyamf.EncodeError} if type is not recognized.
 
-        @type   type: 
+        @type   type: Integer
         @param  type: ActionScript type
         """
         if type not in ACTIONSCRIPT_TYPES:
-            raise ValueError("Unknown AMF0 type 0x%02x at %d" % (
+            raise pyamf.EncodeError("Unknown AMF0 type 0x%02x at %d" % (
                 type, self.output.tell() - 1))
 
         self.output.write_uchar(type)
@@ -351,26 +355,49 @@ class Encoder(object):
         """
         self.writeType(ASTypes.UNSUPPORTED)
 
+    def _writeElementFunc(self, data):
+        """
+        Gets a function based on the type of data
+        
+        @rettype: callable or None
+        @return: The function used to encode data to the stream
+        """
+        func = None
+        td = type(data)
+
+        for tlist, method in self.type_map:
+            for t in tlist:
+                try:
+                    if isinstance(data, t):
+                        return getattr(self, method)
+                except TypeError:
+                    if callable(t):
+                        if t(data):
+                            return getattr(self, method)
+
+        return None
+
     def writeElement(self, data):
         """
         Writes the data.
 
-        @type   data: 
-        @param  data:
+        @type   data: mixed
+        @param  data: 
         """
-        for tlist, method in self.type_map:
-            for t in tlist:
-                if isinstance(data, t):
-                    return getattr(self, method)(data)
+        func = self._writeElementFunc(data)
 
-        self.writeUnsupported(data)
+        if func is not None:
+            func(data)
+        else:
+            # XXX nick: Should we be generating a warning here?
+            self.writeUnsupported(data)
 
     def writeNull(self, n):
         """
         Write null type to data stream.
 
-        @type   n: 
-        @param  n:
+        @type   n: None
+        @param  n: Is ignored
         """
         self.writeType(ASTypes.NULL)
 
@@ -437,6 +464,7 @@ class Encoder(object):
             if writeType:
                 self.output.write_uchar(ASTypes.STRING)
             self.output.write_ushort(len(s))
+
         self.output.write(s)
 
     def writeReference(self, o):
@@ -455,10 +483,10 @@ class Encoder(object):
         """
         Write dict to data stream.
 
-        @type   o: L{BufferedByteStream}
+        @type   o: An iterable
         @param  o: AMF data
         """
-        for key, val in o.items():
+        for key, val in o.iteritems():
             self.writeString(key, False)
             self.writeElement(val)
 
@@ -498,7 +526,9 @@ class Encoder(object):
     def _writeEndObject(self):
         """
         """
-        self.writeString("", False)
+        # Write a null string, this is an optimisation so that we don't have to
+        # wasting precious cycles by encoding the string etc. 
+        self.output.write('\x00\x00')
         self.writeType(ASTypes.OBJECTTERM)
 
     def writeObject(self, o):
@@ -539,10 +569,8 @@ class Encoder(object):
         """
         Writes a date to the data stream.
 
-        If d.tzinfo is None, d will be assumed to be in UTC.
-
-        @type   d: L{BufferedByteStream}
-        @param  d: AMF data
+        @type   d: Instance of datetime.datetime
+        @param  d: The date to be written.
         """
         try:
             self.writeReference(d)

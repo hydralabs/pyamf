@@ -347,7 +347,7 @@ def get_class_alias(obj):
     @type obj:
     @param obj:
     """
-    klass = obj.__class__
+    klass = type(obj)
 
     # Try the CLASS_CACHE first
     for a, k in CLASS_CACHE.iteritems():
