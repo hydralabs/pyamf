@@ -44,6 +44,8 @@ STATUS_ERROR = 1
 #: 
 #: Reference: U{http://osflash.org/documentation/amf/envelopes/remoting/debuginfo}
 STATUS_DEBUG = 2
+#: AMF mimetype.
+CONTENT_TYPE       = 'application/x-amf'
 
 STATUS_CODES = {
     STATUS_OK:    '/onResult',
