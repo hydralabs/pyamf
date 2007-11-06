@@ -97,6 +97,12 @@ class EncodeError(BaseError):
     more info
     """
 
+class UnknownClassAlias(BaseError):
+    """
+    Raised if the AMF stream specifies a class that does not have an alias.
+    See Lregister_class} for more info.
+    """
+
 class Context(object):
     """
     I hold the AMF context for en/decoding streams.
@@ -241,8 +247,8 @@ def register_class(klass, alias):
     """
     Registers a class to be used in the data streaming.
 
-    @type alias:
-    @param alias:
+    @type alias: str
+    @param alias: 
     """
     if not callable(klass):
         raise TypeError("klass must be callable")
@@ -251,7 +257,7 @@ def register_class(klass, alias):
         raise ValueError("klass %s already registered" % k)
 
     alias = str(alias)
-    
+
     if alias in CLASS_CACHE.keys():
         raise ValueError("alias '%s' already registered" % alias)
 
@@ -264,8 +270,8 @@ def register_class_loader(loader):
     succeeds in finding a suitable class then it should return that class,
     otherwise it should return L{None}.
 
-    @type loader:
-    @param loader:
+    @type loader: callable
+    @param loader: 
     """
     if not callable(loader):
         raise TypeError("loader must be callable")
@@ -340,7 +346,7 @@ def load_class(alias):
                 return klass
 
     # All available methods for finding the class have been exhausted
-    raise LookupError("Unknown alias %s" % alias)
+    raise UnknownClassAlias("Unknown alias %s" % alias)
 
 def get_class_alias(obj):
     """
@@ -359,7 +365,7 @@ def get_class_alias(obj):
             return a
 
     # All available methods for finding the alias have been exhausted
-    raise LookupError("Unknown alias for class %s" % klass)
+    raise UnknownClassAlias("Unknown alias for class %s" % klass)
 
 # Register some basic classes
 #register_class(Bag, 'flex.messaging.io.ArrayCollection')

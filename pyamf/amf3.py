@@ -742,7 +742,7 @@ class Encoder(object):
         """
         try:
             alias = pyamf.get_class_alias(obj)
-        except LookupError:
+        except pyamf.UnknownClassAlias:
             alias = '%s.%s' % (obj.__module__, obj.__class__.__name__)
 
         class_def = ClassDefinition(alias, ObjectEncoding.STATIC)

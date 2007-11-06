@@ -562,7 +562,7 @@ class Encoder(object):
             alias = pyamf.get_class_alias(o)
             self.writeType(ASTypes.TYPEDOBJECT)
             self.writeString(alias, False)
-        except LookupError:
+        except pyamf.UnknownClassAlias:
             self.writeType(ASTypes.OBJECT)
 
         # TODO: give objects a chance of controlling what we send
