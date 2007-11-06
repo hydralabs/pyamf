@@ -12,7 +12,8 @@ Pre-requisites
 
 The following software packages are pre-requisites:
 
-- **Python 2.3 or newer**
+- **Python 2.4 or newer**
+- **ElementTree 1.2.6 or newer**
 
 Installing
 -------------------------------------------------
