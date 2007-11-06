@@ -100,7 +100,7 @@ class EncodeError(BaseError):
 class UnknownClassAlias(BaseError):
     """
     Raised if the AMF stream specifies a class that does not have an alias.
-    See Lregister_class} for more info.
+    See L{register_class} for more info.
     """
 
 class Context(object):
