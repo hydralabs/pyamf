@@ -107,7 +107,7 @@ class Gateway(object):
         stream = remoting.encode(envelope)
 
         start_response('200 OK', [
-            ('Content-Type', gateway.CONTENT_TYPE),
+            ('Content-Type', remoting.CONTENT_TYPE),
             ('Content-Length', str(stream.tell())),
         ])
         #x.write('=' * 80)

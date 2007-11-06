@@ -28,4 +28,4 @@
 Server/client implementations for PyAMF.
 """
 
-CONTENT_TYPE = 'application/x-amf'
+

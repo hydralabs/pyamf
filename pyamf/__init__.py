@@ -68,20 +68,7 @@ class ClientTypes:
 
 CLIENT_TYPES = set(
     ClientTypes.__dict__[x] for x in ClientTypes.__dict__
-    if not x.startswith('_'))
-
-class GeneralTypes:
-    """
-    PyAMF global constants.
-    """
-    #: Normal result to a methodcall.
-    REMOTING_RESULT    = 1
-    #: Faulty result.
-    REMOTING_STATUS    = 2
-    #: Result to a debug-header.
-    REMOTING_DEBUG     = 3
-    #: AMF mimetype.
-    AMF_MIMETYPE       = 'application/x-amf'
+    if not x.startswith('_'))  
 
 class BaseError(Exception):
     """
