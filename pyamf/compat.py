@@ -143,8 +143,8 @@ class ArrayCollection(dict):
     def __repr__(self):
         return "<flex.messaging.io.ArrayCollection %s>" % dict.__repr__(self)
 
-def read_ArrayCollection(obj, decoder):
-    data = decoder.readElement()
+def read_ArrayCollection(obj, input):
+    data = input.readObject()
 
     if hasattr(data, 'iteritems'):
         for (k, v) in data.iteritems():
@@ -155,8 +155,8 @@ def read_ArrayCollection(obj, decoder):
             obj[count] = i
             count += 1   
 
-def write_ArrayCollection(obj):
-    return obj.__dict__
+def write_ArrayCollection(obj, output):
+    self.writeObject(obj.__dict__)
 
 pyamf.register_class(ArrayCollection, 'flex.messaging.io.ArrayCollection',
     read_func=read_ArrayCollection, write_func=write_ArrayCollection)
