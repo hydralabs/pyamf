@@ -32,6 +32,7 @@ U{WSGI<http://wsgi.org>} Server implementation.
 import sys, traceback
 from types import ClassType
 
+import pyamf
 from pyamf import remoting, gateway
 from pyamf.util import BufferedByteStream, hexdump
 
@@ -47,29 +48,26 @@ class WSGIGateway(gateway.BaseGateway):
         self.request_number += 1
 
         body = self.get_request_body(environ)
-        x = open('request_' + str(self.request_number), 'wb')
-        x.write(body)
+        #x = open('request_' + str(self.request_number), 'wb')
+        #x.write(body)
 
-        request = remoting.decode(body)
-        response = remoting.Envelope(
-            request.amfVersion, request.clientType, request.context)
+        context = pyamf.Context()
+        request = remoting.decode(body, context)
+        response = remoting.Envelope(request.amfVersion, request.clientType)
 
         processor = self.getProcessor(request)
 
         for name, message in request:
-            #print message.body
             response[name] = processor(message)
 
-        #print response.context.objects
-        
-        stream = remoting.encode(response)
+        stream = remoting.encode(response, context)
 
         start_response('200 OK', [
             ('Content-Type', remoting.CONTENT_TYPE),
             ('Content-Length', str(stream.tell())),
         ])
-        x.write('=' * 80)
-        x.write(stream.getvalue())
-        x.close()
+        #x.write('=' * 80)
+        #x.write(stream.getvalue())
+        #x.close()
 
         return [stream.getvalue()]

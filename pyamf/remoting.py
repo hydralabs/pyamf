@@ -243,7 +243,6 @@ def _read_body(stream, decoder):
 
     # Remove the last object in the decoder context, it is the body of the
     # request and Flash does not appear to index the reference
-    print decoder.context.objects 
     decoder.context.objects.pop()
 
     if pos + data_len != stream.tell():
@@ -252,20 +251,20 @@ def _read_body(stream, decoder):
 
     return (target, response, status, data)
 
-def _write_body(name, body, stream, encoder):
+def _write_body(name, message, stream, encoder):
     """
     Write AMF message body.
 
     @type   name: string
     @param  name: Name of body
-    @type   body: 
-    @param  body: Raw body data
+    @type   message: L{Message}
+    @param  message: Message to write
     @type   stream: L{BufferedByteStream}
     @param  stream: AMF data
-    @type   encoder: 
-    @param  encoder: L{pyamf.amf0.Encoder} or L{pyamf.amf3.Encoder}
+    @type   encoder: L{pyamf.amf0.Encoder} or L{pyamf.amf3.Encoder}
+    @param  encoder: Encoder to use
     """
-    response = "%s%s" % (name, _get_status(body.status))
+    response = "%s%s" % (name, _get_status(message.status))
 
     stream.write_ushort(len(response))
     stream.write_utf8_string(response)
@@ -277,7 +276,7 @@ def _write_body(name, body, stream, encoder):
     write_pos = stream.tell()
     stream.write_ulong(0)
     old_pos = stream.tell()
-    encoder.writeElement(body.body)
+    encoder.writeElement(message.body)
     new_pos = stream.tell()
 
     stream.seek(write_pos)
@@ -290,7 +289,7 @@ def _get_status(status):
 
     return STATUS_CODES[status]
 
-def decode(stream, context=None):
+def decode(stream, context):
     """
     Decodes the incoming stream and returns a L{Envelope} object.
 
@@ -339,24 +338,32 @@ def encode(msg, old_context):
     @type   old_context: L{pyamf.Context}
     @param  old_context: Context
     """
+    # FIXME Hack.
+    def getNewContext():
+        context = pyamf.Context()
+        context.amf3_objs = old_context.amf3_objs
+
+        return context
+
     stream = util.BufferedByteStream()
 
-    # FIXME Hack.
-    context = pyamf.Context()
-    context.amf3_objs = old_context.amf3_objs
-
-    encoder = pyamf._get_encoder(msg.amfVersion)(stream, context=context)
+    encoder = pyamf._get_encoder(
+        msg.amfVersion)(stream, context=getNewContext())
 
     stream.write_uchar(msg.amfVersion)
     stream.write_uchar(msg.clientType)
     stream.write_short(len(msg.headers))
 
     for name, header in msg.headers.iteritems():
-        _write_header(name, header, msg.headers.is_required(name), stream, encoder)
+        _write_header(
+            name, header, msg.headers.is_required(name),
+            stream, encoder)
 
     stream.write_short(len(msg))
 
     for name, body in msg.iteritems():
+        # Each body requires a new context
+        encoder.context = getNewContext()
         _write_body(name, body, stream, encoder)
 
     return stream

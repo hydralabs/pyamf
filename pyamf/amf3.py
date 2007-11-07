@@ -668,12 +668,13 @@ class Encoder(object):
         except pyamf.ReferenceError:
             pass
 
-        self.context.addObject(n)
         self._writeInteger(len(n) << 1 | REFERENCE_BIT)
 
         self.output.write_uchar(0x01)
         for x in n:
             self.writeElement(x)
+
+        self.context.addObject(n)
 
     def writeDict(self, n):
         """
@@ -691,8 +692,6 @@ class Encoder(object):
             return
         except pyamf.ReferenceError:
             pass
-
-        self.context.addObject(n)
 
         # The AMF3 spec demands that all str based indicies be listed first
         keys = n.keys()
@@ -741,6 +740,8 @@ class Encoder(object):
 
         for k in int_keys:
             self.writeElement(n[k])
+
+        self.context.addObject(n)
 
     def _getClassDefinition(self, obj):
         """

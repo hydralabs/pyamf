@@ -207,9 +207,10 @@ class Decoder(object):
         Read AMF3 elements from the data stream.
         """
         # XXX: Does the amf3 decoder have access to the same references as amf0?
-        p = pyamf._get_decoder(pyamf.AMF3)(self.input, self.context)
+        context = pyamf.Context()
+        decoder = pyamf._get_decoder(pyamf.AMF3)(self.input, context)
 
-        element = p.readElement()
+        element = decoder.readElement()
         self.context.amf3_objs.append(element)
 
         return element
@@ -625,12 +626,9 @@ class Encoder(object):
         @param data: The data to be encoded
         @type data: mixed
         """
-        try:
-            encoder = self._amf3_encoder
-        except AttributeError:
-            self._amf3_encoder = encoder = pyamf._get_encoder(
-                pyamf.AMF3)(self.output, self.context)
-        
+        context = pyamf.Context()
+        encoder = pyamf._get_encoder(pyamf.AMF3)(self.output, context)
+
         self.writeType(ASTypes.AMF3)
         encoder.writeElement(data)
 
