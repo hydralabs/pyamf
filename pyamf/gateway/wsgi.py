@@ -22,19 +22,15 @@
 # LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+# Heavily borrowed from Flashticle http://osflash.org/flashticle
 
 """
 U{WSGI<http://wsgi.org>} Server implementation.
 """
 
-# Heavily borrowed from Flashticle http://osflash.org/flashticle
-
-import sys, traceback
-from types import ClassType
-
 import pyamf
 from pyamf import remoting, gateway
-from pyamf.util import BufferedByteStream, hexdump
 
 __all__ = ['WSGIGateway']
 
@@ -82,6 +78,6 @@ class WSGIGateway(gateway.BaseGateway):
             ('Content-Length', str(stream.tell())),
         ])
 
-        self.save_request(body, stream)
+        # self.save_request(body, stream)
 
         return [stream.getvalue()]

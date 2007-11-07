@@ -22,55 +22,18 @@
 # LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
 
 """
-U{Twisted<http://twistedmatrix.com>} client example.
+U{Twisted<http://twistedmatrix.com>} Server and Client implementations.
 """
+from twisted.web import http
+from pyamf import remoting, gateway
 
-from twisted.web import client
-
-import pyamf
-from pyamf import remoting, ClientTypes, Context
-
-def handleResult(data):
-    """
-    """
-    result = remoting.decode(data)
+__all__ = ['TwistedGateway']
     
-    for res in result:
-        print "Response:", res
-    reactor.stop()
-
-def handleError(failure):
+class TwistedGateway(gateway.BaseGateway):
     """
     """
-    print "Error:", failure.getErrorMessage()
-    reactor.stop()
+    request_number = 0
 
-if __name__ == "__main__":
 
-    context = Context()
-    response = remoting.Message(None, None, None, None)
-    response.body = ['yoooo']
-    response.status = remoting.STATUS_OK
-
-    env = remoting.Envelope(pyamf.AMF0, ClientTypes.FlashCom)
-    env['test.echo'] = response
-
-    data = remoting.encode(env, context).getvalue()
-
-    endPoint = 'http://localhost:8000'
-
-    postRequest = client.getPage(
-        endPoint,
-        method='POST',
-        headers={'Content-Type': remoting.CONTENT_TYPE,
-                 'Content-Length': len(data)},
-        postdata=data)
-    
-    postRequest.addCallback(handleResult).addErrback(handleError)
-    
-    print "Started Twisted client for PyAMF with endpoint: " + endPoint
-    from twisted.internet import reactor
-    reactor.run()
