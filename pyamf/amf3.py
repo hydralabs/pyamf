@@ -37,7 +37,7 @@ Resources:
 import types, datetime, time, copy
 
 import pyamf
-from pyamf import util
+from pyamf import util, compat
 
 class ASTypes:
     """
@@ -374,7 +374,7 @@ class Decoder(object):
         Reads an object from the stream.
         """
         ref = self.readInteger()
-        
+
         if ref & REFERENCE_BIT == 0:
             return self.context.getObject(ref >> 1)
 
@@ -384,10 +384,12 @@ class Decoder(object):
         ref >>= 3
 
         klass = self.context.getClass(class_def)
-        obj = klass.klass()
+        
+        obj = klass()
+        self.context.addObject(obj)
 
         if class_def.external:
-            klass.read_func(obj, self.readElement())
+            klass.read_func(obj, compat.DataInput(self))
 
         elif class_def.dynamic:
             attr = self.readString()
@@ -407,8 +409,6 @@ class Decoder(object):
                 setattr(obj, attr, self.readElement())
         else:
             raise pyamf.DecodeError("Unknown object encoding")
-
-        self.context.addObject(obj)
 
         return obj
 
@@ -767,9 +767,14 @@ class Encoder(object):
         try:
             alias = pyamf.get_class_alias(obj)
         except pyamf.UnknownClassAlias:
-            alias = '%s.%s' % (obj.__module__, obj.__class__.__name__)
+            alias = pyamf.ClassAlias(obj, 'blah')
 
-        class_def = ClassDefinition(alias, ObjectEncoding.STATIC)
+        encoding = ObjectEncoding.STATIC
+
+        if alias.write_func and alias.read_func:
+            encoding = ObjectEncoding.EXTERNAL
+
+        class_def = ClassDefinition(alias, encoding)
 
         for name, value in obj.__dict__.iteritems():
             class_def.attrs.append(name)
@@ -804,19 +809,18 @@ class Encoder(object):
             class_ref = False
 
             ref = 0
-
+            
             if class_def.encoding != ObjectEncoding.EXTERNAL:
                 ref += len(class_def.attrs) << 4
 
             self._writeInteger(ref | class_def.encoding << 2 |
                 REFERENCE_BIT << 1 | REFERENCE_BIT)
-            self._writeString(class_def.name)
+            self._writeString(class_def.name.alias)
 
         if class_def.encoding == ObjectEncoding.EXTERNAL:
-            klass_alias = pyamf.load_class(class_def.name)
-            print klass_alias
-            # TODO
-            pass
+            klass_alias = class_def.name
+            
+            klass_alias.write_func(obj, compat.DataOutput(self))
         elif class_def.encoding == ObjectEncoding.DYNAMIC:
             if not class_ref:
                 for attr in class_def.attrs:
@@ -916,7 +920,7 @@ def encode_utf8_modified(data):
 def decode_utf8_modified(data):
     """
     Decodes a unicode string from Modified UTF-8 data.
-    
+
     See U{http://en.wikipedia.org/wiki/UTF-8#Java} for details.
 
     @type   data:

@@ -245,8 +245,9 @@ class Bag(object):
         return False
 
 class ClassAlias(object):
-    def __init__(self, klass, read_func=None, write_func=None):
+    def __init__(self, klass, alias, read_func=None, write_func=None):
         self.klass = klass
+        self.alias = alias
         self.read_func = read_func
         self.write_func = write_func
 
@@ -261,6 +262,9 @@ class ClassAlias(object):
             return
 
         return self.write_func(instance)
+
+    def __call__(self):
+        return self.klass()
 
 def register_class(klass, alias, read_func=None, write_func=None):
     """
@@ -280,7 +284,7 @@ def register_class(klass, alias, read_func=None, write_func=None):
     if alias in CLASS_CACHE.keys():
         raise ValueError("alias '%s' already registered" % alias)
 
-    CLASS_CACHE[alias] = ClassAlias(klass, read_func=read_func,
+    CLASS_CACHE[alias] = ClassAlias(klass, alias, read_func=read_func,
         write_func=write_func)
 
 def register_class_loader(loader):
@@ -378,11 +382,11 @@ def get_class_alias(obj):
     @param obj:
     """
     klass = type(obj)
-
+    
     # Try the CLASS_CACHE first
     for a, k in CLASS_CACHE.iteritems():
         if klass == k.klass:
-            return a
+            return k
 
     # All available methods for finding the alias have been exhausted
     raise UnknownClassAlias("Unknown alias for class %s" % klass)

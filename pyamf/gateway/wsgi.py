@@ -61,7 +61,9 @@ class WSGIGateway(gateway.BaseGateway):
         self.request_number += 1
 
         body = self.get_request_body(environ)
-        
+        #x = open('request_' + str(self.request_number), 'wb')
+        #x.write(body)
+
         context = pyamf.Context()
         request = remoting.decode(body, context)
         response = remoting.Envelope(request.amfVersion, request.clientType)
@@ -78,6 +80,8 @@ class WSGIGateway(gateway.BaseGateway):
             ('Content-Length', str(stream.tell())),
         ])
 
-        # self.save_request(body, stream)
+        #x.write('=' * 80)
+        #x.write(stream.getvalue())
+        #x.close()
 
         return [stream.getvalue()]

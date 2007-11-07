@@ -191,7 +191,7 @@ class Decoder(object):
         classname = self.readString()
         klass = pyamf.load_class(classname)
 
-        ret = klass()
+        ret = klass.klass()
         obj = {}
         self._readObject(obj)
 
@@ -569,7 +569,7 @@ class Encoder(object):
         try:
             alias = pyamf.get_class_alias(o)
             self.writeType(ASTypes.TYPEDOBJECT)
-            self.writeString(alias, False)
+            self.writeString(alias.alias, False)
         except pyamf.UnknownClassAlias:
             self.writeType(ASTypes.OBJECT)
 

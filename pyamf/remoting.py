@@ -248,8 +248,9 @@ def _read_body(stream, decoder):
     decoder.context.objects.pop()
 
     if pos + data_len != stream.tell():
-        raise pyamf.DecodeError(
-            "Data read from stream does not match body length")
+        raise pyamf.DecodeError("Data read from stream "
+            "does not match body length (%d != %d)" %
+                (pos + data_len, stream.tell(),))
 
     return (target, response, status, data)
 
@@ -278,7 +279,6 @@ def _write_body(name, message, stream, encoder):
     write_pos = stream.tell()
     stream.write_ulong(0)
     old_pos = stream.tell()
-    print repr(message.body)
     encoder.writeElement(message.body)
     new_pos = stream.tell()
 
