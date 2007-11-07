@@ -31,7 +31,7 @@ U{http://dev.collab.com/pyamf/raw-attachment/ticket/22/echotest.swf}
 """
 
 import pyamf
-from pyamf.gateway.wsgi import Gateway
+from pyamf.gateway.wsgi import WSGIGateway
 from wsgiref import simple_server
 
 class RemoteClass(object):
@@ -59,7 +59,7 @@ if __name__ == '__main__':
         'echo': echo
     }
 
-    gw = Gateway(services)
+    gw = WSGIGateway(services)
     port = 8000
     print "Started echo test server on port", port
     

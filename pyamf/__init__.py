@@ -118,6 +118,7 @@ class Context(object):
         self.objects = []
         self.strings = []
         self.classes = []
+        self.amf3_objs = []
 
     def getObject(self, ref):
         """

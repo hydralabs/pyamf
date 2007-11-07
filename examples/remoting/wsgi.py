@@ -27,7 +27,7 @@
 WSGI Remoting example.
 """
 
-from pyamf.gateway.wsgi import Gateway
+from pyamf.gateway.wsgi import WSGIGateway
 from wsgiref import simple_server
 
 def echo(data):
@@ -38,7 +38,7 @@ if __name__ == '__main__':
         'echo': echo
     }
 
-    gw = Gateway(services)
+    gw = WSGIGateway(services)
     port = 8000
     print "Started PyAMF Remoting Gateway for WSGI on port", port
 

@@ -206,12 +206,13 @@ class Decoder(object):
         """
         Read AMF3 elements from the data stream.
         """
-        from pyamf import amf3
-
         # XXX: Does the amf3 decoder have access to the same references as amf0?
-        p = amf3.Decoder(self.input, self.context)
+        p = pyamf._get_decoder(pyamf.AMF3)(self.input, self.context)
 
-        return p.readElement()
+        element = p.readElement()
+        self.context.amf3_objs.append(element)
+
+        return element
 
     def readElement(self):
         """
@@ -375,6 +376,12 @@ class Encoder(object):
         @rettype: callable or None
         @return: The function used to encode data to the stream
         """
+        # There is a very specific use case that we must check for.
+        # In the context there is an array of amf3_objs that contain references
+        # to objects that are to be encoded in amf3
+        if data in self.context.amf3_objs:
+            return self.writeAMF3
+
         func = None
         td = type(data)
 
@@ -610,6 +617,22 @@ class Encoder(object):
         self.writeType(ASTypes.XML)
         self.output.write_ulong(len(data))
         self.output.write(data)
+
+    def writeAMF3(self, data):
+        """
+        Writes an element to the datastream in AMF3 format.
+        
+        @param data: The data to be encoded
+        @type data: mixed
+        """
+        try:
+            encoder = self._amf3_encoder
+        except AttributeError:
+            self._amf3_encoder = encoder = pyamf._get_encoder(
+                pyamf.AMF3)(self.output, self.context)
+        
+        self.writeType(ASTypes.AMF3)
+        encoder.writeElement(data)
 
 def decode(stream, context=None):
     """

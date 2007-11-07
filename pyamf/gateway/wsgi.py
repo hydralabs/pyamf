@@ -35,59 +35,10 @@ from types import ClassType
 from pyamf import remoting, gateway
 from pyamf.util import BufferedByteStream, hexdump
 
-__all__ = ['Gateway']
+__all__ = ['WSGIGateway']
 
-class Gateway(object):
+class WSGIGateway(remoting.BaseGateway):
     request_number = 0
-
-    def __init__(self, services):
-        self.services = services
-
-    def get_processor(self, request):
-        if 'DescribeService' in request.headers:
-            return NotImplementedError
-
-        return self.process_message
-
-    def get_target(self, target):
-        try:
-            obj = self.services[target]
-            meth = None
-        except KeyError:
-            name, meth = target.encode('utf8').replace('/', '.').rsplit('.', 1)
-            obj = self.services[name]
-
-        if isinstance(obj, (type, ClassType)):
-            obj = obj()
-
-            return getattr(obj, meth)
-        elif callable(obj):
-            return obj
-
-        raise ValueError("Unknown")
-
-    def get_error_response(self, (cls, e, tb)):
-        details = traceback.format_exception(cls, e, tb)
-
-        return dict(
-            code='SERVER.PROCESSING',
-            level='Error',
-            description='%s: %s' % (cls.__name__, e),
-            type=cls.__name__,
-            details=''.join(details),
-        )
-
-    def process_message(self, message):
-        func = self.get_target(message.target)
-
-        try:
-            message.body = func(*message.body)
-            message.status = remoting.STATUS_OK
-        except (SystemExit, KeyboardInterrupt):
-            raise
-        except:
-            message.body = self.get_error_response(sys.exc_info())
-            message.status = remoting.STATUS_ERROR
 
     def get_request_body(self, environ):
         return environ['wsgi.input'].read(int(environ['CONTENT_LENGTH']))
@@ -98,13 +49,17 @@ class Gateway(object):
         body = self.get_request_body(environ)
         #x = open('request_' + str(self.request_number), 'wb')
         #x.write(body)
-        envelope = remoting.decode(body)
-        processor = self.get_processor(envelope)
 
-        for message in envelope:
-            processor(message)
+        request = remoting.decode(body)
+        response = remoting.Envelope(
+            request.amfVersion, request.clientType, request.context)
 
-        stream = remoting.encode(envelope)
+        processor = self.getProcessor(request)
+
+        for name, message in request:
+            response[name] = processor(message)
+
+        stream = remoting.encode(response)
 
         start_response('200 OK', [
             ('Content-Type', remoting.CONTENT_TYPE),

@@ -208,14 +208,17 @@ class Decoder(object):
         Reads an AMF3 element from the data stream.
         """
         type = self.readType()
-        
+
         try:
             func = getattr(self, self.type_map[type])
         except KeyError, e:
             raise NotImplementedError(
                 "Unsupported ActionScript type 0x%02x" % type)
-
-        return func()
+        
+        try:
+            return func()
+        except EOFError:
+            raise pyamf.DecodeError("Insufficient data")
 
     def readInteger(self):
         """
@@ -423,9 +426,15 @@ class Decoder(object):
 
         This is not supported by the AMF0 {decoder<pyamf.amf0.Decoder>}.
         """
-        length = self.readInteger()
+        ref = self.readInteger()
 
-        return ByteArray(self.input.read(length >> 1))
+        if ref & REFERENCE_BIT == 0:
+            return self.context.getObject(ref >> 1)
+
+        obj = ByteArray(self.input.read(ref >> 1))
+        self.context.addObject(obj)
+
+        return obj
 
 class Encoder(object):
     """
@@ -505,10 +514,10 @@ class Encoder(object):
         Writes the data.
 
         @type   data: mixed
-        @param  data: 
+        @param  data: The data to be encoded to the AMF3 data stream 
         """
         func = self._writeElementFunc(data)
-
+        
         if func is not None:
             func(data)
         else:
@@ -812,13 +821,15 @@ class Encoder(object):
         """
         Writes a L{ByteArray} to the data stream.
 
-        @type   n:
+        @type   n: L{ByteArray}
         @param  n: data
         """
         self.writeType(ASTypes.BYTEARRAY)
-        
+
         try:
             ref = self.context.getObjectReference(n)
+            print self.context.objects
+            print ref
             self._writeInteger(ref << 1)
 
             return
