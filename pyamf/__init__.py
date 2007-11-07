@@ -244,12 +244,30 @@ class Bag(object):
 
         return False
 
-def register_class(klass, alias):
+class ClassAlias(object):
+    def __init__(self, klass, read_func=None, write_func=None):
+        self.klass = klass
+        self.read_func = read_func
+        self.write_func = write_func
+
+    def read_data(self, instance, data):
+        if self.read_func is None:
+            return
+
+        self.read_func(instance, data)
+
+    def write_data(self, instance):
+        if self.write_func is None:
+            return
+
+        return self.write_func(instance)
+
+def register_class(klass, alias, read_func=None, write_func=None):
     """
     Registers a class to be used in the data streaming.
 
     @type alias: str
-    @param alias: 
+    @param alias: The alias of klass, i.e. org.example.Person
     """
     if not callable(klass):
         raise TypeError("klass must be callable")
@@ -262,7 +280,8 @@ def register_class(klass, alias):
     if alias in CLASS_CACHE.keys():
         raise ValueError("alias '%s' already registered" % alias)
 
-    CLASS_CACHE[alias] = klass
+    CLASS_CACHE[alias] = ClassAlias(klass, read_func=read_func,
+        write_func=write_func)
 
 def register_class_loader(loader):
     """
@@ -362,15 +381,11 @@ def get_class_alias(obj):
 
     # Try the CLASS_CACHE first
     for a, k in CLASS_CACHE.iteritems():
-        if klass == k:
+        if klass == k.klass:
             return a
 
     # All available methods for finding the alias have been exhausted
     raise UnknownClassAlias("Unknown alias for class %s" % klass)
-
-# Register some basic classes
-#register_class(Bag, 'flex.messaging.io.ArrayCollection')
-#register_class(Bag, 'flex.messaging.io.ObjectProxy')
 
 def decode(stream, encoding=AMF0, context=None):
     """

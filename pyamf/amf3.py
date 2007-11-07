@@ -382,12 +382,10 @@ class Decoder(object):
         ref >>= 3
 
         klass = self.context.getClass(class_def)
-        obj = klass()
+        obj = klass.klass()
 
         if class_def.external:
-            # TODO implement externalizeable interface here
-            # Reference: U{http://livedocs.adobe.com/flex/2/langref/flash/utils/IExternalizable.html}
-            obj.__amf_externalized_data = self.readElement()
+            klass.read_func(obj, self.readElement())
 
         elif class_def.dynamic:
             attr = self.readString()
@@ -808,6 +806,8 @@ class Encoder(object):
             self._writeString(class_def.name)
 
         if class_def.encoding == ObjectEncoding.EXTERNAL:
+            klass_alias = pyamf.load_class(class_def.name)
+            print klass_alias
             # TODO
             pass
         elif class_def.encoding == ObjectEncoding.DYNAMIC:

@@ -35,6 +35,7 @@ import sys, traceback
 
 import pyamf
 from pyamf import util
+from pyamf.compat import *
 
 __all__ = ['Envelope', 'Request', 'decode', 'encode']
 
@@ -276,6 +277,7 @@ def _write_body(name, message, stream, encoder):
     write_pos = stream.tell()
     stream.write_ulong(0)
     old_pos = stream.tell()
+    print repr(message.body)
     encoder.writeElement(message.body)
     new_pos = stream.tell()
 
