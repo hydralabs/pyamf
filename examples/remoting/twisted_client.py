@@ -51,7 +51,7 @@ if __name__ == "__main__":
 
     context = Context()
     response = remoting.Message(None, None, None, None)
-    response.body = 'yoooo'
+    response.body = ['yoooo']
     response.status = remoting.STATUS_OK
 
     env = remoting.Envelope(pyamf.AMF0, ClientTypes.FlashCom)

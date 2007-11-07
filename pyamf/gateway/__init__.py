@@ -60,7 +60,7 @@ class BaseGateway(object):
             name = service.__class__.__name__
 
         if name in self.services.keys():
-            raise RemotingError("Service %s already exists" % name)
+            raise remoting.RemotingError("Service %s already exists" % name)
 
         self.services[name] = service
 
@@ -86,7 +86,7 @@ class BaseGateway(object):
                 name, meth = target.rsplit('.', 1)
                 obj = self.services[name]
             except KeyError:
-                raise RemotingError("Unknown target %s" % target)
+                raise remoting.RemotingError("Unknown target %s" % target)
 
         if not callable(obj):
             raise TypeError("Not callable")
