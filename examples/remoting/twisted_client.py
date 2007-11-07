@@ -29,7 +29,9 @@ U{Twisted<http://twistedmatrix.com>} client example.
 """
 
 from twisted.web import client
-from pyamf import remoting
+
+import pyamf
+from pyamf import remoting, ClientTypes, Context
 
 endPoint = 'http://localhost:8000'
 
@@ -46,21 +48,29 @@ def handleError(failure):
 
 if __name__ == "__main__":
     from twisted.internet import reactor
+
+    context = Context()
+    response = remoting.Message(None, None, None, None)
+    response.body = 'yoooo'
+    response.status = remoting.STATUS_OK
+
+    env = remoting.Envelope(pyamf.AMF0, ClientTypes.FlashCom)
+    env['echo'] = response
     
     # Send a request to echo and send as only 
     # parameter 'myParameter'.
-    data = remoting.encode('myParameter')
+    data = remoting.encode(env, context).getvalue()
 
     # Send request.
     postRequest = client.getPage(
         endPoint,
         method='POST',
         headers={'Content-Type': remoting.CONTENT_TYPE,
-                 'Content-Length': str(len(data))},
+                 'Content-Length': len(data)},
         postdata=data)
     
     # Handle result.
     postRequest.addCallback(handleResult).addErrback(handleError)
     
-    print "\nStarted Twisted client for PyAMF with endpoint: " + endPoint + ".\n"
+    print "Started Twisted client for PyAMF with endpoint: " + endPoint
     reactor.run()
