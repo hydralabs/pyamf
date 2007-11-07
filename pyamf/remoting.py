@@ -91,10 +91,9 @@ class Envelope(dict):
     than one request in one transaction).
     """
 
-    def __init__(self, amfVersion=None, clientType=None, context=None):
+    def __init__(self, amfVersion=None, clientType=None):
         self.amfVersion = amfVersion
         self.clientType = clientType
-        self.context = context
 
         self.headers = HeaderCollection()
 
@@ -147,107 +146,6 @@ class Message(object):
         return "<%s target=%s status=%s>%s</Message>" % (
             type(self).__name__, self.target,
             _get_status(self.status), self.body)
-
-class BaseGateway(object):
-    """
-    """
-
-    def __init__(self, services):
-        """
-        @param services: Initial services
-        @type services: dict
-        """
-        self.services = {}
-
-        for name, service in services.iteritems():
-            self.addService(service, name)
-
-    def addService(self, service, name=None):
-        """
-        Adds a service to the gateway
-
-        @param service: The service to add to the gateway
-        @type service: callable or a class instance
-        @param name: The name of the service
-        @type name: str
-        """
-        if name is None:
-            # TODO: include the module in the name
-            name = service.__class__.__name__
-
-        if name in self.services.keys():
-            raise RemotingError("Service %s already exists" % name)
-
-        self.services[name] = service
-
-    def removeService(self, service):
-        """
-        Removes a service from the gateway
-        """
-        self.services.popitem(service)
-
-    def getTarget(self, target):
-        """
-        Returns a callable based on the target
-        
-        @param target: The target to retrieve
-        @type target: str
-        @rettype callable
-        """
-        try:
-            obj = self.services[target]
-            meth = None
-        except KeyError:
-            try:
-                name, meth = target.rsplit('.', 1)
-                obj = self.services[name]
-            except KeyError:
-                raise RemotingError("Unknown target %s" % target)
-
-        if not callable(obj):
-            raise TypeError("Not callable")
-
-        return obj
-
-    def get_error_response(self, (cls, e, tb)):
-        details = traceback.format_exception(cls, e, tb)
-
-        return dict(
-            code='SERVER.PROCESSING',
-            level='Error',
-            description='%s: %s' % (cls.__name__, e),
-            type=cls.__name__,
-            details=''.join(details),
-        )
-
-    def getProcessor(self, request):
-        if 'DescribeService' in request.headers:
-            return NotImplementedError
-
-        return self.processRequest
-
-    def processRequest(self, request):
-        """
-        Processes a request
-
-        @param request: The request to be processed
-        @type request: L{Message}
-        @return The response to the request
-        @rettype L{Message}
-        """
-        func = self.getTarget(request.target)
-        response = Message(None, None, None, None)
-
-        try:
-            response.body = func(*request.body)
-            response.status = STATUS_OK
-        except (SystemExit, KeyboardInterrupt):
-            raise
-        except:
-            response.body = self.get_error_response(sys.exc_info())
-            response.status = STATUS_ERROR
-
-        return response
 
 def _read_header(stream, decoder):
     """
@@ -344,7 +242,8 @@ def _read_body(stream, decoder):
         raise RemotingError("Expected list type for remoting body")
 
     # Remove the last object in the decoder context, it is the body of the
-    # request and Flash does not appear to index the reference 
+    # request and Flash does not appear to index the reference
+    print decoder.context.objects 
     decoder.context.objects.pop()
 
     if pos + data_len != stream.tell():
@@ -431,19 +330,20 @@ def decode(stream, context=None):
 
     return msg
 
-def encode(msg):
+def encode(msg, old_context):
     """
     Encodes AMF stream and returns file object.
 
-    @type   msg: 
-    @param  msg: Python data
-    @type   context: L{Context}
-    @param  context: Context
+    @type   msg: L{Envelope}
+    @param  msg: The message to encode
+    @type   old_context: L{pyamf.Context}
+    @param  old_context: Context
     """
     stream = util.BufferedByteStream()
 
+    # FIXME Hack.
     context = pyamf.Context()
-    context.amf3_objs = msg.context.amf3_objs
+    context.amf3_objs = old_context.amf3_objs
 
     encoder = pyamf._get_encoder(msg.amfVersion)(stream, context=context)
 

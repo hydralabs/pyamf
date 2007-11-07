@@ -28,4 +28,107 @@
 Server/client implementations for PyAMF.
 """
 
+import sys, traceback
 
+from pyamf import remoting
+
+class BaseGateway(object):
+    """
+    """
+
+    def __init__(self, services):
+        """
+        @param services: Initial services
+        @type services: dict
+        """
+        self.services = {}
+
+        for name, service in services.iteritems():
+            self.addService(service, name)
+
+    def addService(self, service, name=None):
+        """
+        Adds a service to the gateway
+
+        @param service: The service to add to the gateway
+        @type service: callable or a class instance
+        @param name: The name of the service
+        @type name: str
+        """
+        if name is None:
+            # TODO: include the module in the name
+            name = service.__class__.__name__
+
+        if name in self.services.keys():
+            raise RemotingError("Service %s already exists" % name)
+
+        self.services[name] = service
+
+    def removeService(self, service):
+        """
+        Removes a service from the gateway
+        """
+        self.services.popitem(service)
+
+    def getTarget(self, target):
+        """
+        Returns a callable based on the target
+        
+        @param target: The target to retrieve
+        @type target: str
+        @rettype callable
+        """
+        try:
+            obj = self.services[target]
+            meth = None
+        except KeyError:
+            try:
+                name, meth = target.rsplit('.', 1)
+                obj = self.services[name]
+            except KeyError:
+                raise RemotingError("Unknown target %s" % target)
+
+        if not callable(obj):
+            raise TypeError("Not callable")
+
+        return obj
+
+    def get_error_response(self, (cls, e, tb)):
+        details = traceback.format_exception(cls, e, tb)
+
+        return dict(
+            code='SERVER.PROCESSING',
+            level='Error',
+            description='%s: %s' % (cls.__name__, e),
+            type=cls.__name__,
+            details=''.join(details),
+        )
+
+    def getProcessor(self, request):
+        if 'DescribeService' in request.headers:
+            return NotImplementedError
+
+        return self.processRequest
+
+    def processRequest(self, request):
+        """
+        Processes a request
+
+        @param request: The request to be processed
+        @type request: L{remoting.Message}
+        @return The response to the request
+        @rettype L{remoting.Message}
+        """
+        func = self.getTarget(request.target)
+        response = remoting.Message(None, None, None, None)
+
+        try:
+            response.body = func(*request.body)
+            response.status = remoting.STATUS_OK
+        except (SystemExit, KeyboardInterrupt):
+            raise
+        except:
+            response.body = self.get_error_response(sys.exc_info())
+            response.status = remoting.STATUS_ERROR
+
+        return response

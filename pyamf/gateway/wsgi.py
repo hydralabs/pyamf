@@ -37,7 +37,7 @@ from pyamf.util import BufferedByteStream, hexdump
 
 __all__ = ['WSGIGateway']
 
-class WSGIGateway(remoting.BaseGateway):
+class WSGIGateway(gateway.BaseGateway):
     request_number = 0
 
     def get_request_body(self, environ):
@@ -47,8 +47,8 @@ class WSGIGateway(remoting.BaseGateway):
         self.request_number += 1
 
         body = self.get_request_body(environ)
-        #x = open('request_' + str(self.request_number), 'wb')
-        #x.write(body)
+        x = open('request_' + str(self.request_number), 'wb')
+        x.write(body)
 
         request = remoting.decode(body)
         response = remoting.Envelope(
@@ -57,16 +57,19 @@ class WSGIGateway(remoting.BaseGateway):
         processor = self.getProcessor(request)
 
         for name, message in request:
+            #print message.body
             response[name] = processor(message)
 
+        #print response.context.objects
+        
         stream = remoting.encode(response)
 
         start_response('200 OK', [
             ('Content-Type', remoting.CONTENT_TYPE),
             ('Content-Length', str(stream.tell())),
         ])
-        #x.write('=' * 80)
-        #x.write(stream.getvalue())
-        #x.close()
+        x.write('=' * 80)
+        x.write(stream.getvalue())
+        x.close()
 
         return [stream.getvalue()]
