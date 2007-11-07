@@ -41,7 +41,7 @@ from pyamf import util
 
 class ASTypes:
     """
-    Actionscript object types.
+    ActionScript object types.
     
     AMF represents ActionScript objects by a single byte representing
     type, and then by a type-specific byte array that may be of fixed
@@ -66,9 +66,11 @@ class ASTypes:
     XMLSTRING  = 0x0b
     BYTEARRAY  = 0x0c
 
+#: List of ActionScript object types.
 ACTIONSCRIPT_TYPES = set(
     ASTypes.__dict__[x] for x in ASTypes.__dict__ if not x.startswith('__'))
 
+#: Reference bit
 REFERENCE_BIT = 0x01
 
 class ObjectEncoding:
@@ -224,8 +226,8 @@ class Decoder(object):
         """
         Reads and returns an integer from the stream.
 
-        See U{http://osflash.org/amf3/parsing_integers} for AMF3 integer data
-        format.
+        See U{http://osflash.org/amf3/parsing_integers} for the AMF3
+        integer data format.
         """
         n = 0
         b = self.input.read_uchar()
@@ -308,7 +310,7 @@ class Decoder(object):
         Reads an array from the stream.
 
         There is a very specific problem with AMF3 where the first three bytes
-        of an encoded empty dict will mirror that of an encoded C{{'': 1, '2': 2}}
+        of an encoded empty C{dict} will mirror that of an encoded C{{'': 1, '2': 2}}
 
         See U{http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug}
         for more information.
@@ -404,7 +406,7 @@ class Decoder(object):
             for attr in class_def.attrs:
                 setattr(obj, attr, self.readElement())
         else:
-            raise pyamf.ParseError("Unknown object encoding")
+            raise pyamf.DecodeError("Unknown object encoding")
 
         self.context.addObject(obj)
 
@@ -412,7 +414,7 @@ class Decoder(object):
 
     def readXMLString(self):
         """
-        Reads a string from the data stream and converts it into an XML Tree
+        Reads a string from the data stream and converts it into an XML Tree.
         """
         ref = self.readInteger()
         
@@ -430,7 +432,7 @@ class Decoder(object):
         """
         Reads a string of data from the stream.
 
-        This is not supported by the AMF0 {decoder<pyamf.amf0.Decoder>}.
+        This is not supported by the AMF0 L{decoder<pyamf.amf0.Decoder>}.
         """
         ref = self.readInteger()
 
@@ -493,7 +495,7 @@ class Encoder(object):
 
     def _writeElementFunc(self, data):
         """
-        Gets a function based on the type of data
+        Gets a function based on the type of data.
         
         @rettype: callable or None
         @return: The function used to encode data to the stream
@@ -660,7 +662,7 @@ class Encoder(object):
 
     def writeList(self, n):
         """
-        Writes a list to the stream.
+        Writes a tuple, set or list to the stream.
 
         @type n: One of __builtin__.tuple, __builtin__.set or __builtin__.list
         @param  n: list data
@@ -687,7 +689,7 @@ class Encoder(object):
         """
         Writes a dict to the stream.
 
-        @type   n:
+        @type   n:__builtin__.dict
         @param  n: dict data
         """
         self.writeType(ASTypes.ARRAY)
@@ -852,10 +854,10 @@ class Encoder(object):
 
     def writeXML(self, n):
         """
-        Writes a L{ByteArray} to the data stream.
+        Writes a XML string to the data stream.
 
-        @type   n: L{ByteArray}
-        @param  n: data
+        @type   n: 
+        @param  n: XML string
         """
         self.writeType(ASTypes.XMLSTRING)
 
