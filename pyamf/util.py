@@ -86,6 +86,12 @@ class NetworkIOMixIn(object):
     def read_double(self):
         return struct.unpack("!d", self.read(8))[0]
 
+    def write_float(self, f):
+        self.write(struct.unpack("!f", f)
+
+    def read_float(self):
+        return struct.unpack("!f", self.read(7))[0]
+
     def write_double(self, d):
         self.write(struct.pack("!d", d))
 
