@@ -34,6 +34,7 @@ from pyamf import remoting
 
 class BaseGateway(object):
     """
+    Generic remoting gateway class.
     """
 
     def __init__(self, services):
@@ -48,7 +49,7 @@ class BaseGateway(object):
 
     def addService(self, service, name=None):
         """
-        Adds a service to the gateway
+        Adds a service to the gateway.
 
         @param service: The service to add to the gateway
         @type service: callable or a class instance
@@ -66,7 +67,10 @@ class BaseGateway(object):
 
     def removeService(self, service):
         """
-        Removes a service from the gateway
+        Removes a service from the gateway.
+
+        @param service: The service to remove from the gateway
+        @type service: callable or a class instance
         """
         self.services.popitem(service)
 
@@ -93,7 +97,28 @@ class BaseGateway(object):
 
         return obj
 
+    def save_request(self, body, stream):
+        """
+        Write AMF request to disk.
+        """
+        fname = 'request_' + str(self.request_number) + ".amf"
+        x = open(fname, 'wb')
+        x.write(body)
+        x.write('=' * 80)
+        x.write(stream.getvalue())
+        x.close()
+        
     def get_error_response(self, (cls, e, tb)):
+        """
+        Call traceback and error details.
+
+        @param cls: Class
+        @type cls: callable or a class instance
+        @param e: 
+        @type e: 
+        @param tb: 
+        @type tb:
+        """
         details = traceback.format_exception(cls, e, tb)
 
         return dict(
@@ -105,6 +130,9 @@ class BaseGateway(object):
         )
 
     def getProcessor(self, request):
+        """
+        
+        """
         if 'DescribeService' in request.headers:
             return NotImplementedError
 
@@ -112,7 +140,7 @@ class BaseGateway(object):
 
     def processRequest(self, request):
         """
-        Processes a request
+        Processes a request.
 
         @param request: The request to be processed
         @type request: L{remoting.Message}

@@ -153,7 +153,7 @@ class Decoder(object):
     def __init__(self, data=None, context=None):
         """
         @type   data: L{BufferedByteStream}
-        @param  data: AMF0 data
+        @param  data: AMF3 data
         @type   context: L{Context}
         @param  context: Context
         """
@@ -467,9 +467,14 @@ class Encoder(object):
 
     def __init__(self, output, context=None):
         """
-        Constructs a new Encoder.
+        Constructs a new AMF3 Encoder.
 
         Output should be a writable file-like object.
+
+        @type   output: L{StringIO}
+        @param  output: file-like object
+        @type   context: L{Context}
+        @param  context: Context
         """
         self.output = output
 

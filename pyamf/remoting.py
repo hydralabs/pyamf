@@ -50,6 +50,7 @@ STATUS_DEBUG = 2
 #: AMF mimetype.
 CONTENT_TYPE       = 'application/x-amf'
 
+#: List of available status codes.
 STATUS_CODES = {
     STATUS_OK:    '/onResult',
     STATUS_ERROR: '/onStatus',

@@ -39,18 +39,33 @@ from pyamf.util import BufferedByteStream, hexdump
 __all__ = ['WSGIGateway']
 
 class WSGIGateway(gateway.BaseGateway):
+    """
+    U{WSGI<http://wsgi.org>} Remoting Gateway.
+    """
+    #: Number of requests from clients.
     request_number = 0
 
     def get_request_body(self, environ):
-        return environ['wsgi.input'].read(int(environ['CONTENT_LENGTH']))
+        """
+        Read input data stream.
 
+        @type environ:
+        @param environ: 
+        """
+        return environ['wsgi.input'].read(int(environ['CONTENT_LENGTH']))
+ 
     def __call__(self, environ, start_response):
+        """
+        
+        @type environ:
+        @param environ:
+        @type start_response:
+        @param start_response: 
+        """
         self.request_number += 1
 
         body = self.get_request_body(environ)
-        #x = open('request_' + str(self.request_number), 'wb')
-        #x.write(body)
-
+        
         context = pyamf.Context()
         request = remoting.decode(body, context)
         response = remoting.Envelope(request.amfVersion, request.clientType)
@@ -66,8 +81,7 @@ class WSGIGateway(gateway.BaseGateway):
             ('Content-Type', remoting.CONTENT_TYPE),
             ('Content-Length', str(stream.tell())),
         ])
-        #x.write('=' * 80)
-        #x.write(stream.getvalue())
-        #x.close()
+
+        self.save_request(body, stream)
 
         return [stream.getvalue()]
