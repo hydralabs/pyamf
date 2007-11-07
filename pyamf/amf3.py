@@ -828,8 +828,6 @@ class Encoder(object):
 
         try:
             ref = self.context.getObjectReference(n)
-            print self.context.objects
-            print ref
             self._writeInteger(ref << 1)
 
             return
