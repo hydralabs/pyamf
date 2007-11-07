@@ -416,9 +416,17 @@ class Decoder(object):
         """
         Reads a string from the data stream and converts it into an XML Tree
         """
-        xmlstring = self.readString(False)
+        ref = self.readInteger()
+        
+        if ref & REFERENCE_BIT == 0:
+            return self.context.getObject(ref >> 1)
 
-        return util.ET.XML(xmlstring)
+        xmlstring = self.input.read(ref >> 1)
+        
+        x = util.ET.XML(xmlstring)
+        self.context.addObject(x)
+
+        return x
 
     def readByteArray(self):
         """
@@ -592,7 +600,7 @@ class Encoder(object):
         self.writeType(ASTypes.NUMBER)
         self.output.write_double(n)
 
-    def _writeString(self, n):
+    def _writeString(self, n, use_references=True):
         """
         Writes a raw string to the stream.
 
@@ -604,13 +612,14 @@ class Encoder(object):
 
             return
 
-        try:
-            ref = self.context.getStringReference(n)
-            self._writeInteger(ref << 1)
+        if use_references:
+            try:
+                ref = self.context.getStringReference(n)
+                self._writeInteger(ref << 1)
 
-            return
-        except pyamf.ReferenceError:
-            self.context.addString(n)
+                return
+            except pyamf.ReferenceError:
+                self.context.addString(n)
 
         s = encode_utf8_modified(n)[2:]
         self._writeInteger((len(s) << 1) | REFERENCE_BIT)
@@ -840,6 +849,25 @@ class Encoder(object):
 
         for ch in n:
             self.output.write_uchar(ord(ch))
+
+    def writeXML(self, n):
+        """
+        Writes a L{ByteArray} to the data stream.
+
+        @type   n: L{ByteArray}
+        @param  n: data
+        """
+        self.writeType(ASTypes.XMLSTRING)
+
+        try:
+            ref = self.context.getObjectReference(n)
+            self._writeInteger(ref << 1)
+
+            return
+        except pyamf.ReferenceError:
+            self.context.addObject(n)
+
+        self._writeString(util.ET.tostring(n), False)
 
 class AbstractMessage(object):
     """
