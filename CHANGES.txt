@@ -1,6 +1,12 @@
-0.0.2
+0.0.2 (unreleased)
 -----
+ - Complete AMF0 and AMF3 encoders/decoders
+ - Remoting support with gateways for WSGI (#16)
+ - zlib compression support for ByteArray (#40)
+ - Support for ArrayCollection (#30), IExternalizable (#29),
+   and ByteArray (#32)
 
 0.0.1 - 2007-10-19
 -------------------
-- Starting project based on previous work done in the RTMPy (http://dev.collab.com/rtmpy) project.
+ - Starting project based on previous work done in the 
+   RTMPy (http://dev.collab.com/rtmpy) project.
