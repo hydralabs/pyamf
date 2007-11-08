@@ -317,8 +317,12 @@ class Bag(object):
 
         return False
 
-    # TODO add __repr__
-    
+    def iteritems(self):
+        return self.__dict__.iteritems()
+
+    def __repr__(self):
+        return dict.__repr__(self.__dict__)
+
 class ClassAlias(object):
     """
     Class alias.
