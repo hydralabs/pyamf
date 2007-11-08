@@ -28,22 +28,16 @@
 
 """
 U{PyAMF<http://dev.collab.com/pyamf>} is a B{A}ction B{M}essage B{F}ormat
-(U{AMF<http://en.wikipedia.org/wiki/Action_Message_Format>}) decoder and
+(U{AMF<http://osflash.org/documentation/amf>}) decoder and
 encoder for Python that is compatible with the
 U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>} 6 and newer.
 
-L{AMF3<pyamf.amf3>}, the default serialization for
-U{ActionScript<http://en.wikipedia.org/wiki/ActionScript>} 3.0,
-provides various advantages over L{AMF0<pyamf.amf0>}, which is used
-for ActionScript 1.0 and 2.0.
-
-@see: U{http://osflash.org/documentation/amf}
-
-@contact: U{pyamf-dev@collab.com<mailto:pyamf-dev@collab.com>}
-@copyright: Copyright (c) 2007 The PyAMF Project. All rights reserved.
 @author: U{Arnar Birgisson<mailto:arnarbi@gmail.com>}
 @author: U{Thijs Triemstra<mailto:info@collab.nl>}
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
+
+@copyright: Copyright (c) 2007 The PyAMF Project. All rights reserved.
+@contact: U{pyamf-dev@collab.com<mailto:pyamf-dev@collab.com>}
 
 @status: Pre-alpha
 @since: October 2007
