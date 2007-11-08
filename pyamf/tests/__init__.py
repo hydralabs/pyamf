@@ -28,6 +28,12 @@
 
 """
 Tests for PyAMF.
+
+@author: Arnar Birgisson
+@author: Thijs Triemstra
+@author: Nick Joyce
+
+@since: 0.0.2
 """
 
 import unittest

@@ -28,8 +28,13 @@
 """
 Flex Messaging Implementation.
 
-References:
- - U{http://osflash.org/documentation/amf3#remoteobject}
+@see: U{http://osflash.org/documentation/amf3#remoteobject}
+
+@author: Arnar Birgisson
+@author: Thijs Triemstra
+@author: Nick Joyce
+
+@since: 0.0.2
 """
 
 import pyamf
@@ -83,8 +88,7 @@ class CommandMessage(AsyncMessage):
     Provides a mechanism for sending commands related to publish/subscribe messaging,
     ping, and cluster operations.
 
-    References:
-     - U{http://livedocs.adobe.com/flex/201/langref/mx/messaging/messages/CommandMessage.html}
+    @see: U{http://livedocs.adobe.com/flex/201/langref/mx/messaging/messages/CommandMessage.html}
     """
     #: Operation/command.
     operation = None
@@ -113,8 +117,7 @@ class RemotingMessage(AbstractMessage):
     """
     Used to send RPC requests to a remote endpoint.
 
-    References:
-     - U{http://livedocs.adobe.com/flex/201/langref/mx/messaging/messages/RemotingMessage.html}
+    @see: {http://livedocs.adobe.com/flex/201/langref/mx/messaging/messages/RemotingMessage.html}
     """
     #: Name of the remote method/operation that should be called.
     operation = None

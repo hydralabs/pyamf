@@ -26,8 +26,10 @@
 """
 Simple Python echo test U{WGSI<http://wsgi.org>} server for Flash Remoting.
 
-You can use this example with the echo_test.swf client found on:
-U{http://dev.collab.com/pyamf/raw-attachment/ticket/22/echotest.swf}
+You can use this example with the echo_test.swf client on the
+U{EchoTest<http://dev.collab.com/pyamf/wiki/EchoTest>} wiki page.
+
+@author: Nick Joyce
 """
 
 import pyamf

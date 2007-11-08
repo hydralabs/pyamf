@@ -27,6 +27,12 @@
 
 """
 Utility for PyAMF tests.
+
+@author: Arnar Birgisson
+@author: Thijs Triemstra
+@author: Nick Joyce
+
+@since: 0.0.2
 """
 
 class GenericObject(object):

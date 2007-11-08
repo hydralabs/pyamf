@@ -35,16 +35,19 @@ U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>} 6 and newer.
 L{AMF3<pyamf.amf3>}, the default serialization for
 U{ActionScript<http://en.wikipedia.org/wiki/ActionScript>} 3.0,
 provides various advantages over L{AMF0<pyamf.amf0>}, which is used
-for ActionScript 1.0 and 2.0. AMF0 supports the basic data types
-used in NetConnection, NetStream, LocalConnection, SharedObjects and
-others. AMF3 sends data over the network more
-efficiently than AMF0. AMF3 supports sending C{int}
-and C{uint} objects as integers and supports data types that are available
-only in ActionScript 3.0, such as L{ByteArray}, L{ArrayCollection}, and
-U{IExternalizable<http://livedocs.adobe.com/flex/201/langref/flash/utils/IExternalizable.html>}.
+for ActionScript 1.0 and 2.0.
 
-Reference:
- - U{http://osflash.org/documentation/amf}
+@see: U{http://osflash.org/documentation/amf}
+
+@copyright: Copyright (c) 2007 The PyAMF Project. All rights reserved.
+
+@author: Arnar Birgisson
+@author: Thijs Triemstra
+@author: Nick Joyce
+
+@status: Pre-alpha
+@since: October 2007
+@version: 0.0.2
 """
 
 from pyamf import util
@@ -57,6 +60,7 @@ __all__ = [
 
 #: Class mapping support for Flex.
 CLASS_CACHE = {}
+#: Class loaders.
 CLASS_LOADERS = []
 
 #: Specifies that objects are serialized using AMF
@@ -109,13 +113,14 @@ class EncodeError(BaseError):
     Raised if the element could not be encoded to the stream. This is mainly
     used to pick up the empty key string array bug.
     
-    See U{http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug} for
+    @warning: See U{http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug} for
     more info
     """
 
 class UnknownClassAlias(BaseError):
     """
     Raised if the AMF stream specifies a class that does not have an alias.
+
     See L{register_class} for more info.
     """
 
@@ -125,6 +130,9 @@ class Context(object):
     """
 
     def __init__(self):
+        """
+        L{clear} context.
+        """
         self.clear()
 
     def clear(self):
@@ -140,10 +148,9 @@ class Context(object):
         """
         Gets an object based on a reference.
 
-        Raises L{pyamf.ReferenceError} if the object could not be found.
-
         @type ref:
         @param ref:
+        @raise ReferenceError: the object could not be found.
         """
         try:
             return self.objects[ref - 1]
@@ -153,11 +160,10 @@ class Context(object):
     def getObjectReference(self, obj):
         """
         Gets a reference for an object.
-
-        Raises L{pyamf.ReferenceError} if the reference could not be found.
-        
+    
         @type obj:
         @param obj:
+        @raise ReferenceError: object reference could not be found.
         """
         try:
             return self.objects.index(obj) + 1
@@ -166,7 +172,7 @@ class Context(object):
 
     def addObject(self, obj):
         """
-        Gets a reference to obj, creating one if necessary.
+        Gets a reference to C{obj}, creating one if necessary.
 
         @type obj:
         @param obj:
@@ -180,12 +186,11 @@ class Context(object):
 
     def getString(self, ref):
         """
-        Gets a string based on a reference ref
-
-        Raises L{pyamf.ReferenceError} if the string could not be found.
+        Gets a string based on a reference C{ref}.
 
         @type ref:
         @param ref:
+        @raise ReferenceError: the string could not be found.
         """
         try:
             return self.strings[ref]
@@ -195,11 +200,10 @@ class Context(object):
     def getStringReference(self, s):
         """
         Return string reference.
-
-        Raises L{pyamf.ReferenceError} if the string reference could not be found.
         
-        @type s:
-        @param s:
+        @type s: str
+        @param s: string reference
+        @raise ReferenceError: the string reference could not be found.
         """
         try:
             return self.strings.index(s)
@@ -223,11 +227,10 @@ class Context(object):
     def getClassDefinition(self, ref):
         """
         Return class reference.
-        
-        Raises L{pyamf.ReferenceError} if the class reference could not be found.
-        
+               
         @type ref:
         @param ref:
+        @raise ReferenceError: the class reference could not be found.
         """
         try:
             return self.classes[ref]
@@ -236,12 +239,11 @@ class Context(object):
 
     def getClassDefinitionReference(self, class_def):
         """
-        Return class definition reference.
-        
-        Raises L{pyamf.ReferenceError} if the definition could not be found.     
+        Return class definition reference. 
         
         @type class_def:
         @param class_def:
+        @raise ReferenceError: the definition could not be found.
         """
         try:
             return self.classes.index(class_def)
@@ -367,9 +369,6 @@ class ClassAlias(object):
 def register_class(klass, alias, read_func=None, write_func=None):
     """
     Registers a class to be used in the data streaming.
-
-    Raises L{TypeError} if the klass is not callable.
-    Raises L{ValueError} if the klass is already registered.
     
     @type alias: str
     @param alias: The alias of klass, i.e. org.example.Person
@@ -377,6 +376,9 @@ def register_class(klass, alias, read_func=None, write_func=None):
     @param read_func:
     @type write_func:
     @param write_func:
+    
+    @raise TypeError: the klass is not callable
+    @raise ValueError: the klass is already registered
     """
     if not callable(klass):
         raise TypeError("klass must be callable")
@@ -399,11 +401,11 @@ def register_class_loader(loader):
     succeeds in finding a suitable class then it should return that class,
     otherwise it should return L{None}.
 
-    Raises L{TypeError} if the loader is not callable.
-    Raises L{ValueError} if the loader already has been registered.
-
     @type loader: callable
-    @param loader: 
+    @param loader:
+
+    @raise TypeError: the loader is not callable
+    @raise ValueError: the loader is already registered
     """
     if not callable(loader):
         raise TypeError("loader must be callable")
@@ -430,17 +432,16 @@ def get_module(mod_name):
 
 def load_class(alias):
     """
-    Finds the class registered to the alias. Raises L{LookupError} if not found.
+    Finds the class registered to the alias.
 
     The search is done in order:
       1. Checks if the class name has been registered via L{register_class}.
       2. Checks all functions registered via L{register_class_loader}.
       3. Attempts to load the class via standard module loading techniques.
-
-    Raises L{UnknownClassAlias} if not found.
-    
+ 
     @type alias: string
     @param alias: class name
+    @raise UnknownClassAlias: alias not found
     """
     alias = str(alias)
 
@@ -484,12 +485,12 @@ def load_class(alias):
 
 def get_class_alias(obj):
     """
-    Finds the alias registered to the class. See L{load_class} for more info.
-
-    Raises L{UnknownClassAlias} if not found.   
+    Finds the alias registered to the class.
 
     @type obj:
     @param obj:
+    @raise UnknownClassAlias: class not found
+    @see: L{load_class} for more info
     """
     klass = type(obj)
     
@@ -504,15 +505,14 @@ def get_class_alias(obj):
 def decode(stream, encoding=AMF0, context=None):
     """
     A generator function to decode a datastream.
-    
-    Returns each element in the stream.
-
+  
     @type   stream: L{BufferedByteStream}
     @param  stream: AMF data
     @type   encoding: int
     @param  encoding: AMF encoding type
     @type   context: L{Context}
     @param  context: Context
+    @return: each element in the stream
     """
     decoder = _get_decoder(encoding)(stream, context)
 
@@ -523,14 +523,13 @@ def encode(element, encoding=AMF0, context=None):
     """
     A helper function to encode an element.
 
-    Returns a file-like object.
-
     @type   element: 
     @param  element: Python data
     @type   encoding: int
     @param  encoding: AMF encoding type
     @type   context: L{Context}
     @param  context: Context
+    @return: file-like object
     """
     stream = util.BufferedByteStream()
     encoder = _get_encoder(encoding)(stream, context)
@@ -541,12 +540,11 @@ def encode(element, encoding=AMF0, context=None):
 
 def _get_decoder(encoding):
     """
-    Get compatible decoder.
-
-    Raises L{ValueError} if the AMF encoding version is unknown.  
+    Get compatible decoder..  
 
     @type encoding: int
     @param encoding: AMF encoding version
+    @raise ValueError: the AMF encoding version is unknown
     """
     import pyamf
 
@@ -559,16 +557,15 @@ def _get_decoder(encoding):
 
         return pyamf.amf3.Decoder
 
-    raise ValueError("Unknown encoding: "+str(encoding))
+    raise ValueError("Unknown encoding %s" % encoding)
 
 def _get_encoder(encoding):
     """
     Get compatible encoder.
-
-    Raises L{ValueError} if the AMF encoding version is unknown.
-    
+   
     @type encoding: int
     @param encoding: AMF encoding version
+    @raise ValueError: the AMF encoding version is unknown
     """
     import pyamf
 
@@ -581,4 +578,4 @@ def _get_encoder(encoding):
 
         return pyamf.amf3.Encoder
         
-    raise ValueError("Unknown encoding: "+str(encoding))
+    raise ValueError("Unknown encoding %s" % encoding)

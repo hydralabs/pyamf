@@ -28,9 +28,17 @@
 """
 AMF0 Implementation.
 
-Resources:
- - U{http://www.vanrijkom.org/archives/2005/06/amf_format.html}
- - U{http://osflash.org/documentation/amf}
+AMF0 supports the basic data types used for the NetConnection, NetStream,
+LocalConnection, SharedObjects and other classes in the Flash Player.
+
+@see: U{http://www.vanrijkom.org/archives/2005/06/amf_format.html}
+@see: U{http://osflash.org/documentation/amf}
+
+@author: Arnar Birgisson
+@author: Thijs Triemstra
+@author: Nick Joyce
+
+@since: 0.0.2
 """
 
 import datetime, calendar, types
@@ -42,7 +50,7 @@ class ASTypes:
     """
     A placeholder for all AMF0 ActionScript types.
 
-    Reference: U{http://osflash.org/documentation/amf/astypes}
+    @see: U{http://osflash.org/documentation/amf/astypes}
     """
     NUMBER      = 0x00
     BOOL        = 0x01
@@ -116,8 +124,9 @@ class Decoder(object):
     def readType(self):
         """
         Read and returns the next byte in the stream and determine its type.
-        
-        Raises L{DecodeError} if not recognized.
+
+        @return: AMF0 type
+        @raise DecodeError: AMF0 type not recognized
         """
         type = self.input.read_uchar()
 
@@ -131,26 +140,36 @@ class Decoder(object):
         """
         Reads a Number.
 
-        In ActionScript 1 and 2 NumberASTypes type represents all numbers,
+        In ActionScript 1 and 2 the NumberASTypes type represents all numbers,
         both floats and integers.
+
+        @return: number
         """
         return self.input.read_double()
 
     def readBoolean(self):
         """
-        Returns a bool.
+        Reads a bool.
+
+        @return: boolean
+        @rtype: bool
         """
         return bool(self.input.read_uchar())
 
     def readNull(self):
         """
-        Reads null and returns None.
+        Reads null.
+
+        @return: None
+        @rtype: None
         """
         return None
 
     def readMixedArray(self):
         """
-        Returns an array.
+        Read mixed array.
+        
+        @return: array
         """
         len = self.input.read_ulong()
         obj = {}
@@ -185,8 +204,9 @@ class Decoder(object):
 
     def readTypedObject(self):
         """
-        Reads an object from the stream and attempts to 'cast' it. See
-        L{load_class<pyamf.load_class>} for more info.
+        Reads an object from the stream and attempts to 'cast' it.
+
+        @see: L{load_class<pyamf.load_class>} for more info.
         """
         classname = self.readString()
         klass = pyamf.load_class(classname)
@@ -219,7 +239,7 @@ class Decoder(object):
         """
         Reads an AMF0 element from the data stream.
         
-        Raises L{DecodeError} if the ActionScript type is unknown.
+        @raise DecodeError: the ActionScript type is unknown.
         """
         type = self.readType()
 
@@ -256,8 +276,8 @@ class Decoder(object):
         """
         Reads an object from the data stream.
 
-        @return The object
-        @rettype __builtin__.object
+        @return: The object
+        @rtype: __builtin__.object
         """
         obj = pyamf.Bag()
 
@@ -354,10 +374,9 @@ class Encoder(object):
         """
         Writes the type to the stream.
 
-        Raises L{EncodeError} if AMF type is not recognized.
-
         @type   type: Integer
         @param  type: ActionScript type
+        @raise EncodeError: AMF0 type is not recognized
         """
         if type not in ACTIONSCRIPT_TYPES:
             raise pyamf.EncodeError("Unknown AMF0 type 0x%02x at %d" % (
@@ -378,7 +397,7 @@ class Encoder(object):
         """
         Gets a function based on the type of data
         
-        @rettype: callable or None
+        @rtype: callable or None
         @return: The function used to encode data to the stream
         """
         # There is a very specific use case that we must check for.
@@ -654,12 +673,12 @@ def encode(element, context=None):
     """
     A helper function to encode an element into the AMF0 format.
 
-    Returns a L{StringIO} object.
-
     @type   element: 
     @param  element:
     @type   context: L{Context}
     @param  context: Context
+    @return: file object
+    @returntype: StringIO
     """
     buf = util.BufferedByteStream()
     encoder = Encoder(buf, context)

@@ -25,7 +25,11 @@
 #
 
 """
-Test for AMF Remoting.
+Tests for AMF Remoting.
+
+@author: Nick Joyce
+
+@since: 0.0.2
 """
 
 import unittest

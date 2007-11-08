@@ -26,6 +26,8 @@
 
 """
 U{Twisted<http://twistedmatrix.com>} client example.
+
+@author: Thijs Triemstra
 """
 
 from twisted.web import client

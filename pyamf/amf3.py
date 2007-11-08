@@ -34,8 +34,13 @@ and uint objects as integers and supports data types that are available
 only in ActionScript 3.0, such as L{ByteArray}, L{ArrayCollection}, and
 IExternalizable.
 
-Resources:
- - U{http://osflash.org/documentation/amf3}
+@see: U{http://osflash.org/documentation/amf3}
+
+@author: Arnar Birgisson
+@author: Thijs Triemstra
+@author: Nick Joyce
+
+@since: 0.0.2
 """
 
 import types, datetime, time, copy
@@ -109,10 +114,9 @@ class ByteArray(str):
     """
     I am a file type object containing byte data from the AMF stream.
 
-    References:
-     - U{http://osflash.org/documentation/amf3#x0c_-_bytearray}
-     - U{http://osflash.org/documentation/amf3/parsing_byte_arrays}
-     - U{http://livedocs.adobe.com/flex/2/langref/flash/utils/ByteArray.html}
+    @see: U{http://osflash.org/documentation/amf3#x0c_-_bytearray}
+    @see: U{http://osflash.org/documentation/amf3/parsing_byte_arrays}
+    @see: U{http://livedocs.adobe.com/flex/2/langref/flash/utils/ByteArray.html}
     """
 
 class ClassDefinition(object):
@@ -189,7 +193,7 @@ class Decoder(object):
         """
         Read and returns the next byte in the stream and determine its type.
         
-        Raises L{DecodeError} if not recognized.
+        @raise DecodeError: AMF3 type not recognized
         """
         type = self.input.read_uchar()
 
@@ -202,18 +206,27 @@ class Decoder(object):
     def readNull(self):
         """
         Read null and return None.
+
+        @return: None
+        @rtype: None
         """
         return None
 
     def readBoolFalse(self):
         """
         Returns False.
+
+        @return: False
+        @rtype: bool
         """
         return False
 
     def readBoolTrue(self):
         """
         Returns True.
+
+        @return: True
+        @rtype: bool
         """
         return True
 
@@ -227,7 +240,7 @@ class Decoder(object):
         """
         Reads an AMF3 element from the data stream.
 
-        Raises L{DecodeError} when the ActionScript type is unknown or
+        @raise DecodeError: the ActionScript type is unknown or
         there is insufficient data left in the stream.
         """
         type = self.readType()
@@ -247,7 +260,7 @@ class Decoder(object):
         """
         Reads and returns an integer from the stream.
 
-        See U{http://osflash.org/amf3/parsing_integers} for the AMF3
+        @see: U{http://osflash.org/amf3/parsing_integers} for the AMF3
         integer data format.
         """
         n = 0
@@ -276,8 +289,8 @@ class Decoder(object):
         """
         Reads and returns a string from the stream.
 
-        @type use_reference:
-        @param use_reference:
+        @type use_references:
+        @param use_references:
         """
         def readLength():
             x = self.readInteger()
@@ -333,10 +346,10 @@ class Decoder(object):
         """
         Reads an array from the stream.
 
-        There is a very specific problem with AMF3 where the first three bytes
+        @bug: There is a very specific problem with AMF3 where the first three bytes
         of an encoded empty C{dict} will mirror that of an encoded C{{'': 1, '2': 2}}
 
-        See U{http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug}
+        @see: U{http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug}
         for more information.
         """
         size = self.readInteger()
@@ -397,7 +410,7 @@ class Decoder(object):
         """
         Reads an object from the stream.
 
-        Raises L{DecodeError} when the object encoding is unknown.
+        @raise DecodeError: the object encoding is unknown
         """
         ref = self.readInteger()
 
@@ -458,7 +471,7 @@ class Decoder(object):
         """
         Reads a string of data from the stream.
 
-        This is not supported by the AMF0 L{decoder<pyamf.amf0.Decoder>}.
+        @note: This is not supported by the AMF0 L{decoder<pyamf.amf0.Decoder>}.
         """
         ref = self.readInteger()
 
@@ -513,10 +526,9 @@ class Encoder(object):
         """
         Writes the data type to the stream.
 
-        Raises L{EncodeError} when the AMF3 data type is not recognized.
-
         @type   type: 
         @param  type: ActionScript type
+        @raise EncodeError: the AMF3 data type is not recognized
         """
         if type not in ACTIONSCRIPT_TYPES:
             raise pyamf.EncodeError("Unknown AMF3 type 0x%02x at %d" % (
@@ -528,7 +540,7 @@ class Encoder(object):
         """
         Gets a function based on the type of data.
         
-        @rettype: callable or None
+        @rtype: callable or None
         @return: The function used to encode data to the stream
 
         @type   data: 
@@ -576,7 +588,7 @@ class Encoder(object):
         """
         Writes a boolean to the stream.
 
-        @type   n:
+        @param n:
         @type n: bool
         """
         if n:
@@ -719,12 +731,11 @@ class Encoder(object):
     def writeDict(self, n):
         """
         Writes a dict to the stream.
-
-        Raises L{ValueError} when a non int/str key value is found in the dict.
-        Raises L{EncodeError} when a dict contains empty string keys.
-        
+       
         @type   n:__builtin__.dict
         @param  n: dict data
+        @raise ValueError: a non int/str key value is found in the dict.
+        @raise EncodeError: a dict contains empty string keys.
         """
         self.writeType(ASTypes.ARRAY)
 
@@ -913,7 +924,7 @@ def encode_utf8_modified(data):
     """
     Encodes a unicode string to Modified UTF-8 data.
     
-    See U{http://en.wikipedia.org/wiki/UTF-8#Java} for details.
+    @see: U{http://en.wikipedia.org/wiki/UTF-8#Java} for details.
 
     @type   data:
     @param  data:
@@ -944,16 +955,17 @@ def encode_utf8_modified(data):
 
     return chr((utflen >> 8) & 0xff) + chr((utflen >> 0) & 0xff) + bytes
 
-# Ported from http://viewvc.rubyforge.mmmultiworks.com/cgi/viewvc.cgi/trunk/lib/ruva/class.rb
-# Ruby version is Copyright (c) 2006 Ross Bamford (rosco AT roscopeco DOT co DOT uk).
 def decode_utf8_modified(data):
     """
     Decodes a unicode string from Modified UTF-8 data.
 
-    See U{http://en.wikipedia.org/wiki/UTF-8#Java} for details.
-
     @type   data:
     @param  data:
+    @return: unicode string
+    
+    @see: U{http://en.wikipedia.org/wiki/UTF-8#Java} for details.
+    @copyright: Ruby version is Copyright (c) 2006 Ross Bamford (rosco AT roscopeco DOT co DOT uk)
+    @note: Ported from U{http://viewvc.rubyforge.mmmultiworks.com/cgi/viewvc.cgi/trunk/lib/ruva/class.rb}
     """
     size = ((ord(data[0]) << 8) & 0xff) + ((ord(data[1]) << 0) & 0xff)
     data = data[2:]
@@ -1001,12 +1013,12 @@ def encode(element, context=None):
     """
     A helper function to encode an element into AMF3 format.
 
-    Returns a L{StringIO} object containing the encoded AMF3 data.
-
     @type   element: 
     @param  element:
     @type   context: L{Context}
     @param  context: Context
+    @return: object containing the encoded AMF3 data
+    @rtype: L{StringIO}
     """
     buf = util.BufferedByteStream()
     encoder = Encoder(buf, context)

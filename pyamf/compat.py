@@ -25,6 +25,10 @@
 
 """
 Contains compatibility classes/functions for Python -> Flex and vice versa.
+
+@author: Nick Joyce
+
+@since: 0.0.2
 """
 
 import pyamf
@@ -36,8 +40,7 @@ class DataOutput(object):
     This class is the I/O counterpart to the L{DataInput} class, which reads
     binary data.
 
-    References:
-     - U{http://livedocs.adobe.com/flex/201/langref/flash/utils/IDataOutput.html}
+    @see: U{http://livedocs.adobe.com/flex/201/langref/flash/utils/IDataOutput.html}
     """
     def __init__(self, encoder):
         self.encoder = encoder
@@ -48,7 +51,7 @@ class DataOutput(object):
         @type value:
         @param value:
         
-        Raises L{ValueError} if None boolean value is found.
+        @raise ValueError: None boolean value is found.
         """
         if value is True:
             self.stream.write('\x01')
@@ -98,8 +101,7 @@ class DataInput(object):
     This class is the I/O counterpart to the L{DataOutput} class,
     which writes binary data.
 
-    References:
-     - U{http://livedocs.adobe.com/flex/201/langref/flash/utils/IDataInput.html}
+    @see: U{http://livedocs.adobe.com/flex/201/langref/flash/utils/IDataInput.html}
     """
     def __init__(self, decoder):
         self.decoder = decoder
@@ -164,14 +166,12 @@ class ArrayCollection(dict):
     I represent the ActionScript 3 based class C{flex.messaging.io.ArrayCollection}
     used in the Flex framework.
     
-
     The ArrayCollection class is a wrapper class that exposes an Array as
     a collection that can be accessed and manipulated using the methods
     and properties of the ICollectionView or IList interfaces in the Flex
     framework.
 
-    Reference:
-     - U{http://livedocs.adobe.com/flex/2/langref/mx/collections/ArrayCollection.html}
+    @see: U{http://livedocs.adobe.com/flex/2/langref/mx/collections/ArrayCollection.html}
     """
 
     def __repr__(self):

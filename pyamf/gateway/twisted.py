@@ -25,6 +25,10 @@
 
 """
 U{Twisted<http://twistedmatrix.com>} Server and Client implementations.
+
+@author: Thijs Triemstra
+
+@since: 0.0.2
 """
 from twisted.web import http
 from pyamf import remoting, gateway

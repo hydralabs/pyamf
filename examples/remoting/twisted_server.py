@@ -26,66 +26,40 @@
 
 """
 Twisted Remoting server example.
+
+@author: Thijs Triemstra
 """
 
-from pyamf import remoting
-from pyamf.gateway.twisted import TwistedGateway
 from twisted.web import http
 
-def handlePost(request):
-    # Get header content type.
-    contentType = request.getHeader('Content-Type')
-    # Respond to AMF calls.
-    if contentType == remoting.CONTENT_TYPE:
-        # Request data from the client.
-        data = request.content.getvalue()
-        # Decode AMF request.
-        req = remoting.decode(data)
-        print req        
-        # Add AMF header content type.
-        request.setHeader('Content-Type', remoting.CONTENT_TYPE)
-        # Returns serialized AMF in a StringIO.
-        response = remoting.encode(req)
-        # Write response data back to the client.
-        request.write(response)
-    else:
-        # Return blank HTML page for non-AMF calls.
-        request.setHeader('Content-Type', 'text/html')
-    
-class FunctionHandledRequest(http.Request):
-    pageHandlers = {
-        '/': handlePost,
-        }
+from pyamf import remoting, gateway
+from pyamf.gateway.twistedmatrix import TwistedGateway 
 
-    def process(self):
-        """
-        """
-        if self.pageHandlers.has_key(self.path):
-            handler = self.pageHandlers[self.path]
-            handler(self)
-        else:
-            self.setResponseCode(http.NOT_FOUND)
-            self.write("<h1>Not Found</h1>Sorry, no such page.")
-        self.finish()
-    
+
+def echo(data):
+    return data
+
 class MyHttp(http.HTTPChannel):
-    requestFactory = FunctionHandledRequest
+    """
+    """
 
 class MyHttpFactory(http.HTTPFactory):
     protocol = MyHttp
     
-def echo(data):
-    return data
-
 if __name__ == '__main__':
     services = {
         'echo': echo
     }
 
     gw = TwistedGateway(services)
+    
+    server = MyHttpFactory()
+    server.protocol.requestFactory = gw
+    
     port = 8000
     print "Started PyAMF Remoting Gateway for Twisted on port", port
 
     from twisted.internet import reactor
-    reactor.listenTCP(port, MyHttpFactory())
+    reactor.listenTCP(port, server)
     reactor.run()
+    

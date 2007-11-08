@@ -37,10 +37,13 @@ body or header may not require a response. Debug information is requested by a h
 but sent back as a body object. The response index is essential for the Flash player
 to understand the response therefore.
 
-References:
- - U{http://osflash.org/documentation/amf/envelopes/remoting}
- - U{http://osflash.org/amf/envelopes/remoting/headers}
- - U{http://osflash.org/documentation/amf/envelopes/remoting/debuginfo}
+@see: U{http://osflash.org/documentation/amf/envelopes/remoting}
+@see: U{http://osflash.org/amf/envelopes/remoting/headers}
+@see: U{http://osflash.org/documentation/amf/envelopes/remoting/debuginfo}
+
+@author: Nick Joyce
+
+@since: 0.0.2
 """
 
 import sys, traceback
@@ -88,8 +91,7 @@ class HeaderCollection(dict):
         """
         @type idx:
         @param idx:
-        
-        Raises L{KeyError} if an unknown header is found.
+        @raise KeyError: unknown header found
         """
         if not idx in self:
             raise KeyError("Unknown header %s" % str(idx))
@@ -103,7 +105,7 @@ class HeaderCollection(dict):
         @type value: bool
         @param value:
         
-        Raises L{KeyError} if an unknown header is found.
+        @raise KeyError: unknown header found.
         """
         if not idx in self:
             raise KeyError("Unknown header %s" % str(idx))
@@ -144,9 +146,8 @@ class Envelope(dict):
         @type idx:
         @param idx:
         @type value:
-        @type param:
-        
-        Raises L{TypeError} if the value is not a tuple, set or list.
+        @param value:
+        @raise TypeError: C{value} is not a tuple, set or list.
         """
         if isinstance(value, (tuple, set, list)):
             value = Message(self, value[0], value[1], value[2])
@@ -178,9 +179,6 @@ class Message(object):
         self.body = body
 
     def _get_headers(self):
-        """
-        Return L{Envelope} headers.
-        """
         return self.envelope.headers
 
     headers = property(_get_headers)
@@ -198,14 +196,13 @@ def _read_header(stream, decoder):
      - The name of the header.
      - A boolean determining if understanding this header is required.
      - value of the header.
-
-    Raises L{DecodeError} if the data that was read from the stream does
-    not match the header length.
     
     @type   stream: L{BufferedByteStream}
     @param  stream: AMF data
     @type   decoder: L{pyamf.amf0.Decoder} or L{pyamf.amf3.Decoder}
-    @param  decoder: AMF decoder instance      
+    @param  decoder: AMF decoder instance
+    @raise DecodeError: the data that was read from the stream does
+    not match the header length.
     """
     name_len = stream.read_ushort()
     name = stream.read_utf8_string(name_len)
@@ -261,14 +258,13 @@ def _read_body(stream, decoder):
      - The target of the body.
      - The id (as sent by the client) of the body.
      - The data of the body.
-
-    Raises L{RemotingError} when the remoting type is not of the
-    expected list type.
     
     @type   stream: L{BufferedByteStream}
     @param  stream: AMF data
     @type   decoder: L{pyamf.amf0.Decoder} or L{pyamf.amf3.Decoder}
-    @param  decoder: AMF decoder instance  
+    @param  decoder: AMF decoder instance
+    @raise  RemotingError: the remoting type is not of the
+    expected list type
     """
     target_len = stream.read_ushort()
     target = stream.read_utf8_string(target_len)
@@ -336,11 +332,11 @@ def _write_body(name, message, stream, encoder):
 def _get_status(status):
     """
     Get status.
-
-    Raises L{ValueError} when the status code is unknown.
     
     @type status:
     @param status:
+    @raise ValueError: the status code is unknown
+    @return: status code
     """
     if status not in STATUS_CODES.keys():
         raise ValueError("Unknown status code")
@@ -349,15 +345,16 @@ def _get_status(status):
 
 def decode(stream, context):
     """
-    Decodes the incoming stream and returns a L{Envelope} object.
-
-    Raises L{RuntimeError} when it is unable to fully consume the
-    stream buffer.
+    Decodes the incoming stream. .
     
     @type   stream: L{BufferedByteStream}
     @param  stream: AMF data
     @type   context: L{Context}
     @param  context: Context
+    @raise RuntimeError: decoder is unable to fully consume the
+    stream buffer
+    @return:
+    @rtype: L{Envelope}
     """
     if not isinstance(stream, util.BufferedByteStream):
         stream = util.BufferedByteStream(stream)
@@ -398,6 +395,7 @@ def encode(msg, old_context):
     @param  msg: The message to encode
     @type   old_context: L{pyamf.Context}
     @param  old_context: Context
+    @return: file object
     """
     # FIXME Hack.
     def getNewContext():

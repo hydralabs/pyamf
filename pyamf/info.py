@@ -28,6 +28,12 @@
 
 """
 Extracts and displays information for files that contain AMF data.
+
+@author: Arnar Birgisson
+@author: Thijs Triemstra
+@author: Nick Joyce
+
+@since: 0.0.2
 """
 
 import glob

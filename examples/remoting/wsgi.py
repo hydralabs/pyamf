@@ -1,5 +1,4 @@
 # -*- encoding: utf8 -*-
-#
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
 # 
 # Nick Joyce
@@ -25,6 +24,8 @@
 
 """
 WSGI Remoting example.
+
+@author: Nick Joyce
 """
 
 from pyamf.gateway.wsgi import WSGIGateway

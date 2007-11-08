@@ -23,10 +23,16 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-# Heavily borrowed from Flashticle http://osflash.org/flashticle
+# 
 
 """
 U{WSGI<http://wsgi.org>} Server implementation.
+
+@note: Heavily borrowed from U{Flashticle<http://osflash.org/flashticle>}
+
+@author: Nick Joyce
+
+@since: 0.0.2
 """
 
 import pyamf
