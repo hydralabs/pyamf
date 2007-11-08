@@ -42,7 +42,12 @@ L{ArrayCollection}, and IExternalizable.
 @since: 0.0.2
 """
 
-import types, datetime, time, copy
+import types, datetime, time, copy, zlib
+
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
 
 import pyamf
 from pyamf import util, compat
@@ -109,14 +114,69 @@ class ObjectEncoding:
     #: Proxy object.
     PROXY = 0x03
 
-class ByteArray(str):
+class ByteArray(object):
     """
-    I am a file type object containing byte data from the AMF stream.
+    I am a StringIO type object containing byte data from the AMF stream.
 
     @see: U{http://osflash.org/documentation/amf3#x0c_-_bytearray}
     @see: U{http://osflash.org/documentation/amf3/parsing_byte_arrays}
     @see: U{http://livedocs.adobe.com/flex/2/langref/flash/utils/ByteArray.html}
     """
+
+    def __init__(self, buf):
+        if isinstance(buf, (str, unicode)):
+            self.buffer = StringIO(buf)
+        elif isinstance(buf, StringIO):
+            self.buffer = buf
+        elif hasattr(buf, 'getvalue'):
+            self.buffer = StringIO(buf.getvalue())
+        else:
+            raise TypeError("Unable to coerce buf->StringIO")
+
+    def close(self):
+        self.buffer.close()
+
+    def flush(self):
+        self.buffer.flush()
+
+    def getvalue(self):
+        return self.buffer.getvalue()
+
+    def next(self):
+        return self.buffer.next()
+
+    def read(self, n=-1):
+        return self.buffer.read(n)
+
+    def readline(self, length=None):
+        return self.buffer.readline(length)
+
+    def readlines(self, sizehint=0):
+        return self.buffer.readlines(sizehint)
+
+    def seek(self, pos, mode=0):
+        return self.buffer.seek(pos, mode)
+
+    def tell(self):
+        return self.buffer.tell()
+
+    def truncate(self, size=None):
+        return self.buffer.truncate(size)
+
+    def write(self, s):
+        self.buffer.write(s)
+
+    def writelines(self, iterable):
+        self.buffer.writelines(iterable)
+
+    def __len__(self):
+        old_pos = self.buffer.tell()
+        self.buffer.seek(0, 2)
+
+        pos = self.buffer.tell()
+        self.buffer.seek(old_pos)
+
+        return pos
 
 class ClassDefinition(object):
     """
@@ -513,7 +573,17 @@ class Decoder(object):
         if ref & REFERENCE_BIT == 0:
             return self.context.getObject(ref >> 1)
 
-        obj = ByteArray(self.input.read(ref >> 1))
+        buffer = self.input.read(ref >> 1)
+
+        try:
+            buffer = zlib.decompress(buffer)
+            compressed = True
+        except zlib.error:
+            compressed = False
+
+        obj = ByteArray(buffer)
+        obj._was_compressed = compressed
+
         self.context.addObject(obj)
 
         return obj
@@ -928,19 +998,27 @@ class Encoder(object):
         """
         self.writeType(ASTypes.BYTEARRAY)
 
-        try:
-            ref = self.context.getObjectReference(n)
-            self._writeInteger(ref << 1)
+        if use_references:
+            try:
+                ref = self.context.getObjectReference(n)
+                self._writeInteger(ref << 1)
 
-            return
-        except pyamf.ReferenceError:
-            pass
+                return
+            except pyamf.ReferenceError:
+                pass
 
-        self.context.addObject(n)
-        self._writeInteger(len(n) << 1 | REFERENCE_BIT)
+            self.context.addObject(n)
 
-        for ch in n:
-            self.output.write_uchar(ord(ch))
+        buf = n.getvalue()
+
+        if n._was_compressed:
+            buf = zlib.compress(buf)
+            #FIXME nick: hacked
+            buf = buf[0] + '\xda' + buf[2:] 
+
+        l = len(buf)
+        self._writeInteger(l << 1 | REFERENCE_BIT)
+        self.output.write(buf)
 
     def writeXML(self, n, use_references=True):
         """

@@ -115,11 +115,11 @@ if __name__ == '__main__':
 
     gw = WSGIGateway(services)
     port = 8000
-    print "Started echo test server on port", port
     
     httpd = simple_server.WSGIServer(
         ('',port),
         simple_server.WSGIRequestHandler,
     )
     httpd.set_app(gw)
+    print "Started echo test server on port", port
     httpd.serve_forever()

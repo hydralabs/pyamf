@@ -88,6 +88,7 @@ class WSGIGateway(gateway.BaseGateway):
         except:
             raise
         finally:
-            self.save_request(body, stream)
+            # self.save_request(body, stream)
+            pass
 
         return [stream.getvalue()]
