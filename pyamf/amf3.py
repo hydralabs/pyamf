@@ -117,7 +117,7 @@ class ObjectEncoding:
     #: Proxy object.
     PROXY = 0x03
 
-class ByteArray(object):
+class ByteArray(util.StringIOProxy):
     """
     I am a C{StringIO} type object containing byte data from the AMF stream.
 
@@ -127,61 +127,6 @@ class ByteArray(object):
     @see: U{http://osflash.org/documentation/amf3/parsing_byte_arrays}
     @see: U{http://livedocs.adobe.com/flex/2/langref/flash/utils/ByteArray.html}
     """
-
-    def __init__(self, buf):
-        if isinstance(buf, (str, unicode)):
-            self.buffer = StringIO(buf)
-        elif isinstance(buf, StringIO):
-            self.buffer = buf
-        elif hasattr(buf, 'getvalue'):
-            self.buffer = StringIO(buf.getvalue())
-        else:
-            raise TypeError("Unable to coerce buf->StringIO")
-
-    def close(self):
-        self.buffer.close()
-
-    def flush(self):
-        self.buffer.flush()
-
-    def getvalue(self):
-        return self.buffer.getvalue()
-
-    def next(self):
-        return self.buffer.next()
-
-    def read(self, n=-1):
-        return self.buffer.read(n)
-
-    def readline(self, length=None):
-        return self.buffer.readline(length)
-
-    def readlines(self, sizehint=0):
-        return self.buffer.readlines(sizehint)
-
-    def seek(self, pos, mode=0):
-        return self.buffer.seek(pos, mode)
-
-    def tell(self):
-        return self.buffer.tell()
-
-    def truncate(self, size=None):
-        return self.buffer.truncate(size)
-
-    def write(self, s):
-        self.buffer.write(s)
-
-    def writelines(self, iterable):
-        self.buffer.writelines(iterable)
-
-    def __len__(self):
-        old_pos = self.buffer.tell()
-        self.buffer.seek(0, 2)
-
-        pos = self.buffer.tell()
-        self.buffer.seek(old_pos)
-
-        return pos
 
 class ClassDefinition(object):
     """
