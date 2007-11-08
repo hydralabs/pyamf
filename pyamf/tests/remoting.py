@@ -35,7 +35,7 @@ from pyamf import remoting, util
 
 class DecoderTestCase(unittest.TestCase):
     """
-    Tests the AMF version (AMF0 or AMF3) decode process.
+    Tests the decoders.
     """
     def test_amf_version(self):
         for x in ('\x00', '\x03'):
@@ -49,7 +49,7 @@ class DecoderTestCase(unittest.TestCase):
 
     def test_client_version(self):
         """
-        Tests the AMF client version decode process.
+        Tests the AMF client version.
         """
         for x in ('\x00', '\x01', '\x03'):
             try:
@@ -70,6 +70,9 @@ class DecoderTestCase(unittest.TestCase):
         self.assertEquals(y, [])
 
     def test_simple_header(self):
+        """
+        Test header decoder.
+        """
         msg = remoting.decode('\x00\x00\x00\x01\x00\x04name\x00\x00\x00\x00'
             '\x05\x0a\x00\x00\x00\x00\x00\x00', pyamf.Context())
 
@@ -149,8 +152,13 @@ class DecoderTestCase(unittest.TestCase):
             '\x01\x61\x00\x00\x09', pyamf.Context())
 
 class EncoderTestCase(unittest.TestCase):
+    """
+    Test the encoders.
+    """
     def test_basic(self):
-        msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash)
+        """
+        """
+        msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash6)
         self.assertEquals(remoting.encode(msg, pyamf.Context()).getvalue(), '\x00' * 6)
 
         msg = remoting.Envelope(pyamf.AMF3, pyamf.ClientTypes.FlashCom)
@@ -158,14 +166,17 @@ class EncoderTestCase(unittest.TestCase):
             '\x03\x01' + '\x00' * 4)
 
     def test_header(self):
-        msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash)
+        """
+        Test encoding of header.
+        """
+        msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash6)
 
         msg.headers['foo'] = (False, 'bar')
         self.assertEquals(remoting.encode(msg, pyamf.Context()).getvalue(),
             '\x00\x00\x00\x01\x00\x03foo\x00\x00\x00\x00\r\n\x00\x00\x00\x02'
             '\x01\x00\x02\x00\x03bar\x00\x00')
 
-        msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash)
+        msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash6)
 
         msg.headers['foo'] = (True, ['a', 'b', 'c'])
         self.assertEquals(remoting.encode(msg, pyamf.Context()).getvalue(),
@@ -174,7 +185,10 @@ class EncoderTestCase(unittest.TestCase):
             '\x00\x00')
 
     def test_body(self):
-        msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash)
+        """
+        Test encoding of body.
+        """
+        msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash6)
 
         msg['/1'] = ('test.test', 0, 'hello')
 
@@ -194,6 +208,9 @@ class EncoderTestCase(unittest.TestCase):
             '\x00\x08\x02\x00\x05hello')
 
 def suite():
+    """
+    Add tests.
+    """
     suite = unittest.TestSuite()
 
     suite.addTest(unittest.makeSuite(DecoderTestCase))

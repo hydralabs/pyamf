@@ -137,6 +137,10 @@ class Context(object):
 
     def getObjectReference(self, obj):
         """
+        Gets a reference for an object.
+
+        Raises L{pyamf.ReferenceError} if the reference could not be found.
+        
         @type obj:
         @param obj:
         """
@@ -177,6 +181,8 @@ class Context(object):
         """
         Return string reference.
 
+        Raises L{pyamf.ReferenceError} if the string reference could not be found.
+        
         @type s:
         @param s:
         """
@@ -201,6 +207,10 @@ class Context(object):
 
     def getClassDefinition(self, ref):
         """
+        Return class reference.
+        
+        Raises L{pyamf.ReferenceError} if the class reference could not be found.
+        
         @type ref:
         @param ref:
         """
@@ -211,6 +221,10 @@ class Context(object):
 
     def getClassDefinitionReference(self, class_def):
         """
+        Return class definition reference.
+        
+        Raises L{pyamf.ReferenceError} if the definition could not be found.     
+        
         @type class_def:
         @param class_def:
         """
@@ -339,6 +353,9 @@ def register_class(klass, alias, read_func=None, write_func=None):
     """
     Registers a class to be used in the data streaming.
 
+    Raises L{TypeError} if the klass is not callable.
+    Raises L{ValueError} if the klass is already registered.
+    
     @type alias: str
     @param alias: The alias of klass, i.e. org.example.Person
     @type read_func:
@@ -366,6 +383,9 @@ def register_class_loader(loader):
     alias. L{loader} is provided with one argument, the Class alias. If the loader
     succeeds in finding a suitable class then it should return that class,
     otherwise it should return L{None}.
+
+    Raises L{TypeError} if the loader is not callable.
+    Raises L{ValueError} if the loader already has been registered.
 
     @type loader: callable
     @param loader: 
@@ -402,6 +422,8 @@ def load_class(alias):
       2. Checks all functions registered via L{register_class_loader}.
       3. Attempts to load the class via standard module loading techniques.
 
+    Raises L{UnknownClassAlias} if not found.
+    
     @type alias: string
     @param alias: class name
     """
@@ -443,13 +465,13 @@ def load_class(alias):
                 return klass
 
     # All available methods for finding the class have been exhausted
-    raise UnknownClassAlias("Unknown class alias %s" % alias)
+    raise UnknownClassAlias("Unknown alias %s" % alias)
 
 def get_class_alias(obj):
     """
-    Finds the alias registered to the class. Raises L{LookupError} if not found.
-    
-    See L{load_class} for more info.
+    Finds the alias registered to the class. See L{load_class} for more info.
+
+    Raises L{UnknownClassAlias} if not found.   
 
     @type obj:
     @param obj:
@@ -506,6 +528,8 @@ def _get_decoder(encoding):
     """
     Get compatible decoder.
 
+    Raises L{ValueError} if the AMF encoding version is unknown.  
+
     @type encoding: int
     @param encoding: AMF encoding version
     """
@@ -526,6 +550,8 @@ def _get_encoder(encoding):
     """
     Get compatible encoder.
 
+    Raises L{ValueError} if the AMF encoding version is unknown.
+    
     @type encoding: int
     @param encoding: AMF encoding version
     """

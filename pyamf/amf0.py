@@ -117,7 +117,7 @@ class Decoder(object):
         """
         Read and returns the next byte in the stream and determine its type.
         
-        Raises L{ValueError} if not recognized.
+        Raises L{DecodeError} if not recognized.
         """
         type = self.input.read_uchar()
 
@@ -218,6 +218,8 @@ class Decoder(object):
     def readElement(self):
         """
         Reads an AMF0 element from the data stream.
+        
+        Raises L{DecodeError} if the ActionScript type is unknown.
         """
         type = self.readType()
 
@@ -295,6 +297,7 @@ class Decoder(object):
         Read utf8 string.
         """
         len = self.input.read_ulong()
+        
         return self.input.read_utf8_string(len)
 
     def readXML(self):
@@ -302,6 +305,7 @@ class Decoder(object):
         Read XML.
         """
         data = self.readLongString()
+        
         return util.ET.fromstring(data)
 
 class Encoder(object):
@@ -350,7 +354,7 @@ class Encoder(object):
         """
         Writes the type to the stream.
 
-        Raises L{pyamf.EncodeError} if type is not recognized.
+        Raises L{EncodeError} if AMF type is not recognized.
 
         @type   type: Integer
         @param  type: ActionScript type
@@ -650,7 +654,7 @@ def encode(element, context=None):
     """
     A helper function to encode an element into the AMF0 format.
 
-    Returns a StringIO object.
+    Returns a L{StringIO} object.
 
     @type   element: 
     @param  element:

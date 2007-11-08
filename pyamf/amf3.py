@@ -112,8 +112,11 @@ class ClassDefinition(object):
     """
 
     def __init__(self, name, encoding):
+        #:
         self.name = name
+        #:
         self.encoding = encoding
+        #:
         self.attrs = []
 
     def is_external(self):
@@ -171,7 +174,7 @@ class Decoder(object):
         """
         Read and returns the next byte in the stream and determine its type.
         
-        Raises L{ValueError} if not recognized.
+        Raises L{DecodeError} if not recognized.
         """
         type = self.input.read_uchar()
 
@@ -208,13 +211,16 @@ class Decoder(object):
     def readElement(self):
         """
         Reads an AMF3 element from the data stream.
+
+        Raises L{DecodeError} when the ActionScript type is unknown or
+        there is insufficient data left in the stream.
         """
         type = self.readType()
 
         try:
             func = getattr(self, self.type_map[type])
         except KeyError, e:
-            raise NotImplementedError(
+            raise pyamf.DecodeError(
                 "Unsupported ActionScript type 0x%02x" % type)
         
         try:
@@ -254,6 +260,9 @@ class Decoder(object):
     def readString(self, use_references=True):
         """
         Reads and returns a string from the stream.
+
+        @type use_reference:
+        @param use_reference:
         """
         def readLength():
             x = self.readInteger()
@@ -372,6 +381,8 @@ class Decoder(object):
     def readObject(self):
         """
         Reads an object from the stream.
+
+        Raises L{DecodeError} when the object encoding is unknown.
         """
         ref = self.readInteger()
 
@@ -485,9 +496,9 @@ class Encoder(object):
 
     def writeType(self, type):
         """
-        Writes the type to the stream.
+        Writes the data type to the stream.
 
-        Raises L{ValueError} if type is not recognized.
+        Raises L{EncodeError} when the AMF3 data type is not recognized.
 
         @type   type: 
         @param  type: ActionScript type
@@ -694,6 +705,9 @@ class Encoder(object):
         """
         Writes a dict to the stream.
 
+        Raises L{ValueError} when a non int/str key value is found in the dict.
+        Raises L{EncodeError} when a dict contains empty string keys.
+        
         @type   n:__builtin__.dict
         @param  n: dict data
         """
@@ -972,7 +986,7 @@ def encode(element, context=None):
     """
     A helper function to encode an element into AMF3 format.
 
-    Returns a StringIO object containing the encoded AMF3 data.
+    Returns a L{StringIO} object containing the encoded AMF3 data.
 
     @type   element: 
     @param  element:

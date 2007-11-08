@@ -56,7 +56,7 @@ class TypesTestCase(unittest.TestCase):
 
 class EncoderTestCase(unittest.TestCase):
     """
-    Tests the output from the L{Encoder<pyamf.amf3.Encoder>} class.
+    Tests the output from the AMF3 L{Encoder<pyamf.amf3.Encoder>} class.
     """
     def setUp(self):
         self.buf = util.BufferedByteStream()

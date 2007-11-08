@@ -75,12 +75,26 @@ class HeaderCollection(dict):
                 self.required.append(k)
 
     def is_required(self, idx):
+        """
+        @type idx:
+        @param idx:
+        
+        Raises L{KeyError} if an unknown header is found.
+        """
         if not idx in self:
             raise KeyError("Unknown header %s" % str(idx))
 
         return idx in self.required
 
     def set_required(self, idx, value=True):
+        """
+        @type idx:
+        @param idx:
+        @type value: bool
+        @param value:
+        
+        Raises L{KeyError} if an unknown header is found.
+        """
         if not idx in self:
             raise KeyError("Unknown header %s" % str(idx))
 
@@ -117,6 +131,12 @@ class Envelope(dict):
 
     def __setitem__(self, idx, value):
         """
+        @type idx:
+        @param idx:
+        @type value:
+        @type param:
+        
+        Raises L{TypeError} if the value is not a tuple, set or list.
         """
         if isinstance(value, (tuple, set, list)):
             value = Message(self, value[0], value[1], value[2])
@@ -138,12 +158,19 @@ class Message(object):
     """
 
     def __init__(self, envelope, target, status, body):
+        #:
         self.envelope = envelope
+        #:
         self.target = target
+        #:
         self.status = status
+        #:
         self.body = body
 
     def _get_headers(self):
+        """
+        Return L{Envelope} headers.
+        """
         return self.envelope.headers
 
     headers = property(_get_headers)
@@ -161,7 +188,10 @@ def _read_header(stream, decoder):
      - The name of the header.
      - A boolean determining if understanding this header is required.
      - value of the header.
-     
+
+    Raises L{DecodeError} if the data that was read from the stream does
+    not match the header length.
+    
     @type   stream: L{BufferedByteStream}
     @param  stream: AMF data
     @type   decoder: L{pyamf.amf0.Decoder} or L{pyamf.amf3.Decoder}
@@ -222,6 +252,9 @@ def _read_body(stream, decoder):
      - The id (as sent by the client) of the body.
      - The data of the body.
 
+    Raises L{RemotingError} when the remoting type is not of the
+    expected list type.
+    
     @type   stream: L{BufferedByteStream}
     @param  stream: AMF data
     @type   decoder: L{pyamf.amf0.Decoder} or L{pyamf.amf3.Decoder}
@@ -292,6 +325,10 @@ def _write_body(name, message, stream, encoder):
 
 def _get_status(status):
     """
+    Get status.
+
+    Raises L{ValueError} when the status code is unknown.
+    
     @type status:
     @param status:
     """
@@ -304,6 +341,9 @@ def decode(stream, context):
     """
     Decodes the incoming stream and returns a L{Envelope} object.
 
+    Raises L{RuntimeError} when it is unable to fully consume the
+    stream buffer.
+    
     @type   stream: L{BufferedByteStream}
     @param  stream: AMF data
     @type   context: L{Context}
