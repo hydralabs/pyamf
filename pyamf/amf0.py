@@ -211,7 +211,7 @@ class Decoder(object):
         classname = self.readString()
         klass = pyamf.load_class(classname)
 
-        ret = klass.klass()
+        ret = klass()
         obj = {}
         self._readObject(obj)
 
@@ -616,12 +616,8 @@ class Encoder(object):
         @type   d: Instance of datetime.datetime
         @param  d: The date to be written.
         """
-        try:
-            self.writeReference(d)
-            return
-        except pyamf.ReferenceError:
-            self.context.addObject(d)
-
+        # According to the Red 5 implementation of AMF0, dates references are
+        # created, but not used
         secs = util.get_timestamp(d)
         tz = 0
 
