@@ -154,7 +154,7 @@ class BufferedByteStream(StringIO, NetworkIOMixIn):
 
 def hexdump(data):
     """
-    Hexadecimal representation of StringIO data.
+    Hexadecimal representation of L{StringIO} data.
     """
     import string
 
@@ -190,5 +190,8 @@ def get_timestamp(d):
 def get_datetime(ms):
     """
     Return a UTC date from a timestamp.
+
+    @type ms:
+    @param ms: milliseconds since 1970
     """
     return datetime.datetime.utcfromtimestamp(ms)

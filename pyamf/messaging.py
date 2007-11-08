@@ -26,25 +26,34 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Flex Messaging Implementation
+Flex Messaging Implementation.
+
+References:
+ - U{http://osflash.org/documentation/amf3#remoteobject}
 """
 
 import pyamf
 
 class AbstractMessage(object):
     """
-    Base class for all Flex compatibility messages.
+    Abstract base class for all Flex messages. Messages have two customizable sections;
+    headers and data. The headers property provides access to specialized meta information
+    for a specific message instance. The data property contains the instance specific data
+    that needs to be delivered and processed by the decoder.
     """
+    #: Specific data that needs to be delivered to the remote destination.
     data = None
-    #: Unique client ID 
+    #: The clientId indicates which client sent the message. 
     clientId = None
-    #: Message destination
+    #: The message destination.
     destination = None
     #: Message headers
     headers = []
     #: Unique message ID
     messageId = None
+    #: Indicates how long the message should be considered valid and deliverable.
     timeToLive = None
+    #: Time stamp for the message.
     timestamp = None
     
     def __repr__(self):
@@ -57,27 +66,30 @@ class AbstractMessage(object):
 
 class AsyncMessage(AbstractMessage):
     """
-    Base class for for asynchronous Flex compatibility messages.
+    Base class for all asynchronous Flex messages.
     """
+    #: Correlation id of the message.
     correlationId = None
 
 class AcknowledgeMessage(AsyncMessage):
     """
-    Flex compatibility message that is returned to the client.
-
-    This is the receipt for any message thats being sent.
+    Acknowledges the receipt of a message that was sent previously. Every message sent
+    within the messaging system must receive an acknowledgement.
     """
     pass
 
 class CommandMessage(AsyncMessage):
     """
-    Command message as sent by the C{<mx:RemoteObject>} MXML tag.
+    Provides a mechanism for sending commands related to publish/subscribe messaging,
+    ping, and cluster operations.
 
-    This class is used for service commands, like pinging the server
-
-    Reference: U{http://livedocs.adobe.com/flex/2/langref/mx/rpc/remoting/mxml/RemoteObject.html}
+    References:
+     - U{http://livedocs.adobe.com/flex/201/langref/mx/messaging/messages/CommandMessage.html}
     """
+    #: Operation/command.
     operation = None
+    #: Remote destination belonging to a specific service, based upon whether this
+    #: message type matches the message type the service handles.
     messageRefType = None
 
 class ErrorMessage(AbstractMessage):
@@ -87,26 +99,28 @@ class ErrorMessage(AbstractMessage):
     #: Extended data that the remote destination has chosen to associate with 
     #: this error to facilitate custom error processing on the client. 
     extendedData = {}
-    #: The fault code for the error. 
+    #: Fault code for the error. 
     faultCode = None
     #: Detailed description of what caused the error. 
     faultDetail = None
     #: A simple description of the error. 
     faultString = None
-    #: Should a root cause exist for the error, this property contains those
-    #: (traceback) details.
+    #: Should a traceback exist for the error, this property contains the
+    #: message.
     rootCause = {}
 
 class RemotingMessage(AbstractMessage):
     """
-    Flex compatibility message that is sent by the C{<mx:RemoteObject>} MXML tag.
+    Used to send RPC requests to a remote endpoint.
 
-    Reference: U{http://livedocs.adobe.com/flex/2/langref/mx/rpc/remoting/mxml/RemoteObject.html}
+    References:
+     - U{http://livedocs.adobe.com/flex/201/langref/mx/messaging/messages/RemotingMessage.html}
     """
-    #: Name of the method to be called.
+    #: Name of the remote method/operation that should be called.
     operation = None
     #: Name of the service to be called
     #: including package name.
+    #: This property is provided for backwards compatibility.
     source = None
 
 pyamf.register_class(RemotingMessage, 'flex.messaging.messages.RemotingMessage')

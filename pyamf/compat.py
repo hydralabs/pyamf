@@ -24,17 +24,32 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Contains compatibility classes/functions for Python -> Flex and vice versa
+Contains compatibility classes/functions for Python -> Flex and vice versa.
 """
 
 import pyamf
 
 class DataOutput(object):
+    """
+    I provide a set of methods for writing binary data.
+    
+    This class is the I/O counterpart to the L{DataInput} class, which reads
+    binary data.
+
+    References:
+     - U{http://livedocs.adobe.com/flex/201/langref/flash/utils/IDataOutput.html}
+    """
     def __init__(self, encoder):
         self.encoder = encoder
         self.stream = encoder.output
 
     def writeBoolean(self, value):
+        """
+        @type value:
+        @param value:
+        
+        Raises L{ValueError} if None boolean value is found.
+        """
         if value is True:
             self.stream.write('\x01')
         elif value is False:
@@ -77,6 +92,15 @@ class DataOutput(object):
         self.stream.write(amf3.encode_utf8_modified(unicode(value, 'utf8'))[2:])
 
 class DataInput(object):
+    """
+    I provide a set of methods for reading binary data.
+    
+    This class is the I/O counterpart to the L{DataOutput} class,
+    which writes binary data.
+
+    References:
+     - U{http://livedocs.adobe.com/flex/201/langref/flash/utils/IDataInput.html}
+    """
     def __init__(self, decoder):
         self.decoder = decoder
         self.stream = decoder.input
@@ -137,7 +161,17 @@ class DataInput(object):
 
 class ArrayCollection(dict):
     """
-    I represent a AS3 based class flex.messaging.io.ArrayCollection
+    I represent the ActionScript 3 based class C{flex.messaging.io.ArrayCollection}
+    used in the Flex framework.
+    
+
+    The ArrayCollection class is a wrapper class that exposes an Array as
+    a collection that can be accessed and manipulated using the methods
+    and properties of the ICollectionView or IList interfaces in the Flex
+    framework.
+
+    Reference:
+     - U{http://livedocs.adobe.com/flex/2/langref/mx/collections/ArrayCollection.html}
     """
 
     def __repr__(self):

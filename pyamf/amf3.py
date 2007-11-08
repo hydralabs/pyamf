@@ -29,8 +29,12 @@
 """
 AMF3 Implementation.
 
+AMF3 add support for sending int
+and uint objects as integers and supports data types that are available
+only in ActionScript 3.0, such as L{ByteArray}, L{ArrayCollection}, and
+IExternalizable.
+
 Resources:
- - U{http://www.vanrijkom.org/archives/2005/06/amf_format.html}
  - U{http://osflash.org/documentation/amf3}
 """
 
@@ -104,6 +108,11 @@ class ObjectEncoding:
 class ByteArray(str):
     """
     I am a file type object containing byte data from the AMF stream.
+
+    References:
+     - U{http://osflash.org/documentation/amf3#x0c_-_bytearray}
+     - U{http://osflash.org/documentation/amf3/parsing_byte_arrays}
+     - U{http://livedocs.adobe.com/flex/2/langref/flash/utils/ByteArray.html}
     """
 
 class ClassDefinition(object):
@@ -120,9 +129,15 @@ class ClassDefinition(object):
         self.attrs = []
 
     def is_external(self):
+        """
+        Externalizable class.
+        """
         return self.encoding == ObjectEncoding.EXTERNAL
 
     def is_static(self):
+        """
+        Static class.
+        """
         return self.encoding == ObjectEncoding.STATIC
 
     def is_dynamic(self):

@@ -26,9 +26,21 @@
 """
 AMF Remoting support.
 
+A Remoting request from the client consists of a short preamble, headers, and bodies.
+The preamble contains basic information about the nature of the request. Headers can
+be used to request debugging information, send authentication info, tag transactions,
+etc. Bodies contain actual Remoting requests and responses. A single Remoting envelope
+can contain several requests; Remoting supports batching out of the box.
+
+Client headers and bodies need not be responded to in a one-to-one manner. That is, a
+body or header may not require a response. Debug information is requested by a header
+but sent back as a body object. The response index is essential for the Flash player
+to understand the response therefore.
+
 References:
  - U{http://osflash.org/documentation/amf/envelopes/remoting}
  - U{http://osflash.org/amf/envelopes/remoting/headers}
+ - U{http://osflash.org/documentation/amf/envelopes/remoting/debuginfo}
 """
 
 import sys, traceback
@@ -44,8 +56,6 @@ STATUS_OK = 0
 #: Reserved for runtime errors.
 STATUS_ERROR = 1
 #: Debug information.
-#: 
-#: Reference: U{http://osflash.org/documentation/amf/envelopes/remoting/debuginfo}
 STATUS_DEBUG = 2
 #: AMF mimetype.
 CONTENT_TYPE       = 'application/x-amf'
