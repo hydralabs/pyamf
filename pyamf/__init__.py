@@ -110,18 +110,17 @@ class ReferenceError(BaseError):
 
 class EncodeError(BaseError):
     """
-    Raised if the element could not be encoded to the stream. This is mainly
-    used to pick up the empty key string array bug.
+    Raised if the element could not be encoded to the stream.
     
     @warning: See U{http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug} for
-    more info
+    more info about the empty key string array bug.
     """
 
 class UnknownClassAlias(BaseError):
     """
     Raised if the AMF stream specifies a class that does not have an alias.
 
-    See L{register_class} for more info.
+    @see: L{register_class} for more info.
     """
 
 class Context(object):
@@ -151,6 +150,7 @@ class Context(object):
         @type ref:
         @param ref:
         @raise ReferenceError: the object could not be found.
+        @return:
         """
         try:
             return self.objects[ref - 1]
@@ -164,6 +164,7 @@ class Context(object):
         @type obj:
         @param obj:
         @raise ReferenceError: object reference could not be found.
+        @return:
         """
         try:
             return self.objects.index(obj) + 1
@@ -176,6 +177,7 @@ class Context(object):
 
         @type obj:
         @param obj:
+        @return:
         """
         try:
             return self.objects.index(obj)
@@ -191,6 +193,7 @@ class Context(object):
         @type ref:
         @param ref:
         @raise ReferenceError: the string could not be found.
+        @return:
         """
         try:
             return self.strings[ref]
@@ -204,6 +207,7 @@ class Context(object):
         @type s: str
         @param s: string reference
         @raise ReferenceError: the string reference could not be found.
+        @return:
         """
         try:
             return self.strings.index(s)
@@ -216,6 +220,7 @@ class Context(object):
 
         @type s: string
         @param s: Reference
+        @return:
         """
         try:
             return self.strings.index(s)
@@ -231,6 +236,7 @@ class Context(object):
         @type ref:
         @param ref:
         @raise ReferenceError: the class reference could not be found.
+        @return: 
         """
         try:
             return self.classes[ref]
@@ -244,6 +250,7 @@ class Context(object):
         @type class_def:
         @param class_def:
         @raise ReferenceError: the definition could not be found.
+        @return: 
         """
         try:
             return self.classes.index(class_def)
@@ -257,6 +264,7 @@ class Context(object):
 
         @type class_def:
         @param class_def:
+        @return:
         """
         try:
             return self.classes.index(class_def)
@@ -269,6 +277,7 @@ class Context(object):
         """
         @type class_def:
         @param class_def:
+        @return:
         """
         if not class_def.name:
             return Bag
@@ -293,6 +302,7 @@ class Bag(object):
         """
         @type k:
         @param k:
+        @return:
         """
         return getattr(self, k)
 
@@ -302,6 +312,7 @@ class Bag(object):
         @param k:
         @type v:
         @param v:
+        @return: 
         """
         return setattr(self, k, v)
 
@@ -309,6 +320,7 @@ class Bag(object):
         """
         @type other:
         @param other:
+        @return:
         """
         if isinstance(other, dict):
             return self.__dict__ == other
@@ -349,6 +361,7 @@ class ClassAlias(object):
         @param instance:
         @type data:
         @param data:
+        @return:
         """
         if self.read_func is None:
             return
@@ -359,6 +372,7 @@ class ClassAlias(object):
         """
         @type instance:
         @param instance:
+        @return:
         """
         if self.write_func is None:
             return
@@ -367,6 +381,7 @@ class ClassAlias(object):
 
     def __call__(self):
         """
+        @return:
         """
         return self.klass()
 
@@ -423,7 +438,7 @@ def get_module(mod_name):
     """
     Load a module based on mod_name.
 
-    @type mod_name: string
+    @type mod_name: str
     @param mod_name: module name
     """
     mod = __import__(mod_name)
@@ -443,7 +458,7 @@ def load_class(alias):
       2. Checks all functions registered via L{register_class_loader}.
       3. Attempts to load the class via standard module loading techniques.
  
-    @type alias: string
+    @type alias: str
     @param alias: class name
     @raise UnknownClassAlias: alias not found
     """
@@ -516,7 +531,7 @@ def decode(stream, encoding=AMF0, context=None):
     @param  encoding: AMF encoding type
     @type   context: L{Context}
     @param  context: Context
-    @return: each element in the stream
+    @return: Each element in the stream
     """
     decoder = _get_decoder(encoding)(stream, context)
 
@@ -533,7 +548,7 @@ def encode(element, encoding=AMF0, context=None):
     @param  encoding: AMF encoding type
     @type   context: L{Context}
     @param  context: Context
-    @return: file-like object
+    @return: File-like object
     """
     stream = util.BufferedByteStream()
     encoder = _get_encoder(encoding)(stream, context)

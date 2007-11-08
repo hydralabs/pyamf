@@ -134,16 +134,26 @@ class ClassDefinition(object):
     def is_external(self):
         """
         Externalizable class.
+
+        @return:
+        @rtype: bool
         """
         return self.encoding == ObjectEncoding.EXTERNAL
 
     def is_static(self):
         """
         Static class.
+
+        @return:
+        @rtype: bool
         """
         return self.encoding == ObjectEncoding.STATIC
 
     def is_dynamic(self):
+        """
+        @return:
+        @rtype: bool
+        """
         return self.encoding == ObjectEncoding.DYNAMIC
 
     external = property(is_external)
@@ -193,6 +203,8 @@ class Decoder(object):
         Read and returns the next byte in the stream and determine its type.
         
         @raise DecodeError: AMF3 type not recognized
+        @return: AMF3 type
+        @rtype: int
         """
         type = self.input.read_uchar()
 
@@ -241,6 +253,8 @@ class Decoder(object):
 
         @raise DecodeError: the ActionScript type is unknown or
         there is insufficient data left in the stream.
+        @return:
+        @rtype:
         """
         type = self.readType()
 
@@ -261,6 +275,8 @@ class Decoder(object):
 
         @see: U{http://osflash.org/amf3/parsing_integers} for the AMF3
         integer data format.
+        @return:
+        @rtype:
         """
         n = 0
         b = self.input.read_uchar()
@@ -290,6 +306,8 @@ class Decoder(object):
 
         @type use_references:
         @param use_references:
+        @return:
+        @rtype:
         """
         def readLength():
             x = self.readInteger()
@@ -320,6 +338,9 @@ class Decoder(object):
     def readXML(self):
         """
         Read XML from the stream.
+
+        @return:
+        @rtype:
         """
         return util.ET.fromstring(self.readString(False))
 
@@ -328,6 +349,9 @@ class Decoder(object):
         Read date from the stream.
 
         The timezone is ignored as the date is always in UTC.
+
+        @return:
+        @rtype:
         """
         ref = self.readInteger()
 
@@ -345,11 +369,14 @@ class Decoder(object):
         """
         Reads an array from the stream.
 
-        @bug: There is a very specific problem with AMF3 where the first three bytes
+        @warning: There is a very specific problem with AMF3 where the first three bytes
         of an encoded empty C{dict} will mirror that of an encoded C{{'': 1, '2': 2}}
 
         @see: U{http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug}
         for more information.
+
+        @return:
+        @rtype:
         """
         size = self.readInteger()
 
@@ -392,6 +419,8 @@ class Decoder(object):
         
         @type   ref:
         @param  ref:
+        @return:
+        @rtype:
         """
         class_ref = ref & REFERENCE_BIT == 0
         
@@ -410,6 +439,8 @@ class Decoder(object):
         Reads an object from the stream.
 
         @raise DecodeError: the object encoding is unknown
+        @return:
+        @rtype:
         """
         ref = self.readInteger()
 
@@ -453,6 +484,9 @@ class Decoder(object):
     def readXMLString(self):
         """
         Reads a string from the data stream and converts it into an XML Tree.
+
+        @return:
+        @rtype:
         """
         ref = self.readInteger()
         
@@ -470,7 +504,9 @@ class Decoder(object):
         """
         Reads a string of data from the stream.
 
-        @note: This is not supported by the AMF0 L{decoder<pyamf.amf0.Decoder>}.
+        @note: This is not supported by the AMF0 L{decoder<pyamf.amf0.Decoder>}
+        @return:
+        @rtype:
         """
         ref = self.readInteger()
 
@@ -527,7 +563,7 @@ class Encoder(object):
 
         @type   type: 
         @param  type: ActionScript type
-        @raise EncodeError: the AMF3 data type is not recognized
+        @raise EncodeError: AMF3 data type is not recognized
         """
         if type not in ACTIONSCRIPT_TYPES:
             raise pyamf.EncodeError("Unknown AMF3 type 0x%02x at %d" % (
