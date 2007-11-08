@@ -65,7 +65,8 @@ class ClientTypes:
     FlashCom = 1
     #: Specifies a Flash Player 9.0 client.
     Flash9   = 3
-
+    
+#: List of AMF client typecodes.
 CLIENT_TYPES = set(
     ClientTypes.__dict__[x] for x in ClientTypes.__dict__
     if not x.startswith('_'))  
@@ -125,6 +126,9 @@ class Context(object):
         Gets an object based on a reference.
 
         Raises L{pyamf.ReferenceError} if the object could not be found.
+
+        @type ref:
+        @param ref:
         """
         try:
             return self.objects[ref - 1]
@@ -132,6 +136,10 @@ class Context(object):
             raise ReferenceError("Object reference %d not found" % ref)
 
     def getObjectReference(self, obj):
+        """
+        @type obj:
+        @param obj:
+        """
         try:
             return self.objects.index(obj) + 1
         except ValueError:
@@ -140,6 +148,9 @@ class Context(object):
     def addObject(self, obj):
         """
         Gets a reference to obj, creating one if necessary.
+
+        @type obj:
+        @param obj:
         """
         try:
             return self.objects.index(obj)
@@ -153,6 +164,9 @@ class Context(object):
         Gets a string based on a reference ref
 
         Raises L{pyamf.ReferenceError} if the string could not be found.
+
+        @type ref:
+        @param ref:
         """
         try:
             return self.strings[ref]
@@ -162,6 +176,9 @@ class Context(object):
     def getStringReference(self, s):
         """
         Return string reference.
+
+        @type s:
+        @param s:
         """
         try:
             return self.strings.index(s)
@@ -206,6 +223,9 @@ class Context(object):
     def addClassDefinition(self, class_def):
         """
         Creates a reference to class_def.
+
+        @type class_def:
+        @param class_def:
         """
         try:
             return self.classes.index(class_def)
@@ -215,6 +235,10 @@ class Context(object):
             return len(self.classes)
 
     def getClass(self, class_def):
+        """
+        @type class_def:
+        @param class_def:
+        """
         if not class_def.name:
             return Bag
 
@@ -227,16 +251,34 @@ class Bag(object):
     """
 
     def __init__(self, d={}):
+        """
+        @type d:
+        @param d:
+        """
         for k, v in d.items():
             setattr(self, k, v)
 
     def __getitem__(self, k):
+        """
+        @type k:
+        @param k:
+        """
         return getattr(self, k)
 
     def __setitem__(self, k, v):
+        """
+        @type k:
+        @param k:
+        @type v:
+        @param v:
+        """
         return setattr(self, k, v)
 
     def __eq__(self, other):
+        """
+        @type other:
+        @param other:
+        """
         if isinstance(other, dict):
             return self.__dict__ == other
         if isinstance(other, Bag):
@@ -244,26 +286,53 @@ class Bag(object):
 
         return False
 
+    # TODO add __repr__
+    
 class ClassAlias(object):
+    """
+    Class alias.
+    """
     def __init__(self, klass, alias, read_func=None, write_func=None):
+        """
+        @type klass:
+        @param klass:
+        @type alias:
+        @param alias:
+        @type read_func:
+        @param read_func:
+        @type write_func:
+        @param write_func:
+        """
         self.klass = klass
         self.alias = alias
         self.read_func = read_func
         self.write_func = write_func
 
     def read_data(self, instance, data):
+        """
+        @type instance:
+        @param instance:
+        @type data:
+        @param data:
+        """
         if self.read_func is None:
             return
 
         self.read_func(instance, data)
 
     def write_data(self, instance):
+        """
+        @type instance:
+        @param instance:
+        """
         if self.write_func is None:
             return
 
         return self.write_func(instance)
 
     def __call__(self):
+        """
+        """
         return self.klass()
 
 def register_class(klass, alias, read_func=None, write_func=None):
@@ -272,6 +341,10 @@ def register_class(klass, alias, read_func=None, write_func=None):
 
     @type alias: str
     @param alias: The alias of klass, i.e. org.example.Person
+    @type read_func:
+    @param read_func:
+    @type write_func:
+    @param write_func:
     """
     if not callable(klass):
         raise TypeError("klass must be callable")
@@ -370,7 +443,7 @@ def load_class(alias):
                 return klass
 
     # All available methods for finding the class have been exhausted
-    raise UnknownClassAlias("Unknown alias %s" % alias)
+    raise UnknownClassAlias("Unknown class alias %s" % alias)
 
 def get_class_alias(obj):
     """
@@ -430,6 +503,12 @@ def encode(element, encoding=AMF0, context=None):
     return buf
 
 def _get_decoder(encoding):
+    """
+    Get compatible decoder.
+
+    @type encoding: int
+    @param encoding: AMF encoding version
+    """
     import pyamf
 
     if encoding == pyamf.AMF0:
@@ -441,9 +520,15 @@ def _get_decoder(encoding):
 
         return pyamf.amf3.Decoder
 
-    raise ValueError("Unknown encoding")
+    raise ValueError("Unknown encoding: "+str(encoding))
 
 def _get_encoder(encoding):
+    """
+    Get compatible encoder.
+
+    @type encoding: int
+    @param encoding: AMF encoding version
+    """
     import pyamf
 
     if encoding == pyamf.AMF0:
@@ -455,4 +540,4 @@ def _get_encoder(encoding):
 
         return pyamf.amf3.Encoder
         
-    raise ValueError("Unknown encoding")
+    raise ValueError("Unknown encoding: "+str(encoding))
