@@ -108,10 +108,14 @@ class BaseGateway(object):
         """
         fname = 'request_' + str(self.request_number) + ".amf"
         x = open(fname, 'wb')
-        x.write(body)
-        x.write('=' * 80)
-        x.write(stream.getvalue())
-        x.close()
+        try:
+            x.write(body)
+            x.write('=' * 80)
+            x.write(stream.getvalue())
+        except:
+            pass
+        finally:
+            x.close()
         
     def get_error_response(self, (cls, e, tb)):
         """
