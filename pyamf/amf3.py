@@ -29,10 +29,9 @@
 """
 AMF3 Implementation.
 
-AMF3 add support for sending int
-and uint objects as integers and supports data types that are available
-only in ActionScript 3.0, such as L{ByteArray}, L{ArrayCollection}, and
-IExternalizable.
+AMF3 add support for sending int and uint objects as integers and supports
+data types that are available only in ActionScript 3.0, such as L{ByteArray},
+L{ArrayCollection}, and IExternalizable.
 
 @see: U{http://osflash.org/documentation/amf3}
 
@@ -423,11 +422,11 @@ class Decoder(object):
         ref >>= 3
 
         klass = self.context.getClass(class_def)
-        
+
         obj = klass()
         self.context.addObject(obj)
 
-        if class_def.external:
+        if class_def.external or isinstance(obj, compat.ObjectProxy):
             klass.read_func(obj, compat.DataInput(self))
 
         elif class_def.dynamic:
@@ -560,7 +559,7 @@ class Encoder(object):
 
         return None
 
-    def writeElement(self, data):
+    def writeElement(self, data, use_references=True):
         """
         Writes the data.
 
@@ -570,12 +569,12 @@ class Encoder(object):
         func = self._writeElementFunc(data)
         
         if func is not None:
-            func(data)
+            func(data, use_references)
         else:
             # XXX nick: Should we be generating a warning here?
             self.writeUnsupported(data)
 
-    def writeNull(self, n):
+    def writeNull(self, n, use_references=True):
         """
         Writes a null value to the stream.
 
@@ -584,7 +583,7 @@ class Encoder(object):
         """
         self.writeType(ASTypes.NULL)
 
-    def writeBoolean(self, n):
+    def writeBoolean(self, n, use_references=True):
         """
         Writes a boolean to the stream.
 
@@ -623,7 +622,7 @@ class Encoder(object):
 
         self.output.write_uchar(bytes[-1])
 
-    def writeInteger(self, n):
+    def writeInteger(self, n, use_references=True):
         """
         Writes an integer to the stream.
 
@@ -633,7 +632,7 @@ class Encoder(object):
         self.writeType(ASTypes.INTEGER)
         self._writeInteger(n)
 
-    def writeNumber(self, n):
+    def writeNumber(self, n, use_references=True):
         """
         Writes a non integer to the stream.
 
@@ -670,7 +669,7 @@ class Encoder(object):
         for ch in s:
             self.output.write_uchar(ord(ch))
 
-    def writeString(self, n):
+    def writeString(self, n, use_references=True):
         """
         Writes a unicode string to the stream.
 
@@ -680,7 +679,7 @@ class Encoder(object):
         self.writeType(ASTypes.STRING)
         self._writeString(n)
 
-    def writeDate(self, n):
+    def writeDate(self, n, use_references=True):
         """
         Writes a datetime instance to the stream.
 
@@ -703,7 +702,7 @@ class Encoder(object):
         ms = util.get_timestamp(n)
         self.output.write_double(ms * 1000.0)
 
-    def writeList(self, n):
+    def writeList(self, n, use_references=True):
         """
         Writes a tuple, set or list to the stream.
 
@@ -728,7 +727,7 @@ class Encoder(object):
 
         self.context.addObject(n)
 
-    def writeDict(self, n):
+    def writeDict(self, n, use_references=True):
         """
         Writes a dict to the stream.
        
@@ -739,13 +738,14 @@ class Encoder(object):
         """
         self.writeType(ASTypes.ARRAY)
 
-        try:
-            ref = self.context.getObjectReference(n)
-            self._writeInteger(ref << 1)
+        if use_references:
+            try:
+                ref = self.context.getObjectReference(n)
+                self._writeInteger(ref << 1)
 
-            return
-        except pyamf.ReferenceError:
-            pass
+                return
+            except pyamf.ReferenceError:
+                pass
 
         # The AMF3 spec demands that all str based indicies be listed first
         keys = n.keys()
@@ -812,7 +812,10 @@ class Encoder(object):
         encoding = ObjectEncoding.STATIC
 
         if alias.write_func and alias.read_func:
-            encoding = ObjectEncoding.EXTERNAL
+            if isinstance(obj, compat.ObjectProxy):
+                encoding = ObjectEncoding.PROXY
+            else:
+                encoding = ObjectEncoding.EXTERNAL
 
         class_def = ClassDefinition(alias, encoding)
 
@@ -821,7 +824,7 @@ class Encoder(object):
 
         return class_def
 
-    def writeObject(self, obj):
+    def writeObject(self, obj, use_references=True):
         """
         Writes an object to the stream.
 
@@ -857,9 +860,9 @@ class Encoder(object):
                 REFERENCE_BIT << 1 | REFERENCE_BIT)
             self._writeString(class_def.name.alias)
 
-        if class_def.encoding == ObjectEncoding.EXTERNAL:
+        if class_def.encoding in (ObjectEncoding.EXTERNAL, ObjectEncoding.PROXY):
             klass_alias = class_def.name
-            
+
             klass_alias.write_func(obj, compat.DataOutput(self))
         elif class_def.encoding == ObjectEncoding.DYNAMIC:
             if not class_ref:
@@ -877,8 +880,10 @@ class Encoder(object):
                     self._writeString(attr)
             for attr in class_def.attrs:
                 self.writeElement(getattr(obj, attr))
+        else:
+            raise pyamf.EncodingError("Unknown object encoding")
 
-    def writeByteArray(self, n):
+    def writeByteArray(self, n, use_references=True):
         """
         Writes a L{ByteArray} to the data stream.
 
@@ -901,7 +906,7 @@ class Encoder(object):
         for ch in n:
             self.output.write_uchar(ord(ch))
 
-    def writeXML(self, n):
+    def writeXML(self, n, use_references=True):
         """
         Writes a XML string to the data stream.
 

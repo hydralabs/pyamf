@@ -75,8 +75,8 @@ class DataOutput(object):
     def writeMultiByte(self, value, charset):
         self.stream.write(unicode(value).encode(charset))
 
-    def writeObject(self, value):
-        self.encoder.writeElement(value)
+    def writeObject(self, value, use_references=True):
+        self.encoder.writeElement(value, use_references=True)
 
     def writeShort(self, value):
         self.stream.write_short(value)
@@ -190,7 +190,21 @@ def read_ArrayCollection(obj, input):
             count += 1   
 
 def write_ArrayCollection(obj, output):
-    self.writeObject(obj.__dict__)
+    output.writeObject(obj.__dict__, use_references=False)
 
 pyamf.register_class(ArrayCollection, 'flex.messaging.io.ArrayCollection',
+    read_func=read_ArrayCollection, write_func=write_ArrayCollection)
+
+class ObjectProxy(pyamf.Bag):
+    """
+    I represent an mx.utils.ObjectProxy AS object.
+
+    See L{http://livedocs.adobe.com/flex/2/langref/mx/utils/ObjectProxy.html}
+    for more details.
+    """
+
+    def __repr__(self):
+        return "<flex.messaging.io.ObjectProxy %s>" % dict.__repr__(self.__dict__)
+
+pyamf.register_class(ObjectProxy, 'flex.messaging.io.ObjectProxy',
     read_func=read_ArrayCollection, write_func=write_ArrayCollection)
