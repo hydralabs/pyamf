@@ -35,9 +35,9 @@ L{ArrayCollection}, and IExternalizable.
 
 @see: U{http://osflash.org/documentation/amf3}
 
-@author: Arnar Birgisson
-@author: Thijs Triemstra
-@author: Nick Joyce
+@author: U{Arnar Birgisson<mailto:arnarbi@gmail.com>}
+@author: U{Thijs Triemstra<mailto:info@collab.nl>}
+@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
 @since: 0.0.2
 """
@@ -192,28 +192,12 @@ class ClassDefinition(object):
         self.attrs = []
 
     def is_external(self):
-        """
-        Externalizable class.
-
-        @return:
-        @rtype: bool
-        """
         return self.encoding == ObjectEncoding.EXTERNAL
 
     def is_static(self):
-        """
-        Static class.
-
-        @return:
-        @rtype: bool
-        """
         return self.encoding == ObjectEncoding.STATIC
 
     def is_dynamic(self):
-        """
-        @return:
-        @rtype: bool
-        """
         return self.encoding == ObjectEncoding.DYNAMIC
 
     external = property(is_external)
@@ -615,7 +599,7 @@ class Encoder(object):
 
         Output should be a writable file-like object.
 
-        @type   output: L{StringIO}
+        @type   output: StringIO
         @param  output: file-like object
         @type   context: L{Context}
         @param  context: Context
@@ -633,7 +617,7 @@ class Encoder(object):
 
         @type   type: 
         @param  type: ActionScript type
-        @raise EncodeError: AMF3 data type is not recognized
+        @raise EncodeError: AMF3 type is not recognized
         """
         if type not in ACTIONSCRIPT_TYPES:
             raise pyamf.EncodeError("Unknown AMF3 type 0x%02x at %d" % (
@@ -645,11 +629,10 @@ class Encoder(object):
         """
         Gets a function based on the type of data.
         
-        @rtype: callable or None
-        @return: The function used to encode data to the stream
-
         @type   data: 
         @param  data: Python data
+        @rtype: callable or None
+        @return: The function used to encode data to the stream
         """
         func = None
         td = type(data)
@@ -703,7 +686,7 @@ class Encoder(object):
 
     def _writeInteger(self, n):
         """
-        AMF Integers are encoded.
+        AMF3 integers are encoded.
         
         See U{http://osflash.org/documentation/amf3/parsing_integers} for more
         info.
@@ -789,8 +772,8 @@ class Encoder(object):
         """
         Writes a datetime instance to the stream.
 
-        @type n: Instance of L{datetime.datetime}
-        @param  n: date data
+        @type n: Instance of L{datetime}
+        @param  n: Date data
         """
         self.writeType(ASTypes.DATE)
 
@@ -839,8 +822,8 @@ class Encoder(object):
        
         @type   n:__builtin__.dict
         @param  n: dict data
-        @raise ValueError: a non int/str key value is found in the dict.
-        @raise EncodeError: a dict contains empty string keys.
+        @raise ValueError: non int/str key value found in the C{dict}
+        @raise EncodeError: C{dict} contains empty string keys.
         """
         self.writeType(ASTypes.ARRAY)
 
@@ -936,6 +919,9 @@ class Encoder(object):
 
         @type   obj:
         @param  obj:
+        @type   use_references:
+        @param  use_references:
+        @raise EncodeError: Unknown object encoding
         """
         self.writeType(ASTypes.OBJECT)
         try:
@@ -987,7 +973,7 @@ class Encoder(object):
             for attr in class_def.attrs:
                 self.writeElement(getattr(obj, attr))
         else:
-            raise pyamf.EncodingError("Unknown object encoding")
+            raise pyamf.EncodeError("Unknown object encoding")
 
     def writeByteArray(self, n, use_references=True):
         """
@@ -1047,6 +1033,8 @@ def encode_utf8_modified(data):
 
     @type   data:
     @param  data:
+    @return:
+    @rtype:
     """
     if not isinstance(data, unicode):
         data = unicode(data, "utf8")
@@ -1080,7 +1068,8 @@ def decode_utf8_modified(data):
 
     @type   data:
     @param  data:
-    @return: unicode string
+    @return: Unicode string
+    @rtype: str
     
     @see: U{http://en.wikipedia.org/wiki/UTF-8#Java} for details.
     @copyright: Ruby version is Copyright (c) 2006 Ross Bamford (rosco AT roscopeco DOT co DOT uk)
@@ -1136,8 +1125,8 @@ def encode(element, context=None):
     @param  element:
     @type   context: L{Context}
     @param  context: Context
-    @return: object containing the encoded AMF3 data
-    @rtype: L{StringIO}
+    @return: Object containing the encoded AMF3 data
+    @rtype: StringIO
     """
     buf = util.BufferedByteStream()
     encoder = Encoder(buf, context)

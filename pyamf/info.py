@@ -29,9 +29,9 @@
 """
 Extracts and displays information for files that contain AMF data.
 
-@author: Arnar Birgisson
-@author: Thijs Triemstra
-@author: Nick Joyce
+@author: U{Arnar Birgisson<mailto:arnarbi@gmail.com>}
+@author: U{Thijs Triemstra<mailto:info@collab.nl>}
+@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
 @since: 0.0.2
 """

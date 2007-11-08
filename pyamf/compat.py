@@ -26,7 +26,7 @@
 """
 Contains compatibility classes/functions for Python -> Flex and vice versa.
 
-@author: Nick Joyce
+@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
 @since: 0.0.2
 """
@@ -197,11 +197,11 @@ pyamf.register_class(ArrayCollection, 'flex.messaging.io.ArrayCollection',
 
 class ObjectProxy(pyamf.Bag):
     """
-    I represent an C{flex.messaging.io.ObjectProxy} ActionSscript object.
+    I represent an C{flex.messaging.io.ObjectProxy} ActionScript object.
 
     This class provides the ability to track changes to an item managed by this proxy.
     
-    @see U{http://livedocs.adobe.com/flex/2/langref/mx/utils/ObjectProxy.html}
+    @see: U{http://livedocs.adobe.com/flex/2/langref/mx/utils/ObjectProxy.html}
     """
 
     def __repr__(self):

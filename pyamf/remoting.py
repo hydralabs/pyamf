@@ -41,7 +41,7 @@ to understand the response therefore.
 @see: U{http://osflash.org/amf/envelopes/remoting/headers}
 @see: U{http://osflash.org/documentation/amf/envelopes/remoting/debuginfo}
 
-@author: Nick Joyce
+@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
 @since: 0.0.2
 """

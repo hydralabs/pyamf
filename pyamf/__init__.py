@@ -39,11 +39,11 @@ for ActionScript 1.0 and 2.0.
 
 @see: U{http://osflash.org/documentation/amf}
 
+@contact: U{pyamf-dev@collab.com<mailto:pyamf-dev@collab.com>}
 @copyright: Copyright (c) 2007 The PyAMF Project. All rights reserved.
-
-@author: Arnar Birgisson
-@author: Thijs Triemstra
-@author: Nick Joyce
+@author: U{Arnar Birgisson<mailto:arnarbi@gmail.com>}
+@author: U{Thijs Triemstra<mailto:info@collab.nl>}
+@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
 @status: Pre-alpha
 @since: October 2007
@@ -390,7 +390,7 @@ def register_class(klass, alias, read_func=None, write_func=None):
     Registers a class to be used in the data streaming.
     
     @type alias: str
-    @param alias: The alias of klass, i.e. org.example.Person
+    @param alias: The alias of klass, i.e. C{org.example.Person}
     @type read_func:
     @param read_func:
     @type write_func:
@@ -398,6 +398,7 @@ def register_class(klass, alias, read_func=None, write_func=None):
     
     @raise TypeError: the klass is not callable
     @raise ValueError: the klass is already registered
+    @raise ValueError: the alias is already registered
     """
     if not callable(klass):
         raise TypeError("klass must be callable")

@@ -30,9 +30,9 @@ Flex Messaging Implementation.
 
 @see: U{http://osflash.org/documentation/amf3#remoteobject}
 
-@author: Arnar Birgisson
-@author: Thijs Triemstra
-@author: Nick Joyce
+@author: U{Arnar Birgisson<mailto:arnarbi@gmail.com>}
+@author: U{Thijs Triemstra<mailto:info@collab.nl>}
+@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
 @since: 0.0.2
 """

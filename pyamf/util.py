@@ -28,9 +28,9 @@
 """
 PyAMF utilities.
 
-@author: Arnar Birgisson
-@author: Thijs Triemstra
-@author: Nick Joyce
+@author: U{Arnar Birgisson<mailto:arnarbi@gmail.com>}
+@author: U{Thijs Triemstra<mailto:info@collab.nl>}
+@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
 @since: 0.0.2
 """
@@ -188,7 +188,12 @@ def get_timestamp(d):
     """
     Returns a UTC timestamp for a datetime.datetime object.
 
-    Inspiration taken from:
+    @type d:
+    @param d:
+    @return: UTC timestamp
+    @rtype: str
+    
+    @see: inspiration taken from
     U{http://intertwingly.net/blog/2007/09/02/Dealing-With-Dates}
     """
     return calendar.timegm(d.utctimetuple())
@@ -198,6 +203,6 @@ def get_datetime(ms):
     Return a UTC date from a timestamp.
 
     @type ms:
-    @param ms: milliseconds since 1970
+    @param ms: nanoseconds since 1970
     """
     return datetime.datetime.utcfromtimestamp(ms)

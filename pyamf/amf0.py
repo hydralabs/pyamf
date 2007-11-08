@@ -34,9 +34,9 @@ LocalConnection, SharedObjects and other classes in the Flash Player.
 @see: U{http://www.vanrijkom.org/archives/2005/06/amf_format.html}
 @see: U{http://osflash.org/documentation/amf}
 
-@author: Arnar Birgisson
-@author: Thijs Triemstra
-@author: Nick Joyce
+@author: U{Arnar Birgisson<mailto:arnarbi@gmail.com>}
+@author: U{Thijs Triemstra<mailto:info@collab.nl>}
+@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
 @since: 0.0.2
 """

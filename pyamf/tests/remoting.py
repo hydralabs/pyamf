@@ -27,7 +27,7 @@
 """
 Tests for AMF Remoting.
 
-@author: Nick Joyce
+@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
 @since: 0.0.2
 """
