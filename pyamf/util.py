@@ -57,7 +57,6 @@ class StringIOProxy(object):
 
     @see: U{http://osflash.org/documentation/amf3#x0c_-_bytearray}
     @see: U{http://osflash.org/documentation/amf3/parsing_byte_arrays}
-    @see: U{http://livedocs.adobe.com/flex/2/langref/flash/utils/ByteArray.html}
     """
 
     def __init__(self, buf):

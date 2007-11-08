@@ -32,7 +32,7 @@ AMF3 implementation.
 AMF3 is the default serialization for
 U{ActionScript<http://en.wikipedia.org/wiki/ActionScript>} 3.0 and
 provides various advantages over L{AMF0<pyamf.amf0>}, which is used
-for ActionScript 1.0 and 2.0. It adds support for sending int and uint objects
+for ActionScript 1.0 and 2.0. It adds support for sending C{int} and C{uint} objects
 as integers and supports data types that are available only in ActionScript 3.0,
 such as L{ByteArray} and L{ArrayCollection}.
 
@@ -121,10 +121,6 @@ class ByteArray(util.StringIOProxy):
     """
     I am a C{StringIO} type object containing byte data from the AMF stream.
 
-    @raise TypeError: Unable to coerce buffer to C{StringIO}
-    
-    @see: U{http://osflash.org/documentation/amf3#x0c_-_bytearray}
-    @see: U{http://osflash.org/documentation/amf3/parsing_byte_arrays}
     @see: U{http://livedocs.adobe.com/flex/2/langref/flash/utils/ByteArray.html}
     """
 

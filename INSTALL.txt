@@ -2,7 +2,7 @@
  Installing PyAMF
 ====================
 
-:Web-Site: http://collab.com/pyamf
+:Web-Site: http://dev.collab.com/pyamf
 
 .. contents::
 

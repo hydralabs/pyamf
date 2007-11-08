@@ -554,11 +554,11 @@ def encode(element, encoding=AMF0, context=None):
 
 def _get_decoder(encoding):
     """
-    Get compatible decoder..  
+    Get compatible decoder.
 
     @type encoding: int
     @param encoding: AMF encoding version
-    @raise ValueError: the AMF encoding version is unknown
+    @raise ValueError: AMF encoding version is unknown
     """
     import pyamf
 
@@ -579,7 +579,7 @@ def _get_encoder(encoding):
    
     @type encoding: int
     @param encoding: AMF encoding version
-    @raise ValueError: the AMF encoding version is unknown
+    @raise ValueError: AMF encoding version is unknown
     """
     import pyamf
 
