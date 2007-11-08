@@ -36,9 +36,13 @@ class AbstractMessage(object):
     Base class for all Flex compatibility messages.
     """
     data = None
+    #: Unique client ID 
     clientId = None
+    #: Message destination
     destination = None
+    #: Message headers
     headers = []
+    #: Unique message ID
     messageId = None
     timeToLive = None
     timestamp = None
@@ -60,12 +64,16 @@ class AsyncMessage(AbstractMessage):
 class AcknowledgeMessage(AsyncMessage):
     """
     Flex compatibility message that is returned to the client.
+
+    This is the receipt for any message thats being sent.
     """
     pass
 
 class CommandMessage(AsyncMessage):
     """
     Command message as sent by the C{<mx:RemoteObject>} MXML tag.
+
+    This class is used for service commands, like pinging the server
 
     Reference: U{http://livedocs.adobe.com/flex/2/langref/mx/rpc/remoting/mxml/RemoteObject.html}
     """
@@ -76,20 +84,29 @@ class ErrorMessage(AbstractMessage):
     """
     Flex error message to be returned to the client.
     """
+    #: Extended data that the remote destination has chosen to associate with 
+    #: this error to facilitate custom error processing on the client. 
     extendedData = {}
+    #: The fault code for the error. 
     faultCode = None
+    #: Detailed description of what caused the error. 
     faultDetail = None
+    #: A simple description of the error. 
     faultString = None
+    #: Should a root cause exist for the error, this property contains those
+    #: (traceback) details.
     rootCause = {}
 
 class RemotingMessage(AbstractMessage):
     """
     Flex compatibility message that is sent by the C{<mx:RemoteObject>} MXML tag.
+
+    Reference: U{http://livedocs.adobe.com/flex/2/langref/mx/rpc/remoting/mxml/RemoteObject.html}
     """
     #: Name of the method to be called.
     operation = None
     #: Name of the service to be called
-    #" including package name.
+    #: including package name.
     source = None
 
 pyamf.register_class(RemotingMessage, 'flex.messaging.messages.RemotingMessage')

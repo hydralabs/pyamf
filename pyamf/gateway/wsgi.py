@@ -78,6 +78,6 @@ class WSGIGateway(gateway.BaseGateway):
             ('Content-Length', str(stream.tell())),
         ])
 
-        self.save_request(body, stream)
+        # self.save_request(body, stream)
  
         return [stream.getvalue()]

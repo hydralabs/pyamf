@@ -34,6 +34,7 @@ import glob
 from optparse import OptionParser
 
 import pyamf
+from pyamf import remoting
 
 def parse_options():
     """
@@ -67,23 +68,25 @@ def main():
     for arg in args:
         for fname in glob.glob(arg):
             
-            data = read_file(fname)
-
-            if options.debug:
-                print "=" * 120
-
-            print "Decoding file:", fname.rsplit("\\",1)[-1]
+            body = read_file(fname)
 
             try:
-                p = pyamf.decode(data)
+                print "Decoding file:", fname.rsplit("\\",1)[-1], "\n"           
+                context = pyamf.Context()
+                request = remoting.decode(body, context)
+                response = remoting.Envelope(request.amfVersion, request.clientType)
+
             except:
                 raise
-            else:
-                if options.dump:
-                    print pyamf.util.hexdump(data)
-                    
+            
+            else:                    
                 if options.debug:
-                    print repr(p)
+                    for name, message in request:
+                        print "  ", message
+                        print "-" * 80
+                        
+                if options.dump:
+                    print pyamf.util.hexdump(body)
                     
 if __name__ == '__main__':
     main()
