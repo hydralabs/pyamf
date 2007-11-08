@@ -56,6 +56,16 @@ class WSGIGateway(gateway.BaseGateway):
         """
         return environ['wsgi.input'].read(int(environ['CONTENT_LENGTH']))
 
+    def getResponse(self, request):
+        response = remoting.Envelope(request.amfVersion, request.clientType)
+
+        processor = self.getProcessor(request)
+
+        for name, message in request:
+            response[name] = processor(message)
+
+        return response
+
     def __call__(self, environ, start_response):
         """
         
@@ -72,18 +82,14 @@ class WSGIGateway(gateway.BaseGateway):
         try:
             context = pyamf.Context()
             request = remoting.decode(body, context)
-            response = remoting.Envelope(request.amfVersion, request.clientType)
 
-            processor = self.getProcessor(request)
-
-            for name, message in request:
-                response[name] = processor(message)
+            response = self.getResponse(request)
 
             stream = remoting.encode(response, context)
 
             start_response('200 OK', [
                 ('Content-Type', remoting.CONTENT_TYPE),
-                ('Content-Length', str(stream.tell())),
+                ('Content-Length', str(len(stream))),
             ])
         except:
             raise

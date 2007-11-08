@@ -169,3 +169,13 @@ class BaseGateway(object):
             response.status = remoting.STATUS_ERROR
 
         return response
+
+    def getResponse(self, request):
+        """
+        Returns the response to the request. Any implementing gateway must 
+        define this function
+        
+        @param request: The AMF request
+        @type request: L{remoting.Envelope}
+        """
+        raise NotImplementedError
