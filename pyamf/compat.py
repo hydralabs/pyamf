@@ -197,10 +197,11 @@ pyamf.register_class(ArrayCollection, 'flex.messaging.io.ArrayCollection',
 
 class ObjectProxy(pyamf.Bag):
     """
-    I represent an mx.utils.ObjectProxy AS object.
+    I represent an C{flex.messaging.io.ObjectProxy} ActionSscript object.
 
-    See L{http://livedocs.adobe.com/flex/2/langref/mx/utils/ObjectProxy.html}
-    for more details.
+    This class provides the ability to track changes to an item managed by this proxy.
+    
+    @see U{http://livedocs.adobe.com/flex/2/langref/mx/utils/ObjectProxy.html}
     """
 
     def __repr__(self):
