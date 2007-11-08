@@ -94,9 +94,11 @@ class Envelope(dict):
     """
 
     def __init__(self, amfVersion=None, clientType=None):
+        #: AMF encoding version
         self.amfVersion = amfVersion
+        #: Client type
         self.clientType = clientType
-
+        #: Message headers
         self.headers = HeaderCollection()
 
     def __repr__(self):
@@ -114,6 +116,8 @@ class Envelope(dict):
         return r
 
     def __setitem__(self, idx, value):
+        """
+        """
         if isinstance(value, (tuple, set, list)):
             value = Message(self, value[0], value[1], value[2])
         elif not isinstance(value, Message):
@@ -287,6 +291,10 @@ def _write_body(name, message, stream, encoder):
     stream.seek(new_pos)
 
 def _get_status(status):
+    """
+    @type status:
+    @param status:
+    """
     if status not in STATUS_CODES.keys():
         raise ValueError("Unknown status code")
 

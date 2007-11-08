@@ -60,7 +60,7 @@ class ClientTypes:
     Typecodes used to identify AMF clients and servers.
     """
     #: Specifies a Flash Player 6.0 - 8.0 client.
-    Flash    = 0
+    Flash6    = 0
     #: Specifies a FlashCom / Flash Media Server client.
     FlashCom = 1
     #: Specifies a Flash Player 9.0 client.
