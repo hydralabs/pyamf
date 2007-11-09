@@ -79,22 +79,20 @@ class WSGIGateway(gateway.BaseGateway):
         body = self.get_request_body(environ)
         stream = None 
 
-        try:
-            context = pyamf.Context()
-            request = remoting.decode(body, context)
+        context = pyamf.Context()
 
+        try:
+            request = remoting.decode(body, context)
             response = self.getResponse(request)
 
             stream = remoting.encode(response, context)
-
-            start_response('200 OK', [
-                ('Content-Type', remoting.CONTENT_TYPE),
-                ('Content-Length', str(len(stream))),
-            ])
         except:
+            self.save_request(body, stream)
             raise
-        finally:
-            # self.save_request(body, stream)
-            pass
+
+        start_response('200 OK', [
+            ('Content-Type', remoting.CONTENT_TYPE),
+            ('Content-Length', str(len(stream))),
+        ])
 
         return [stream.getvalue()]

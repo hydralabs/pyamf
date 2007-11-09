@@ -106,17 +106,15 @@ class BaseGateway(object):
         """
         Write AMF request to disk.
         """
-        fname = 'request_' + str(self.request_number) + ".amf"
-        x = open(fname, 'wb')
-        try:
-            x.write(body)
-            x.write('=' * 80)
-            x.write(stream.getvalue())
-        except:
-            pass
-        finally:
-            x.close()
+        x = open('request_' + str(self.request_number) + ".in.amf", 'wb')
+        x.write(body)
+        x.close()
         
+        if hasattr(stream, 'getvalue'):
+            x = open('request_' + str(self.request_number) + ".out.amf", 'wb')
+            x.write(body)
+            x.close()
+
     def get_error_response(self, (cls, e, tb)):
         """
         Call traceback and error details.
@@ -177,5 +175,7 @@ class BaseGateway(object):
         
         @param request: The AMF request
         @type request: L{remoting.Envelope}
+        @return: The AMF response
+        @rettype: L{remoting.Envelope}
         """
         raise NotImplementedError
