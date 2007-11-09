@@ -33,7 +33,7 @@ Extracts and displays information for files that contain AMF data.
 @author: U{Thijs Triemstra<mailto:info@collab.nl>}
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
-@since: 0.0.2
+@since: 0.1.0
 """
 
 import glob

@@ -30,7 +30,7 @@ Server/client implementations for PyAMF.
 @author: Thijs Triemstra
 @author: Nick Joyce
 
-@since: 0.0.2
+@since: 0.1.0
 """
 
 import sys, traceback

@@ -31,7 +31,7 @@ use_setuptools()
 from setuptools import setup, find_packages
 
 setup(name = "PyAMF",
-    version = "0.0.2",
+    version = "0.1.0",
     description = "AMF encoder and decoder for Python",
     url = "http://pyamf.org",
     packages = find_packages(exclude=["*.tests"]),
@@ -44,7 +44,7 @@ setup(name = "PyAMF",
         ],
     },
     classifiers = [
-        "Development Status :: 2 - Pre-Alpha",
+        "Development Status :: 3 - Alpha",
         "Natural Language :: English",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",

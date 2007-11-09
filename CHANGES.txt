@@ -1,4 +1,4 @@
-0.0.2 (unreleased)
+0.1 (unreleased)
 -----
  - Complete AMF0 and AMF3 encoders/decoders
  - Remoting support with gateways for WSGI (#16)
@@ -6,7 +6,7 @@
  - Support for ArrayCollection (#30), IExternalizable (#29),
    and ByteArray (#32)
 
-0.0.1 - 2007-10-19
+2007-10-19
 -------------------
- - Starting project based on previous work done in the 
+ - Started project based on previous work done in the 
    RTMPy (http://dev.collab.com/rtmpy) project.

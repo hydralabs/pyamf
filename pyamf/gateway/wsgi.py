@@ -32,7 +32,7 @@ U{WSGI<http://wsgi.org>} Server implementation.
 
 @author: Nick Joyce
 
-@since: 0.0.2
+@since: 0.1.0
 """
 
 import pyamf

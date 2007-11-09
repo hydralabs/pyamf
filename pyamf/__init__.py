@@ -39,9 +39,9 @@ U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>} 6 and newer.
 @copyright: Copyright (c) 2007 The PyAMF Project. All rights reserved.
 @contact: U{dev@pyamf.org<mailto:dev@pyamf.org>}
 
-@status: Pre-alpha
+@status: Alpha
 @since: October 2007
-@version: 0.0.2
+@version: 0.1.0
 """
 
 from pyamf import util
