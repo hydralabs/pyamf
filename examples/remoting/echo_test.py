@@ -33,8 +33,6 @@ U{EchoTest<http://pyamf.org/wiki/EchoTest>} wiki page.
 """
 
 import pyamf
-from pyamf.gateway.wsgi import WSGIGateway
-from wsgiref import simple_server
 
 class RemoteClass(object):
     """
@@ -108,18 +106,9 @@ def echo(data):
     return data
 
 if __name__ == '__main__':
-    #: Define remote calls from the Flash Player.
-    services = {
-        'echo': echo
-    }
+    import sys
+    from __init__ import parse_args, run_server
 
-    gw = WSGIGateway(services)
-    port = 8000
-    
-    httpd = simple_server.WSGIServer(
-        ('',port),
-        simple_server.WSGIRequestHandler,
-    )
-    httpd.set_app(gw)
-    print "Started echo test server on port", port
-    httpd.serve_forever()
+    options = parse_args(sys.argv[1:])
+
+    run_server('Echo Test', options[0], {'echo': echo})
