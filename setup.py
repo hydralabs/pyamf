@@ -43,6 +43,9 @@ setup(name = "PyAMF",
             'amfinfo = pyamf.info:main',
         ],
     },
+    extras_require={
+        'wsgi': ['wsgiref']
+    },
     classifiers = [
         "Development Status :: 3 - Alpha",
         "Natural Language :: English",
