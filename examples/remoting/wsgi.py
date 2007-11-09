@@ -25,7 +25,7 @@
 """
 WSGI Remoting example.
 
-@author: Nick Joyce
+@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 """
 
 from pyamf.gateway.wsgi import WSGIGateway
