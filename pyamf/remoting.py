@@ -46,8 +46,6 @@ to understand the response therefore.
 @since: 0.1.0
 """
 
-import sys, traceback
-
 import pyamf
 from pyamf import util
 from pyamf.compat import *

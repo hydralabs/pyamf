@@ -41,7 +41,7 @@ LocalConnection, SharedObjects and other classes in the Flash Player.
 @since: 0.1.0
 """
 
-import datetime, calendar, types
+import datetime, types
 
 import pyamf
 from pyamf import util

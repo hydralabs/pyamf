@@ -45,12 +45,7 @@ such as L{ByteArray} and L{ArrayCollection}.
 @since: 0.1.0
 """
 
-import types, datetime, time, copy, zlib
-
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
+import types, datetime, zlib
 
 import pyamf
 from pyamf import util, compat
