@@ -37,6 +37,52 @@ import sys, traceback
 
 from pyamf import remoting
 
+class ServiceWrapper(object):
+    """
+    """
+
+    def __init__(self, service, authenticator=None):
+        self.service = service
+        self.authenticator = authenticator
+
+    def __cmp__(self, other):
+        if isinstance(other, ServiceWrapper):
+            return cmp(self.__dict__, other.__dict__)
+
+        return cmp(self.service, other)
+
+    def __call__(self, method, params):
+        if method is not None:
+            return getattr(self.service, method)(*params)
+
+        if callable(self.service):
+            return self.service(*params)
+
+class ServiceRequest(object):
+    """
+    """
+
+    def __init__(self, request, service, method):
+        self.request = request
+        self.service = service
+        self.method = method
+
+    def __call__(self, *args):
+        return self.service(self.method, args)
+
+    def authenticate(self, username, password):
+        """
+        
+        @return: Boolean determining whether the supplied credentials can
+                 access the service
+        @rettype: bool
+        """
+        if self.service.authenticator is None:
+            # The default is to allow anything through
+            return True
+
+        return self.service.authenticator(username, password)
+
 class BaseGateway(object):
     """
     Generic remoting gateway class.
@@ -52,7 +98,7 @@ class BaseGateway(object):
         for name, service in services.iteritems():
             self.addService(service, name)
 
-    def addService(self, service, name=None):
+    def addService(self, service, name=None, authenticator=None):
         """
         Adds a service to the gateway.
 
@@ -60,6 +106,9 @@ class BaseGateway(object):
         @type service: callable or a class instance
         @param name: The name of the service
         @type name: str
+        @param authenticator: A callable that will check the credentials of
+                              the request before allowing access to the service
+        @type authenticator: Callable
         """
         if name is None:
             # TODO: include the module in the name
@@ -68,7 +117,7 @@ class BaseGateway(object):
         if name in self.services.keys():
             raise remoting.RemotingError("Service %s already exists" % name)
 
-        self.services[name] = service
+        self.services[name] = ServiceWrapper(service, authenticator)
 
     def removeService(self, service):
         """
@@ -79,28 +128,27 @@ class BaseGateway(object):
         """
         self.services.popitem(service)
 
-    def getTarget(self, target):
+    def getServiceRequest(self, message):
         """
-        Returns a callable based on the target
-        
-        @param target: The target to retrieve
-        @type target: str
-        @rettype callable
+        Returns a service based on the message
+
+        @param message: The AMF message
+        @type target: L{remoting.Message}
+        @return A tuple containing the service and the method requested
+        @rettype tuple
         """
+        target = message.target
+
         try:
-            obj = self.services[target]
-            meth = None
-        except KeyError:
             try:
                 name, meth = target.rsplit('.', 1)
-                obj = self.services[name]
-            except KeyError:
-                raise remoting.RemotingError("Unknown target %s" % target)
+                return ServiceRequest(message.envelope, self.services[name], meth)
+            except ValueError:
+                pass
 
-        if not callable(obj):
-            raise TypeError("Not callable")
-
-        return obj
+            return ServiceRequest(message.envelope, self.services[target], None)
+        except KeyError:
+            raise remoting.RemotingError("Unknown service %s" % target)
 
     def save_request(self, body, stream):
         """
@@ -109,13 +157,13 @@ class BaseGateway(object):
         x = open('request_' + str(self.request_number) + ".in.amf", 'wb')
         x.write(body)
         x.close()
-        
+
         if hasattr(stream, 'getvalue'):
             x = open('request_' + str(self.request_number) + ".out.amf", 'wb')
-            x.write(body)
+            x.write(stream.getvalue())
             x.close()
 
-    def get_error_response(self, (cls, e, tb)):
+    def getErrorResponse(self, (cls, e, tb)):
         """
         Call traceback and error details.
 
@@ -145,6 +193,16 @@ class BaseGateway(object):
 
         return self.processRequest
 
+    def _authenticate(self, service_request, request):
+        username = password = None
+
+        if 'Credentials' in request.headers:
+            cred = request.headers['Credentials']
+            username = cred['userid']
+            password = cred['password']
+
+        return service_request.authenticate(username, password)
+
     def processRequest(self, request):
         """
         Processes a request.
@@ -154,16 +212,28 @@ class BaseGateway(object):
         @return The response to the request
         @rettype L{remoting.Message}
         """
-        func = self.getTarget(request.target)
         response = remoting.Message(None, None, None, None)
 
+        service_request = self.getServiceRequest(request)
+        
+        # we have a valid service, now attempt authentication
+        if not self._authenticate(service_request, request):
+            # FIXME: what error to return here?
+            response.status = remoting.STATUS_ERROR
+            response.body = dict(
+                code='SERVER.AUTHENTICATION',
+                level='Auth'
+            )
+
+            return response
+
         try:
-            response.body = func(*request.body)
+            response.body = service_request(*request.body)
             response.status = remoting.STATUS_OK
         except (SystemExit, KeyboardInterrupt):
             raise
         except:
-            response.body = self.get_error_response(sys.exc_info())
+            response.body = self.getErrorResponse(sys.exc_info())
             response.status = remoting.STATUS_ERROR
 
         return response
@@ -172,7 +242,7 @@ class BaseGateway(object):
         """
         Returns the response to the request. Any implementing gateway must 
         define this function
-        
+
         @param request: The AMF request
         @type request: L{remoting.Envelope}
         @return: The AMF response

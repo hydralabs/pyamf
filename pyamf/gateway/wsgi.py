@@ -90,6 +90,8 @@ class WSGIGateway(gateway.BaseGateway):
             self.save_request(body, stream)
             raise
 
+        self.save_request(body, stream)
+
         start_response('200 OK', [
             ('Content-Type', remoting.CONTENT_TYPE),
             ('Content-Length', str(len(stream))),

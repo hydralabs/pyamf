@@ -124,6 +124,16 @@ class ByteArray(util.StringIOProxy):
     @see: U{http://livedocs.adobe.com/flex/2/langref/flash/utils/ByteArray.html}
     """
 
+    def __init__(self, *args, **kwargs):
+        util.StringIOProxy.__init__(self, *args, **kwargs)
+        self._was_compressed = False
+
+    def __cmp__(self, other):
+        if isinstance(other, ByteArray):
+            return cmp(self._buffer.getvalue(), other._buffer.getvalue())
+
+        return cmp(self._buffer, other)
+
 class ClassDefinition(object):
     """
     I contain meta relating to the class definition.

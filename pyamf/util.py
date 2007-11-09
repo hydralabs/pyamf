@@ -62,10 +62,17 @@ class StringIOProxy(object):
     def __init__(self, buf):
         self._buffer = StringIO()
 
-        if isinstance(buf, (str, unicode, StringIO)):
+        if isinstance(buf, (str, unicode)):
             self._buffer.write(buf)
         elif hasattr(buf, 'getvalue'):
             self._buffer.write(buf.getvalue())
+        elif hasattr(buf, 'read') and hasattr(buf, 'seek') and hasattr(buf, 'tell'):
+            old_pos = buf.tell()
+            buf.seek(0)
+            self._buffer.write(buf.read())
+            buf.seek(old_pos)
+        elif buf is None:
+            pass
         else:
             raise TypeError("Unable to coerce buf->StringIO")
 
