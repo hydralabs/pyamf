@@ -27,7 +27,7 @@
 #
 
 """
-U{PyAMF<http://dev.collab.com/pyamf>} is a B{A}ction B{M}essage B{F}ormat
+U{PyAMF<http://pyamf.org>} is a B{A}ction B{M}essage B{F}ormat
 (U{AMF<http://osflash.org/documentation/amf>}) decoder and
 encoder for Python that is compatible with the
 U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>} 6 and newer.
@@ -37,7 +37,7 @@ U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>} 6 and newer.
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
 @copyright: Copyright (c) 2007 The PyAMF Project. All rights reserved.
-@contact: U{pyamf-dev@collab.com<mailto:pyamf-dev@collab.com>}
+@contact: U{dev@pyamf.org<mailto:dev@pyamf.org>}
 
 @status: Pre-alpha
 @since: October 2007

@@ -34,7 +34,7 @@ from setuptools import setup, find_packages
 setup(name = "PyAMF",
     version = "0.0.2",
     description = "AMF encoder and decoder for Python",
-    url = "http://dev.collab.com/pyamf",
+    url = "http://pyamf.org",
     packages = find_packages(exclude=["*.tests"]),
     install_requires = ["elementtree>=1.2.6"], 
     test_suite = "pyamf.tests.suite",
