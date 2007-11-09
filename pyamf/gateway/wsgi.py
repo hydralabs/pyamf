@@ -22,8 +22,6 @@
 # LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
-# 
 
 """
 U{WSGI<http://wsgi.org>} Server implementation.
@@ -44,8 +42,6 @@ class WSGIGateway(gateway.BaseGateway):
     """
     U{WSGI<http://wsgi.org>} Remoting Gateway.
     """
-    #: Number of requests from clients.
-    request_number = 0
 
     def get_request_body(self, environ):
         """
@@ -77,7 +73,7 @@ class WSGIGateway(gateway.BaseGateway):
         self.request_number += 1
 
         body = self.get_request_body(environ)
-        stream = None 
+        stream = None
 
         context = pyamf.Context()
 

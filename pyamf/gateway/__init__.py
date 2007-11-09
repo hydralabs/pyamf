@@ -87,6 +87,7 @@ class BaseGateway(object):
     """
     Generic remoting gateway class.
     """
+    _request_class = ServiceRequest
 
     def __init__(self, services):
         """
@@ -94,6 +95,8 @@ class BaseGateway(object):
         @type services: dict
         """
         self.services = {}
+        #: Number of requests from clients.
+        self.request_number = 0
 
         for name, service in services.iteritems():
             self.addService(service, name)
@@ -142,11 +145,11 @@ class BaseGateway(object):
         try:
             try:
                 name, meth = target.rsplit('.', 1)
-                return ServiceRequest(message.envelope, self.services[name], meth)
+                return self._request_class(message.envelope, self.services[name], meth)
             except ValueError:
                 pass
 
-            return ServiceRequest(message.envelope, self.services[target], None)
+            return self._request_class(message.envelope, self.services[target], None)
         except KeyError:
             raise remoting.RemotingError("Unknown service %s" % target)
 
