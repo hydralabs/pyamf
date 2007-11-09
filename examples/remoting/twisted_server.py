@@ -27,14 +27,13 @@
 """
 Twisted Remoting server example.
 
-@author: Thijs Triemstra
+@author: U{Thijs Triemstra<mailto:info@collab.nl>}
 """
 
 from twisted.web import http
 
 from pyamf import remoting, gateway
-from pyamf.gateway.twistedmatrix import TwistedGateway 
-
+from pyamf.gateway.twisted import TwistedGateway 
 
 def echo(data):
     return data
