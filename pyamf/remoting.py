@@ -360,7 +360,14 @@ def decode(stream, context):
     msg = Envelope()
 
     msg.amfVersion = stream.read_uchar()
-    decoder = pyamf._get_decoder(msg.amfVersion)(stream, context=context)
+
+    # See http://osflash.org/documentation/amf/envelopes/remoting#preamble
+    # why we are doing this...
+    if msg.amfVersion > 0x09:
+        raise pyamf.DecodeError("Malformed stream (amfVersion=%d)" %
+            msg.amfVersion)
+
+    decoder = pyamf._get_decoder(pyamf.AMF0)(stream, context=context)
     msg.clientType = stream.read_uchar()
 
     header_count = stream.read_ushort()
