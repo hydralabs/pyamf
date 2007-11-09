@@ -27,7 +27,7 @@
 """
 U{Twisted<http://twistedmatrix.com>} client example.
 
-@author: Thijs Triemstra
+@author: U{Thijs Triemstra<mailto:info@collab.nl>}
 """
 
 from twisted.web import client
