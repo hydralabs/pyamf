@@ -1,4 +1,3 @@
-#
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
 # 
 # Arnar Birgisson
