@@ -32,7 +32,9 @@ U{EchoTest<http://pyamf.org/wiki/EchoTest>} wiki page.
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 """
 
-import pyamf
+from pyamf import register_class
+
+ECHO_NS = 'org.red5.server.webapp.echo'
 
 class RemoteClass(object):
     """
@@ -43,7 +45,25 @@ class RemoteClass(object):
 class ExternalizableClass(object):
     pass
 
+def echo(data):
+    """
+    Return data back to the client.
+
+    @type data: mixed
+    @param data: Decoded AS->Python data
+    """
+    # Simply return the data back to the client
+    return data
+
 def read_ec(obj, input):
+    """
+    This function is invoked when the obj needs to be unserialized.
+
+    @type obj: L{ExternalizableClass}
+    @param obj: The object in question.
+    @param input: The input stream to read from
+    @type input L{pyamf.compat.DataInput}
+    """
     assert input.readBoolean() == True
     assert input.readBoolean() == False
     assert input.readByte() == 0
@@ -68,6 +88,14 @@ def read_ec(obj, input):
     assert input.readUTFBytes(12) == "Hello world!"
 
 def write_ec(obj, output):
+    """
+    This function is invoked when the obj needs to be serialized.
+
+    @type obj: L{ExternalizableClass}
+    @param obj: The object in question.
+    @param input: The output stream to write to
+    @type input L{pyamf.compat.DataOutput}
+    """
     output.writeBoolean(True)
     output.writeBoolean(False)
     output.writeByte(0)
@@ -92,18 +120,9 @@ def write_ec(obj, output):
     output.writeUTFBytes("Hello world!")
 
 #: Map ActionScript class to Python class
-pyamf.register_class(RemoteClass, 'org.red5.server.webapp.echo.RemoteClass')
-pyamf.register_class(ExternalizableClass, 'org.red5.server.webapp.echo.ExternalizableClass',
+register_class(RemoteClass, '%s.%s' % (ECHO_NS, 'RemoteClass'))
+register_class(ExternalizableClass, '%s.%s' % (ECHO_NS, 'ExternalizableClass'),
     write_func=write_ec, read_func=read_ec)
-
-def echo(data):
-    """
-    Return data back to the client.
-
-    @type data:
-    @param data: Decoded AS->Python data
-    """
-    return data
 
 if __name__ == '__main__':
     import sys
