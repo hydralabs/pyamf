@@ -39,28 +39,38 @@ Flex Messaging Implementation.
 
 import pyamf
 
+__all__ = [
+    'RemotingMessage',
+    'CommandMessage',
+    'AcknowledgeMessage',
+    'ErrorMessage'
+]
+
 class AbstractMessage(object):
     """
-    Abstract base class for all Flex messages. Messages have two customizable sections;
-    headers and data. The headers property provides access to specialized meta information
-    for a specific message instance. The data property contains the instance specific data
-    that needs to be delivered and processed by the decoder.
+    Abstract base class for all Flex messages. Messages have two customizable
+    sections; headers and data. The headers property provides access to
+    specialized meta information for a specific message instance. The data
+    property contains the instance specific data that needs to be delivered and
+    processed by the decoder.
     """
-    #: Specific data that needs to be delivered to the remote destination.
-    data = None
-    #: The clientId indicates which client sent the message. 
-    clientId = None
-    #: The message destination.
-    destination = None
-    #: Message headers
-    headers = []
-    #: Unique message ID
-    messageId = None
-    #: Indicates how long the message should be considered valid and deliverable.
-    timeToLive = None
-    #: Time stamp for the message.
-    timestamp = None
-    
+
+    def __init__(self):
+        #: Specific data that needs to be delivered to the remote destination.
+        self.data = None
+        #: The clientId indicates which client sent the message. 
+        self.clientId = None
+        #: The message destination.
+        self.destination = None
+        #: Message headers
+        self.headers = []
+        #: Unique message ID
+        self.messageId = None
+        #: Indicates how long the message should be considered valid
+        self.timeToLive = None
+        #: Time stamp for the message.
+        self.timestamp = None
+
     def __repr__(self):
         m = '<%s ' % self.__class__.__name__
 
@@ -73,45 +83,56 @@ class AsyncMessage(AbstractMessage):
     """
     Base class for all asynchronous Flex messages.
     """
-    #: Correlation id of the message.
-    correlationId = None
+
+    def __init__(self):
+        AbstractMessage.__init__(self)
+        #: Correlation id of the message.
+        self.correlationId = None
 
 class AcknowledgeMessage(AsyncMessage):
     """
-    Acknowledges the receipt of a message that was sent previously. Every message sent
-    within the messaging system must receive an acknowledgement.
+    Acknowledges the receipt of a message that was sent previously. Every
+    message sent within the messaging system must receive an acknowledgement.
     """
     pass
 
 class CommandMessage(AsyncMessage):
     """
-    Provides a mechanism for sending commands related to publish/subscribe messaging,
-    ping, and cluster operations.
+    Provides a mechanism for sending commands related to publish/subscribe
+    messaging, ping, and cluster operations.
 
     @see: U{http://livedocs.adobe.com/flex/201/langref/mx/messaging/messages/CommandMessage.html}
     """
-    #: Operation/command.
-    operation = None
-    #: Remote destination belonging to a specific service, based upon whether this
-    #: message type matches the message type the service handles.
-    messageRefType = None
+    def __init__(self):
+        AsyncMessage.__init__(self)
+
+        #: Operation/command.
+        self.operation = None
+        #: Remote destination belonging to a specific service, based upon
+        #: whether this message type matches the message type the service
+        #: handles.
+        self.messageRefType = None
 
 class ErrorMessage(AbstractMessage):
     """
     Flex error message to be returned to the client.
     """
-    #: Extended data that the remote destination has chosen to associate with 
-    #: this error to facilitate custom error processing on the client. 
-    extendedData = {}
-    #: Fault code for the error. 
-    faultCode = None
-    #: Detailed description of what caused the error. 
-    faultDetail = None
-    #: A simple description of the error. 
-    faultString = None
-    #: Should a traceback exist for the error, this property contains the
-    #: message.
-    rootCause = {}
+
+    def __init__(self):
+        AbstractMessage.__init__(self)
+
+        #: Extended data that the remote destination has chosen to associate with 
+        #: this error to facilitate custom error processing on the client. 
+        self.extendedData = {}   
+        #: Fault code for the error. 
+        self.faultCode = None
+        #: Detailed description of what caused the error. 
+        self.faultDetail = None
+        #: A simple description of the error. 
+        self.faultString = None
+        #: Should a traceback exist for the error, this property contains the
+        #: message.
+        self.rootCause = {}
 
 class RemotingMessage(AbstractMessage):
     """
@@ -119,14 +140,19 @@ class RemotingMessage(AbstractMessage):
 
     @see: {http://livedocs.adobe.com/flex/201/langref/mx/messaging/messages/RemotingMessage.html}
     """
-    #: Name of the remote method/operation that should be called.
-    operation = None
-    #: Name of the service to be called
-    #: including package name.
-    #: This property is provided for backwards compatibility.
-    source = None
+
+    def __init__(self):
+        AbstractMessage.__init__(self)
+
+        #: Name of the remote method/operation that should be called.
+        self.operation = None
+        #: Name of the service to be called
+        #: including package name.
+        #: This property is provided for backwards compatibility.
+        self.source = None
 
 pyamf.register_class(RemotingMessage, 'flex.messaging.messages.RemotingMessage')
 pyamf.register_class(ErrorMessage, 'flex.messaging.messages.ErrorMessage')
 pyamf.register_class(CommandMessage, 'flex.messaging.messages.CommandMessage')
-pyamf.register_class(AcknowledgeMessage, 'flex.messaging.messages.AcknowledgeMessage')
+pyamf.register_class(AcknowledgeMessage,
+    'flex.messaging.messages.AcknowledgeMessage')
