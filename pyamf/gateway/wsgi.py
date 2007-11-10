@@ -26,9 +26,7 @@
 """
 U{WSGI<http://wsgi.org>} Server implementation.
 
-@note: Heavily borrowed from U{Flashticle<http://osflash.org/flashticle>}
-
-@author: Nick Joyce
+@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
 @since: 0.1.0
 """
@@ -53,6 +51,14 @@ class WSGIGateway(gateway.BaseGateway):
         return environ['wsgi.input'].read(int(environ['CONTENT_LENGTH']))
 
     def getResponse(self, request):
+        """
+
+        @param request:
+        @type request:
+        
+        @rtype:
+        @return:
+        """
         response = remoting.Envelope(request.amfVersion, request.clientType)
 
         processor = self.getProcessor(request)
@@ -64,11 +70,13 @@ class WSGIGateway(gateway.BaseGateway):
 
     def __call__(self, environ, start_response):
         """
-        
         @type environ:
         @param environ:
         @type start_response:
-        @param start_response: 
+        @param start_response:
+
+        @rtype: StringIO
+        @return: File-like object.
         """
         self.request_number += 1
 

@@ -3,6 +3,7 @@
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
 # 
 # Thijs Triemstra
+# Nick Joyce
 # 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -26,8 +27,8 @@
 """
 U{Twisted<http://twistedmatrix.com>} Server and Client implementations.
 
-@author: Thijs Triemstra
-@author: Nick Joyce
+@author: U{Thijs Triemstra<mailto:info@collab.nl>}
+@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
 @since: 0.1.0
 """
@@ -40,13 +41,22 @@ from pyamf import remoting, gateway
 __all__ = ['TwistedGateway']
 
 class ServiceRequest(gateway.ServiceRequest):
+    """
+    Remoting service request.
+    """
+    
     def authenticate(self, username, password):
         """
         Twisted implementation of L{gateway.ServiceRequest}
 
-        @return: a deferred which fires a callback containing the result
+        @param username:
+        @type username: str
+        @param password:
+        @type password: str
+        
+        @return: A Deferred which fires a callback containing the result
                  (a bool)of the authentication.
-        @rettype: L{defer.Deferred}
+        @rtype: Deferred
         """
         if self.service.authenticator is None:
             # The default is to allow anything through
@@ -60,15 +70,24 @@ class ServiceRequest(gateway.ServiceRequest):
 
 class TwistedGateway(gateway.BaseGateway, resource.Resource):
     """
+    Twisted Remoting gateway.
     """
 
     _request_class = ServiceRequest
 
     def __init__(self, services):
+        """
+        @param services:
+        @type services:
+        """
         gateway.BaseGateway.__init__(self, services)
         resource.Resource.__init__(self)
 
     def getResponse(self, request):
+        """
+        @param request:
+        @type request:
+        """
         self.response = remoting.Envelope(request.amfVersion, request.clientType)
 
         processor = self.getProcessor(request)
@@ -85,6 +104,10 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         return defer.DeferredList(dl)
 
     def processRequest(self, request):
+        """
+        @param request:
+        @type request:
+        """
         response = remoting.Message(None, None, None, None)
 
         service_request = self.getServiceRequest(request)
@@ -94,18 +117,36 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         # FIXME: what error to return here?
 
         def cb(result):
+            """
+            Create response to remoting request.
+
+            @rtype:
+            @return: Response
+            """
             response.body = result
             response.status = remoting.STATUS_OK
 
             return response
 
         def eb(failure):
+            """
+            Create error response for remoting request.
+            """
             response.body = self.getErrorResponse(failure)
             response.status = remoting.STATUS_ERROR
 
         return service_request(*request.body).addErrback(eb).addCallback(cb)
 
     def render_POST(self, request):
+        """
+        Read remoting request from client.
+
+        @type request:
+        @param request:
+        @rtype: 
+        @return: 
+        """
+        
         self.request_number += 1
         request.content.seek(0, 0)
 

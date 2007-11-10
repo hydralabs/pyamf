@@ -27,8 +27,8 @@
 """
 Server/client implementations for PyAMF.
 
-@author: Thijs Triemstra
-@author: Nick Joyce
+@author: U{Thijs Triemstra<mailto:info@collab.nl>}
+@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
 @since: 0.1.0
 """
@@ -75,7 +75,7 @@ class ServiceRequest(object):
         
         @return: Boolean determining whether the supplied credentials can
                  access the service
-        @rettype: bool
+        @rtype: bool
         """
         if self.service.authenticator is None:
             # The default is to allow anything through
@@ -136,9 +136,9 @@ class BaseGateway(object):
         Returns a service based on the message
 
         @param message: The AMF message
-        @type target: L{remoting.Message}
-        @return A tuple containing the service and the method requested
-        @rettype tuple
+        @type message: L{Message<remoting.Message>}
+        @return: A tuple containing the service and the method requested
+        @rtype: tuple
         """
         target = message.target
 
@@ -189,7 +189,10 @@ class BaseGateway(object):
 
     def getProcessor(self, request):
         """
-        
+        @param request:
+        @type request:
+        @return:
+        @rtype:
         """
         if 'DescribeService' in request.headers:
             return NotImplementedError
@@ -211,9 +214,9 @@ class BaseGateway(object):
         Processes a request.
 
         @param request: The request to be processed
-        @type request: L{remoting.Message}
-        @return The response to the request
-        @rettype L{remoting.Message}
+        @type request: L{Message<remoting.Message>}
+        @return: The response to the request
+        @rtype: L{remoting.Message}
         """
         response = remoting.Message(None, None, None, None)
 
@@ -243,12 +246,15 @@ class BaseGateway(object):
 
     def getResponse(self, request):
         """
-        Returns the response to the request. Any implementing gateway must 
-        define this function
+        Returns the response to the request.
+
+        Any implementing gateway must define this function.
 
         @param request: The AMF request
-        @type request: L{remoting.Envelope}
+        @type request: L{Envelope<remoting.Envelope>}
+
+        @raise NotImplementedError:
         @return: The AMF response
-        @rettype: L{remoting.Envelope}
+        @rtype: L{Envelope<remoting.Envelope>}
         """
         raise NotImplementedError

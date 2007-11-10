@@ -22,6 +22,15 @@
 # LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+"""
+U{Django<http://djangoframework.org>} Remoting gateway.
+
+@author: U{Arnar Birgisson<mailto:arnarbi@gmail.com>}
+
+@since: 0.1.0
+"""
+
 from django.http import HttpResponse, HttpResponseNotAllowed
 from django.core.urlresolvers import get_mod_func
 import pyamf
@@ -30,10 +39,18 @@ from pyamf import remoting
 def DjangoGateway(request, gateway):
     """
     A Django generic view that reads an AMF remoting request from the POST body and responds.
-    
-    The parameter 'gateway' should be an instance of pyamf.gateway.BaseGateway or a qualified
-    string to such an instance that will be imported. This instance is used to dispatch the remoting
-    requests.
+
+    This gateway instance is used to dispatch the remoting requests.
+
+    @type request:
+    @param request: Remoting request.
+    @param gateway:
+    @type gateway: Instance of L{BaseGateway<pyamf.gateway.BaseGateway>} or a qualified
+    string to such an instance that will be imported.
+
+    @raise HttpResponseNotAllowed: Only the POST request method is allowed.
+    @return: Response to remoting request.
+    @rtype:
     """
     
     # Import gateway if it is a string (similar to Django's urlconf)
