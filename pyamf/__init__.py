@@ -281,16 +281,15 @@ class Context(object):
 
 class Bag(object):
     """
-    I supply a thin layer over the __builtin__.dict type to support
-    get/setattr calls.
+    I supply a __builtin__.dict interface to support get/setattr calls.
     """
 
     def __init__(self, d={}):
         """
-        @type d:
-        @param d:
+        @type d: dict
+        @param d: Initial data for the bag
         """
-        for k, v in d.items():
+        for k, v in d.iteritems():
             setattr(self, k, v)
 
     def __getitem__(self, k):
@@ -315,7 +314,7 @@ class Bag(object):
         """
         @type other:
         @param other:
-        @return:
+        @rtype: bool
         """
         if isinstance(other, dict):
             return self.__dict__ == other
@@ -329,6 +328,9 @@ class Bag(object):
 
     def __repr__(self):
         return dict.__repr__(self.__dict__)
+
+    def __delitem__(self, k):
+        del self.__dict__[k]
 
 class ClassAlias(object):
     """
