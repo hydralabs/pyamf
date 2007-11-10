@@ -33,6 +33,7 @@ import os
 urlpatterns = patterns('',
 
     # AMF Remoting Gateway
+    # The gateway parameter may also be a direct reference to a pyamf.gateway.djangogateway.DjangoGateway instance
     (r'^gateway/', 'pyamf.gateway.djangogateway.DjangoGateway', {'gateway': 'djangogateway.gateway.echoGateway'}),
     
     # Serve crossdomain.xml from the directory below __file__
