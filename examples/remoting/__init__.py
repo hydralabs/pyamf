@@ -24,6 +24,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
+Server start scripts.
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 """
@@ -34,12 +35,12 @@ def run_wsgi(options, services):
     """
     Runs the services using the L{pyamf.gateway.wsgi.WSGIGateway}
 
+    @param options:
+    @type options: 
     @param services: List of services for the Flash gateway
     @type services: dict
-    @param port: Port to run the server on
-    @type port: int
-    @return The function that will run the server
-    @rettype callable
+    @return: The function that will run the server
+    @rtype: callable
     """
     from pyamf.gateway.wsgi import WSGIGateway
     from wsgiref import simple_server
@@ -59,12 +60,12 @@ def run_twisted(options, services):
     """
     Runs the services using the L{pyamf.gateway.twistedmatrix.TwistedGateway}
 
+    @param options:
+    @type options: 
     @param services: List of services for the Flash gateway
     @type services: dict
-    @param port: Port to run the server on
-    @type port: int
-    @return The function that will run the server
-    @rettype callable
+    @return: The function that will run the server
+    @rtype: callable
     """
     from twisted.internet import reactor
     from twisted.web import server, static, resource
@@ -85,6 +86,14 @@ def run_twisted(options, services):
     return reactor.run
 
 def run_server(name, options, services):
+    """
+    Starts the server.
+
+    @param options:
+    @type options: 
+    @param services: List of services for the Flash gateway
+    @type services: dict
+    """
     if options.server == 'wsgi':
         print "Started %s WSGI server on port %d" % (name, int(options.port))
         func = run_wsgi(options, services)
