@@ -161,7 +161,7 @@ class EncoderTestCase(unittest.TestCase):
         Test to see if there is an empty key in the dict. There is a design
         bug in Flash 9 which means that it cannot read this specific data.
         
-        See U{http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug}
+        @bug: See U{http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug}
         for more info.
         """
         def x():
