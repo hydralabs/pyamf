@@ -24,7 +24,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-U{Django<http://djangoframework.org>} Remoting gateway.
+U{Django<http://djangoproject.org>} Remoting gateway.
 
 @author: U{Arnar Birgisson<mailto:arnarbi@gmail.com>}
 
