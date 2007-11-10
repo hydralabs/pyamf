@@ -60,9 +60,8 @@ def DjangoGateway(request, gateway):
         if var_name != '':
             gateway = getattr(__import__(mod_name, {}, {}, ['']), var_name)
     
-    response = HttpResponse()
-    
     if request.method == 'POST':
+        response = HttpResponse()
         context = pyamf.Context()
         
         amfrequest = remoting.decode(request.raw_post_data, context)
@@ -76,7 +75,7 @@ def DjangoGateway(request, gateway):
         response['Content-Type'] = remoting.CONTENT_TYPE
         response['Content-Length'] = str(len(stream))
         response.write(stream.getvalue())
-
-        return response
     else:
-        raise HttpResponseNotAllowed(['POST'])
+        response = HttpResponseNotAllowed(['POST'])
+    
+    return response
