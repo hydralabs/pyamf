@@ -73,16 +73,16 @@ class ClientTypes:
     Typecodes used to identify AMF clients and servers.
     """
     #: Specifies a Flash Player 6.0 - 8.0 client.
-    Flash6    = 0
+    Flash6   = 0
     #: Specifies a FlashCom / Flash Media Server client.
     FlashCom = 1
     #: Specifies a Flash Player 9.0 client.
     Flash9   = 3
-    
+
 #: List of AMF client typecodes.
 CLIENT_TYPES = set(
     ClientTypes.__dict__[x] for x in ClientTypes.__dict__
-    if not x.startswith('_'))  
+    if not x.startswith('_'))
 
 class BaseError(Exception):
     """
@@ -105,9 +105,9 @@ class ReferenceError(BaseError):
 class EncodeError(BaseError):
     """
     Raised if the element could not be encoded to the stream.
-    
-    @bug: See U{http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug} for
-    more info about the empty key string array bug.
+
+    @bug: See U{http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug}
+    for more info about the empty key string array bug.
     """
 
 class UnknownClassAlias(BaseError):
@@ -141,10 +141,11 @@ class Context(object):
         """
         Gets an object based on a reference.
 
-        @type ref:
-        @param ref:
+        @type ref: int
+        @param ref: the reference to an object
         @raise ReferenceError: the object could not be found.
-        @return:
+        @return: The object referenced.
+        @rtype: mixed
         """
         try:
             return self.objects[ref - 1]
@@ -240,7 +241,7 @@ class Context(object):
     def getClassDefinitionReference(self, class_def):
         """
         Return class definition reference. 
-        
+
         @type class_def:
         @param class_def:
         @raise ReferenceError: the definition could not be found.
@@ -389,7 +390,7 @@ def register_class(klass, alias, read_func=None, write_func=None):
     @param read_func:
     @type write_func:
     @param write_func:
-    
+
     @raise TypeError: the klass is not callable
     @raise ValueError: the klass is already registered
     @raise ValueError: the alias is already registered
@@ -411,9 +412,9 @@ def register_class(klass, alias, read_func=None, write_func=None):
 def register_class_loader(loader):
     """
     Registers a loader that is called to provide the Class for a specific
-    alias. L{loader} is provided with one argument, the Class alias. If the loader
-    succeeds in finding a suitable class then it should return that class,
-    otherwise it should return L{None}.
+    alias. L{loader} is provided with one argument, the Class alias. If the
+    loader succeeds in finding a suitable class then it should return that
+    class, otherwise it should return L{None}.
 
     @type loader: callable
     @param loader:
@@ -438,7 +439,7 @@ def get_module(mod_name):
     """
     mod = __import__(mod_name)
     components = mod_name.split('.')
-    
+
     for comp in components[1:]:
         mod = getattr(mod, comp)
 
@@ -452,7 +453,7 @@ def load_class(alias):
       1. Checks if the class name has been registered via L{register_class}.
       2. Checks all functions registered via L{register_class_loader}.
       3. Attempts to load the class via standard module loading techniques.
- 
+
     @type alias: str
     @param alias: class name
     @raise UnknownClassAlias: alias not found
@@ -507,7 +508,7 @@ def get_class_alias(obj):
     @see: L{load_class} for more info
     """
     klass = type(obj)
-    
+
     # Try the CLASS_CACHE first
     for a, k in CLASS_CACHE.iteritems():
         if klass == k.klass:
@@ -519,7 +520,7 @@ def get_class_alias(obj):
 def decode(stream, encoding=AMF0, context=None):
     """
     A generator function to decode a datastream.
-  
+
     @type   stream: L{BufferedByteStream}
     @param  stream: AMF data
     @type   encoding: int
@@ -576,7 +577,7 @@ def _get_decoder(encoding):
 def _get_encoder(encoding):
     """
     Get compatible encoder.
-   
+
     @type encoding: int
     @param encoding: AMF encoding version
     @raise ValueError: AMF encoding version is unknown
@@ -591,5 +592,5 @@ def _get_encoder(encoding):
         import pyamf.amf3
 
         return pyamf.amf3.Encoder
-        
+
     raise ValueError("Unknown encoding %s" % encoding)
