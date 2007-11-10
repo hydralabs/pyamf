@@ -45,7 +45,7 @@ setup(name = "PyAMF",
     },
     extras_require={
         'wsgi': ['wsgiref'],
-        'twisted' ['Twisted>=2.5.0']
+        'twisted': ['Twisted>=2.5.0']
     },
     classifiers = [
         "Development Status :: 3 - Alpha",
