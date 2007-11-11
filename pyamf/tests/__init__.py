@@ -42,7 +42,7 @@ from pyamf import Bag, ClassAlias
 
 class BagTestCase(unittest.TestCase):
     """
-    I exercise all functionality relating to the Bag class
+    I exercise all functionality relating to the L{Bag} class.
     """
 
     def test_init(self):
@@ -101,7 +101,7 @@ class Foo(object):
 
 class ClassAliasTestCase(unittest.TestCase):
     """
-    Test all functionality relating to the class ClassAlias
+    Test all functionality relating to the class L{ClassAlias}.
     """
 
     def test_init(self):
