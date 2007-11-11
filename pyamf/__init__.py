@@ -336,50 +336,33 @@ class ClassAlias(object):
     """
     Class alias.
     """
-    def __init__(self, klass, alias, read_func=None, write_func=None):
+    def __init__(self, klass, alias, read_func=None, write_func=None,
+        encoding=None):
         """
-        @type klass:
-        @param klass:
-        @type alias:
-        @param alias:
-        @type read_func:
-        @param read_func:
-        @type write_func:
-        @param write_func:
+        @type klass: class
+        @param klass: The class to alias
+        @type alias: str
+        @param alias: The alias to the class e.g. org.example.Person
+        @type read_func: callable
+        @param read_func: Function that gets called when reading the object from
+            the data stream
+        @type write_func: callable
+        @param write_func: Function that gets called when writing the object to
+            the data steam
         """
         self.klass = klass
         self.alias = alias
         self.read_func = read_func
         self.write_func = write_func
-
-    def read_data(self, instance, data):
-        """
-        @type instance:
-        @param instance:
-        @type data:
-        @param data:
-        @return:
-        """
-        if self.read_func is None:
-            return
-
-        self.read_func(instance, data)
-
-    def write_data(self, instance):
-        """
-        @type instance:
-        @param instance:
-        @return:
-        """
-        if self.write_func is None:
-            return
-
-        return self.write_func(instance)
+        self.encoding = encoding
 
     def __call__(self):
         """
-        @return:
+        Creates an instance of the klass
+
+        @return: Instance of self.klass
         """
+        # XXX nick: Do we need to support __init__ params here? 
         return self.klass()
 
 def register_class(klass, alias, read_func=None, write_func=None):
