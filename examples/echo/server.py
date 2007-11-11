@@ -24,7 +24,12 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Simple Python echo test server for Flash Remoting.
+Echo test server.
+
+Sample gateways for:
+
+ - U{Twisted<http://twistedmatrix.com>}
+ - U{WSGI<http://wsgi.org>}
 
 You can use this example with the echo_test.swf client on the
 U{EchoTest<http://pyamf.org/wiki/EchoTest>} wiki page.
@@ -62,7 +67,7 @@ def read_ec(obj, input):
     @type obj: L{ExternalizableClass}
     @param obj: The object in question.
     @param input: The input stream to read from
-    @type input L{DataOutput<pyamf.compat.DataInput>}
+    @type input L{DataInput<pyamf.compat.DataInput>}
     """
     assert input.readBoolean() == True
     assert input.readBoolean() == False
@@ -129,5 +134,6 @@ if __name__ == '__main__':
     from __init__ import parse_args, run_server
 
     options = parse_args(sys.argv[1:])
+    services = {'echo': echo}
 
-    run_server('Echo Test', options[0], {'echo': echo})
+    run_server('Echo Test', options[0], services)
