@@ -24,7 +24,9 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Server start scripts.
+Echo test example.
+
+Supports Twisted and WSGI.
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 """
@@ -33,13 +35,13 @@ import os, os.path
 
 def run_wsgi(options, services):
     """
-    Runs the services using the L{pyamf.gateway.wsgi.WSGIGateway}
+    Runs the services using the L{WSGIGateway<pyamf.gateway.wsgi.WSGIGateway>}.
 
     @param options:
     @type options: 
     @param services: List of services for the Flash gateway
     @type services: dict
-    @return: The function that will run the server
+    @return: The function that will run the server.
     @rtype: callable
     """
     from pyamf.gateway.wsgi import WSGIGateway
@@ -58,11 +60,12 @@ def run_wsgi(options, services):
 
 def run_twisted(options, services):
     """
-    Runs the services using the L{pyamf.gateway.twistedmatrix.TwistedGateway}
+    Runs the services using the
+    L{TwistedGateway<pyamf.gateway.twistedmatrix.TwistedGateway>}.
 
     @param options:
     @type options: 
-    @param services: List of services for the Flash gateway
+    @param services: List of services for the Flash gateway.
     @type services: dict
     @return: The function that will run the server
     @rtype: callable
@@ -91,7 +94,7 @@ def run_server(name, options, services):
 
     @param options:
     @type options: 
-    @param services: List of services for the Flash gateway
+    @param services: List of services for the Flash gateway.
     @type services: dict
     """
     if options.server == 'wsgi':

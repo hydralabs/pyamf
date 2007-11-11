@@ -24,7 +24,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Simple Python echo test U{WGSI<http://wsgi.org>} server for Flash Remoting.
+Simple Python echo test server for Flash Remoting.
 
 You can use this example with the echo_test.swf client on the
 U{EchoTest<http://pyamf.org/wiki/EchoTest>} wiki page.
@@ -38,7 +38,7 @@ ECHO_NS = 'org.red5.server.webapp.echo'
 
 class RemoteClass(object):
     """
-    This Python class is mapped to the clientside Actionscript class.
+    This Python class is mapped to the clientside ActionScript class.
     """
     pass
 
@@ -57,7 +57,7 @@ def echo(data):
 
 def read_ec(obj, input):
     """
-    This function is invoked when the obj needs to be unserialized.
+    This function is invoked when the C{obj} needs to be unserialized.
 
     @type obj: L{ExternalizableClass}
     @param obj: The object in question.
@@ -89,7 +89,7 @@ def read_ec(obj, input):
 
 def write_ec(obj, output):
     """
-    This function is invoked when the obj needs to be serialized.
+    This function is invoked when the C{obj} needs to be serialized.
 
     @type obj: L{ExternalizableClass}
     @param obj: The object in question.
