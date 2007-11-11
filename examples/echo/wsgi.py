@@ -62,7 +62,7 @@ def read_ec(obj, input):
     @type obj: L{ExternalizableClass}
     @param obj: The object in question.
     @param input: The input stream to read from
-    @type input L{pyamf.compat.DataInput}
+    @type input L{DataOutput<pyamf.compat.DataInput>}
     """
     assert input.readBoolean() == True
     assert input.readBoolean() == False
@@ -94,7 +94,7 @@ def write_ec(obj, output):
     @type obj: L{ExternalizableClass}
     @param obj: The object in question.
     @param input: The output stream to write to
-    @type input L{pyamf.compat.DataOutput}
+    @type input L{DataOutput<pyamf.compat.DataOutput>}
     """
     output.writeBoolean(True)
     output.writeBoolean(False)

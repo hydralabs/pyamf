@@ -126,7 +126,7 @@ if __name__ == '__main__':
     root.putChild('crossdomain.xml', static.File(os.path.join(
         os.getcwd(),
         os.path.dirname(os.path.dirname(__file__)),
-        'crossdomain.xml'), defaultType='application/xml'))
+        '../../crossdomain.xml'), defaultType='application/xml'))
 
     reactor.listenTCP(port, server.Site(root))
     reactor.run()

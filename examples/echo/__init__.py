@@ -77,7 +77,7 @@ def run_twisted(options, services):
 
     root.putChild('', gw)
     root.putChild('/gateway', gw)
-    root.putChild('crossdomain.xml', static.File(os.path.join(
+    root.putChild('../crossdomain.xml', static.File(os.path.join(
         os.getcwd(), os.path.dirname(__file__), 'crossdomain.xml'),
         defaultType='application/xml'))
 
