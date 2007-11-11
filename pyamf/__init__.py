@@ -44,6 +44,8 @@ U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>} 6 and newer.
 @version: 0.1.0
 """
 
+import types
+
 from pyamf import util
 
 __all__ = [
@@ -350,20 +352,30 @@ class ClassAlias(object):
         @param write_func: Function that gets called when writing the object to
             the data steam
         """
+        if not isinstance(klass, (type, types.ClassType)):
+            raise TypeError("klass must be a class type")
+
+        # XXX nick: If either read_func or write_func is defined, does the other
+        # need to be defined as well?
+        if read_func is not None and not callable(read_func):
+            raise TypeError("read_func must be callable")
+
+        if write_func is not None and not callable(write_func):
+            raise TypeError("write_func must be callable")
+
         self.klass = klass
-        self.alias = alias
+        self.alias = str(alias)
         self.read_func = read_func
         self.write_func = write_func
         self.encoding = encoding
 
-    def __call__(self):
+    def __call__(self, *args, **kwargs):
         """
         Creates an instance of the klass
 
         @return: Instance of self.klass
         """
-        # XXX nick: Do we need to support __init__ params here? 
-        return self.klass()
+        return self.klass(*args, **kwargs)
 
 def register_class(klass, alias, read_func=None, write_func=None):
     """

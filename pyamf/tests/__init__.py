@@ -38,7 +38,7 @@ Tests for PyAMF.
 
 import unittest
 
-from pyamf import Bag
+from pyamf import Bag, ClassAlias
 
 class BagTestCase(unittest.TestCase):
     """
@@ -96,6 +96,50 @@ class BagTestCase(unittest.TestCase):
 
         self.assertEquals(x, [('foo', 'bar')])
 
+class Foo(object):
+    pass
+
+class ClassAliasTestCase(unittest.TestCase):
+    """
+    Test all functionality relating to the class ClassAlias
+    """
+
+    def test_init(self):
+        x = ClassAlias(Foo, 'org.example.foo.Foo')
+
+        self.assertEquals(x.klass, Foo)
+        self.assertEquals(x.alias, 'org.example.foo.Foo')
+        self.assertEquals(x.read_func, None)
+        self.assertEquals(x.write_func, None)
+        self.assertEquals(x.encoding, None)
+
+        x = ClassAlias(Foo, 'org.example.foo.Foo', read_func=ord,
+            write_func=str, encoding='123')
+
+        self.assertEquals(x.klass, Foo)
+        self.assertEquals(x.alias, 'org.example.foo.Foo')
+        self.assertEquals(x.read_func, ord)
+        self.assertEquals(x.write_func, str)
+        self.assertEquals(x.encoding, '123')
+
+    def test_bad_class(self):
+        self.assertRaises(TypeError, ClassAlias, 'bar', 'blah')
+
+    def test_bad_read_func(self):
+        self.assertRaises(TypeError, ClassAlias, 'bar', 'blah',
+            read_func='asdfasdf')
+
+    def test_bad_write_func(self):
+        self.assertRaises(TypeError, ClassAlias, 'bar', 'blah',
+            write_func='asdfasdf')
+
+    def test_call(self):
+        x = ClassAlias(Foo, 'org.example.foo.Foo')
+
+        y = x()
+
+        self.assertTrue(isinstance(y, Foo))
+
 def suite():
     import pyamf
     from pyamf.tests import amf0, amf3, remoting
@@ -103,6 +147,7 @@ def suite():
     suite = unittest.TestSuite()
 
     suite.addTest(unittest.makeSuite(BagTestCase))
+    suite.addTest(unittest.makeSuite(ClassAliasTestCase))
     suite.addTest(amf0.suite())
     suite.addTest(amf3.suite())
     suite.addTest(remoting.suite())
