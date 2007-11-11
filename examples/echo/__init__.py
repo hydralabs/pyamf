@@ -92,16 +92,16 @@ def run_server(name, options, services):
     """
     Starts the server.
 
-    @param options:
-    @type options: 
+    @param options: commandline options
+    @type options: dict
     @param services: List of services for the Flash gateway.
     @type services: dict
     """
     if options.server == 'wsgi':
-        print "Started %s WSGI server on port %d" % (name, int(options.port))
+        print "Started %s - WSGI server on port %d" % (name, int(options.port))
         func = run_wsgi(options, services)
     elif options.server == 'twisted':
-        print "Started %s Twisted server on port %d" % (name, int(options.port))
+        print "Started %s - Twisted server on port %d" % (name, int(options.port))
         func = run_twisted(options, services)
 
     func()
@@ -110,7 +110,7 @@ def parse_args(args):
     from optparse import OptionParser
 
     parser = OptionParser()
-    parser.add_option('-s', '--server', dest='server',
+    parser.add_option('-t', '--type', dest='server',
         choices=('wsgi', 'twisted',), default='wsgi',
         help='Determines which server type to use')
     parser.add_option('-d', '--debug', action='store_true', dest='debug',
