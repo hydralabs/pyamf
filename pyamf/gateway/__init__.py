@@ -106,7 +106,7 @@ class BaseGateway(object):
     """
     _request_class = ServiceRequest
 
-    def __init__(self, services, debug):
+    def __init__(self, services, debug=False):
         """
         @param services: Initial services
         @type services: dict
