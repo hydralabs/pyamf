@@ -26,13 +26,13 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-AMF0 Implementation.
+AMF0 implementation.
 
 AMF0 supports the basic data types used for the NetConnection, NetStream,
 LocalConnection, SharedObjects and other classes in the Flash Player.
 
-@see: U{http://www.vanrijkom.org/archives/2005/06/amf_format.html}
-@see: U{http://osflash.org/documentation/amf}
+@see: U{AMF documentation on OSFlash (external)
+<http://osflash.org/documentation/amf>}
 
 @author: U{Arnar Birgisson<mailto:arnarbi@gmail.com>}
 @author: U{Thijs Triemstra<mailto:info@collab.nl>}
@@ -48,29 +48,72 @@ from pyamf import util
 
 class ASTypes:
     """
-    A placeholder for all AMF0 ActionScript types.
+    All AMF0 data types used in ActionScript 1.0 and 2.0.
 
-    @see: U{http://osflash.org/documentation/amf/astypes}
+    @see: U{Documentation on OSFlash (external)
+    <http://osflash.org/documentation/amf/astypes>}
     """
+    #: Represented as 9 bytes: 1 byte for 0×00 and 8 bytes a double
+    #: representing the value of the number.
     NUMBER      = 0x00
+    #: Represented as 2 bytes: 1 byte for 0×01 and a second, 0×00
+    #: for false, 0×01 for true.
     BOOL        = 0x01
+    #: Represented as 3 bytes + len(String): 1 byte 0×02, then a UTF8 string,
+    #: including the top two bytes representing string length as a int.
     STRING      = 0x02
+    #: Represented as 1 byte, 0×03, then pairs of UTF8 string, the key, and
+    #: an AMF element, ended by three bytes, 0×00 0×00 0×09.
     OBJECT      = 0x03
-    #: Not available in remoting
+    #: MovieClip does not seem to be supported by Remoting.
+    #: It may be used by other AMF clients such as SharedObjects.
     MOVIECLIP   = 0x04
+    #: 1 single byte, 0×05 indicates null.
     NULL        = 0x05
+    #: 1 single byte, 0×06 indicates null.
     UNDEFINED   = 0x06
+    #: When an ActionScript object refers to itself, such this.self = this, or
+    #: when objects are repeated within the same scope (for example, as the two
+    #: parameters of the same function called), a code of 0×07 and an int, the
+    #: reference number, are written.
     REFERENCE   = 0x07
+    #: A MixedArray is indicated by code 0×08, then a Long representing the highest
+    #: numeric index in the array, or 0 if there are none or they are all negative.
+    #: After that follow the elements in key : value pairs. 
     MIXEDARRAY  = 0x08
+    #: @see: L{OBJECT}
     OBJECTTERM  = 0x09
+    #: An array is indicated by 0x0A, then a Long for array length, then the array
+    #: elements themselves. Arrays are always sparse; values for inexistant keys are
+    #: set to null (0×06) to maintain sparsity.
     ARRAY       = 0x0a
+    #: Date is represented as 0x0B, then a double, then an int. The double represents
+    #: the number of milliseconds since 01/01/1970. The int represents the timezone
+    #: offset in minutes between GMT. Note for the latter than values greater than 720
+    #: (12 hours) are represented as 2^16 - the value. Thus GMT+1 is 60 while GMT-5 is 65236.
     DATE        = 0x0b
+    #: LongString is reserved for strings larger then 2^16 characters long. It is represented
+    #: as 0x0C then a LongUTF.
     LONGSTRING  = 0x0c
+    #: Trying to send values which don’t make sense, such as prototypes, functions,
+    #: built-in objects, etc. will be indicated by a single 0x0D byte.
     UNSUPPORTED = 0x0d
-    # Remoting Server -> Client only
+    #: Remoting Server -> Client only
+    #: @see: U{Remoting record structure on OSFlash (external)
+    #: <http://osflash.org/documentation/amf/recordset>}
     RECORDSET   = 0x0e
+    #: The XML element is indicated by 0x0F and followed by a LongUTF containing the string
+    #: representation of the XML object. The receiving gateway may which to wrap this string
+    #: inside a language-specific standard XML object, or simply pass as a string.
     XML         = 0x0f
+    #: A typed object is indicated by 0×10, then a UTF string indicating class name, and then
+    #: the same structure as a normal 0×03 Object. The receiving gateway may use a mapping
+    #: scheme, or send back as a vanilla object or associative array.
     TYPEDOBJECT = 0x10
+    #: An AMF message sent from an AS3 client such as the Flash Player 9 may break out
+    #: into L{AMF3<pyamf.amf3>} mode. In this case the next byte will be the AMF3 type code
+    #: and the data will be in AMF3 format until the decoded object reaches it’s logical
+    #: conclusion (for example, an object has no more keys).
     AMF3        = 0x11
 
 #: List of available ActionScript types in AMF0.

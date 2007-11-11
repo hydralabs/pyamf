@@ -186,12 +186,13 @@ class BaseGateway(object):
         @param stream: Encoded output AMF message.
         @type stream:
         """
-        x = open('request_' + str(self.request_number) + ".in.amf", 'wb')
+        fname = 'request_' + str(self.request_number)
+        x = open(fname + ".in.amf", 'wb')
         x.write(body)
         x.close()
 
         if hasattr(stream, 'getvalue'):
-            x = open('request_' + str(self.request_number) + ".out.amf", 'wb')
+            x = open(fname + ".out.amf", 'wb')
             x.write(stream.getvalue())
             x.close()
 
@@ -220,8 +221,9 @@ class BaseGateway(object):
         """
         @param request:
         @type request:
-        @return:
-        @rtype:
+
+        @see: U{AMF remoting headers on OSFlash (external)
+        <http://osflash.org/documentation/amf/envelopes/remoting/headers>}
         """
         if 'DescribeService' in request.headers:
             return NotImplementedError
@@ -245,7 +247,7 @@ class BaseGateway(object):
         @param request: The request to be processed
         @type request: L{Message<remoting.Message>}
         @return: The response to the request
-        @rtype: L{remoting.Message}
+        @rtype: L{Message<remoting.Message>}
         """
         response = remoting.Message(None, None, None, None)
 

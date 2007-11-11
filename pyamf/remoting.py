@@ -349,6 +349,8 @@ def decode(stream, context):
     @param  stream: AMF data
     @type   context: L{Context}
     @param  context: Context
+
+    @raise DecodeError: Malformed stream
     @raise RuntimeError: decoder is unable to fully consume the
     stream buffer
     @return:

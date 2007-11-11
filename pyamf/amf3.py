@@ -36,7 +36,8 @@ for ActionScript 1.0 and 2.0. It adds support for sending C{int} and C{uint} obj
 as integers and supports data types that are available only in ActionScript 3.0,
 such as L{ByteArray} and L{ArrayCollection}.
 
-@see: U{http://osflash.org/documentation/amf3}
+@see: U{AMF3 documentation on OSFlash (external)
+<http://osflash.org/documentation/amf3>}
 
 @author: U{Arnar Birgisson<mailto:arnarbi@gmail.com>}
 @author: U{Thijs Triemstra<mailto:info@collab.nl>}
@@ -52,29 +53,53 @@ from pyamf import util, compat
 
 class ASTypes:
     """
-    ActionScript object types.
+    All AMF3 data types used in ActionScript 3.0.
     
     AMF represents ActionScript objects by a single byte representing
     type, and then by a type-specific byte array that may be of fixed
     length, may contain length information, or may come with its own end
     code.
+
+    @see: U{AMF3 data types on OSFlash (external)
+    <http://osflash.org/documentation/amf3#data_types>}
     """
+    #: Simple type that doesn't have any inner data.
     UNDEFINED  = 0x00
+    #: Simple type that doesn't have any inner data.
     NULL       = 0x01
+    #: Simple type that doesn't have any inner data.
     BOOL_FALSE = 0x02
+    #: Simple type that doesn't have any inner data.
     BOOL_TRUE  = 0x03
+    #: 0×04 integer type code, followed by up to 4 bytes of data.
+    #: @see: U{Parsing Integers on OSFlash (external)
+    #: <http://osflash.org/documentation/amf3/parsing_integers>}
     INTEGER    = 0x04
+    #: 0x05 Number type-code followed by 8 bytes of data.
+    #:
+    #: Format is the same as an AMF0
+    #: L{Number<pyamf.amf0.ASTypes.NUMBER>}.
     NUMBER     = 0x05
+    #: 
     STRING     = 0x06
     # TODO: not defined on site, says it's only XML type,
     # so we'll assume it is for the time being..
-    # XXX nick: According to http://osflash.org/documentation/amf3 this
-    # represents the legacy XMLDocument
+    #: @see: According to U{the OSFlash documentation
+    #:<http://osflash.org/documentation/amf3>} this
+    # represents the legacy C{flash.xml.XMLDocument}.
     XML        = 0x07
+    #: 0×08 integer-data.
     DATE       = 0x08
+    #: 0×09 integer-data ( [ 1OCTET *amf3-data ] | [OCTET *amf3-data 1]
+    #: | [ OCTET *amf-data ] )
     ARRAY      = 0x09
+    #: 0x0A integer-data [ class-def ] [ *amf3-data ]
     OBJECT     = 0x0a
+    #: This type is used for the E4X XML class.
     XMLSTRING  = 0x0b
+    #: 0x0c L{ByteArray} flag, followed by string data.
+    #: @see: U{Parsing ByteArrays on OSFlash (external)
+    #: <http://osflash.org/documentation/amf3/parsing_byte_arrays>}
     BYTEARRAY  = 0x0c
 
 #: List of ActionScript object types.
@@ -116,7 +141,8 @@ class ByteArray(util.StringIOProxy):
     """
     I am a C{StringIO} type object containing byte data from the AMF stream.
 
-    @see: U{http://livedocs.adobe.com/flex/2/langref/flash/utils/ByteArray.html}
+    @see: U{ByteArray on livedocs (external)
+    <http://livedocs.adobe.com/flex/2/langref/flash/utils/ByteArray.html>}
     """
 
     def __init__(self, *args, **kwargs):
@@ -268,7 +294,8 @@ class Decoder(object):
         """
         Reads and returns an integer from the stream.
 
-        @see: U{http://osflash.org/amf3/parsing_integers} for the AMF3
+        @see: U{Parsing integers on OSFlash
+        <http://osflash.org/amf3/parsing_integers>} for the AMF3
         integer data format.
         @return:
         @rtype:
@@ -367,7 +394,8 @@ class Decoder(object):
         @warning: There is a very specific problem with AMF3 where the first three bytes
         of an encoded empty C{dict} will mirror that of an encoded C{{'': 1, '2': 2}}
 
-        @see: U{http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug}
+        @see: U{docuverse blog
+        <http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug>}
         for more information.
 
         @return:
@@ -639,8 +667,9 @@ class Encoder(object):
         """
         AMF3 integers are encoded.
         
-        See U{http://osflash.org/documentation/amf3/parsing_integers} for more
-        info.
+        See U{Parsing Integers on OSFlash
+        <http://osflash.org/documentation/amf3/parsing_integers>}
+        for more info.
 
         @type   n:
         @param  n: integer data
@@ -980,7 +1009,8 @@ def encode_utf8_modified(data):
     """
     Encodes a unicode string to Modified UTF-8 data.
     
-    @see: U{http://en.wikipedia.org/wiki/UTF-8#Java} for details.
+    @see: U{UTF-8 Java on Wikipedia<http://en.wikipedia.org/wiki/UTF-8#Java>}
+    for details.
 
     @type   data:
     @param  data:
@@ -1022,7 +1052,8 @@ def decode_utf8_modified(data):
     @return: Unicode string
     @rtype: str
     
-    @see: U{http://en.wikipedia.org/wiki/UTF-8#Java} for details.
+    @see: U{UTF-8 Java on Wikipedia<http://en.wikipedia.org/wiki/UTF-8#Java>}
+    for details.
     @copyright: Ruby version is Copyright (c) 2006 Ross Bamford (rosco AT roscopeco DOT co DOT uk)
     @note: Ported from U{http://viewvc.rubyforge.mmmultiworks.com/cgi/viewvc.cgi/trunk/lib/ruva/class.rb}
     """

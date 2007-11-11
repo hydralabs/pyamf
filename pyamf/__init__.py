@@ -106,7 +106,7 @@ class EncodeError(BaseError):
     """
     Raised if the element could not be encoded to the stream.
 
-    @bug: See U{http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug}
+    @bug: See U{Docuverse blog (external)<http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug>}
     for more info about the empty key string array bug.
     """
 
