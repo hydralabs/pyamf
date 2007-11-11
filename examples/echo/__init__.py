@@ -77,8 +77,8 @@ def run_twisted(options, services):
 
     root.putChild('', gw)
     root.putChild('/gateway', gw)
-    root.putChild('../crossdomain.xml', static.File(os.path.join(
-        os.getcwd(), os.path.dirname(__file__), 'crossdomain.xml'),
+    root.putChild('crossdomain.xml', static.File(os.path.join(
+        os.getcwd(), os.path.dirname(__file__), '../crossdomain.xml'),
         defaultType='application/xml'))
 
     reactor.listenTCP(int(options.port), server.Site(root))
