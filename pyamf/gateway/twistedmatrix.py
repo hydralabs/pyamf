@@ -75,12 +75,12 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
 
     _request_class = ServiceRequest
 
-    def __init__(self, services):
+    def __init__(self, services, debug):
         """
         @param services:
         @type services:
         """
-        gateway.BaseGateway.__init__(self, services)
+        gateway.BaseGateway.__init__(self, services, debug)
         resource.Resource.__init__(self)
 
     def getResponse(self, request):
@@ -164,6 +164,9 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
 
     def _cbRender(self, result, request):
         def finishRequest(result):
+            if self.debug:
+                #: write amf request and response to disk.
+                self.save_request(self.body, self.stream)
             request.setHeader("Content-Length", str(len(result)))
             request.write(result.getvalue())
             request.finish()    

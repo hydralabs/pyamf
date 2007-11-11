@@ -94,7 +94,9 @@ class WSGIGateway(gateway.BaseGateway):
             self.save_request(body, stream)
             raise
 
-        self.save_request(body, stream)
+        if self.debug:
+            #: write amf request and response to disk.
+            self.save_request(body, stream)
 
         start_response('200 OK', [
             ('Content-Type', remoting.CONTENT_TYPE),

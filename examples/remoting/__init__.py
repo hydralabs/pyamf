@@ -45,7 +45,7 @@ def run_wsgi(options, services):
     from pyamf.gateway.wsgi import WSGIGateway
     from wsgiref import simple_server
 
-    gw = WSGIGateway(services)
+    gw = WSGIGateway(services, options.debug)
 
     httpd = simple_server.WSGIServer(
         ('',int(options.port)),
@@ -72,7 +72,7 @@ def run_twisted(options, services):
 
     from pyamf.gateway.twistedmatrix import TwistedGateway
 
-    gw = TwistedGateway(services)
+    gw = TwistedGateway(services, options.debug)
     root = resource.Resource()
 
     root.putChild('', gw)
@@ -111,7 +111,8 @@ def parse_args(args):
         choices=('wsgi', 'twisted',), default='wsgi',
         help='Determines which server type to use')
     parser.add_option('-d', '--debug', action='store_true', dest='debug',
-        default=False)
-    parser.add_option('-p', '--port', dest='port', default=8000)
+        default=False, help='Write AMF request and response to disk')
+    parser.add_option('-p', '--port', dest='port', default=8000,
+                      help='The port number the server use')
 
     return parser.parse_args(args)

@@ -42,6 +42,12 @@ class ServiceWrapper(object):
     """
 
     def __init__(self, service, authenticator=None):
+        """
+        @param service:
+        @type service:
+        @param authenticator:
+        @type authenticator:
+        """
         self.service = service
         self.authenticator = authenticator
 
@@ -63,6 +69,14 @@ class ServiceRequest(object):
     """
 
     def __init__(self, request, service, method):
+        """
+        @param request:
+        @type request:
+        @param service:
+        @type service:
+        @param method:
+        @type method:
+        """
         self.request = request
         self.service = service
         self.method = method
@@ -72,7 +86,10 @@ class ServiceRequest(object):
 
     def authenticate(self, username, password):
         """
-        
+        @param username:
+        @type username:
+        @param password:
+        @type password:
         @return: Boolean determining whether the supplied credentials can
                  access the service
         @rtype: bool
@@ -89,14 +106,19 @@ class BaseGateway(object):
     """
     _request_class = ServiceRequest
 
-    def __init__(self, services):
+    def __init__(self, services, debug):
         """
         @param services: Initial services
         @type services: dict
+        @param debug: Enable debugging
+        @type debug: bool
         """
+        #:
         self.services = {}
         #: Number of requests from clients.
         self.request_number = 0
+        #:
+        self.debug = debug
 
         for name, service in services.iteritems():
             self.addService(service, name)
@@ -105,6 +127,7 @@ class BaseGateway(object):
         """
         Adds a service to the gateway.
 
+        @raise RemotingError: Service already exists
         @param service: The service to add to the gateway
         @type service: callable or a class instance
         @param name: The name of the service
@@ -135,10 +158,11 @@ class BaseGateway(object):
         """
         Returns a service based on the message
 
+        @raise RemotingError: Unknow service
         @param message: The AMF message
         @type message: L{Message<remoting.Message>}
         @return: A tuple containing the service and the method requested
-        @rtype: tuple
+        @rtype: tuple      
         """
         target = message.target
 
@@ -156,6 +180,11 @@ class BaseGateway(object):
     def save_request(self, body, stream):
         """
         Write AMF request to disk.
+
+        @param body: Body/contents of AMF request from the client.
+        @type body:
+        @param stream: Encoded output AMF message.
+        @type stream:
         """
         x = open('request_' + str(self.request_number) + ".in.amf", 'wb')
         x.write(body)
