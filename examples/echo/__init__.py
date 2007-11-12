@@ -160,11 +160,11 @@ def parse_args(args):
     parser = OptionParser()
     parser.add_option('-t', '--type', dest='type',
         choices=('wsgi', 'twisted',), default='wsgi',
-        help='Determines which server type to use')
+        help='Determines which AMF gateway type to use')
     parser.add_option('-d', '--debug', action='store_true', dest='debug',
         default=False, help='Write AMF request and response to disk')
     parser.add_option('--host', dest='host', default='localhost',
-                      help='The host address the server uses')
+                      help='The host address for the AMF gateway')
     parser.add_option('-p', '--port', dest='port', default=8000,
                       help='The port number the server uses')
 

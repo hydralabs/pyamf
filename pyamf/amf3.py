@@ -86,7 +86,7 @@ class ASTypes:
     # so we'll assume it is for the time being..
     #: @see: According to U{the OSFlash documentation
     #:<http://osflash.org/documentation/amf3>} this
-    # represents the legacy C{flash.xml.XMLDocument}.
+    #: represents the legacy C{flash.xml.XMLDocument}.
     XML        = 0x07
     #: 0×08 integer-data.
     DATE       = 0x08
@@ -394,7 +394,7 @@ class Decoder(object):
         @warning: There is a very specific problem with AMF3 where the first three bytes
         of an encoded empty C{dict} will mirror that of an encoded C{{'': 1, '2': 2}}
 
-        @see: U{docuverse blog
+        @bug: See the U{Docuverse blog
         <http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug>}
         for more information.
 
@@ -461,7 +461,7 @@ class Decoder(object):
         """
         Reads an object from the stream.
 
-        @raise DecodeError: The object encoding is unknown
+        @raise DecodeError: The object encoding is unknown.
         @return:
         @rtype:
         """
@@ -527,6 +527,7 @@ class Decoder(object):
         """
         Reads a string of data from the stream.
 
+        @see: L{ByteArray}
         @note: This is not supported by the AMF0 L{decoder<pyamf.amf0.Decoder>}
         @return:
         @rtype:
@@ -753,7 +754,7 @@ class Encoder(object):
         Writes a datetime instance to the stream.
 
         @type n: Instance of L{datetime}
-        @param  n: Date data
+        @param n: Date data
         """
         self.writeType(ASTypes.DATE)
 
@@ -776,7 +777,7 @@ class Encoder(object):
         Writes a tuple, set or list to the stream.
 
         @type n: One of __builtin__.tuple, __builtin__.set or __builtin__.list
-        @param  n: list data
+        @param n: list data
         """
         self.writeType(ASTypes.ARRAY)
 

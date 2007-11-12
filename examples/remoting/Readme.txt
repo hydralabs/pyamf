@@ -1,6 +1,7 @@
 = Remoting Examples =
 
-This folder contains simple remoting gateways for various frameworks:
+This folder contains examples that use the supported remoting gateways
+and clients for:
 
  - Django (http://djangoproject.org)
  - Twisted (http://twistedmatrix.com)
