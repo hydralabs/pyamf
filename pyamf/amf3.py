@@ -141,7 +141,13 @@ class ByteArray(util.StringIOProxy):
     """
     I am a C{StringIO} type object containing byte data from the AMF stream.
 
-    @see: U{ByteArray on livedocs (external)
+    Possible uses of the ByteArray class:
+
+     - Creating a custom protocol to connect to a client.
+     - Writing your own AMF/Remoting packet.
+     - Optimizing the size of your data by using data types.
+     
+    @see: U{ByteArray on Livedocs (external)
     <http://livedocs.adobe.com/flex/2/langref/flash/utils/ByteArray.html>}
     """
 
@@ -528,7 +534,7 @@ class Decoder(object):
         Reads a string of data from the stream.
 
         @see: L{ByteArray}
-        @note: This is not supported by the AMF0 L{decoder<pyamf.amf0.Decoder>}
+        @note: This is not supported in Actionscript 1.0 and 2.0.
         @return:
         @rtype:
         """
@@ -1052,6 +1058,7 @@ def decode_utf8_modified(data):
     @param  data:
     @return: Unicode string
     @rtype: str
+    @raise ValueError: Data is not valid modified UTF-8
     
     @see: U{UTF-8 Java on Wikipedia<http://en.wikipedia.org/wiki/UTF-8#Java>}
     for details.

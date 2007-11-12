@@ -377,7 +377,7 @@ class Encoder(object):
     
     The type map is a list of types -> functions. The types is a list of
     possible instances or functions to call (that return a bool) to determine
-    the correct function to call to encode the data
+    the correct function to call to encode the data.
     """
     #: Python to AMF type mappings.
     type_map = [
@@ -402,7 +402,7 @@ class Encoder(object):
         Output should be a writable file-like object.
 
         @type   output: StringIO
-        @param  output: file-like object
+        @param  output: File-like object.
         @type   context: L{Context}
         @param  context: Context
         """
@@ -418,8 +418,8 @@ class Encoder(object):
         Writes the type to the stream.
 
         @type   type: Integer
-        @param  type: ActionScript type
-        @raise EncodeError: AMF0 type is not recognized
+        @param  type: ActionScript type.
+        @raise EncodeError: AMF0 type is not recognized.
         """
         if type not in ACTIONSCRIPT_TYPES:
             raise pyamf.EncodeError("Unknown AMF0 type 0x%02x at %d" % (
@@ -438,10 +438,10 @@ class Encoder(object):
 
     def _writeElementFunc(self, data):
         """
-        Gets a function based on the type of data
+        Gets a function based on the type of data.
         
         @rtype: callable or None
-        @return: The function used to encode data to the stream
+        @return: The function used to encode data to the stream.
         """
         # There is a very specific use case that we must check for.
         # In the context there is an array of amf3_objs that contain references
@@ -492,7 +492,7 @@ class Encoder(object):
         Write array to the stream.
 
         @type   a: L{BufferedByteStream}
-        @param  a: AMF data
+        @param  a: AMF data.
         """
         try:
             self.writeReference(a)
@@ -513,7 +513,7 @@ class Encoder(object):
         Write number to data stream.
 
         @type   n: L{BufferedByteStream}
-        @param  n: AMF data
+        @param  n: AMF data.
         """
         self.writeType(ASTypes.NUMBER)
         self.output.write_double(float(n))
@@ -523,7 +523,7 @@ class Encoder(object):
         Write boolean to data stream.
 
         @type   b: L{BufferedByteStream}
-        @param  b: AMF data
+        @param  b: AMF data.
         """
         self.writeType(ASTypes.BOOL)
 
@@ -537,9 +537,9 @@ class Encoder(object):
         Write string to data stream.
 
         @type   s: L{BufferedByteStream}
-        @param  s: AMF data
+        @param  s: AMF data.
         @type   writeType: bool
-        @param  writeType: Write data type
+        @param  writeType: Write data type.
         """
         s = unicode(s).encode('utf8')
         if len(s) > 0xffff:
@@ -558,7 +558,7 @@ class Encoder(object):
         Write reference to data stream.
 
         @type   o: L{BufferedByteStream}
-        @param  o: AMF data
+        @param  o: AMF data.
         """
         idx = self.context.getObjectReference(o)
 
@@ -569,8 +569,8 @@ class Encoder(object):
         """
         Write dict to data stream.
 
-        @type   o: An iterable
-        @param  o: AMF data
+        @type   o: iterable
+        @param  o: AMF data.
         """
         for key, val in o.iteritems():
             self.writeString(key, False)
@@ -581,7 +581,7 @@ class Encoder(object):
         Write mixed array to data stream.
 
         @type   o: L{BufferedByteStream}
-        @param  o: AMF data
+        @param  o: AMF data.
         """
         try:
             self.writeReference(o)
@@ -623,7 +623,7 @@ class Encoder(object):
         Write object to the stream.
 
         @type   o: L{BufferedByteStream}
-        @param  o: AMF data
+        @param  o: AMF data.
         """
         try:
             self.writeReference(o)
@@ -673,7 +673,7 @@ class Encoder(object):
         Write XML to data stream.
 
         @type   e: L{BufferedByteStream}
-        @param  e: AMF data
+        @param  e: AMF data.
         """
         data = util.ET.tostring(e, 'utf8')
 
@@ -685,8 +685,8 @@ class Encoder(object):
         """
         Writes an element to the datastream in AMF3 format.
         
-        @param data: The data to be encoded
         @type data: mixed
+        @param data: The data to be encoded.
         """
         context = pyamf.Context()
         encoder = pyamf._get_encoder(pyamf.AMF3)(self.output, context)
@@ -699,9 +699,9 @@ def decode(stream, context=None):
     A helper function to decode an AMF0 datastream.
 
     @type   stream: L{BufferedByteStream}
-    @param  stream: AMF0 datastream
+    @param  stream: AMF0 datastream.
     @type   context: L{Context}
-    @param  context: Context
+    @param  context: Context.
     """
     decoder = Decoder(stream, context)
 
@@ -715,8 +715,8 @@ def encode(element, context=None):
     @type   element: 
     @param  element:
     @type   context: L{Context}
-    @param  context: Context
-    @return: file object
+    @param  context: Context.
+    @return: File object.
     @returntype: StringIO
     """
     buf = util.BufferedByteStream()
