@@ -76,13 +76,16 @@ class StringIOProxy(object):
         else:
             raise TypeError("Unable to coerce buf->StringIO")
 
-        self._buffer.seek(0)
+        self._len = self._buffer.tell()
+        self._buffer.seek(0, 0)
 
     def close(self):
         self._buffer.close()
+        self._len = -1
 
     def flush(self):
         self._buffer.flush()
+        self._len = 0
 
     def getvalue(self):
         return self._buffer.getvalue()
@@ -91,13 +94,20 @@ class StringIOProxy(object):
         return self._buffer.next()
 
     def read(self, n=-1):
-        return self._buffer.read(n)
+        bytes = self._buffer.read(n)
+        self._len = self._len - len(ret)
+
+        return bytes
 
     def readline(self, length=None):
-        return self._buffer.readline(length)
+        line = self._buffer.readline(length)
+        self._len = self._len - len(line)
+
+        return line
 
     def readlines(self, sizehint=0):
-        return self._buffer.readlines(sizehint)
+        lines = self._buffer.readlines(sizehint)
+        self._get_len()
 
     def seek(self, pos, mode=0):
         return self._buffer.seek(pos, mode)
@@ -106,22 +116,26 @@ class StringIOProxy(object):
         return self._buffer.tell()
 
     def truncate(self, size=None):
-        return self._buffer.truncate(size)
+        bytes = self._buffer.truncate(size)
+        self._get_len()
 
     def write(self, s):
         self._buffer.write(s)
+        self._len = self._len + len(s)
 
     def writelines(self, iterable):
         self._buffer.writelines(iterable)
+        self._get_len()
 
-    def __len__(self):
+    def _get_len(self):
         old_pos = self._buffer.tell()
         self._buffer.seek(0, 2)
 
-        pos = self._buffer.tell()
+        self._len = self._buffer.tell()
         self._buffer.seek(old_pos)
 
-        return pos
+    def __len__(self):
+        return self._len
 
 class NetworkIOMixIn(object):
     """
