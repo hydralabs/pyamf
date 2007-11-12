@@ -3,6 +3,7 @@
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
 # 
 # Nick Joyce
+# Thijs Triemstra
 # 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -24,22 +25,32 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Echo test example.
+Echo client and server examples.
 
-Supports Twisted and WSGI.
+Support for:
+
+ - U{Twisted<http://twistedmatrix.com>}
+ - U{WSGI<http://wsgi.org>}
+
+You can use this example with the echo_test.swf client on the
+U{EchoTest<http://pyamf.org/wiki/EchoTest>} wiki page.
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
+@author: U{Thijs Triemstra<mailto:info@collab.nl>}
+
+@since: 0.1.0
 """
 
 import os, os.path
 
-def run_wsgi(options, services):
+def run_wsgi_server(options, services):
     """
-    Runs the services using the L{WSGIGateway<pyamf.gateway.wsgi.WSGIGateway>}.
+    Runs the AMF services using the
+    L{WSGIGateway<pyamf.gateway.wsgi.WSGIGateway>}.
 
-    @param options:
-    @type options: 
-    @param services: List of services for the Flash gateway
+    @param options: commandline options
+    @type options: dict
+    @param services: List of services for the Flash gateway.
     @type services: dict
     @return: The function that will run the server.
     @rtype: callable
@@ -58,16 +69,16 @@ def run_wsgi(options, services):
 
     return httpd.serve_forever
 
-def run_twisted(options, services):
+def run_twisted_server(options, services):
     """
-    Runs the services using the
+    Runs the AMF services using the
     L{TwistedGateway<pyamf.gateway.twistedmatrix.TwistedGateway>}.
 
-    @param options:
-    @type options: 
+    @param options: commandline options
+    @type options: dict
     @param services: List of services for the Flash gateway.
     @type services: dict
-    @return: The function that will run the server
+    @return: The function that will run the server.
     @rtype: callable
     """
     from twisted.internet import reactor
@@ -90,32 +101,71 @@ def run_twisted(options, services):
 
 def run_server(name, options, services):
     """
-    Starts the server.
+    Starts the echo AMF server.
 
     @param options: commandline options
     @type options: dict
     @param services: List of services for the Flash gateway.
     @type services: dict
     """
-    if options.server == 'wsgi':
-        print "Started %s - WSGI server on port %d" % (name, int(options.port))
-        func = run_wsgi(options, services)
-    elif options.server == 'twisted':
-        print "Started %s - Twisted server on port %d" % (name, int(options.port))
-        func = run_twisted(options, services)
+    if options.type == 'wsgi':
+        print "Started %s - WSGI Server on http://%s:%d" % (name, options.host, int(options.port))
+        func = run_wsgi_server(options, services)
+    elif options.type == 'twisted':
+        print "Started %s - Twisted Server on http://%s:%d" % (name, options.host, int(options.port))
+        func = run_twisted_server(options, services)
 
     func()
 
+def run_twisted_client(options, service, result_func, fault_func):
+    """
+    Runs AMF services for a Twisted echo client.
+
+    @param options: commandline options
+    @type options: dict
+    @param service: Target service on the AMF gateway.
+    @type service: 
+    @return: The function that will run the client.
+    @rtype: callable
+    """
+    from twisted.internet import reactor
+    from pyamf.gateway.twistedmatrix import TwistedClient
+
+    client = TwistedClient(options, service, result_func, fault_func)
+    client.send("Hello World!")
+    
+    return reactor.run
+
+def run_client(name, options, service, result_func, fault_func):
+    """
+    Starts the echo AMF client.
+
+    @param options: commandline options.
+    @type options: dict
+    @param service: Target service on the AMF gateway.
+    @type service: dict
+    """
+    if options.type == 'twisted':
+        print "Started %s - Twisted Client for http://%s:%d" % (name, options.host, int(options.port))
+        func = run_twisted_client(options, service, result_func, fault_func)
+        
+    func()
+    
 def parse_args(args):
+    """
+    Parse commandline options.
+    """
     from optparse import OptionParser
 
     parser = OptionParser()
-    parser.add_option('-t', '--type', dest='server',
+    parser.add_option('-t', '--type', dest='type',
         choices=('wsgi', 'twisted',), default='wsgi',
         help='Determines which server type to use')
     parser.add_option('-d', '--debug', action='store_true', dest='debug',
         default=False, help='Write AMF request and response to disk')
+    parser.add_option('--host', dest='host', default='localhost',
+                      help='The host address the server uses')
     parser.add_option('-p', '--port', dest='port', default=8000,
-                      help='The port number the server use')
+                      help='The port number the server uses')
 
     return parser.parse_args(args)

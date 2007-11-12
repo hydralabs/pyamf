@@ -33,12 +33,12 @@ U{Twisted<http://twistedmatrix.com>} Server and Client implementations.
 @since: 0.1.0
 """
 from twisted.internet import defer, threads
-from twisted.web import resource, server
+from twisted.web import resource, server, client
 
 import pyamf
 from pyamf import remoting, gateway
 
-__all__ = ['TwistedGateway']
+__all__ = ['TwistedGateway', 'TwistedClient']
 
 class ServiceRequest(gateway.ServiceRequest):
     """
@@ -67,7 +67,7 @@ class ServiceRequest(gateway.ServiceRequest):
 
     def __call__(self, *args):
         return defer.maybeDeferred(self.service, self.method, args)
-
+ 
 class TwistedGateway(gateway.BaseGateway, resource.Resource):
     """
     Twisted Remoting gateway.
@@ -163,7 +163,11 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         return server.NOT_DONE_YET
 
     def _cbRender(self, result, request):
+        """
+        """
         def finishRequest(result):
+            """
+            """
             if self.debug:
                 #: write amf request and response to disk.
                 self.save_request(self.body, self.stream)
@@ -177,3 +181,49 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
     def _ebRender(self, failure):
         self.save_request(self.body, self.stream)
         print failure
+
+class TwistedClient(client.HTTPPageGetter):
+    """
+    Twisted Remoting client.
+    """
+
+    def __init__(self, options, service, result_func, fault_func):
+        """
+        @param service:
+        @type service:
+        """
+        self.resultHandler = result_func
+        self.faultHandler = fault_func
+        self.options = options
+
+    def send(self, data):
+        """
+        """
+        context = pyamf.Context()
+        response = pyamf.remoting.Message(None, None, None, None)
+        response.body = [data]
+        response.status = pyamf.remoting.STATUS_OK
+
+        env = pyamf.remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.FlashCom)
+        env['test.echo'] = response
+
+        data = pyamf.remoting.encode(env, context).getvalue()
+
+        endPoint = 'http://' + self.options.host + ":" + str(self.options.port)
+
+        postRequest = client.getPage(
+            endPoint,
+            method='POST',
+            headers={'Content-Type': pyamf.remoting.CONTENT_TYPE,
+                     'Content-Length': len(data)},
+            postdata=data)
+        
+        postRequest.addCallback(self.getResult).addErrback(self.faultHandler)      
+
+    def getResult(self, data):
+        """
+        """
+        context = pyamf.Context()
+        result = remoting.decode(data, context)
+        self.resultHandler(result)
+        

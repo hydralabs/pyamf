@@ -2,6 +2,7 @@
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
 # 
+# Thijs Triemstra
 # Nick Joyce
 # 
 # Permission is hereby granted, free of charge, to any person obtaining
@@ -24,16 +25,11 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Echo test server.
+Echo test client.
 
-Sample gateways for:
+You can use this example with the echo test server.
 
- - U{Twisted<http://twistedmatrix.com>}
- - U{WSGI<http://wsgi.org>}
-
-You can use this example with the echo_test.swf client on the
-U{EchoTest<http://pyamf.org/wiki/EchoTest>} wiki page.
-
+@author: U{Thijs Triemstra<mailto:info@collab.nl>}
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 """
 
@@ -43,7 +39,7 @@ ECHO_NS = 'org.red5.server.webapp.echo'
 
 class RemoteClass(object):
     """
-    This Python class is mapped to the clientside ActionScript class.
+    This class is mapped to a serverside Python class.
     """
     pass
 
@@ -51,16 +47,6 @@ class ExternalizableClass(object):
     """
     """
     pass
-
-def echo(data):
-    """
-    Return data back to the client.
-
-    @type data: mixed
-    @param data: Decoded AS->Python data
-    """
-    # Simply return the data back to the client
-    return data
 
 def read_ec(obj, input):
     """
@@ -131,11 +117,23 @@ register_class(RemoteClass, '%s.%s' % (ECHO_NS, 'RemoteClass'))
 register_class(ExternalizableClass, '%s.%s' % (ECHO_NS, 'ExternalizableClass'),
     write_func=write_ec, read_func=read_ec)
 
+def handleResult(data):
+    """
+    """    
+    for res in data:
+        print "Response:", res
+
+def handleError(failure):
+    """
+    """
+    print "Error:", failure.getErrorMessage()
+        
 if __name__ == '__main__':
     import sys
-    from __init__ import parse_args, run_server
+    from __init__ import parse_args, run_client
 
     options = parse_args(sys.argv[1:])
-    services = {'echo': echo}
+    
+    service = {'echo':None}
 
-    run_server('Echo Test', options[0], services)
+    run_client('Echo Test', options[0], service, handleResult, handleError)
