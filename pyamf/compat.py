@@ -26,6 +26,8 @@
 """
 Contains compatibility classes/functions for Python -> Flex and vice versa.
 
+Not available in Actionscript 1.0 and 2.0.
+
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
 @since: 0.1.0
@@ -40,7 +42,8 @@ class DataOutput(object):
     This class is the I/O counterpart to the L{DataInput} class, which reads
     binary data.
 
-    @see: U{http://livedocs.adobe.com/flex/201/langref/flash/utils/IDataOutput.html}
+    @see: U{Livedocs (external)
+    <http://livedocs.adobe.com/flex/201/langref/flash/utils/IDataOutput.html>}
     """
     def __init__(self, encoder):
         self.encoder = encoder
@@ -101,13 +104,19 @@ class DataInput(object):
     This class is the I/O counterpart to the L{DataOutput} class,
     which writes binary data.
 
-    @see: U{http://livedocs.adobe.com/flex/201/langref/flash/utils/IDataInput.html}
+    @see: U{Livedocs (external)
+    <http://livedocs.adobe.com/flex/201/langref/flash/utils/IDataInput.html>}
     """
     def __init__(self, decoder):
         self.decoder = decoder
         self.stream = decoder.input
 
     def readBoolean(self):
+        """
+        Read boolean.
+
+        @raise ValueError: Error reading boolean.
+        """
         byte = self.stream.read(1)
 
         if byte == '\x00':
@@ -171,7 +180,8 @@ class ArrayCollection(dict):
     and properties of the ICollectionView or IList interfaces in the Flex
     framework.
 
-    @see: U{http://livedocs.adobe.com/flex/2/langref/mx/collections/ArrayCollection.html}
+    @see: U{Livedocs (external)
+    <http://livedocs.adobe.com/flex/2/langref/mx/collections/ArrayCollection.html>}
     """
 
     def __repr__(self):
@@ -197,12 +207,14 @@ pyamf.register_class(ArrayCollection, 'flex.messaging.io.ArrayCollection',
 
 class ObjectProxy(pyamf.Bag):
     """
-    I represent an C{flex.messaging.io.ObjectProxy} ActionScript object.
+    I represent the ActionScript 3 based class C{flex.messaging.io.ObjectProxy}
+    used in the Flex framework.
 
     This class provides the ability to track changes to an item managed by this
     proxy.
 
-    @see: U{http://livedocs.adobe.com/flex/2/langref/mx/utils/ObjectProxy.html}
+    @see: U{Livedocs (external)
+    <http://livedocs.adobe.com/flex/2/langref/mx/utils/ObjectProxy.html>}
     """
 
     def __repr__(self):
