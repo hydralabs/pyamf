@@ -165,7 +165,7 @@ class ArrayCollection(dict):
     """
     I represent the ActionScript 3 based class C{flex.messaging.io.ArrayCollection}
     used in the Flex framework.
-    
+
     The ArrayCollection class is a wrapper class that exposes an Array as
     a collection that can be accessed and manipulated using the methods
     and properties of the ICollectionView or IList interfaces in the Flex
@@ -199,13 +199,21 @@ class ObjectProxy(pyamf.Bag):
     """
     I represent an C{flex.messaging.io.ObjectProxy} ActionScript object.
 
-    This class provides the ability to track changes to an item managed by this proxy.
-    
+    This class provides the ability to track changes to an item managed by this
+    proxy.
+
     @see: U{http://livedocs.adobe.com/flex/2/langref/mx/utils/ObjectProxy.html}
     """
 
     def __repr__(self):
-        return "<flex.messaging.io.ObjectProxy %s>" % dict.__repr__(self.__dict__)
+        return "<flex.messaging.io.ObjectProxy %s>" %  dict.__repr__(
+            self.__dict__)
+
+def read_ObjectProxy(obj, input):
+    obj._object = input.readObject()
+
+def write_ObjectProxy(obj, output):
+    output.writeObject(obj._object)
 
 pyamf.register_class(ObjectProxy, 'flex.messaging.io.ObjectProxy',
-    read_func=read_ArrayCollection, write_func=write_ArrayCollection)
+    read_func=read_ObjectProxy, write_func=write_ObjectProxy)
