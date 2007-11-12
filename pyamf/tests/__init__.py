@@ -38,7 +38,7 @@ Tests for PyAMF.
 
 import unittest
 
-from pyamf import Bag, ClassAlias
+import pyamf
 
 class BagTestCase(unittest.TestCase):
     """
@@ -46,26 +46,26 @@ class BagTestCase(unittest.TestCase):
     """
 
     def test_init(self):
-        bag = Bag(dict(foo='bar', baz='foo'))
+        bag = pyamf.Bag(dict(foo='bar', baz='foo'))
 
         self.assertEquals(bag, dict(foo='bar', baz='foo'))
         self.assertEquals(bag.foo, 'bar')
         self.assertEquals(bag.baz, 'foo')
 
     def test_eq(self):
-        bag = Bag()
+        bag = pyamf.Bag()
 
         self.assertEquals(bag, {})
         self.assertNotEquals(bag, {'foo': 'bar'})
 
-        bag2 = Bag()
+        bag2 = pyamf.Bag()
 
         self.assertEquals(bag2, {})
         self.assertEquals(bag, bag2)
         self.assertNotEquals(bag, None)
 
     def test_setitem(self):
-        bag = Bag()
+        bag = pyamf.Bag()
 
         self.assertEquals(bag, {})
         
@@ -74,7 +74,7 @@ class BagTestCase(unittest.TestCase):
         self.assertEquals(bag.foo, 'bar')
 
     def test_delitem(self):
-        bag = Bag({'foo': 'bar'})
+        bag = pyamf.Bag({'foo': 'bar'})
 
         self.assertEquals(bag.foo, 'bar')
         del bag['foo']
@@ -82,12 +82,12 @@ class BagTestCase(unittest.TestCase):
         self.assertRaises(AttributeError, lambda: bag.foo)
     
     def test_getitem(self):
-        bag = Bag({'foo': 'bar'})
+        bag = pyamf.Bag({'foo': 'bar'})
 
         self.assertEquals(bag['foo'], 'bar')
 
     def test_iter(self):
-        bag = Bag({'foo': 'bar'})
+        bag = pyamf.Bag({'foo': 'bar'})
 
         x = []
 
@@ -105,7 +105,7 @@ class ClassAliasTestCase(unittest.TestCase):
     """
 
     def test_init(self):
-        x = ClassAlias(Foo, 'org.example.foo.Foo')
+        x = pyamf.ClassAlias(Foo, 'org.example.foo.Foo')
 
         self.assertEquals(x.klass, Foo)
         self.assertEquals(x.alias, 'org.example.foo.Foo')
@@ -113,7 +113,7 @@ class ClassAliasTestCase(unittest.TestCase):
         self.assertEquals(x.write_func, None)
         self.assertEquals(x.encoding, None)
 
-        x = ClassAlias(Foo, 'org.example.foo.Foo', read_func=ord,
+        x = pyamf.ClassAlias(Foo, 'org.example.foo.Foo', read_func=ord,
             write_func=str, encoding='123')
 
         self.assertEquals(x.klass, Foo)
@@ -123,22 +123,45 @@ class ClassAliasTestCase(unittest.TestCase):
         self.assertEquals(x.encoding, '123')
 
     def test_bad_class(self):
-        self.assertRaises(TypeError, ClassAlias, 'bar', 'blah')
+        self.assertRaises(TypeError, pyamf.ClassAlias, 'bar', 'blah')
 
     def test_bad_read_func(self):
-        self.assertRaises(TypeError, ClassAlias, 'bar', 'blah',
+        self.assertRaises(TypeError, pyamf.ClassAlias, 'bar', 'blah',
             read_func='asdfasdf')
 
     def test_bad_write_func(self):
-        self.assertRaises(TypeError, ClassAlias, 'bar', 'blah',
+        self.assertRaises(TypeError, pyamf.ClassAlias, 'bar', 'blah',
             write_func='asdfasdf')
 
     def test_call(self):
-        x = ClassAlias(Foo, 'org.example.foo.Foo')
+        x = pyamf.ClassAlias(Foo, 'org.example.foo.Foo')
 
         y = x()
 
         self.assertTrue(isinstance(y, Foo))
+
+class HelperTestCase(unittest.TestCase):
+    def test_get_decoder(self):
+        from pyamf import amf0, amf3
+
+        decoder = pyamf._get_decoder(pyamf.AMF0)
+	self.assertEquals(decoder, amf0.Decoder)
+
+        decoder = pyamf._get_decoder(pyamf.AMF3)
+        self.assertEquals(decoder, amf3.Decoder)
+
+        self.assertRaises(ValueError, pyamf._get_decoder, 'foo')
+
+    def test_get_encoder(self):
+        from pyamf import amf0, amf3
+
+	encoder = pyamf._get_encoder(pyamf.AMF0)
+	self.assertEquals(encoder, amf0.Encoder)
+
+        encoder = pyamf._get_encoder(pyamf.AMF3)
+	self.assertEquals(encoder, amf3.Encoder)
+
+        self.assertRaises(ValueError, pyamf._get_encoder, 'foo')
 
 def suite():
     import pyamf
@@ -148,6 +171,7 @@ def suite():
 
     suite.addTest(unittest.makeSuite(BagTestCase))
     suite.addTest(unittest.makeSuite(ClassAliasTestCase))
+    suite.addTest(unittest.makeSuite(HelperTestCase))
     suite.addTest(amf0.suite())
     suite.addTest(amf3.suite())
     suite.addTest(remoting.suite())
