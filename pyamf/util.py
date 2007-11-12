@@ -26,7 +26,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-PyAMF utilities.
+AMF Utilities.
 
 @author: U{Arnar Birgisson<mailto:arnarbi@gmail.com>}
 @author: U{Thijs Triemstra<mailto:info@collab.nl>}
@@ -53,13 +53,18 @@ except ImportError:
 
 class StringIOProxy(object):
     """
-    I am a StringIO type object containing byte data from the AMF stream.
+    I am a C{StringIO} type object containing byte data from the AMF stream.
 
     @see: U{http://osflash.org/documentation/amf3#x0c_-_bytearray}
     @see: U{http://osflash.org/documentation/amf3/parsing_byte_arrays}
     """
 
     def __init__(self, buf):
+        """
+        @param buf:
+        @type buf:
+        @raise TypeError: Unable to coerce buffer to C{StringIO}.
+        """
         self._buffer = StringIO()
 
         if isinstance(buf, (str, unicode)):
@@ -139,7 +144,7 @@ class StringIOProxy(object):
 
 class NetworkIOMixIn(object):
     """
-    Provides mix-in methods for file like objects to read and write basic
+    Provides mix-in methods for file-like objects to read and write basic
     datatypes in network (= big-endian) byte-order.
     """
 
@@ -192,6 +197,12 @@ class NetworkIOMixIn(object):
         return struct.unpack("!f", self.read(4))[0]
 
     def read_utf8_string(self, length):
+        """
+        @param length:
+        @type length:
+        @rtype:
+        @return:
+        """
         str = struct.unpack("%ds" % length, self.read(length))[0]
         return unicode(str, "utf8")
 
@@ -200,17 +211,29 @@ class NetworkIOMixIn(object):
 
 class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
     """
-    An extension of L{StringIO} that:
-     - Raises EOFError if reading past end.
+    An extension of C{StringIO}.
+
+    Features:
+     - Raises C{EOFError} if reading past end.
      - Allows you to peek() at the next byte.
     """
 
     def __init__(self, buf=''):
+        """
+        @param buf:
+        @type buf:
+        """
         StringIOProxy.__init__(self, buf=buf)
 
     def read(self, length=-1):
         """
         Read bytes from stream.
+
+        @raise EOFError: Reading past end of stream.
+        @param length:
+        @type length:
+        @rtype:
+        @return:
         """
         if length > 0 and self.at_eof():
             raise EOFError
@@ -222,6 +245,11 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
         """
         Looks size bytes ahead in the stream, returning what it finds,
         returning the stream pointer to its initial position.
+
+        @param length:
+        @type length:
+        @rtype:
+        @return: Bytes.
         """
         if size == -1:
             return self.peek(len(self) - self.tell())
@@ -238,19 +266,30 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
 
     def at_eof(self):
         """
-        Returns true if next .read(1) will trigger L{EOFError}.
+        Returns true if next .read(1) will trigger C{EOFError}.
+
+        @rtype: bool
+        @return:
         """
         return self.tell() >= len(self)
 
     def remaining(self):
         """
         Returns number of remaining bytes.
+
+        @rtype: number
+        @return: Number of remaining bytes.
         """
         return len(self) - self.tell()
 
 def hexdump(data):
     """
-    Hexadecimal representation of L{StringIO} data.
+    Get hexadecimal representation of C{StringIO} data.
+
+    @type data:
+    @param data:
+    @rtype:
+    @return: Buffer.
     """
     import string
 
@@ -276,15 +315,15 @@ def hexdump(data):
 
 def get_timestamp(d):
     """
-    Returns a UTC timestamp for a datetime.datetime object.
+    Returns a UTC timestamp for a C{datetime.datetime} object.
 
     @type d:
     @param d:
-    @return: UTC timestamp
+    @return: UTC timestamp.
     @rtype: str
     
-    @see: inspiration taken from
-    U{http://intertwingly.net/blog/2007/09/02/Dealing-With-Dates}
+    @see: Inspiration taken from the U{Intertwingly blog
+    <http://intertwingly.net/blog/2007/09/02/Dealing-With-Dates>}.
     """
     return calendar.timegm(d.utctimetuple())
 
@@ -293,6 +332,8 @@ def get_datetime(ms):
     Return a UTC date from a timestamp.
 
     @type ms:
-    @param ms: nanoseconds since 1970
+    @param ms: Nanoseconds since 1970.
+    @return: UTC timestamp.
+    @rtype: C{datetime.datetime}
     """
     return datetime.datetime.utcfromtimestamp(ms)
