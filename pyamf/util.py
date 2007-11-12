@@ -95,7 +95,7 @@ class StringIOProxy(object):
 
     def read(self, n=-1):
         bytes = self._buffer.read(n)
-        self._len = self._len - len(ret)
+        self._len = self._len - len(bytes)
 
         return bytes
 
