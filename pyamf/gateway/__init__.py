@@ -33,7 +33,7 @@ Server/client implementations for PyAMF.
 @since: 0.1.0
 """
 
-import sys, traceback
+import sys, traceback, types
 
 from pyamf import remoting
 
@@ -58,6 +58,21 @@ class ServiceWrapper(object):
         return cmp(self.service, other)
 
     def __call__(self, method, params):
+        """
+        Executes the service. If the service is a class, it will be instantiated
+
+        @param method: The method to call on the service
+        @type method: None or mixed
+        @param params: The params to pass to the service
+        @type params: list or tuple
+        @return: The result of the execution
+        @rtype: mixed
+        """
+        if isinstance(self.service, (type, types.ClassType)):
+            service = self.service()
+        else:
+            service = self.service
+
         if method is not None:
             return getattr(self.service, method)(*params)
 
@@ -86,6 +101,8 @@ class ServiceRequest(object):
 
     def authenticate(self, username, password):
         """
+        Authenticates the supplied credentials for the service.
+
         @param username:
         @type username:
         @param password:
@@ -102,7 +119,7 @@ class ServiceRequest(object):
 
 class BaseGateway(object):
     """
-    Generic remoting gateway class.
+    Generic remoting gateway
     """
     _request_class = ServiceRequest
 
