@@ -59,7 +59,7 @@ class StringIOProxy(object):
     @see: U{http://osflash.org/documentation/amf3/parsing_byte_arrays}
     """
 
-    def __init__(self, buf):
+    def __init__(self, buf=None):
         """
         @param buf:
         @type buf:
@@ -317,7 +317,7 @@ def get_timestamp(d):
     """
     Returns a UTC timestamp for a C{datetime.datetime} object.
 
-    @type d:
+    @type d: L{datetime.datetime}
     @param d:
     @return: UTC timestamp.
     @rtype: str
@@ -327,13 +327,13 @@ def get_timestamp(d):
     """
     return calendar.timegm(d.utctimetuple())
 
-def get_datetime(ms):
+def get_datetime(secs):
     """
     Return a UTC date from a timestamp.
 
-    @type ms:
-    @param ms: Nanoseconds since 1970.
+    @type secs: long
+    @param secs: seconds since 1970
     @return: UTC timestamp.
     @rtype: C{datetime.datetime}
     """
-    return datetime.datetime.utcfromtimestamp(ms)
+    return datetime.datetime.utcfromtimestamp(secs)
