@@ -45,7 +45,7 @@ setup(name = "PyAMF",
     },
     extras_require={
         'wsgi': ['wsgiref'],
-        'twisted': ['Twisted>=2.5.0'],
+        'twisted': ['Twisted>=2.5.0','zope.interface>=3.0.0'],
         'django': ['Django>=0.96']
     },
     classifiers = [
