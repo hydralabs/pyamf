@@ -155,44 +155,72 @@ class NetworkIOMixIn(object):
     datatypes in network (= big-endian) byte-order.
     """
 
+    def _read(self, length):
+        bytes = self.read(length)
+
+        if len(bytes) != length:
+            self.seek(0 - len(bytes), 1)
+
+            raise EOFError("Tried to read %d byte(s) from the stream" % length)
+
+        return bytes
+
     def read_uchar(self):
-        return struct.unpack("!B", self.read(1))[0]
+        return struct.unpack("!B", self._read(1))[0]
 
     def write_uchar(self, c):
+        if not 0 <= c <= 256:
+            raise ValueError("c not in range (%d)" % c)
+
         self.write(struct.pack("!B", c))
 
     def read_char(self):
-        return struct.unpack("!b", self.read(1))[0]
+        return struct.unpack("!b", self._read(1))[0]
 
     def write_char(self, c):
+        if not -128 <= c <= 127:
+            raise ValueError("c not in range (%d)" % c)
+
         self.write(struct.pack("!b", c))
 
     def read_ushort(self):
-        return struct.unpack("!H", self.read(2))[0]
+        return struct.unpack("!H", self._read(2))[0]
 
     def write_ushort(self, s):
+        if not 0 <= s <= 65536:
+            raise ValueError("not in range (%d)" % s)
+
         self.write(struct.pack("!H", s))
 
     def read_short(self):
-        return struct.unpack("!h", self.read(2))[0]
+        return struct.unpack("!h", self._read(2))[0]
 
     def write_short(self, s):
+        if not -32768 <= s <= 32767:
+            raise ValueError("not in range (%d)" % s)
+
         self.write(struct.pack("!h", s))
 
     def read_ulong(self):
-        return struct.unpack("!L", self.read(4))[0]
+        return struct.unpack("!L", self._read(4))[0]
 
     def write_ulong(self, l):
+        if not 0 <= l <= 4294967295:
+            raise ValueError("not in range (%d)" % l)
+
         self.write(struct.pack("!L", l))
 
     def read_long(self):
-        return struct.unpack("!l", self.read(4))[0]
+        return struct.unpack("!l", self._read(4))[0]
 
     def write_long(self, l):
+        if not -2147483648 <= l <= 2147483647:
+            raise ValueError("not in range (%d)" % l)
+
         self.write(struct.pack("!l", l))
 
     def read_double(self):
-        return struct.unpack("!d", self.read(8))[0]
+        return struct.unpack("!d", self._read(8))[0]
 
     def write_double(self, d):
         self.write(struct.pack("!d", d))
@@ -201,7 +229,7 @@ class NetworkIOMixIn(object):
         self.write(struct.pack("!f", f))
 
     def read_float(self):
-        return struct.unpack("!f", self.read(4))[0]
+        return struct.unpack("!f", self._read(4))[0]
 
     def read_utf8_string(self, length):
         """

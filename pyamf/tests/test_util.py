@@ -285,6 +285,195 @@ class cStringIOProxyTestCase(StringIOProxyTestCase):
         self.previous = util.StringIOProxy._wrapped_class
         util.StringIOProxy._wrapped_class = StringIO
 
+class NetworkStream(util.StringIOProxy, util.NetworkIOMixIn):
+    pass
+
+class NetworkIOMixInTestCase(unittest.TestCase):
+    def test_create(self):
+        x = NetworkStream()
+
+    def test_read_uchar(self):
+        x = NetworkStream('abc')
+
+        self.assertEquals(x.getvalue(), 'abc')
+        self.assertEquals(x.tell(), 0)
+        self.assertEquals(x.read_uchar(), ord('a'))
+        self.assertEquals(x.tell(), 1)
+
+    def test_write_uchar(self):
+        x = NetworkStream()
+
+        self.assertEquals(x.getvalue(), '')
+        self.assertEquals(x.tell(), 0)
+
+        x.write_uchar(ord('a'))
+        self.assertEquals(x.getvalue(), 'a')
+
+        self.assertRaises(ValueError, x.write_uchar, 257)
+        self.assertRaises(ValueError, x.write_uchar, -1)
+
+    def test_read_uchar(self):
+        x = NetworkStream('abc')
+
+        self.assertEquals(x.read_uchar(), ord('a'))
+        self.assertEquals(x.read_uchar(), ord('b'))
+        self.assertEquals(x.read_uchar(), ord('c'))
+        self.assertEquals(x.tell(), 3)
+
+        self.assertRaises(EOFError, x.read_uchar)
+
+    def test_write_char(self):
+        x = NetworkStream()
+
+        self.assertEquals(x.getvalue(), '')
+        self.assertEquals(x.tell(), 0)
+
+        x.write_char(ord('a'))
+        self.assertEquals(x.getvalue(), 'a')
+
+        self.assertRaises(ValueError, x.write_char, 128)
+        self.assertRaises(ValueError, x.write_char, -129)
+
+    def test_read_char(self):
+        x = NetworkStream('abc')
+
+        self.assertEquals(x.read_char(), ord('a'))
+        self.assertEquals(x.read_char(), ord('b'))
+        self.assertEquals(x.read_char(), ord('c'))
+        self.assertEquals(x.tell(), 3)
+
+        self.assertRaises(EOFError, x.read_char)
+
+    def test_write_ushort(self):
+        x = NetworkStream()
+
+        self.assertEquals(x.getvalue(), '')
+        self.assertEquals(x.tell(), 0)
+
+        x.write_ushort(ord('a'))
+        self.assertEquals(x.getvalue(), '\x00a')
+
+        self.assertRaises(ValueError, x.write_ushort, 65537)
+        self.assertRaises(ValueError, x.write_ushort, -1)
+
+    def test_read_ushort(self):
+        x = NetworkStream('abc')
+
+        self.assertEquals(x.read_ushort(), ord('a') << 8 | ord('b'))
+        self.assertEquals(x.tell(), 2)
+
+        self.assertRaises(EOFError, x.read_ushort)
+        self.assertEquals(x.tell(), 2)
+
+    def test_write_short(self):
+        x = NetworkStream()
+
+        self.assertEquals(x.getvalue(), '')
+        self.assertEquals(x.tell(), 0)
+
+        x.write_short(ord('a'))
+        self.assertEquals(x.getvalue(), '\x00a')
+
+        self.assertRaises(ValueError, x.write_short, 32768)
+        self.assertRaises(ValueError, x.write_short, -32769)
+
+    def test_read_short(self):
+        x = NetworkStream('abc')
+
+        self.assertEquals(x.read_short(), ord('a') << 8 | ord('b'))
+
+        self.assertRaises(EOFError, x.read_short)
+
+    def test_write_ulong(self):
+        x = NetworkStream()
+
+        self.assertEquals(x.getvalue(), '')
+        self.assertEquals(x.tell(), 0)
+
+        x.write_ulong(ord('a'))
+        self.assertEquals(x.getvalue(), '\x00\x00\x00a')
+
+        self.assertRaises(ValueError, x.write_ulong, 4294967296L)
+        self.assertRaises(ValueError, x.write_ulong, -1)
+
+    def test_read_ulong(self):
+        x = NetworkStream('\xff\xff\xff\xff')
+
+        self.assertEquals(x.read_ulong(), 4294967295L)
+        self.assertEquals(x.tell(), 4)
+
+        self.assertRaises(EOFError, x.read_ulong)
+        self.assertEquals(x.tell(), 4)
+
+    def test_write_long(self):
+        x = NetworkStream()
+
+        self.assertEquals(x.getvalue(), '')
+        self.assertEquals(x.tell(), 0)
+
+        x.write_long(ord('a'))
+        self.assertEquals(x.getvalue(), '\x00\x00\x00a')
+
+        self.assertRaises(ValueError, x.write_long, 2147483648)
+        self.assertRaises(ValueError, x.write_long, -2147483649)
+
+    def test_read_long(self):
+        x = NetworkStream('\xff\xff\xff\xff')
+
+        self.assertEquals(x.read_long(), -1)
+        self.assertEquals(x.tell(), 4)
+
+        self.assertRaises(EOFError, x.read_long)
+
+    def test_write_float(self):
+        x = NetworkStream()
+
+        self.assertEquals(x.getvalue(), '')
+        self.assertEquals(x.tell(), 0)
+
+        x.write_float(0.2)
+        self.assertEquals(x.getvalue(), '>L\xcc\xcd')
+
+    def test_read_float(self):
+        x = NetworkStream('>L\xcc\xcd')
+
+        self.assertEquals(str(x.read_float())[:3], str(0.2))
+        self.assertEquals(x.tell(), 4)
+
+        self.assertRaises(EOFError, x.read_float)
+
+    def test_write_double(self):
+        x = NetworkStream()
+
+        self.assertEquals(x.getvalue(), '')
+        self.assertEquals(x.tell(), 0)
+
+        x.write_double(0.2)
+        self.assertEquals(x.getvalue(), '?\xc9\x99\x99\x99\x99\x99\x9a')
+
+    def test_read_double(self):
+        x = NetworkStream('?\xc9\x99\x99\x99\x99\x99\x9a')
+
+        self.assertEquals(x.read_double(), 0.2)
+        self.assertEquals(x.tell(), 8)
+
+        self.assertRaises(EOFError, x.read_double)
+
+    def test_write_utf8_string(self):
+        x = NetworkStream()
+
+        self.assertEquals(x.getvalue(), '')
+        self.assertEquals(x.tell(), 0)
+
+        x.write_utf8_string(u'ᚠᛇᚻ')
+        self.assertEquals(x.getvalue(), '\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb')
+        self.assertEquals(x.tell(), 9)
+
+    def test_read_utf8_string(self):
+        x = NetworkStream('\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb')
+
+        self.assertEquals(x.read_utf8_string(9), u'ᚠᛇᚻ')
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -296,6 +485,8 @@ def suite():
         suite.addTest(unittest.makeSuite(cStringIOProxyTestCase))
     except ImportError:
         pass
+
+    suite.addTest(unittest.makeSuite(NetworkIOMixInTestCase))
 
     return suite
 
