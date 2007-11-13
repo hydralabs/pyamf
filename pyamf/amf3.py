@@ -219,9 +219,9 @@ class Decoder(object):
         @param  context: Context
         """
         if isinstance(data, util.BufferedByteStream):
-            self.input = data
+            self.stream = data
         else:
-            self.input = util.BufferedByteStream(data)
+            self.stream = util.BufferedByteStream(data)
 
         if context == None:
             context = pyamf.Context()
@@ -236,11 +236,11 @@ class Decoder(object):
         @return: AMF3 type
         @rtype: int
         """
-        type = self.input.read_uchar()
+        type = self.stream.read_uchar()
 
         if type not in ACTIONSCRIPT_TYPES:
             raise pyamf.DecodeError("Unknown AMF3 type 0x%02x at %d" % (
-                type, self.input.tell() - 1))
+                type, self.stream.tell() - 1))
 
         return type
 
@@ -275,7 +275,7 @@ class Decoder(object):
         """
         Read number.
         """
-        return self.input.read_double()
+        return self.stream.read_double()
 
     def readElement(self):
         """
@@ -310,13 +310,13 @@ class Decoder(object):
         @rtype:
         """
         n = 0
-        b = self.input.read_uchar()
+        b = self.stream.read_uchar()
         result = 0
 
         while b & 0x80 and n < 3:
             result <<= 7
             result |= b & 0x7f
-            b = self.input.read_uchar()
+            b = self.stream.read_uchar()
             n += 1
 
         if n < 3:
@@ -350,7 +350,7 @@ class Decoder(object):
         if use_references and is_reference:
             return self.context.getString(length)
 
-        buf = self.input.read(length)
+        buf = self.stream.read(length)
 
         try:
             # Try decoding as regular utf8 first since that will
@@ -389,7 +389,7 @@ class Decoder(object):
         if ref & REFERENCE_BIT == 0:
             return self.context.getObject(ref >> 1)
 
-        ms = self.input.read_double()
+        ms = self.stream.read_double()
         result = util.get_datetime(ms / 1000.0)
 
         self.context.addObject(result)
@@ -525,7 +525,7 @@ class Decoder(object):
         if ref & REFERENCE_BIT == 0:
             return self.context.getObject(ref >> 1)
 
-        xmlstring = self.input.read(ref >> 1)
+        xmlstring = self.stream.read(ref >> 1)
         
         x = util.ET.XML(xmlstring)
         self.context.addObject(x)
@@ -546,7 +546,7 @@ class Decoder(object):
         if ref & REFERENCE_BIT == 0:
             return self.context.getObject(ref >> 1)
 
-        buffer = self.input.read(ref >> 1)
+        buffer = self.stream.read(ref >> 1)
 
         try:
             buffer = zlib.decompress(buffer)
@@ -593,7 +593,7 @@ class Encoder(object):
         @type   context: L{Context}
         @param  context: Context
         """
-        self.output = output
+        self.stream = output
 
         if context == None:
             context = pyamf.Context()
@@ -610,9 +610,9 @@ class Encoder(object):
         """
         if type not in ACTIONSCRIPT_TYPES:
             raise pyamf.EncodeError("Unknown AMF3 type 0x%02x at %d" % (
-                type, self.output.tell() - 1))
+                type, self.stream.tell() - 1))
 
-        self.output.write_uchar(type)
+        self.stream.write_uchar(type)
 
     def _writeElementFunc(self, data):
         """
@@ -697,9 +697,9 @@ class Encoder(object):
 
         for x in bytes[:-1]:
             if x > 0:
-                self.output.write_uchar(x | 0x80)
+                self.stream.write_uchar(x | 0x80)
 
-        self.output.write_uchar(bytes[-1])
+        self.stream.write_uchar(bytes[-1])
 
     def writeInteger(self, n, use_references=True):
         """
@@ -719,7 +719,7 @@ class Encoder(object):
         @param  n: number data
         """
         self.writeType(ASTypes.NUMBER)
-        self.output.write_double(n)
+        self.stream.write_double(n)
 
     def _writeString(self, n, use_references=True):
         """
@@ -746,7 +746,7 @@ class Encoder(object):
         self._writeInteger((len(s) << 1) | REFERENCE_BIT)
 
         for ch in s:
-            self.output.write_uchar(ord(ch))
+            self.stream.write_uchar(ord(ch))
 
     def writeString(self, n, use_references=True):
         """
@@ -779,7 +779,7 @@ class Encoder(object):
         self._writeInteger(REFERENCE_BIT)
 
         ms = util.get_timestamp(n)
-        self.output.write_double(ms * 1000.0)
+        self.stream.write_double(ms * 1000.0)
 
     def writeList(self, n, use_references=True):
         """
@@ -800,7 +800,7 @@ class Encoder(object):
 
         self._writeInteger(len(n) << 1 | REFERENCE_BIT)
 
-        self.output.write_uchar(0x01)
+        self.stream.write_uchar(0x01)
         for x in n:
             self.writeElement(x)
 
@@ -869,7 +869,7 @@ class Encoder(object):
             self._writeString(x)
             self.writeElement(n[x])
 
-        self.output.write_uchar(0x01)
+        self.stream.write_uchar(0x01)
 
         for k in int_keys:
             self.writeElement(n[k])
@@ -1001,7 +1001,7 @@ class Encoder(object):
 
         l = len(buf)
         self._writeInteger(l << 1 | REFERENCE_BIT)
-        self.output.write(buf)
+        self.stream.write(buf)
 
     def writeXML(self, n, use_references=True):
         """

@@ -54,7 +54,7 @@ class EncoderTester(object):
 
     def __init__(self, encoder, data):
         self.encoder = encoder
-        self.buf = encoder.output
+        self.buf = encoder.stream
         self.data = data
 
     def getval(self):
@@ -77,7 +77,7 @@ class DecoderTester(object):
 
     def __init__(self, decoder, data):
         self.decoder = decoder
-        self.buf = decoder.input
+        self.buf = decoder.stream
         self.data = data
 
     def run(self, testcase):

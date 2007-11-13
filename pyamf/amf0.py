@@ -158,9 +158,9 @@ class Decoder(object):
         """
         # coersce data to BufferedByteStream
         if isinstance(data, util.BufferedByteStream):
-            self.input = data
+            self.stream = data
         else:
-            self.input = util.BufferedByteStream(data)
+            self.stream = util.BufferedByteStream(data)
 
         if context == None:
             self.context = pyamf.Context()
@@ -174,11 +174,11 @@ class Decoder(object):
         @return: AMF0 type
         @raise DecodeError: AMF0 type not recognized
         """
-        type = self.input.read_uchar()
+        type = self.stream.read_uchar()
 
         if type not in ACTIONSCRIPT_TYPES:
             raise pyamf.DecodeError("Unknown AMF0 type 0x%02x at %d" % (
-                type, self.input.tell() - 1))
+                type, self.stream.tell() - 1))
 
         return type
 
@@ -191,7 +191,7 @@ class Decoder(object):
 
         @return: number
         """
-        return self.input.read_double()
+        return self.stream.read_double()
 
     def readBoolean(self):
         """
@@ -200,7 +200,7 @@ class Decoder(object):
         @return: boolean
         @rtype: bool
         """
-        return bool(self.input.read_uchar())
+        return bool(self.stream.read_uchar())
 
     def readNull(self):
         """
@@ -217,7 +217,7 @@ class Decoder(object):
         
         @return: array
         """
-        len = self.input.read_ulong()
+        len = self.stream.read_ulong()
         obj = {}
         self._readObject(obj)
 
@@ -239,7 +239,7 @@ class Decoder(object):
         Read a list from the data stream.
         """
         obj = []
-        len = self.input.read_ulong()
+        len = self.stream.read_ulong()
 
         for i in xrange(len):
             obj.append(self.readElement())
@@ -274,7 +274,7 @@ class Decoder(object):
         """
         # XXX: Does the amf3 decoder have access to the same references as amf0?
         context = pyamf.Context()
-        decoder = pyamf._get_decoder(pyamf.AMF3)(self.input, context)
+        decoder = pyamf._get_decoder(pyamf.AMF3)(self.stream, context)
 
         element = decoder.readElement()
         self.context.amf3_objs.append(element)
@@ -301,8 +301,8 @@ class Decoder(object):
         """
         Reads a string from the data stream.
         """
-        len = self.input.read_ushort()
-        return self.input.read_utf8_string(len)
+        len = self.stream.read_ushort()
+        return self.stream.read_utf8_string(len)
 
     def _readObject(self, obj):
         """
@@ -311,12 +311,12 @@ class Decoder(object):
         """
         key = self.readString()
 
-        while self.input.peek() != chr(ASTypes.OBJECTTERM):
+        while self.stream.peek() != chr(ASTypes.OBJECTTERM):
             obj[key] = self.readElement()
             key = self.readString()
 
         # discard the end marker (ASTypes.OBJECTTERM)
-        self.input.read(len(chr(ASTypes.OBJECTTERM)))
+        self.stream.read(len(chr(ASTypes.OBJECTTERM)))
 
     def readObject(self):
         """
@@ -336,7 +336,7 @@ class Decoder(object):
         """
         Reads a reference from the data stream.
         """
-        idx = self.input.read_ushort()
+        idx = self.stream.read_ushort()
         return self.context.getObject(idx)
 
     def readDate(self):
@@ -349,8 +349,8 @@ class Decoder(object):
         Z0 for a 16 bit Big Endian number indicating the indicated time's
         timezone in minutes.
         """
-        ms = self.input.read_double() / 1000.0
-        tz = self.input.read_short()
+        ms = self.stream.read_double() / 1000.0
+        tz = self.stream.read_short()
 
         # Timezones are ignored
         d = datetime.datetime.utcfromtimestamp(ms)
@@ -362,9 +362,9 @@ class Decoder(object):
         """
         Read utf8 string.
         """
-        len = self.input.read_ulong()
+        len = self.stream.read_ulong()
         
-        return self.input.read_utf8_string(len)
+        return self.stream.read_utf8_string(len)
 
     def readXML(self):
         """
@@ -409,7 +409,7 @@ class Encoder(object):
         @type   context: L{Context}
         @param  context: Context
         """
-        self.output = output
+        self.stream = output
 
         if context == None:
             self.context = pyamf.Context()
@@ -426,9 +426,9 @@ class Encoder(object):
         """
         if type not in ACTIONSCRIPT_TYPES:
             raise pyamf.EncodeError("Unknown AMF0 type 0x%02x at %d" % (
-                type, self.output.tell() - 1))
+                type, self.stream.tell() - 1))
 
-        self.output.write_uchar(type)
+        self.stream.write_uchar(type)
 
     def writeUnsupported(self, data):
         """
@@ -504,7 +504,7 @@ class Encoder(object):
             pass
 
         self.writeType(ASTypes.ARRAY)
-        self.output.write_ulong(len(a))
+        self.stream.write_ulong(len(a))
 
         for data in a:
             self.writeElement(data)
@@ -519,7 +519,7 @@ class Encoder(object):
         @param  n: AMF data.
         """
         self.writeType(ASTypes.NUMBER)
-        self.output.write_double(float(n))
+        self.stream.write_double(float(n))
 
     def writeBoolean(self, b):
         """
@@ -531,9 +531,9 @@ class Encoder(object):
         self.writeType(ASTypes.BOOL)
 
         if b:
-            self.output.write_uchar(1)
+            self.stream.write_uchar(1)
         else:
-            self.output.write_uchar(0)
+            self.stream.write_uchar(0)
 
     def writeString(self, s, writeType=True):
         """
@@ -548,13 +548,13 @@ class Encoder(object):
         if len(s) > 0xffff:
             if writeType:
                 self.writeType(ASTypes.LONGSTRING)
-            self.output.write_ulong(len(s))
+            self.stream.write_ulong(len(s))
         else:
             if writeType:
-                self.output.write_uchar(ASTypes.STRING)
-            self.output.write_ushort(len(s))
+                self.stream.write_uchar(ASTypes.STRING)
+            self.stream.write_ushort(len(s))
 
-        self.output.write(s)
+        self.stream.write(s)
 
     def writeReference(self, o):
         """
@@ -566,7 +566,7 @@ class Encoder(object):
         idx = self.context.getObjectReference(o)
 
         self.writeType(ASTypes.REFERENCE)
-        self.output.write_ushort(idx)
+        self.stream.write_ushort(idx)
 
     def _writeDict(self, o):
         """
@@ -606,7 +606,7 @@ class Encoder(object):
         except ValueError, e:
             max_index = 0
 
-        self.output.write_ulong(max_index)
+        self.stream.write_ulong(max_index)
 
         self._writeDict(o)
         self._writeEndObject()
@@ -618,7 +618,7 @@ class Encoder(object):
         """
         # Write a null string, this is an optimisation so that we don't have to
         # wasting precious cycles by encoding the string etc. 
-        self.output.write('\x00\x00')
+        self.stream.write('\x00\x00')
         self.writeType(ASTypes.OBJECTTERM)
 
     def writeObject(self, o):
@@ -668,8 +668,8 @@ class Encoder(object):
         tz = 0
 
         self.writeType(ASTypes.DATE)
-        self.output.write_double(secs * 1000.0)
-        self.output.write_short(tz)
+        self.stream.write_double(secs * 1000.0)
+        self.stream.write_short(tz)
 
     def writeXML(self, e):
         """
@@ -681,8 +681,8 @@ class Encoder(object):
         data = util.ET.tostring(e, 'utf8')
 
         self.writeType(ASTypes.XML)
-        self.output.write_ulong(len(data))
-        self.output.write(data)
+        self.stream.write_ulong(len(data))
+        self.stream.write(data)
 
     def writeAMF3(self, data):
         """
@@ -692,7 +692,7 @@ class Encoder(object):
         @param data: The data to be encoded.
         """
         context = pyamf.Context()
-        encoder = pyamf._get_encoder(pyamf.AMF3)(self.output, context)
+        encoder = pyamf._get_encoder(pyamf.AMF3)(self.stream, context)
 
         self.writeType(ASTypes.AMF3)
         encoder.writeElement(data)

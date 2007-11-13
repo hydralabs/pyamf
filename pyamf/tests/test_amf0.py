@@ -209,7 +209,7 @@ class DecoderTestCase(unittest.TestCase):
     def setUp(self):
         self.buf = util.BufferedByteStream()
         self.decoder = amf0.Decoder()
-        self.decoder.input = self.buf
+        self.decoder.stream = self.buf
 
     def _run(self, data):
         self.decoder.context.clear()

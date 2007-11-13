@@ -202,7 +202,7 @@ class DecoderTestCase(unittest.TestCase):
         self.buf = util.BufferedByteStream()
         self.context = pyamf.Context()
         self.decoder = amf3.Decoder(context=self.context)
-        self.decoder.input = self.buf
+        self.decoder.stream = self.buf
 
     def _run(self, data):
         self.context.clear()
