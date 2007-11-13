@@ -883,15 +883,18 @@ class Encoder(object):
         try:
             alias = pyamf.get_class_alias(obj)
         except pyamf.UnknownClassAlias:
-            alias = pyamf.ClassAlias(obj, 'blah')
+            alias = None
 
         encoding = ObjectEncoding.STATIC
 
-        if alias.write_func and alias.read_func:
-            if isinstance(obj, compat.ObjectProxy):
-                encoding = ObjectEncoding.PROXY
-            else:
-                encoding = ObjectEncoding.EXTERNAL
+        if alias:
+            if alias.encoding:
+                encoding = alias.encoding
+            elif alias.write_func and alias.read_func:
+                if isinstance(obj, compat.ObjectProxy):
+                    encoding = ObjectEncoding.PROXY
+                else:
+                    encoding = ObjectEncoding.EXTERNAL
 
         class_def = ClassDefinition(alias, encoding)
 
@@ -911,15 +914,14 @@ class Encoder(object):
         @raise EncodeError: Unknown object encoding
         """
         self.writeType(ASTypes.OBJECT)
+
         try:
             ref = self.context.getObjectReference(obj)
             self._writeInteger(ref << 1)
 
             return
         except pyamf.ReferenceError:
-            pass
-
-        self.context.addObject(obj)
+            self.context.addObject(obj)
 
         try:
             ref = self.context.getClassDefinitionReference(obj)
@@ -931,13 +933,18 @@ class Encoder(object):
             class_ref = False
 
             ref = 0
-            
+
             if class_def.encoding != ObjectEncoding.EXTERNAL:
                 ref += len(class_def.attrs) << 4
 
             self._writeInteger(ref | class_def.encoding << 2 |
                 REFERENCE_BIT << 1 | REFERENCE_BIT)
-            self._writeString(class_def.name.alias)
+
+            if class_def.name is None:
+                # anonymous class-def
+                self._writeString('')
+            else:
+                self._writeString(class_def.name.alias)
 
         if class_def.encoding in (ObjectEncoding.EXTERNAL, ObjectEncoding.PROXY):
             klass_alias = class_def.name
