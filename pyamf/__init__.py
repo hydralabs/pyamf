@@ -82,9 +82,11 @@ class ClientTypes:
     Flash9   = 3
 
 #: List of AMF client typecodes.
-CLIENT_TYPES = set(
-    ClientTypes.__dict__[x] for x in ClientTypes.__dict__
-    if not x.startswith('_'))
+CLIENT_TYPES = []
+
+for x in ClientTypes.__dict__:
+    if not x.startswith('_'):
+        CLIENT_TYPES.append(ClientTypes.__dict__[x])
 
 class BaseError(Exception):
     """

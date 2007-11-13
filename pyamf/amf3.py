@@ -102,9 +102,12 @@ class ASTypes:
     #: <http://osflash.org/documentation/amf3/parsing_byte_arrays>}
     BYTEARRAY  = 0x0c
 
-#: List of ActionScript object types.
-ACTIONSCRIPT_TYPES = set(
-    ASTypes.__dict__[x] for x in ASTypes.__dict__ if not x.startswith('__'))
+#: List of available ActionScript types in AMF3.
+ACTIONSCRIPT_TYPES = []
+
+for x in ASTypes.__dict__:
+    if not x.startswith('_'):
+        ACTIONSCRIPT_TYPES.append(ASTypes.__dict__[x])
 
 #: Reference bit
 REFERENCE_BIT = 0x01

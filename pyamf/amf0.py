@@ -117,8 +117,11 @@ class ASTypes:
     AMF3        = 0x11
 
 #: List of available ActionScript types in AMF0.
-ACTIONSCRIPT_TYPES = set(
-    ASTypes.__dict__[x] for x in ASTypes.__dict__ if not x.startswith('__'))
+ACTIONSCRIPT_TYPES = []
+
+for x in ASTypes.__dict__:
+    if not x.startswith('_'):
+        ACTIONSCRIPT_TYPES.append(ASTypes.__dict__[x])
 
 class Decoder(object):
     """
