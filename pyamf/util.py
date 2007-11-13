@@ -253,27 +253,31 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
      - Allows you to peek() at the next byte.
     """
 
-    def __init__(self, buf=''):
+    def __init__(self, buf=None):
         """
-        @param buf:
-        @type buf:
+        @param buf: Initial byte stream
+        @type buf: str or StringIO instance
         """
         StringIOProxy.__init__(self, buf=buf)
 
     def read(self, length=-1):
         """
-        Read bytes from stream.
+        Read bytes from stream. If we are at the end of the buffer, EOFError is
+        raised. If there is not enough buffer to be read and length is specified
+        IOError is raised
 
         @raise EOFError: Reading past end of stream.
-        @param length:
-        @type length:
-        @rtype:
-        @return:
+        @raise IOError: Length specified but not enough buffer available.
+        @param length: Number of bytes to read
+        @type length: int
+        @rtype: the bytes read from the stream
+        @return: array of char
         """
         if length > 0 and self.at_eof():
             raise EOFError
         if length > 0 and self.tell() + length > len(self):
-            length = len(self) - self.tell()
+            raise IOError
+
         return StringIOProxy.read(self, length)
 
     def peek(self, size=1):
@@ -288,6 +292,9 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
         """
         if size == -1:
             return self.peek(len(self) - self.tell())
+
+        if size < -1:
+            raise ValueError("Cannot peek backwards")
 
         bytes = ''
         pos = self.tell()

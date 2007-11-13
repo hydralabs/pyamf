@@ -474,6 +474,50 @@ class NetworkIOMixInTestCase(unittest.TestCase):
 
         self.assertEquals(x.read_utf8_string(9), u'ᚠᛇᚻ')
 
+class BufferedByteStreamTestCase(unittest.TestCase):
+    """
+    Tests for L{util.BufferedByteStream}
+    """
+
+    def test_read(self):
+        x = util.BufferedByteStream()
+
+        x.read()
+        self.assertRaises(EOFError, x.read, 10)
+
+        x.write('hello')
+        x.seek(0)
+        self.assertRaises(IOError, x.read, 10)
+
+    def test_peek(self):
+        x = util.BufferedByteStream('abcdefghijklmnopqrstuvwxyz')
+        
+        self.assertEquals(x.tell(), 0)
+
+        self.assertEquals(x.peek(), 'a')
+        self.assertEquals(x.peek(5), 'abcde')
+        self.assertEquals(x.peek(-1), 'abcdefghijklmnopqrstuvwxyz')
+
+    def test_eof(self):
+        x = util.BufferedByteStream()
+        
+        self.assertTrue(x.at_eof())
+        x.write('hello')
+        x.seek(0)
+        self.assertFalse(x.at_eof())
+        x.seek(0, 2)
+        self.assertTrue(x.at_eof())
+
+    def test_remaining(self):
+        x = util.BufferedByteStream('foobar')
+
+        self.assertEqual(x.tell(), 0)
+        self.assertEqual(x.remaining(), 6)
+
+        x.seek(2)
+        self.assertEqual(x.tell(), 2)
+        self.assertEqual(x.remaining(), 4)
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -487,6 +531,7 @@ def suite():
         pass
 
     suite.addTest(unittest.makeSuite(NetworkIOMixInTestCase))
+    suite.addTest(unittest.makeSuite(BufferedByteStreamTestCase))
 
     return suite
 
