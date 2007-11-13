@@ -52,18 +52,18 @@ def DjangoGateway(request, gateway):
     @return: Response to remoting request.
     @rtype:
     """
-    
+
     # Import gateway if it is a string (similar to Django's urlconf)
     if not isinstance(gateway, pyamf.gateway.BaseGateway):
         gateway = gateway.encode('ascii')
         mod_name, var_name = get_mod_func(gateway)
         if var_name != '':
             gateway = getattr(__import__(mod_name, {}, {}, ['']), var_name)
-    
+
     if request.method == 'POST':
         response = HttpResponse()
         context = pyamf.Context()
-        
+
         amfrequest = remoting.decode(request.raw_post_data, context)
         amfresponse = remoting.Envelope(amfrequest.amfVersion, amfrequest.clientType)
 
@@ -71,11 +71,11 @@ def DjangoGateway(request, gateway):
         for name, message in amfrequest:
             amfresponse[name] = processor(message)
         stream = remoting.encode(amfresponse, context)
-        
+
         response['Content-Type'] = remoting.CONTENT_TYPE
         response['Content-Length'] = str(len(stream))
         response.write(stream.getvalue())
     else:
         response = HttpResponseNotAllowed(['POST'])
-    
+
     return response
