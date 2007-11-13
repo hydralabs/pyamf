@@ -47,7 +47,7 @@ class DataOutput(object):
     """
     def __init__(self, encoder):
         self.encoder = encoder
-        self.stream = encoder.output
+        self.stream = encoder.stream
 
     def writeBoolean(self, value):
         """
@@ -109,7 +109,7 @@ class DataInput(object):
     """
     def __init__(self, decoder):
         self.decoder = decoder
-        self.stream = decoder.input
+        self.stream = decoder.stream
 
     def readBoolean(self):
         """
