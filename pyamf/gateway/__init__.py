@@ -39,6 +39,7 @@ from pyamf import remoting
 
 class ServiceWrapper(object):
     """
+    Remoting service.
     """
 
     def __init__(self, service, authenticator=None):
@@ -81,6 +82,7 @@ class ServiceWrapper(object):
 
 class ServiceRequest(object):
     """
+    Remoting service request.
     """
 
     def __init__(self, request, service, method):
@@ -103,12 +105,14 @@ class ServiceRequest(object):
         """
         Authenticates the supplied credentials for the service.
 
+        The default is to allow anything through.
+
         @param username:
         @type username:
         @param password:
         @type password:
         @return: Boolean determining whether the supplied credentials can
-                 access the service
+                 access the service.
         @rtype: bool
         """
         if self.service.authenticator is None:
@@ -119,15 +123,15 @@ class ServiceRequest(object):
 
 class BaseGateway(object):
     """
-    Generic remoting gateway
+    Generic Remoting gateway.
     """
     _request_class = ServiceRequest
 
     def __init__(self, services, debug=False):
         """
-        @param services: Initial services
+        @param services: Initial services.
         @type services: dict
-        @param debug: Enable debugging
+        @param debug: Enable debugging.
         @type debug: bool
         """
         #:
@@ -144,13 +148,13 @@ class BaseGateway(object):
         """
         Adds a service to the gateway.
 
-        @raise RemotingError: Service already exists
-        @param service: The service to add to the gateway
+        @raise RemotingError: Service already exists.
+        @param service: The service to add to the gateway.
         @type service: callable or a class instance
-        @param name: The name of the service
+        @param name: The name of the service.
         @type name: str
         @param authenticator: A callable that will check the credentials of
-                              the request before allowing access to the service
+                              the request before allowing access to the service.
         @type authenticator: Callable
         """
         if name is None:

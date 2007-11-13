@@ -37,9 +37,12 @@ body or header may not require a response. Debug information is requested by a h
 but sent back as a body object. The response index is essential for the Flash player
 to understand the response therefore.
 
-@see: U{http://osflash.org/documentation/amf/envelopes/remoting}
-@see: U{http://osflash.org/amf/envelopes/remoting/headers}
-@see: U{http://osflash.org/documentation/amf/envelopes/remoting/debuginfo}
+@see: U{Remoting Envelope on OSFlash (external)
+<http://osflash.org/documentation/amf/envelopes/remoting>}
+@see: U{Remoting Headers on OSFlash (external)
+<http://osflash.org/amf/envelopes/remoting/headers>}
+@see: U{Remoting Debug Headers on OSFlash (external)
+<http://osflash.org/documentation/amf/envelopes/remoting/debuginfo>}
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
@@ -70,7 +73,7 @@ STATUS_CODES = {
 
 class RemotingError(pyamf.BaseError):
     """
-    Generic remoting error class
+    Generic remoting error class.
     """
 
 class HeaderCollection(dict):
@@ -89,7 +92,7 @@ class HeaderCollection(dict):
         """
         @type idx:
         @param idx:
-        @raise KeyError: unknown header found
+        @raise KeyError: Unknown header found.
         """
         if not idx in self:
             raise KeyError("Unknown header %s" % str(idx))
@@ -103,7 +106,7 @@ class HeaderCollection(dict):
         @type value: bool
         @param value:
         
-        @raise KeyError: unknown header found.
+        @raise KeyError: Unknown header found.
         """
         if not idx in self:
             raise KeyError("Unknown header %s" % str(idx))
@@ -163,7 +166,7 @@ class Message(object):
     I represent a singular message, containing a collection of headers and
     one body of data.
 
-    I am used to iterate over all requests in the L{Envelope}
+    I am used to iterate over all requests in the L{Envelope}.
     """
 
     def __init__(self, envelope, target, status, body):
@@ -196,10 +199,10 @@ def _read_header(stream, decoder):
      - value of the header.
     
     @type   stream: L{BufferedByteStream}
-    @param  stream: AMF data
+    @param  stream: AMF data.
     @type   decoder: L{pyamf.amf0.Decoder} or L{pyamf.amf3.Decoder}
     @param  decoder: AMF decoder instance
-    @raise DecodeError: the data that was read from the stream does
+    @raise DecodeError: The data that was read from the stream does
     not match the header length.
     """
     name_len = stream.read_ushort()
@@ -222,16 +225,17 @@ def _write_header(name, header, required, stream, encoder):
     """
     Write AMF message header.
 
-    @type   name: string
+    @type   name: str
     @param  name: Name of header
     @type   header: 
-    @param  header: Raw header data
+    @param  header: Raw header data.
     @type   required: L{bool}
-    @param  required: Required header
+    @param  required: Required header.
     @type   stream: L{BufferedByteStream}
-    @param  stream: AMF data
-    @type   encoder: L{pyamf.amf0.Encoder} or L{pyamf.amf3.Encoder}
-    @param  encoder: AMF encoder instance
+    @param  stream: AMF data.
+    @type   encoder: L{amf0.Encoder<pyamf.amf0.Encoder>}
+    or L{amf3.Encoder<pyamf.amf3.Encoder>}
+    @param  encoder: AMF encoder instance.
     """
     stream.write_ushort(len(name))
     stream.write_utf8_string(name)
@@ -258,11 +262,12 @@ def _read_body(stream, decoder):
      - The data of the body.
     
     @type   stream: L{BufferedByteStream}
-    @param  stream: AMF data
-    @type   decoder: L{pyamf.amf0.Decoder} or L{pyamf.amf3.Decoder}
-    @param  decoder: AMF decoder instance
-    @raise  RemotingError: the remoting type is not of the
-    expected list type
+    @param  stream: AMF data.
+    @type   decoder: L{amf0.Decoder<pyamf.amf0.Decoder>} or
+    L{amf3.Decoder<pyamf.amf3.Decoder>}
+    @param  decoder: AMF decoder instance.
+    @raise  RemotingError: The remoting type is not of the
+    expected list type.
     """
     target_len = stream.read_ushort()
     target = stream.read_utf8_string(target_len)
@@ -299,14 +304,15 @@ def _write_body(name, message, stream, encoder):
     """
     Write AMF message body.
 
-    @type   name: string
-    @param  name: Name of body
+    @type   name: str
+    @param  name: Name of body.
     @type   message: L{Message}
-    @param  message: Message to write
+    @param  message: Message to write.
     @type   stream: L{BufferedByteStream}
     @param  stream: AMF data
-    @type   encoder: L{pyamf.amf0.Encoder} or L{pyamf.amf3.Encoder}
-    @param  encoder: Encoder to use
+    @type   encoder: L{amf0.Encoder<pyamf.amf0.Encoder>}
+    or L{amf3.Encoder<pyamf.amf3.Encoder>}
+    @param  encoder: Encoder to use.
     """
     response = "%s%s" % (name, _get_status(message.status))
 
@@ -333,7 +339,7 @@ def _get_status(status):
     
     @type status:
     @param status:
-    @raise ValueError: the status code is unknown
+    @raise ValueError: The status code is unknown.
     @return: status code
     """
     if status not in STATUS_CODES.keys():
@@ -346,13 +352,17 @@ def decode(stream, context):
     Decodes the incoming stream. .
     
     @type   stream: L{BufferedByteStream}
-    @param  stream: AMF data
+    @param  stream: AMF data.
     @type   context: L{Context}
-    @param  context: Context
+    @param  context: Context.
 
-    @raise DecodeError: Malformed stream
-    @raise RuntimeError: decoder is unable to fully consume the
-    stream buffer
+    @raise DecodeError: Malformed stream. Check the U{Remoting Envelope
+    documentation on OSFlash (external)
+    <http://osflash.org/documentation/amf/envelopes/remoting#preamble>
+    for more information.}
+    @raise RuntimeError: Decoder is unable to fully consume the
+    stream buffer.
+    
     @return:
     @rtype: L{Envelope}
     """
@@ -399,10 +409,10 @@ def encode(msg, old_context):
     Encodes AMF stream and returns file object.
 
     @type   msg: L{Envelope}
-    @param  msg: The message to encode
+    @param  msg: The message to encode.
     @type   old_context: L{pyamf.Context}
-    @param  old_context: Context
-    @return: file object
+    @param  old_context: Context.
+    @return: File object.
     """
     # FIXME Hack.
     def getNewContext():
