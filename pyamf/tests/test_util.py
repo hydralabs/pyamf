@@ -50,6 +50,9 @@ class StringIOProxyTestCase(unittest.TestCase):
         self.previous = util.StringIOProxy._wrapped_class
         util.StringIOProxy._wrapped_class = StringIO
 
+    def tearDown(self):
+        util.StringIOProxy._wrapped_class = self.previous
+
     def test_create(self):
         sp = util.StringIOProxy()
 
