@@ -59,13 +59,15 @@ class StringIOProxy(object):
     @see: U{http://osflash.org/documentation/amf3/parsing_byte_arrays}
     """
 
+    _wrapped_class = StringIO
+
     def __init__(self, buf=None):
         """
         @param buf:
         @type buf:
         @raise TypeError: Unable to coerce buffer to C{StringIO}.
         """
-        self._buffer = StringIO()
+        self._buffer = StringIOProxy._wrapped_class()
 
         if isinstance(buf, (str, unicode)):
             self._buffer.write(buf)
@@ -86,11 +88,10 @@ class StringIOProxy(object):
 
     def close(self):
         self._buffer.close()
-        self._len = -1
+        self._len = 0
 
     def flush(self):
         self._buffer.flush()
-        self._len = 0
 
     def getvalue(self):
         return self._buffer.getvalue()
@@ -100,19 +101,24 @@ class StringIOProxy(object):
 
     def read(self, n=-1):
         bytes = self._buffer.read(n)
-        self._len = self._len - len(bytes)
 
         return bytes
 
-    def readline(self, length=None):
-        line = self._buffer.readline(length)
-        self._len = self._len - len(line)
+    def readline(self):
+        """
+        Note: this function does not consume the buffer
+        """
+        line = self._buffer.readline()
 
         return line
 
     def readlines(self, sizehint=0):
+        """
+        Note: this function does not consume the buffer
+        """
         lines = self._buffer.readlines(sizehint)
-        self._get_len()
+
+        return lines
 
     def seek(self, pos, mode=0):
         return self._buffer.seek(pos, mode)
@@ -120,13 +126,14 @@ class StringIOProxy(object):
     def tell(self):
         return self._buffer.tell()
 
-    def truncate(self, size=None):
+    def truncate(self, size=0):
         bytes = self._buffer.truncate(size)
         self._get_len()
 
     def write(self, s):
         self._buffer.write(s)
-        self._len = self._len + len(s)
+
+        self._get_len()
 
     def writelines(self, iterable):
         self._buffer.writelines(iterable)
