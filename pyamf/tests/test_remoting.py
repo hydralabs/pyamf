@@ -48,7 +48,7 @@ class DecoderTestCase(unittest.TestCase):
             except EOFError:
                 pass
 
-        self.failUnlessRaises(ValueError, remoting.decode, '\x01',
+        self.failUnlessRaises(pyamf.DecodeError, remoting.decode, '\x10',
             pyamf.Context())
 
     def test_client_version(self):
