@@ -31,10 +31,18 @@ U{Django<http://djangoproject.org>} Remoting gateway.
 @since: 0.1.0
 """
 
-from django.http import HttpResponse, HttpResponseNotAllowed
-from django.core.urlresolvers import get_mod_func
 import pyamf
 from pyamf import remoting
+
+# import django workaround
+import sys
+thismodule = sys.modules['django']
+del sys.modules['django']
+real_django = __import__('django')
+sys.modules['real_django'] = real_django
+sys.modules['django'] = thismodule
+from real_django.http import HttpResponse, HttpResponseNotAllowed
+from real_django.core.urlresolvers import get_mod_func
 
 def DjangoGateway(request, gateway):
     """
