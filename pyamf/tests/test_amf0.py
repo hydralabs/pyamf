@@ -27,7 +27,7 @@
 #
 
 """
-Tests for AMF0 Implementation.
+Unit tests for AMF0 Implementation.
 
 @author: U{Arnar Birgisson<mailto:arnarbi@gmail.com>}
 @author: U{Thijs Triemstra<mailto:info@collab.nl>}

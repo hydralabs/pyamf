@@ -34,7 +34,7 @@ can contain several requests; Remoting supports batching out of the box.
 
 Client headers and bodies need not be responded to in a one-to-one manner. That is, a
 body or header may not require a response. Debug information is requested by a header
-but sent back as a body object. The response index is essential for the Flash player
+but sent back as a body object. The response index is essential for the Flash Player
 to understand the response therefore.
 
 @see: U{Remoting Envelope on OSFlash (external)
@@ -45,7 +45,6 @@ to understand the response therefore.
 <http://osflash.org/documentation/amf/envelopes/remoting/debuginfo>}
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
-
 @since: 0.1.0
 """
 
@@ -148,7 +147,8 @@ class Envelope(dict):
         @param idx:
         @type value:
         @param value:
-        @raise TypeError: C{value} is not a tuple, set or list.
+        @raise TypeError: The parameter C{value} is not a tuple,
+        set or list.
         """
         if isinstance(value, (tuple, set, list)):
             value = Message(self, value[0], value[1], value[2])
@@ -163,8 +163,8 @@ class Envelope(dict):
 
 class Message(object):
     """
-    I represent a singular message, containing a collection of headers and
-    one body of data.
+    I represent a singular message, containing a collection of
+    headers and one body of data.
 
     I am used to iterate over all requests in the L{Envelope}.
     """
@@ -191,19 +191,21 @@ class Message(object):
 
 def _read_header(stream, decoder):
     """
-    Read AMF message header.
+    Read AMF L{Message} header.
 
     I return a tuple containing:
      - The name of the header.
-     - A boolean determining if understanding this header is required.
+     - A boolean determining if understanding this header is
+     required.
      - value of the header.
     
     @type   stream: L{BufferedByteStream}
     @param  stream: AMF data.
-    @type   decoder: L{pyamf.amf0.Decoder} or L{pyamf.amf3.Decoder}
+    @type   decoder: L{amf0.Decoder<pyamf.amf0.Decoder>} or
+    L{amf3.Decoder<pyamf.amf3.Decoder>}
     @param  decoder: AMF decoder instance
-    @raise DecodeError: The data that was read from the stream does
-    not match the header length.
+    @raise DecodeError: The data that was read from the stream
+    does not match the header length.
     """
     name_len = stream.read_ushort()
     name = stream.read_utf8_string(name_len)
@@ -289,8 +291,9 @@ def _read_body(stream, decoder):
     if not isinstance(data, list):
         raise RemotingError("Expected list type for remoting body")
 
-    # Remove the last object in the decoder context, it is the body of the
-    # request and Flash does not appear to index the reference
+    # Remove the last object in the decoder context, it is the
+    # body of the request and the Flash Player does not appear to
+    # index the reference
     decoder.context.objects.pop()
 
     if pos + data_len != stream.tell():
@@ -357,13 +360,13 @@ def decode(stream, context):
     @param  context: Context.
 
     @raise DecodeError: Malformed stream. Check the U{Remoting Envelope
-    documentation on OSFlash (external)
-    <http://osflash.org/documentation/amf/envelopes/remoting#preamble>
-    for more information.}
+    documentation on OSFlash
+    <http://osflash.org/documentation/amf/envelopes/remoting#preamble>}
+    for more information.
     @raise RuntimeError: Decoder is unable to fully consume the
     stream buffer.
     
-    @return:
+    @return: Message envelope.
     @rtype: L{Envelope}
     """
     if not isinstance(stream, util.BufferedByteStream):
@@ -410,12 +413,15 @@ def encode(msg, old_context):
 
     @type   msg: L{Envelope}
     @param  msg: The message to encode.
-    @type   old_context: L{pyamf.Context}
+    @type   old_context: L{Context<pyamf.Context>}
     @param  old_context: Context.
+    @rtype:
     @return: File object.
     """
     # FIXME Hack.
     def getNewContext():
+        """
+        """
         context = pyamf.Context()
         context.amf3_objs = old_context.amf3_objs
 

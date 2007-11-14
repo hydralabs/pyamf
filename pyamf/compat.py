@@ -46,13 +46,20 @@ class DataOutput(object):
     <http://livedocs.adobe.com/flex/201/langref/flash/utils/IDataOutput.html>}
     """
     def __init__(self, encoder):
+        """
+        @param encoder: Encoder containing the stream.
+        @type encoder: L{Encoder<pyamf.amf3.Encoder>}
+        """
         self.encoder = encoder
         self.stream = encoder.stream
 
     def writeBoolean(self, value):
         """
-        @type value:
-        @param value:
+        Writes a Boolean value.
+        
+        @type value: bool
+        @param value: A Boolean value determining which byte is written.
+        If the parameter is C{True}, 1 is written; if C{False}, 0 is written.
         
         @raise ValueError: None boolean value is found.
         """
@@ -64,35 +71,112 @@ class DataOutput(object):
             raise ValueError("None boolean value found")
 
     def writeByte(self, value):
+        """
+        Writes a byte.
+        
+        @type value: int
+        @param value:
+        """
         self.stream.write_char(value)
 
     def writeDouble(self, value):
+        """
+        Writes an IEEE 754 double-precision (64-bit) floating
+        point number.
+
+        @type value: number
+        @param value:
+        """
         self.stream.write_double(value)
 
     def writeFloat(self, value):
+        """
+        Writes an IEEE 754 single-precision (32-bit) floating
+        point number.
+
+        @type value: number
+        @param value:
+        """
         self.stream.write_float(value)
 
     def writeInt(self, value):
+        """
+        Writes a 32-bit signed integer.
+
+        @type value: int
+        @param value:
+        """
         self.stream.write_long(value)
 
     def writeMultiByte(self, value, charset):
+        """
+        Writes a multibyte string to the datastream using the
+        specified character set.
+
+        @type value: str
+        @param value: The string value to be written.
+        @type charset: str
+        @param charset: The string denoting the character
+        set to use. Possible character set strings include
+        C{shift-jis}, C{cn-gb}, C{iso-8859-1} and others.
+        @see: U{Supported Character Sets on Livedocs (external)
+        <http://livedocs.adobe.com/labs/flex/3/langref/charset-codes.html>}
+        """
         self.stream.write(unicode(value).encode(charset))
 
     def writeObject(self, value, use_references=True):
+        """
+        Writes an object to data stream in AMF serialized format.
+
+        @type value:
+        @param value: The object to be serialized.
+        @type use_references: bool
+        @param use_references:
+        """
         self.encoder.writeElement(value, use_references=True)
 
     def writeShort(self, value):
+        """
+        Writes a 16-bit integer.
+
+        @type value: int
+        @param value: A byte value as an integer.
+        """
         self.stream.write_short(value)
 
     def writeUnsignedInt(self, value):
+        """
+        Writes a 32-bit unsigned integer.
+
+        @type value: int
+        @param value: A byte value as an unsigned integer.
+        """
         self.stream.write_ulong(value)
 
     def writeUTF(self, value):
+        """
+        Writes a UTF-8 string to the file stream, byte stream,
+        or L{ByteArray}.
+
+        The length of the UTF-8 string in bytes is written first,
+        as a 16-bit integer, followed by the bytes representing the
+        characters of the string.
+
+        @type value: str
+        @param value: The string value to be written.
+        """
         from pyamf import amf3
 
         self.stream.write(amf3.encode_utf8_modified(unicode(value, 'utf8')))
 
     def writeUTFBytes(self, value):
+        """
+        Writes a UTF-8 string. Similar to L{writeUTF}, but does
+        not prefix the string with a 16-bit length word.
+
+        @type value: str
+        @param value: The string value to be written.
+        """
         from pyamf import amf3
 
         self.stream.write(amf3.encode_utf8_modified(unicode(value, 'utf8'))[2:])
@@ -105,9 +189,13 @@ class DataInput(object):
     which writes binary data.
 
     @see: U{Livedocs (external)
-    <http://livedocs.adobe.com/flex/201/langref/flash/utils/IDataInput.html>}
+    <http://livedocs.adobe.com/flex/2/langref/flash/utils/IDataInput.html>}
     """
     def __init__(self, decoder):
+        """
+        @param decoder: Decoder containing the stream.
+        @type decoder: L{Decoder<pyamf.amf3.Decoder>}
+        """
         self.decoder = decoder
         self.stream = decoder.stream
 
@@ -116,6 +204,9 @@ class DataInput(object):
         Read boolean.
 
         @raise ValueError: Error reading boolean.
+        @rtype: bool
+        @return: A Boolean value, C{True} if the byte
+        is nonzero, C{False} otherwise.
         """
         byte = self.stream.read(1)
 
@@ -127,39 +218,119 @@ class DataInput(object):
             raise ValueError("Error reading boolean")
 
     def readByte(self):
+        """
+        Reads a signed byte.
+
+        @rtype: int
+        @return: The returned value is in the range -128 to 127.
+        """
         return self.stream.read_char()
 
     def readDouble(self):
+        """
+        Reads an IEEE 754 double-precision floating point number from the
+        data stream.
+
+        @rtype: number
+        @return: An IEEE 754 double-precision floating point number.
+        """
         return self.stream.read_double()
 
     def readFloat(self):
+        """
+        Reads an IEEE 754 single-precision floating point number from the
+        data stream.
+
+        @rtype: number
+        @return: An IEEE 754 single-precision floating point number.
+        """
         return self.stream.read_float()
 
     def readInt(self):
+        """
+        Reads a signed 32-bit integer from the data stream.
+
+        @rtype: int
+        @return: The returned value is in the range -2147483648 to 2147483647.
+        """
         return self.stream.read_long()
 
-    def readObject(self):
-        return self.decoder.readElement()
-
-    def readShort(self):
-        return self.stream.read_short()
-
-    def readUnsignedByte(self):
-        return self.stream.read_uchar()
-
-    def readUnsignedInt(self):
-        return self.stream.read_ulong()
-
-    def readUnsignedShort(self):
-        return self.stream.read_ushort()
-
     def readMultiByte(self, length, charset):
+        """
+        Reads a multibyte string of specified length from the data stream
+        using the specified character set.
+
+        @type length: int
+        @param length: The number of bytes from the data stream to read.
+        
+        @type charset: str
+        @param charset: The string denoting the character set to use.
+        @see: L{writeMultiByte} for more info.
+
+        @rtype: str
+        @return: UTF-8 encoded string.
+        """
         #FIXME nick: how to work out the code point byte size (on the fly)?
         bytes = self.stream.read(length)
 
         return unicode(bytes, charset)
 
+    def readObject(self):
+        """
+        Reads an object from the data stream.
+
+        @rtype: 
+        @return: The deserialized object.
+        """
+        return self.decoder.readElement()
+
+    def readShort(self):
+        """
+        Reads a signed 16-bit integer from the data stream.
+
+        @rtype: uint
+        @return: The returned value is in the range -32768 to 32767.
+        """
+        return self.stream.read_short()
+
+    def readUnsignedByte(self):
+        """
+        Reads an unsigned byte from the data stream.
+
+        @rtype: uint
+        @return: The returned value is in the range 0 to 255.
+        """
+        return self.stream.read_uchar()
+
+    def readUnsignedInt(self):
+        """
+        Reads an unsigned 32-bit integer from the data stream.
+
+        @rtype: uint
+        @return: The returned value is in the range 0 to 4294967295.
+        """
+        return self.stream.read_ulong()
+
+    def readUnsignedShort(self):
+        """
+        Reads an unsigned 16-bit integer from the data stream.
+
+        @rtype: uint
+        @return: The returned value is in the range 0 to 65535.
+        """
+        return self.stream.read_ushort()
+
     def readUTF(self):
+        """
+        Reads a UTF-8 string from the data stream.
+
+        The string is assumed to be prefixed with an unsigned
+        short indicating the length in bytes.
+
+        @rtype: str
+        @return: A UTF-8 string produced by the byte
+        representation of characters.
+        """
         from pyamf import amf3
 
         data = self.stream.peek(2)
@@ -168,17 +339,27 @@ class DataInput(object):
         return amf3.decode_utf8_modified(self.stream.read(length + 2))        
 
     def readUTFBytes(self, length):
+        """
+        Reads a sequence of C{length} UTF-8 bytes from the data
+        stream and returns a string.
+
+        @type length: int
+        @param length: The number of bytes from the data stream to read.
+        @rtype: str
+        @return: A UTF-8 string produced by the byte
+        representation of characters of specified length.
+        """
         return self.readMultiByte(length, 'utf-8')
 
 class ArrayCollection(dict):
     """
-    I represent the ActionScript 3 based class C{flex.messaging.io.ArrayCollection}
-    used in the Flex framework.
+    I represent the ActionScript 3 based class
+    C{flex.messaging.io.ArrayCollection} used in the Flex framework.
 
-    The ArrayCollection class is a wrapper class that exposes an Array as
-    a collection that can be accessed and manipulated using the methods
-    and properties of the ICollectionView or IList interfaces in the Flex
-    framework.
+    The ArrayCollection class is a wrapper class that exposes an Array 
+    as a collection that can be accessed and manipulated using the 
+    methods and properties of the ICollectionView or IList interfaces 
+    in the Flex framework.
 
     @see: U{Livedocs (external)
     <http://livedocs.adobe.com/flex/2/langref/mx/collections/ArrayCollection.html>}
@@ -209,9 +390,6 @@ class ObjectProxy(pyamf.Bag):
     """
     I represent the ActionScript 3 based class C{flex.messaging.io.ObjectProxy}
     used in the Flex framework.
-
-    This class provides the ability to track changes to an item managed by this
-    proxy.
 
     @see: U{Livedocs (external)
     <http://livedocs.adobe.com/flex/2/langref/mx/utils/ObjectProxy.html>}

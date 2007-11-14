@@ -27,7 +27,7 @@
 #
 
 """
-Tests for PyAMF.
+Unit tests for PyAMF.
 
 @author: U{Arnar Birgisson<mailto:arnarbi@gmail.com>}
 @author: U{Thijs Triemstra<mailto:info@collab.nl>}

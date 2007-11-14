@@ -25,6 +25,8 @@
 
 """
 @author: U{Arnar Birgisson<mailto:arnarbi@gmail.com>}
+
+@since: 0.1.0
 """
 
 from django.conf.urls.defaults import *
@@ -33,8 +35,8 @@ import os
 urlpatterns = patterns('',
 
     # AMF Remoting Gateway
-    # The gateway parameter may also be a direct reference to a pyamf.gateway.djangogateway.DjangoGateway instance
-    (r'^gateway/', 'pyamf.gateway.djangogateway.DjangoGateway', {'gateway': 'djangogateway.gateway.echoGateway'}),
+    # The gateway parameter may also be a direct reference to a pyamf.gateway.django.DjangoGateway instance
+    (r'^gateway/', 'pyamf.gateway.django.DjangoGateway', {'gateway': 'django.gateway.echoGateway'}),
     
     # Serve crossdomain.xml from the parent directory below __file__
     (r'^crossdomain.xml$', 'django.views.static.serve',

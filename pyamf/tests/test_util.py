@@ -22,7 +22,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Tests for PyAMF.
+Tests for AMF utilities.
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
@@ -37,6 +37,9 @@ from StringIO import StringIO
 from pyamf import util
 
 class TimestampTestCase(unittest.TestCase):
+    """
+    Test UTC timestamps.
+    """
     def test_get_timestamp(self):
         self.assertEqual(util.get_timestamp(datetime(2007, 11, 12)), 1194825600)
 
@@ -44,6 +47,8 @@ class TimestampTestCase(unittest.TestCase):
         self.assertEqual(util.get_datetime(1194825600), datetime(2007, 11, 12))
 
 class StringIOProxyTestCase(unittest.TestCase):
+    """
+    """
     def setUp(self):
         from StringIO import StringIO
 
@@ -519,6 +524,9 @@ class BufferedByteStreamTestCase(unittest.TestCase):
         self.assertEqual(x.remaining(), 4)
 
 def suite():
+    """
+    Unit tests for AMF utilities.
+    """
     suite = unittest.TestSuite()
 
     suite.addTest(unittest.makeSuite(TimestampTestCase))

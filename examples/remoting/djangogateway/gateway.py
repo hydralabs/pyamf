@@ -26,6 +26,8 @@
 
 """
 @author: U{Arnar Birgisson<mailto:arnarbi@gmail.com>}
+
+@since: 0.1.0
 """
 
 from pyamf import gateway
@@ -33,5 +35,5 @@ from pyamf import gateway
 def echo(data):
     return data
 
-# This is the dispatcher given to the pyamf.gateway.djangogateway.DjangoGateway generic view
+# This is the dispatcher given to the pyamf.gateway.django.DjangoGateway generic view
 echoGateway = gateway.BaseGateway({'echo': echo})
