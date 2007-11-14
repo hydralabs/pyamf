@@ -50,70 +50,73 @@ class ASTypes:
     """
     All AMF0 data types used in ActionScript 1.0 and 2.0.
 
-    @see: U{Documentation on OSFlash (external)
+    @see: U{Data types on OSFlash (external)
     <http://osflash.org/documentation/amf/astypes>}
     """
-    #: Represented as 9 bytes: 1 byte for 0×00 and 8 bytes a double
+    #: Represented as 9 bytes: 1 byte for C{0×00} and 8 bytes a double
     #: representing the value of the number.
     NUMBER      = 0x00
-    #: Represented as 2 bytes: 1 byte for 0×01 and a second, 0×00
-    #: for false, 0×01 for true.
+    #: Represented as 2 bytes: 1 byte for C{0×01} and a second, C{0×00}
+    #: for C{False}, C{0×01} for C{True}.
     BOOL        = 0x01
-    #: Represented as 3 bytes + len(String): 1 byte 0×02, then a UTF8 string,
-    #: including the top two bytes representing string length as a int.
+    #: Represented as 3 bytes + len(String): 1 byte C{0×02}, then a UTF8 string,
+    #: including the top two bytes representing string length as a C{int}.
     STRING      = 0x02
-    #: Represented as 1 byte, 0×03, then pairs of UTF8 string, the key, and
-    #: an AMF element, ended by three bytes, 0×00 0×00 0×09.
+    #: Represented as 1 byte, C{0×03}, then pairs of UTF8 string, the key, and
+    #: an AMF element, ended by three bytes, C{0×00} C{0×00} C{0×09}.
     OBJECT      = 0x03
     #: MovieClip does not seem to be supported by Remoting.
     #: It may be used by other AMF clients such as SharedObjects.
     MOVIECLIP   = 0x04
-    #: 1 single byte, 0×05 indicates null.
+    #: 1 single byte, C{0×05} indicates null.
     NULL        = 0x05
-    #: 1 single byte, 0×06 indicates null.
+    #: 1 single byte, C{0×06} indicates null.
     UNDEFINED   = 0x06
-    #: When an ActionScript object refers to itself, such this.self = this, or
+    #: When an ActionScript object refers to itself, such C{this.self = this}, or
     #: when objects are repeated within the same scope (for example, as the two
-    #: parameters of the same function called), a code of 0×07 and an int, the
-    #: reference number, are written.
+    #: parameters of the same function called), a code of C{0×07} and an C{int},
+    #: the reference number, are written.
     REFERENCE   = 0x07
-    #: A MixedArray is indicated by code 0×08, then a Long representing the highest
-    #: numeric index in the array, or 0 if there are none or they are all negative.
-    #: After that follow the elements in key : value pairs. 
+    #: A MixedArray is indicated by code C{0×08}, then a Long representing the 
+    #: highest numeric index in the array, or 0 if there are none or they are all
+    #: negative. After that follow the elements in key : value pairs. 
     MIXEDARRAY  = 0x08
     #: @see: L{OBJECT}
     OBJECTTERM  = 0x09
-    #: An array is indicated by 0x0A, then a Long for array length, then the array
-    #: elements themselves. Arrays are always sparse; values for inexistant keys are
-    #: set to null (0×06) to maintain sparsity.
+    #: An array is indicated by C{0x0A}, then a Long for array length, then the 
+    #: array elements themselves. Arrays are always sparse; values for inexistant 
+    #: keys are set to null (C{0×06}) to maintain sparsity.
     ARRAY       = 0x0a
-    #: Date is represented as 0x0B, then a double, then an int. The double represents
-    #: the number of milliseconds since 01/01/1970. The int represents the timezone
-    #: offset in minutes between GMT. Note for the latter than values greater than 720
-    #: (12 hours) are represented as 2^16 - the value. Thus GMT+1 is 60 while GMT-5 is 65236.
+    #: Date is represented as C{00x0B}, then a double, then an C{int}. The double 
+    #: represents the number of milliseconds since 01/01/1970. The C{int} represents
+    #: the timezone offset in minutes between GMT. Note for the latter than values 
+    #: greater than 720 (12 hours) are represented as C{2^16} - the value. Thus GMT+1
+    #: is 60 while GMT-5 is 65236.
     DATE        = 0x0b
-    #: LongString is reserved for strings larger then 2^16 characters long. It is represented
-    #: as 0x0C then a LongUTF.
+    #: LongString is reserved for strings larger then C{2^16} characters long. It 
+    #: is represented as C{00x0C} then a LongUTF.
     LONGSTRING  = 0x0c
     #: Trying to send values which don’t make sense, such as prototypes, functions,
-    #: built-in objects, etc. will be indicated by a single 0x0D byte.
+    #: built-in objects, etc. will be indicated by a single C{00x0D} byte.
     UNSUPPORTED = 0x0d
-    #: Remoting Server -> Client only
-    #: @see: U{Remoting record structure on OSFlash (external)
+    #: Remoting Server -> Client only.
+    #: @see: U{RecordSet structure on OSFlash (external)
     #: <http://osflash.org/documentation/amf/recordset>}
     RECORDSET   = 0x0e
-    #: The XML element is indicated by 0x0F and followed by a LongUTF containing the string
-    #: representation of the XML object. The receiving gateway may which to wrap this string
-    #: inside a language-specific standard XML object, or simply pass as a string.
+    #: The XML element is indicated by C{00x0F} and followed by a LongUTF containing 
+    #: the string representation of the XML object. The receiving gateway may which 
+    #: to wrap this string inside a language-specific standard XML object, or simply
+    #: pass as a string.
     XML         = 0x0f
-    #: A typed object is indicated by 0×10, then a UTF string indicating class name, and then
-    #: the same structure as a normal 0×03 Object. The receiving gateway may use a mapping
-    #: scheme, or send back as a vanilla object or associative array.
+    #: A typed object is indicated by C{0×10}, then a UTF string indicating class 
+    #: name, and then the same structure as a normal C{0×03} Object. The receiving 
+    #: gateway may use a mapping scheme, or send back as a vanilla object or
+    #: associative array.
     TYPEDOBJECT = 0x10
-    #: An AMF message sent from an AS3 client such as the Flash Player 9 may break out
-    #: into L{AMF3<pyamf.amf3>} mode. In this case the next byte will be the AMF3 type code
-    #: and the data will be in AMF3 format until the decoded object reaches it’s logical
-    #: conclusion (for example, an object has no more keys).
+    #: An AMF message sent from an AS3 client such as the Flash Player 9 may break 
+    #: out into L{AMF3<pyamf.amf3>} mode. In this case the next byte will be the 
+    #: AMF3 type code and the data will be in AMF3 format until the decoded object 
+    #: reaches it’s logical conclusion (for example, an object has no more keys).
     AMF3        = 0x11
 
 #: List of available ActionScript types in AMF0.
@@ -131,8 +134,8 @@ class Context(pyamf.BaseContext):
 
     def clear(self):
         """
-        Resets the context. amf3_objs keep a list of objects that were encoded
-        in amf3.
+        Resets the context. C{amf3_objs} keep a list of objects that were encoded
+        in AMF3.
         """
         pyamf.BaseContext.clear(self)
 
@@ -193,6 +196,8 @@ class Decoder(object):
         @param  data: AMF0 data
         @type   context: L{Context}
         @param  context: Context
+        @raise TypeError: The C{context} parameter must be of
+        type L{amf0.Context}.
         """
         # coersce data to BufferedByteStream
         if isinstance(data, util.BufferedByteStream):
@@ -212,7 +217,7 @@ class Decoder(object):
         Read and returns the next byte in the stream and determine its type.
 
         @return: AMF0 type
-        @raise DecodeError: AMF0 type not recognized
+        @raise DecodeError: AMF0 type not recognized.
         """
         type = self.stream.read_uchar()
 
@@ -229,7 +234,8 @@ class Decoder(object):
         In ActionScript 1 and 2 the NumberASTypes type represents all numbers,
         both floats and integers.
 
-        @return: number
+        @rtype: number
+        @return: Number
         """
         return self.stream.read_double()
 
@@ -254,7 +260,8 @@ class Decoder(object):
     def readMixedArray(self):
         """
         Read mixed array.
-        
+
+        @rtype: array
         @return: array
         """
         len = self.stream.read_ulong()
@@ -277,6 +284,9 @@ class Decoder(object):
     def readList(self):
         """
         Read a list from the data stream.
+
+        @rtype: list
+        @return: List
         """
         obj = []
         len = self.stream.read_ulong()
@@ -292,6 +302,9 @@ class Decoder(object):
         """
         Reads an object from the stream and attempts to 'cast' it.
 
+        @rtype: 
+        @return: 
+        
         @see: L{load_class<pyamf.load_class>} for more info.
         """
         classname = self.readString()
@@ -311,6 +324,9 @@ class Decoder(object):
     def readAMF3(self):
         """
         Read AMF3 elements from the data stream.
+
+        @rtype: 
+        @return: 
         """
         # XXX: Does the amf3 decoder have access to the same references as amf0?
         context = pyamf._get_context(pyamf.AMF3)()
@@ -325,7 +341,9 @@ class Decoder(object):
         """
         Reads an AMF0 element from the data stream.
         
-        @raise DecodeError: the ActionScript type is unknown.
+        @raise DecodeError: The ActionScript type is unknown.
+        @rtype: 
+        @return: 
         """
         type = self.readType()
 
@@ -340,6 +358,9 @@ class Decoder(object):
     def readString(self):
         """
         Reads a string from the data stream.
+
+        @rtype: str
+        @return: 
         """
         len = self.stream.read_ushort()
         return self.stream.read_utf8_string(len)
@@ -375,19 +396,27 @@ class Decoder(object):
     def readReference(self):
         """
         Reads a reference from the data stream.
+
+        @rtype: 
+        @return: 
         """
         idx = self.stream.read_ushort()
+        
         return self.context.getObject(idx)
 
     def readDate(self):
         """
         Reads a UTC date from the data stream.
 
-        Date: 0x0B T7 T6 .. T0 Z1 Z2 T7 to T0 form a 64 bit Big Endian number
-        that specifies the number of nanoseconds that have passed since
-        1/1/1970 0:00 to the specified time. This format is UTC 1970. Z1 an
-        Z0 for a 16 bit Big Endian number indicating the indicated time's
-        timezone in minutes.
+        Date: C{0x0B T7 T6} .. C{T0 Z1 Z2 T7} to C{T0} form a 64 bit
+        Big Endian number that specifies the number of nanoseconds
+        that have passed since 1/1/1970 0:00 to the specified time.
+        This format is UTC 1970. C{Z1} and C{Z0} for a 16 bit Big
+        Endian number indicating the indicated time's timezone in
+        minutes.
+
+        @rtype: 
+        @return: 
         """
         ms = self.stream.read_double() / 1000.0
         tz = self.stream.read_short()
@@ -400,7 +429,10 @@ class Decoder(object):
 
     def readLongString(self):
         """
-        Read utf8 string.
+        Read UTF8 string.
+
+        @rtype: 
+        @return: 
         """
         len = self.stream.read_ulong()
         
@@ -409,6 +441,9 @@ class Decoder(object):
     def readXML(self):
         """
         Read XML.
+
+        @rtype: 
+        @return: 
         """
         data = self.readLongString()
         
@@ -484,7 +519,9 @@ class Encoder(object):
     def _writeElementFunc(self, data):
         """
         Gets a function based on the type of data.
-        
+
+        @type   data: 
+        @param  data:
         @rtype: callable or None
         @return: The function used to encode data to the stream.
         """
@@ -612,7 +649,7 @@ class Encoder(object):
 
     def _writeDict(self, o):
         """
-        Write dict to data stream.
+        Write C{dict} to data stream.
 
         @type   o: iterable
         @param  o: AMF data.
@@ -728,7 +765,7 @@ class Encoder(object):
 
     def writeAMF3(self, data):
         """
-        Writes an element to the datastream in AMF3 format.
+        Writes an element to the datastream in L{AMF3<pyamf.amf3>} format.
         
         @type data: mixed
         @param data: The data to be encoded.
@@ -747,6 +784,8 @@ def decode(stream, context=None):
     @param  stream: AMF0 datastream.
     @type   context: L{Context}
     @param  context: Context.
+
+    @todo: Add Python 2.3 support.
     """
     decoder = Decoder(stream, context)
 
