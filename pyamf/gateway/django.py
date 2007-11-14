@@ -34,7 +34,7 @@ U{Django<http://djangoproject.org>} Remoting gateway.
 import pyamf
 from pyamf import remoting
 
-# import django workaround
+# import django workaround for module name
 import sys
 thismodule = sys.modules['django']
 del sys.modules['django']

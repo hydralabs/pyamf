@@ -48,11 +48,19 @@ class ServiceWrapper(object):
         @type service:
         @param authenticator:
         @type authenticator:
+        @rtype:
+        @return:
         """
         self.service = service
         self.authenticator = authenticator
 
     def __cmp__(self, other):
+        """
+        @param other:
+        @type other:
+        @rtype:
+        @return:
+        """
         if isinstance(other, ServiceWrapper):
             return cmp(self.__dict__, other.__dict__)
 

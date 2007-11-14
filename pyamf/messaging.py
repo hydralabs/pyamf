@@ -236,7 +236,7 @@ class RemotingMessage(AbstractMessage):
     """
     I am used to send RPC requests to a remote endpoint.
 
-    @see: {RemotingMessage on Livedocs (external)
+    @see: U{RemotingMessage on Livedocs (external)
     <http://livedocs.adobe.com/flex/201/langref/mx/messaging/messages/RemotingMessage.html>}
     """
 

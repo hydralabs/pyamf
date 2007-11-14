@@ -89,10 +89,14 @@ class StringIOProxy(object):
         self._buffer.seek(0, 0)
 
     def close(self):
+        """
+        """
         self._buffer.close()
         self._len = 0
 
     def flush(self):
+        """
+        """
         self._buffer.flush()
 
     def getvalue(self):
@@ -171,15 +175,25 @@ class StringIOProxy(object):
         self._get_len()
 
     def write(self, s):
+        """
+        @type s:
+        @param s:
+        """
         self._buffer.write(s)
 
         self._get_len()
 
     def writelines(self, iterable):
+        """
+        @type iterable:
+        @param iterable:
+        """
         self._buffer.writelines(iterable)
         self._get_len()
 
     def _get_len(self):
+        """
+        """
         old_pos = self._buffer.tell()
         self._buffer.seek(0, 2)
 
@@ -197,10 +211,11 @@ class NetworkIOMixIn(object):
 
     def _read(self, length):
         """
-
         @type length:
         @param length:
         @raise EOFError: Not in range.
+        @rtype:
+        @return:
         """
         bytes = self.read(length)
 
@@ -228,11 +243,16 @@ class NetworkIOMixIn(object):
         self.write(struct.pack("!B", c))
 
     def read_char(self):
-        
+        """
+        @rtype:
+        @return:
+        """
         return struct.unpack("!b", self._read(1))[0]
 
     def write_char(self, c):
         """
+        @type c:
+        @param c:
         @raise ValueError: Not in range.
         """
         if not -128 <= c <= 127:
@@ -241,10 +261,16 @@ class NetworkIOMixIn(object):
         self.write(struct.pack("!b", c))
 
     def read_ushort(self):
+        """
+        @rtype:
+        @return:
+        """
         return struct.unpack("!H", self._read(2))[0]
 
     def write_ushort(self, s):
         """
+        @type s:
+        @param s:
         @raise ValueError: Not in range.
         """
         if not 0 <= s <= 65536:
@@ -253,10 +279,16 @@ class NetworkIOMixIn(object):
         self.write(struct.pack("!H", s))
 
     def read_short(self):
+        """
+        @rtype:
+        @return:
+        """
         return struct.unpack("!h", self._read(2))[0]
 
     def write_short(self, s):
         """
+        @type s:
+        @param s:
         @raise ValueError: Not in range.
         """
         if not -32768 <= s <= 32767:
@@ -265,10 +297,16 @@ class NetworkIOMixIn(object):
         self.write(struct.pack("!h", s))
 
     def read_ulong(self):
+        """
+        @rtype:
+        @return:
+        """
         return struct.unpack("!L", self._read(4))[0]
 
     def write_ulong(self, l):
         """
+        @type l:
+        @param l:
         @raise ValueError: Not in range.
         """
         if not 0 <= l <= 4294967295:
@@ -277,10 +315,16 @@ class NetworkIOMixIn(object):
         self.write(struct.pack("!L", l))
 
     def read_long(self):
+        """
+        @rtype:
+        @return:
+        """
         return struct.unpack("!l", self._read(4))[0]
 
     def write_long(self, l):
         """
+        @type l:
+        @param l:
         @raise ValueError: Not in range.
         """
         if not -2147483648 <= l <= 2147483647:
@@ -289,15 +333,31 @@ class NetworkIOMixIn(object):
         self.write(struct.pack("!l", l))
 
     def read_double(self):
+        """
+        @rtype:
+        @return:
+        """
         return struct.unpack("!d", self._read(8))[0]
 
     def write_double(self, d):
+        """
+        @type d:
+        @param d:
+        """
         self.write(struct.pack("!d", d))
 
     def write_float(self, f):
+        """
+        @type f:
+        @param f:
+        """
         self.write(struct.pack("!f", f))
 
     def read_float(self):
+        """
+        @rtype:
+        @return:
+        """
         return struct.unpack("!f", self._read(4))[0]
 
     def read_utf8_string(self, length):
@@ -311,6 +371,10 @@ class NetworkIOMixIn(object):
         return unicode(str, "utf8")
 
     def write_utf8_string(self, u):
+        """
+        @type u:
+        @param u:
+        """
         self.write(u.encode("utf8"))
 
 class BufferedByteStream(StringIOProxy, NetworkIOMixIn):

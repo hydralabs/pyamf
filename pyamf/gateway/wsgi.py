@@ -46,7 +46,9 @@ class WSGIGateway(gateway.BaseGateway):
         Read input data stream.
 
         @type environ:
-        @param environ: 
+        @param environ:
+        @rtype:
+        @return:
         """
         return environ['wsgi.input'].read(int(environ['CONTENT_LENGTH']))
 
@@ -55,7 +57,6 @@ class WSGIGateway(gateway.BaseGateway):
 
         @param request:
         @type request:
-        
         @rtype:
         @return:
         """
@@ -91,7 +92,9 @@ class WSGIGateway(gateway.BaseGateway):
 
             stream = remoting.encode(response, context)
         except:
-            self.save_request(body, stream)
+            if self.debug:
+                #: write amf request and response to disk.
+                self.save_request(body, stream)
             raise
 
         if self.debug:

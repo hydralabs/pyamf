@@ -180,6 +180,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
             if self.debug:
                 #: write amf request and response to disk.
                 self.save_request(self.body, self.stream)
+                
             request.setHeader("Content-Length", str(len(result)))
             request.write(result.getvalue())
             request.finish()    
@@ -188,7 +189,9 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
             ).addErrback(self._ebRender).addCallback(finishRequest)
 
     def _ebRender(self, failure):
-        self.save_request(self.body, self.stream)
+        if self.debug:
+            #: write amf request and response to disk.
+            self.save_request(self.body, self.stream)
         print failure
 
 class TwistedClient(client.HTTPPageGetter):

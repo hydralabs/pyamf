@@ -153,8 +153,7 @@ class DataOutput(object):
 
     def writeUTF(self, value):
         """
-        Writes a UTF-8 string to the file stream, byte stream,
-        or L{ByteArray}.
+        Writes a UTF-8 string to the data stream.
 
         The length of the UTF-8 string in bytes is written first,
         as a 16-bit integer, followed by the bytes representing the
