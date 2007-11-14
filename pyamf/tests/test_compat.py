@@ -181,11 +181,108 @@ class DataOutputTestCase(unittest.TestCase):
         self.assertEquals(self.stream.getvalue(),
             '\xe1\xbc\x94\xce\xb4\xcf\x89\xcf\x83\xce\xb1\xce\xbd')
 
+class DataInputTestCase(unittest.TestCase):
+    def setUp(self):
+        self.stream = util.BufferedByteStream()
+        self.decoder = amf3.Decoder(self.stream)
+
+    def test_create(self):
+        x = compat.DataInput(self.decoder)
+
+        self.assertEquals(x.decoder, self.decoder)
+        self.assertEquals(x.stream, self.stream)
+        self.assertEquals(x.stream, self.decoder.stream)
+
+    def _test(self, bytes, value, func, *params):
+        self.stream.write(bytes)
+        self.stream.seek(0)
+
+        self.assertEquals(func(*params), value)
+        self.stream.truncate()
+
+    def test_boolean(self):
+        x = compat.DataInput(self.decoder)
+
+        self.stream.write('\x01')
+        self.stream.seek(-1, 2)
+        self.assertEquals(x.readBoolean(), True)
+
+        self.stream.write('\x00')
+        self.stream.seek(-1, 2)
+        self.assertEquals(x.readBoolean(), False)
+
+    def test_byte(self):
+        x = compat.DataInput(self.decoder)
+
+        self.stream.write('\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09')
+        self.stream.seek(0)
+
+        for y in xrange(10):
+            self.assertEquals(x.readByte(), y)
+
+    def test_double(self):
+        x = compat.DataInput(self.decoder)
+
+        self._test('\x00' * 8, 0.0, x.readDouble)
+        self._test('@\x93JEm\\\xfa\xad', 1234.5678, x.readDouble)
+
+    def test_float(self):
+        x = compat.DataInput(self.decoder)
+
+        self._test('\x00' * 4, 0.0, x.readFloat)
+        self._test('?\x00\x00\x00', 0.5, x.readFloat)
+
+    def test_int(self):
+        x = compat.DataInput(self.decoder)
+
+        self._test('\x00\x00\x00\x00', 0, x.readInt)
+        self._test('\xff\xff\xcf\xc7', -12345, x.readInt)
+        self._test('\x00\x00\x00b', 98, x.readInt)
+
+    def test_multi_byte(self):
+        # TODO nick: test multiple charsets
+        x = compat.DataInput(self.decoder)
+
+        self._test(u'this is a test', u'this is a test', x.readMultiByte,
+            14, 'utf-8')
+        self._test('\xe1\xbc\x94\xce\xb4\xcf\x89\xcf\x83\xce\xb1\xce\xbd',
+            u'ἔδωσαν', x.readMultiByte, 13, 'utf-8')
+
+    def test_object(self):
+        x = compat.DataInput(self.decoder)
+        
+        self._test('\t\x01\x07foo\x06\x07bar\x01', {'foo': 'bar'}, x.readObject)
+        # check references
+        self._test('\t\x00', {'foo': 'bar'}, x.readObject)
+
+    def test_short(self):
+        x = compat.DataInput(self.decoder)
+
+        self._test('\x007', 55, x.readShort)
+        self._test('\xff\xc9', -55, x.readShort)
+
+    def test_uint(self):
+        x = compat.DataInput(self.decoder)
+
+        self._test('\x00\x00\x007', 55, x.readUnsignedInt)
+
+    def test_utf(self):
+        x = compat.DataInput(self.decoder)
+
+        self._test('\x00\r\xe1\xbc\x94\xce\xb4\xcf\x89\xcf\x83\xce\xb1\xce\xbd',
+            u'ἔδωσαν', x.readUTF)
+
+    def test_utf_bytes(self):
+        x = compat.DataInput(self.decoder)
+
+        self._test('\xe1\xbc\x94\xce\xb4\xcf\x89\xcf\x83\xce\xb1\xce\xbd',
+            u'ἔδωσαν', x.readUTFBytes, 13)
 
 def suite():
     suite = unittest.TestSuite()
 
     suite.addTest(unittest.makeSuite(DataOutputTestCase))
+    suite.addTest(unittest.makeSuite(DataInputTestCase))
 
     return suite
 

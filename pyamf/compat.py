@@ -26,7 +26,7 @@
 """
 Contains compatibility classes/functions for Python -> Flex and vice versa.
 
-@note: Not available in Actionscript 1.0 and 2.0.
+Not available in Actionscript 1.0 and 2.0.
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
@@ -61,12 +61,12 @@ class DataOutput(object):
         @param value: A Boolean value determining which byte is written.
         If the parameter is C{True}, 1 is written; if C{False}, 0 is written.
 
-        @raise ValueError: Non-boolean value is found.
+        @raise ValueError: None boolean value is found.
         """
         if isinstance(value, bool):
             self.encoder.writeBoolean(value)
         else:
-            raise ValueError("Non-boolean value found")
+            raise ValueError("None boolean value found")
 
     def writeByte(self, value):
         """
