@@ -60,13 +60,11 @@ class DataOutput(object):
         @type value: bool
         @param value: A Boolean value determining which byte is written.
         If the parameter is C{True}, 1 is written; if C{False}, 0 is written.
-        
+
         @raise ValueError: Non-boolean value is found.
         """
-        if value is True:
-            self.stream.write('\x01')
-        elif value is False:
-            self.stream.write('\x00')
+        if isinstance(value, bool):
+            self.encoder.writeBoolean(value)
         else:
             raise ValueError("Non-boolean value found")
 
@@ -133,7 +131,7 @@ class DataOutput(object):
         @type use_references: bool
         @param use_references:
         """
-        self.encoder.writeElement(value, use_references=True)
+        self.encoder.writeElement(value, use_references)
 
     def writeShort(self, value):
         """
@@ -167,7 +165,14 @@ class DataOutput(object):
         """
         from pyamf import amf3
 
-        self.stream.write(amf3.encode_utf8_modified(unicode(value, 'utf8')))
+        val = None
+
+        if isinstance(value, unicode):
+            val = value
+        else:
+            val = unicode(value, 'utf8')
+
+        self.stream.write(amf3.encode_utf8_modified(val))
 
     def writeUTFBytes(self, value):
         """
@@ -179,7 +184,14 @@ class DataOutput(object):
         """
         from pyamf import amf3
 
-        self.stream.write(amf3.encode_utf8_modified(unicode(value, 'utf8'))[2:])
+        val = None
+
+        if isinstance(value, unicode):
+            val = value
+        else:
+            val = unicode(value, 'utf8')
+
+        self.stream.write(amf3.encode_utf8_modified(val)[2:])
 
 class DataInput(object):
     """
