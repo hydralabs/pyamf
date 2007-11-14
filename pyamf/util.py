@@ -96,19 +96,34 @@ class StringIOProxy(object):
         self._buffer.flush()
 
     def getvalue(self):
+        """
+        @rtype:
+        @return:
+        """
         return self._buffer.getvalue()
 
     def next(self):
+        """
+        @rtype:
+        @return:
+        """
         return self._buffer.next()
 
     def read(self, n=-1):
+        """
+        @rtype:
+        @return:
+        """
         bytes = self._buffer.read(n)
 
         return bytes
 
     def readline(self):
         """
-        Note: this function does not consume the buffer
+        @rtype:
+        @return:
+
+        @note: This function does not consume the buffer.
         """
         line = self._buffer.readline()
 
@@ -116,19 +131,42 @@ class StringIOProxy(object):
 
     def readlines(self, sizehint=0):
         """
-        Note: this function does not consume the buffer
+        @type sizehint:
+        @param sizehint:
+        @rtype:
+        @return:
+        
+        @note: This function does not consume the buffer.
         """
         lines = self._buffer.readlines(sizehint)
 
         return lines
 
     def seek(self, pos, mode=0):
+        """
+        @type pos:
+        @param pos:
+        @type mode:
+        @param mode:
+        @rtype:
+        @return:
+        """
         return self._buffer.seek(pos, mode)
 
     def tell(self):
+        """
+        @rtype:
+        @return:
+        """
         return self._buffer.tell()
 
     def truncate(self, size=0):
+        """
+        @type size:
+        @param size:
+        @rtype:
+        @return:
+        """
         bytes = self._buffer.truncate(size)
         self._get_len()
 
@@ -159,6 +197,9 @@ class NetworkIOMixIn(object):
 
     def _read(self, length):
         """
+
+        @type length:
+        @param length:
         @raise EOFError: Not in range.
         """
         bytes = self.read(length)
@@ -171,6 +212,10 @@ class NetworkIOMixIn(object):
         return bytes
 
     def read_uchar(self):
+        """
+        @rtype:
+        @return:
+        """
         return struct.unpack("!B", self._read(1))[0]
 
     def write_uchar(self, c):
@@ -183,6 +228,7 @@ class NetworkIOMixIn(object):
         self.write(struct.pack("!B", c))
 
     def read_char(self):
+        
         return struct.unpack("!b", self._read(1))[0]
 
     def write_char(self, c):
@@ -285,17 +331,19 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
 
     def read(self, length=-1):
         """
-        Read bytes from stream. If we are at the end of the buffer,
-        C{EOFError} is raised. If there is not enough buffer to be
-        read and length is specified C{IOError} is raised
+        Read bytes from stream.
+
+        If we are at the end of the buffer, a C{EOFError} is raised.
+        If there is not enough buffer to be read and length is
+        specified C{IOError} is raised.
 
         @raise EOFError: Reading past end of stream.
         @raise IOError: Length specified but not enough buffer
         available.
-        @param length: Number of bytes to read
+        @param length: Number of bytes to read.
         @type length: int
-        @rtype: the bytes read from the stream
-        @return: array of char
+        @rtype: array of char
+        @return: The bytes read from the stream.
         """
         if length > 0 and self.at_eof():
             raise EOFError
@@ -333,7 +381,7 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
 
     def at_eof(self):
         """
-        Returns true if next .read(1) will trigger C{EOFError}.
+        Returns true if next C{.read(1)} will trigger C{EOFError}.
 
         @rtype: bool
         @return:
