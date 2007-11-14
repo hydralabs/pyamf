@@ -36,11 +36,11 @@ from pyamf import remoting
 
 # import django workaround for module name
 import sys
-thismodule = sys.modules['django']
+_thismodule = sys.modules['django']
 del sys.modules['django']
-real_django = __import__('django')
-sys.modules['real_django'] = real_django
-sys.modules['django'] = thismodule
+_real_django = __import__('django')
+sys.modules['real_django'] = _real_django
+sys.modules['django'] = _thismodule
 from real_django.http import HttpResponse, HttpResponseNotAllowed
 from real_django.core.urlresolvers import get_mod_func
 
@@ -48,17 +48,28 @@ def DjangoGateway(request, gateway):
     """
     A Django generic view that reads an AMF remoting request from the POST body and responds.
 
-    This gateway instance is used to dispatch the remoting requests.
+    The gateway parameter specifies an object that is used to dispatch the remoting requests,
+    must be an instance of L{BaseGateway<pyamf.gateway.BaseGateway>} or a string. If a string is specified,
+    it must be a dotted path to such an instance and the view will import it on each request.
+    
+    An example useage would be through urlconf:
+    
+        from django.conf.urls.defaults import *
+        import os
 
-    @type request:
-    @param request: Remoting request.
-    @param gateway:
-    @type gateway: Instance of L{BaseGateway<pyamf.gateway.BaseGateway>} or a qualified
-    string to such an instance that will be imported.
+        urlpatterns = patterns('',
+            (r'^gateway/', 'pyamf.gateway.django.DjangoGateway', {'gateway': 'yourproject.gateway.yourGateway'}),
+        )
+    
+    where C{yourproject.gateway.yourGateway} refers to your instance of L{BaseGateway<pyamf.gateway.BaseGateway>}.
 
-    @raise HttpResponseNotAllowed: Only the POST request method is allowed.
-    @return: Response to remoting request.
-    @rtype:
+    @type request: django.http.HttpRequest
+    @param request: Django HTTP request object containing an AMF encoded remoting request.
+    @param gateway: An instance of BaseGateway for dispatching or a qualified string to such an instance that will be imported.
+    @type gateway: L{BaseGateway<pyamf.gateway.BaseGateway>} or str
+
+    @return: Response object containing the AMF encoded response or HttpResponseNotAllowed if request method was not POST.
+    @rtype: django.http.HttpResponse or django.http.HttpResponseNotAllowed
     """
 
     # Import gateway if it is a string (similar to Django's urlconf)
