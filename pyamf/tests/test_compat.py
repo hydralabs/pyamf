@@ -305,12 +305,35 @@ class ArrayCollectionTestCase(unittest.TestCase):
         self.assertEquals(x.keys(), ['foo'])
         self.assertEquals(x.items(), [('foo', u'bar')])
 
+class ObjectProxyTestCase(unittest.TestCase):
+    def test_encode(self):
+        stream = util.BufferedByteStream()
+        encoder = amf3.Encoder(stream)
+
+        x = compat.ObjectProxy({'x': 'y'})
+
+        encoder.writeElement(x)
+
+        self.assertEquals(stream.getvalue(),
+            '\n\x1f;flex.messaging.io.ObjectProxy\t\x01\x03x\x06\x03y\x01')
+
+    def test_decode(self):
+        stream = util.BufferedByteStream(
+            '\n\x1f;flex.messaging.io.ObjectProxy\t\x01\x03x\x06\x03y\x01')
+        decoder = amf3.Decoder(stream)
+
+        x = decoder.readElement()
+
+        self.assertEquals(x.__class__, compat.ObjectProxy)
+        self.assertEquals(x._amf_object, {'x': 'y'})
+
 def suite():
     suite = unittest.TestSuite()
 
     suite.addTest(unittest.makeSuite(DataOutputTestCase))
     suite.addTest(unittest.makeSuite(DataInputTestCase))
     suite.addTest(unittest.makeSuite(ArrayCollectionTestCase))
+    suite.addTest(unittest.makeSuite(ObjectProxyTestCase))
 
     return suite
 

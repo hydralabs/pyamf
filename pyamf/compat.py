@@ -2,8 +2,6 @@
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
 # 
-# Nick Joyce
-# 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -398,7 +396,7 @@ pyamf.register_class(ArrayCollection, 'flex.messaging.io.ArrayCollection',
     read_func=ArrayCollection.__readamf__,
     write_func=ArrayCollection.__writeamf__)
 
-class ObjectProxy(pyamf.Bag):
+class ObjectProxy(object):
     """
     I represent the ActionScript 3 based class C{flex.messaging.io.ObjectProxy}
     used in the Flex framework.
@@ -407,15 +405,30 @@ class ObjectProxy(pyamf.Bag):
     <http://livedocs.adobe.com/flex/2/langref/mx/utils/ObjectProxy.html>}
     """
 
+    def __init__(self, object=None):
+        self._amf_object = object
+
     def __repr__(self):
-        return "<flex.messaging.io.ObjectProxy %s>" %  dict.__repr__(
-            self.__dict__)
+        return "<flex.messaging.io.ObjectProxy %s>" % self.__dict__
 
-def read_ObjectProxy(obj, input):
-    obj._object = input.readObject()
+    def __getattr__(self, name):
+        if name == '_amf_object':
+            return self._amf_object
 
-def write_ObjectProxy(obj, output):
-    output.writeObject(obj._object)
+        return getattr(self._amf_object, name)
+
+    def __setattr__(self, name, value):
+        if name == '_amf_object':
+            self.__dict__['_amf_object'] = value
+        else:
+            return setattr(self._amf_object, name, value)
+
+    def __readamf__(self, input):
+        self._amf_object = input.readObject()
+
+    def __writeamf__(self, output):
+        output.writeObject(self._amf_object)
 
 pyamf.register_class(ObjectProxy, 'flex.messaging.io.ObjectProxy',
-    read_func=read_ObjectProxy, write_func=write_ObjectProxy)
+    read_func=ObjectProxy.__readamf__,
+    write_func=ObjectProxy.__writeamf__)
