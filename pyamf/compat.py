@@ -379,23 +379,24 @@ class ArrayCollection(dict):
     def __repr__(self):
         return "<flex.messaging.io.ArrayCollection %s>" % dict.__repr__(self)
 
-def read_ArrayCollection(obj, input):
-    data = input.readObject()
+    def __readamf__(self, input):
+        data = input.readObject()
 
-    if hasattr(data, 'iteritems'):
-        for (k, v) in data.iteritems():
-            obj[k] = v
-    else:
-        count = 0
-        for i in data:
-            obj[count] = i
-            count += 1   
+        if hasattr(data, 'iteritems'):
+            for (k, v) in data.iteritems():
+                self[k] = v
+        else:
+            count = 0
+            for i in data:
+                self[count] = i
+                count += 1   
 
-def write_ArrayCollection(obj, output):
-    output.writeObject(obj.__dict__, use_references=False)
+    def __writeamf__(self, output):
+        output.writeObject(dict(self), use_references=False)
 
 pyamf.register_class(ArrayCollection, 'flex.messaging.io.ArrayCollection',
-    read_func=read_ArrayCollection, write_func=write_ArrayCollection)
+    read_func=ArrayCollection.__readamf__,
+    write_func=ArrayCollection.__writeamf__)
 
 class ObjectProxy(pyamf.Bag):
     """

@@ -713,11 +713,9 @@ class Encoder(object):
         ((ByteArray,), "writeByteArray"),
         ((util.ET.iselement,), "writeXML"),
         ((types.StringTypes,), "writeString"),
-        ((types.DictType,), "writeDict"),
-        ((types.ListType,types.TupleType,), "writeList"),
         ((datetime.date, datetime.datetime), "writeDate"),
         ((types.NoneType,), "writeNull"),
-        ((types.InstanceType,types.ObjectType,), "writeObject"),
+        ((types.InstanceType,types.ObjectType,), "writeInstance"),
     ]
 
     def __init__(self, output, context=None):
@@ -896,7 +894,7 @@ class Encoder(object):
         @param  n: string data
         """
         self.writeType(ASTypes.STRING)
-        self._writeString(n)
+        self._writeString(n, use_references)
 
     def writeDate(self, n, use_references=True):
         """
@@ -1044,6 +1042,15 @@ class Encoder(object):
 
         return class_def
 
+    def writeInstance(self, obj, use_references=True):
+        if obj.__class__ == dict:
+            self.writeDict(obj, use_references)
+        elif obj.__class__ in (list, set):
+            self.writeList(obj, use_references)
+            return
+        else:
+            self.writeObject(obj, use_references)
+
     def writeObject(self, obj, use_references=True):
         """
         Writes an object to the stream.
@@ -1086,7 +1093,7 @@ class Encoder(object):
                 # anonymous class-def
                 self._writeString('')
             else:
-                self._writeString(class_def.name.alias)
+                self._writeString(class_def.name.alias, False)
 
         if class_def.encoding in (ObjectEncoding.EXTERNAL, ObjectEncoding.PROXY):
             klass_alias = class_def.name

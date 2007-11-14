@@ -278,11 +278,39 @@ class DataInputTestCase(unittest.TestCase):
         self._test('\xe1\xbc\x94\xce\xb4\xcf\x89\xcf\x83\xce\xb1\xce\xbd',
             u'ἔδωσαν', x.readUTFBytes, 13)
 
+class ArrayCollectionTestCase(unittest.TestCase):
+    def test_encode(self):
+        stream = util.BufferedByteStream()
+        encoder = amf3.Encoder(stream)
+
+        x = compat.ArrayCollection()
+
+        x['foo'] = 'bar'
+
+        encoder.writeElement(x)
+
+        self.assertEquals(stream.getvalue(),
+            '\n\x07Cflex.messaging.io.ArrayCollection'
+            '\t\x01\x07foo\x06\x07bar\x01')
+
+    def test_decode(self):
+        stream = util.BufferedByteStream(
+            '\n\x07Cflex.messaging.io.ArrayCollection'
+            '\t\x01\x07foo\x06\x07bar\x01')
+        decoder = amf3.Decoder(stream)
+
+        x = decoder.readElement()
+
+        self.assertEquals(x.__class__, compat.ArrayCollection)
+        self.assertEquals(x.keys(), ['foo'])
+        self.assertEquals(x.items(), [('foo', u'bar')])
+
 def suite():
     suite = unittest.TestSuite()
 
     suite.addTest(unittest.makeSuite(DataOutputTestCase))
     suite.addTest(unittest.makeSuite(DataInputTestCase))
+    suite.addTest(unittest.makeSuite(ArrayCollectionTestCase))
 
     return suite
 
