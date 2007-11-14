@@ -55,8 +55,10 @@ class StringIOProxy(object):
     """
     I am a C{StringIO} type object containing byte data from the AMF stream.
 
-    @see: U{http://osflash.org/documentation/amf3#x0c_-_bytearray}
-    @see: U{http://osflash.org/documentation/amf3/parsing_byte_arrays}
+    @see: U{ByteArray on OSFlash (external)
+    <http://osflash.org/documentation/amf3#x0c_-_bytearray>}
+    @see: U{Parsing ByteArrays on OSFlash (external)
+    <http://osflash.org/documentation/amf3/parsing_byte_arrays>}
     """
 
     _wrapped_class = StringIO
@@ -156,6 +158,9 @@ class NetworkIOMixIn(object):
     """
 
     def _read(self, length):
+        """
+        @raise EOFError: Not in range.
+        """
         bytes = self.read(length)
 
         if len(bytes) != length:
@@ -169,6 +174,9 @@ class NetworkIOMixIn(object):
         return struct.unpack("!B", self._read(1))[0]
 
     def write_uchar(self, c):
+        """
+        @raise ValueError: Not in range.
+        """
         if not 0 <= c <= 256:
             raise ValueError("c not in range (%d)" % c)
 
@@ -178,6 +186,9 @@ class NetworkIOMixIn(object):
         return struct.unpack("!b", self._read(1))[0]
 
     def write_char(self, c):
+        """
+        @raise ValueError: Not in range.
+        """
         if not -128 <= c <= 127:
             raise ValueError("c not in range (%d)" % c)
 
@@ -187,6 +198,9 @@ class NetworkIOMixIn(object):
         return struct.unpack("!H", self._read(2))[0]
 
     def write_ushort(self, s):
+        """
+        @raise ValueError: Not in range.
+        """
         if not 0 <= s <= 65536:
             raise ValueError("not in range (%d)" % s)
 
@@ -196,6 +210,9 @@ class NetworkIOMixIn(object):
         return struct.unpack("!h", self._read(2))[0]
 
     def write_short(self, s):
+        """
+        @raise ValueError: Not in range.
+        """
         if not -32768 <= s <= 32767:
             raise ValueError("not in range (%d)" % s)
 
@@ -205,6 +222,9 @@ class NetworkIOMixIn(object):
         return struct.unpack("!L", self._read(4))[0]
 
     def write_ulong(self, l):
+        """
+        @raise ValueError: Not in range.
+        """
         if not 0 <= l <= 4294967295:
             raise ValueError("not in range (%d)" % l)
 
@@ -214,6 +234,9 @@ class NetworkIOMixIn(object):
         return struct.unpack("!l", self._read(4))[0]
 
     def write_long(self, l):
+        """
+        @raise ValueError: Not in range.
+        """
         if not -2147483648 <= l <= 2147483647:
             raise ValueError("not in range (%d)" % l)
 
@@ -256,18 +279,19 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
     def __init__(self, buf=None):
         """
         @param buf: Initial byte stream
-        @type buf: str or StringIO instance
+        @type buf: str or C{StringIO} instance
         """
         StringIOProxy.__init__(self, buf=buf)
 
     def read(self, length=-1):
         """
-        Read bytes from stream. If we are at the end of the buffer, EOFError is
-        raised. If there is not enough buffer to be read and length is specified
-        IOError is raised
+        Read bytes from stream. If we are at the end of the buffer,
+        C{EOFError} is raised. If there is not enough buffer to be
+        read and length is specified C{IOError} is raised
 
         @raise EOFError: Reading past end of stream.
-        @raise IOError: Length specified but not enough buffer available.
+        @raise IOError: Length specified but not enough buffer
+        available.
         @param length: Number of bytes to read
         @type length: int
         @rtype: the bytes read from the stream
@@ -285,6 +309,7 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
         Looks size bytes ahead in the stream, returning what it finds,
         returning the stream pointer to its initial position.
 
+        @raise ValueError: Raised when trying to peek backwards.
         @param length:
         @type length:
         @rtype:
@@ -330,8 +355,8 @@ def hexdump(data):
 
     @type data:
     @param data:
-    @rtype:
-    @return: Buffer.
+    @rtype: str
+    @return: Hexadecimal string.
     """
     import string
 
