@@ -127,8 +127,8 @@ class StringIOProxy(object):
         return self._buffer.tell()
 
     def truncate(self, size=0):
-        bytes = self._buffer.truncate(size)
-        self._get_len()
+        self._buffer.truncate(size)
+        self._len = size
 
     def write(self, s):
         self._buffer.write(s)
@@ -144,7 +144,7 @@ class StringIOProxy(object):
         self._buffer.seek(0, 2)
 
         self._len = self._buffer.tell()
-        self._buffer.seek(old_pos)
+        self._buffer.seek(old_pos, 0)
 
     def __len__(self):
         return self._len
