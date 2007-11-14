@@ -32,8 +32,17 @@ U{Twisted<http://twistedmatrix.com>} Server and Client implementations.
 
 @since: 0.1.0
 """
-from twisted.internet import defer, threads
-from twisted.web import resource, server, client
+
+# import twisted workaround
+import sys
+thismodule = sys.modules['twisted']
+del sys.modules['twisted']
+real_twisted = __import__('twisted')
+sys.modules['real_twisted'] = real_twisted
+sys.modules['twisted'] = thismodule
+
+from real_twisted.internet import defer, threads
+from real_twisted.web import resource, server, client
 
 import pyamf
 from pyamf import remoting, gateway
@@ -153,7 +162,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         self.body = request.content.read()
         self.stream = None
 
-        self.context = pyamf.Context()
+        self.context = pyamf._get_context(pyamf.AMF0)()
 
         threads.deferToThread(remoting.decode, self.body, self.context
             ).addCallback(self.getResponse

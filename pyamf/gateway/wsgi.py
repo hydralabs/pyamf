@@ -83,7 +83,7 @@ class WSGIGateway(gateway.BaseGateway):
         body = self.get_request_body(environ)
         stream = None
 
-        context = pyamf.Context()
+        context = pyamf._get_context(pyamf.AMF0)()
 
         try:
             request = remoting.decode(body, context)

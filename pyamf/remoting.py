@@ -423,7 +423,9 @@ def encode(msg, old_context=None):
     """
     def getNewContext():
         if old_context:
-            return pyamf._adapt_context_amf3_to_amf0(old_context)
+            import copy
+
+            return copy.copy(old_context)
         else:
             return pyamf._get_context(pyamf.AMF0)()
 

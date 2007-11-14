@@ -84,7 +84,7 @@ def run_twisted_server(options, services):
     from twisted.internet import reactor
     from twisted.web import server, static, resource
 
-    from pyamf.gateway.twistedmatrix import TwistedGateway
+    from pyamf.gateway.twisted import TwistedGateway
 
     gw = TwistedGateway(services, options.debug)
     root = resource.Resource()
@@ -129,7 +129,7 @@ def run_twisted_client(options, service, result_func, fault_func):
     @rtype: callable
     """
     from twisted.internet import reactor
-    from pyamf.gateway.twistedmatrix import TwistedClient
+    from pyamf.gateway.twisted import TwistedClient
 
     client = TwistedClient(options, service, result_func, fault_func)
     client.send("Hello World!")
