@@ -66,6 +66,81 @@ class TypesTestCase(unittest.TestCase):
         self.assertEquals(amf0.ASTypes.TYPEDOBJECT, 0x10)
         self.assertEquals(amf0.ASTypes.AMF3, 0x11)
 
+class ContextTestCase(unittest.TestCase):
+    def test_create(self):
+        c = amf0.Context()
+
+        self.assertEquals(c.objects, [])
+        self.assertEquals(len(c.objects), 0)
+        self.assertEquals(c.amf3_objs, [])
+        self.assertEquals(len(c.amf3_objs), 0)
+
+    def test_copy(self):
+        import copy
+
+        orig = amf0.Context()
+        
+        orig.addObject({'foo': 'bar'})
+        orig.amf3_objs.append([1, 2, 3])
+
+        new = copy.copy(orig)
+
+        self.assertEquals(new.objects, [])
+        self.assertEquals(len(new.objects), 0)
+        self.assertEquals(new.amf3_objs, [[1, 2, 3]])
+        self.assertEquals(len(new.amf3_objs), 1)
+
+    def test_add(self):
+        x = amf0.Context()
+        y = [1, 2, 3]
+
+        self.assertEquals(x.addObject(y), 1)
+        self.assertTrue(y in x.objects)
+        self.assertEquals(len(x.objects), 1)
+
+    def test_clear(self):
+        x = amf0.Context()
+        y = [1, 2, 3]
+
+        x.addObject(y)
+        x.amf3_objs.append({})
+        x.clear()
+
+        self.assertEquals(x.objects, [])
+        self.assertEquals(len(x.objects), 0)
+        self.assertFalse(y in x.objects)
+
+        self.assertEquals(x.amf3_objs, [])
+        self.assertEquals(len(x.amf3_objs), 0)
+        self.assertFalse({} in x.amf3_objs)
+
+    def test_get_by_reference(self):
+        x = amf0.Context()
+        y = [1, 2, 3]
+        z = {'foo': 'bar'}
+
+        x.addObject(y)
+        x.addObject(z)
+
+        self.assertEquals(x.getObject(1), y)
+        self.assertEquals(x.getObject(2), z)
+        self.assertRaises(pyamf.ReferenceError, x.getObject, 0)
+        self.assertRaises(pyamf.ReferenceError, x.getObject, 3)
+        self.assertRaises(TypeError, x.getObject, '')
+        self.assertRaises(TypeError, x.getObject, 2.2323)
+
+    def test_get_reference(self):
+        x = amf0.Context()
+        y = [1, 2, 3]
+        z = {'foo': 'bar'}
+
+        ref1 = x.addObject(y)
+        ref2 = x.addObject(z)
+
+        self.assertEquals(x.getObjectReference(y), ref1)
+        self.assertEquals(x.getObjectReference(z), ref2)
+        self.assertRaises(pyamf.ReferenceError, x.getObjectReference, {})
+
 class EncoderTestCase(unittest.TestCase):
     """
     Tests the output from the AMF0 L{Encoder<pyamf.amf0.Encoder>} class.
@@ -74,6 +149,7 @@ class EncoderTestCase(unittest.TestCase):
     def setUp(self):
         self.buf = util.BufferedByteStream()
         self.e = amf0.Encoder(self.buf)
+        self.context = self.e.context
 
     def _run(self, data):
         self.e.context.clear()
@@ -202,6 +278,13 @@ class EncoderTestCase(unittest.TestCase):
                 '\n\x00\x00\x00\x01\n\x00\x00\x00\x02\x03\x00\x01a\x02\x00\x03'
                 'foo\x00\x01b\x02\x00\x03bar\x00\x00\t\x07\x00\x01')])
 
+    def test_amf3(self):
+        x = 1
+
+        self.context.amf3_objs.append(x)
+        self.e.writeElement(x)
+        self.assertEquals(self.buf.getvalue(), '\x11\x04\x01')
+
 class DecoderTestCase(unittest.TestCase):
     """ 
     Tests the output from the AMF0 L{Decoder<pyamf.amf0.Decoder>} class. 
@@ -210,9 +293,10 @@ class DecoderTestCase(unittest.TestCase):
         self.buf = util.BufferedByteStream()
         self.decoder = amf0.Decoder()
         self.decoder.stream = self.buf
+        self.context = self.decoder.context
 
     def _run(self, data):
-        self.decoder.context.clear()
+        self.context.clear()
 
         e = DecoderTester(self.decoder, data)
         e.run(self)
@@ -336,12 +420,23 @@ class DecoderTestCase(unittest.TestCase):
             ([[1.0]], '\x0A\x00\x00\x00\x01\x0A\x00\x00\x00\x01\x00\x3F\xF0\x00'
                 '\x00\x00\x00\x00\x00')])
 
+    def test_amf3(self):
+        x = 1
+
+        self.context.amf3_objs.append(x)
+        self.buf.write('\x11\x04\x01')
+        self.buf.seek(0)
+        
+        self.assertEquals(self.decoder.readElement(), 1)
+        self.assertTrue(x in self.context.amf3_objs)
+
 def suite():
     suite = unittest.TestSuite()
 
-    suite.addTest(unittest.makeSuite(TypesTestCase, 'test'))
-    suite.addTest(unittest.makeSuite(EncoderTestCase, 'test'))
-    suite.addTest(unittest.makeSuite(DecoderTestCase, 'test'))
+    suite.addTest(unittest.makeSuite(TypesTestCase))
+    suite.addTest(unittest.makeSuite(ContextTestCase))
+    suite.addTest(unittest.makeSuite(EncoderTestCase))
+    suite.addTest(unittest.makeSuite(DecoderTestCase))
 
     return suite
 

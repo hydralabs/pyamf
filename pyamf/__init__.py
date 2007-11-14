@@ -121,9 +121,9 @@ class UnknownClassAlias(BaseError):
     @see: L{register_class} for more info.
     """
 
-class Context(object):
+class BaseContext(object):
     """
-    I hold the AMF context for en/decoding streams.
+    I am a hold the AMF context for en/decoding streams.
     """
 
     def __init__(self):
@@ -137,9 +137,9 @@ class Context(object):
         Resets the context.
         """
         self.objects = []
-        self.strings = []
-        self.classes = []
-        self.amf3_objs = []
+
+    def _getObject(self, ref):
+        raise NotImplementedError
 
     def getObject(self, ref):
         """
@@ -151,22 +151,28 @@ class Context(object):
         @return: The object referenced.
         @rtype: mixed
         """
+        if not isinstance(ref, (int, long)):
+            raise TypeError, "Bad reference type"
+
         try:
-            return self.objects[ref - 1]
+            return self._getObject(ref)
         except IndexError:
-            raise ReferenceError("Object reference %d not found" % ref)
+            raise ReferenceError, "Object reference %d not found" % ref
+
+    def _getObjectReference(self, obj):
+        raise NotImplementedError
 
     def getObjectReference(self, obj):
         """
         Gets a reference for an object.
-    
+
         @type obj:
         @param obj:
         @raise ReferenceError: object reference could not be found.
         @return:
         """
         try:
-            return self.objects.index(obj) + 1
+            return self._getObjectReference(obj) 
         except ValueError:
             raise ReferenceError("Reference for object %r not found" % str(obj))
 
@@ -174,114 +180,15 @@ class Context(object):
         """
         Gets a reference to C{obj}, creating one if necessary.
 
-        @type obj:
-        @param obj:
-        @return:
+        @type obj: mixed
+        @param obj: the object to add to the context 
+        @return: reference to obj
+        @rtype: int
         """
-        try:
-            return self.objects.index(obj)
-        except ValueError:
-            self.objects.append(obj)
+        return self._addObject(obj)
 
-            return len(self.objects)
-
-    def getString(self, ref):
-        """
-        Gets a string based on a reference C{ref}.
-
-        @type ref:
-        @param ref:
-        @raise ReferenceError: the string could not be found.
-        @return:
-        """
-        try:
-            return self.strings[ref]
-        except IndexError:
-            raise ReferenceError("String reference %d not found" % ref)
-
-    def getStringReference(self, s):
-        """
-        Return string reference.
-        
-        @type s: str
-        @param s: string reference
-        @raise ReferenceError: the string reference could not be found.
-        @return:
-        """
-        try:
-            return self.strings.index(s)
-        except ValueError:
-            raise ReferenceError("Reference for string %r not found" % s)
-
-    def addString(self, s):
-        """
-        Creates a reference to s.
-
-        @type s: string
-        @param s: Reference
-        @return:
-        """
-        try:
-            return self.strings.index(s)
-        except ValueError:
-            self.strings.append(s)
-
-            return len(self.strings)
-
-    def getClassDefinition(self, ref):
-        """
-        Return class reference.
-               
-        @type ref:
-        @param ref:
-        @raise ReferenceError: the class reference could not be found.
-        @return: 
-        """
-        try:
-            return self.classes[ref]
-        except IndexError:
-            raise ReferenceError("Class reference %d not found" % ref)
-
-    def getClassDefinitionReference(self, class_def):
-        """
-        Return class definition reference. 
-
-        @type class_def:
-        @param class_def:
-        @raise ReferenceError: the definition could not be found.
-        @return: 
-        """
-        try:
-            return self.classes.index(class_def)
-        except ValueError:
-            raise ReferenceError("Reference for class %r not found" % 
-                class_def)
-
-    def addClassDefinition(self, class_def):
-        """
-        Creates a reference to class_def.
-
-        @type class_def:
-        @param class_def:
-        @return:
-        """
-        try:
-            return self.classes.index(class_def)
-        except ValueError:
-            self.classes.append(class_def)
-
-            return len(self.classes)
-
-    def getClass(self, class_def):
-        """
-        @type class_def:
-        @param class_def:
-        @return:
-        """
-        if not class_def.name:
-            return Bag
-
-        return load_class(class_def.name)
+    def __copy__(self):
+        pass
 
 class Bag(object):
     """
@@ -560,18 +467,16 @@ def _get_decoder(encoding):
     @param encoding: AMF encoding version
     @raise ValueError: AMF encoding version is unknown
     """
-    import pyamf
+    if encoding == AMF0:
+        import amf0
 
-    if encoding == pyamf.AMF0:
-        import pyamf.amf0
+        return amf0.Decoder
+    elif encoding == AMF3:
+        import amf3
 
-        return pyamf.amf0.Decoder
-    elif encoding == pyamf.AMF3:
-        import pyamf.amf3
+        return amf3.Decoder
 
-        return pyamf.amf3.Decoder
-
-    raise ValueError("Unknown encoding %s" % encoding)
+    raise ValueError, "Unknown encoding %s" % encoding
 
 def _get_encoder(encoding):
     """
@@ -581,15 +486,48 @@ def _get_encoder(encoding):
     @param encoding: AMF encoding version
     @raise ValueError: AMF encoding version is unknown
     """
-    import pyamf
+    if encoding == AMF0:
+        import amf0
 
-    if encoding == pyamf.AMF0:
-        import pyamf.amf0
+        return amf0.Encoder
+    elif encoding == AMF3:
+        import amf3
 
-        return pyamf.amf0.Encoder
-    elif encoding == pyamf.AMF3:
-        import pyamf.amf3
+        return amf3.Encoder
 
-        return pyamf.amf3.Encoder
+    raise ValueError, "Unknown encoding %s" % encoding
 
-    raise ValueError("Unknown encoding %s" % encoding)
+def _get_context(encoding):
+    """
+    Gets a compatible context class.
+
+    @type encoding: int
+    @param encoding: AMF encoding version
+    @raise ValueError: AMF encoding version is unknown
+    """
+    if encoding == AMF0:
+        import amf0
+
+        return amf0.Context
+    elif encoding == AMF3:
+        import amf3
+
+        return amf3.Context
+
+    raise ValueError, "Unknown encoding %s" % encoding
+
+def _adapt_context_amf0_to_amf3(amf3_context):
+    import amf0
+
+    context = amf0.Context()
+    context.objects = amf3_context.objects
+
+    return context
+
+def _adapt_context_amf3_to_amf0(amf0_context):
+    import amf3
+
+    context = amf3.Context()
+    context.objects = amf0_context.objects
+
+    return context

@@ -350,7 +350,7 @@ def _get_status(status):
 
     return STATUS_CODES[status]
 
-def decode(stream, context):
+def decode(stream, context=None):
     """
     Decodes the incoming stream. .
     
@@ -382,6 +382,9 @@ def decode(stream, context):
         raise pyamf.DecodeError("Malformed stream (amfVersion=%d)" %
             msg.amfVersion)
 
+    if context is None:
+        context = pyamf._get_context(pyamf.AMF0)()
+
     decoder = pyamf._get_decoder(pyamf.AMF0)(stream, context=context)
     msg.clientType = stream.read_uchar()
 
@@ -407,7 +410,7 @@ def decode(stream, context):
 
     return msg
 
-def encode(msg, old_context):
+def encode(msg, old_context=None):
     """
     Encodes AMF stream and returns file object.
 
@@ -418,19 +421,15 @@ def encode(msg, old_context):
     @rtype:
     @return: File object.
     """
-    # FIXME Hack.
     def getNewContext():
-        """
-        """
-        context = pyamf.Context()
-        context.amf3_objs = old_context.amf3_objs
-
-        return context
+        if old_context:
+            return pyamf._adapt_context_amf3_to_amf0(old_context)
+        else:
+            return pyamf._get_context(pyamf.AMF0)()
 
     stream = util.BufferedByteStream()
 
-    encoder = pyamf._get_encoder(
-        msg.amfVersion)(stream, context=getNewContext())
+    encoder = pyamf._get_encoder(msg.amfVersion)(stream)
 
     stream.write_uchar(msg.amfVersion)
     stream.write_uchar(msg.clientType)

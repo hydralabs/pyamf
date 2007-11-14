@@ -123,6 +123,44 @@ for x in ASTypes.__dict__:
     if not x.startswith('_'):
         ACTIONSCRIPT_TYPES.append(ASTypes.__dict__[x])
 
+class Context(pyamf.BaseContext):
+    """
+    I hold the AMF0 context for en/decoding streams. AMF0 object references
+    start at index 1.
+    """
+
+    def clear(self):
+        """
+        Resets the context. amf3_objs keep a list of objects that were encoded
+        in amf3.
+        """
+        pyamf.BaseContext.clear(self)
+
+        self.amf3_objs = []
+
+    def _getObject(self, ref):
+        if ref == 0:
+            raise pyamf.ReferenceError, "Object reference %d not found" % ref
+
+        return self.objects[ref - 1]
+
+    def _getObjectReference(self, obj):
+        return self.objects.index(obj) + 1
+
+    def _addObject(self, obj):
+        try:
+            return self.objects.index(obj)
+        except ValueError:
+            self.objects.append(obj)
+
+            return len(self.objects)
+
+    def __copy__(self):
+        copy = self.__class__()
+        copy.amf3_objs = self.amf3_objs
+
+        return copy
+
 class Decoder(object):
     """
     Decodes an AMF0 stream.
@@ -163,9 +201,11 @@ class Decoder(object):
             self.stream = util.BufferedByteStream(data)
 
         if context == None:
-            self.context = pyamf.Context()
-        else:
+            self.context = Context()
+        elif isinstance(context, Context):
             self.context = context
+        else:
+            raise TypeError, "context must be of type amf0.Context"
 
     def readType(self):
         """
@@ -273,7 +313,7 @@ class Decoder(object):
         Read AMF3 elements from the data stream.
         """
         # XXX: Does the amf3 decoder have access to the same references as amf0?
-        context = pyamf.Context()
+        context = pyamf._get_context(pyamf.AMF3)()
         decoder = pyamf._get_decoder(pyamf.AMF3)(self.stream, context)
 
         element = decoder.readElement()
@@ -412,9 +452,11 @@ class Encoder(object):
         self.stream = output
 
         if context == None:
-            self.context = pyamf.Context()
-        else:
+            self.context = Context()
+        elif isinstance(context, Context):
             self.context = context
+        else:
+            raise TypeError, "context must be of type amf0.Context"
 
     def writeType(self, type):
         """
@@ -691,7 +733,7 @@ class Encoder(object):
         @type data: mixed
         @param data: The data to be encoded.
         """
-        context = pyamf.Context()
+        context = pyamf._get_context(pyamf.AMF3)()
         encoder = pyamf._get_encoder(pyamf.AMF3)(self.stream, context)
 
         self.writeType(ASTypes.AMF3)

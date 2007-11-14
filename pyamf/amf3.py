@@ -190,27 +190,160 @@ class ClassDefinition(object):
     static = property(is_static)
     dynamic = property(is_dynamic)
 
+class Context(pyamf.BaseContext):
+    """
+    I hold the AMF3 context for en/decoding streams.
+    """
+
+    def clear(self):
+        """
+        Resets the context.
+        """
+        pyamf.BaseContext.clear(self)
+
+        self.strings = []
+        self.classes = []
+
+    def _getObject(self, ref):
+        return self.objects[ref]
+
+    def _getObjectReference(self, obj):
+        return self.objects.index(obj)
+
+    def _addObject(self, obj):
+        try:
+            return self.objects.index(obj) - 1
+        except ValueError:
+            self.objects.append(obj)
+
+            return len(self.objects) - 1
+
+    def getString(self, ref):
+        """
+        Gets a string based on a reference C{ref}.
+
+        @type ref:
+        @param ref:
+        @raise ReferenceError: the string could not be found.
+        @return:
+        """
+        try:
+            return self.strings[ref]
+        except IndexError:
+            raise pyamf.ReferenceError("String reference %d not found" % ref)
+
+    def getStringReference(self, s):
+        """
+        Return string reference.
+
+        @type s: str
+        @param s: string reference
+        @raise ReferenceError: the string reference could not be found.
+        @return:
+        """
+        try:
+            return self.strings.index(s)
+        except ValueError:
+            raise pyamf.ReferenceError("Reference for string %r not found" % s)
+
+    def addString(self, s):
+        """
+        Creates a reference to s.
+
+        @type s: string
+        @param s: Reference
+        @return:
+        """
+        if len(s) == 0:
+            # do not store empty string references
+            raise ValueError, "Cannot store a reference to an empty string"
+
+        try:
+            return self.strings.index(s)
+        except ValueError:
+            self.strings.append(s)
+
+            return len(self.strings) - 1
+
+    def getClassDefinition(self, ref):
+        """
+        Return class reference.
+               
+        @type ref:
+        @param ref:
+        @raise ReferenceError: the class reference could not be found.
+        @return: 
+        """
+        try:
+            return self.classes[ref]
+        except IndexError:
+            raise pyamf.ReferenceError("Class reference %d not found" % ref)
+
+    def getClassDefinitionReference(self, class_def):
+        """
+        Return class definition reference. 
+
+        @type class_def:
+        @param class_def:
+        @raise ReferenceError: the definition could not be found.
+        @return: 
+        """
+        try:
+            return self.classes.index(class_def)
+        except ValueError:
+            raise pyamf.ReferenceError("Reference for class %r not found" % 
+                class_def)
+
+    def addClassDefinition(self, class_def):
+        """
+        Creates a reference to class_def.
+
+        @type class_def:
+        @param class_def:
+        @return:
+        """
+        try:
+            return self.classes.index(class_def)
+        except ValueError:
+            self.classes.append(class_def)
+
+            return len(self.classes)
+
+    def getClass(self, class_def):
+        """
+        @type class_def:
+        @param class_def:
+        @return:
+        """
+        if not class_def.name:
+            return pyamf.Bag
+
+        return pyamf.load_class(class_def.name)
+
+    def __copy__(self):
+        return self.__class__()
+
 class Decoder(object):
     """
     Decodes an AMF3 data stream.
     """
     #: Decoder type mappings.
     type_map = {
-        ASTypes.UNDEFINED:      'readNull',
-        ASTypes.NULL:           'readNull',
-        ASTypes.BOOL_FALSE:     'readBoolFalse',
-        ASTypes.BOOL_TRUE:      'readBoolTrue',
-        ASTypes.INTEGER:        'readInteger',
-        ASTypes.NUMBER:         'readNumber',
-        ASTypes.STRING:         'readString',
-        ASTypes.XML:            'readXML',
-        ASTypes.DATE:           'readDate',
-        ASTypes.ARRAY:          'readArray',
-        ASTypes.OBJECT:         'readObject',
-        ASTypes.XMLSTRING:      'readXMLString',
-        ASTypes.BYTEARRAY:      'readByteArray',
+        ASTypes.UNDEFINED:  'readNull',
+        ASTypes.NULL:       'readNull',
+        ASTypes.BOOL_FALSE: 'readBoolFalse',
+        ASTypes.BOOL_TRUE:  'readBoolTrue',
+        ASTypes.INTEGER:    'readInteger',
+        ASTypes.NUMBER:     'readNumber',
+        ASTypes.STRING:     'readString',
+        ASTypes.XML:        'readXML',
+        ASTypes.DATE:       'readDate',
+        ASTypes.ARRAY:      'readArray',
+        ASTypes.OBJECT:     'readObject',
+        ASTypes.XMLSTRING:  'readXMLString',
+        ASTypes.BYTEARRAY:  'readByteArray',
     }
-    
+
     def __init__(self, data=None, context=None):
         """
         @type   data: L{BufferedByteStream}
@@ -224,9 +357,11 @@ class Decoder(object):
             self.stream = util.BufferedByteStream(data)
 
         if context == None:
-            context = pyamf.Context()
-
-        self.context = context
+            self.context = Context()
+        elif isinstance(context, Context):
+            self.context = context
+        else:
+            raise TypeError, "context must be of type amf3.Context"
 
     def readType(self):
         """
@@ -421,11 +556,16 @@ class Decoder(object):
 
         if key == "":
             # integer indexes only -> python list
-            result = [self.readElement() for i in xrange(size)]
+            result = []
+            self.context.addObject(result)
+
+            for i in xrange(size):
+                result.append(self.readElement())
 
         else:
             # key,value pairs -> python dict
             result = {}
+            self.context.addObject(result)
 
             while key != "":
                 el = self.readElement()
@@ -440,8 +580,6 @@ class Decoder(object):
             for i in xrange(size):
                 el = self.readElement()
                 result[i] = el
-
-        self.context.addObject(result)
 
         return result
 
@@ -596,9 +734,11 @@ class Encoder(object):
         self.stream = output
 
         if context == None:
-            context = pyamf.Context()
-
-        self.context = context
+            self.context = Context()
+        elif isinstance(context, Context):
+            self.context = context
+        else:
+            raise TypeError, "context must be of type amf0.Context"
 
     def writeType(self, type):
         """
@@ -645,7 +785,7 @@ class Encoder(object):
         @param  data: The data to be encoded to the AMF3 data stream 
         """
         func = self._writeElementFunc(data)
-        
+
         if func is not None:
             func(data, use_references)
         else:
@@ -767,15 +907,15 @@ class Encoder(object):
         """
         self.writeType(ASTypes.DATE)
 
-        try:
-            ref = self.context.getObjectReference(n)
-            self._writeInteger(ref << 1)
+        if use_references is True:
+            try:
+                ref = self.context.getObjectReference(n)
+                self._writeInteger(ref << 1)
 
-            return
-        except pyamf.ReferenceError:
-            pass
+                return
+            except pyamf.ReferenceError:
+                self.context.addObject(n)
 
-        self.context.addObject(n)
         self._writeInteger(REFERENCE_BIT)
 
         ms = util.get_timestamp(n)
@@ -790,26 +930,26 @@ class Encoder(object):
         """
         self.writeType(ASTypes.ARRAY)
 
-        try:
-            ref = self.context.getObjectReference(n)
-            self._writeInteger(ref << 1)
+        if use_references is True:
+            try:
+                ref = self.context.getObjectReference(n)
+                self._writeInteger(ref << 1)
 
-            return
-        except pyamf.ReferenceError:
-            pass
+                return
+            except pyamf.ReferenceError:
+                self.context.addObject(n)
 
         self._writeInteger(len(n) << 1 | REFERENCE_BIT)
 
         self.stream.write_uchar(0x01)
+
         for x in n:
             self.writeElement(x)
-
-        self.context.addObject(n)
 
     def writeDict(self, n, use_references=True):
         """
         Writes a dict to the stream.
-       
+
         @type   n:__builtin__.dict
         @param  n: dict data
         @raise ValueError: non int/str key value found in the C{dict}
@@ -824,7 +964,7 @@ class Encoder(object):
 
                 return
             except pyamf.ReferenceError:
-                pass
+                self.context.addObject(n)
 
         # The AMF3 spec demands that all str based indicies be listed first
         keys = n.keys()
@@ -874,8 +1014,6 @@ class Encoder(object):
         for k in int_keys:
             self.writeElement(n[k])
 
-        self.context.addObject(n)
-
     def _getClassDefinition(self, obj):
         """
         Read class definition.
@@ -918,13 +1056,14 @@ class Encoder(object):
         """
         self.writeType(ASTypes.OBJECT)
 
-        try:
-            ref = self.context.getObjectReference(obj)
-            self._writeInteger(ref << 1)
+        if use_references is True:
+            try:
+                ref = self.context.getObjectReference(obj)
+                self._writeInteger(ref << 1)
 
-            return
-        except pyamf.ReferenceError:
-            self.context.addObject(obj)
+                return
+            except pyamf.ReferenceError:
+                self.context.addObject(obj)
 
         try:
             ref = self.context.getClassDefinitionReference(obj)
@@ -988,9 +1127,7 @@ class Encoder(object):
 
                 return
             except pyamf.ReferenceError:
-                pass
-
-            self.context.addObject(n)
+                self.context.addObject(n)
 
         buf = n.getvalue()
 
