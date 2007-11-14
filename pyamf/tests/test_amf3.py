@@ -194,6 +194,11 @@ class EncoderTestCase(unittest.TestCase):
     def test_byte_array(self):
         self._run([(amf3.ByteArray('hello'), '\x0c\x0bhello')])
 
+    def test_xmlstring(self):
+        self._run([
+            (util.ET.fromstring('<a><b>hello world</b></a>'), '\x0b\x33<a><b>'
+                'hello world</b></a>')])
+
 class DecoderTestCase(unittest.TestCase):
     """
     Tests the output from the AMF3 L{Decoder<pyamf.amf3.Decoder>} class.

@@ -1012,13 +1012,14 @@ class Encoder(object):
         """
         self.writeType(ASTypes.XMLSTRING)
 
-        try:
-            ref = self.context.getObjectReference(n)
-            self._writeInteger(ref << 1)
+        if use_references:
+            try:
+                ref = self.context.getObjectReference(n)
+                self._writeInteger(ref << 1)
 
-            return
-        except pyamf.ReferenceError:
-            self.context.addObject(n)
+                return
+            except pyamf.ReferenceError:
+                self.context.addObject(n)
 
         self._writeString(util.ET.tostring(n), False)
 
