@@ -33,7 +33,7 @@ U{EchoTest<http://pyamf.org/wiki/EchoTest>} wiki page.
 """
 
 import pyamf
-from pyamf.gateway.twistedmatrix import TwistedGateway
+from pyamf.gateway.twisted import TwistedGateway
 
 class RemoteClass(object):
     """

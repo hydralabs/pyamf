@@ -33,7 +33,7 @@ U{Twisted<http://twistedmatrix.com>} client example.
 from twisted.web import client
 
 import pyamf
-from pyamf import remoting, ClientTypes, Context
+from pyamf import remoting, ClientTypes
 
 def handleResult(data):
     """
@@ -52,7 +52,6 @@ def handleError(failure):
 
 if __name__ == "__main__":
 
-    context = Context()
     response = remoting.Message(None, None, None, None)
     response.body = ['yoooo']
     response.status = remoting.STATUS_OK
@@ -60,7 +59,7 @@ if __name__ == "__main__":
     env = remoting.Envelope(pyamf.AMF0, ClientTypes.FlashCom)
     env['test.echo'] = response
 
-    data = remoting.encode(env, context).getvalue()
+    data = remoting.encode(env).getvalue()
 
     endPoint = 'http://localhost:8000'
 
