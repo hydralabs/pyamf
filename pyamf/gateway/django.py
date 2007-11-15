@@ -41,8 +41,11 @@ del sys.modules['django']
 _real_django = __import__('django')
 sys.modules['real_django'] = _real_django
 sys.modules['django'] = _thismodule
+
 from real_django.http import HttpResponse, HttpResponseNotAllowed
 from real_django.core.urlresolvers import get_mod_func
+
+__all__ = ['DjangoGateway']
 
 def DjangoGateway(request, gateway):
     """
@@ -81,15 +84,14 @@ def DjangoGateway(request, gateway):
 
     if request.method == 'POST':
         response = HttpResponse()
-        context = pyamf._get_context(pyamf.AMF0)()
 
-        amfrequest = remoting.decode(request.raw_post_data, context)
+        amfrequest = remoting.decode(request.raw_post_data)
         amfresponse = remoting.Envelope(amfrequest.amfVersion, amfrequest.clientType)
 
         processor = gateway.getProcessor(amfrequest)
         for name, message in amfrequest:
             amfresponse[name] = processor(message)
-        stream = remoting.encode(amfresponse, context)
+        stream = remoting.encode(amfresponse)
 
         response['Content-Type'] = remoting.CONTENT_TYPE
         response['Content-Length'] = str(len(stream))
