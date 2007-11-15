@@ -32,10 +32,9 @@ AMF3 implementation.
 AMF3 is the default serialization for
 U{ActionScript<http://en.wikipedia.org/wiki/ActionScript>} 3.0 and
 provides various advantages over L{AMF0<pyamf.amf0>}, which is used
-for ActionScript 1.0 and 2.0. It adds support for sending C{int}
-and C{uint} objects as integers and supports data types that are
-available only in ActionScript 3.0, such as L{ByteArray} and
-L{ArrayCollection}.
+for ActionScript 1.0 and 2.0. It adds support for sending C{int} and C{uint} objects
+as integers and supports data types that are available only in ActionScript 3.0,
+such as L{ByteArray} and L{ArrayCollection}.
 
 @see: U{AMF3 documentation on OSFlash (external)
 <http://osflash.org/documentation/amf3>}
@@ -110,7 +109,7 @@ for x in ASTypes.__dict__:
     if not x.startswith('_'):
         ACTIONSCRIPT_TYPES.append(ASTypes.__dict__[x])
 
-#: Reference bit.
+#: Reference bit
 REFERENCE_BIT = 0x01
 
 class ObjectEncoding:
@@ -143,17 +142,13 @@ class ObjectEncoding:
 
 class ByteArray(util.StringIOProxy):
     """
-    I am a C{StringIO} type object containing byte data from
-    the AMF stream.
+    I am a C{StringIO} type object containing byte data from the AMF stream.
 
-    Possible uses of the C{ByteArray} class:
+    Possible uses of the ByteArray class:
 
      - Creating a custom protocol to connect to a client.
      - Writing your own AMF/Remoting packet.
-     - Optimizing the size of your data by using custom
-     data types.
-
-    Supports C{zlib} compression.
+     - Optimizing the size of your data by using data types.
      
     @see: U{ByteArray on Livedocs (external)
     <http://livedocs.adobe.com/flex/2/langref/flash/utils/ByteArray.html>}
@@ -593,9 +588,8 @@ class Decoder(object):
         """
         Reads an array from the stream.
 
-        @warning: There is a very specific problem with AMF3 where the
-        first three bytes of an encoded empty C{dict} will mirror that
-        of an encoded C{{'': 1, '2': 2}}
+        @warning: There is a very specific problem with AMF3 where the first three bytes
+        of an encoded empty C{dict} will mirror that of an encoded C{{'': 1, '2': 2}}
 
         @bug: See the U{Docuverse blog
         <http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug>}
@@ -1160,7 +1154,7 @@ class Encoder(object):
 
             self._writeString(class_def.name)
 
-        if class_def.encoding in (ObjectEncoding.EXTERNAL, ObjectEncoding.PROXY):
+        if class_def.encoding == ObjectEncoding.EXTERNAL:
             class_def.alias.write_func(obj, compat.DataOutput(self))
         elif class_def.encoding == ObjectEncoding.DYNAMIC:
             if not class_ref:
@@ -1276,13 +1270,12 @@ def decode_utf8_modified(data):
     @param  data:
     @return: Unicode string
     @rtype: str
-    @raise ValueError: Data is not valid modified UTF-8.
+    @raise ValueError: Data is not valid modified UTF-8
     
     @see: U{UTF-8 Java on Wikipedia<http://en.wikipedia.org/wiki/UTF-8#Java>}
-    for more details.
+    for details.
     @copyright: Ruby version is Copyright (c) 2006 Ross Bamford (rosco AT roscopeco DOT co DOT uk)
-    @note: Ported from U{Ruva
-    <http://viewvc.rubyforge.mmmultiworks.com/cgi/viewvc.cgi/trunk/lib/ruva/class.rb>}
+    @note: Ported from U{http://viewvc.rubyforge.mmmultiworks.com/cgi/viewvc.cgi/trunk/lib/ruva/class.rb}
     """
     size = ((ord(data[0]) << 8) & 0xff) + ((ord(data[1]) << 0) & 0xff)
     data = data[2:]
@@ -1320,8 +1313,6 @@ def decode(stream, context=None):
     @param  stream: AMF3 data
     @type   context: L{Context}
     @param  context: Context
-
-    @todo: Add Python 2.3 support.
     """
     decoder = Decoder(stream, context)
     

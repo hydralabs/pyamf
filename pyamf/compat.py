@@ -62,7 +62,10 @@ class DataOutput(object):
         @raise ValueError: Non-boolean value is found.
         """
         if isinstance(value, bool):
-            self.encoder.writeBoolean(value)
+            if value is True:
+                self.stream.write_uchar(1)
+            else:
+                self.stream.write_uchar(0)
         else:
             raise ValueError("Non-boolean value found")
 

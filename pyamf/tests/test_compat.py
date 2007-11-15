@@ -46,31 +46,15 @@ class DataOutputTestCase(unittest.TestCase):
         self.assertEquals(x.stream, self.stream)
         self.assertEquals(x.stream, self.encoder.stream)
 
-    def test_boolean_true(self):
-        self.encoder.writeBoolean(True)
-
-        val = self.stream.getvalue()
-        self.stream.truncate()
-
-        self.assertEquals(self.stream.getvalue(), '')
-
+    def test_boolean(self):
         x = compat.DataOutput(self.encoder)
+
         x.writeBoolean(True)
-
-        self.assertEquals(self.stream.getvalue(), val)
-
-    def test_boolean_false(self):
-        self.encoder.writeBoolean(False)
-
-        val = self.stream.getvalue()
+        self.assertEquals(self.stream.getvalue(), '\x01')
         self.stream.truncate()
 
-        self.assertEquals(self.stream.getvalue(), '')
-
-        x = compat.DataOutput(self.encoder)
         x.writeBoolean(False)
-
-        self.assertEquals(self.stream.getvalue(), val)
+        self.assertEquals(self.stream.getvalue(), '\x00')
 
     def test_byte(self):
         x = compat.DataOutput(self.encoder)
