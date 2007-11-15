@@ -172,32 +172,85 @@ class ByteArray(util.StringIOProxy):
 class ClassDefinition(object):
     """
     I contain meta relating to the class definition.
+
+    @ivar alias: The alias to this class definition. If this value is None, or
+                 an empty string, the class is considered to be anonymous.
+    @type alias: L{pyamf.ClassAlias}
+    @ivar encoding: The type of encoding to use when serializing the object.
+    @type encoding: int
+    @ivar attrs: List of attributes to encode.
+    @type attrs: list 
     """
 
-    def __init__(self, name, encoding):
-        #:
-        self.name = name
-        #:
+    def __init__(self, alias, encoding=ObjectEncoding.STATIC):
+        if alias in (None, ''):
+            self.alias = None
+        elif isinstance(alias, pyamf.ClassAlias):
+            self.alias = alias
+        else:
+            self.alias = pyamf.get_class_alias(alias)
+
         self.encoding = encoding
-        #:
         self.attrs = []
 
-    def is_external(self):
-        return self.encoding == ObjectEncoding.EXTERNAL
+    def _get_name(self):
+        if self.alias is None:
+            # anonymous class
+            return ''
 
-    def is_static(self):
-        return self.encoding == ObjectEncoding.STATIC
+        return str(self.alias)
 
-    def is_dynamic(self):
-        return self.encoding == ObjectEncoding.DYNAMIC
+    name = property(_get_name)
 
-    external = property(is_external)
-    static = property(is_static)
-    dynamic = property(is_dynamic)
+    def _getClass(self):
+        """
+        If C{alias} is None, an anonymous class is returned (L{pyamf.Bag}),
+        otherwise the class is loaded externally.
+
+        """
+        if self.alias in (None, ''):
+            # anonymous class
+            return pyamf.Bag
+
+        return self.getClassAlias().klass
+
+    def getClassAlias(self):
+        """
+        Gets the class alias that is held by this definition.
+
+        @see L{pyamf.load_class}
+        @rtype: L{pyamf.ClassAlias}
+        """
+        if not hasattr(self, '_alias'):
+            if self.name == '':
+                raise pyamf.UnknownClassAlias, '%s' % (
+                    'Anonymous class definitions do not have class aliases')
+
+            self._alias = pyamf.load_class(self.alias) 
+
+        return self._alias
+
+    def getClass(self):
+        """
+        Gets the referenced class that is held by this definition.
+        """
+        if hasattr(self, '_alias'):
+            return self._alias
+
+        self._klass = self._getClass()
+
+        return self._klass
+
+    klass = property(getClass)
 
 class Context(pyamf.BaseContext):
     """
     I hold the AMF3 context for en/decoding streams.
+
+    @ivar strings: A list of string references.
+    @type strings: list
+    @ivar classes: A list of L{ClassDefinition}.
+    @type classes: list
     """
 
     def clear(self):
@@ -225,12 +278,13 @@ class Context(pyamf.BaseContext):
 
     def getString(self, ref):
         """
-        Gets a string based on the reference C{ref}.
+        Gets a string based on a reference C{ref}.
 
-        @type ref:
-        @param ref:
-        @raise ReferenceError: the string could not be found.
-        @return:
+        @param ref: The reference index.
+        @type ref: str
+        @return: The referenced string.
+        @rtype: str 
+        @raise ReferenceError: The referenced string could not be found.
         """
         try:
             return self.strings[ref]
@@ -242,9 +296,10 @@ class Context(pyamf.BaseContext):
         Return string reference.
 
         @type s: str
-        @param s: string reference
+        @param s: The referenced string.
         @raise ReferenceError: the string reference could not be found.
-        @return:
+        @return: The reference index to the string.
+        @rtype: int
         """
         try:
             return self.strings.index(s)
@@ -253,11 +308,13 @@ class Context(pyamf.BaseContext):
 
     def addString(self, s):
         """
-        Creates a reference to s.
+        Creates a reference to s. If the reference already exists, that
+        reference is returned.
 
         @type s: string
-        @param s: Reference
-        @return:
+        @param s: The string to be referenced.
+        @return: The reference index.
+        @rtype: int
         """
         if len(s) == 0:
             # do not store empty string references
@@ -320,10 +377,6 @@ class Context(pyamf.BaseContext):
         @param class_def:
         @return:
         """
-        if not class_def.name:
-            return pyamf.Bag
-
-        return pyamf.load_class(class_def.name)
 
     def __copy__(self):
         return self.__class__()
@@ -593,8 +646,8 @@ class Decoder(object):
         """
         Reads class definition from the stream.
         
-        @type   ref:
-        @param  ref:
+        @type ref: 
+        @param ref:
         @return:
         @rtype:
         """
@@ -628,15 +681,14 @@ class Decoder(object):
         (class_ref, class_def) = self._getClassDefinition(ref)
         ref >>= 3
 
-        klass = self.context.getClass(class_def)
+        klass = class_def.getClass()
 
         obj = klass()
         self.context.addObject(obj)
 
-        if class_def.external or isinstance(obj, compat.ObjectProxy):
-            klass.read_func(obj, compat.DataInput(self))
-
-        elif class_def.dynamic:
+        if class_def.encoding in (ObjectEncoding.EXTERNAL, ObjectEncoding.PROXY):
+            class_def.alias.read_func(obj, compat.DataInput(self))
+        elif class_def.encoding == ObjectEncoding.DYNAMIC:
             attr = self.readString()
 
             while attr != "":
@@ -646,9 +698,10 @@ class Decoder(object):
                 obj[attr] = self.readElement()
                 attr = self.readString()
 
-        elif class_def.static:
+        elif class_def.encoding == ObjectEncoding.STATIC:
             if not class_ref:
-                class_def.attrs = [self.readString() for i in range(ref)]
+                for i in range(ref):
+                    class_def.attrs.append(self.readString())
 
             for attr in class_def.attrs:
                 setattr(obj, attr, self.readElement())
@@ -1033,18 +1086,29 @@ class Encoder(object):
         encoding = ObjectEncoding.STATIC
 
         if alias:
-            if alias.encoding:
-                encoding = alias.encoding
+            if 'dynamic' in alias.metadata:
+                encoding = ObjectEncoding.DYNAMIC
+            elif 'static' in alias.metadata:
+                encoding = ObjectEncoding.STATIC
+            elif 'external' in alias.metadata:
+                encoding = ObjectEncoding.EXTERNAL
             elif alias.write_func and alias.read_func:
-                if isinstance(obj, compat.ObjectProxy):
-                    encoding = ObjectEncoding.PROXY
-                else:
-                    encoding = ObjectEncoding.EXTERNAL
+                encoding = ObjectEncoding.EXTERNAL
 
         class_def = ClassDefinition(alias, encoding)
 
-        for name, value in obj.__dict__.iteritems():
-            class_def.attrs.append(name)
+        if encoding in (ObjectEncoding.STATIC, ObjectEncoding.DYNAMIC):
+            if alias is None:
+                for k in obj.__dict__.keys():
+                    class_def.attrs.append(k)
+            else:
+                if alias.attrs is None:
+                    for k in obj.__dict__.keys():
+                        class_def.attrs.append(k)
+                else:
+                    import copy
+
+                    class_def.attrs = copy.copy(alias.attrs)
 
         return class_def
 
@@ -1053,7 +1117,6 @@ class Encoder(object):
             self.writeDict(obj, use_references)
         elif obj.__class__ in (list, set):
             self.writeList(obj, use_references)
-            return
         else:
             self.writeObject(obj, use_references)
 
@@ -1095,16 +1158,10 @@ class Encoder(object):
             self._writeInteger(ref | class_def.encoding << 2 |
                 REFERENCE_BIT << 1 | REFERENCE_BIT)
 
-            if class_def.name is None:
-                # anonymous class-def
-                self._writeString('')
-            else:
-                self._writeString(class_def.name.alias, False)
+            self._writeString(class_def.name)
 
         if class_def.encoding in (ObjectEncoding.EXTERNAL, ObjectEncoding.PROXY):
-            klass_alias = class_def.name
-
-            klass_alias.write_func(obj, compat.DataOutput(self))
+            class_def.alias.write_func(obj, compat.DataOutput(self))
         elif class_def.encoding == ObjectEncoding.DYNAMIC:
             if not class_ref:
                 for attr in class_def.attrs:

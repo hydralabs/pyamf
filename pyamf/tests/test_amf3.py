@@ -41,6 +41,13 @@ import pyamf
 from pyamf import amf3, util
 from pyamf.tests.util import GenericObject, EncoderTester, DecoderTester
 
+class Foo(object):
+    """
+    A generic object to use for object encoding
+    """
+    def __init__(self, d={}):
+        self.__dict__ = d
+
 class TypesTestCase(unittest.TestCase):
     """
     Tests the type mappings.
@@ -172,6 +179,77 @@ class ContextTestCase(unittest.TestCase):
         self.assertEquals(new.classes, []) 
         self.assertEquals(len(new.classes), 0) 
 
+class ClassDefinitionTestCase(unittest.TestCase):
+    def test_create(self):
+        x = amf3.ClassDefinition('')
+
+        self.assertEquals(x.alias, None)
+        self.assertEquals(x.encoding, 0)
+        self.assertEquals(x.attrs, [])
+        self.assertEquals(len(x.attrs), 0)
+
+        x = amf3.ClassDefinition(None)
+
+        self.assertEquals(x.alias, None)
+        self.assertEquals(x.encoding, 0)
+        self.assertEquals(x.attrs, [])
+        self.assertEquals(len(x.attrs), 0)
+
+        pyamf.register_class(Foo, 'foo.bar')
+
+        x = amf3.ClassDefinition('foo.bar')
+        self.assertTrue(isinstance(x.alias, pyamf.ClassAlias))
+        self.assertEquals(x.alias, pyamf.get_class_alias('foo.bar'))
+        self.assertEquals(x.encoding, 0)
+        self.assertEquals(x.attrs, [])
+        self.assertEquals(len(x.attrs), 0)
+        
+        pyamf.unregister_class(Foo)
+
+    def test_name(self):
+        x = amf3.ClassDefinition('')
+        self.assertEquals(x.name, '')
+
+        x = amf3.ClassDefinition(None)
+        self.assertEquals(x.name, '')
+
+        pyamf.register_class(Foo, 'foo.bar')
+        
+        x = amf3.ClassDefinition('foo.bar')
+        self.assertEquals(x.name, 'foo.bar')
+
+    def test_get_class(self):
+        # anonymous class
+        x = amf3.ClassDefinition('')
+        self.assertEquals(x.getClass(), pyamf.Bag)
+
+        x = amf3.ClassDefinition(None)
+        self.assertEquals(x.getClass(), pyamf.Bag)
+
+        pyamf.register_class(Foo, 'foo.bar')
+
+        x = amf3.ClassDefinition('foo.bar')
+        self.assertEquals(x.getClass(), Foo)
+
+        pyamf.unregister_class(Foo)
+
+    def test_get_alias(self):
+        pyamf.register_class(Foo, 'foo.bar')
+
+        x = amf3.ClassDefinition('foo.bar')
+        alias = x.getClassAlias()
+
+        self.assertEquals(alias.klass, Foo)
+        self.assertEquals(alias.alias, 'foo.bar')
+
+        pyamf.unregister_class(Foo)
+
+        x = amf3.ClassDefinition(None)
+        self.assertRaises(pyamf.UnknownClassAlias, x.getClassAlias)
+
+        x = amf3.ClassDefinition('')
+        self.assertRaises(pyamf.UnknownClassAlias, x.getClassAlias)
+
 class EncoderTestCase(unittest.TestCase):
     """
     Tests the output from the AMF3 L{Encoder<pyamf.amf3.Encoder>} class.
@@ -256,6 +334,7 @@ class EncoderTestCase(unittest.TestCase):
             ({0: u'hello', 'foo': u'bar'},
             '\x09\x03\x07\x66\x6f\x6f\x06\x07\x62\x61\x72\x01\x06\x0b\x68\x65'
             '\x6c\x6c\x6f')])
+
         self._run([({0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 'a': 'a'},
             '\x09\x0d\x03\x61\x06\x00\x01\x04\x00\x04\x01\x04\x02\x04\x03\x04'
             '\x04\x04\x05')])
@@ -264,8 +343,7 @@ class EncoderTestCase(unittest.TestCase):
         '\x04\x03\x63\x06\x06\x01\x04\x00\x04\x01\x04\x02\x04\x03')
 
         self.assertEqual(
-            x.readElement(),
-            {'a': u'a', 'b': u'b', 'c': u'c', 'd': u'd',
+            x.readElement(), {'a': u'a', 'b': u'b', 'c': u'c', 'd': u'd',
                 0: 0, 1: 1, 2: 2, 3: 3})
 
     def test_empty_key_string(self):
@@ -282,8 +360,9 @@ class EncoderTestCase(unittest.TestCase):
         self.failUnlessRaises(pyamf.EncodeError, x)
 
     def test_object(self):
-        class Foo(object):
-            pass
+        self._run([
+            (pyamf.Bag({'a': u'foo', 'b': 5}),
+                '\n\x23\x01\x03a\x03b\x06\x07foo\x04\x05')])
 
         try:
             del pyamf.CLASS_CACHE['com.collab.dev.pyamf.foo']
@@ -297,9 +376,8 @@ class EncoderTestCase(unittest.TestCase):
 
         self.e.writeElement(obj)
 
-        self.assertEqual(self.buf.getvalue(), '\x0a\x13\x31\x63\x6f\x6d\x2e\x63'
-            '\x6f\x6c\x6c\x61\x62\x2e\x64\x65\x76\x2e\x70\x79\x61\x6d\x66\x2e'
-            '\x66\x6f\x6f\x07\x62\x61\x7a\x06\x0b\x68\x65\x6c\x6c\x6f')
+        self.assertEqual(self.buf.getvalue(), '\n\x131com.collab.dev.pyamf.foo'
+            '\x07baz\x06\x0bhello')
 
         del pyamf.CLASS_CACHE['com.collab.dev.pyamf.foo']
 
@@ -310,6 +388,43 @@ class EncoderTestCase(unittest.TestCase):
         self._run([
             (util.ET.fromstring('<a><b>hello world</b></a>'), '\x0b\x33<a><b>'
                 'hello world</b></a>')])
+
+    def test_get_class_definition(self):
+        pyamf.register_class(Foo, 'abc.xyz')
+
+        x = Foo({'foo': 'bar'})
+
+        class_def = self.e._getClassDefinition(x)
+
+        self.assertEquals(class_def.name, 'abc.xyz')
+        self.assertEquals(class_def.klass, Foo)
+        self.assertEquals(class_def.attrs, ['foo'])
+
+        pyamf.unregister_class(Foo)
+
+        # test anonymous object
+        x = pyamf.Bag({'foo': 'bar'})
+
+        class_def = self.e._getClassDefinition(x)
+
+        self.assertEquals(class_def.name, '')
+        self.assertEquals(class_def.klass, pyamf.Bag)
+        self.assertEquals(class_def.attrs, ['foo'])
+
+        # test supplied attributes
+        attrs = ['foo', 'bar']
+        pyamf.register_class(Foo, 'abc.xyz', attrs=attrs)
+
+        x = Foo({'foo': 'bar'})
+
+        class_def = self.e._getClassDefinition(x)
+
+        self.assertEquals(class_def.name, 'abc.xyz')
+        self.assertEquals(class_def.klass, Foo)
+        self.assertEquals(class_def.attrs, attrs)
+        self.assertNotEquals(id(class_def.attrs), id(attrs))
+
+        pyamf.unregister_class(Foo)
 
 class DecoderTestCase(unittest.TestCase):
     """
@@ -437,9 +552,6 @@ class DecoderTestCase(unittest.TestCase):
                 '\x6c\x6c\x6f')])
 
     def test_object(self):
-        class Foo(object):
-            pass
-
         try:
             del pyamf.CLASS_CACHE['com.collab.dev.pyamf.foo']
         except KeyError:
@@ -471,6 +583,114 @@ class DecoderTestCase(unittest.TestCase):
         self._run([
             (datetime.datetime(2005, 3, 18, 1, 58, 31),
                 '\x08\x01Bp+6!\x15\x80\x00')])
+
+class ObjectEncodingTestCase(unittest.TestCase):
+    def setUp(self):
+        self.stream = util.BufferedByteStream()
+        self.context = amf3.Context()
+        self.encoder = amf3.Encoder(self.stream, self.context)
+
+    def test_object_references(self):
+        obj = pyamf.Bag({'a': 'b'})
+
+        self.encoder.writeElement(obj)
+        pos = self.stream.tell()
+        self.encoder.writeElement(obj)
+        self.assertEquals(self.stream.getvalue()[pos:], '\x0a\x00')
+        self.stream.truncate()
+
+        self.encoder.writeElement(obj)
+        self.assertEquals(self.stream.getvalue(), '\x0a\x00')
+        self.stream.truncate()
+
+        self.encoder.writeElement(obj, False)
+        self.assertNotEquals(self.stream.getvalue(), '\x0a\x00')
+
+    def test_class_references(self):
+        pyamf.register_class(Foo, 'abc.xyz')
+
+        x = Foo({'foo': 'bar'})
+        y = Foo({'foo': 'baz'})
+
+        try:
+            self.encoder.writeElement(x)
+        except:
+            pyamf.unregister_class(Foo)
+            raise
+            
+        pyamf.unregister_class(Foo)
+
+        #self.assertEquals(self.stream.getvalue(), '\x0a\x03')
+        #from pyamf.util import hexdump
+        #print hexdump(self.stream.getvalue())
+
+        #pos = self.stream.tell()
+        #self.encoder.writeElement(y)
+        #self.assertEquals(self.stream.getvalue()[pos:], '\x0a\x00')
+
+    def test_static(self):
+        pyamf.register_class(Foo, 'abc.xyz', metadata='static')
+
+        x = Foo({'foo': 'bar'})
+        self.encoder.writeElement(x)
+        buf = self.stream.getvalue()
+
+        # an inline object with and inline class-def, encoding = 0x00, 1 attr
+        self.assertEquals(buf[:2], '\x0a\x13')
+        # class alias name
+        self.assertEquals(buf[2:10], '\x0fabc.xyz')
+        # first key
+        self.assertEquals(buf[10:14], '\x07foo')
+        # first value
+        self.assertEquals(buf[14:19], '\x06\x07bar')
+
+        self.assertEquals(len(buf), 19)
+
+        pyamf.unregister_class(Foo)
+
+    def test_dynamic(self):
+        pyamf.register_class(Foo, 'abc.xyz', metadata='dynamic')
+
+        x = Foo({'foo': 'bar'})
+        self.encoder.writeElement(x)
+
+        buf = self.stream.getvalue()
+
+        # an inline object with and inline class-def, encoding = 0x01, 1 attr
+        self.assertEquals(buf[:2], '\x0a\x1b')
+        # class alias name
+        self.assertEquals(buf[2:10], '\x0fabc.xyz')
+        # first key
+        self.assertEquals(buf[10:14], '\x07foo')
+        # first value
+        self.assertEquals(buf[14:19], '\x06\x07bar')
+        # empty key
+        self.assertEquals(buf[19:21], '\x06\x01')        
+
+        self.assertEquals(len(buf), 21)
+
+        pyamf.unregister_class(Foo)
+
+    def test_external(self):
+        def read(self, x):
+            pass
+
+        pyamf.register_class(Foo, 'abc.xyz', read_func=read, write_func=read)
+
+        x = Foo({'foo': 'bar'})
+        self.encoder.writeElement(x)
+
+        buf = self.stream.getvalue()
+
+        # an inline object with and inline class-def, encoding = 0x01, 1 attr
+
+        self.assertEquals(buf[:2], '\x0a\x07')
+        # class alias name
+        self.assertEquals(buf[2:10], '\x0fabc.xyz')
+
+        self.assertEquals(len(buf), 10)
+
+        pyamf.unregister_class(Foo)
 
 class ModifiedUTF8TestCase(unittest.TestCase):
     data = [
@@ -512,9 +732,11 @@ def suite():
 
     suite.addTest(unittest.makeSuite(TypesTestCase))
     suite.addTest(unittest.makeSuite(ModifiedUTF8TestCase))
+    suite.addTest(unittest.makeSuite(ClassDefinitionTestCase))
     suite.addTest(unittest.makeSuite(ContextTestCase))
     suite.addTest(unittest.makeSuite(EncoderTestCase))
     suite.addTest(unittest.makeSuite(DecoderTestCase))
+    suite.addTest(unittest.makeSuite(ObjectEncodingTestCase))
 
     return suite
 

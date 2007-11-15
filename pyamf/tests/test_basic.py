@@ -89,6 +89,51 @@ class BagTestCase(unittest.TestCase):
 
         self.assertEquals(x, [('foo', 'bar')])
 
+class ClassMetaDataTestCase(unittest.TestCase):
+    def test_create(self):
+        x = pyamf.ClassMetaData()
+
+        self.assertEquals(x, [])
+        self.assertEquals(len(x), 0)
+
+        x = pyamf.ClassMetaData('dynamic')
+
+        self.assertEquals(x, ['dynamic'])
+        self.assertEquals(len(x), 1)
+
+        x = pyamf.ClassMetaData(['static'])
+
+        self.assertEquals(x, ['static'])
+        self.assertEquals(len(x), 1)
+
+        self.assertRaises(ValueError, pyamf.ClassMetaData, ['foo'])
+        self.assertRaises(ValueError, pyamf.ClassMetaData, 'foo')
+
+    def test_append(self):
+        x = pyamf.ClassMetaData()
+
+        x.append('dynamic')
+
+        self.assertEquals(x, ['dynamic'])
+        self.assertEquals(len(x), 1)
+
+        x.append('dynamic')
+
+        self.assertEquals(x, ['dynamic'])
+        self.assertEquals(len(x), 1)
+
+        #x.append('static')
+        # XXX nick: how to trap the warning?
+
+        self.assertRaises(ValueError, x.append, 'foo')
+
+    def test_contains(self):
+        x = pyamf.ClassMetaData()
+
+        self.assertFalse('dynamic' in x)
+        x.append('dynamic')
+        self.assertTrue('dynamic' in x)
+
 class Foo(object):
     pass
 
@@ -104,16 +149,28 @@ class ClassAliasTestCase(unittest.TestCase):
         self.assertEquals(x.alias, 'org.example.foo.Foo')
         self.assertEquals(x.read_func, None)
         self.assertEquals(x.write_func, None)
-        self.assertEquals(x.encoding, None)
+        self.assertEquals(x.attrs, None)
+        self.assertEquals(x.metadata, [])
 
         x = pyamf.ClassAlias(Foo, 'org.example.foo.Foo', read_func=ord,
-            write_func=str, encoding='123')
+            write_func=str)
 
         self.assertEquals(x.klass, Foo)
         self.assertEquals(x.alias, 'org.example.foo.Foo')
         self.assertEquals(x.read_func, ord)
         self.assertEquals(x.write_func, str)
-        self.assertEquals(x.encoding, '123')
+        self.assertEquals(x.attrs, None)
+        self.assertEquals(x.metadata, ['external'])
+
+        x = pyamf.ClassAlias(Foo, 'org.example.foo.Foo', attrs=['foo', 'bar'],
+            metadata=['dynamic'])
+
+        self.assertEquals(x.klass, Foo)
+        self.assertEquals(x.alias, 'org.example.foo.Foo')
+        self.assertEquals(x.read_func, None)
+        self.assertEquals(x.write_func, None)
+        self.assertEquals(x.attrs, ['foo', 'bar'])
+        self.assertEquals(x.metadata, ['dynamic'])
 
     def test_bad_class(self):
         self.assertRaises(TypeError, pyamf.ClassAlias, 'bar', 'blah')
@@ -133,38 +190,52 @@ class ClassAliasTestCase(unittest.TestCase):
 
         self.assertTrue(isinstance(y, Foo))
 
+    def test_str(self):
+        class Bar(object):
+            pass
+
+        x = pyamf.ClassAlias(Bar, 'org.example.bar.Bar')
+
+        self.assertEquals(str(x), 'org.example.bar.Bar')
+
+    def test_eq(self):
+        class A(object):
+            pass
+
+        class B(object):
+            pass
+
+        x = pyamf.ClassAlias(A, 'org.example.A')
+        y = pyamf.ClassAlias(A, 'org.example.A')
+        z = pyamf.ClassAlias(B, 'org.example.B')
+
+        self.assertEquals(x, y)
+        self.assertNotEquals(x, z)
+
 class HelperTestCase(unittest.TestCase):
     """
     Tests all helper functions in pyamf.__init__
     """
+
     def test_get_decoder(self):
         from pyamf import amf0, amf3
 
-        decoder = pyamf._get_decoder(pyamf.AMF0)
-        self.assertEquals(decoder, amf0.Decoder)
-
-        decoder = pyamf._get_decoder(pyamf.AMF3)
-        self.assertEquals(decoder, amf3.Decoder)
-
+        self.assertEquals(pyamf._get_decoder(pyamf.AMF0), amf0.Decoder)
+        self.assertEquals(pyamf._get_decoder(pyamf.AMF3), amf3.Decoder)
         self.assertRaises(ValueError, pyamf._get_decoder, 'foo')
 
     def test_get_encoder(self):
         from pyamf import amf0, amf3
 
-        encoder = pyamf._get_encoder(pyamf.AMF0)
-        self.assertEquals(encoder, amf0.Encoder)
-
-        encoder = pyamf._get_encoder(pyamf.AMF3)
-        self.assertEquals(encoder, amf3.Encoder)
-
+        self.assertEquals(pyamf._get_encoder(pyamf.AMF0), amf0.Encoder)
+        self.assertEquals(pyamf._get_encoder(pyamf.AMF3), amf3.Encoder)
         self.assertRaises(ValueError, pyamf._get_encoder, 'foo')
 
 def suite():
-    import pyamf
-
     suite = unittest.TestSuite()
 
     suite.addTest(unittest.makeSuite(BagTestCase))
+    suite.addTest(unittest.makeSuite(ClassMetaDataTestCase))
     suite.addTest(unittest.makeSuite(ClassAliasTestCase))
     suite.addTest(unittest.makeSuite(HelperTestCase))
 

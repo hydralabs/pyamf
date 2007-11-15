@@ -310,22 +310,24 @@ class ObjectProxyTestCase(unittest.TestCase):
         stream = util.BufferedByteStream()
         encoder = amf3.Encoder(stream)
 
-        x = compat.ObjectProxy({'x': 'y'})
+        x = compat.ObjectProxy({'a': 'foo', 'b': 5})
 
         encoder.writeElement(x)
 
         self.assertEquals(stream.getvalue(),
-            '\n\x1f;flex.messaging.io.ObjectProxy\t\x01\x03x\x06\x03y\x01')
+            '\x0a\x07;flex.messaging.io.ObjectProxy\x09\x01\x03a\x06\x07foo'
+            '\x03b\x04\x05\x01')
 
     def test_decode(self):
         stream = util.BufferedByteStream(
-            '\n\x1f;flex.messaging.io.ObjectProxy\t\x01\x03x\x06\x03y\x01')
+            '\x0a\x07;flex.messaging.io.ObjectProxy\x09\x01\x03a\x06\x07foo'
+            '\x03b\x04\x05\x01')
         decoder = amf3.Decoder(stream)
 
         x = decoder.readElement()
 
         self.assertEquals(x.__class__, compat.ObjectProxy)
-        self.assertEquals(x._amf_object, {'x': 'y'})
+        self.assertEquals(x._amf_object, {'a': 'foo', 'b': 5})
 
 def suite():
     suite = unittest.TestSuite()

@@ -243,12 +243,82 @@ class Bag(object):
     def __delitem__(self, k):
         del self.__dict__[k]
 
+class ClassMetaData(list):
+    """
+    I hold a list of tags relating to the class. The idea behind this is to
+    emulate the metadata tags you can supply actionscript, e.g. static/dynamic
+    
+    At the moment, only static, dynamic and external are allowed but this may
+    be extended in the future. 
+    """
+    _allowed_tags = (
+        ('static', 'dynamic', 'external'),
+    )
+
+    def __init__(self, *args):
+        if len(args) == 1 and hasattr(args[0], '__iter__'):  
+            for x in args[0]:
+                self.append(x)
+        else:
+            for x in args:
+                self.append(x)
+
+    def _is_tag_allowed(self, x):
+        for y in self._allowed_tags:
+            if isinstance(y, (types.ListType, types.TupleType)):
+                if x in y:
+                    return (True, y)
+            else:
+                if x == y:
+                    return (True, None)
+
+        return (False, None)
+ 
+    def append(self, x):
+        """
+        Adds a tag to the metadata.
+
+        Converts the string
+        """
+        x = str(x).lower()
+
+        allowed, tags = self._is_tag_allowed(x)
+
+        if not allowed:
+            raise ValueError("Unknown tag %s" % x)
+
+        if tags is not None:
+            # check to see if a tag that is in the list is about to be clobbered
+            # if so, raise a warning
+            for y in tags:
+                if y in self:
+                    if x != y:
+                        import warnings, traceback
+
+                        warnings.warn(
+                            "Previously defined tag %s superceded by %s" % (y, x))
+
+                    list.pop(self, self.index(y))
+                    break
+
+        list.append(self, x)
+
+    def __contains__(self, other):
+        return list.__contains__(self, str(other).lower())
+
+    # TODO nick: deal with slices
+
 class ClassAlias(object):
     """
-    Class alias.
+    Class alias. All classes are initially set to a dynamic state.
+
+    @ivar attrs: A list of attributes to encode for this class
+    @type attrs: list
+    @ivar metadata: A list of metadata tags similar to actionscript tags
+    @type metadata: list
     """
     def __init__(self, klass, alias, read_func=None, write_func=None,
-        encoding=None):
+                 attrs=None, metadata=[]):
         """
         @type klass: class
         @param klass: The class to alias
@@ -256,10 +326,10 @@ class ClassAlias(object):
         @param alias: The alias to the class e.g. org.example.Person
         @type read_func: callable
         @param read_func: Function that gets called when reading the object from
-            the data stream
+                          the data stream
         @type write_func: callable
         @param write_func: Function that gets called when writing the object to
-            the data steam
+                          the data steam
         """
         if not isinstance(klass, (type, types.ClassType)):
             raise TypeError("klass must be a class type")
@@ -276,7 +346,12 @@ class ClassAlias(object):
         self.alias = str(alias)
         self.read_func = read_func
         self.write_func = write_func
-        self.encoding = encoding
+        self.attrs = attrs
+        self.metadata = ClassMetaData(metadata)
+
+        # if both funcs are defined, we add the metadata
+        if read_func and write_func:
+            self.metadata.append('external')
 
     def __call__(self, *args, **kwargs):
         """
@@ -286,7 +361,23 @@ class ClassAlias(object):
         """
         return self.klass(*args, **kwargs)
 
-def register_class(klass, alias, read_func=None, write_func=None):
+    def __str__(self):
+        return self.alias
+
+    def __repr__(self):
+        return '<ClassAlias alias=%s klass=%s @ %s>' % (
+            self.alias, self.klass, id(self))
+
+    def __eq__(self, other):
+        if isinstance(other, basestring):
+            return self.alias == other
+        elif isinstance(other, self.__class__):
+            return self.klass == other.klass
+        else:
+            return False
+
+def register_class(klass, alias, read_func=None, write_func=None,
+    attrs=None, metadata=[]):
     """
     Registers a class to be used in the data streaming.
     
@@ -296,6 +387,8 @@ def register_class(klass, alias, read_func=None, write_func=None):
     @param read_func:
     @type write_func:
     @param write_func:
+    @param attrs: A list of attributes that will be encoded for the class
+    @type attrs: list or None
 
     @raise TypeError: the klass is not callable
     @raise ValueError: the klass is already registered
@@ -312,8 +405,27 @@ def register_class(klass, alias, read_func=None, write_func=None):
     if alias in CLASS_CACHE.keys():
         raise ValueError("alias '%s' already registered" % alias)
 
-    CLASS_CACHE[alias] = ClassAlias(klass, alias, read_func=read_func,
-        write_func=write_func)
+    x = ClassAlias(klass, alias, read_func=read_func, write_func=write_func,
+        attrs=attrs, metadata=metadata)
+    CLASS_CACHE[alias] = x
+
+    return x
+
+def unregister_class(alias):
+    """
+    Deletes a class from the cache. If alias is a class, the matching alias is
+    found.
+
+    @type: class or str
+    """
+    if isinstance(alias, (type, types.ClassType)):
+        for s, a in CLASS_CACHE.iteritems():
+            if a.klass == alias:
+                alias = s
+
+                break
+
+    del CLASS_CACHE[alias]
 
 def register_class_loader(loader):
     """
@@ -404,21 +516,24 @@ def load_class(alias):
     # All available methods for finding the class have been exhausted
     raise UnknownClassAlias("Unknown alias %s" % alias)
 
-def get_class_alias(obj):
+def get_class_alias(klass):
     """
     Finds the alias registered to the class.
 
-    @type obj:
-    @param obj:
+    @type klass: object or class
+    @param klass:
     @raise UnknownClassAlias: class not found
-    @see: L{load_class} for more info
+    @return: The class alias linked to the klass
+    @rtype: L{ClassAlias}
     """
-    klass = type(obj)
-
-    # Try the CLASS_CACHE first
-    for a, k in CLASS_CACHE.iteritems():
-        if klass == k.klass:
-            return k
+    if isinstance(klass, basestring):
+        for a, k in CLASS_CACHE.iteritems():
+            if klass == a:
+                return k
+    elif isinstance(klass, (types.InstanceType, types.ObjectType)):
+        for a, k in CLASS_CACHE.iteritems():
+            if klass.__class__ == k.klass:
+                return k
 
     # All available methods for finding the alias have been exhausted
     raise UnknownClassAlias("Unknown alias for class %s" % klass)
