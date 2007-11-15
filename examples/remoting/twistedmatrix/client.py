@@ -57,7 +57,7 @@ if __name__ == "__main__":
     response.status = remoting.STATUS_OK
 
     env = remoting.Envelope(pyamf.AMF0, ClientTypes.FlashCom)
-    env['test.echo'] = response
+    env['echo.echo'] = response
 
     data = remoting.encode(env).getvalue()
 
