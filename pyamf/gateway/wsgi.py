@@ -84,13 +84,11 @@ class WSGIGateway(gateway.BaseGateway):
         body = self.get_request_body(environ)
         stream = None
 
-        context = pyamf._get_context(pyamf.AMF0)()
-
         try:
-            request = remoting.decode(body, context)
+            request = remoting.decode(body)
             response = self.getResponse(request)
 
-            stream = remoting.encode(response, context)
+            stream = remoting.encode(response)
         except:
             if self.debug:
                 #: write amf request and response to disk.
