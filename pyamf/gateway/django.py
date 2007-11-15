@@ -55,7 +55,7 @@ def DjangoGateway(request, gateway):
     must be an instance of L{BaseGateway<pyamf.gateway.BaseGateway>} or a string. If a string is specified,
     it must be a dotted path to such an instance and the view will import it on each request.
     
-    An example useage would be through urlconf::
+    An example usage would be through urlconf::
     
         from django.conf.urls.defaults import *
         import os

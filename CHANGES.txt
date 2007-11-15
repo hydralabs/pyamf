@@ -6,7 +6,7 @@
  - Authentication/setCredentials support (#36)
  - zlib compression support for ByteArray (#40)
  - Support for ArrayCollection (#30), IExternalizable (#29),
-   and ByteArray (#32)
+   ObjectProxy (#31) and ByteArray (#32)
 
 2007-10-19
 -------------------
