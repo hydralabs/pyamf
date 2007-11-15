@@ -4,11 +4,11 @@
  - Remoting support with gateways for Twisted (#15)
    WSGI (#16), and Django (#17)
  - Authentication/setCredentials support (#36)
- - zlib compression support for ByteArray (#40)
- - Support for ArrayCollection (#30), IExternalizable (#29),
+ - Support for IExternalizable (#29), ArrayCollection (#30),
    ObjectProxy (#31) and ByteArray (#32)
+ - zlib compression support for ByteArray (#40)
 
 2007-10-19
 -------------------
  - Started project based on previous work done in the 
-   RTMPy (http://dev.collab.com/rtmpy) project.
+   RTMPy (http://rtmpy.org) project.

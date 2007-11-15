@@ -39,6 +39,8 @@ U{EchoTest<http://pyamf.org/wiki/EchoTest>} wiki page.
 @author: U{Thijs Triemstra<mailto:info@collab.nl>}
 
 @since: 0.1.0
+
+@todo: Add Django remoting.
 """
 
 import os, os.path

@@ -26,15 +26,12 @@
 """
 Echo test server.
 
-Sample gateways for:
-
- - U{Twisted<http://twistedmatrix.com>}
- - U{WSGI<http://wsgi.org>}
-
 You can use this example with the echo_test.swf client on the
 U{EchoTest<http://pyamf.org/wiki/EchoTest>} wiki page.
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
+
+@since: 0.1.0
 """
 
 from pyamf import register_class
