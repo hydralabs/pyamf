@@ -356,7 +356,8 @@ def decode(stream, context=None):
     
     @type   stream: L{BufferedByteStream}
     @param  stream: AMF data.
-    @type   context: L{Context}
+    @type   context: L{AMF0 Context<pyamf.amf0.Context>} or
+    L{AMF3 Context<pyamf.amf3.Context>}
     @param  context: Context.
 
     @raise DecodeError: Malformed stream. Check the U{Remoting Envelope
@@ -416,7 +417,8 @@ def encode(msg, old_context=None):
 
     @type   msg: L{Envelope}
     @param  msg: The message to encode.
-    @type   old_context: L{Context<pyamf.Context>}
+    @type   old_context: L{AMF0 Context<pyamf.amf0.Context>} or
+    L{AMF3 Context<pyamf.amf3.Context>}
     @param  old_context: Context.
     @rtype:
     @return: File object.

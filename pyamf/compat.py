@@ -277,7 +277,6 @@ class DataInput(object):
         
         @type charset: str
         @param charset: The string denoting the character set to use.
-        @see: L{writeMultiByte} for more info.
 
         @rtype: str
         @return: UTF-8 encoded string.

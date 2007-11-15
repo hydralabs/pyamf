@@ -55,7 +55,7 @@ def DjangoGateway(request, gateway):
     must be an instance of L{BaseGateway<pyamf.gateway.BaseGateway>} or a string. If a string is specified,
     it must be a dotted path to such an instance and the view will import it on each request.
     
-    An example useage would be through urlconf:
+    An example useage would be through urlconf::
     
         from django.conf.urls.defaults import *
         import os
@@ -63,7 +63,7 @@ def DjangoGateway(request, gateway):
         urlpatterns = patterns('',
             (r'^gateway/', 'pyamf.gateway.django.DjangoGateway', {'gateway': 'yourproject.gateway.yourGateway'}),
         )
-    
+
     where C{yourproject.gateway.yourGateway} refers to your instance of L{BaseGateway<pyamf.gateway.BaseGateway>}.
 
     @type request: django.http.HttpRequest
@@ -72,7 +72,7 @@ def DjangoGateway(request, gateway):
     @type gateway: L{BaseGateway<pyamf.gateway.BaseGateway>} or str
 
     @return: Response object containing the AMF encoded response or HttpResponseNotAllowed if request method was not POST.
-    @rtype: django.http.HttpResponse or django.http.HttpResponseNotAllowed
+    @rtype: L{HttpResponse<django.http.HttpResponse>} or L{HttpResponseNotAllowed<django.http.HttpResponseNotAllowed>}
     """
 
     # Import gateway if it is a string (similar to Django's urlconf)

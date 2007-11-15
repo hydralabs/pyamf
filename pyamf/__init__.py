@@ -416,7 +416,8 @@ def unregister_class(alias):
     Deletes a class from the cache. If alias is a class, the matching alias is
     found.
 
-    @type: class or str
+    @type alias: class or str
+    @param alias:
     """
     if isinstance(alias, (type, types.ClassType)):
         for s, a in CLASS_CACHE.iteritems():
@@ -546,7 +547,8 @@ def decode(stream, encoding=AMF0, context=None):
     @param  stream: AMF data
     @type   encoding: int
     @param  encoding: AMF encoding type
-    @type   context: L{Context}
+    @type   context: L{AMF0 Context<pyamf.amf0.Context>} or
+    L{AMF3 Context<pyamf.amf3.Context>}
     @param  context: Context
     @return: Each element in the stream
     """
@@ -563,7 +565,8 @@ def encode(element, encoding=AMF0, context=None):
     @param  element: Python data
     @type   encoding: int
     @param  encoding: AMF encoding type
-    @type   context: L{Context}
+    @type   context: L{AMF0 Context<pyamf.amf0.Context>} or
+    L{AMF3 Context<pyamf.amf3.Context>}
     @param  context: Context
     @return: File-like object
     """
@@ -632,6 +635,12 @@ def _get_context(encoding):
     raise ValueError, "Unknown encoding %s" % encoding
 
 def _adapt_context_amf0_to_amf3(amf3_context):
+    """
+    @type amf3_context:
+    @param amf3_context:
+    @rtype:
+    @return:
+    """
     import amf0
 
     context = amf0.Context()
@@ -640,6 +649,12 @@ def _adapt_context_amf0_to_amf3(amf3_context):
     return context
 
 def _adapt_context_amf3_to_amf0(amf0_context):
+    """
+    @type amf0_context:
+    @param amf0_context:
+    @rtype:
+    @return:
+    """
     import amf3
 
     context = amf3.Context()

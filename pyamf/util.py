@@ -422,8 +422,8 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
         returning the stream pointer to its initial position.
 
         @raise ValueError: Raised when trying to peek backwards.
-        @param length:
-        @type length:
+        @param size:
+        @type size:
         @rtype:
         @return: Bytes.
         """
