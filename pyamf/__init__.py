@@ -65,7 +65,7 @@ AMF0 = 0
 #: Specifies that objects are serialized using AMF
 #: for ActionScript 3.0.
 AMF3 = 3
-#:Specifies the default (latest) format for the current player.
+#: Specifies the default (latest) format for the current player.
 AMF_DEFAULT = AMF3
 #: Supported AMF encoding types.
 ENCODING_TYPES = (AMF0, AMF3)
@@ -73,6 +73,11 @@ ENCODING_TYPES = (AMF0, AMF3)
 class ClientTypes:
     """
     Typecodes used to identify AMF clients and servers.
+    
+    @see: U{Flash Player on WikiPedia (external)
+    <http://en.wikipedia.org/wiki/Flash_Player>}
+    @see: U{Flash Media Server on WikiPedia (external)
+    <http://en.wikipedia.org/wiki/Adobe_Flash_Media_Server>}
     """
     #: Specifies a Flash Player 6.0 - 8.0 client.
     Flash6   = 0

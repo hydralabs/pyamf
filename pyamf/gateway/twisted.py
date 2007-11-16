@@ -82,8 +82,11 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
     Twisted Remoting gateway.
     """
 
+    """
+    @cvar _request_class: A description of the static class variable.
+    """
     _request_class = ServiceRequest
-
+    
     def __init__(self, services, debug):
         """
         @param services:
@@ -226,7 +229,7 @@ class TwistedClient(client.HTTPPageGetter):
 
         print "Sending AMF request:", data
         
-        output = pyamf.remoting.encode(env).getvalue()
+        data = pyamf.remoting.encode(env).getvalue()
 
         endPoint = 'http://' + self.host + ":" + str(self.port)
         
@@ -234,8 +237,8 @@ class TwistedClient(client.HTTPPageGetter):
             endPoint,
             method='POST',
             headers={'Content-Type': pyamf.remoting.CONTENT_TYPE,
-                     'Content-Length': len(output)},
-            postdata=output)
+                     'Content-Length': len(data)},
+            postdata=data)
         
         postRequest.addCallback(self.getResult).addErrback(self.getError)
         

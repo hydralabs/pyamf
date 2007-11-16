@@ -78,8 +78,7 @@ def main():
 
             try:
                 print "Decoding file:", fname.rsplit("\\",1)[-1], "\n"           
-                context = pyamf.Context()
-                request = remoting.decode(body, context)
+                request = remoting.decode(body)
                 response = remoting.Envelope(request.amfVersion, request.clientType)
 
             except:
