@@ -58,7 +58,6 @@ def DjangoGateway(request, gateway):
     An example usage would be through urlconf::
     
         from django.conf.urls.defaults import *
-        import os
 
         urlpatterns = patterns('',
             (r'^gateway/', 'pyamf.gateway.django.DjangoGateway', {'gateway': 'yourproject.gateway.yourGateway'}),
