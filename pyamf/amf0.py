@@ -128,20 +128,30 @@ for x in ASTypes.__dict__:
 
 class Context(pyamf.BaseContext):
     """
-    I hold the AMF0 context for en/decoding streams. AMF0 object references
-    start at index 1.
+    I hold the AMF0 context for en/decoding streams.
+
+    AMF0 object references start at index 1.
     """
 
     def clear(self):
         """
-        Resets the context. C{amf3_objs} keep a list of objects that were encoded
-        in AMF3.
+        Resets the context.
+
+        The C{amf3_objs} var keeps a list of objects that were encoded
+        in L{AMF3<pyamf.amf3>}.
         """
         pyamf.BaseContext.clear(self)
 
         self.amf3_objs = []
 
     def _getObject(self, ref):
+        """
+        @param ref:
+        @type ref:
+        @raise ReferenceError: Object reference not found.
+        @rtype:
+        @return:
+        """
         if ref == 0:
             raise pyamf.ReferenceError, "Object reference %d not found" % ref
 
@@ -159,6 +169,10 @@ class Context(pyamf.BaseContext):
             return len(self.objects)
 
     def __copy__(self):
+        """
+        @rtype:
+        @return:
+        """
         copy = self.__class__()
         copy.amf3_objs = self.amf3_objs
 
@@ -193,9 +207,9 @@ class Decoder(object):
     def __init__(self, data=None, context=None):
         """
         @type   data: L{BufferedByteStream}
-        @param  data: AMF0 data
+        @param  data: AMF0 data.
         @type   context: L{Context}
-        @param  context: Context
+        @param  context: Context.
         @raise TypeError: The C{context} parameter must be of
         type L{amf0.Context}.
         """
@@ -216,8 +230,9 @@ class Decoder(object):
         """
         Read and returns the next byte in the stream and determine its type.
 
-        @return: AMF0 type
         @raise DecodeError: AMF0 type not recognized.
+        @rtype:
+        @return: AMF0 type.
         """
         type = self.stream.read_uchar()
 
@@ -241,10 +256,10 @@ class Decoder(object):
 
     def readBoolean(self):
         """
-        Reads a bool.
+        Reads a Boolean.
 
-        @return: boolean
         @rtype: bool
+        @return: Boolean.
         """
         return bool(self.stream.read_uchar())
 
@@ -454,7 +469,7 @@ class Encoder(object):
     Encodes an AMF0 stream.
     
     The type map is a list of types -> functions. The types is a list of
-    possible instances or functions to call (that return a bool) to determine
+    possible instances or functions to call (that return a C{bool}) to determine
     the correct function to call to encode the data.
     """
     #: Python to AMF type mappings.
@@ -482,7 +497,7 @@ class Encoder(object):
         @type   output: StringIO
         @param  output: File-like object.
         @type   context: L{Context}
-        @param  context: Context
+        @param  context: AMF0 Context.
         """
         self.stream = output
 
@@ -565,7 +580,7 @@ class Encoder(object):
         Write null type to data stream.
 
         @type   n: None
-        @param  n: Is ignored
+        @param  n: Is ignored.
         """
         self.writeType(ASTypes.NULL)
 
@@ -741,7 +756,7 @@ class Encoder(object):
         @type   d: Instance of datetime.datetime
         @param  d: The date to be written.
         """
-        # According to the Red 5 implementation of AMF0, dates references are
+        # According to the Red5 implementation of AMF0, dates references are
         # created, but not used
         secs = util.get_timestamp(d)
         tz = 0
@@ -783,7 +798,7 @@ def decode(stream, context=None):
     @type   stream: L{BufferedByteStream}
     @param  stream: AMF0 datastream.
     @type   context: L{Context}
-    @param  context: Context.
+    @param  context: AMF0 Context.
 
     @todo: Add Python 2.3 support.
     """
@@ -799,9 +814,9 @@ def encode(element, context=None):
     @type   element: 
     @param  element:
     @type   context: L{Context}
-    @param  context: Context.
+    @param  context: AMF0 Context.
+    @rtype: StringIO
     @return: File object.
-    @returntype: StringIO
     """
     buf = util.BufferedByteStream()
     encoder = Encoder(buf, context)

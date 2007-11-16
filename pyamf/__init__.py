@@ -27,7 +27,7 @@
 #
 
 """
-U{PyAMF<http://pyamf.org>} is a B{A}ction B{M}essage B{F}ormat
+B{PyAMF} is a B{A}ction B{M}essage B{F}ormat
 (U{AMF<http://osflash.org/documentation/amf>}) decoder and
 encoder for Python that is compatible with the
 U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>} 6 and newer.
@@ -38,9 +38,10 @@ U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>} 6 and newer.
 
 @copyright: Copyright (c) 2007 The PyAMF Project. All rights reserved.
 @contact: U{dev@pyamf.org<mailto:dev@pyamf.org>}
+@see: U{http://pyamf.org}
 
-@status: Alpha
 @since: October 2007
+@status: Alpha
 @version: 0.1.0
 """
 
@@ -97,7 +98,7 @@ class BaseError(Exception):
     """
     Base AMF Error.
 
-    All AMF related errors should be subclassed from this.
+    All AMF related errors should be subclassed from this class.
     """
 
 class DecodeError(BaseError):
@@ -115,7 +116,8 @@ class EncodeError(BaseError):
     """
     Raised if the element could not be encoded to the stream.
 
-    @bug: See U{Docuverse blog (external)<http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug>}
+    @bug: See U{Docuverse blog (external)
+    <http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug>}
     for more info about the empty key string array bug.
     """
 
@@ -151,10 +153,13 @@ class BaseContext(object):
         Gets an object based on a reference.
 
         @type ref: int
-        @param ref: the reference to an object
-        @raise ReferenceError: the object could not be found.
-        @return: The object referenced.
+        @param ref: The reference to an object.
+
+        @raise TypeError: Bad reference type.
+        @raise ReferenceError: The object reference could not be found.
+
         @rtype: mixed
+        @return: The object referenced.
         """
         if not isinstance(ref, (int, long)):
             raise TypeError, "Bad reference type"
@@ -173,7 +178,9 @@ class BaseContext(object):
 
         @type obj:
         @param obj:
-        @raise ReferenceError: object reference could not be found.
+        @raise ReferenceError: Object reference could not be found.
+
+        @rtype:
         @return:
         """
         try:
@@ -186,9 +193,10 @@ class BaseContext(object):
         Gets a reference to C{obj}, creating one if necessary.
 
         @type obj: mixed
-        @param obj: the object to add to the context 
-        @return: reference to obj
+        @param obj: The object to add to the context.
+
         @rtype: int
+        @return: Reference to C{obj}.
         """
         return self._addObject(obj)
 
@@ -197,13 +205,13 @@ class BaseContext(object):
 
 class Bag(object):
     """
-    I supply a __builtin__.dict interface to support get/setattr calls.
+    I supply a C{__builtin__.dict} interface to support get/setattr calls.
     """
 
     def __init__(self, d={}):
         """
         @type d: dict
-        @param d: Initial data for the bag
+        @param d: Initial data for the bag.
         """
         for k, v in d.iteritems():
             setattr(self, k, v)
@@ -212,6 +220,7 @@ class Bag(object):
         """
         @type k:
         @param k:
+        @rtype:
         @return:
         """
         return getattr(self, k)
@@ -222,6 +231,7 @@ class Bag(object):
         @param k:
         @type v:
         @param v:
+        @rtype:
         @return: 
         """
         return setattr(self, k, v)
@@ -231,6 +241,7 @@ class Bag(object):
         @type other:
         @param other:
         @rtype: bool
+        @return:
         """
         if isinstance(other, dict):
             return self.__dict__ == other
@@ -240,6 +251,8 @@ class Bag(object):
         return False
 
     def iteritems(self):
+        """
+        """
         return self.__dict__.iteritems()
 
     def __repr__(self):
@@ -251,7 +264,7 @@ class Bag(object):
 class ClassMetaData(list):
     """
     I hold a list of tags relating to the class. The idea behind this is to
-    emulate the metadata tags you can supply actionscript, e.g. static/dynamic
+    emulate the metadata tags you can supply ActionScript, e.g. static/dynamic.
     
     At the moment, only static, dynamic and external are allowed but this may
     be extended in the future. 
@@ -261,6 +274,10 @@ class ClassMetaData(list):
     )
 
     def __init__(self, *args):
+        """
+        @type args:
+        @param args:
+        """
         if len(args) == 1 and hasattr(args[0], '__iter__'):  
             for x in args[0]:
                 self.append(x)
@@ -269,6 +286,12 @@ class ClassMetaData(list):
                 self.append(x)
 
     def _is_tag_allowed(self, x):
+        """
+        @param x:
+        @type x:
+        @rtype: tuple
+        @return:
+        """
         for y in self._allowed_tags:
             if isinstance(y, (types.ListType, types.TupleType)):
                 if x in y:
@@ -283,7 +306,10 @@ class ClassMetaData(list):
         """
         Adds a tag to the metadata.
 
-        Converts the string
+        @param x:
+        @type x:
+        
+        @raise ValueError: Unknown tag.
         """
         x = str(x).lower()
 
@@ -315,26 +341,32 @@ class ClassMetaData(list):
 
 class ClassAlias(object):
     """
-    Class alias. All classes are initially set to a dynamic state.
+    Class alias.
 
-    @ivar attrs: A list of attributes to encode for this class
+    All classes are initially set to a dynamic state.
+
+    @ivar attrs: A list of attributes to encode for this class.
     @type attrs: list
-    @ivar metadata: A list of metadata tags similar to actionscript tags
+    @ivar metadata: A list of metadata tags similar to ActionScript tags.
     @type metadata: list
     """
     def __init__(self, klass, alias, read_func=None, write_func=None,
                  attrs=None, metadata=[]):
         """
         @type klass: class
-        @param klass: The class to alias
+        @param klass: The class to alias.
         @type alias: str
-        @param alias: The alias to the class e.g. org.example.Person
+        @param alias: The alias to the class e.g. C{org.example.Person}.
         @type read_func: callable
         @param read_func: Function that gets called when reading the object from
-                          the data stream
+                          the data stream.
         @type write_func: callable
         @param write_func: Function that gets called when writing the object to
-                          the data steam
+                          the data steam.
+                          
+        @raise TypeError: The C{klass} must be a class type.
+        @raise TypeError: The C{read_func} must be callable.
+        @raise TypeError: The C{write_func} must be callable.
         """
         if not isinstance(klass, (type, types.ClassType)):
             raise TypeError("klass must be a class type")
@@ -360,9 +392,10 @@ class ClassAlias(object):
 
     def __call__(self, *args, **kwargs):
         """
-        Creates an instance of the klass
+        Creates an instance of the klass.
 
-        @return: Instance of self.klass
+        @rtype: 
+        @return: Instance of C{self.klass}.
         """
         return self.klass(*args, **kwargs)
 
@@ -387,17 +420,20 @@ def register_class(klass, alias, read_func=None, write_func=None,
     Registers a class to be used in the data streaming.
     
     @type alias: str
-    @param alias: The alias of klass, i.e. C{org.example.Person}
+    @param alias: The alias of klass, i.e. C{org.example.Person}.
     @type read_func:
     @param read_func:
     @type write_func:
     @param write_func:
-    @param attrs: A list of attributes that will be encoded for the class
-    @type attrs: list or None
+    @param attrs: A list of attributes that will be encoded for the class.
+    @type attrs: C{list} or C{None}
 
-    @raise TypeError: the klass is not callable
-    @raise ValueError: the klass is already registered
-    @raise ValueError: the alias is already registered
+    @raise TypeError: The C{klass} is not callable.
+    @raise ValueError: The C{klass} is already registered.
+    @raise ValueError: The C{alias} is already registered.
+
+    @rtype:
+    @return:
     """
     if not callable(klass):
         raise TypeError("klass must be callable")
@@ -418,11 +454,12 @@ def register_class(klass, alias, read_func=None, write_func=None,
 
 def unregister_class(alias):
     """
-    Deletes a class from the cache. If alias is a class, the matching alias is
-    found.
+    Deletes a class from the cache.
+
+    If C{alias} is a class, the matching alias is found.
 
     @type alias: class or str
-    @param alias:
+    @param alias: Alias for class to delete.
     """
     if isinstance(alias, (type, types.ClassType)):
         for s, a in CLASS_CACHE.iteritems():
@@ -436,15 +473,17 @@ def unregister_class(alias):
 def register_class_loader(loader):
     """
     Registers a loader that is called to provide the Class for a specific
-    alias. L{loader} is provided with one argument, the Class alias. If the
+    alias.
+
+    The L{loader} is provided with one argument, the Class alias. If the
     loader succeeds in finding a suitable class then it should return that
     class, otherwise it should return L{None}.
 
     @type loader: callable
     @param loader:
 
-    @raise TypeError: the loader is not callable
-    @raise ValueError: the loader is already registered
+    @raise TypeError: The C{loader} is not callable.
+    @raise ValueError: The C{loader} is already registered.
     """
     if not callable(loader):
         raise TypeError("loader must be callable")
@@ -456,10 +495,12 @@ def register_class_loader(loader):
 
 def get_module(mod_name):
     """
-    Load a module based on mod_name.
+    Load a module based on C{mod_name}.
 
     @type mod_name: str
-    @param mod_name: module name
+    @param mod_name: The module name.
+    @rtype:
+    @return:
     """
     mod = __import__(mod_name)
     components = mod_name.split('.')
@@ -479,8 +520,8 @@ def load_class(alias):
       3. Attempts to load the class via standard module loading techniques.
 
     @type alias: str
-    @param alias: class name
-    @raise UnknownClassAlias: alias not found
+    @param alias: The class name.
+    @raise UnknownClassAlias: The C{alias} was not found.
     """
     alias = str(alias)
 
@@ -528,9 +569,10 @@ def get_class_alias(klass):
 
     @type klass: object or class
     @param klass:
-    @raise UnknownClassAlias: class not found
-    @return: The class alias linked to the klass
+    @raise UnknownClassAlias: Class not found.
+
     @rtype: L{ClassAlias}
+    @return: The class alias linked to the C{klass}.
     """
     if isinstance(klass, basestring):
         for a, k in CLASS_CACHE.iteritems():
@@ -549,13 +591,13 @@ def decode(stream, encoding=AMF0, context=None):
     A generator function to decode a datastream.
 
     @type   stream: L{BufferedByteStream}
-    @param  stream: AMF data
+    @param  stream: AMF data.
     @type   encoding: int
-    @param  encoding: AMF encoding type
+    @param  encoding: AMF encoding type.
     @type   context: L{AMF0 Context<pyamf.amf0.Context>} or
     L{AMF3 Context<pyamf.amf3.Context>}
-    @param  context: Context
-    @return: Each element in the stream
+    @param  context: Context.
+    @return: Each element in the stream.
     """
     decoder = _get_decoder(encoding)(stream, context)
 
@@ -566,14 +608,16 @@ def encode(element, encoding=AMF0, context=None):
     """
     A helper function to encode an element.
 
-    @type   element: 
-    @param  element: Python data
+    @type   element: mixed
+    @param  element: Python data.
     @type   encoding: int
-    @param  encoding: AMF encoding type
-    @type   context: L{AMF0 Context<pyamf.amf0.Context>} or
-    L{AMF3 Context<pyamf.amf3.Context>}
-    @param  context: Context
-    @return: File-like object
+    @param  encoding: AMF encoding type.
+    @type   context: L{amf0.Context<pyamf.amf0.Context>} or
+    L{amf3.Context<pyamf.amf3.Context>}
+    @param  context: Context.
+    
+    @rtype:
+    @return: File-like object.
     """
     stream = util.BufferedByteStream()
     encoder = _get_encoder(encoding)(stream, context)
@@ -587,8 +631,12 @@ def _get_decoder(encoding):
     Get compatible decoder.
 
     @type encoding: int
-    @param encoding: AMF encoding version
-    @raise ValueError: AMF encoding version is unknown
+    @param encoding: AMF encoding version.
+    @raise ValueError: AMF encoding version is unknown.
+
+    @rtype: L{amf0.Decoder<pyamf.amf0.Decoder>} or
+    L{amf3.Decoder<pyamf.amf3.Decoder>}
+    @return: AMF0 or AMF3 decoder.
     """
     if encoding == AMF0:
         import amf0
@@ -606,8 +654,12 @@ def _get_encoder(encoding):
     Get compatible encoder.
 
     @type encoding: int
-    @param encoding: AMF encoding version
-    @raise ValueError: AMF encoding version is unknown
+    @param encoding: AMF encoding version.
+    @raise ValueError: AMF encoding version is unknown.
+
+    @rtype: L{amf0.Encoder<pyamf.amf0.Encoder>} or
+    L{amf3.Encoder<pyamf.amf3.Encoder>}
+    @return: AMF0 or AMF3 encoder.
     """
     if encoding == AMF0:
         import amf0
@@ -626,7 +678,11 @@ def _get_context(encoding):
 
     @type encoding: int
     @param encoding: AMF encoding version
-    @raise ValueError: AMF encoding version is unknown
+    @raise ValueError: AMF encoding version is unknown.
+    
+    @rtype: L{amf0.Context<pyamf.amf0.Context>} or
+    L{amf3.Context<pyamf.amf3.Context>}
+    @return: AMF0 or AMF3 context.
     """
     if encoding == AMF0:
         import amf0
@@ -641,10 +697,10 @@ def _get_context(encoding):
 
 def _adapt_context_amf0_to_amf3(amf3_context):
     """
-    @type amf3_context:
-    @param amf3_context:
-    @rtype:
-    @return:
+    @type amf3_context: L{amf3.Context<pyamf.amf3.Context>}
+    @param amf3_context: AMF3 context.
+    @rtype: L{amf0.Context<pyamf.amf0.Context>}
+    @return: AMF0 context.
     """
     import amf0
 
@@ -655,10 +711,10 @@ def _adapt_context_amf0_to_amf3(amf3_context):
 
 def _adapt_context_amf3_to_amf0(amf0_context):
     """
-    @type amf0_context:
-    @param amf0_context:
-    @rtype:
-    @return:
+    @type amf0_context: L{amf0.Context<pyamf.amf0.Context>}
+    @param amf0_context: AMF0 context.
+    @rtype: L{amf3.Context<pyamf.amf3.Context>}
+    @return: AMF3 context.
     """
     import amf3
 

@@ -115,8 +115,9 @@ class HeaderCollection(dict):
 
 class Envelope(dict):
     """
-    I wrap an entire request, encapsulating headers and bodies (there may more
-    than one request in one transaction).
+    I wrap an entire request, encapsulating headers and bodies.
+
+    There may more than one request in one transaction.
     """
 
     def __init__(self, amfVersion=None, clientType=None):
@@ -170,9 +171,9 @@ class Message(object):
     """
 
     def __init__(self, envelope, target, status, body):
-        #:
+        #: 
         self.envelope = envelope
-        #:
+        #: 
         self.target = target
         #:
         self.status = status
@@ -192,20 +193,22 @@ class Message(object):
 def _read_header(stream, decoder):
     """
     Read AMF L{Message} header.
-
-    I return a tuple containing:
-     - The name of the header.
-     - A boolean determining if understanding this header is
-     required.
-     - value of the header.
     
     @type   stream: L{BufferedByteStream}
     @param  stream: AMF data.
     @type   decoder: L{amf0.Decoder<pyamf.amf0.Decoder>} or
     L{amf3.Decoder<pyamf.amf3.Decoder>}
     @param  decoder: AMF decoder instance
+    
     @raise DecodeError: The data that was read from the stream
     does not match the header length.
+    
+    @rtype: tuple
+    @return:
+     - Name of the header.
+     - A boolean determining if understanding this header is
+     required.
+     - Value of the header.
     """
     name_len = stream.read_ushort()
     name = stream.read_utf8_string(name_len)
@@ -258,18 +261,20 @@ def _read_body(stream, decoder):
     """
     Read AMF message body.
 
-    I return a tuple containing:
-     - The target of the body.
-     - The id (as sent by the client) of the body.
-     - The data of the body.
-    
     @type   stream: L{BufferedByteStream}
     @param  stream: AMF data.
     @type   decoder: L{amf0.Decoder<pyamf.amf0.Decoder>} or
     L{amf3.Decoder<pyamf.amf3.Decoder>}
     @param  decoder: AMF decoder instance.
+    
     @raise  RemotingError: The remoting type is not of the
     expected list type.
+    
+    @rtype: tuple
+    @return:
+     - The target of the body.
+     - The id (as sent by the client) of the body.
+     - The data of the body.
     """
     target_len = stream.read_ushort()
     target = stream.read_utf8_string(target_len)
@@ -338,10 +343,11 @@ def _write_body(name, message, stream, encoder):
 
 def _get_status(status):
     """
-    Get status.
+    Get status code.
     
     @type status:
     @param status:
+    
     @raise ValueError: The status code is unknown.
     @return: status code
     """
