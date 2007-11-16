@@ -40,7 +40,7 @@ U{EchoTest<http://pyamf.org/wiki/EchoTest>} wiki page.
 
 @since: 0.1.0
 
-@todo: Add Django remoting.
+@todo: Add Django remoting server.
 """
 
 import os, os.path
@@ -147,9 +147,8 @@ def run_client(name, options, service, result_func, fault_func):
     @param service: Target service on the AMF gateway.
     @type service: dict
     """
-    if options.type == 'twisted':
-        print "Started %s - Twisted Client for http://%s:%d" % (name, options.host, int(options.port))
-        func = run_twisted_client(options, service, result_func, fault_func)
+    print "Started %s - Twisted Client for http://%s:%d" % (name, options.host, int(options.port))
+    func = run_twisted_client(options, service, result_func, fault_func)
         
     func()
     

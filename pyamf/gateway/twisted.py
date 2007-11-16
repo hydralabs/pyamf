@@ -211,15 +211,14 @@ class TwistedClient(client.HTTPPageGetter):
     def send(self, data):
         """
         """
-        context = pyamf.Context()
         response = pyamf.remoting.Message(None, None, None, None)
         response.body = [data]
         response.status = pyamf.remoting.STATUS_OK
 
         env = pyamf.remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.FlashCom)
-        env['test.echo'] = response
+        env['echo.echo'] = response
 
-        data = pyamf.remoting.encode(env, context).getvalue()
+        data = pyamf.remoting.encode(env).getvalue()
 
         endPoint = 'http://' + self.options.host + ":" + str(self.options.port)
 
@@ -230,12 +229,16 @@ class TwistedClient(client.HTTPPageGetter):
                      'Content-Length': len(data)},
             postdata=data)
         
-        postRequest.addCallback(self.getResult).addErrback(self.faultHandler)      
+        postRequest.addCallback(self.getResult).addErrback(self.getError)      
 
     def getResult(self, data):
         """
         """
-        context = pyamf.Context()
-        result = remoting.decode(data, context)
+        result = remoting.decode(data)
         self.resultHandler(result)
+
+    def getError(self, failure):
+        """
+        """
+        self.faultHandler(failure)
         

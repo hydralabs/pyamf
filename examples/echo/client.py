@@ -123,10 +123,16 @@ def handleResult(data):
     for res in data:
         print "Response:", res
 
+    from twisted.internet import reactor
+    reactor.stop()
+
 def handleError(failure):
     """
     """
     print "Error:", failure.getErrorMessage()
+
+    from twisted.internet import reactor
+    reactor.stop()
         
 if __name__ == '__main__':
     import sys
