@@ -117,29 +117,30 @@ register_class(RemoteClass, '%s.%s' % (ECHO_NS, 'RemoteClass'))
 register_class(ExternalizableClass, '%s.%s' % (ECHO_NS, 'ExternalizableClass'),
     write_func=write_ec, read_func=read_ec)
 
-def handleResult(data):
+def handleResponse(result):
     """
-    """    
-    for res in data:
-        print "Response:", res
-
-    from twisted.internet import reactor
-    reactor.stop()
+    """
+    print 'Response:'
+    for item in result:
+        print ' - ', item
 
 def handleError(failure):
     """
     """
-    print "Error:", failure.getErrorMessage()
-
-    from twisted.internet import reactor
-    reactor.stop()
+    print 'Error:', failure.getErrorMessage()
         
 if __name__ == '__main__':
     import sys
-    from __init__ import parse_args, run_client
+    from __init__ import parse_args, new_client
 
     options = parse_args(sys.argv[1:])
     
-    service = {'echo':None}
+    service = 'echo.echo'
 
-    run_client('Echo Test', options[0], service, handleResult, handleError)
+    client = new_client('Echo Test', options[0], service, handleResponse, handleError)
+    
+    client.send('abc')
+
+    
+
+    

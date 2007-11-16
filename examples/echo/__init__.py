@@ -45,7 +45,7 @@ U{EchoTest<http://pyamf.org/wiki/EchoTest>} wiki page.
 
 import os, os.path
 
-def run_wsgi_server(options, services):
+def run_wsgi_server(name, options, services):
     """
     Runs the AMF services using the
     L{WSGIGateway<pyamf.gateway.wsgi.WSGIGateway>}.
@@ -60,18 +60,23 @@ def run_wsgi_server(options, services):
     from pyamf.gateway.wsgi import WSGIGateway
     from wsgiref import simple_server
 
+    host = options.host
+    port = int(options.port)
+    
     gw = WSGIGateway(services, options.debug)
 
     httpd = simple_server.WSGIServer(
-        ('',int(options.port)),
+        (host, port),
         simple_server.WSGIRequestHandler,
     )
 
     httpd.set_app(gw)
 
+    print "Started %s - WSGI Server on http://%s:%d" % (name, host, port)
+    
     return httpd.serve_forever
 
-def run_twisted_server(options, services):
+def run_twisted_server(name, options, services):
     """
     Runs the AMF services using the
     L{TwistedGateway<pyamf.gateway.twistedmatrix.TwistedGateway>}.
@@ -88,6 +93,9 @@ def run_twisted_server(options, services):
 
     from pyamf.gateway.twisted import TwistedGateway
 
+    host = options.host
+    port = int(options.port)
+    
     gw = TwistedGateway(services, options.debug)
     root = resource.Resource()
 
@@ -97,8 +105,9 @@ def run_twisted_server(options, services):
         os.getcwd(), os.path.dirname(__file__), '../crossdomain.xml'),
         defaultType='application/xml'))
 
-    reactor.listenTCP(int(options.port), server.Site(root))
-
+    print "Started %s - Twisted Server on http://%s:%d" % (name, host, port)
+    
+    reactor.listenTCP(port, server.Site(root), 50, host)   
     return reactor.run
 
 def run_server(name, options, services):
@@ -111,46 +120,51 @@ def run_server(name, options, services):
     @type services: dict
     """
     if options.type == 'wsgi':
-        print "Started %s - WSGI Server on http://%s:%d" % (name, options.host, int(options.port))
-        func = run_wsgi_server(options, services)
+        
+        func = run_wsgi_server(name, options, services)
     elif options.type == 'twisted':
-        print "Started %s - Twisted Server on http://%s:%d" % (name, options.host, int(options.port))
-        func = run_twisted_server(options, services)
+        func = run_twisted_server(name, options, services)
 
     func()
 
-def run_twisted_client(options, service, result_func, fault_func):
+def new_twisted_client(name, options, service, result_func, fault_func):
     """
     Runs AMF services for a Twisted echo client.
 
     @param options: commandline options
     @type options: dict
-    @param service: Target service on the AMF gateway.
-    @type service: 
+    @param service: Target servicepath on the AMF gateway.
+    @type service: str
     @return: The function that will run the client.
     @rtype: callable
     """
-    from twisted.internet import reactor
     from pyamf.gateway.twisted import TwistedClient
 
-    client = TwistedClient(options, service, result_func, fault_func)
-    client.send("Hello World!")
+    host = options.host
+    port = int(options.port)
     
-    return reactor.run
+    client = TwistedClient(host, port, service, result_func, fault_func)
+    
+    print "Started %s - Twisted Client for http://%s:%d" % (name, host, port)
+    
+    return client
 
-def run_client(name, options, service, result_func, fault_func):
+def new_client(name, options, service, result_func, fault_func):
     """
     Starts the echo AMF client.
 
+    @param name: Name of example
+    @type name: str
     @param options: commandline options.
     @type options: dict
-    @param service: Target service on the AMF gateway.
-    @type service: dict
+    @param service: Target servicepath on the AMF gateway.
+    @type service: str
     """
-    print "Started %s - Twisted Client for http://%s:%d" % (name, options.host, int(options.port))
-    func = run_twisted_client(options, service, result_func, fault_func)
-        
-    func()
+    # TODO: Add more clients, only twisted client available for now
+    # if options.type == 'twisted':
+    # elif options.type == 'wsgi':
+    
+    return new_twisted_client(name, options, service, result_func, fault_func)
     
 def parse_args(args):
     """

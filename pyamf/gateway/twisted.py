@@ -41,7 +41,7 @@ real_twisted = __import__('twisted')
 sys.modules['real_twisted'] = real_twisted
 sys.modules['twisted'] = thismodule
 
-from real_twisted.internet import defer, threads
+from real_twisted.internet import defer, threads, reactor
 from real_twisted.web import resource, server, client
 
 import pyamf
@@ -199,46 +199,58 @@ class TwistedClient(client.HTTPPageGetter):
     Twisted Remoting client.
     """
 
-    def __init__(self, options, service, result_func, fault_func):
+    def __init__(self, host, port, service, result_func, fault_func):
         """
         @param service:
         @type service:
+        @param result_func:
+        @type result_func:
+        @param fault_func:
+        @type fault_func:
         """
+        self.host = host
+        self.port = port
+        self.service = service
         self.resultHandler = result_func
         self.faultHandler = fault_func
-        self.options = options
-
+        
     def send(self, data):
         """
         """
         response = pyamf.remoting.Message(None, None, None, None)
-        response.body = [data]
+        response.body = {'echo':data}
         response.status = pyamf.remoting.STATUS_OK
-
+        
         env = pyamf.remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.FlashCom)
-        env['echo.echo'] = response
+        env[self.service] = response
 
-        data = pyamf.remoting.encode(env).getvalue()
+        print "Sending AMF request:", data
+        
+        output = pyamf.remoting.encode(env).getvalue()
 
-        endPoint = 'http://' + self.options.host + ":" + str(self.options.port)
-
+        endPoint = 'http://' + self.host + ":" + str(self.port)
+        
         postRequest = client.getPage(
             endPoint,
             method='POST',
             headers={'Content-Type': pyamf.remoting.CONTENT_TYPE,
-                     'Content-Length': len(data)},
-            postdata=data)
+                     'Content-Length': len(output)},
+            postdata=output)
         
-        postRequest.addCallback(self.getResult).addErrback(self.getError)      
-
+        postRequest.addCallback(self.getResult).addErrback(self.getError)
+        
+        reactor.run()
+        
     def getResult(self, data):
         """
         """
         result = remoting.decode(data)
         self.resultHandler(result)
+        reactor.stop()
 
     def getError(self, failure):
         """
         """
         self.faultHandler(failure)
+        reactor.stop()
         
