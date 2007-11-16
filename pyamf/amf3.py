@@ -686,7 +686,7 @@ class Decoder(object):
         obj = klass()
         self.context.addObject(obj)
 
-        if class_def.encoding == ObjectEncoding.EXTERNAL:
+        if class_def.encoding in (ObjectEncoding.EXTERNAL, ObjectEncoding.PROXY):
             class_def.alias.read_func(obj, compat.DataInput(self))
         elif class_def.encoding == ObjectEncoding.DYNAMIC:
             attr = self.readString()
@@ -1160,7 +1160,7 @@ class Encoder(object):
 
             self._writeString(class_def.name)
 
-        if class_def.encoding == ObjectEncoding.EXTERNAL:
+        if class_def.encoding in (ObjectEncoding.EXTERNAL, ObjectEncoding.PROXY):
             class_def.alias.write_func(obj, compat.DataOutput(self))
         elif class_def.encoding == ObjectEncoding.DYNAMIC:
             if not class_ref:
