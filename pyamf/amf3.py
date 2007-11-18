@@ -173,9 +173,9 @@ class ClassDefinition(object):
     """
     I contain meta relating to the class definition.
 
-    @ivar alias: The alias to this class definition. If this value is None, or
-                 an empty string, the class is considered to be anonymous.
-    @type alias: L{pyamf.ClassAlias}
+    @ivar alias: The alias to this class definition. If this value is C{None},
+                 or an empty string, the class is considered to be anonymous.
+    @type alias: L{ClassAlias<pyamf.ClassAlias>}
     @ivar encoding: The type of encoding to use when serializing the object.
     @type encoding: int
     @ivar attrs: List of attributes to encode.
@@ -204,7 +204,7 @@ class ClassDefinition(object):
 
     def _getClass(self):
         """
-        If C{alias} is None, an anonymous class is returned (L{pyamf.Bag}),
+        If C{alias} is C{None}, an anonymous class is returned (L{Bag<pyamf.Bag>}),
         otherwise the class is loaded externally.
 
         """
@@ -218,8 +218,12 @@ class ClassDefinition(object):
         """
         Gets the class alias that is held by this definition.
 
-        @see L{pyamf.load_class}
-        @rtype: L{pyamf.ClassAlias}
+        @see: L{load_class<pyamf.load_class>}.
+        @raise UnknownClassAlias: Anonymous class definitions do not have
+        class aliases.
+
+        @rtype: L{ClassAlias<pyamf.ClassAlias>}
+        @return: Class definition.
         """
         if not hasattr(self, '_alias'):
             if self.name == '':
@@ -297,7 +301,7 @@ class Context(pyamf.BaseContext):
 
         @type s: str
         @param s: The referenced string.
-        @raise ReferenceError: the string reference could not be found.
+        @raise ReferenceError: The string reference could not be found.
         @return: The reference index to the string.
         @rtype: int
         """
@@ -308,11 +312,14 @@ class Context(pyamf.BaseContext):
 
     def addString(self, s):
         """
-        Creates a reference to s. If the reference already exists, that
-        reference is returned.
+        Creates a reference to C{s}.
 
-        @type s: string
+        If the reference already exists, that reference is returned.
+
+        @type s: str
         @param s: The string to be referenced.
+        @raise ValueError: Trying to store a reference to an empty string.
+        
         @return: The reference index.
         @rtype: int
         """
@@ -333,7 +340,7 @@ class Context(pyamf.BaseContext):
                
         @type ref:
         @param ref:
-        @raise ReferenceError: the class reference could not be found.
+        @raise ReferenceError: The class reference could not be found.
         @return: 
         """
         try:
@@ -347,7 +354,7 @@ class Context(pyamf.BaseContext):
 
         @type class_def:
         @param class_def:
-        @raise ReferenceError: the definition could not be found.
+        @raise ReferenceError: The definition could not be found.
         @return: 
         """
         try:
@@ -362,6 +369,7 @@ class Context(pyamf.BaseContext):
 
         @type class_def:
         @param class_def:
+        @rtype:
         @return:
         """
         try:
@@ -375,7 +383,6 @@ class Context(pyamf.BaseContext):
         """
         @type class_def:
         @param class_def:
-        @return:
         """
 
     def __copy__(self):

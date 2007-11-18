@@ -461,6 +461,9 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
         """
         return len(self) - self.tell()
 
+    def __len__(self):
+        return self._len
+    
 def hexdump(data):
     """
     Get hexadecimal representation of C{StringIO} data.

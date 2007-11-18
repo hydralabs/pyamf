@@ -1,5 +1,11 @@
+PyAMF Changelog
+===============
+
+This file contains information about the changes between the 
+different versions of PyAMF.
+
 0.1.0 (unreleased)
------
+------------------------------------------------------------
  - Complete AMF0 and AMF3 encoders/decoders
  - Remoting support with gateways for Twisted (#15)
    WSGI (#16), and Django (#17)
@@ -8,7 +14,8 @@
    ObjectProxy (#31) and ByteArray (#32)
  - zlib compression support for ByteArray (#40)
 
+
 2007-10-19
--------------------
+------------------------------------------------------------
  - Started project based on previous work done in the 
    RTMPy (http://rtmpy.org) project.

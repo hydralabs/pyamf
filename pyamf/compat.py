@@ -1,7 +1,9 @@
 # -*- encoding: utf8 -*-
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
-# 
+#
+# Nick Joyce
+#
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -35,7 +37,7 @@ import pyamf
 
 class DataOutput(object):
     """
-    I provide a set of methods for writing binary data.
+    I provide a set of methods for writing binary data with ActionScript 3.0.
     
     This class is the I/O counterpart to the L{DataInput} class, which reads
     binary data.
@@ -195,17 +197,17 @@ class DataOutput(object):
 
 class DataInput(object):
     """
-    I provide a set of methods for reading binary data.
+    I provide a set of methods for reading binary data with ActionScript 3.0.
     
     This class is the I/O counterpart to the L{DataOutput} class,
     which writes binary data.
 
     @see: U{Livedocs (external)
-    <http://livedocs.adobe.com/flex/2/langref/flash/utils/IDataInput.html>}
+    <http://livedocs.adobe.com/flex/201/langref/flash/utils/IDataInput.html>}
     """
     def __init__(self, decoder):
         """
-        @param decoder: Decoder containing the stream.
+        @param decoder: AMF3 decoder containing the stream.
         @type decoder: L{Decoder<pyamf.amf3.Decoder>}
         """
         self.decoder = decoder
@@ -213,9 +215,9 @@ class DataInput(object):
 
     def readBoolean(self):
         """
-        Read boolean.
+        Read Boolean.
 
-        @raise ValueError: Error reading boolean.
+        @raise ValueError: Error reading Boolean.
         @rtype: bool
         @return: A Boolean value, C{True} if the byte
         is nonzero, C{False} otherwise.
@@ -373,7 +375,7 @@ class ArrayCollection(dict):
     in the Flex framework.
 
     @see: U{Livedocs (external)
-    <http://livedocs.adobe.com/flex/2/langref/mx/collections/ArrayCollection.html>}
+    <http://livedocs.adobe.com/flex/201/langref/mx/collections/ArrayCollection.html>}
     """
 
     def __repr__(self):
@@ -404,7 +406,7 @@ class ObjectProxy(object):
     used in the Flex framework.
 
     @see: U{Livedocs (external)
-    <http://livedocs.adobe.com/flex/2/langref/mx/utils/ObjectProxy.html>}
+    <http://livedocs.adobe.com/flex/201/langref/mx/utils/ObjectProxy.html>}
     """
 
     def __init__(self, object=None):
