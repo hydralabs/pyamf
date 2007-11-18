@@ -460,9 +460,6 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
         @return: Number of remaining bytes.
         """
         return len(self) - self.tell()
-
-    def __len__(self):
-        return self._len
     
 def hexdump(data):
     """
