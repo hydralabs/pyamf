@@ -173,8 +173,8 @@ class BaseContext(object):
         try:
             return self.objects.index(obj) 
         except ValueError:
-            raise ReferenceError,
-                "Reference for object %r not found" % str(obj)
+            raise ReferenceError, "Reference for object %r not found" % repr(
+                obj)
 
     def addObject(self, obj):
         """
@@ -689,31 +689,3 @@ def _get_context(encoding):
         return amf3.Context
 
     raise ValueError, "Unknown encoding %s" % encoding
-
-def _adapt_context_amf0_to_amf3(amf3_context):
-    """
-    @type amf3_context: L{amf3.Context<pyamf.amf3.Context>}
-    @param amf3_context: AMF3 context.
-    @rtype: L{amf0.Context<pyamf.amf0.Context>}
-    @return: AMF0 context.
-    """
-    import amf0
-
-    context = amf0.Context()
-    context.objects = amf3_context.objects
-
-    return context
-
-def _adapt_context_amf3_to_amf0(amf0_context):
-    """
-    @type amf0_context: L{amf0.Context<pyamf.amf0.Context>}
-    @param amf0_context: AMF0 context.
-    @rtype: L{amf3.Context<pyamf.amf3.Context>}
-    @return: AMF3 context.
-    """
-    import amf3
-
-    context = amf3.Context()
-    context.objects = amf0_context.objects
-
-    return context
