@@ -244,16 +244,24 @@ class HelperTestCase(unittest.TestCase):
     def test_get_decoder(self):
         from pyamf import amf0, amf3
 
-        self.assertEquals(pyamf._get_decoder(pyamf.AMF0), amf0.Decoder)
-        self.assertEquals(pyamf._get_decoder(pyamf.AMF3), amf3.Decoder)
-        self.assertRaises(ValueError, pyamf._get_decoder, 'foo')
+        self.assertEquals(pyamf._get_decoder_class(pyamf.AMF0), amf0.Decoder)
+        self.assertEquals(pyamf._get_decoder_class(pyamf.AMF3), amf3.Decoder)
+        self.assertRaises(ValueError, pyamf._get_decoder_class, 'foo')
+
+        self.assertTrue(isinstance(pyamf.get_decoder(pyamf.AMF0), amf0.Decoder))
+        self.assertTrue(isinstance(pyamf.get_decoder(pyamf.AMF3), amf3.Decoder))
+        self.assertRaises(ValueError, pyamf.get_decoder, 'foo')
 
     def test_get_encoder(self):
         from pyamf import amf0, amf3
 
-        self.assertEquals(pyamf._get_encoder(pyamf.AMF0), amf0.Encoder)
-        self.assertEquals(pyamf._get_encoder(pyamf.AMF3), amf3.Encoder)
-        self.assertRaises(ValueError, pyamf._get_encoder, 'foo')
+        self.assertEquals(pyamf._get_encoder_class(pyamf.AMF0), amf0.Encoder)
+        self.assertEquals(pyamf._get_encoder_class(pyamf.AMF3), amf3.Encoder)
+        self.assertRaises(ValueError, pyamf._get_encoder_class, 'foo')
+
+        self.assertTrue(isinstance(pyamf.get_encoder(pyamf.AMF0), amf0.Encoder))
+        self.assertTrue(isinstance(pyamf.get_encoder(pyamf.AMF3), amf3.Encoder))
+        self.assertRaises(ValueError, pyamf.get_encoder, 'foo')
 
 class RegisterClassTestCase(unittest.TestCase):
     def setUp(self):

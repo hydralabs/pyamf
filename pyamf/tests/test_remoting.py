@@ -313,7 +313,7 @@ class RecordSetTestCase(unittest.TestCase):
 
     def test_encode(self):
         stream = util.BufferedByteStream()
-        encoder = pyamf._get_encoder(pyamf.AMF0)(stream)
+        encoder = pyamf._get_encoder_class(pyamf.AMF0)(stream)
 
         x = remoting.RecordSet(columns=['a', 'b', 'c'], items=[
             [1, 2, 3], [4, 5, 6], [7, 8, 9]])
@@ -328,7 +328,7 @@ class RecordSetTestCase(unittest.TestCase):
 
         stream.truncate()
 
-        encoder = pyamf._get_encoder(pyamf.AMF3)(stream)
+        encoder = pyamf._get_encoder_class(pyamf.AMF3)(stream)
 
         x = remoting.RecordSet(columns=['a', 'b', 'c'], items=[
             [1, 2, 3], [4, 5, 6], [7, 8, 9]])
@@ -343,7 +343,7 @@ class RecordSetTestCase(unittest.TestCase):
 
     def test_decode(self):
         stream = util.BufferedByteStream()
-        decoder = pyamf._get_decoder(pyamf.AMF0)(stream)
+        decoder = pyamf._get_decoder_class(pyamf.AMF0)(stream)
 
         stream.write('\x11\x0a\x13\x13RecordSet\x15serverInfo\t\x01\rcursor\x04'
             '\x01\x17columnNames\t\x07\x01\x06\x03a\x06\x03b\x06\x03c\x17initia'

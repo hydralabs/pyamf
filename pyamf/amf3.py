@@ -765,7 +765,7 @@ class Encoder(object):
         ((types.InstanceType,types.ObjectType,), "writeInstance"),
     ]
 
-    def __init__(self, output, context=None):
+    def __init__(self, output=None, context=None):
         """
         Constructs a new AMF3 Encoder.
 
@@ -776,7 +776,10 @@ class Encoder(object):
         @type   context: L{Context}
         @param  context: Context
         """
-        self.stream = output
+        if output is None:
+            self.stream = util.BufferedByteStream()
+        else:
+            self.stream = output
 
         if context == None:
             self.context = Context()

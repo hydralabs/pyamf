@@ -653,7 +653,10 @@ def encode(element, encoding=AMF0, context=None):
 
     return buf
 
-def _get_decoder(encoding):
+def get_decoder(encoding):
+    return _get_decoder_class(encoding)()
+
+def _get_decoder_class(encoding):
     """
     Get compatible decoder.
 
@@ -676,7 +679,10 @@ def _get_decoder(encoding):
 
     raise ValueError, "Unknown encoding %s" % encoding
 
-def _get_encoder(encoding):
+def get_encoder(encoding):
+    return _get_encoder_class(encoding)()
+
+def _get_encoder_class(encoding):
     """
     Get compatible encoder.
 
@@ -699,7 +705,10 @@ def _get_encoder(encoding):
 
     raise ValueError, "Unknown encoding %s" % encoding
 
-def _get_context(encoding):
+def get_context(encoding):
+    return _get_context_class(encoding)()
+
+def _get_context_class(encoding):
     """
     Gets a compatible context class.
 

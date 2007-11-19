@@ -316,7 +316,7 @@ class Decoder(object):
         @rtype: mixed
         @return: the AMF3 element read from the stream
         """
-        decoder = pyamf._get_decoder(pyamf.AMF3)(self.stream)
+        decoder = pyamf._get_decoder_class(pyamf.AMF3)(self.stream)
 
         element = decoder.readElement()
         self.context.amf3_objs.append(element)
@@ -463,7 +463,7 @@ class Encoder(object):
         ((types.InstanceType,types.ObjectType,), "writeObject"),
     ]
 
-    def __init__(self, output, context=None):
+    def __init__(self, output=None, context=None):
         """
         Constructs a new Encoder.
 
@@ -474,7 +474,10 @@ class Encoder(object):
         @type   context: L{Context}
         @param  context: AMF0 Context.
         """
-        self.stream = output
+        if output is None:
+            self.stream = util.BufferedByteStream()
+        else:
+            self.stream = output
 
         if context == None:
             self.context = Context()
@@ -762,7 +765,7 @@ class Encoder(object):
         @type data: mixed
         @param data: The data to be encoded.
         """
-        encoder = pyamf._get_encoder(pyamf.AMF3)(self.stream)
+        encoder = pyamf._get_encoder_class(pyamf.AMF3)(self.stream)
 
         self.writeType(ASTypes.AMF3)
         encoder.writeElement(data)

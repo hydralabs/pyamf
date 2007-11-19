@@ -401,9 +401,9 @@ def decode(stream, context=None, strict=False):
             msg.amfVersion)
 
     if context is None:
-        context = pyamf._get_context(pyamf.AMF0)()
+        context = pyamf.get_context(pyamf.AMF0)
 
-    decoder = pyamf._get_decoder(pyamf.AMF0)(stream, context=context)
+    decoder = pyamf._get_decoder_class(pyamf.AMF0)(stream, context=context)
     msg.clientType = stream.read_uchar()
 
     header_count = stream.read_ushort()
@@ -444,11 +444,11 @@ def encode(msg, old_context=None, strict=False):
 
             return copy.copy(old_context)
         else:
-            return pyamf._get_context(pyamf.AMF0)()
+            return pyamf.get_context(pyamf.AMF0)
 
     stream = util.BufferedByteStream()
 
-    encoder = pyamf._get_encoder(msg.amfVersion)(stream)
+    encoder = pyamf._get_encoder_class(msg.amfVersion)(stream)
 
     stream.write_uchar(msg.amfVersion)
     stream.write_uchar(msg.clientType)
