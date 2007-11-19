@@ -218,6 +218,8 @@ class ClassDefinitionTestCase(unittest.TestCase):
         x = amf3.ClassDefinition('foo.bar')
         self.assertEquals(x.name, 'foo.bar')
 
+        pyamf.unregister_class(Foo)
+
     def test_get_class(self):
         # anonymous class
         x = amf3.ClassDefinition('')
@@ -364,11 +366,6 @@ class EncoderTestCase(unittest.TestCase):
             (pyamf.Bag({'a': u'foo', 'b': 5}),
                 '\n\x23\x01\x03a\x03b\x06\x07foo\x04\x05')])
 
-        try:
-            del pyamf.CLASS_CACHE['com.collab.dev.pyamf.foo']
-        except KeyError:
-            pass
-
         pyamf.register_class(Foo, 'com.collab.dev.pyamf.foo')
 
         obj = Foo()
@@ -379,7 +376,7 @@ class EncoderTestCase(unittest.TestCase):
         self.assertEqual(self.buf.getvalue(), '\n\x131com.collab.dev.pyamf.foo'
             '\x07baz\x06\x0bhello')
 
-        del pyamf.CLASS_CACHE['com.collab.dev.pyamf.foo']
+        pyamf.unregister_class(Foo)
 
     def test_byte_array(self):
         self._run([(amf3.ByteArray('hello'), '\x0c\x0bhello')])
@@ -552,11 +549,6 @@ class DecoderTestCase(unittest.TestCase):
                 '\x6c\x6c\x6f')])
 
     def test_object(self):
-        try:
-            del pyamf.CLASS_CACHE['com.collab.dev.pyamf.foo']
-        except KeyError:
-            pass
-
         pyamf.register_class(Foo, 'com.collab.dev.pyamf.foo')
 
         self.buf.truncate(0)
@@ -572,7 +564,7 @@ class DecoderTestCase(unittest.TestCase):
         self.failUnless(hasattr(obj, 'baz'))
         self.assertEquals(obj.baz, 'hello')
 
-        del pyamf.CLASS_CACHE['com.collab.dev.pyamf.foo']
+        pyamf.unregister_class(Foo)
 
     def test_byte_array(self):
         self._run([(amf3.ByteArray('hello'), '\x0c\x0bhello')])
@@ -612,12 +604,8 @@ class ObjectEncodingTestCase(unittest.TestCase):
         x = Foo({'foo': 'bar'})
         y = Foo({'foo': 'baz'})
 
-        try:
-            self.encoder.writeElement(x)
-        except:
-            pyamf.unregister_class(Foo)
-            raise
-            
+        self.encoder.writeElement(x)
+
         pyamf.unregister_class(Foo)
 
         #self.assertEquals(self.stream.getvalue(), '\x0a\x03')
