@@ -33,6 +33,11 @@ import unittest
 
 import pyamf
 
+class Foo(object):
+    """
+    A generic class used in class registering etc.
+    """
+
 class BagTestCase(unittest.TestCase):
     """
     I exercise all functionality relating to the L{Bag} class.
@@ -133,9 +138,6 @@ class ClassMetaDataTestCase(unittest.TestCase):
         self.assertFalse('dynamic' in x)
         x.append('dynamic')
         self.assertTrue('dynamic' in x)
-
-class Foo(object):
-    pass
 
 class ClassAliasTestCase(unittest.TestCase):
     """
@@ -275,6 +277,7 @@ class RegisterClassTestCase(unittest.TestCase):
         alias = pyamf.CLASS_CACHE['foo.bar']
 
         self.assertEquals(alias.metadata, ['static'])
+        self.assertTrue(isinstance(alias.metadata, pyamf.ClassMetaData))
 
     def test_bad_metadata(self):
         self.assertRaises(ValueError, pyamf.register_class, Foo, 'foo.bar',
@@ -297,6 +300,88 @@ class UnregisterClassTestCase(unittest.TestCase):
         self.assertTrue('foo.bar' not in pyamf.CLASS_CACHE.keys())
         self.assertTrue(alias not in pyamf.CLASS_CACHE)
 
+class ClassLoaderTestCase(unittest.TestCase):
+    def setUp(self):
+        import copy
+
+        self.cl = copy.copy(pyamf.CLASS_LOADERS)
+
+        pyamf.CLASS_LOADERS = []
+
+    def tearDown(self):
+        pyamf.CLASS_LOADERS = self.cl
+
+    def test_register(self):
+        self.assertTrue(chr not in pyamf.CLASS_LOADERS)
+        pyamf.register_class_loader(chr)
+        self.assertTrue(chr in pyamf.CLASS_LOADERS)
+
+    def test_bad_register(self):
+        self.assertRaises(TypeError, pyamf.register_class_loader, 1)
+        pyamf.register_class_loader(ord)
+        self.assertRaises(ValueError, pyamf.register_class_loader, ord)
+
+    def test_unregister(self):
+        pyamf.register_class_loader(chr)
+        self.assertTrue(chr in pyamf.CLASS_LOADERS)
+
+        pyamf.unregister_class_loader(chr)
+        self.assertTrue(chr not in pyamf.CLASS_LOADERS)
+
+        self.assertRaises(LookupError, pyamf.unregister_class_loader, chr)
+
+    def test_load_class(self):
+        def class_loader(x):
+            self.assertEquals(x, 'foo.bar')
+            
+            return Foo
+
+        pyamf.register_class_loader(class_loader)
+
+        self.assertTrue('foo.bar' not in pyamf.CLASS_CACHE.keys())
+        pyamf.load_class('foo.bar')
+        self.assertTrue('foo.bar' in pyamf.CLASS_CACHE.keys())
+
+        pyamf.unregister_class('foo.bar')
+
+    def test_load_unknown_class(self):
+        def class_loader(x):
+            return None
+
+        pyamf.register_class_loader(class_loader)
+
+        self.assertRaises(pyamf.UnknownClassAlias, pyamf.load_class, 'foo.bar')
+
+    def test_load_class_by_alias(self):
+        def class_loader(x):
+            self.assertEquals(x, 'foo.bar')
+            return pyamf.ClassAlias(Foo, 'foo.bar')
+
+        pyamf.register_class_loader(class_loader)
+
+        self.assertTrue('foo.bar' not in pyamf.CLASS_CACHE.keys())
+        pyamf.load_class('foo.bar')
+        self.assertTrue('foo.bar' in pyamf.CLASS_CACHE.keys())
+
+        pyamf.unregister_class('foo.bar')
+
+    def test_load_class_bad_return(self):
+        def class_loader(x):
+            return 'xyz'
+
+        pyamf.register_class_loader(class_loader)
+
+        self.assertRaises(TypeError, pyamf.load_class, 'foo.bar')
+
+    def test_load_class_by_module(self):
+        pyamf.load_class('__builtin__.tuple')
+
+        pyamf.unregister_class('__builtin__.tuple')
+
+    def test_load_class_by_module_bad(self):
+        self.assertRaises(pyamf.UnknownClassAlias, pyamf.load_class,
+            '__builtin__.tuple.')
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -306,6 +391,7 @@ def suite():
     suite.addTest(unittest.makeSuite(HelperTestCase))
     suite.addTest(unittest.makeSuite(RegisterClassTestCase))
     suite.addTest(unittest.makeSuite(UnregisterClassTestCase))
+    suite.addTest(unittest.makeSuite(ClassLoaderTestCase))
 
     return suite
 

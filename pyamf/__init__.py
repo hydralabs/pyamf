@@ -491,6 +491,20 @@ def register_class_loader(loader):
 
     CLASS_LOADERS.append(loader)
 
+def unregister_class_loader(loader):
+    """
+    Unregisters a class loader.
+
+    @type loader: callable
+    @param loader: The object to be unregistered
+
+    @raise LookupError: The C{loader} was not registered.
+    """
+    if loader not in CLASS_LOADERS:
+        raise LookupError, "loader not found"
+
+    del CLASS_LOADERS[CLASS_LOADERS.index(loader)]
+
 def get_module(mod_name):
     """
     Load a module based on C{mod_name}.
@@ -533,11 +547,17 @@ def load_class(alias):
     for loader in CLASS_LOADERS:
         klass = loader(alias)
 
-        if callable(ret):
-            # Cache the result
-            CLASS_CACHE[str(alias)] = klass
+        if klass is None:
+            continue
 
-            return klass
+        if isinstance(klass, (type, types.ClassType)):
+            return register_class(klass, alias)
+        elif isinstance(klass, ClassAlias):
+            CLASS_CACHE[str(alias)] = klass
+        else:
+            raise TypeError, "Expecting class type or ClassAlias from loader"
+
+        return klass
 
     # XXX nick: Are there security concerns for loading classes this way?
     mod_class = alias.split('.')
