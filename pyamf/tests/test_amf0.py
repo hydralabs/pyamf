@@ -232,6 +232,17 @@ class EncoderTestCase(unittest.TestCase):
         self._run([
             (pyamf.Bag({'a': 'b'}), '\x03\x00\x01a\x02\x00\x01b\x00\x00\x09')])
 
+    def test_force_amf3(self):
+        class Foo(pyamf.Bag):
+            pass
+
+        pyamf.register_class(Foo, 'foo.bar', metadata=['amf3'])
+
+        self._run([
+            (Foo({'x': 'y'}), '\x11\n\x13\x0ffoo.bar\x03x\x06\x03y')])
+
+        pyamf.unregister_class(Foo)
+        
     def test_typed_object(self):
         class Foo(object):
             pass
