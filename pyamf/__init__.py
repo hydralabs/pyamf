@@ -596,9 +596,9 @@ def get_class_alias(klass):
         for a, k in CLASS_CACHE.iteritems():
             if klass == a:
                 return k
-    elif isinstance(klass, (types.InstanceType, types.ObjectType)):
+    elif isinstance(klass, (type, types.ObjectType)):
         for a, k in CLASS_CACHE.iteritems():
-            if klass.__class__ == k.klass:
+            if klass == k.klass:
                 return k
 
     # All available methods for finding the alias have been exhausted
