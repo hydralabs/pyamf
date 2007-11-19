@@ -406,6 +406,8 @@ class ClassAlias(object):
             return self.alias == other
         elif isinstance(other, self.__class__):
             return self.klass == other.klass
+        elif isinstance(other, (type, types.ClassType)):
+            return self.klass == other
         else:
             return False
 
@@ -592,17 +594,24 @@ def get_class_alias(klass):
     @rtype: L{ClassAlias}
     @return: The class alias linked to the C{klass}.
     """
+    if not isinstance(klass, (type, types.ClassType, basestring)):
+        if isinstance(klass, types.ObjectType):
+            klass = type(klass)
+
+    if not isinstance(klass, (type, types.ClassType, basestring)):
+        raise TypeError, "Expecting string or class type"
+
     if isinstance(klass, basestring):
         for a, k in CLASS_CACHE.iteritems():
             if klass == a:
                 return k
-    elif isinstance(klass, (type, types.ObjectType)):
+    else:
         for a, k in CLASS_CACHE.iteritems():
             if klass == k.klass:
                 return k
 
     # All available methods for finding the alias have been exhausted
-    raise UnknownClassAlias("Unknown alias for class %s" % klass)
+    raise UnknownClassAlias, "Unknown alias for class %s" % klass
 
 def decode(stream, encoding=AMF0, context=None):
     """

@@ -211,8 +211,30 @@ class ClassAliasTestCase(unittest.TestCase):
         y = pyamf.ClassAlias(A, 'org.example.A')
         z = pyamf.ClassAlias(B, 'org.example.B')
 
+        self.assertEquals(x, A)
         self.assertEquals(x, y)
         self.assertNotEquals(x, z)
+
+    def test_get_class_alias(self):
+        self.assertTrue(Foo not in pyamf.CLASS_CACHE)
+
+        self.assertRaises(pyamf.UnknownClassAlias, pyamf.get_class_alias,
+            'foo.bar')
+
+        pyamf.register_class(Foo, 'foo.bar')
+        x = pyamf.get_class_alias('foo.bar')
+
+        self.assertTrue(isinstance(x, pyamf.ClassAlias))
+        self.assertEquals(x.klass, Foo)
+        self.assertEquals(x.alias, 'foo.bar')
+
+        x = pyamf.get_class_alias(Foo)
+
+        self.assertTrue(isinstance(x, pyamf.ClassAlias))
+        self.assertEquals(x.klass, Foo)
+        self.assertEquals(x.alias, 'foo.bar')
+
+        pyamf.unregister_class(Foo)
 
 class HelperTestCase(unittest.TestCase):
     """
@@ -258,7 +280,7 @@ class RegisterClassTestCase(unittest.TestCase):
         self.assertEquals(alias.metadata, [])
         self.assertEquals(alias.read_func, None)
         self.assertEquals(alias.write_func, None)
-
+        
     def test_attrs(self):
         pyamf.register_class(Foo, 'foo.bar', attrs=['x', 'y', 'z'])
         alias = pyamf.CLASS_CACHE['foo.bar']
