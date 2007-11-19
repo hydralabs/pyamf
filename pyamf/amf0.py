@@ -703,8 +703,14 @@ class Encoder(object):
         # Need to check here if this object has a registered alias
         try:
             alias = pyamf.get_class_alias(o)
-            self.writeType(ASTypes.TYPEDOBJECT)
-            self.writeString(alias.alias, False)
+
+            if 'amf3' in alias.metadata:
+                self.writeAMF3(o)
+
+                return
+            else:
+                self.writeType(ASTypes.TYPEDOBJECT)
+                self.writeString(alias.alias, False)
         except pyamf.UnknownClassAlias:
             self.writeType(ASTypes.OBJECT)
 

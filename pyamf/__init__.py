@@ -269,6 +269,7 @@ class ClassMetaData(list):
     """
     _allowed_tags = (
         ('static', 'dynamic', 'external'),
+        ('amf3',),
     )
 
     def __init__(self, *args):
