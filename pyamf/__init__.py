@@ -2,10 +2,6 @@
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
 # 
-# Arnar Birgisson
-# Thijs Triemstra
-# Nick Joyce
-# 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -59,11 +55,9 @@ CLASS_CACHE = {}
 #: Class loaders.
 CLASS_LOADERS = []
 
-#: Specifies that objects are serialized using AMF
-#: for ActionScript 1.0 and 2.0.
+#: Specifies that objects are serialized using AMF for ActionScript 1.0 & 2.0.
 AMF0 = 0
-#: Specifies that objects are serialized using AMF
-#: for ActionScript 3.0.
+#: Specifies that objects are serialized using AMF for ActionScript 3.0.
 AMF3 = 3
 #: Specifies the default (latest) format for the current player.
 AMF_DEFAULT = AMF3
@@ -73,7 +67,7 @@ ENCODING_TYPES = (AMF0, AMF3)
 class ClientTypes:
     """
     Typecodes used to identify AMF clients and servers.
-    
+
     @see: U{Flash Player on WikiPedia (external)
     <http://en.wikipedia.org/wiki/Flash_Player>}
     @see: U{Flash Media Server on WikiPedia (external)
@@ -179,7 +173,8 @@ class BaseContext(object):
         try:
             return self.objects.index(obj) 
         except ValueError:
-            raise ReferenceError("Reference for object %r not found" % str(obj))
+            raise ReferenceError,
+                "Reference for object %r not found" % str(obj)
 
     def addObject(self, obj):
         """
@@ -318,15 +313,16 @@ class ClassMetaData(list):
             raise ValueError("Unknown tag %s" % x)
 
         if tags is not None:
-            # check to see if a tag that is in the list is about to be clobbered
-            # if so, raise a warning
+            # check to see if a tag in the list is about to be clobbered if so,
+            # raise a warning
             for y in tags:
                 if y in self:
                     if x != y:
                         import warnings, traceback
 
                         warnings.warn(
-                            "Previously defined tag %s superceded by %s" % (y, x))
+                            "Previously defined tag %s superceded by %s" % (
+                                y, x))
 
                     list.pop(self, self.index(y))
                     break
@@ -357,8 +353,8 @@ class ClassAlias(object):
         @type alias: str
         @param alias: The alias to the class e.g. C{org.example.Person}.
         @type read_func: callable
-        @param read_func: Function that gets called when reading the object from
-                          the data stream.
+        @param read_func: Function that gets called when reading the object
+            from the data stream.
         @type write_func: callable
         @param write_func: Function that gets called when writing the object to
                           the data steam.
@@ -370,8 +366,8 @@ class ClassAlias(object):
         if not isinstance(klass, (type, types.ClassType)):
             raise TypeError("klass must be a class type")
 
-        # XXX nick: If either read_func or write_func is defined, does the other
-        # need to be defined as well?
+        # XXX nick: If either read_func or write_func is defined, does the
+        # other need to be defined as well?
         if read_func is not None and not callable(read_func):
             raise TypeError("read_func must be callable")
 
