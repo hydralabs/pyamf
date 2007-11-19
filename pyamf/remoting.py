@@ -524,8 +524,5 @@ class RecordSet(object):
 
     serverInfo = property(_get_server_info, _set_server_info)
 
-    def __readamf__(self, input):
-        print input
-
 pyamf.register_class(RecordSet, 'RecordSet', attrs=['serverInfo'],
-    metadata=['amf3'], read_func=RecordSet.__readamf__)
+    metadata=['amf3'])
