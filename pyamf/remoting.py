@@ -59,7 +59,7 @@ STATUS_ERROR = 1
 #: Debug information.
 STATUS_DEBUG = 2
 #: AMF mimetype.
-CONTENT_TYPE       = 'application/x-amf'
+CONTENT_TYPE = 'application/x-amf'
 
 #: List of available status codes.
 STATUS_CODES = {
@@ -188,7 +188,7 @@ class Message(object):
             type(self).__name__, self.target,
             _get_status(self.status), self.body)
 
-def _read_header(stream, decoder):
+def _read_header(stream, decoder, strict=False):
     """
     Read AMF L{Message} header.
     
@@ -218,13 +218,13 @@ def _read_header(stream, decoder):
 
     data = decoder.readElement()
 
-    if pos + data_len != stream.tell():
+    if strict and pos + data_len != stream.tell():
         raise pyamf.DecodeError(
             "Data read from stream does not match header length")
 
     return (name, required, data)
 
-def _write_header(name, header, required, stream, encoder):
+def _write_header(name, header, required, stream, encoder, strict=False):
     """
     Write AMF message header.
 
@@ -251,11 +251,12 @@ def _write_header(name, header, required, stream, encoder):
     encoder.writeElement(header)
     new_pos = stream.tell()
 
-    stream.seek(write_pos)
-    stream.write_ulong(new_pos - old_pos)
-    stream.seek(new_pos)
+    if strict:
+        stream.seek(write_pos)
+        stream.write_ulong(new_pos - old_pos)
+        stream.seek(new_pos)
 
-def _read_body(stream, decoder):
+def _read_body(stream, decoder, strict=False):
     """
     Read AMF message body.
 
@@ -305,14 +306,14 @@ def _read_body(stream, decoder):
     pos = stream.tell()
     data = _read_container()
 
-    if pos + data_len != stream.tell():
+    if strict and pos + data_len != stream.tell():
         raise pyamf.DecodeError("Data read from stream "
             "does not match body length (%d != %d)" %
                 (pos + data_len, stream.tell(),))
 
     return (target, response, status, data)
 
-def _write_body(name, message, stream, encoder):
+def _write_body(name, message, stream, encoder, strict=False):
     """
     Write AMF message body.
 
@@ -346,9 +347,10 @@ def _write_body(name, message, stream, encoder):
 
     new_pos = stream.tell()
 
-    stream.seek(write_pos)
-    stream.write_ulong(new_pos - old_pos)
-    stream.seek(new_pos)
+    if strict:
+        stream.seek(write_pos)
+        stream.write_ulong(new_pos - old_pos)
+        stream.seek(new_pos)
 
 def _get_status(status):
     """
@@ -365,7 +367,7 @@ def _get_status(status):
 
     return STATUS_CODES[status]
 
-def decode(stream, context=None):
+def decode(stream, context=None, strict=False):
     """
     Decodes the incoming stream. .
     
@@ -407,7 +409,7 @@ def decode(stream, context=None):
     header_count = stream.read_ushort()
 
     for i in xrange(header_count):
-        name, required, data = _read_header(stream, decoder)
+        name, required, data = _read_header(stream, decoder, strict)
         msg.headers[name] = data
 
         if required:
@@ -416,7 +418,7 @@ def decode(stream, context=None):
     body_count = stream.read_short()
 
     for i in range(body_count):
-        target, response, status, data = _read_body(stream, decoder)
+        target, response, status, data = _read_body(stream, decoder, strict)
         msg[response] = (target, status, data)
 
     if stream.remaining() > 0:
@@ -424,7 +426,7 @@ def decode(stream, context=None):
 
     return msg
 
-def encode(msg, old_context=None):
+def encode(msg, old_context=None, strict=False):
     """
     Encodes AMF stream and returns file object.
 
@@ -455,14 +457,14 @@ def encode(msg, old_context=None):
     for name, header in msg.headers.iteritems():
         _write_header(
             name, header, msg.headers.is_required(name),
-            stream, encoder)
+            stream, encoder, strict)
 
     stream.write_short(len(msg))
 
     for name, body in msg.iteritems():
         # Each body requires a new context
         encoder.context = getNewContext()
-        _write_body(name, body, stream, encoder)
+        _write_body(name, body, stream, encoder, strict)
 
     return stream
 

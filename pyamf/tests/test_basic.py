@@ -280,7 +280,7 @@ class RegisterClassTestCase(unittest.TestCase):
         self.assertEquals(alias.metadata, [])
         self.assertEquals(alias.read_func, None)
         self.assertEquals(alias.write_func, None)
-        
+
     def test_attrs(self):
         pyamf.register_class(Foo, 'foo.bar', attrs=['x', 'y', 'z'])
         alias = pyamf.CLASS_CACHE['foo.bar']
