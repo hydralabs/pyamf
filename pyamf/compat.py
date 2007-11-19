@@ -2,8 +2,6 @@
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
 #
-# Nick Joyce
-#
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -413,7 +411,7 @@ class ObjectProxy(object):
         self._amf_object = object
 
     def __repr__(self):
-        return "<flex.messaging.io.ObjectProxy %s>" % self.__dict__
+        return "<flex.messaging.io.ObjectProxy %s>" % self._amf_object
 
     def __getattr__(self, name):
         if name == '_amf_object':
