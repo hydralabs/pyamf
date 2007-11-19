@@ -2,8 +2,6 @@
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
 # 
-# Arnar Birgisson
-# 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -84,13 +82,16 @@ def DjangoGateway(request, gateway):
     if request.method == 'POST':
         response = HttpResponse()
 
-        amfrequest = remoting.decode(request.raw_post_data)
+        context = pyamf._get_context(pyamf.AMF0)()
+        amfrequest = remoting.decode(request.raw_post_data, context)
         amfresponse = remoting.Envelope(amfrequest.amfVersion, amfrequest.clientType)
 
         processor = gateway.getProcessor(amfrequest)
+
         for name, message in amfrequest:
             amfresponse[name] = processor(message)
-        stream = remoting.encode(amfresponse)
+
+        stream = remoting.encode(amfresponse, context)
 
         response['Content-Type'] = remoting.CONTENT_TYPE
         response['Content-Length'] = str(len(stream))
