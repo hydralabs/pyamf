@@ -2,8 +2,6 @@
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
 # 
-# Nick Joyce
-# 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -85,10 +83,11 @@ class WSGIGateway(gateway.BaseGateway):
         stream = None
 
         try:
-            request = remoting.decode(body)
+            context = pyamf._get_context(pyamf.AMF0)()
+            request = remoting.decode(body, context)
             response = self.getResponse(request)
 
-            stream = remoting.encode(response)
+            stream = remoting.encode(response, context)
         except:
             if self.debug:
                 #: write amf request and response to disk.

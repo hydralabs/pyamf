@@ -94,7 +94,7 @@ class ContextTestCase(unittest.TestCase):
         x = amf0.Context()
         y = [1, 2, 3]
 
-        self.assertEquals(x.addObject(y), 1)
+        self.assertEquals(x.addObject(y), 0)
         self.assertTrue(y in x.objects)
         self.assertEquals(len(x.objects), 1)
 
@@ -122,10 +122,9 @@ class ContextTestCase(unittest.TestCase):
         x.addObject(y)
         x.addObject(z)
 
-        self.assertEquals(x.getObject(1), y)
-        self.assertEquals(x.getObject(2), z)
-        self.assertRaises(pyamf.ReferenceError, x.getObject, 0)
-        self.assertRaises(pyamf.ReferenceError, x.getObject, 3)
+        self.assertEquals(x.getObject(0), y)
+        self.assertEquals(x.getObject(1), z)
+        self.assertRaises(pyamf.ReferenceError, x.getObject, 2)
         self.assertRaises(TypeError, x.getObject, '')
         self.assertRaises(TypeError, x.getObject, 2.2323)
 
@@ -148,13 +147,13 @@ class EncoderTestCase(unittest.TestCase):
 
     def setUp(self):
         self.buf = util.BufferedByteStream()
-        self.e = amf0.Encoder(self.buf)
-        self.context = self.e.context
+        self.encoder = amf0.Encoder(self.buf)
+        self.context = self.encoder.context
 
     def _run(self, data):
-        self.e.context.clear()
+        self.encoder.context.clear()
 
-        e = EncoderTester(self.e, data)
+        e = EncoderTester(self.encoder, data)
         e.run(self)
 
     def test_number(self):
@@ -187,9 +186,7 @@ class EncoderTestCase(unittest.TestCase):
         self._run(data)
 
     def test_null(self):
-        data = [(None, '\x05')]
-
-        self._run(data)
+        self._run([(None, '\x05')])
 
     def test_list(self):
         data = [
@@ -229,21 +226,14 @@ class EncoderTestCase(unittest.TestCase):
                 'hello world</b></a>')])
 
     def test_unsupported(self):
-        self._run([
-            (ord, '\x0d')])
+        self._run([(ord, '\x0d')])
 
     def test_object(self):
         self._run([
-            (pyamf.Bag({'a': 'b'}),
-                '\x03\x00\x01a\x02\x00\x01b\x00\x00\x09')])
+            (pyamf.Bag({'a': 'b'}), '\x03\x00\x01a\x02\x00\x01b\x00\x00\x09')])
 
     def test_typed_object(self):
         class Foo(object):
-            pass
-
-        try:
-            del pyamf.CLASS_CACHE['com.collab.dev.pyamf.foo']
-        except KeyError:
             pass
 
         pyamf.register_class(Foo, alias='com.collab.dev.pyamf.foo')
@@ -251,14 +241,14 @@ class EncoderTestCase(unittest.TestCase):
         x = Foo()
         x.baz = 'hello'
 
-        self.e.writeElement(x)
+        self.encoder.writeElement(x)
 
         self.assertEquals(self.buf.getvalue(),
             '\x10\x00\x18\x63\x6f\x6d\x2e\x63\x6f\x6c\x6c\x61\x62\x2e\x64\x65'
             '\x76\x2e\x70\x79\x61\x6d\x66\x2e\x66\x6f\x6f\x00\x03\x62\x61\x7a'
             '\x02\x00\x05\x68\x65\x6c\x6c\x6f\x00\x00\x09')
 
-        del pyamf.CLASS_CACHE['com.collab.dev.pyamf.foo']
+        pyamf.unregister_class(Foo)
 
     def test_complex_list(self):
         x = pyamf.Bag({'a': 'foo', 'b': 'bar'})
@@ -276,13 +266,13 @@ class EncoderTestCase(unittest.TestCase):
         self._run([
             ([[x, x]],
                 '\n\x00\x00\x00\x01\n\x00\x00\x00\x02\x03\x00\x01a\x02\x00\x03'
-                'foo\x00\x01b\x02\x00\x03bar\x00\x00\t\x07\x00\x01')])
+                'foo\x00\x01b\x02\x00\x03bar\x00\x00\t\x07\x00\x02')])
 
     def test_amf3(self):
         x = 1
 
         self.context.amf3_objs.append(x)
-        self.e.writeElement(x)
+        self.encoder.writeElement(x)
         self.assertEquals(self.buf.getvalue(), '\x11\x04\x01')
 
 class DecoderTestCase(unittest.TestCase):
@@ -291,8 +281,7 @@ class DecoderTestCase(unittest.TestCase):
     """ 
     def setUp(self):
         self.buf = util.BufferedByteStream()
-        self.decoder = amf0.Decoder()
-        self.decoder.stream = self.buf
+        self.decoder = amf0.Decoder(self.buf)
         self.context = self.decoder.context
 
     def _run(self, data):
@@ -306,7 +295,7 @@ class DecoderTestCase(unittest.TestCase):
             self.buf.write(chr(x))
             self.buf.seek(0)
             self.decoder.readType()
-            self.buf.truncate(0)
+            self.buf.truncate()
 
         self.buf.write('x')
         self.buf.seek(0)
@@ -423,12 +412,15 @@ class DecoderTestCase(unittest.TestCase):
     def test_amf3(self):
         x = 1
 
-        self.context.amf3_objs.append(x)
         self.buf.write('\x11\x04\x01')
         self.buf.seek(0)
-        
+
         self.assertEquals(self.decoder.readElement(), 1)
         self.assertTrue(x in self.context.amf3_objs)
+
+class HelperTestCase(unittest.TestCase):
+    def test_encode(self):
+        pass
 
 def suite():
     suite = unittest.TestSuite()
@@ -437,6 +429,7 @@ def suite():
     suite.addTest(unittest.makeSuite(ContextTestCase))
     suite.addTest(unittest.makeSuite(EncoderTestCase))
     suite.addTest(unittest.makeSuite(DecoderTestCase))
+    suite.addTest(unittest.makeSuite(HelperTestCase))
 
     return suite
 

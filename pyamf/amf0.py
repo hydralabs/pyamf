@@ -144,30 +144,6 @@ class Context(pyamf.BaseContext):
 
         self.amf3_objs = []
 
-    def _getObject(self, ref):
-        """
-        @param ref:
-        @type ref:
-        @raise ReferenceError: Object reference not found.
-        @rtype:
-        @return:
-        """
-        if ref == 0:
-            raise pyamf.ReferenceError, "Object reference %d not found" % ref
-
-        return self.objects[ref - 1]
-
-    def _getObjectReference(self, obj):
-        return self.objects.index(obj) + 1
-
-    def _addObject(self, obj):
-        try:
-            return self.objects.index(obj)
-        except ValueError:
-            self.objects.append(obj)
-
-            return len(self.objects)
-
     def __copy__(self):
         """
         @rtype:
@@ -276,23 +252,26 @@ class Decoder(object):
         """
         Read mixed array.
 
-        @rtype: array
-        @return: array
+        @rtype: dict
+        @return: Dict read from the stream
         """
         len = self.stream.read_ulong()
         obj = {}
+        self.context.addObject(obj)
         self._readObject(obj)
+        ikeys = []
 
         for key in obj.keys():
             try:
                 ikey = int(key)
+                ikeys.append((key, ikey))
                 obj[ikey] = obj[key]
                 del obj[key]
             except ValueError:
                 # XXX: do we want to ignore this?
                 pass
 
-        self.context.addObject(obj)
+        ikeys.sort()
 
         return obj
 
@@ -304,12 +283,11 @@ class Decoder(object):
         @return: List
         """
         obj = []
+        self.context.addObject(obj)
         len = self.stream.read_ulong()
 
         for i in xrange(len):
             obj.append(self.readElement())
-
-        self.context.addObject(obj)
 
         return obj
 
@@ -319,20 +297,15 @@ class Decoder(object):
 
         @rtype: 
         @return: 
-        
+
         @see: L{load_class<pyamf.load_class>} for more info.
         """
         classname = self.readString()
         klass = pyamf.load_class(classname)
 
         ret = klass()
-        obj = {}
-        self._readObject(obj)
-
-        for k, v in obj.iteritems():
-            setattr(ret, k, v)
-
-        self.context.addObject(obj)
+        self.context.addObject(ret)
+        self._readObject(ret)
 
         return ret
 
@@ -340,12 +313,10 @@ class Decoder(object):
         """
         Read AMF3 elements from the data stream.
 
-        @rtype: 
-        @return: 
+        @rtype: mixed
+        @return: the AMF3 element read from the stream
         """
-        # XXX: Does the amf3 decoder have access to the same references as amf0?
-        context = pyamf._get_context(pyamf.AMF3)()
-        decoder = pyamf._get_decoder(pyamf.AMF3)(self.stream, context)
+        decoder = pyamf._get_decoder(pyamf.AMF3)(self.stream)
 
         element = decoder.readElement()
         self.context.amf3_objs.append(element)
@@ -388,7 +359,11 @@ class Decoder(object):
         key = self.readString()
 
         while self.stream.peek() != chr(ASTypes.OBJECTTERM):
-            obj[key] = self.readElement()
+            if isinstance(obj, (list, dict, tuple)):
+                obj[key] = self.readElement()
+            else:
+                setattr(obj, key, self.readElement())
+
             key = self.readString()
 
         # discard the end marker (ASTypes.OBJECTTERM)
@@ -403,8 +378,8 @@ class Decoder(object):
         """
         obj = pyamf.Bag()
 
-        self._readObject(obj)
         self.context.addObject(obj)
+        self._readObject(obj)
 
         return obj
 
@@ -595,15 +570,13 @@ class Encoder(object):
             self.writeReference(a)
             return
         except pyamf.ReferenceError:
-            pass
+            self.context.addObject(a)
 
         self.writeType(ASTypes.ARRAY)
         self.stream.write_ulong(len(a))
 
         for data in a:
             self.writeElement(data)
-
-        self.context.addObject(a)
 
     def writeNumber(self, n):
         """
@@ -684,7 +657,7 @@ class Encoder(object):
             self.writeReference(o)
             return
         except pyamf.ReferenceError:
-            pass
+            self.context.addObject(o)
 
         self.writeType(ASTypes.MIXEDARRAY)
 
@@ -704,7 +677,6 @@ class Encoder(object):
 
         self._writeDict(o)
         self._writeEndObject()
-        self.context.addObject(o)
 
     def _writeEndObject(self):
         """
@@ -726,7 +698,7 @@ class Encoder(object):
             self.writeReference(o)
             return
         except pyamf.ReferenceError:
-            pass
+            self.context.addObject(o)
 
         # Need to check here if this object has a registered alias
         try:
@@ -747,7 +719,6 @@ class Encoder(object):
             self.writeElement(val)
 
         self._writeEndObject()
-        self.context.addObject(o)
 
     def writeDate(self, d):
         """
@@ -785,8 +756,7 @@ class Encoder(object):
         @type data: mixed
         @param data: The data to be encoded.
         """
-        context = pyamf._get_context(pyamf.AMF3)()
-        encoder = pyamf._get_encoder(pyamf.AMF3)(self.stream, context)
+        encoder = pyamf._get_encoder(pyamf.AMF3)(self.stream)
 
         self.writeType(ASTypes.AMF3)
         encoder.writeElement(data)
@@ -799,8 +769,6 @@ def decode(stream, context=None):
     @param  stream: AMF0 datastream.
     @type   context: L{Context}
     @param  context: AMF0 Context.
-
-    @todo: Add Python 2.3 support.
     """
     decoder = Decoder(stream, context)
 
@@ -809,14 +777,15 @@ def decode(stream, context=None):
 
 def encode(element, context=None):
     """
-    A helper function to encode an element into the AMF0 format.
+    A helper function to encode an element into AMF0 format.
 
-    @type   element: 
-    @param  element:
+    @type   element: mixed
+    @param  element: The element to encode
     @type   context: L{Context}
-    @param  context: AMF0 Context.
+    @param  context: AMF0 Context to use for the encoding. This holds previously
+        referenced objects etc.
     @rtype: StringIO
-    @return: File object.
+    @return: The encoded stream.
     """
     buf = util.BufferedByteStream()
     encoder = Encoder(buf, context)

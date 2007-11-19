@@ -266,20 +266,6 @@ class Context(pyamf.BaseContext):
         self.strings = []
         self.classes = []
 
-    def _getObject(self, ref):
-        return self.objects[ref]
-
-    def _getObjectReference(self, obj):
-        return self.objects.index(obj)
-
-    def _addObject(self, obj):
-        try:
-            return self.objects.index(obj) - 1
-        except ValueError:
-            self.objects.append(obj)
-
-            return len(self.objects) - 1
-
     def getString(self, ref):
         """
         Gets a string based on a reference C{ref}.
@@ -725,7 +711,7 @@ class Decoder(object):
         @rtype:
         """
         ref = self.readInteger()
-        
+
         if ref & REFERENCE_BIT == 0:
             return self.context.getObject(ref >> 1)
 

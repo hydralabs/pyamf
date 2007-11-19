@@ -24,7 +24,6 @@
 # LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
 
 """
 B{PyAMF} is a B{A}ction B{M}essage B{F}ormat
@@ -145,9 +144,6 @@ class BaseContext(object):
         """
         self.objects = []
 
-    def _getObject(self, ref):
-        raise NotImplementedError
-
     def getObject(self, ref):
         """
         Gets an object based on a reference.
@@ -165,12 +161,9 @@ class BaseContext(object):
             raise TypeError, "Bad reference type"
 
         try:
-            return self._getObject(ref)
+            return self.objects[ref]
         except IndexError:
             raise ReferenceError, "Object reference %d not found" % ref
-
-    def _getObjectReference(self, obj):
-        raise NotImplementedError
 
     def getObjectReference(self, obj):
         """
@@ -184,7 +177,7 @@ class BaseContext(object):
         @return:
         """
         try:
-            return self._getObjectReference(obj) 
+            return self.objects.index(obj) 
         except ValueError:
             raise ReferenceError("Reference for object %r not found" % str(obj))
 
@@ -198,7 +191,12 @@ class BaseContext(object):
         @rtype: int
         @return: Reference to C{obj}.
         """
-        return self._addObject(obj)
+        try:
+            return self.objects.index(obj) - 1
+        except ValueError:
+            self.objects.append(obj)
+
+        return len(self.objects) - 1
 
     def __copy__(self):
         pass

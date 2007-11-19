@@ -2,8 +2,6 @@
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
 # 
-# Nick Joyce
-# 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -266,16 +264,30 @@ def _read_body(stream, decoder):
     @type   decoder: L{amf0.Decoder<pyamf.amf0.Decoder>} or
     L{amf3.Decoder<pyamf.amf3.Decoder>}
     @param  decoder: AMF decoder instance.
-    
+
     @raise  RemotingError: The remoting type is not of the
     expected list type.
-    
+
     @rtype: tuple
     @return:
      - The target of the body.
      - The id (as sent by the client) of the body.
      - The data of the body.
     """
+    def _read_container():
+        stream = decoder.stream 
+        type = stream.read_uchar()
+
+        if type != 0x0a:
+            raise pyamf.DecodeError, "Expected list type for remoting body"
+
+        items = []
+
+        for i in xrange(stream.read_ulong()):
+            items.append(decoder.readElement())
+
+        return items
+
     target_len = stream.read_ushort()
     target = stream.read_utf8_string(target_len)
 
@@ -291,15 +303,7 @@ def _read_body(stream, decoder):
 
     data_len = stream.read_ulong()
     pos = stream.tell()
-    data = decoder.readElement()
-
-    if not isinstance(data, list):
-        raise RemotingError("Expected list type for remoting body")
-
-    # Remove the last object in the decoder context, it is the
-    # body of the request and the Flash Player does not appear to
-    # index the reference
-    decoder.context.objects.pop()
+    data = _read_container()
 
     if pos + data_len != stream.tell():
         raise pyamf.DecodeError("Data read from stream "
@@ -334,7 +338,12 @@ def _write_body(name, message, stream, encoder):
     write_pos = stream.tell()
     stream.write_ulong(0)
     old_pos = stream.tell()
-    encoder.writeElement(message.body)
+
+    try:
+        encoder.writeElement(message.body)
+    except RuntimeError:
+        print "doh"
+
     new_pos = stream.tell()
 
     stream.seek(write_pos)
@@ -412,8 +421,6 @@ def decode(stream, context=None):
 
     if stream.remaining() > 0:
         raise RuntimeError("Unable to fully consume the buffer")
-
-    msg.context = decoder.context
 
     return msg
 
