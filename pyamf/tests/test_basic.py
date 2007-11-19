@@ -231,6 +231,72 @@ class HelperTestCase(unittest.TestCase):
         self.assertEquals(pyamf._get_encoder(pyamf.AMF3), amf3.Encoder)
         self.assertRaises(ValueError, pyamf._get_encoder, 'foo')
 
+class RegisterClassTestCase(unittest.TestCase):
+    def setUp(self):
+        import copy
+
+        self.copy = copy.copy(pyamf.CLASS_CACHE)
+        self.unregister = True
+
+    def tearDown(self):
+        if self.unregister:
+            pyamf.unregister_class(Foo)
+
+    def test_simple(self):
+        self.assertTrue('foo.bar' not in pyamf.CLASS_CACHE.keys())
+        alias = pyamf.register_class(Foo, 'foo.bar')
+
+        self.assertTrue('foo.bar' in pyamf.CLASS_CACHE.keys())
+        self.assertEquals(pyamf.CLASS_CACHE['foo.bar'], alias)
+
+        self.assertTrue(isinstance(alias, pyamf.ClassAlias))
+        self.assertEquals(alias.klass, Foo)
+        self.assertEquals(alias.alias, 'foo.bar')
+        self.assertEquals(alias.attrs, None)
+        self.assertEquals(alias.metadata, [])
+        self.assertEquals(alias.read_func, None)
+        self.assertEquals(alias.write_func, None)
+
+    def test_attrs(self):
+        pyamf.register_class(Foo, 'foo.bar', attrs=['x', 'y', 'z'])
+        alias = pyamf.CLASS_CACHE['foo.bar']
+
+        self.assertEquals(alias.attrs, ['x', 'y', 'z'])
+
+    def test_funcs(self):
+        pyamf.register_class(Foo, 'foo.bar', read_func=ord, write_func=chr)
+        alias = pyamf.CLASS_CACHE['foo.bar']
+
+        self.assertEquals(alias.read_func, ord)
+        self.assertEquals(alias.write_func, chr)
+
+    def test_metadata(self):
+        pyamf.register_class(Foo, 'foo.bar', metadata=['static'])
+        alias = pyamf.CLASS_CACHE['foo.bar']
+
+        self.assertEquals(alias.metadata, ['static'])
+
+    def test_bad_metadata(self):
+        self.assertRaises(ValueError, pyamf.register_class, Foo, 'foo.bar',
+            metadata=['blah'])
+
+        self.unregister = False
+
+class UnregisterClassTestCase(unittest.TestCase):
+    def test_klass(self):
+        alias = pyamf.register_class(Foo, 'foo.bar')
+
+        pyamf.unregister_class(Foo)
+        self.assertTrue('foo.bar' not in pyamf.CLASS_CACHE.keys())
+        self.assertTrue(alias not in pyamf.CLASS_CACHE)
+
+    def test_alias(self):
+        alias = pyamf.register_class(Foo, 'foo.bar')
+
+        pyamf.unregister_class('foo.bar')
+        self.assertTrue('foo.bar' not in pyamf.CLASS_CACHE.keys())
+        self.assertTrue(alias not in pyamf.CLASS_CACHE)
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -238,6 +304,8 @@ def suite():
     suite.addTest(unittest.makeSuite(ClassMetaDataTestCase))
     suite.addTest(unittest.makeSuite(ClassAliasTestCase))
     suite.addTest(unittest.makeSuite(HelperTestCase))
+    suite.addTest(unittest.makeSuite(RegisterClassTestCase))
+    suite.addTest(unittest.makeSuite(UnregisterClassTestCase))
 
     return suite
 

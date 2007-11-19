@@ -463,7 +463,10 @@ def unregister_class(alias):
 
                 break
 
-    del CLASS_CACHE[alias]
+    try:
+        del CLASS_CACHE[alias]
+    except KeyError:
+        raise UnknownClassAlias, "Unknown alias %s" % alias
 
 def register_class_loader(loader):
     """
@@ -677,7 +680,7 @@ def _get_context(encoding):
     
     @rtype: L{amf0.Context<pyamf.amf0.Context>} or
     L{amf3.Context<pyamf.amf3.Context>}
-    @return: AMF0 or AMF3 context.
+    @return: AMF0 or AMF3 context class.
     """
     if encoding == AMF0:
         import amf0
