@@ -47,8 +47,7 @@ to understand the response therefore.
 """
 
 import pyamf
-from pyamf import util
-from pyamf.compat import *
+from pyamf import util, flex
 
 __all__ = ['Envelope', 'Request', 'decode', 'encode']
 
