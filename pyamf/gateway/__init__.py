@@ -191,17 +191,20 @@ class BaseGateway(object):
         @rtype: tuple      
         """
         target = message.target
-
+        
         try:
-            try:
-                name, meth = target.rsplit('.', 1)
-                return self._request_class(message.envelope, self.services[name], meth)
-            except ValueError:
-                pass
-
             return self._request_class(message.envelope, self.services[target], None)
         except KeyError:
-            raise remoting.RemotingError("Unknown service %s" % target)
+            pass
+
+        try:
+            name, meth = target.rsplit('.', 1)
+            return self._request_class(message.envelope, self.services[name], meth)
+        except (ValueError, KeyError):
+            pass
+
+        # All methods exhausted
+        raise remoting.RemotingError("Unknown service %s" % target)
 
     def save_request(self, body, stream):
         """
