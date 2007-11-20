@@ -2,10 +2,6 @@
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
 # 
-# Arnar Birgisson
-# Thijs Triemstra
-# Nick Joyce
-# 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -119,7 +115,7 @@ class AsyncMessage(AbstractMessage):
     #: Messages that were sent with a defined subtopic property indicate their target
     #: subtopic in this header.
     SUBTOPIC_HEADER = "DSSubtopic"
-    
+
     def __init__(self):
         """
         """
@@ -140,7 +136,7 @@ class AcknowledgeMessage(AsyncMessage):
     #: Used to indicate that the acknowledgement is for a message that
     #: generated an error.
     ERROR_HINT_HEADER = "DSErrorHint"
-    
+
     pass
 
 class CommandMessage(AsyncMessage):
@@ -184,7 +180,7 @@ class CommandMessage(AsyncMessage):
     UNKNOWN_OPERATION = 1000
     #: This is used to unsubscribe from a remote destination.
     UNSUBSCRIBE_OPERATION = 1
-    
+
     def __init__(self):
         """
         """
@@ -214,7 +210,7 @@ class ErrorMessage(AbstractMessage):
     #: This is used to indicate that the operation that generated the error may
     #: be retryable rather than fatal.
     RETRYABLE_HINT_HEADER = "DSRetryableErrorHint"
-    
+
     def __init__(self):
         """
         """
@@ -250,8 +246,13 @@ class RemotingMessage(AbstractMessage):
         #: This property is provided for backwards compatibility.
         self.source = None
 
-pyamf.register_class(RemotingMessage, 'flex.messaging.messages.RemotingMessage')
-pyamf.register_class(ErrorMessage, 'flex.messaging.messages.ErrorMessage')
-pyamf.register_class(CommandMessage, 'flex.messaging.messages.CommandMessage')
-pyamf.register_class(AcknowledgeMessage,
-    'flex.messaging.messages.AcknowledgeMessage')
+MESSAGES_NS = 'flex.messaging.messages'
+
+pyamf.register_class(RemotingMessage, MESSAGES_NS + '.RemotingMessage',
+    metadata=['amf3'])
+pyamf.register_class(ErrorMessage, MESSAGES_NS + '.ErrorMessage',
+    metadata=['amf3'])
+pyamf.register_class(CommandMessage, MESSAGES_NS + '.CommandMessage',
+    metadata=['amf3'])
+pyamf.register_class(AcknowledgeMessage, MESSAGES_NS + '.AcknowledgeMessage',
+    metadata=['amf3'])
