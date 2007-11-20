@@ -184,7 +184,7 @@ class BaseGateway(object):
         """
         Returns a service based on the message
 
-        @raise RemotingError: Unknow service
+        @raise RemotingError: Unknown service
         @param message: The AMF message
         @type message: L{Message<remoting.Message>}
         @return: A tuple containing the service and the method requested

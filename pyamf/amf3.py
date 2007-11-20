@@ -177,7 +177,7 @@ class ClassDefinition(object):
     @type attrs: list 
     """
 
-    def __init__(self, alias, encoding=ObjectEncoding.STATIC):
+    def __init__(self, alias, encoding=ObjectEncoding.STATIC, num_attrs=None):
         if alias in (None, ''):
             self.alias = None
         elif isinstance(alias, pyamf.ClassAlias):
@@ -187,6 +187,7 @@ class ClassDefinition(object):
 
         self.encoding = encoding
         self.attrs = []
+        self.num_attrs = num_attrs
 
     def _get_name(self):
         if self.alias is None:
@@ -646,7 +647,8 @@ class Decoder(object):
         if class_ref:
             class_def = self.context.getClassDefinition(ref)
         else:
-            class_def = ClassDefinition(self.readString(), ref & 0x03)
+            class_def = ClassDefinition(self.readString(),
+                encoding=ref & 0x03, num_attrs=ref >> 2)
             self.context.addClassDefinition(class_def)
 
         return class_ref, class_def
@@ -659,6 +661,21 @@ class Decoder(object):
         @return:
         @rtype:
         """
+        def readStatic(is_ref, class_def, obj):
+            if not is_ref:
+                for i in range(class_def.num_attrs):
+                    class_def.attrs.append(self.readString())
+
+            for attr in class_def.attrs:
+                setattr(obj, attr, self.readElement())
+
+        def readDynamic(is_ref, class_def, obj):
+            attr = self.readString()
+
+            while attr != "":
+                setattr(obj, attr, self.readElement())
+                attr = self.readString()
+
         ref = self.readInteger()
 
         if ref & REFERENCE_BIT == 0:
@@ -667,8 +684,6 @@ class Decoder(object):
         ref >>= 1
 
         (class_ref, class_def) = self._getClassDefinition(ref)
-        ref >>= 3
-
         klass = class_def.getClass()
 
         obj = klass()
@@ -677,22 +692,10 @@ class Decoder(object):
         if class_def.encoding in (ObjectEncoding.EXTERNAL, ObjectEncoding.PROXY):
             class_def.alias.read_func(obj, DataInput(self))
         elif class_def.encoding == ObjectEncoding.DYNAMIC:
-            attr = self.readString()
-
-            while attr != "":
-                if attr not in class_def.attrs:
-                    class_def.attrs.append(attr)
-
-                obj[attr] = self.readElement()
-                attr = self.readString()
-
+            readStatic(class_ref, class_def, obj)
+            readDynamic(class_ref, class_def, obj)
         elif class_def.encoding == ObjectEncoding.STATIC:
-            if not class_ref:
-                for i in range(ref):
-                    class_def.attrs.append(self.readString())
-
-            for attr in class_def.attrs:
-                setattr(obj, attr, self.readElement())
+            readStatic(class_ref, class_def, obj)
         else:
             raise pyamf.DecodeError("Unknown object encoding")
 

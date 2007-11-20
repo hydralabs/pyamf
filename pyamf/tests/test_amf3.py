@@ -42,7 +42,7 @@ class Foo(object):
     A generic object to use for object encoding
     """
     def __init__(self, d={}):
-        self.__dict__ = d
+        self.__dict__ = dict(d)
 
 class TypesTestCase(unittest.TestCase):
     """
@@ -183,6 +183,7 @@ class ClassDefinitionTestCase(unittest.TestCase):
         self.assertEquals(x.encoding, 0)
         self.assertEquals(x.attrs, [])
         self.assertEquals(len(x.attrs), 0)
+        self.assertEquals(x.num_attrs, None)
 
         x = amf3.ClassDefinition(None)
 
@@ -190,6 +191,7 @@ class ClassDefinitionTestCase(unittest.TestCase):
         self.assertEquals(x.encoding, 0)
         self.assertEquals(x.attrs, [])
         self.assertEquals(len(x.attrs), 0)
+        self.assertEquals(x.num_attrs, None)
 
         pyamf.register_class(Foo, 'foo.bar')
 
@@ -199,6 +201,7 @@ class ClassDefinitionTestCase(unittest.TestCase):
         self.assertEquals(x.encoding, 0)
         self.assertEquals(x.attrs, [])
         self.assertEquals(len(x.attrs), 0)
+        self.assertEquals(x.num_attrs, None)
         
         pyamf.unregister_class(Foo)
 
@@ -572,6 +575,53 @@ class DecoderTestCase(unittest.TestCase):
             (datetime.datetime(2005, 3, 18, 1, 58, 31),
                 '\x08\x01Bp+6!\x15\x80\x00')])
 
+    def test_get_class_definition(self):
+        pyamf.register_class(Foo, 'abc.xyz')
+
+        self.buf.write('\x0fabc.xyz')
+        self.buf.seek(0, 0)
+
+        is_ref, class_def = self.decoder._getClassDefinition(0x01)
+
+        self.assertFalse(is_ref)
+        self.assertTrue(isinstance(class_def, amf3.ClassDefinition))
+        self.assertTrue(class_def.getClass(), Foo)
+        self.assertTrue(class_def.name, 'abc.xyz')
+        self.assertEquals(class_def.encoding, amf3.ObjectEncoding.STATIC)
+
+        self.assertTrue(class_def in self.context.classes)
+
+        self.context.classes.remove(class_def)
+        self.buf.write('\x0fabc.xyz')
+        self.buf.seek(0, 0)
+
+        is_ref, class_def = self.decoder._getClassDefinition(0x03)
+
+        self.assertFalse(is_ref)
+        self.assertTrue(isinstance(class_def, amf3.ClassDefinition))
+        self.assertTrue(class_def.getClass(), Foo)
+        self.assertTrue(class_def.name, 'abc.xyz')
+        self.assertEquals(class_def.encoding, amf3.ObjectEncoding.EXTERNAL)
+
+        self.assertTrue(class_def in self.context.classes)
+
+        self.context.classes.remove(class_def)
+        self.buf.write('\x0fabc.xyz')
+        self.buf.seek(0, 0)
+
+        is_ref, class_def = self.decoder._getClassDefinition(0x05)
+
+        self.assertFalse(is_ref)
+        self.assertTrue(isinstance(class_def, amf3.ClassDefinition))
+        self.assertTrue(class_def.getClass(), Foo)
+        self.assertTrue(class_def.name, 'abc.xyz')
+        self.assertEquals(class_def.encoding, amf3.ObjectEncoding.DYNAMIC)
+
+        self.assertTrue(class_def in self.context.classes)
+        self.context.classes.remove(class_def)
+
+        pyamf.unregister_class(Foo)
+
 class ObjectEncodingTestCase(unittest.TestCase):
     def setUp(self):
         self.stream = util.BufferedByteStream()
@@ -675,6 +725,103 @@ class ObjectEncodingTestCase(unittest.TestCase):
         self.assertEquals(len(buf), 10)
 
         pyamf.unregister_class(Foo)
+
+class ObjectDecodingTestCase(unittest.TestCase):
+    def setUp(self):
+        self.stream = util.BufferedByteStream()
+        self.context = amf3.Context()
+        self.decoder = amf3.Decoder(self.stream, self.context)
+
+    def test_object_references(self):
+        self.stream.write('\x0a\x23\x01\x03a\x03b\x06\x07foo\x04\x05')
+        self.stream.seek(0, 0)
+
+        obj1 = self.decoder.readElement()
+
+        self.stream.truncate()
+        self.stream.write('\n\x00')
+        self.stream.seek(0, 0)
+
+        obj2 = self.decoder.readElement()
+
+        self.assertEquals(id(obj1), id(obj2))
+
+    def test_class_references(self):
+        pass
+
+    def test_static(self):
+        pyamf.register_class(Foo, 'abc.xyz', metadata='static')
+
+        self.assertEquals(self.context.objects, [])
+        self.assertEquals(self.context.strings, [])
+        self.assertEquals(self.context.classes, [])
+
+        self.stream.write('\x0a\x13\x0fabc.xyz\x07foo\x06\x07bar')      
+        self.stream.seek(0, 0)
+
+        obj = self.decoder.readElement()
+
+        class_def = self.context.classes[0]
+
+        self.assertEquals(class_def.attrs, ['foo'])
+        self.assertEquals(class_def.num_attrs, 1)
+
+        self.assertTrue(isinstance(obj, Foo))
+        self.assertEquals(obj.__dict__, {'foo': 'bar'})
+
+        pyamf.unregister_class(Foo)
+
+    def test_dynamic(self):
+        pyamf.register_class(Foo, 'abc.xyz', metadata='dynamic')
+
+        self.assertEquals(self.context.objects, [])
+        self.assertEquals(self.context.strings, [])
+        self.assertEquals(self.context.classes, [])
+
+        self.stream.write('\x0a\x0b\x0fabc.xyz\x07foo\x06\x07bar\x01')
+        self.stream.seek(0, 0)
+
+        obj = self.decoder.readElement()
+
+        class_def = self.context.classes[0]
+
+        self.assertEquals(class_def.attrs, [])
+        self.assertEquals(class_def.num_attrs, 0)
+
+        self.assertTrue(isinstance(obj, Foo))
+        self.assertEquals(obj.__dict__, {'foo': 'bar'})
+
+        pyamf.unregister_class(Foo)
+
+    def test_combined(self):
+        """
+        This tests an object encoding with static properties and dynamic
+        properties
+        """
+        pyamf.register_class(Foo, 'abc.xyz', metadata='dynamic')
+
+        self.assertEquals(self.context.objects, [])
+        self.assertEquals(self.context.strings, [])
+        self.assertEquals(self.context.classes, [])
+
+        self.stream.write('\x0a\x1b\x0fabc.xyz\x07foo\x06\x07bar\x07baz\x06\x07'
+            'nat\x01')
+        self.stream.seek(0, 0)
+
+        obj = self.decoder.readElement()
+
+        class_def = self.context.classes[0]
+
+        self.assertEquals(class_def.attrs, ['foo'])
+        self.assertEquals(class_def.num_attrs, 1)
+
+        self.assertTrue(isinstance(obj, Foo))
+        self.assertEquals(obj.__dict__, {'foo': 'bar', 'baz': 'nat'})
+
+        pyamf.unregister_class(Foo)
+
+    def test_external(self):
+        pass
 
 class ModifiedUTF8TestCase(unittest.TestCase):
     data = [
@@ -949,6 +1096,7 @@ def suite():
     suite.addTest(unittest.makeSuite(EncoderTestCase))
     suite.addTest(unittest.makeSuite(DecoderTestCase))
     suite.addTest(unittest.makeSuite(ObjectEncodingTestCase))
+    suite.addTest(unittest.makeSuite(ObjectDecodingTestCase))
     suite.addTest(unittest.makeSuite(DataOutputTestCase))
     suite.addTest(unittest.makeSuite(DataInputTestCase))
 
