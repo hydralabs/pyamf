@@ -82,7 +82,7 @@ def DjangoGateway(request, gateway):
     if request.method == 'POST':
         response = HttpResponse()
 
-        context = pyamf._get_context(pyamf.AMF0)()
+        context = pyamf.get_context(pyamf.AMF0)
         amfrequest = remoting.decode(request.raw_post_data, context)
         amfresponse = remoting.Envelope(amfrequest.amfVersion, amfrequest.clientType)
 
