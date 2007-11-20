@@ -25,22 +25,18 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Echo client and server examples.
+Hello World examples.
 
 Support for:
 
  - U{Twisted<http://twistedmatrix.com>}
  - U{WSGI<http://wsgi.org>}
 
-You can use this example with the echo_test.swf client on the
-U{EchoTest<http://pyamf.org/wiki/EchoTest>} wiki page.
+@see: U{HelloWorld<http://pyamf.org/wiki/HelloWorld>} wiki page.
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
-@author: U{Thijs Triemstra<mailto:info@collab.nl>}
 
 @since: 0.1.0
-
-@todo: Add Django remoting server.
 """
 
 import os, os.path
