@@ -358,7 +358,11 @@ class ClassAlias(object):
         @type write_func: callable
         @param write_func: Function that gets called when writing the object to
                           the data steam.
-                          
+        @type attrs:
+        @param attrs:
+        @type metadata:
+        @param metadata:
+        
         @raise TypeError: The C{klass} must be a class type.
         @raise TypeError: The C{read_func} must be callable.
         @raise TypeError: The C{write_func} must be callable.
@@ -395,6 +399,8 @@ class ClassAlias(object):
         return self.klass(*args, **kwargs)
 
     def __str__(self):
+        """
+        """
         return self.alias
 
     def __repr__(self):
@@ -402,6 +408,8 @@ class ClassAlias(object):
             self.alias, self.klass, id(self))
 
     def __eq__(self, other):
+        """
+        """
         if isinstance(other, basestring):
             return self.alias == other
         elif isinstance(other, self.__class__):
@@ -424,7 +432,9 @@ def register_class(klass, alias, read_func=None, write_func=None,
     @param write_func:
     @param attrs: A list of attributes that will be encoded for the class.
     @type attrs: C{list} or C{None}
-
+    @type metadata:
+    @param metadata:
+        
     @raise TypeError: The C{klass} is not callable.
     @raise ValueError: The C{klass} is already registered.
     @raise ValueError: The C{alias} is already registered.
@@ -457,6 +467,7 @@ def unregister_class(alias):
 
     @type alias: class or str
     @param alias: Alias for class to delete.
+    @raise UnknownClassAlias: Unknown alias
     """
     if isinstance(alias, (type, types.ClassType)):
         for s, a in CLASS_CACHE.iteritems():
@@ -514,7 +525,7 @@ def get_module(mod_name):
     @type mod_name: str
     @param mod_name: The module name.
     @rtype:
-    @return:
+    @return: Module
     """
     mod = __import__(mod_name)
     components = mod_name.split('.')
@@ -536,6 +547,9 @@ def load_class(alias):
     @type alias: str
     @param alias: The class name.
     @raise UnknownClassAlias: The C{alias} was not found.
+    @raise TypeError: Expecting class type or L{ClassAlias} from loader.
+    @return:
+    @rtype:
     """
     alias = str(alias)
 
@@ -590,7 +604,8 @@ def get_class_alias(klass):
     @type klass: object or class
     @param klass:
     @raise UnknownClassAlias: Class not found.
-
+    @raise TypeError: Expecting string or class type.
+    
     @rtype: L{ClassAlias}
     @return: The class alias linked to the C{klass}.
     """
@@ -654,6 +669,10 @@ def encode(element, encoding=AMF0, context=None):
     return buf
 
 def get_decoder(encoding):
+    """
+    @type   encoding: 
+    @param  encoding:
+    """
     return _get_decoder_class(encoding)()
 
 def _get_decoder_class(encoding):
@@ -680,6 +699,10 @@ def _get_decoder_class(encoding):
     raise ValueError, "Unknown encoding %s" % encoding
 
 def get_encoder(encoding):
+    """
+    @type   encoding: 
+    @param  encoding:
+    """
     return _get_encoder_class(encoding)()
 
 def _get_encoder_class(encoding):
@@ -706,6 +729,10 @@ def _get_encoder_class(encoding):
     raise ValueError, "Unknown encoding %s" % encoding
 
 def get_context(encoding):
+    """
+    @type   encoding: 
+    @param  encoding:
+    """
     return _get_context_class(encoding)()
 
 def _get_context_class(encoding):

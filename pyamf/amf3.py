@@ -67,11 +67,11 @@ class ASTypes:
     BOOL_FALSE = 0x02
     #: Simple type that doesn't have any inner data.
     BOOL_TRUE  = 0x03
-    #: 0×04 integer type code, followed by up to 4 bytes of data.
+    #: C{0×04} integer type code, followed by up to 4 bytes of data.
     #: @see: U{Parsing Integers on OSFlash (external)
     #: <http://osflash.org/documentation/amf3/parsing_integers>}
     INTEGER    = 0x04
-    #: 0x05 Number type-code followed by 8 bytes of data.
+    #: C{0x05} Number type-code followed by 8 bytes of data.
     #:
     #: Format is the same as an AMF0
     #: L{Number<pyamf.amf0.ASTypes.NUMBER>}.
@@ -84,16 +84,16 @@ class ASTypes:
     #:<http://osflash.org/documentation/amf3>} this
     #: represents the legacy C{flash.xml.XMLDocument}.
     XML        = 0x07
-    #: 0×08 integer-data.
+    #: C{0×08} integer-data.
     DATE       = 0x08
-    #: 0×09 integer-data ( [ 1OCTET *amf3-data ] | [OCTET *amf3-data 1]
+    #: C{0×09} integer-data ( [ 1OCTET *amf3-data ] | [OCTET *amf3-data 1]
     #: | [ OCTET *amf-data ] )
     ARRAY      = 0x09
-    #: 0x0A integer-data [ class-def ] [ *amf3-data ]
+    #: C{0x0A} integer-data [ class-def ] [ *amf3-data ]
     OBJECT     = 0x0a
     #: This type is used for the E4X XML class.
     XMLSTRING  = 0x0b
-    #: 0x0c L{ByteArray} flag, followed by string data.
+    #: C{0x0c} L{ByteArray} flag, followed by string data.
     #: @see: U{Parsing ByteArrays on OSFlash (external)
     #: <http://osflash.org/documentation/amf3/parsing_byte_arrays>}
     BYTEARRAY  = 0x0c
@@ -141,15 +141,14 @@ class ByteArray(util.StringIOProxy):
     I am a C{StringIO} type object containing byte data from
     the AMF stream.
 
+    Supports C{zlib} compression.
+    
     Possible uses of the C{ByteArray} class:
 
      - Creating a custom protocol to connect to a client.
      - Writing your own AMF/Remoting packet.
-     - Optimizing the size of your data by using custom
-     data types.
-
-    Supports C{zlib} compression.
-     
+     - Optimizing the size of your data by using custom data types.
+    
     @see: U{ByteArray on Livedocs (external)
     <http://livedocs.adobe.com/flex/2/langref/flash/utils/ByteArray.html>}
     """
@@ -397,6 +396,7 @@ class Decoder(object):
         @param  data: AMF3 data
         @type   context: L{Context}
         @param  context: Context
+        @raise TypeError: C{context} must be of type L{amf3.Context}.
         """
         if isinstance(data, util.BufferedByteStream):
             self.stream = data
@@ -775,9 +775,10 @@ class Encoder(object):
         Output should be a writable file-like object.
 
         @type   output: StringIO
-        @param  output: file-like object
+        @param  output: File-like object.
         @type   context: L{Context}
-        @param  context: Context
+        @param  context: Context.
+        @raise TypeError: L{context} must be of type L{amf0.Context}.
         """
         if output is None:
             self.stream = util.BufferedByteStream()
@@ -796,8 +797,8 @@ class Encoder(object):
         Writes the data type to the stream.
 
         @type   type: 
-        @param  type: ActionScript type
-        @raise EncodeError: AMF3 type is not recognized
+        @param  type: ActionScript type.
+        @raise EncodeError: AMF3 type is not recognized.
         """
         if type not in ACTIONSCRIPT_TYPES:
             raise pyamf.EncodeError("Unknown AMF3 type 0x%02x at %d" % (
@@ -833,7 +834,9 @@ class Encoder(object):
         Writes the data.
 
         @type   data: mixed
-        @param  data: The data to be encoded to the AMF3 data stream 
+        @param  data: The data to be encoded to the AMF3 data stream.
+        @type   use_references: bool
+        @param  use_references:
         """
         func = self._writeElementFunc(data)
 
@@ -849,6 +852,8 @@ class Encoder(object):
 
         @type   n:
         @param  n: null data
+        @type   use_references: bool
+        @param  use_references:
         """
         self.writeType(ASTypes.NULL)
 
@@ -858,6 +863,8 @@ class Encoder(object):
 
         @param n:
         @type n: bool
+        @type   use_references: bool
+        @param  use_references:
         """
         if n:
             self.writeType(ASTypes.BOOL_TRUE)
@@ -867,13 +874,13 @@ class Encoder(object):
     def _writeInteger(self, n):
         """
         AMF3 integers are encoded.
-        
-        See U{Parsing Integers on OSFlash
-        <http://osflash.org/documentation/amf3/parsing_integers>}
-        for more info.
 
         @type   n:
         @param  n: integer data
+        
+        @see: U{Parsing Integers on OSFlash
+        <http://osflash.org/documentation/amf3/parsing_integers>}
+        for more info.
         """
         bytes = []
 
@@ -898,6 +905,8 @@ class Encoder(object):
 
         @type   n:
         @param  n: integer data
+        @type   use_references: bool
+        @param  use_references:
         """
         self.writeType(ASTypes.INTEGER)
         self._writeInteger(n)
@@ -908,6 +917,8 @@ class Encoder(object):
 
         @type   n:
         @param  n: number data
+        @type   use_references: bool
+        @param  use_references:
         """
         self.writeType(ASTypes.NUMBER)
         self.stream.write_double(n)
@@ -918,6 +929,8 @@ class Encoder(object):
 
         @type   n:
         @param  n: string data
+        @type   use_references: bool
+        @param  use_references:
         """
         if len(n) == 0:
             self._writeInteger(REFERENCE_BIT)
@@ -945,16 +958,20 @@ class Encoder(object):
 
         @type   n:
         @param  n: string data
+        @type   use_references: bool
+        @param  use_references:
         """
         self.writeType(ASTypes.STRING)
         self._writeString(n, use_references)
 
     def writeDate(self, n, use_references=True):
         """
-        Writes a datetime instance to the stream.
+        Writes a C{datetime} instance to the stream.
 
         @type n: Instance of L{datetime}
         @param n: Date data
+        @type   use_references: bool
+        @param  use_references:
         """
         self.writeType(ASTypes.DATE)
 
@@ -976,8 +993,11 @@ class Encoder(object):
         """
         Writes a tuple, set or list to the stream.
 
-        @type n: One of __builtin__.tuple, __builtin__.set or __builtin__.list
+        @type n: One of __builtin__.tuple, __builtin__.set
+        or __builtin__.list
         @param n: list data
+        @type   use_references: bool
+        @param  use_references:
         """
         self.writeType(ASTypes.ARRAY)
 
@@ -1003,6 +1023,8 @@ class Encoder(object):
 
         @type   n:__builtin__.dict
         @param  n: dict data
+        @type   use_references: bool
+        @param  use_references:
         @raise ValueError: non int/str key value found in the C{dict}
         @raise EncodeError: C{dict} contains empty string keys.
         """
@@ -1071,6 +1093,8 @@ class Encoder(object):
 
         @type   obj:
         @param  obj:
+        @rtype:
+        @return:
         """
         try:
             alias = pyamf.get_class_alias(obj)
@@ -1107,6 +1131,14 @@ class Encoder(object):
         return class_def
 
     def writeInstance(self, obj, use_references=True):
+        """
+        Read class definition.
+
+        @type   obj:
+        @param  obj:
+        @type   use_references: bool
+        @param  use_references:
+        """
         if obj.__class__ == dict:
             self.writeDict(obj, use_references)
         elif obj.__class__ in (list, set):
@@ -1120,7 +1152,7 @@ class Encoder(object):
 
         @type   obj:
         @param  obj:
-        @type   use_references:
+        @type   use_references: bool
         @param  use_references:
         @raise EncodeError: Unknown object encoding
         """
@@ -1180,7 +1212,9 @@ class Encoder(object):
         Writes a L{ByteArray} to the data stream.
 
         @type   n: L{ByteArray}
-        @param  n: data
+        @param  n: Data.
+        @type   use_references: bool
+        @param  use_references:
         """
         self.writeType(ASTypes.BYTEARRAY)
 
@@ -1210,6 +1244,8 @@ class Encoder(object):
 
         @type   n: 
         @param  n: XML string
+        @type   use_references: bool
+        @param  use_references:
         """
         self.writeType(ASTypes.XMLSTRING)
 
@@ -1600,7 +1636,7 @@ def decode_utf8_modified(data):
     for more details.
     @copyright: Ruby version is Copyright (c) 2006 Ross Bamford (rosco AT roscopeco DOT co DOT uk)
     @note: Ported from U{Ruva
-    <http://viewvc.rubyforge.mmmultiworks.com/cgi/viewvc.cgi/trunk/lib/ruva/class.rb>}
+    <http://viewvc.rubyforge.mmmultiworks.com/cgi/viewvc.cgi/trunk/lib/ruva/class.rb>}.
     """
     size = ((ord(data[0]) << 8) & 0xff) + ((ord(data[1]) << 0) & 0xff)
     data = data[2:]
@@ -1635,9 +1671,9 @@ def decode(stream, context=None):
     A helper function to decode an AMF3 datastream.
 
     @type   stream: L{BufferedByteStream}
-    @param  stream: AMF3 data
+    @param  stream: AMF3 data.
     @type   context: L{Context}
-    @param  context: Context
+    @param  context: Context.
 
     @todo: Add Python 2.3 support.
     """
@@ -1653,8 +1689,8 @@ def encode(element, context=None):
     @type   element: 
     @param  element:
     @type   context: L{Context}
-    @param  context: Context
-    @return: Object containing the encoded AMF3 data
+    @param  context: Context.
+    @return: Object containing the encoded AMF3 data.
     @rtype: StringIO
     """
     buf = util.BufferedByteStream()

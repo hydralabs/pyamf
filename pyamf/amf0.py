@@ -90,10 +90,10 @@ class ASTypes:
     #: Date is represented as C{00x0B}, then a double, then an C{int}. The double 
     #: represents the number of milliseconds since 01/01/1970. The C{int} represents
     #: the timezone offset in minutes between GMT. Note for the latter than values 
-    #: greater than 720 (12 hours) are represented as C{2^16} - the value. Thus GMT+1
+    #: greater than 720 (12 hours) are represented as M{2^16} - the value. Thus GMT+1
     #: is 60 while GMT-5 is 65236.
     DATE        = 0x0b
-    #: LongString is reserved for strings larger then C{2^16} characters long. It 
+    #: LongString is reserved for strings larger then M{2^16} characters long. It 
     #: is represented as C{00x0C} then a LongUTF.
     LONGSTRING  = 0x0c
     #: Trying to send values which don’t make sense, such as prototypes, functions,
@@ -187,7 +187,7 @@ class Decoder(object):
         @type   context: L{Context}
         @param  context: Context.
         @raise TypeError: The C{context} parameter must be of
-        type L{amf0.Context}.
+        type L{Context<amf0.Context>}.
         """
         # coersce data to BufferedByteStream
         if isinstance(data, util.BufferedByteStream):
@@ -776,7 +776,7 @@ def decode(stream, context=None):
 
     @type   stream: L{BufferedByteStream}
     @param  stream: AMF0 datastream.
-    @type   context: L{Context}
+    @type   context: L{Context<pyamf.amf0.Context>}
     @param  context: AMF0 Context.
     """
     decoder = Decoder(stream, context)
@@ -790,7 +790,7 @@ def encode(element, context=None):
 
     @type   element: mixed
     @param  element: The element to encode
-    @type   context: L{Context}
+    @type   context: L{Context<pyamf.amf0.Context>}
     @param  context: AMF0 Context to use for the encoding. This holds previously
         referenced objects etc.
     @rtype: StringIO

@@ -196,6 +196,8 @@ def _read_header(stream, decoder, strict=False):
     @type   decoder: L{amf0.Decoder<pyamf.amf0.Decoder>} or
     L{amf3.Decoder<pyamf.amf3.Decoder>}
     @param  decoder: AMF decoder instance
+    @type strict: bool
+    @param strict:
     
     @raise DecodeError: The data that was read from the stream
     does not match the header length.
@@ -238,6 +240,8 @@ def _write_header(name, header, required, stream, encoder, strict=False):
     @type   encoder: L{amf0.Encoder<pyamf.amf0.Encoder>}
     or L{amf3.Encoder<pyamf.amf3.Encoder>}
     @param  encoder: AMF encoder instance.
+    @type strict: bool
+    @param strict:
     """
     stream.write_ushort(len(name))
     stream.write_utf8_string(name)
@@ -264,9 +268,9 @@ def _read_body(stream, decoder, strict=False):
     @type   decoder: L{amf0.Decoder<pyamf.amf0.Decoder>} or
     L{amf3.Decoder<pyamf.amf3.Decoder>}
     @param  decoder: AMF decoder instance.
-
-    @raise  RemotingError: The remoting type is not of the
-    expected list type.
+    @type strict: bool
+    @param strict:
+    @raise DecodeError: Data read from stream does not match body length.
 
     @rtype: tuple
     @return:
@@ -275,6 +279,10 @@ def _read_body(stream, decoder, strict=False):
      - The data of the body.
     """
     def _read_container():
+        """
+        @raise DecodeError: The remoting type is not of the
+        expected C{list} type.
+        """
         stream = decoder.stream 
         type = stream.read_uchar()
 
@@ -325,6 +333,8 @@ def _write_body(name, message, stream, encoder, strict=False):
     @type   encoder: L{amf0.Encoder<pyamf.amf0.Encoder>}
     or L{amf3.Encoder<pyamf.amf3.Encoder>}
     @param  encoder: Encoder to use.
+    @type strict: bool
+    @param strict:
     """
     response = "%s%s" % (name, _get_status(message.status))
 
@@ -357,9 +367,10 @@ def _get_status(status):
     
     @type status:
     @param status:
-    
     @raise ValueError: The status code is unknown.
-    @return: status code
+    
+    @rtype:
+    @return: Status codes.
     """
     if status not in STATUS_CODES.keys():
         raise ValueError("Unknown status code")
@@ -375,7 +386,9 @@ def decode(stream, context=None, strict=False):
     @type   context: L{AMF0 Context<pyamf.amf0.Context>} or
     L{AMF3 Context<pyamf.amf3.Context>}
     @param  context: Context.
-
+    @type strict: bool
+    @param strict:
+    
     @raise DecodeError: Malformed stream. Check the U{Remoting Envelope
     documentation on OSFlash
     <http://osflash.org/documentation/amf/envelopes/remoting#preamble>}
@@ -434,10 +447,17 @@ def encode(msg, old_context=None, strict=False):
     @type   old_context: L{AMF0 Context<pyamf.amf0.Context>} or
     L{AMF3 Context<pyamf.amf3.Context>}
     @param  old_context: Context.
+    @type strict: bool
+    @param strict:
+    
     @rtype:
     @return: File object.
     """
     def getNewContext():
+        """
+        @rtype:
+        @return:
+        """
         if old_context:
             import copy
 
@@ -509,6 +529,10 @@ class RecordSet(object):
         return ret
 
     def _set_server_info(self, val):
+        """
+        @type val: 
+        @param val:
+        """
         self.columns = val['columnNames']
         self.items = val['initialData']
 
