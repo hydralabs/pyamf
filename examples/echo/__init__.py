@@ -120,12 +120,14 @@ def run_server(name, options, services):
     @type services: dict
     """
     if options.type == 'wsgi':
-        
         func = run_wsgi_server(name, options, services)
     elif options.type == 'twisted':
         func = run_twisted_server(name, options, services)
 
-    func()
+    try:
+        func()
+    except KeyboardInterrupt:
+        pass
 
 def new_twisted_client(name, options, service, result_func, fault_func):
     """
