@@ -6,12 +6,13 @@ different versions of PyAMF.
 
 0.1.0 (unreleased)
 ------------------------------------------------------------
- - Complete AMF0 and AMF3 encoders/decoders
+ - Basic AMF0 and AMF3 encoders/decoders
+ - Additional support for IExternalizable (#29), 
+   ArrayCollection (#30), ObjectProxy (#31), ByteArray (#32), 
+   and RecordSet (#38)
  - Remoting support with gateways for Twisted (#15)
    WSGI (#16), and Django (#17)
  - Authentication/setCredentials support (#36)
- - Support for IExternalizable (#29), ArrayCollection (#30),
-   ObjectProxy (#31) and ByteArray (#32)
  - zlib compression support for ByteArray (#40)
 
 
