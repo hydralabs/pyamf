@@ -48,6 +48,7 @@ class WSGIGateway(gateway.BaseGateway):
         @rtype:
         @return:
         """
+        # environ contains a dictionary containing the WSGI environment for a request. 
         return environ['wsgi.input'].read(int(environ['CONTENT_LENGTH']))
 
     def getResponse(self, request):
@@ -98,9 +99,19 @@ class WSGIGateway(gateway.BaseGateway):
             #: write amf request and response to disk.
             self.save_request(body, stream)
 
-        start_response('200 OK', [
+        # TODO do something with authentication
+        authenticated = True
+
+        if authenticated:
+            start_response('200 OK', [
             ('Content-Type', remoting.CONTENT_TYPE),
             ('Content-Length', str(len(stream))),
-        ])
-
-        return [stream.getvalue()]
+            ])
+            return [stream.getvalue()]
+        else:
+            # put up a response denied
+            start_response('403 Forbidden', [
+                ('Content-type', 'text/html')
+                ])
+            return ['You are forbidden to view this resource']
+        

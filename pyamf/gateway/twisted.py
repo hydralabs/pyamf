@@ -81,16 +81,14 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
     """
     Twisted Remoting gateway.
     """
-
-    """
-    @cvar _request_class: A description of the static class variable.
-    """
     _request_class = ServiceRequest
     
     def __init__(self, services, debug):
         """
         @param services:
         @type services:
+        @param debug:
+        @type debug:
         """
         gateway.BaseGateway.__init__(self, services, debug)
         resource.Resource.__init__(self)
@@ -176,6 +174,10 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
 
     def _cbRender(self, result, request):
         """
+        @type result:
+        @param result:
+        @type request:
+        @param request:
         """
         def finishRequest(result):
             """
@@ -192,6 +194,10 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
             ).addErrback(self._ebRender).addCallback(finishRequest)
 
     def _ebRender(self, failure):
+        """
+        @type failure:
+        @param failure:
+        """
         if self.debug:
             #: write amf request and response to disk.
             self.save_request(self.body, self.stream)
