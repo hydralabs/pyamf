@@ -1,7 +1,6 @@
+# -*- encoding: utf8 -*-
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
-# 
-# Arnar Birgisson
 # 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -36,7 +35,7 @@ urlpatterns = patterns('',
 
     # AMF Remoting Gateway
     # The gateway parameter may also be a direct reference to a pyamf.gateway.django.DjangoGateway instance
-    (r'^gateway/', 'pyamf.gateway.django.DjangoGateway', {'gateway': 'djangogateway.gateway.echoGateway'}),
+    (r'^gateway/', 'djangogateway.gateway.echoGateway'),
     
     # Serve crossdomain.xml from the parent directory below __file__
     (r'^crossdomain.xml$', 'django.views.static.serve',

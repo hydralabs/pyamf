@@ -2,8 +2,6 @@
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
 # 
-# Thijs Triemstra
-# 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -28,6 +26,8 @@
 U{Twisted<http://twistedmatrix.com>} client example.
 
 @author: U{Thijs Triemstra<mailto:info@collab.nl>}
+
+@since: 0.1.0
 """
 
 from twisted.web import client

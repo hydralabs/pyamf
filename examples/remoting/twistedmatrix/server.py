@@ -2,8 +2,6 @@
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
 # 
-# Nick Joyce
-# 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -30,6 +28,8 @@ You can use this example with the echo_test.swf client on the
 U{EchoTest<http://pyamf.org/wiki/EchoTest>} wiki page.
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
+
+@since: 0.1.0
 """
 
 import pyamf

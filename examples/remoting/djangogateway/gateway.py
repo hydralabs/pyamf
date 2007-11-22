@@ -2,8 +2,6 @@
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
 # 
-# Arnar Birgisson
-# 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -30,10 +28,10 @@
 @since: 0.1.0
 """
 
-from pyamf import gateway
+from pyamf.gateway.django import DjangoGateway
 
 def echo(data):
     return data
 
-# This is the dispatcher given to the pyamf.gateway.django.DjangoGateway generic view
-echoGateway = gateway.BaseGateway({'echo': echo})
+# This is a callable instance suitable as a Django view
+echoGateway = DjangoGateway({'echo': echo})

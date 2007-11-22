@@ -1,7 +1,6 @@
 # -*- encoding: utf8 -*-
+#
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
-# 
-# Nick Joyce
 # 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -26,6 +25,8 @@
 WSGI Remoting example.
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
+
+@since: 0.1.0
 """
 
 from pyamf.gateway.wsgi import WSGIGateway
