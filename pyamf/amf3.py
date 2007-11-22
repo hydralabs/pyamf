@@ -101,9 +101,10 @@ class ASTypes:
 #: List of available ActionScript types in AMF3.
 ACTIONSCRIPT_TYPES = []
 
-for x in ASTypes.__dict__:
-    if not x.startswith('_'):
-        ACTIONSCRIPT_TYPES.append(ASTypes.__dict__[x])
+#:
+for ASTYPE in ASTypes.__dict__:
+    if not ASTYPE.startswith('_'):
+        ACTIONSCRIPT_TYPES.append(ASTypes.__dict__[ASTYPE])
 
 #: Reference bit.
 REFERENCE_BIT = 0x01
@@ -202,6 +203,8 @@ class ClassDefinition(object):
         If C{alias} is C{None}, an anonymous class is returned (L{Bag<pyamf.Bag>}),
         otherwise the class is loaded externally.
 
+        @rtype:
+        @return:
         """
         if self.alias in (None, ''):
             # anonymous class
@@ -267,9 +270,10 @@ class Context(pyamf.BaseContext):
 
         @param ref: The reference index.
         @type ref: str
-        @return: The referenced string.
-        @rtype: str 
         @raise ReferenceError: The referenced string could not be found.
+
+        @rtype: str 
+        @return: The referenced string.
         """
         try:
             return self.strings[ref]
@@ -300,9 +304,9 @@ class Context(pyamf.BaseContext):
         @type s: str
         @param s: The string to be referenced.
         @raise ValueError: Trying to store a reference to an empty string.
-        
-        @return: The reference index.
+
         @rtype: int
+        @return: The reference index.
         """
         if len(s) == 0:
             # do not store empty string references
@@ -1675,7 +1679,7 @@ def decode(stream, context=None):
     @type   context: L{Context}
     @param  context: Context.
 
-    @todo: Add Python 2.3 support.
+    @todo: Add Python 2.3 support (U{#33<http://pyamf.org/ticket/33>}).
     """
     decoder = Decoder(stream, context)
     

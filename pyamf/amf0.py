@@ -2,10 +2,6 @@
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
 # 
-# Arnar Birgisson
-# Thijs Triemstra
-# Nick Joyce
-# 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -122,9 +118,10 @@ class ASTypes:
 #: List of available ActionScript types in AMF0.
 ACTIONSCRIPT_TYPES = []
 
-for x in ASTypes.__dict__:
-    if not x.startswith('_'):
-        ACTIONSCRIPT_TYPES.append(ASTypes.__dict__[x])
+#:
+for ASTYPE in ASTypes.__dict__:
+    if not ASTYPE.startswith('_'):
+        ACTIONSCRIPT_TYPES.append(ASTypes.__dict__[ASTYPE])
 
 class Context(pyamf.BaseContext):
     """

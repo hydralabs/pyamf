@@ -2,10 +2,6 @@
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
 # 
-# Arnar Birgisson
-# Thijs Triemstra
-# Nick Joyce
-# 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -115,6 +111,8 @@ class StringIOProxy(object):
 
     def read(self, n=-1):
         """
+        @param n:
+        @type n:
         @rtype:
         @return:
         """
@@ -124,10 +122,10 @@ class StringIOProxy(object):
 
     def readline(self):
         """
+        @note: This function does not consume the buffer.
+        
         @rtype:
         @return:
-
-        @note: This function does not consume the buffer.
         """
         line = self._buffer.readline()
 
@@ -137,10 +135,10 @@ class StringIOProxy(object):
         """
         @type sizehint:
         @param sizehint:
+        @note: This function does not consume the buffer.
+        
         @rtype:
         @return:
-        
-        @note: This function does not consume the buffer.
         """
         lines = self._buffer.readlines(sizehint)
 
@@ -201,6 +199,8 @@ class StringIOProxy(object):
         self._buffer.seek(old_pos)
 
     def __len__(self):
+        """
+        """
         return self._len
 
 class NetworkIOMixIn(object):
@@ -235,6 +235,8 @@ class NetworkIOMixIn(object):
 
     def write_uchar(self, c):
         """
+        @type c:
+        @param c:
         @raise ValueError: Not in range.
         """
         if not 0 <= c <= 256:
@@ -274,7 +276,7 @@ class NetworkIOMixIn(object):
         @raise ValueError: Not in range.
         """
         if not 0 <= s <= 65536:
-            raise ValueError("not in range (%d)" % s)
+            raise ValueError("Not in range (%d)" % s)
 
         self.write(struct.pack("!H", s))
 
@@ -292,7 +294,7 @@ class NetworkIOMixIn(object):
         @raise ValueError: Not in range.
         """
         if not -32768 <= s <= 32767:
-            raise ValueError("not in range (%d)" % s)
+            raise ValueError("Not in range (%d)" % s)
 
         self.write(struct.pack("!h", s))
 
@@ -310,7 +312,7 @@ class NetworkIOMixIn(object):
         @raise ValueError: Not in range.
         """
         if not 0 <= l <= 4294967295:
-            raise ValueError("not in range (%d)" % l)
+            raise ValueError("Not in range (%d)" % l)
 
         self.write(struct.pack("!L", l))
 
@@ -328,7 +330,7 @@ class NetworkIOMixIn(object):
         @raise ValueError: Not in range.
         """
         if not -2147483648 <= l <= 2147483647:
-            raise ValueError("not in range (%d)" % l)
+            raise ValueError("Not in range (%d)" % l)
 
         self.write(struct.pack("!l", l))
 
@@ -401,11 +403,12 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
         If there is not enough buffer to be read and length is
         specified C{IOError} is raised.
 
+        @param length: Number of bytes to read.
+        @type length: int
         @raise EOFError: Reading past end of stream.
         @raise IOError: Length specified but not enough buffer
         available.
-        @param length: Number of bytes to read.
-        @type length: int
+        
         @rtype: array of char
         @return: The bytes read from the stream.
         """
@@ -420,10 +423,11 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
         """
         Looks size bytes ahead in the stream, returning what it finds,
         returning the stream pointer to its initial position.
-
-        @raise ValueError: Raised when trying to peek backwards.
+        
         @param size:
         @type size:
+        @raise ValueError: Raised when trying to peek backwards.
+        
         @rtype:
         @return: Bytes.
         """

@@ -246,6 +246,7 @@ class RemotingMessage(AbstractMessage):
         #: This property is provided for backwards compatibility.
         self.source = None
 
+#: Namespace for C{flex.messaging} messages.
 MESSAGES_NS = 'flex.messaging.messages'
 
 pyamf.register_class(RemotingMessage, MESSAGES_NS + '.RemotingMessage',

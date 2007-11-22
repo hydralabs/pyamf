@@ -198,7 +198,6 @@ def _read_header(stream, decoder, strict=False):
     @param  decoder: AMF decoder instance
     @type strict: bool
     @param strict:
-    
     @raise DecodeError: The data that was read from the stream
     does not match the header length.
     
@@ -209,6 +208,7 @@ def _read_header(stream, decoder, strict=False):
      required.
      - Value of the header.
     """
+    
     name_len = stream.read_ushort()
     name = stream.read_utf8_string(name_len)
 
@@ -352,6 +352,7 @@ def _write_body(name, message, stream, encoder, strict=False):
     try:
         encoder.writeElement(message.body)
     except RuntimeError:
+        # TODO 
         print "doh"
 
     new_pos = stream.tell()
