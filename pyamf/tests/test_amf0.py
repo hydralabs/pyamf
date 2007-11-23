@@ -225,6 +225,14 @@ class EncoderTestCase(unittest.TestCase):
                 '\x00\x3f<?xml version=\'1.0\' encoding=\'utf8\'?>\n<a><b>'
                 'hello world</b></a>')])
 
+    def test_xml_references(self):
+        x = util.ET.fromstring('<a><b>hello world</b></a>')
+        self._run([
+            ([x, x], '\n\x00\x00\x00\x02'
+                '\x0f\x00\x00\x00?<?xml version=\'1.0\' encoding=\'utf8\'?>\n'
+                '<a><b>hello world</b></a>'
+                '\x07\x00\x01')])
+
     def test_unsupported(self):
         self._run([(ord, '\x0d')])
 
@@ -365,6 +373,20 @@ class DecoderTestCase(unittest.TestCase):
         self.buf.truncate(0)
         self.buf.write('\x0f\x00\x00\x00\x19<a><b>hello world</b></a>')
         self.buf.seek(0)
+
+        self.assertEquals(
+            util.ET.tostring(util.ET.fromstring('<a><b>hello world</b></a>')),
+            util.ET.tostring(self.decoder.readElement()))
+
+    def test_xml_references(self):
+        self.buf.truncate(0)
+        self.buf.write('\x0f\x00\x00\x00\x19<a><b>hello world</b></a>'
+            '\x07\x00\x00')
+        self.buf.seek(0)
+
+        self.assertEquals(
+            util.ET.tostring(util.ET.fromstring('<a><b>hello world</b></a>')),
+            util.ET.tostring(self.decoder.readElement()))
 
         self.assertEquals(
             util.ET.tostring(util.ET.fromstring('<a><b>hello world</b></a>')),

@@ -433,8 +433,10 @@ class Decoder(object):
         @return: 
         """
         data = self.readLongString()
-        
-        return util.ET.fromstring(data)
+        xml = util.ET.fromstring(data)
+        self.context.addObject(xml)
+
+        return xml
 
 class Encoder(object):
     """
@@ -749,6 +751,12 @@ class Encoder(object):
         @type   e: L{BufferedByteStream}
         @param  e: AMF data.
         """
+        try:
+            self.writeReference(e)
+            return
+        except pyamf.ReferenceError:
+            self.context.addObject(e)
+
         data = util.ET.tostring(e, 'utf8')
 
         self.writeType(ASTypes.XML)
