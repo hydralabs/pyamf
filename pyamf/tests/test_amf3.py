@@ -70,9 +70,11 @@ class ContextTestCase(unittest.TestCase):
         self.assertEquals(c.strings, [])
         self.assertEquals(c.objects, [])
         self.assertEquals(c.classes, [])
+        self.assertEquals(c.legacy_xml, [])
         self.assertEquals(len(c.strings), 0)
         self.assertEquals(len(c.classes), 0)
         self.assertEquals(len(c.objects), 0)
+        self.assertEquals(len(c.legacy_xml), 0)
 
     def test_add_object(self):
         x = amf3.Context()
@@ -95,12 +97,22 @@ class ContextTestCase(unittest.TestCase):
 
         # TODO nick: fill this out ...
 
+    def test_add_legacy_xml(self):
+        x = amf3.Context()
+        y = 'abc'
+
+        self.assertEquals(x.addLegacyXML(y), 0)
+        self.assertTrue(y in x.legacy_xml)
+        self.assertEquals(len(x.legacy_xml), 1)
+
     def test_clear(self):
         x = amf3.Context()
         y = [1, 2, 3]
+        z = '<a></a>'
 
         x.addObject(y)
         x.strings.append('foobar')
+        x.addLegacyXML(z)
         x.clear()
 
         self.assertEquals(x.objects, [])
@@ -111,6 +123,10 @@ class ContextTestCase(unittest.TestCase):
         self.assertEquals(len(x.strings), 0)
         self.assertFalse('foobar' in x.strings)
 
+        self.assertEquals(x.legacy_xml, [])
+        self.assertEquals(len(x.legacy_xml), 0)
+        self.assertFalse('<a></a>' in x.legacy_xml)
+
     def test_get_by_reference(self):
         x = amf3.Context()
         y = [1, 2, 3]
@@ -120,6 +136,8 @@ class ContextTestCase(unittest.TestCase):
         x.addObject(z)
         x.addString('abc')
         x.addString('def')
+        x.addLegacyXML('<a></a>')
+        x.addLegacyXML('<b></b>')
 
         self.assertEquals(x.getObject(0), y)
         self.assertEquals(x.getObject(1), z)
@@ -132,6 +150,10 @@ class ContextTestCase(unittest.TestCase):
         self.assertRaises(pyamf.ReferenceError, x.getString, 2)
         self.assertRaises(TypeError, x.getString, '')
         self.assertRaises(TypeError, x.getString, 2.2323)
+
+        self.assertEquals(x.getLegacyXML(0), '<a></a>')
+        self.assertEquals(x.getLegacyXML(1), '<b></b>')
+        self.assertRaises(pyamf.ReferenceError, x.getLegacyXML, 2)
 
     def test_empty_string(self):
         x = amf3.Context()
@@ -147,6 +169,8 @@ class ContextTestCase(unittest.TestCase):
         ref2 = x.addObject(z)
         x.addString('abc')
         x.addString('def')
+        x.addLegacyXML('<a></a>')
+        x.addLegacyXML('<b></b>')
 
         self.assertEquals(x.getObjectReference(y), ref1)
         self.assertEquals(x.getObjectReference(z), ref2)
@@ -155,6 +179,10 @@ class ContextTestCase(unittest.TestCase):
         self.assertEquals(x.getStringReference('abc'), 0)
         self.assertEquals(x.getStringReference('def'), 1)
         self.assertRaises(pyamf.ReferenceError, x.getStringReference, 'asdfas')
+
+        self.assertEquals(x.getLegacyXMLReference('<a></a>'), 0)
+        self.assertEquals(x.getLegacyXMLReference('<b></b>'), 1)
+        self.assertRaises(pyamf.ReferenceError, x.getLegacyXMLReference, '<c/>')
 
     def test_copy(self):
         import copy
@@ -174,6 +202,9 @@ class ContextTestCase(unittest.TestCase):
  
         self.assertEquals(new.classes, []) 
         self.assertEquals(len(new.classes), 0) 
+
+        self.assertEquals(new.legacy_xml, []) 
+        self.assertEquals(len(new.legacy_xml), 0) 
 
 class ClassDefinitionTestCase(unittest.TestCase):
     def test_create(self):
@@ -258,12 +289,12 @@ class EncoderTestCase(unittest.TestCase):
     def setUp(self):
         self.buf = util.BufferedByteStream()
         self.context = amf3.Context()
-        self.e = amf3.Encoder(self.buf, context=self.context)
+        self.encoder = amf3.Encoder(self.buf, context=self.context)
 
     def _run(self, data):
         self.context.clear()
 
-        e = EncoderTester(self.e, data)
+        e = EncoderTester(self.encoder, data)
         e.run(self)
 
     def test_undefined(self):
@@ -370,7 +401,7 @@ class EncoderTestCase(unittest.TestCase):
         obj = Foo()
         obj.baz = 'hello'
 
-        self.e.writeElement(obj)
+        self.encoder.writeElement(obj)
 
         self.assertEqual(self.buf.getvalue(), '\n\x131com.collab.dev.pyamf.foo'
             '\x07baz\x06\x0bhello')
@@ -380,17 +411,35 @@ class EncoderTestCase(unittest.TestCase):
     def test_byte_array(self):
         self._run([(amf3.ByteArray('hello'), '\x0c\x0bhello')])
 
+    def test_xml(self):
+        x = util.ET.fromstring('<a><b>hello world</b></a>')
+        self.context.addLegacyXML(x)
+        self.encoder.writeElement(x)
+
+        self.assertEquals(self.buf.getvalue(),
+            '\x07\x33<a><b>hello world</b></a>')
+        self.buf.truncate()
+        self.encoder.writeElement(x)
+
+        self.assertEquals(self.buf.getvalue(), '\x07\x00')
+
     def test_xmlstring(self):
-        self._run([
-            (util.ET.fromstring('<a><b>hello world</b></a>'), '\x0b\x33<a><b>'
-                'hello world</b></a>')])
+        x = util.ET.fromstring('<a><b>hello world</b></a>')
+        self.encoder.writeElement(x)
+
+        self.assertEquals(self.buf.getvalue(),
+            '\x0b\x33<a><b>hello world</b></a>')
+        self.buf.truncate()
+
+        self.encoder.writeElement(x)
+        self.assertEquals(self.buf.getvalue(), '\x0b\x00')
 
     def test_get_class_definition(self):
         pyamf.register_class(Foo, 'abc.xyz')
 
         x = Foo({'foo': 'bar'})
 
-        class_def = self.e._getClassDefinition(x)
+        class_def = self.encoder._getClassDefinition(x)
 
         self.assertEquals(class_def.name, 'abc.xyz')
         self.assertEquals(class_def.klass, Foo)
@@ -401,7 +450,7 @@ class EncoderTestCase(unittest.TestCase):
         # test anonymous object
         x = pyamf.Bag({'foo': 'bar'})
 
-        class_def = self.e._getClassDefinition(x)
+        class_def = self.encoder._getClassDefinition(x)
 
         self.assertEquals(class_def.name, '')
         self.assertEquals(class_def.klass, pyamf.Bag)
@@ -413,7 +462,7 @@ class EncoderTestCase(unittest.TestCase):
 
         x = Foo({'foo': 'bar'})
 
-        class_def = self.e._getClassDefinition(x)
+        class_def = self.encoder._getClassDefinition(x)
 
         self.assertEquals(class_def.name, 'abc.xyz')
         self.assertEquals(class_def.klass, Foo)
@@ -493,18 +542,35 @@ class DecoderTestCase(unittest.TestCase):
             ('hello', '\x06\x00')])
 
     def test_xml(self):
-        self.buf.truncate(0)
         self.buf.write('\x07\x33<a><b>hello world</b></a>')
-        self.buf.seek(0)
+        self.buf.seek(0, 0)
+        x = self.decoder.readElement()
+        
+        self.assertEquals(util.ET.tostring(x), '<a><b>hello world</b></a>')
+        self.assertEquals(self.context.getLegacyXMLReference(x), 0)
 
-        self.assertEquals(
-            util.ET.tostring(util.ET.fromstring('<a><b>hello world</b></a>')),
-            util.ET.tostring(self.decoder.readElement()))
+        self.buf.truncate()
+        self.buf.write('\x07\x00')
+        self.buf.seek(0, 0)
+        y = self.decoder.readElement()
+
+        self.assertEquals(x, y)
 
     def test_xmlstring(self):
-        self._run([
-            ('<a><b>hello world</b></a>', '\x06\x33<a><b>hello world</b></a>')
-        ])
+        self.buf.write('\x0b\x33<a><b>hello world</b></a>')
+        self.buf.seek(0, 0)
+        x = self.decoder.readElement()
+        
+        self.assertEquals(util.ET.tostring(x), '<a><b>hello world</b></a>')
+        self.assertRaises(pyamf.ReferenceError,
+            self.context.getLegacyXMLReference, x)
+
+        self.buf.truncate()
+        self.buf.write('\x0b\x00')
+        self.buf.seek(0, 0)
+        y = self.decoder.readElement()
+
+        self.assertEquals(x, y)
 
     def test_list(self):
         self._run([

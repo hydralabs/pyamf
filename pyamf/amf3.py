@@ -253,6 +253,8 @@ class Context(pyamf.BaseContext):
     @type strings: list
     @ivar classes: A list of L{ClassDefinition}.
     @type classes: list
+    @ivar legacy_xml: A list of legacy encoded XML documents
+    @type legacy_xml: list
     """
 
     def clear(self):
@@ -263,6 +265,7 @@ class Context(pyamf.BaseContext):
 
         self.strings = []
         self.classes = []
+        self.legacy_xml = []
 
     def getString(self, ref):
         """
@@ -322,7 +325,7 @@ class Context(pyamf.BaseContext):
     def getClassDefinition(self, ref):
         """
         Return class reference.
-               
+
         @type ref:
         @param ref:
         @raise ReferenceError: The class reference could not be found.
@@ -337,10 +340,11 @@ class Context(pyamf.BaseContext):
         """
         Return class definition reference. 
 
-        @type class_def:
-        @param class_def:
-        @raise ReferenceError: The definition could not be found.
-        @return: 
+        @type class_def: L{ClassDefinition}
+        @param class_def: The class definition reference to be found.
+        @raise ReferenceError: The reference could not be found.
+        @return: The reference to U{class_def}
+        @rtype: int
         """
         try:
             return self.classes.index(class_def)
@@ -362,13 +366,55 @@ class Context(pyamf.BaseContext):
         except ValueError:
             self.classes.append(class_def)
 
-            return len(self.classes)
+            return len(self.classes) - 1
 
-    def getClass(self, class_def):
+    def getLegacyXML(self, ref):
         """
-        @type class_def:
-        @param class_def:
+        Return the legacy XML reference.
+
+        @type ref: int
+        @param ref: The reference index.
+        @raise ReferenceError: The reference could not be found.
+        @return: Instance of L{util.ET}
         """
+        try:
+            return self.legacy_xml[ref]
+        except IndexError:
+            raise pyamf.ReferenceError(
+                "Legacy XML reference %d not found" % ref)
+
+    def getLegacyXMLReference(self, doc):
+        """
+        Return legacy xml reference. 
+
+        @type doc: L{util.ET}
+        @param doc: The XML document to reference.
+        @raise ReferenceError: The reference could not be found.
+        @return: The reference to U{doc}
+        @rtype: int
+        """
+        try:
+            return self.legacy_xml.index(doc)
+        except ValueError:
+            raise pyamf.ReferenceError(
+                "Reference for document %r not found" % doc)
+
+    def addLegacyXML(self, doc):
+        """
+        Creates a reference to U{doc}. If U{doc} is already referenced that
+        index will be returned. Otherwise a new index will be created.
+
+        @type doc: L{util.ET}
+        @param doc: The XML document to reference.
+        @rtype: int
+        @return: The reference to doc
+        """
+        try:
+            return self.legacy_xml.index(doc)
+        except ValueError:
+            self.legacy_xml.append(doc)
+
+            return len(self.legacy_xml) - 1
 
     def __copy__(self):
         return self.__class__()
@@ -552,15 +598,6 @@ class Decoder(object):
 
         return result
 
-    def readXML(self):
-        """
-        Read XML from the stream.
-
-        @return:
-        @rtype:
-        """
-        return util.ET.fromstring(self.readString(False))
-
     def readDate(self):
         """
         Read date from the stream.
@@ -705,13 +742,7 @@ class Decoder(object):
 
         return obj
 
-    def readXMLString(self):
-        """
-        Reads a string from the data stream and converts it into an XML Tree.
-
-        @return:
-        @rtype:
-        """
+    def _readXML(self, legacy=False):
         ref = self.readInteger()
 
         if ref & REFERENCE_BIT == 0:
@@ -722,7 +753,28 @@ class Decoder(object):
         x = util.ET.XML(xmlstring)
         self.context.addObject(x)
 
+        if legacy is True:
+            self.context.addLegacyXML(x)
+
         return x
+
+    def readXMLString(self):
+        """
+        Reads a string from the data stream and converts it into an XML Tree.
+
+        @return: The XML Document
+        @rtype: L{util.ET}
+        """
+        return self._readXML()
+
+    def readXML(self):
+        """
+        Read a Legacy XML Document from the stream.
+
+        @return: The XML Document
+        @rtype: L{util.ET}
+        """
+        return self._readXML(True)
 
     def readByteArray(self):
         """
@@ -1246,12 +1298,21 @@ class Encoder(object):
         """
         Writes a XML string to the data stream.
 
-        @type   n: 
-        @param  n: XML string
+        @type   n: L{util.ET}
+        @param  n: XML Document to encode.
         @type   use_references: bool
         @param  use_references:
         """
-        self.writeType(ASTypes.XMLSTRING)
+        try:
+            self.context.getLegacyXMLReference(n)
+            is_legacy = True
+        except pyamf.ReferenceError:
+            is_legacy = False
+
+        if is_legacy is True:
+            self.writeType(ASTypes.XML)
+        else:
+            self.writeType(ASTypes.XMLSTRING)
 
         if use_references:
             try:
