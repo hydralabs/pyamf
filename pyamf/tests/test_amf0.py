@@ -231,7 +231,8 @@ class EncoderTestCase(unittest.TestCase):
             ([x, x], '\n\x00\x00\x00\x02'
                 '\x0f\x00\x00\x00?<?xml version=\'1.0\' encoding=\'utf8\'?>\n'
                 '<a><b>hello world</b></a>'
-                '\x07\x00\x01')])
+                '\x0f\x00\x00\x00?<?xml version=\'1.0\' encoding=\'utf8\'?>\n'
+                '<a><b>hello world</b></a>')])
 
     def test_unsupported(self):
         self._run([(ord, '\x0d')])

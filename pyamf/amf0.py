@@ -751,12 +751,6 @@ class Encoder(object):
         @type   e: L{BufferedByteStream}
         @param  e: AMF data.
         """
-        try:
-            self.writeReference(e)
-            return
-        except pyamf.ReferenceError:
-            self.context.addObject(e)
-
         data = util.ET.tostring(e, 'utf8')
 
         self.writeType(ASTypes.XML)
