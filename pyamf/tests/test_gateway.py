@@ -252,6 +252,8 @@ class BaseGatewayTestCase(unittest.TestCase):
 
         self.assertEquals(gw.services, {})
 
+        self.assertRaises(TypeError, gw.addService, 1)
+
     def test_remove_service(self):
         gw = gateway.BaseGateway({'test': TestService})
         self.assertTrue('test' in gw.services)

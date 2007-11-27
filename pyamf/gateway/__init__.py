@@ -262,15 +262,15 @@ class BaseGateway(object):
 
         @raise RemotingError: Service already exists.
         @param service: The service to add to the gateway.
-        @type service: callable or a class instance
+        @type service: callable or a class instance, or a module
         @param name: The name of the service.
         @type name: str
         @param authenticator: A callable that will check the credentials of
             the request before allowing access to the service.
         @type authenticator: Callable
         """
-        if not callable(service):
-            raise TypeError, "service must be callable"
+        if not callable(service) and not isinstance(service, types.ModuleType):
+            raise TypeError, "service must be callable or a module"
 
         if name is None:
             # TODO: include the module in the name
