@@ -30,10 +30,7 @@ U{Twisted<http://twistedmatrix.com>} Server and Client implementations.
 @since: 0.1.0
 """
 
-defer = threads = reactor = None
-resource = server = client = None
-
-# import django workaround for module name
+# import twisted workaround for module name
 import sys, imp, os, os.path
 
 idx = []
