@@ -22,7 +22,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Gateway tests.
+Django gateway tests.
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 

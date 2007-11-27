@@ -32,7 +32,8 @@ Service.
 @since: 0.1.0
 """
 
-import pyamf.flex.messaging
+import pyamf
+from pyamf.flex.messaging import AsyncMessage, AcknowledgeMessage, ErrorMessage
 
 __all__ = [
     'DataMessage',
