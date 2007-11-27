@@ -55,7 +55,8 @@ CLASS_CACHE = {}
 #: Class loaders.
 CLASS_LOADERS = []
 
-#: Specifies that objects are serialized using AMF for ActionScript 1.0 & 2.0.
+#: Specifies that objects are serialized using AMF for ActionScript
+#: 1.0 and 2.0.
 AMF0 = 0
 #: Specifies that objects are serialized using AMF for ActionScript 3.0.
 AMF3 = 3
@@ -101,7 +102,7 @@ class DecodeError(BaseError):
 
 class ReferenceError(BaseError):
     """
-    Raised if an AMF data stream refers to a non-existant object or string
+    Raised if an AMF data stream refers to a non-existent object or string
     reference.
     """
 
