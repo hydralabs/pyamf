@@ -276,8 +276,10 @@ class BaseGateway(object):
             # TODO: include the module in the name
             if isinstance(service, (type, types.ClassType)):
                 name = service.__name__
-            elif isinstance(service, (type, types.FunctionType)):
+            elif isinstance(service, (types.FunctionType)):
                 name = service.func_name
+            elif isinstance(service, (types.ModuleType)):
+                name = service.__name__
             else:
                 name = str(service)
 

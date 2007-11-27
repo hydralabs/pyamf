@@ -254,6 +254,18 @@ class BaseGatewayTestCase(unittest.TestCase):
 
         self.assertRaises(TypeError, gw.addService, 1)
 
+        import imp
+
+        temp = imp.new_module('temp')
+        gw.addService(temp)
+
+        self.assertTrue(temp in gw.services)
+        self.assertTrue('temp' in gw.services)
+
+        del gw.services['temp']
+
+        self.assertEquals(gw.services, {})
+
     def test_remove_service(self):
         gw = gateway.BaseGateway({'test': TestService})
         self.assertTrue('test' in gw.services)
