@@ -54,6 +54,8 @@ for name, mod in sys.modules.iteritems():
 
         break
 
+del name, mod
+
 t = imp.find_module('django', sys.path)
 imp.load_module('django', None, t[1], t[2])
 
@@ -62,7 +64,7 @@ for x in idx:
 
 os.chdir(cwd)
 
-del idx, imp, sys, os, cwd
+del idx, imp, sys, os, cwd, t
 
 from django.http import HttpResponse, HttpResponseNotAllowed
 from django.core.urlresolvers import get_mod_func

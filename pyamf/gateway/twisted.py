@@ -55,6 +55,8 @@ for name, mod in sys.modules.iteritems():
 
         break
 
+del name, mod
+
 t = imp.find_module('twisted', sys.path)
 imp.load_module('twisted', None, t[1], t[2])
 
@@ -63,7 +65,9 @@ import sys
 for x in idx:
     sys.path.insert(x[0], x[1])
 
-del idx, imp, os
+os.chdir(cwd)
+
+del idx, imp, sys, os, cwd, t
 
 from twisted.internet import defer, threads, reactor
 from twisted.web import resource, server, client
@@ -107,12 +111,14 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
     """
     _request_class = ServiceRequest
 
-    def __init__(self, services):
+    def __init__(self, services, debug):
         """
         @param services:
         @type services:
+        @param debug:
+        @type debug:
         """
-        gateway.BaseGateway.__init__(self, services)
+        gateway.BaseGateway.__init__(self, services, debug)
         resource.Resource.__init__(self)
 
     def getResponse(self, request):
@@ -204,6 +210,10 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         def finishRequest(result):
             """
             """
+            if self.debug:
+                #: write amf request and response to disk.
+                self.save_request(self.body, self.stream)
+
             request.setHeader("Content-Length", str(len(result)))
             request.write(result.getvalue())
             request.finish()
@@ -216,6 +226,9 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         @type failure:
         @param failure:
         """
+        if self.debug:
+            #: write amf request and response to disk.
+            self.save_request(self.body, self.stream)
         print failure
 
 class TwistedClient(client.HTTPPageGetter):
