@@ -76,22 +76,24 @@ class ASTypes:
     #: Format is the same as an AMF0
     #: L{Number<pyamf.amf0.ASTypes.NUMBER>}.
     NUMBER     = 0x05
-    #:
+    #: C{0x06} string-data.
     STRING     = 0x06
-    # TODO: not defined on site, says it's only XML type,
-    # so we'll assume it is for the time being..
+    #: C{0x07} XML type code followed by a string.
     #: @see: According to U{the OSFlash documentation
-    #:<http://osflash.org/documentation/amf3>} this
-    #: represents the legacy C{flash.xml.XMLDocument}.
+    #:<http://osflash.org/documentation/amf3#x07_-_xml_legacy_flash.xml.xmldocument_class>}
+    #: this represents the legacy C{flash.xml.XMLDocument} in
+    #: Actionscript 1.0 and 2.0.
     XML        = 0x07
     #: C{0×08} integer-data.
     DATE       = 0x08
-    #: C{0×09} integer-data ( [ 1OCTET *amf3-data ] | [OCTET *amf3-data 1]
-    #: | [ OCTET *amf-data ] )
+    #: C{0×09} integer-data ( [ 1OCTET *amf3-data ]
+    #: | [OCTET *amf3-data 1] | [ OCTET *amf-data ] )
     ARRAY      = 0x09
     #: C{0x0A} integer-data [ class-def ] [ *amf3-data ]
     OBJECT     = 0x0a
-    #: This type is used for the E4X XML class.
+    #: This type is used for the
+    #: U{E4X<http://en.wikipedia.org/wiki/E4X>} top-level XML class
+    #: in Actionscript 3.0.
     XMLSTRING  = 0x0b
     #: C{0x0c} L{ByteArray} flag, followed by string data.
     #: @see: U{Parsing ByteArrays on OSFlash (external)
@@ -372,6 +374,9 @@ class Context(pyamf.BaseContext):
         """
         Return the legacy XML reference.
 
+        This is the C{flash.xml.XMLDocument} class in Actionscript 3.0
+        and the top-level C{XML} class in Actionscript 1.0 and 2.0.
+
         @type ref: int
         @param ref: The reference index.
         @raise ReferenceError: The reference could not be found.
@@ -385,7 +390,7 @@ class Context(pyamf.BaseContext):
 
     def getLegacyXMLReference(self, doc):
         """
-        Return legacy xml reference.
+        Return legacy XML reference.
 
         @type doc: L{util.ET}
         @param doc: The XML document to reference.
