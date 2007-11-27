@@ -323,7 +323,7 @@ class EncoderTestCase(unittest.TestCase):
     def test_string(self):
         self._run([
             ('hello', '\x06\x0bhello'),
-            (u'áš á›‡áš»', '\x06\x13\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb')])
+            (u'ᚠᛇᚻ', '\x06\x13\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb')])
 
     def test_string_references(self):
         self._run([
@@ -519,7 +519,7 @@ class DecoderTestCase(unittest.TestCase):
         self._run([
             ('', '\x06\x01'),
             ('hello', '\x06\x0bhello'),
-            (u'áƒ¦áƒ›áƒ”áƒ áƒ—áƒ¡áƒ˜ áƒ¨áƒ”áƒ›áƒ•áƒ”áƒ“áƒ áƒ”, áƒœáƒ£áƒ—áƒ£ áƒ™áƒ•áƒšáƒ áƒ“áƒáƒ›áƒ®áƒ¡áƒœáƒáƒ¡ áƒ¡áƒáƒ¤áƒšáƒ˜áƒ¡áƒ áƒ¨áƒ áƒáƒ›áƒáƒ¡áƒ, áƒªáƒ”áƒªáƒ®áƒšáƒ¡',
+            (u'ღმერთსი შემვედრე, ნუთუ კვლა დამხსნას სოფლისა შრომასა, ცეცხლს',
                 '\x06\x82\x45\xe1\x83\xa6\xe1\x83\x9b\xe1\x83\x94\xe1\x83\xa0'
                 '\xe1\x83\x97\xe1\x83\xa1\xe1\x83\x98\x20\xe1\x83\xa8\xe1\x83'
                 '\x94\xe1\x83\x9b\xe1\x83\x95\xe1\x83\x94\xe1\x83\x93\xe1\x83'
@@ -892,8 +892,8 @@ class ObjectDecodingTestCase(unittest.TestCase):
 class ModifiedUTF8TestCase(unittest.TestCase):
     data = [
         ('hello', '\x00\x05\x68\x65\x6c\x6c\x6f'),
-        (u'áš á›‡áš»á›«á›’á›¦áš¦á›«áš áš±áš©áš áš¢áš±á›«áš á›áš±ášªá›«áš·á›–áš»áš¹á›¦á›šáš³áš¢á›—á›‹áš³á›–ášªá›šá›«áš¦á›–ášªáš»á›«á›—ášªáš¾áš¾ášªá›«áš·á›–áš»áš¹á›¦á›šáš³á›«á›—á›áš³á›šáš¢áš¾á›«áš»á›¦á›á›«á›žáš«'
-            u'á›šášªáš¾áš·á›áš á›«áš»á›–á›«áš¹á›á›šá›–á›«áš áš©áš±á›«á›žáš±á›áš»á›áš¾á›–á›«á›žáš©á›—á›–á›‹á›«áš»á›šá›‡á›ášªáš¾á›¬',
+        (u'ᚠᛇᚻ᛫ᛒᛦᚦ᛫ᚠᚱᚩᚠᚢᚱ᛫ᚠᛁᚱᚪ᛫ᚷᛖᚻᚹᛦᛚᚳᚢᛗᛋᚳᛖᚪᛚ᛫ᚦᛖᚪᚻ᛫ᛗᚪᚾᚾᚪ᛫ᚷᛖᚻᚹᛦᛚᚳ᛫ᛗᛁᚳᛚᚢᚾ᛫ᚻᛦᛏ᛫ᛞᚫ'
+            u'ᛚᚪᚾᚷᛁᚠ᛫ᚻᛖ᛫ᚹᛁᛚᛖ᛫ᚠᚩᚱ᛫ᛞᚱᛁᚻᛏᚾᛖ᛫ᛞᚩᛗᛖᛋ᛫ᚻᛚᛇᛏᚪᚾ᛬',
             '\x01\x41\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb\xe1\x9b\xab\xe1\x9b'
             '\x92\xe1\x9b\xa6\xe1\x9a\xa6\xe1\x9b\xab\xe1\x9a\xa0\xe1\x9a\xb1'
             '\xe1\x9a\xa9\xe1\x9a\xa0\xe1\x9a\xa2\xe1\x9a\xb1\xe1\x9b\xab\xe1'
@@ -997,7 +997,7 @@ class DataOutputTestCase(unittest.TestCase):
         self.assertEquals(self.stream.getvalue(), u'this is a test')
         self.stream.truncate()
 
-        x.writeMultiByte(u'á¼”Î´Ï‰ÏƒÎ±Î½', 'utf-8')
+        x.writeMultiByte(u'ἔδωσαν', 'utf-8')
         self.assertEquals(self.stream.getvalue(), '\xe1\xbc\x94\xce\xb4\xcf'
             '\x89\xcf\x83\xce\xb1\xce\xbd')
 
@@ -1042,7 +1042,7 @@ class DataOutputTestCase(unittest.TestCase):
     def test_utf(self):
         x = amf3.DataOutput(self.encoder)
 
-        x.writeUTF(u'á¼”Î´Ï‰ÏƒÎ±Î½')
+        x.writeUTF(u'ἔδωσαν')
 
         self.assertEquals(self.stream.getvalue(), '\x00\r\xe1\xbc\x94\xce\xb4'
             '\xcf\x89\xcf\x83\xce\xb1\xce\xbd')
@@ -1050,7 +1050,7 @@ class DataOutputTestCase(unittest.TestCase):
     def test_utf_bytes(self):
         x = amf3.DataOutput(self.encoder)
 
-        x.writeUTFBytes(u'á¼”Î´Ï‰ÏƒÎ±Î½')
+        x.writeUTFBytes(u'ἔδωσαν')
 
         self.assertEquals(self.stream.getvalue(),
             '\xe1\xbc\x94\xce\xb4\xcf\x89\xcf\x83\xce\xb1\xce\xbd')
@@ -1120,7 +1120,7 @@ class DataInputTestCase(unittest.TestCase):
         self._test(u'this is a test', u'this is a test', x.readMultiByte,
             14, 'utf-8')
         self._test('\xe1\xbc\x94\xce\xb4\xcf\x89\xcf\x83\xce\xb1\xce\xbd',
-            u'á¼”Î´Ï‰ÏƒÎ±Î½', x.readMultiByte, 13, 'utf-8')
+            u'ἔδωσαν', x.readMultiByte, 13, 'utf-8')
 
     def test_object(self):
         x = amf3.DataInput(self.decoder)
@@ -1144,13 +1144,13 @@ class DataInputTestCase(unittest.TestCase):
         x = amf3.DataInput(self.decoder)
 
         self._test('\x00\r\xe1\xbc\x94\xce\xb4\xcf\x89\xcf\x83\xce\xb1\xce\xbd',
-            u'á¼”Î´Ï‰ÏƒÎ±Î½', x.readUTF)
+            u'ἔδωσαν', x.readUTF)
 
     def test_utf_bytes(self):
         x = amf3.DataInput(self.decoder)
 
         self._test('\xe1\xbc\x94\xce\xb4\xcf\x89\xcf\x83\xce\xb1\xce\xbd',
-            u'á¼”Î´Ï‰ÏƒÎ±Î½', x.readUTFBytes, 13)
+            u'ἔδωσαν', x.readUTFBytes, 13)
 
 def suite():
     suite = unittest.TestSuite()
