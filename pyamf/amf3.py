@@ -101,10 +101,10 @@ class ASTypes:
 #: List of available ActionScript types in AMF3.
 ACTIONSCRIPT_TYPES = []
 
-#:
-for ASTYPE in ASTypes.__dict__:
-    if not ASTYPE.startswith('_'):
-        ACTIONSCRIPT_TYPES.append(ASTypes.__dict__[ASTYPE])
+for x in ASTypes.__dict__:
+    if not x.startswith('_'):
+        ACTIONSCRIPT_TYPES.append(ASTypes.__dict__[x])
+del x
 
 #: Reference bit.
 REFERENCE_BIT = 0x01

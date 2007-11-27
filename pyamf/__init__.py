@@ -87,6 +87,7 @@ CLIENT_TYPES = []
 for x in ClientTypes.__dict__:
     if not x.startswith('_'):
         CLIENT_TYPES.append(ClientTypes.__dict__[x])
+del x
 
 class BaseError(Exception):
     """
