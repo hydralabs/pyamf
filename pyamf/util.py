@@ -1,7 +1,7 @@
 # -*- encoding: utf8 -*-
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -9,10 +9,10 @@
 # distribute, sublicense, and/or sell copies of the Software, and to
 # permit persons to whom the Software is furnished to do so, subject to
 # the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -123,7 +123,7 @@ class StringIOProxy(object):
     def readline(self):
         """
         @note: This function does not consume the buffer.
-        
+
         @rtype:
         @return:
         """
@@ -136,7 +136,7 @@ class StringIOProxy(object):
         @type sizehint:
         @param sizehint:
         @note: This function does not consume the buffer.
-        
+
         @rtype:
         @return:
         """
@@ -408,7 +408,7 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
         @raise EOFError: Reading past end of stream.
         @raise IOError: Length specified but not enough buffer
         available.
-        
+
         @rtype: array of char
         @return: The bytes read from the stream.
         """
@@ -423,11 +423,11 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
         """
         Looks size bytes ahead in the stream, returning what it finds,
         returning the stream pointer to its initial position.
-        
+
         @param size:
         @type size:
         @raise ValueError: Raised when trying to peek backwards.
-        
+
         @rtype:
         @return: Bytes.
         """
@@ -464,7 +464,7 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
         @return: Number of remaining bytes.
         """
         return len(self) - self.tell()
-    
+
 def hexdump(data):
     """
     Get hexadecimal representation of C{StringIO} data.
@@ -504,7 +504,7 @@ def get_timestamp(d):
     @param d:
     @return: UTC timestamp.
     @rtype: str
-    
+
     @see: Inspiration taken from the U{Intertwingly blog
     <http://intertwingly.net/blog/2007/09/02/Dealing-With-Dates>}.
     """

@@ -1,7 +1,7 @@
 # -*- encoding: utf8 -*-
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -9,10 +9,10 @@
 # distribute, sublicense, and/or sell copies of the Software, and to
 # permit persons to whom the Software is furnished to do so, subject to
 # the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -50,7 +50,7 @@ from pyamf import util, flex
 class ASTypes:
     """
     All AMF3 data types used in ActionScript 3.0.
-    
+
     AMF represents ActionScript objects by a single byte representing
     type, and then by a type-specific byte array that may be of fixed
     length, may contain length information, or may come with its own end
@@ -76,7 +76,7 @@ class ASTypes:
     #: Format is the same as an AMF0
     #: L{Number<pyamf.amf0.ASTypes.NUMBER>}.
     NUMBER     = 0x05
-    #: 
+    #:
     STRING     = 0x06
     # TODO: not defined on site, says it's only XML type,
     # so we'll assume it is for the time being..
@@ -125,7 +125,7 @@ class ObjectEncoding:
     #: that implement IExternalizable, such as
     #: ArrayCollection and ObjectProxy.
     EXTERNAL = 0x01
-    
+
     #: Name-value encoding.
     #: The property names and values are encoded as string-data
     #: followed by AMF3-data until there is an empty string
@@ -133,7 +133,7 @@ class ObjectEncoding:
     #: are no property names and the number of values is equal
     #: to the number of properties in the class-def.
     DYNAMIC = 0x02
-    
+
     #: Proxy object.
     PROXY = 0x03
 
@@ -143,7 +143,7 @@ class ByteArray(util.StringIOProxy):
     the AMF stream.
 
     Supports C{zlib} compression.
-    
+
     Possible uses of the C{ByteArray} class:
 
      - Creating a custom protocol to connect to a client.
@@ -174,7 +174,7 @@ class ClassDefinition(object):
     @ivar encoding: The type of encoding to use when serializing the object.
     @type encoding: int
     @ivar attrs: List of attributes to encode.
-    @type attrs: list 
+    @type attrs: list
     """
 
     def __init__(self, alias, encoding=ObjectEncoding.STATIC, num_attrs=None):
@@ -228,7 +228,7 @@ class ClassDefinition(object):
                 raise pyamf.UnknownClassAlias, '%s' % (
                     'Anonymous class definitions do not have class aliases')
 
-            self._alias = pyamf.load_class(self.alias) 
+            self._alias = pyamf.load_class(self.alias)
 
         return self._alias
 
@@ -275,7 +275,7 @@ class Context(pyamf.BaseContext):
         @type ref: str
         @raise ReferenceError: The referenced string could not be found.
 
-        @rtype: str 
+        @rtype: str
         @return: The referenced string.
         """
         try:
@@ -329,7 +329,7 @@ class Context(pyamf.BaseContext):
         @type ref:
         @param ref:
         @raise ReferenceError: The class reference could not be found.
-        @return: 
+        @return:
         """
         try:
             return self.classes[ref]
@@ -338,7 +338,7 @@ class Context(pyamf.BaseContext):
 
     def getClassDefinitionReference(self, class_def):
         """
-        Return class definition reference. 
+        Return class definition reference.
 
         @type class_def: L{ClassDefinition}
         @param class_def: The class definition reference to be found.
@@ -349,7 +349,7 @@ class Context(pyamf.BaseContext):
         try:
             return self.classes.index(class_def)
         except ValueError:
-            raise pyamf.ReferenceError("Reference for class %r not found" % 
+            raise pyamf.ReferenceError("Reference for class %r not found" %
                 class_def)
 
     def addClassDefinition(self, class_def):
@@ -385,7 +385,7 @@ class Context(pyamf.BaseContext):
 
     def getLegacyXMLReference(self, doc):
         """
-        Return legacy xml reference. 
+        Return legacy xml reference.
 
         @type doc: L{util.ET}
         @param doc: The XML document to reference.
@@ -463,7 +463,7 @@ class Decoder(object):
     def readType(self):
         """
         Read and returns the next byte in the stream and determine its type.
-        
+
         @raise DecodeError: AMF3 type not recognized
         @return: AMF3 type
         @rtype: int
@@ -525,7 +525,7 @@ class Decoder(object):
         except KeyError, e:
             raise pyamf.DecodeError(
                 "Unsupported ActionScript type 0x%02x" % type)
-        
+
         try:
             return func()
         except EOFError:
@@ -675,14 +675,14 @@ class Decoder(object):
     def _getClassDefinition(self, ref):
         """
         Reads class definition from the stream.
-        
-        @type ref: 
+
+        @type ref:
         @param ref:
         @return:
         @rtype:
         """
         class_ref = ref & REFERENCE_BIT == 0
-        
+
         ref >>= 1
 
         if class_ref:
@@ -749,7 +749,7 @@ class Decoder(object):
             return self.context.getObject(ref >> 1)
 
         xmlstring = self.stream.read(ref >> 1)
-        
+
         x = util.ET.XML(xmlstring)
         self.context.addObject(x)
 
@@ -812,7 +812,8 @@ class Encoder(object):
     #: Python to AMF type mapping.
     type_map = [
         # Unsupported types go first
-        ((types.BuiltinFunctionType, types.BuiltinMethodType,), "writeUnsupported"),
+        ((types.BuiltinFunctionType, types.BuiltinMethodType,),
+            "writeUnsupported"),
         ((bool,), "writeBoolean"),
         ((int,long), "writeInteger"),
         ((float,), "writeNumber"),
@@ -852,7 +853,7 @@ class Encoder(object):
         """
         Writes the data type to the stream.
 
-        @type   type: 
+        @type   type:
         @param  type: ActionScript type.
         @raise EncodeError: AMF3 type is not recognized.
         """
@@ -865,8 +866,8 @@ class Encoder(object):
     def _writeElementFunc(self, data):
         """
         Gets a function based on the type of data.
-        
-        @type   data: 
+
+        @type   data:
         @param  data: Python data
         @rtype: callable or None
         @return: The function used to encode data to the stream
@@ -931,9 +932,6 @@ class Encoder(object):
         """
         AMF3 integers are encoded.
 
-        @type   n:
-        @param  n: integer data
-        
         @see: U{Parsing Integers on OSFlash
         <http://osflash.org/documentation/amf3/parsing_integers>}
         for more info.
@@ -1288,7 +1286,7 @@ class Encoder(object):
         if n._was_compressed:
             buf = zlib.compress(buf)
             #FIXME nick: hacked
-            buf = buf[0] + '\xda' + buf[2:] 
+            buf = buf[0] + '\xda' + buf[2:]
 
         l = len(buf)
         self._writeInteger(l << 1 | REFERENCE_BIT)
@@ -1346,7 +1344,7 @@ class DataOutput(object):
     def writeBoolean(self, value):
         """
         Writes a Boolean value.
-        
+
         @type value: bool
         @param value: A Boolean value determining which byte is written.
         If the parameter is C{True}, 1 is written; if C{False}, 0 is written.
@@ -1364,7 +1362,7 @@ class DataOutput(object):
     def writeByte(self, value):
         """
         Writes a byte.
-        
+
         @type value: int
         @param value:
         """
@@ -1485,7 +1483,7 @@ class DataOutput(object):
 class DataInput(object):
     """
     I provide a set of methods for reading binary data with ActionScript 3.0.
-    
+
     This class is the I/O counterpart to the L{DataOutput} class,
     which writes binary data.
 
@@ -1563,7 +1561,7 @@ class DataInput(object):
 
         @type length: int
         @param length: The number of bytes from the data stream to read.
-        
+
         @type charset: str
         @param charset: The string denoting the character set to use.
 
@@ -1579,7 +1577,7 @@ class DataInput(object):
         """
         Reads an object from the data stream.
 
-        @rtype: 
+        @rtype:
         @return: The deserialized object.
         """
         return self.decoder.readElement()
@@ -1633,8 +1631,8 @@ class DataInput(object):
         """
         data = self.stream.peek(2)
         length = ((ord(data[0]) << 8) & 0xff) + ((ord(data[1]) << 0) & 0xff)
-        
-        return decode_utf8_modified(self.stream.read(length + 2))        
+
+        return decode_utf8_modified(self.stream.read(length + 2))
 
     def readUTFBytes(self, length):
         """
@@ -1652,7 +1650,7 @@ class DataInput(object):
 def encode_utf8_modified(data):
     """
     Encodes a unicode string to Modified UTF-8 data.
-    
+
     @see: U{UTF-8 Java on Wikipedia<http://en.wikipedia.org/wiki/UTF-8#Java>}
     for details.
 
@@ -1696,10 +1694,11 @@ def decode_utf8_modified(data):
     @return: Unicode string
     @rtype: str
     @raise ValueError: Data is not valid modified UTF-8.
-    
+
     @see: U{UTF-8 Java on Wikipedia<http://en.wikipedia.org/wiki/UTF-8#Java>}
     for more details.
-    @copyright: Ruby version is Copyright (c) 2006 Ross Bamford (rosco AT roscopeco DOT co DOT uk)
+    @copyright: Ruby version is Copyright (c) 2006 Ross Bamford
+        (rosco AT roscopeco DOT co DOT uk)
     @note: Ported from U{Ruva
     <http://viewvc.rubyforge.mmmultiworks.com/cgi/viewvc.cgi/trunk/lib/ruva/class.rb>}.
     """
@@ -1739,11 +1738,9 @@ def decode(stream, context=None):
     @param  stream: AMF3 data.
     @type   context: L{Context}
     @param  context: Context.
-
-    @todo: Add Python 2.3 support (U{#33<http://pyamf.org/ticket/33>}).
     """
     decoder = Decoder(stream, context)
-    
+
     for el in decoder.readElement():
         yield el
 
@@ -1751,7 +1748,7 @@ def encode(element, context=None):
     """
     A helper function to encode an element into AMF3 format.
 
-    @type   element: 
+    @type   element:
     @param  element:
     @type   context: L{Context}
     @param  context: Context.

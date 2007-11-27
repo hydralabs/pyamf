@@ -9,10 +9,10 @@
 # distribute, sublicense, and/or sell copies of the Software, and to
 # permit persons to whom the Software is furnished to do so, subject to
 # the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -40,9 +40,9 @@ class ArrayCollection(dict):
     I represent the ActionScript 3 based class
     C{flex.messaging.io.ArrayCollection} used in the Flex framework.
 
-    The ArrayCollection class is a wrapper class that exposes an Array 
-    as a collection that can be accessed and manipulated using the 
-    methods and properties of the ICollectionView or IList interfaces 
+    The ArrayCollection class is a wrapper class that exposes an Array
+    as a collection that can be accessed and manipulated using the
+    methods and properties of the ICollectionView or IList interfaces
     in the Flex framework.
 
     @see: U{Livedocs (external)
@@ -62,7 +62,7 @@ class ArrayCollection(dict):
             count = 0
             for i in data:
                 self[count] = i
-                count += 1   
+                count += 1
 
     def __writeamf__(self, output):
         output.writeObject(dict(self), use_references=False)

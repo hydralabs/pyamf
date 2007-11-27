@@ -1,7 +1,7 @@
 # -*- encoding: utf8 -*-
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -9,10 +9,10 @@
 # distribute, sublicense, and/or sell copies of the Software, and to
 # permit persons to whom the Software is furnished to do so, subject to
 # the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -171,7 +171,7 @@ class BaseContext(object):
         @return:
         """
         try:
-            return self.objects.index(obj) 
+            return self.objects.index(obj)
         except ValueError:
             raise ReferenceError, "Reference for object %r not found" % repr(
                 obj)
@@ -225,7 +225,7 @@ class Bag(object):
         @type v:
         @param v:
         @rtype:
-        @return: 
+        @return:
         """
         return setattr(self, k, v)
 
@@ -258,9 +258,9 @@ class ClassMetaData(list):
     """
     I hold a list of tags relating to the class. The idea behind this is to
     emulate the metadata tags you can supply ActionScript, e.g. static/dynamic.
-    
+
     At the moment, only static, dynamic and external are allowed but this may
-    be extended in the future. 
+    be extended in the future.
     """
     _allowed_tags = (
         ('static', 'dynamic', 'external'),
@@ -272,7 +272,7 @@ class ClassMetaData(list):
         @type args:
         @param args:
         """
-        if len(args) == 1 and hasattr(args[0], '__iter__'):  
+        if len(args) == 1 and hasattr(args[0], '__iter__'):
             for x in args[0]:
                 self.append(x)
         else:
@@ -295,14 +295,14 @@ class ClassMetaData(list):
                     return (True, None)
 
         return (False, None)
- 
+
     def append(self, x):
         """
         Adds a tag to the metadata.
 
         @param x:
         @type x:
-        
+
         @raise ValueError: Unknown tag.
         """
         x = str(x).lower()
@@ -362,7 +362,7 @@ class ClassAlias(object):
         @param attrs:
         @type metadata:
         @param metadata:
-        
+
         @raise TypeError: The C{klass} must be a class type.
         @raise TypeError: The C{read_func} must be callable.
         @raise TypeError: The C{write_func} must be callable.
@@ -393,7 +393,7 @@ class ClassAlias(object):
         """
         Creates an instance of the klass.
 
-        @rtype: 
+        @rtype:
         @return: Instance of C{self.klass}.
         """
         return self.klass(*args, **kwargs)
@@ -423,7 +423,7 @@ def register_class(klass, alias, read_func=None, write_func=None,
     attrs=None, metadata=[]):
     """
     Registers a class to be used in the data streaming.
-    
+
     @type alias: str
     @param alias: The alias of klass, i.e. C{org.example.Person}.
     @type read_func:
@@ -434,7 +434,7 @@ def register_class(klass, alias, read_func=None, write_func=None,
     @type attrs: C{list} or C{None}
     @type metadata:
     @param metadata:
-        
+
     @raise TypeError: The C{klass} is not callable.
     @raise ValueError: The C{klass} is already registered.
     @raise ValueError: The C{alias} is already registered.
@@ -605,7 +605,7 @@ def get_class_alias(klass):
     @param klass:
     @raise UnknownClassAlias: Class not found.
     @raise TypeError: Expecting string or class type.
-    
+
     @rtype: L{ClassAlias}
     @return: The class alias linked to the C{klass}.
     """
@@ -657,7 +657,7 @@ def encode(element, encoding=AMF0, context=None):
     @type   context: L{amf0.Context<pyamf.amf0.Context>} or
     L{amf3.Context<pyamf.amf3.Context>}
     @param  context: Context.
-    
+
     @rtype:
     @return: File-like object.
     """
@@ -670,7 +670,7 @@ def encode(element, encoding=AMF0, context=None):
 
 def get_decoder(encoding):
     """
-    @type   encoding: 
+    @type   encoding:
     @param  encoding:
     """
     return _get_decoder_class(encoding)()
@@ -700,7 +700,7 @@ def _get_decoder_class(encoding):
 
 def get_encoder(encoding):
     """
-    @type   encoding: 
+    @type   encoding:
     @param  encoding:
     """
     return _get_encoder_class(encoding)()
@@ -730,7 +730,7 @@ def _get_encoder_class(encoding):
 
 def get_context(encoding):
     """
-    @type   encoding: 
+    @type   encoding:
     @param  encoding:
     """
     return _get_context_class(encoding)()
@@ -742,7 +742,7 @@ def _get_context_class(encoding):
     @type encoding: int
     @param encoding: AMF encoding version
     @raise ValueError: AMF encoding version is unknown.
-    
+
     @rtype: L{amf0.Context<pyamf.amf0.Context>} or
     L{amf3.Context<pyamf.amf3.Context>}
     @return: AMF0 or AMF3 context class.

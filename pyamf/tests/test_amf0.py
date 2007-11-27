@@ -1,10 +1,6 @@
 # -*- encoding: utf-8 -*-
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
-# 
-# Arnar Birgisson
-# Thijs Triemstra
-# Nick Joyce
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -13,10 +9,10 @@
 # distribute, sublicense, and/or sell copies of the Software, and to
 # permit persons to whom the Software is furnished to do so, subject to
 # the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -79,7 +75,7 @@ class ContextTestCase(unittest.TestCase):
         import copy
 
         orig = amf0.Context()
-        
+
         orig.addObject({'foo': 'bar'})
         orig.amf3_objs.append([1, 2, 3])
 
@@ -251,7 +247,7 @@ class EncoderTestCase(unittest.TestCase):
             (Foo({'x': 'y'}), '\x11\n\x13\x0ffoo.bar\x03x\x06\x03y')])
 
         pyamf.unregister_class(Foo)
-        
+
     def test_typed_object(self):
         class Foo(object):
             pass
@@ -296,9 +292,9 @@ class EncoderTestCase(unittest.TestCase):
         self.assertEquals(self.buf.getvalue(), '\x11\x04\x01')
 
 class DecoderTestCase(unittest.TestCase):
-    """ 
-    Tests the output from the AMF0 L{Decoder<pyamf.amf0.Decoder>} class. 
-    """ 
+    """
+    Tests the output from the AMF0 L{Decoder<pyamf.amf0.Decoder>} class.
+    """
     def setUp(self):
         self.buf = util.BufferedByteStream()
         self.decoder = amf0.Decoder(self.buf)
@@ -420,7 +416,7 @@ class DecoderTestCase(unittest.TestCase):
 
         self.failUnless(hasattr(obj, 'baz'))
         self.assertEquals(obj.baz, 'hello')
-        
+
         del pyamf.CLASS_CACHE['com.collab.dev.pyamf.foo']
 
     def test_complex_list(self):

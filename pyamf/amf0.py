@@ -1,6 +1,7 @@
 # -*- encoding: utf8 -*-
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
+#
 # 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -9,10 +10,10 @@
 # distribute, sublicense, and/or sell copies of the Software, and to
 # permit persons to whom the Software is furnished to do so, subject to
 # the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -73,23 +74,23 @@ class ASTypes:
     #: parameters of the same function called), a code of C{0×07} and an C{int},
     #: the reference number, are written.
     REFERENCE   = 0x07
-    #: A MixedArray is indicated by code C{0×08}, then a Long representing the 
+    #: A MixedArray is indicated by code C{0×08}, then a Long representing the
     #: highest numeric index in the array, or 0 if there are none or they are all
-    #: negative. After that follow the elements in key : value pairs. 
+    #: negative. After that follow the elements in key : value pairs.
     MIXEDARRAY  = 0x08
     #: @see: L{OBJECT}
     OBJECTTERM  = 0x09
-    #: An array is indicated by C{0x0A}, then a Long for array length, then the 
-    #: array elements themselves. Arrays are always sparse; values for inexistant 
+    #: An array is indicated by C{0x0A}, then a Long for array length, then the
+    #: array elements themselves. Arrays are always sparse; values for inexistant
     #: keys are set to null (C{0×06}) to maintain sparsity.
     ARRAY       = 0x0a
-    #: Date is represented as C{00x0B}, then a double, then an C{int}. The double 
+    #: Date is represented as C{00x0B}, then a double, then an C{int}. The double
     #: represents the number of milliseconds since 01/01/1970. The C{int} represents
-    #: the timezone offset in minutes between GMT. Note for the latter than values 
+    #: the timezone offset in minutes between GMT. Note for the latter than values
     #: greater than 720 (12 hours) are represented as M{2^16} - the value. Thus GMT+1
     #: is 60 while GMT-5 is 65236.
     DATE        = 0x0b
-    #: LongString is reserved for strings larger then M{2^16} characters long. It 
+    #: LongString is reserved for strings larger then M{2^16} characters long. It
     #: is represented as C{00x0C} then a LongUTF.
     LONGSTRING  = 0x0c
     #: Trying to send values which don’t make sense, such as prototypes, functions,
@@ -99,19 +100,19 @@ class ASTypes:
     #: @see: U{RecordSet structure on OSFlash (external)
     #: <http://osflash.org/documentation/amf/recordset>}
     RECORDSET   = 0x0e
-    #: The XML element is indicated by C{00x0F} and followed by a LongUTF containing 
-    #: the string representation of the XML object. The receiving gateway may which 
+    #: The XML element is indicated by C{00x0F} and followed by a LongUTF containing
+    #: the string representation of the XML object. The receiving gateway may which
     #: to wrap this string inside a language-specific standard XML object, or simply
     #: pass as a string.
     XML         = 0x0f
-    #: A typed object is indicated by C{0×10}, then a UTF string indicating class 
-    #: name, and then the same structure as a normal C{0×03} Object. The receiving 
+    #: A typed object is indicated by C{0×10}, then a UTF string indicating class
+    #: name, and then the same structure as a normal C{0×03} Object. The receiving
     #: gateway may use a mapping scheme, or send back as a vanilla object or
     #: associative array.
     TYPEDOBJECT = 0x10
-    #: An AMF message sent from an AS3 client such as the Flash Player 9 may break 
-    #: out into L{AMF3<pyamf.amf3>} mode. In this case the next byte will be the 
-    #: AMF3 type code and the data will be in AMF3 format until the decoded object 
+    #: An AMF message sent from an AS3 client such as the Flash Player 9 may break
+    #: out into L{AMF3<pyamf.amf3>} mode. In this case the next byte will be the
+    #: AMF3 type code and the data will be in AMF3 format until the decoded object
     #: reaches it’s logical conclusion (for example, an object has no more keys).
     AMF3        = 0x11
 
@@ -292,8 +293,8 @@ class Decoder(object):
         """
         Reads an object from the stream and attempts to 'cast' it.
 
-        @rtype: 
-        @return: 
+        @rtype:
+        @return:
 
         @see: L{load_class<pyamf.load_class>} for more info.
         """
@@ -323,10 +324,10 @@ class Decoder(object):
     def readElement(self):
         """
         Reads an AMF0 element from the data stream.
-        
+
         @raise DecodeError: The ActionScript type is unknown.
-        @rtype: 
-        @return: 
+        @rtype:
+        @return:
         """
         type = self.readType()
 
@@ -343,7 +344,7 @@ class Decoder(object):
         Reads a string from the data stream.
 
         @rtype: str
-        @return: 
+        @return:
         """
         len = self.stream.read_ushort()
         return self.stream.read_utf8_string(len)
@@ -359,7 +360,12 @@ class Decoder(object):
             if isinstance(obj, (list, dict, tuple)):
                 obj[key] = self.readElement()
             else:
-                setattr(obj, key, self.readElement())
+                value = self.readElement()
+
+                try:
+                    setattr(obj, key, value)
+                except AttributeError:
+                    obj.__dict__[key] = value
 
             key = self.readString()
 
@@ -384,11 +390,11 @@ class Decoder(object):
         """
         Reads a reference from the data stream.
 
-        @rtype: 
-        @return: 
+        @rtype:
+        @return:
         """
         idx = self.stream.read_ushort()
-        
+
         return self.context.getObject(idx)
 
     def readDate(self):
@@ -402,8 +408,8 @@ class Decoder(object):
         Endian number indicating the indicated time's timezone in
         minutes.
 
-        @rtype: 
-        @return: 
+        @rtype:
+        @return:
         """
         ms = self.stream.read_double() / 1000.0
         tz = self.stream.read_short()
@@ -418,19 +424,19 @@ class Decoder(object):
         """
         Read UTF8 string.
 
-        @rtype: 
-        @return: 
+        @rtype:
+        @return:
         """
         len = self.stream.read_ulong()
-        
+
         return self.stream.read_utf8_string(len)
 
     def readXML(self):
         """
         Read XML.
 
-        @rtype: 
-        @return: 
+        @rtype:
+        @return:
         """
         data = self.readLongString()
         xml = util.ET.fromstring(data)
@@ -441,7 +447,7 @@ class Decoder(object):
 class Encoder(object):
     """
     Encodes an AMF0 stream.
-    
+
     The type map is a list of types -> functions. The types is a list of
     possible instances or functions to call (that return a C{bool}) to determine
     the correct function to call to encode the data.
@@ -503,7 +509,7 @@ class Encoder(object):
         """
         Writes unsupported data type to the stream.
 
-        @type   data: 
+        @type   data:
         @param  data:
         """
         self.writeType(ASTypes.UNSUPPORTED)
@@ -512,7 +518,7 @@ class Encoder(object):
         """
         Gets a function based on the type of data.
 
-        @type   data: 
+        @type   data:
         @param  data:
         @rtype: callable or None
         @return: The function used to encode data to the stream.
@@ -542,7 +548,7 @@ class Encoder(object):
         Writes an encoded version of data to the output stream.
 
         @type   data: mixed
-        @param  data: 
+        @param  data:
         """
         func = self._writeElementFunc(data)
 
@@ -685,7 +691,7 @@ class Encoder(object):
         Write end of object in the data stream.
         """
         # Write a null string, this is an optimisation so that we don't have to
-        # wasting precious cycles by encoding the string etc. 
+        # wasting precious cycles by encoding the string etc.
         self.stream.write('\x00\x00')
         self.writeType(ASTypes.OBJECTTERM)
 
@@ -714,17 +720,22 @@ class Encoder(object):
                 self.writeType(ASTypes.TYPEDOBJECT)
                 self.writeString(alias.alias, False)
         except pyamf.UnknownClassAlias:
+            alias = None
+
             self.writeType(ASTypes.OBJECT)
 
         # TODO: give objects a chance of controlling what we send
-        if 'iteritems' in dir(o):
-            it = o.iteritems()
+        if alias is not None and alias.attrs is not None:
+            it = alias.attrs
+        elif hasattr(o, '__dict__'):
+            it = o.__dict__.keys()
         else:
-            it = o.__dict__.iteritems()
+            # FIXME nick: Don't know how to represent the object here.
+            it = []
 
-        for key, val in it:
+        for key in it:
             self.writeString(key, False)
-            self.writeElement(val)
+            self.writeElement(getattr(o, key))
 
         self._writeEndObject()
 
@@ -760,7 +771,7 @@ class Encoder(object):
     def writeAMF3(self, data):
         """
         Writes an element to the datastream in L{AMF3<pyamf.amf3>} format.
-        
+
         @type data: mixed
         @param data: The data to be encoded.
         """

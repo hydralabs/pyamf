@@ -2,11 +2,7 @@
 # -*- encoding: utf8 -*-
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
-# 
-# Arnar Birgisson
-# Thijs Triemstra
-# Nick Joyce
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -14,10 +10,10 @@
 # distribute, sublicense, and/or sell copies of the Software, and to
 # permit persons to whom the Software is furnished to do so, subject to
 # the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -73,25 +69,25 @@ def main():
 
     for arg in args:
         for fname in glob.glob(arg):
-            
+
             body = read_file(fname)
 
             try:
-                print "Decoding file:", fname.rsplit("\\",1)[-1], "\n"           
+                print "Decoding file:", fname.rsplit("\\",1)[-1], "\n"
                 request = remoting.decode(body)
                 response = remoting.Envelope(request.amfVersion, request.clientType)
 
             except:
                 raise
-            
-            else:                    
+
+            else:
                 if options.debug:
                     for name, message in request:
                         print "  ", message
                         print "-" * 80
-                        
+
                 if options.dump:
                     print pyamf.util.hexdump(body)
-                    
+
 if __name__ == '__main__':
     main()

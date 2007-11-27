@@ -1,7 +1,7 @@
 # -*- encoding: utf8 -*-
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -9,10 +9,10 @@
 # distribute, sublicense, and/or sell copies of the Software, and to
 # permit persons to whom the Software is furnished to do so, subject to
 # the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -70,16 +70,16 @@ class AbstractMessage(object):
     #: the value controls how long the responder will wait for an acknowledgement, result
     #: or fault response for the message before timing out the request.
     REQUEST_TIMEOUT_HEADER = "DSRequestTimeout"
-    
+
     def __init__(self):
         #: Specific data that needs to be delivered to the remote destination.
         self.data = None
-        #: The clientId indicates which client sent the message. 
+        #: The clientId indicates which client sent the message.
         self.clientId = None
         #: The message destination.
         self.destination = None
         #: Message headers.
-        #: 
+        #:
         #: Core header names begin with a 'DS' prefix. Custom header names should start
         #: with a unique prefix to avoid name collisions.
         self.headers = []
@@ -215,14 +215,14 @@ class ErrorMessage(AbstractMessage):
         """
         """
         AbstractMessage.__init__(self)
-        #: Extended data that the remote destination has chosen to associate with 
-        #: this error to facilitate custom error processing on the client. 
-        self.extendedData = {}   
-        #: Fault code for the error. 
+        #: Extended data that the remote destination has chosen to associate with
+        #: this error to facilitate custom error processing on the client.
+        self.extendedData = {}
+        #: Fault code for the error.
         self.faultCode = None
-        #: Detailed description of what caused the error. 
+        #: Detailed description of what caused the error.
         self.faultDetail = None
-        #: A simple description of the error. 
+        #: A simple description of the error.
         self.faultString = None
         #: Should a traceback exist for the error, this property contains the
         #: message.

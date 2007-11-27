@@ -1,14 +1,14 @@
 PyAMF Changelog
 ===============
 
-This file contains information about the changes between the 
+This file contains information about the changes between the
 different versions of PyAMF.
 
 0.1.0 (unreleased)
 ------------------------------------------------------------
  - Basic AMF0 and AMF3 encoders/decoders
- - Additional support for IExternalizable (#29), 
-   ArrayCollection (#30), ObjectProxy (#31), ByteArray (#32), 
+ - Additional support for IExternalizable (#29),
+   ArrayCollection (#30), ObjectProxy (#31), ByteArray (#32),
    and RecordSet (#38)
  - Remoting support with gateways for Twisted (#15)
    WSGI (#16), and Django (#17)
@@ -18,5 +18,5 @@ different versions of PyAMF.
 
 2007-10-19
 ------------------------------------------------------------
- - Started project based on previous work done in the 
+ - Started project based on previous work done in the
    RTMPy (http://rtmpy.org) project.

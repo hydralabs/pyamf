@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -9,10 +9,10 @@
 # distribute, sublicense, and/or sell copies of the Software, and to
 # permit persons to whom the Software is furnished to do so, subject to
 # the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -194,17 +194,17 @@ class ContextTestCase(unittest.TestCase):
 
         new = copy.copy(old)
 
-        self.assertEquals(new.objects, []) 
-        self.assertEquals(len(new.objects), 0) 
- 
-        self.assertEquals(new.strings, []) 
-        self.assertEquals(len(new.strings), 0) 
- 
-        self.assertEquals(new.classes, []) 
-        self.assertEquals(len(new.classes), 0) 
+        self.assertEquals(new.objects, [])
+        self.assertEquals(len(new.objects), 0)
 
-        self.assertEquals(new.legacy_xml, []) 
-        self.assertEquals(len(new.legacy_xml), 0) 
+        self.assertEquals(new.strings, [])
+        self.assertEquals(len(new.strings), 0)
+
+        self.assertEquals(new.classes, [])
+        self.assertEquals(len(new.classes), 0)
+
+        self.assertEquals(new.legacy_xml, [])
+        self.assertEquals(len(new.legacy_xml), 0)
 
 class ClassDefinitionTestCase(unittest.TestCase):
     def test_create(self):
@@ -233,7 +233,7 @@ class ClassDefinitionTestCase(unittest.TestCase):
         self.assertEquals(x.attrs, [])
         self.assertEquals(len(x.attrs), 0)
         self.assertEquals(x.num_attrs, None)
-        
+
         pyamf.unregister_class(Foo)
 
     def test_name(self):
@@ -244,7 +244,7 @@ class ClassDefinitionTestCase(unittest.TestCase):
         self.assertEquals(x.name, '')
 
         pyamf.register_class(Foo, 'foo.bar')
-        
+
         x = amf3.ClassDefinition('foo.bar')
         self.assertEquals(x.name, 'foo.bar')
 
@@ -323,7 +323,7 @@ class EncoderTestCase(unittest.TestCase):
     def test_string(self):
         self._run([
             ('hello', '\x06\x0bhello'),
-            (u'ᚠᛇᚻ', '\x06\x13\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb')])
+            (u'áš á›‡áš»', '\x06\x13\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb')])
 
     def test_string_references(self):
         self._run([
@@ -333,7 +333,7 @@ class EncoderTestCase(unittest.TestCase):
 
     def test_date(self):
         import datetime
-        
+
         x = datetime.datetime(2005, 3, 18, 1, 58, 31)
 
         self._run([
@@ -382,7 +382,7 @@ class EncoderTestCase(unittest.TestCase):
         """
         Test to see if there is an empty key in the dict. There is a design
         bug in Flash 9 which means that it cannot read this specific data.
-        
+
         @bug: See U{http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug}
         for more info.
         """
@@ -519,7 +519,7 @@ class DecoderTestCase(unittest.TestCase):
         self._run([
             ('', '\x06\x01'),
             ('hello', '\x06\x0bhello'),
-            (u'ღმერთსი შემვედრე, ნუთუ კვლა დამხსნას სოფლისა შრომასა, ცეცხლს',
+            (u'áƒ¦áƒ›áƒ”áƒ áƒ—áƒ¡áƒ˜ áƒ¨áƒ”áƒ›áƒ•áƒ”áƒ“áƒ áƒ”, áƒœáƒ£áƒ—áƒ£ áƒ™áƒ•áƒšáƒ áƒ“áƒáƒ›áƒ®áƒ¡áƒœáƒáƒ¡ áƒ¡áƒáƒ¤áƒšáƒ˜áƒ¡áƒ áƒ¨áƒ áƒáƒ›áƒáƒ¡áƒ, áƒªáƒ”áƒªáƒ®áƒšáƒ¡',
                 '\x06\x82\x45\xe1\x83\xa6\xe1\x83\x9b\xe1\x83\x94\xe1\x83\xa0'
                 '\xe1\x83\x97\xe1\x83\xa1\xe1\x83\x98\x20\xe1\x83\xa8\xe1\x83'
                 '\x94\xe1\x83\x9b\xe1\x83\x95\xe1\x83\x94\xe1\x83\x93\xe1\x83'
@@ -545,7 +545,7 @@ class DecoderTestCase(unittest.TestCase):
         self.buf.write('\x07\x33<a><b>hello world</b></a>')
         self.buf.seek(0, 0)
         x = self.decoder.readElement()
-        
+
         self.assertEquals(util.ET.tostring(x), '<a><b>hello world</b></a>')
         self.assertEquals(self.context.getLegacyXMLReference(x), 0)
 
@@ -560,7 +560,7 @@ class DecoderTestCase(unittest.TestCase):
         self.buf.write('\x0b\x33<a><b>hello world</b></a>')
         self.buf.seek(0, 0)
         x = self.decoder.readElement()
-        
+
         self.assertEquals(util.ET.tostring(x), '<a><b>hello world</b></a>')
         self.assertRaises(pyamf.ReferenceError,
             self.context.getLegacyXMLReference, x)
@@ -765,7 +765,7 @@ class ObjectEncodingTestCase(unittest.TestCase):
         # first value
         self.assertEquals(buf[14:19], '\x06\x07bar')
         # empty key
-        self.assertEquals(buf[19:21], '\x06\x01')        
+        self.assertEquals(buf[19:21], '\x06\x01')
 
         self.assertEquals(len(buf), 21)
 
@@ -822,7 +822,7 @@ class ObjectDecodingTestCase(unittest.TestCase):
         self.assertEquals(self.context.strings, [])
         self.assertEquals(self.context.classes, [])
 
-        self.stream.write('\x0a\x13\x0fabc.xyz\x07foo\x06\x07bar')      
+        self.stream.write('\x0a\x13\x0fabc.xyz\x07foo\x06\x07bar')
         self.stream.seek(0, 0)
 
         obj = self.decoder.readElement()
@@ -892,8 +892,8 @@ class ObjectDecodingTestCase(unittest.TestCase):
 class ModifiedUTF8TestCase(unittest.TestCase):
     data = [
         ('hello', '\x00\x05\x68\x65\x6c\x6c\x6f'),
-        (u'ᚠᛇᚻ᛫ᛒᛦᚦ᛫ᚠᚱᚩᚠᚢᚱ᛫ᚠᛁᚱᚪ᛫ᚷᛖᚻᚹᛦᛚᚳᚢᛗᛋᚳᛖᚪᛚ᛫ᚦᛖᚪᚻ᛫ᛗᚪᚾᚾᚪ᛫ᚷᛖᚻᚹᛦᛚᚳ᛫ᛗᛁᚳᛚᚢᚾ᛫ᚻᛦᛏ᛫ᛞᚫ'
-            u'ᛚᚪᚾᚷᛁᚠ᛫ᚻᛖ᛫ᚹᛁᛚᛖ᛫ᚠᚩᚱ᛫ᛞᚱᛁᚻᛏᚾᛖ᛫ᛞᚩᛗᛖᛋ᛫ᚻᛚᛇᛏᚪᚾ᛬',
+        (u'áš á›‡áš»á›«á›’á›¦áš¦á›«áš áš±áš©áš áš¢áš±á›«áš á›áš±ášªá›«áš·á›–áš»áš¹á›¦á›šáš³áš¢á›—á›‹áš³á›–ášªá›šá›«áš¦á›–ášªáš»á›«á›—ášªáš¾áš¾ášªá›«áš·á›–áš»áš¹á›¦á›šáš³á›«á›—á›áš³á›šáš¢áš¾á›«áš»á›¦á›á›«á›žáš«'
+            u'á›šášªáš¾áš·á›áš á›«áš»á›–á›«áš¹á›á›šá›–á›«áš áš©áš±á›«á›žáš±á›áš»á›áš¾á›–á›«á›žáš©á›—á›–á›‹á›«áš»á›šá›‡á›ášªáš¾á›¬',
             '\x01\x41\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb\xe1\x9b\xab\xe1\x9b'
             '\x92\xe1\x9b\xa6\xe1\x9a\xa6\xe1\x9b\xab\xe1\x9a\xa0\xe1\x9a\xb1'
             '\xe1\x9a\xa9\xe1\x9a\xa0\xe1\x9a\xa2\xe1\x9a\xb1\xe1\x9b\xab\xe1'
@@ -997,7 +997,7 @@ class DataOutputTestCase(unittest.TestCase):
         self.assertEquals(self.stream.getvalue(), u'this is a test')
         self.stream.truncate()
 
-        x.writeMultiByte(u'ἔδωσαν', 'utf-8')
+        x.writeMultiByte(u'á¼”Î´Ï‰ÏƒÎ±Î½', 'utf-8')
         self.assertEquals(self.stream.getvalue(), '\xe1\xbc\x94\xce\xb4\xcf'
             '\x89\xcf\x83\xce\xb1\xce\xbd')
 
@@ -1042,7 +1042,7 @@ class DataOutputTestCase(unittest.TestCase):
     def test_utf(self):
         x = amf3.DataOutput(self.encoder)
 
-        x.writeUTF(u'ἔδωσαν')
+        x.writeUTF(u'á¼”Î´Ï‰ÏƒÎ±Î½')
 
         self.assertEquals(self.stream.getvalue(), '\x00\r\xe1\xbc\x94\xce\xb4'
             '\xcf\x89\xcf\x83\xce\xb1\xce\xbd')
@@ -1050,7 +1050,7 @@ class DataOutputTestCase(unittest.TestCase):
     def test_utf_bytes(self):
         x = amf3.DataOutput(self.encoder)
 
-        x.writeUTFBytes(u'ἔδωσαν')
+        x.writeUTFBytes(u'á¼”Î´Ï‰ÏƒÎ±Î½')
 
         self.assertEquals(self.stream.getvalue(),
             '\xe1\xbc\x94\xce\xb4\xcf\x89\xcf\x83\xce\xb1\xce\xbd')
@@ -1120,11 +1120,11 @@ class DataInputTestCase(unittest.TestCase):
         self._test(u'this is a test', u'this is a test', x.readMultiByte,
             14, 'utf-8')
         self._test('\xe1\xbc\x94\xce\xb4\xcf\x89\xcf\x83\xce\xb1\xce\xbd',
-            u'ἔδωσαν', x.readMultiByte, 13, 'utf-8')
+            u'á¼”Î´Ï‰ÏƒÎ±Î½', x.readMultiByte, 13, 'utf-8')
 
     def test_object(self):
         x = amf3.DataInput(self.decoder)
-        
+
         self._test('\t\x01\x07foo\x06\x07bar\x01', {'foo': 'bar'}, x.readObject)
         # check references
         self._test('\t\x00', {'foo': 'bar'}, x.readObject)
@@ -1144,13 +1144,13 @@ class DataInputTestCase(unittest.TestCase):
         x = amf3.DataInput(self.decoder)
 
         self._test('\x00\r\xe1\xbc\x94\xce\xb4\xcf\x89\xcf\x83\xce\xb1\xce\xbd',
-            u'ἔδωσαν', x.readUTF)
+            u'á¼”Î´Ï‰ÏƒÎ±Î½', x.readUTF)
 
     def test_utf_bytes(self):
         x = amf3.DataInput(self.decoder)
 
         self._test('\xe1\xbc\x94\xce\xb4\xcf\x89\xcf\x83\xce\xb1\xce\xbd',
-            u'ἔδωσαν', x.readUTFBytes, 13)
+            u'á¼”Î´Ï‰ÏƒÎ±Î½', x.readUTFBytes, 13)
 
 def suite():
     suite = unittest.TestSuite()

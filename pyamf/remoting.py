@@ -1,7 +1,7 @@
 # -*- encoding: utf8 -*-
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -9,10 +9,10 @@
 # distribute, sublicense, and/or sell copies of the Software, and to
 # permit persons to whom the Software is furnished to do so, subject to
 # the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -57,8 +57,6 @@ STATUS_OK = 0
 STATUS_ERROR = 1
 #: Debug information.
 STATUS_DEBUG = 2
-#: AMF mimetype.
-CONTENT_TYPE = 'application/x-amf'
 
 #: List of available status codes.
 STATUS_CODES = {
@@ -101,7 +99,7 @@ class HeaderCollection(dict):
         @param idx:
         @type value: bool
         @param value:
-        
+
         @raise KeyError: Unknown header found.
         """
         if not idx in self:
@@ -168,9 +166,9 @@ class Message(object):
     """
 
     def __init__(self, envelope, target, status, body):
-        #: 
+        #:
         self.envelope = envelope
-        #: 
+        #:
         self.target = target
         #:
         self.status = status
@@ -190,7 +188,7 @@ class Message(object):
 def _read_header(stream, decoder, strict=False):
     """
     Read AMF L{Message} header.
-    
+
     @type   stream: L{BufferedByteStream}
     @param  stream: AMF data.
     @type   decoder: L{amf0.Decoder<pyamf.amf0.Decoder>} or
@@ -200,7 +198,7 @@ def _read_header(stream, decoder, strict=False):
     @param strict:
     @raise DecodeError: The data that was read from the stream
     does not match the header length.
-    
+
     @rtype: tuple
     @return:
      - Name of the header.
@@ -208,7 +206,7 @@ def _read_header(stream, decoder, strict=False):
      required.
      - Value of the header.
     """
-    
+
     name_len = stream.read_ushort()
     name = stream.read_utf8_string(name_len)
 
@@ -231,7 +229,7 @@ def _write_header(name, header, required, stream, encoder, strict=False):
 
     @type   name: str
     @param  name: Name of header
-    @type   header: 
+    @type   header:
     @param  header: Raw header data.
     @type   required: L{bool}
     @param  required: Required header.
@@ -278,24 +276,6 @@ def _read_body(stream, decoder, strict=False):
      - The id (as sent by the client) of the body.
      - The data of the body.
     """
-    def _read_container():
-        """
-        @raise DecodeError: The remoting type is not of the
-        expected C{list} type.
-        """
-        stream = decoder.stream 
-        type = stream.read_uchar()
-
-        if type != 0x0a:
-            raise pyamf.DecodeError, "Expected list type for remoting body"
-
-        items = []
-
-        for i in xrange(stream.read_ulong()):
-            items.append(decoder.readElement())
-
-        return items
-
     target_len = stream.read_ushort()
     target = stream.read_utf8_string(target_len)
 
@@ -311,7 +291,7 @@ def _read_body(stream, decoder, strict=False):
 
     data_len = stream.read_ulong()
     pos = stream.tell()
-    data = _read_container()
+    data = decoder.readElement()
 
     if strict and pos + data_len != stream.tell():
         raise pyamf.DecodeError("Data read from stream "
@@ -336,12 +316,12 @@ def _write_body(name, message, stream, encoder, strict=False):
     @type strict: bool
     @param strict:
     """
-    response = "%s%s" % (name, _get_status(message.status))
+    target = u"%s%s" % (name, _get_status(message.status))
 
-    stream.write_ushort(len(response))
-    stream.write_utf8_string(response)
+    stream.write_ushort(len(target))
+    stream.write_utf8_string(target)
 
-    response = 'null'
+    response = u'null'
     stream.write_ushort(len(response))
     stream.write_utf8_string(response)
 
@@ -352,7 +332,7 @@ def _write_body(name, message, stream, encoder, strict=False):
     try:
         encoder.writeElement(message.body)
     except RuntimeError:
-        # TODO 
+        # TODO
         print "doh"
 
     new_pos = stream.tell()
@@ -365,23 +345,23 @@ def _write_body(name, message, stream, encoder, strict=False):
 def _get_status(status):
     """
     Get status code.
-    
+
     @type status:
     @param status:
     @raise ValueError: The status code is unknown.
-    
+
     @rtype:
     @return: Status codes.
     """
     if status not in STATUS_CODES.keys():
-        raise ValueError("Unknown status code")
+        raise ValueError, "Unknown status code"
 
     return STATUS_CODES[status]
 
 def decode(stream, context=None, strict=False):
     """
     Decodes the incoming stream. .
-    
+
     @type   stream: L{BufferedByteStream}
     @param  stream: AMF data.
     @type   context: L{AMF0 Context<pyamf.amf0.Context>} or
@@ -389,14 +369,14 @@ def decode(stream, context=None, strict=False):
     @param  context: Context.
     @type strict: bool
     @param strict:
-    
+
     @raise DecodeError: Malformed stream. Check the U{Remoting Envelope
     documentation on OSFlash
     <http://osflash.org/documentation/amf/envelopes/remoting#preamble>}
     for more information.
     @raise RuntimeError: Decoder is unable to fully consume the
     stream buffer.
-    
+
     @return: Message envelope.
     @rtype: L{Envelope}
     """
@@ -432,6 +412,18 @@ def decode(stream, context=None, strict=False):
 
     for i in range(body_count):
         target, response, status, data = _read_body(stream, decoder, strict)
+
+        if response == 'null':
+            # the body is a response
+            x = target.rsplit('/', 1)
+            response = x[0]
+
+            for (code, s) in STATUS_CODES.iteritems():
+                if s.endswith(x[1]):
+                    status = code
+
+                    break
+
         msg[response] = (target, status, data)
 
     if stream.remaining() > 0:
@@ -449,8 +441,9 @@ def encode(msg, old_context=None, strict=False):
     L{AMF3 Context<pyamf.amf3.Context>}
     @param  old_context: Context.
     @type strict: bool
-    @param strict:
-    
+    @param strict: Determines whether encoding should be strict. Specifically
+        header/body lengths will be written correctly, instead of the default 0
+
     @rtype:
     @return: File object.
     """
@@ -511,7 +504,7 @@ class RecordSet(object):
         self.columns = columns
         self.items = items
         self.service = service
-        self.id = id 
+        self.id = id
 
     def _get_server_info(self):
         """
@@ -531,7 +524,7 @@ class RecordSet(object):
 
     def _set_server_info(self, val):
         """
-        @type val: 
+        @type val:
         @param val:
         """
         self.columns = val['columnNames']

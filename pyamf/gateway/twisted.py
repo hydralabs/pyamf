@@ -1,10 +1,7 @@
 # -*- encoding: utf8 -*-
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
-# 
-# Thijs Triemstra
-# Nick Joyce
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
 # "Software"), to deal in the Software without restriction, including
@@ -12,10 +9,10 @@
 # distribute, sublicense, and/or sell copies of the Software, and to
 # permit persons to whom the Software is furnished to do so, subject to
 # the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be
 # included in all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -33,16 +30,43 @@ U{Twisted<http://twistedmatrix.com>} Server and Client implementations.
 @since: 0.1.0
 """
 
-# import twisted workaround
-import sys
-thismodule = sys.modules['twisted']
-del sys.modules['twisted']
-real_twisted = __import__('twisted')
-sys.modules['real_twisted'] = real_twisted
-sys.modules['twisted'] = thismodule
+defer = threads = reactor = None
+resource = server = client = None
 
-from real_twisted.internet import defer, threads, reactor
-from real_twisted.web import resource, server, client
+# import django workaround for module name
+import sys, imp, os, os.path
+
+idx = []
+
+if '' in sys.path:
+    idx.append((sys.path.index(''), ''))
+    sys.path.remove('')
+
+cwd = os.getcwd()
+
+for name, mod in sys.modules.iteritems():
+    if not name.endswith('twisted') or mod is None:
+        continue
+
+    if __file__ == mod.__file__:
+        if name != 'twisted':
+            os.chdir(os.path.abspath(os.path.dirname(__file__)))
+            sys.modules['twisted'] = mod
+
+        break
+
+t = imp.find_module('twisted', sys.path)
+imp.load_module('twisted', None, t[1], t[2])
+
+import sys
+
+for x in idx:
+    sys.path.insert(x[0], x[1])
+
+del idx, imp, os
+
+from twisted.internet import defer, threads, reactor
+from twisted.web import resource, server, client
 
 import pyamf
 from pyamf import remoting, gateway
@@ -53,7 +77,7 @@ class ServiceRequest(gateway.ServiceRequest):
     """
     Remoting service request.
     """
-    
+
     def authenticate(self, username, password):
         """
         Twisted implementation of L{gateway.ServiceRequest}
@@ -62,7 +86,7 @@ class ServiceRequest(gateway.ServiceRequest):
         @type username: str
         @param password:
         @type password: str
-        
+
         @return: A Deferred which fires a callback containing the result
                  (a bool)of the authentication.
         @rtype: Deferred
@@ -76,13 +100,13 @@ class ServiceRequest(gateway.ServiceRequest):
 
     def __call__(self, *args):
         return defer.maybeDeferred(self.service, self.method, args)
- 
+
 class TwistedGateway(gateway.BaseGateway, resource.Resource):
     """
     Twisted Remoting gateway.
     """
     _request_class = ServiceRequest
-    
+
     def __init__(self, services, debug):
         """
         @param services:
@@ -153,10 +177,10 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
 
         @type request:
         @param request:
-        @rtype: 
-        @return: 
+        @rtype:
+        @return:
         """
-        
+
         self.request_number += 1
         request.content.seek(0, 0)
 
@@ -185,10 +209,10 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
             if self.debug:
                 #: write amf request and response to disk.
                 self.save_request(self.body, self.stream)
-                
+
             request.setHeader("Content-Length", str(len(result)))
             request.write(result.getvalue())
-            request.finish()    
+            request.finish()
 
         threads.deferToThread(remoting.encode, self.response, self.context
             ).addErrback(self._ebRender).addCallback(finishRequest)
@@ -222,34 +246,34 @@ class TwistedClient(client.HTTPPageGetter):
         self.service = service
         self.resultHandler = result_func
         self.faultHandler = fault_func
-        
+
     def send(self, data):
         """
         """
         response = pyamf.remoting.Message(None, None, None, None)
         response.body = {'echo':data}
         response.status = pyamf.remoting.STATUS_OK
-        
+
         env = pyamf.remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.FlashCom)
         env[self.service] = response
 
         print "Sending AMF request:", data
-        
+
         data = pyamf.remoting.encode(env).getvalue()
 
         endPoint = 'http://' + self.host + ":" + str(self.port)
-        
+
         postRequest = client.getPage(
             endPoint,
             method='POST',
             headers={'Content-Type': pyamf.remoting.CONTENT_TYPE,
                      'Content-Length': len(data)},
             postdata=data)
-        
+
         postRequest.addCallback(self.getResult).addErrback(self.getError)
-        
+
         reactor.run()
-        
+
     def getResult(self, data):
         """
         """
@@ -262,4 +286,4 @@ class TwistedClient(client.HTTPPageGetter):
         """
         self.faultHandler(failure)
         reactor.stop()
-        
+
