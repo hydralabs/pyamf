@@ -108,14 +108,12 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
     """
     _request_class = ServiceRequest
 
-    def __init__(self, services, debug):
+    def __init__(self, services):
         """
         @param services:
         @type services:
-        @param debug:
-        @type debug:
         """
-        gateway.BaseGateway.__init__(self, services, debug)
+        gateway.BaseGateway.__init__(self, services)
         resource.Resource.__init__(self)
 
     def getResponse(self, request):
@@ -207,10 +205,6 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         def finishRequest(result):
             """
             """
-            if self.debug:
-                #: write amf request and response to disk.
-                self.save_request(self.body, self.stream)
-
             request.setHeader("Content-Length", str(len(result)))
             request.write(result.getvalue())
             request.finish()
@@ -223,9 +217,6 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         @type failure:
         @param failure:
         """
-        if self.debug:
-            #: write amf request and response to disk.
-            self.save_request(self.body, self.stream)
         print failure
 
 class TwistedClient(client.HTTPPageGetter):
