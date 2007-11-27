@@ -179,8 +179,6 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         @rtype:
         @return:
         """
-
-        self.request_number += 1
         request.content.seek(0, 0)
 
         self.body = request.content.read()
