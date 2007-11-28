@@ -58,7 +58,7 @@ STATUS_ERROR = 1
 #: Debug information.
 STATUS_DEBUG = 2
 
-#: List of available status codes.
+#: List of available status response codes.
 STATUS_CODES = {
     STATUS_OK:    '/onResult',
     STATUS_ERROR: '/onStatus',
@@ -112,7 +112,7 @@ class Envelope(dict):
     """
     I wrap an entire request, encapsulating headers and bodies.
 
-    There may more than one request in one transaction.
+    There can be more than one request in a single transaction.
     """
 
     def __init__(self, amfVersion=None, clientType=None):
@@ -143,8 +143,8 @@ class Envelope(dict):
         @param idx:
         @type value:
         @param value:
-        @raise TypeError: The parameter C{value} is not a tuple,
-        set or list.
+        @raise TypeError: The parameter C{value} is not of the C{tuple},
+        C{set} or C{list} type.
         """
         if isinstance(value, (tuple, set, list)):
             value = Message(self, value[0], value[1], value[2])
@@ -166,13 +166,9 @@ class Message(object):
     """
 
     def __init__(self, envelope, target, status, body):
-        #:
         self.envelope = envelope
-        #:
         self.target = target
-        #:
         self.status = status
-        #:
         self.body = body
 
     def _get_headers(self):
@@ -370,10 +366,7 @@ def decode(stream, context=None, strict=False):
     @type strict: bool
     @param strict:
 
-    @raise DecodeError: Malformed stream. Check the U{Remoting Envelope
-    documentation on OSFlash
-    <http://osflash.org/documentation/amf/envelopes/remoting#preamble>}
-    for more information.
+    @raise DecodeError: Malformed stream.
     @raise RuntimeError: Decoder is unable to fully consume the
     stream buffer.
 
@@ -442,7 +435,7 @@ def encode(msg, old_context=None, strict=False):
     @param  old_context: Context.
     @type strict: bool
     @param strict: Determines whether encoding should be strict. Specifically
-        header/body lengths will be written correctly, instead of the default 0
+        header/body lengths will be written correctly, instead of the default 0.
 
     @rtype:
     @return: File object.
@@ -483,19 +476,21 @@ def encode(msg, old_context=None, strict=False):
 
 class RecordSet(object):
     """
-    I represent the U{RecordSet (external)
-    <http://osflash.org/documentation/amf/recordset>} class used in Flash
+    I represent the RecordSet class used in Flash
     Remoting to hold (amongst other things) SQL records.
 
     @ivar columns: The columns to send
     @type columns: List of strings
     @ivar items: The recordset data
-    @type items: List of lists, the order of the data corresponds to the order
-        of the columns
+    @type items: List of lists, the order of the data corresponds
+        to the order of the columns
     @ivar service: Service linked to the recordset
     @type: ?
     @ivar id: The id of the recordset
     @type id: str
+
+    @see: U{RecordSet on OSFlash (external)
+    <http://osflash.org/documentation/amf/recordset>}
     """
 
     def __init__(self, columns=[], items=[], service=None, id=None):
@@ -509,7 +504,7 @@ class RecordSet(object):
     def _get_server_info(self):
         """
         @rtype: dict
-        @return: The object to be encoded
+        @return: The object to be encoded.
         """
         ret = dict(totalCount=len(self.items), cursor=1, version=1,
             initialData=self.items, columnNames=self.columns)

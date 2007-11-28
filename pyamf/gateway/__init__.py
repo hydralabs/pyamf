@@ -44,10 +44,13 @@ class Fault(object):
 
     @ivar code: A simple code describing the fault.
     @type code: C{str}
+    
     @ivar detail: Any extra details of the fault.
     @type detail: C{str}
+    
     @ivar description: Text description of the fault.
     @type description: C{str}
+    
     @ivar root_cause: The root cause of the fault.
     @type root_cause: object or None
     """
@@ -117,18 +120,22 @@ class ServiceWrapper(object):
 
     @ivar service: The original service.
     @type service: callable
+    
     @ivar authenticator: Will be called before the service is called to check
         that the supplied credentials (if any) can access the service.
     @type authenticator: callable with two args, username and password. Returns
         a bool based on the success of authentication.
+        
     @ivar description: A description of the service.
     @type description: str
+
+    @raise NameError: Calls to private methods are not allowed.
+    @raise NameError: Unknown method.
+    @raise TypeError: Service method must be callable.
+    @raise TypeError: Service must be callable.
     """
 
     def __init__(self, service, authenticator=None, description=None):
-        """
-        Initialises the service wrapper.
-        """
         self.service = service
         self.authenticator = authenticator
         self.description = description
@@ -151,7 +158,7 @@ class ServiceWrapper(object):
             method = str(method)
 
             if method.startswith('_'):
-                raise NameError, "Calls to private methods is not allowed"
+                raise NameError, "Calls to private methods are not allowed"
 
             try:
                 func = getattr(service, method)
@@ -193,7 +200,7 @@ class ServiceRequest(object):
     @type request: L{Envelope<pyamf.remoting.Envelope>}
     @ivar service: Facilitates the request.
     @type service: L{ServiceWrapper}
-    @ivar method: The method to call on the service. A value of None
+    @ivar method: The method to call on the service. A value of C{None}
         means that the service will be called directly.
     @type method: None or str
     """
@@ -265,7 +272,7 @@ class BaseGateway(object):
         Adds a service to the gateway.
 
         @param service: The service to add to the gateway.
-        @type service: callable or a class instance, or a module
+        @type service: callable, class instance, or a module
         @param name: The name of the service.
         @type name: str
         @param authenticator: A callable that will check the credentials of
@@ -355,9 +362,6 @@ class BaseGateway(object):
         """
         @param request:
         @type request:
-
-        @see: U{AMF remoting headers on OSFlash (external)
-        <http://osflash.org/documentation/amf/envelopes/remoting/headers>}
         """
         if 'DescribeService' in request.headers:
             return NotImplementedError
@@ -370,8 +374,10 @@ class BaseGateway(object):
 
         @param service_request:
         @type service_request:
+        
         @param request:
         @type request:
+        
         @raise RemotingError: Invalid credentials object.
         """ 
         username = password = None
@@ -393,6 +399,7 @@ class BaseGateway(object):
 
         @param request: The request to be processed.
         @type request: L{Message<remoting.Message>}
+        
         @return: The response to the request.
         @rtype: L{Message<remoting.Message>}
         """

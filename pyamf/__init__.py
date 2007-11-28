@@ -376,8 +376,6 @@ class ClassAlias(object):
         return self.klass(*args, **kwargs)
 
     def __str__(self):
-        """
-        """
         return self.alias
 
     def __repr__(self):
@@ -385,8 +383,6 @@ class ClassAlias(object):
             self.alias, self.klass, id(self))
 
     def __eq__(self, other):
-        """
-        """
         if isinstance(other, basestring):
             return self.alias == other
         elif isinstance(other, self.__class__):
@@ -444,7 +440,7 @@ def unregister_class(alias):
 
     @type alias: class or str
     @param alias: Alias for class to delete.
-    @raise UnknownClassAlias: Unknown alias
+    @raise UnknownClassAlias: Unknown alias.
     """
     if isinstance(alias, (type, types.ClassType)):
         for s, a in CLASS_CACHE.iteritems():

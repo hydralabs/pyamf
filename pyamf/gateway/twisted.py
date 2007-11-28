@@ -85,13 +85,13 @@ class ServiceRequest(gateway.ServiceRequest):
         """
         Twisted implementation of L{ServiceRequest<gateway.ServiceRequest>}.
 
-        @param username:
+        @param username: Username.
         @type username: str
-        @param password:
+        @param password: Password.
         @type password: str
 
         @return: A Deferred which fires a callback containing the result
-                 (a bool) of the authentication.
+                 (a C{bool}) of the authentication.
         @rtype: Deferred
         """
         if self.service.authenticator is None:
@@ -111,10 +111,6 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
     _request_class = ServiceRequest
 
     def __init__(self, services):
-        """
-        @param services:
-        @type services:
-        """
         gateway.BaseGateway.__init__(self, services)
         resource.Resource.__init__(self)
 
