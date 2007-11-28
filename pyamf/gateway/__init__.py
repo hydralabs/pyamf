@@ -22,7 +22,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Server/client implementations for PyAMF.
+Server/client implementations.
 
 @author: U{Thijs Triemstra<mailto:info@collab.nl>}
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
@@ -35,11 +35,12 @@ import sys, traceback, types
 import pyamf
 from pyamf import remoting
 
+#: AMF mimetype.
 CONTENT_TYPE = 'application/x-amf'
 
 class Fault(object):
     """
-    I represent a Fault message (mx.rpc.Fault).
+    I represent a Fault message (C{mx.rpc.Fault}).
 
     @ivar code: A simple code describing the fault.
     @type code: C{str}
@@ -114,19 +115,19 @@ class ServiceWrapper(object):
     """
     Wraps a supplied service with extra functionality.
 
-    @ivar service: The original service
+    @ivar service: The original service.
     @type service: callable
     @ivar authenticator: Will be called before the service is called to check
         that the supplied credentials (if any) can access the service.
     @type authenticator: callable with two args, username and password. Returns
         a bool based on the success of authentication.
-    @ivar description: A description of the service
+    @ivar description: A description of the service.
     @type description: str
     """
 
     def __init__(self, service, authenticator=None, description=None):
         """
-        Initialises the service wrapper
+        Initialises the service wrapper.
         """
         self.service = service
         self.authenticator = authenticator
@@ -169,14 +170,15 @@ class ServiceWrapper(object):
 
     def __call__(self, method, params):
         """
-        Executes the service. If the service is a class, it will be
-        instantiated
+        Executes the service.
 
-        @param method: The method to call on the service
+        If the service is a class, it will be instantiated.
+
+        @param method: The method to call on the service.
         @type method: None or mixed
-        @param params: The params to pass to the service
+        @param params: The params to pass to the service.
         @type params: list or tuple
-        @return: The result of the execution
+        @return: The result of the execution.
         @rtype: mixed
         """
         func = self._get_service_func(method, params)
@@ -188,17 +190,17 @@ class ServiceRequest(object):
     Remoting service request.
 
     @ivar request: The request to service.
-    @type request: L{pyamf.remoting.Envelope}
+    @type request: L{Envelope<pyamf.remoting.Envelope>}
     @ivar service: Facilitates the request.
     @type service: L{ServiceWrapper}
-    @ivar method: The method to call on the service. A value of None means that
-        the service will be called directly.
+    @ivar method: The method to call on the service. A value of None
+        means that the service will be called directly.
     @type method: None or str
     """
 
     def __init__(self, request, service, method):
         """
-        Initialises the service request
+        Initialises the service request.
         """
         self.request = request
         self.service = service
@@ -209,8 +211,9 @@ class ServiceRequest(object):
 
     def authenticate(self, username, password):
         """
-        Authenticates the supplied credentials for the service. The default is
-        to allow anything through.
+        Authenticates the supplied credentials for the service.
+
+        The default is to allow anything through.
 
         @return: Boolean determining whether the supplied credentials can
             access the service.
@@ -237,7 +240,7 @@ class BaseGateway(object):
     """
     Generic Remoting gateway.
 
-    @ivar services: A map of service names to callables
+    @ivar services: A map of service names to callables.
     @type services: L{ServiceCollection}
     """
 
@@ -247,6 +250,7 @@ class BaseGateway(object):
         """
         @param services: Initial services.
         @type services: dict
+        @raise TypeError: C{dict} type required for C{services}.
         """
         self.services = ServiceCollection()
 
@@ -260,7 +264,6 @@ class BaseGateway(object):
         """
         Adds a service to the gateway.
 
-        @raise RemotingError: Service already exists.
         @param service: The service to add to the gateway.
         @type service: callable or a class instance, or a module
         @param name: The name of the service.
@@ -268,6 +271,9 @@ class BaseGateway(object):
         @param authenticator: A callable that will check the credentials of
             the request before allowing access to the service.
         @type authenticator: Callable
+
+        @raise RemotingError: Service already exists.
+        @raise TypeError: C{service} must be callable or a module.
         """
         if not callable(service) and not isinstance(service, types.ModuleType):
             raise TypeError, "service must be callable or a module"
@@ -293,8 +299,9 @@ class BaseGateway(object):
         """
         Removes a service from the gateway.
 
-        @param service: The service to remove from the gateway
+        @param service: The service to remove from the gateway.
         @type service: callable or a class instance
+        @raise NameError: Service not found.
         """
         if service not in self.services:
             raise NameError, "Service %s not found" % str(service)
@@ -319,10 +326,10 @@ class BaseGateway(object):
 
     def getServiceRequest(self, message):
         """
-        Returns a service based on the message
+        Returns a service based on the message.
 
-        @raise RemotingError: Unknown service
-        @param message: The AMF message
+        @raise RemotingError: Unknown service.
+        @param message: The AMF message.
         @type message: L{Message<remoting.Message>}
         @rtype: L{ServiceRequest}
         """
@@ -360,6 +367,12 @@ class BaseGateway(object):
     def authenticateRequest(self, service_request, request):
         """
         Authenticates the request against the service.
+
+        @param service_request:
+        @type service_request:
+        @param request:
+        @type request:
+        @raise RemotingError: Invalid credentials object.
         """ 
         username = password = None
 
@@ -378,9 +391,9 @@ class BaseGateway(object):
         """
         Processes a request.
 
-        @param request: The request to be processed
+        @param request: The request to be processed.
         @type request: L{Message<remoting.Message>}
-        @return: The response to the request
+        @return: The response to the request.
         @rtype: L{Message<remoting.Message>}
         """
         response = remoting.Message(None, request.target,
@@ -427,13 +440,14 @@ class BaseGateway(object):
 
     def getResponse(self, request):
         """
-        Returns the response to the request. Any implementing gateway must
-        define this function.
+        Returns the response to the request.
 
-        @param request: The AMF request
+        Any implementing gateway must define this function.
+
+        @param request: The AMF request.
         @type request: L{Envelope<remoting.Envelope>}
 
-        @return: The AMF response
+        @return: The AMF response.
         @rtype: L{Envelope<remoting.Envelope>}
         """
         raise NotImplementedError

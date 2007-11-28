@@ -23,8 +23,8 @@
 
 """
 B{PyAMF} is a B{A}ction B{M}essage B{F}ormat
-(U{AMF<http://osflash.org/documentation/amf>}) decoder and
-encoder for Python that is compatible with the
+(U{AMF<http://en.wikipedia.org/wiki/Action_Message_Format>}) decoder
+and encoder for Python that is compatible with the
 U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>} 6 and newer.
 
 @author: U{Arnar Birgisson<mailto:arnarbi@gmail.com>}
@@ -103,8 +103,8 @@ class DecodeError(BaseError):
 
 class ReferenceError(BaseError):
     """
-    Raised if an AMF data stream refers to a non-existent object or string
-    reference.
+    Raised if an AMF data stream refers to a non-existent object
+    or string reference.
     """
 
 class EncodeError(BaseError):
@@ -118,26 +118,21 @@ class EncodeError(BaseError):
 
 class UnknownClassAlias(BaseError):
     """
-    Raised if the AMF stream specifies a class that does not have an alias.
+    Raised if the AMF stream specifies a class that does not
+    have an alias.
 
     @see: L{register_class} for more info.
     """
 
 class BaseContext(object):
     """
-    I am a hold the AMF context for en/decoding streams.
+    I hold the AMF context for en/decoding streams.
     """
 
     def __init__(self):
-        """
-        L{clear} context.
-        """
         self.clear()
 
     def clear(self):
-        """
-        Resets the context.
-        """
         self.objects = []
 
     def getObject(self, ref):
@@ -148,7 +143,8 @@ class BaseContext(object):
         @param ref: The reference to an object.
 
         @raise TypeError: Bad reference type.
-        @raise ReferenceError: The object reference could not be found.
+        @raise ReferenceError: The object reference could not
+        be found.
 
         @rtype: mixed
         @return: The object referenced.
@@ -212,32 +208,12 @@ class Bag(object):
             setattr(self, k, v)
 
     def __getitem__(self, k):
-        """
-        @type k:
-        @param k:
-        @rtype:
-        @return:
-        """
         return getattr(self, k)
 
     def __setitem__(self, k, v):
-        """
-        @type k:
-        @param k:
-        @type v:
-        @param v:
-        @rtype:
-        @return:
-        """
         return setattr(self, k, v)
 
     def __eq__(self, other):
-        """
-        @type other:
-        @param other:
-        @rtype: bool
-        @return:
-        """
         if isinstance(other, dict):
             return self.__dict__ == other
         if isinstance(other, Bag):
@@ -246,8 +222,6 @@ class Bag(object):
         return False
 
     def iteritems(self):
-        """
-        """
         return self.__dict__.iteritems()
 
     def __repr__(self):
@@ -258,11 +232,12 @@ class Bag(object):
 
 class ClassMetaData(list):
     """
-    I hold a list of tags relating to the class. The idea behind this is to
-    emulate the metadata tags you can supply ActionScript, e.g. static/dynamic.
+    I hold a list of tags relating to the class. The idea behind this is
+    to emulate the metadata tags you can supply to ActionScript,
+    e.g. static/dynamic.
 
-    At the moment, only static, dynamic and external are allowed but this may
-    be extended in the future.
+    At the moment, only C{static}, C{dynamic} and C{external} are allowed
+    but this may be extended in the future.
     """
     _allowed_tags = (
         ('static', 'dynamic', 'external'),

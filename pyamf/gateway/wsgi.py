@@ -22,7 +22,9 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-U{WSGI<http://wsgi.org>} Server implementation.
+WSGI server implementation.
+
+@see: U{WSGI homepage (external)<http://wsgi.org>}
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 

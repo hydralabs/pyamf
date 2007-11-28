@@ -125,7 +125,7 @@ class ObjectEncoding:
     #: What follows is the value of the "inner" object,
     #: including type code. This value appears for objects
     #: that implement IExternalizable, such as
-    #: ArrayCollection and ObjectProxy.
+    #: L{ArrayCollection} and L{ObjectProxy}.
     EXTERNAL = 0x01
 
     #: Name-value encoding.
@@ -153,7 +153,7 @@ class ByteArray(util.StringIOProxy):
      - Optimizing the size of your data by using custom data types.
     
     @see: U{ByteArray on Livedocs (external)
-    <http://livedocs.adobe.com/flex/2/langref/flash/utils/ByteArray.html>}
+    <http://livedocs.adobe.com/flex/201/langref/flash/utils/ByteArray.html>}
     """
 
     def __init__(self, *args, **kwargs):
@@ -255,7 +255,7 @@ class Context(pyamf.BaseContext):
     @type strings: list
     @ivar classes: A list of L{ClassDefinition}.
     @type classes: list
-    @ivar legacy_xml: A list of legacy encoded XML documents
+    @ivar legacy_xml: A list of legacy encoded XML documents.
     @type legacy_xml: list
     """
 
@@ -518,7 +518,7 @@ class Decoder(object):
         """
         Reads an AMF3 element from the data stream.
 
-        @raise DecodeError: the ActionScript type is unknown or
+        @raise DecodeError: The ActionScript type is unknown or
         there is insufficient data left in the stream.
         @return:
         @rtype:
@@ -748,6 +748,14 @@ class Decoder(object):
         return obj
 
     def _readXML(self, legacy=False):
+        """
+        Reads an object from the stream.
+
+        @type legacy: bool
+        @param legacy: 
+        @return:
+        @rtype:
+        """
         ref = self.readInteger()
 
         if ref & REFERENCE_BIT == 0:
@@ -765,7 +773,8 @@ class Decoder(object):
 
     def readXMLString(self):
         """
-        Reads a string from the data stream and converts it into an XML Tree.
+        Reads a string from the data stream and converts it into
+        an XML Tree.
 
         @return: The XML Document
         @rtype: L{util.ET}
@@ -785,8 +794,10 @@ class Decoder(object):
         """
         Reads a string of data from the stream.
 
+        Detects if the L{ByteArray} was compressed using C{zlib}.
+
         @see: L{ByteArray}
-        @note: This is not supported in Actionscript 1.0 and 2.0.
+        @note: This is not supported in ActionScript 1.0 and 2.0.
         @return:
         @rtype:
         """
@@ -840,7 +851,7 @@ class Encoder(object):
         @param  output: File-like object.
         @type   context: L{Context}
         @param  context: Context.
-        @raise TypeError: L{context} must be of type L{amf0.Context}.
+        @raise TypeError: C{context} must be of type L{amf0.Context}.
         """
         if output is None:
             self.stream = util.BufferedByteStream()
@@ -873,9 +884,9 @@ class Encoder(object):
         Gets a function based on the type of data.
 
         @type   data:
-        @param  data: Python data
+        @param  data: Python data.
         @rtype: callable or None
-        @return: The function used to encode data to the stream
+        @return: The function used to encode data to the stream.
         """
         func = None
         td = type(data)
@@ -910,7 +921,7 @@ class Encoder(object):
 
     def writeNull(self, n, use_references=True):
         """
-        Writes a null value to the stream.
+        Writes a C{null} value to the stream.
 
         @type   n:
         @param  n: null data
@@ -921,7 +932,7 @@ class Encoder(object):
 
     def writeBoolean(self, n, use_references=True):
         """
-        Writes a boolean to the stream.
+        Writes a Boolean to the stream.
 
         @param n:
         @type n: bool
@@ -1213,7 +1224,7 @@ class Encoder(object):
         @param  obj:
         @type   use_references: bool
         @param  use_references:
-        @raise EncodeError: Unknown object encoding
+        @raise EncodeError: Unknown object encoding.
         """
         self.writeType(ASTypes.OBJECT)
 
@@ -1335,7 +1346,7 @@ class DataOutput(object):
     This class is the I/O counterpart to the L{DataInput} class, which reads
     binary data.
 
-    @see: U{Livedocs (external)
+    @see: U{IDataOutput on Livedocs (external)
     <http://livedocs.adobe.com/flex/201/langref/flash/utils/IDataOutput.html>}
     """
     def __init__(self, encoder):
@@ -1492,7 +1503,7 @@ class DataInput(object):
     This class is the I/O counterpart to the L{DataOutput} class,
     which writes binary data.
 
-    @see: U{Livedocs (external)
+    @see: U{IDataInput on Livedocs (external)
     <http://livedocs.adobe.com/flex/201/langref/flash/utils/IDataInput.html>}
     """
     def __init__(self, decoder):

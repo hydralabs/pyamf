@@ -22,9 +22,11 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Contains compatibility classes/functions for Python -> Flex and vice versa.
+Compatibility classes/functions for Flex.
 
-@note: Not available in Actionscript 1.0 and 2.0.
+@note: Not available in ActionScript 1.0 and 2.0.
+@see: U{Flex on Wikipedia (external)
+<http://en.wikipedia.org/wiki/Adobe_Flex>}
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
@@ -45,7 +47,7 @@ class ArrayCollection(dict):
     methods and properties of the ICollectionView or IList interfaces
     in the Flex framework.
 
-    @see: U{Livedocs (external)
+    @see: U{ArrayCollection on Livedocs (external)
     <http://livedocs.adobe.com/flex/201/langref/mx/collections/ArrayCollection.html>}
     """
 
@@ -76,7 +78,7 @@ class ObjectProxy(object):
     I represent the ActionScript 3 based class C{flex.messaging.io.ObjectProxy}
     used in the Flex framework.
 
-    @see: U{Livedocs (external)
+    @see: U{ObjectProxy on Livedocs (external)
     <http://livedocs.adobe.com/flex/201/langref/mx/utils/ObjectProxy.html>}
     """
 

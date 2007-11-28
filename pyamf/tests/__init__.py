@@ -22,7 +22,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Unit tests for PyAMF.
+Unit tests.
 
 @author: U{Arnar Birgisson<mailto:arnarbi@gmail.com>}
 @author: U{Thijs Triemstra<mailto:info@collab.nl>}

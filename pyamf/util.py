@@ -85,48 +85,24 @@ class StringIOProxy(object):
         self._buffer.seek(0, 0)
 
     def close(self):
-        """
-        """
         self._buffer.close()
         self._len = 0
 
     def flush(self):
-        """
-        """
         self._buffer.flush()
 
     def getvalue(self):
-        """
-        @rtype:
-        @return:
-        """
         return self._buffer.getvalue()
 
     def next(self):
-        """
-        @rtype:
-        @return:
-        """
         return self._buffer.next()
 
     def read(self, n=-1):
-        """
-        @param n:
-        @type n:
-        @rtype:
-        @return:
-        """
         bytes = self._buffer.read(n)
 
         return bytes
 
     def readline(self):
-        """
-        @note: This function does not consume the buffer.
-
-        @rtype:
-        @return:
-        """
         line = self._buffer.readline()
 
         return line
@@ -136,9 +112,6 @@ class StringIOProxy(object):
         @type sizehint:
         @param sizehint:
         @note: This function does not consume the buffer.
-
-        @rtype:
-        @return:
         """
         lines = self._buffer.readlines(sizehint)
 
@@ -156,42 +129,22 @@ class StringIOProxy(object):
         return self._buffer.seek(pos, mode)
 
     def tell(self):
-        """
-        @rtype:
-        @return:
-        """
         return self._buffer.tell()
 
     def truncate(self, size=0):
-        """
-        @type size:
-        @param size:
-        @rtype:
-        @return:
-        """
         bytes = self._buffer.truncate(size)
         self._get_len()
 
     def write(self, s):
-        """
-        @type s:
-        @param s:
-        """
         self._buffer.write(s)
 
         self._get_len()
 
     def writelines(self, iterable):
-        """
-        @type iterable:
-        @param iterable:
-        """
         self._buffer.writelines(iterable)
         self._get_len()
 
     def _get_len(self):
-        """
-        """
         old_pos = self._buffer.tell()
         self._buffer.seek(0, 2)
 
@@ -199,8 +152,6 @@ class StringIOProxy(object):
         self._buffer.seek(old_pos)
 
     def __len__(self):
-        """
-        """
         return self._len
 
 class NetworkIOMixIn(object):
@@ -227,16 +178,10 @@ class NetworkIOMixIn(object):
         return bytes
 
     def read_uchar(self):
-        """
-        @rtype:
-        @return:
-        """
         return struct.unpack("!B", self._read(1))[0]
 
     def write_uchar(self, c):
         """
-        @type c:
-        @param c:
         @raise ValueError: Not in range.
         """
         if not 0 <= c <= 256:
@@ -245,16 +190,10 @@ class NetworkIOMixIn(object):
         self.write(struct.pack("!B", c))
 
     def read_char(self):
-        """
-        @rtype:
-        @return:
-        """
         return struct.unpack("!b", self._read(1))[0]
 
     def write_char(self, c):
         """
-        @type c:
-        @param c:
         @raise ValueError: Not in range.
         """
         if not -128 <= c <= 127:
@@ -263,16 +202,10 @@ class NetworkIOMixIn(object):
         self.write(struct.pack("!b", c))
 
     def read_ushort(self):
-        """
-        @rtype:
-        @return:
-        """
         return struct.unpack("!H", self._read(2))[0]
 
     def write_ushort(self, s):
         """
-        @type s:
-        @param s:
         @raise ValueError: Not in range.
         """
         if not 0 <= s <= 65536:
@@ -281,16 +214,10 @@ class NetworkIOMixIn(object):
         self.write(struct.pack("!H", s))
 
     def read_short(self):
-        """
-        @rtype:
-        @return:
-        """
         return struct.unpack("!h", self._read(2))[0]
 
     def write_short(self, s):
         """
-        @type s:
-        @param s:
         @raise ValueError: Not in range.
         """
         if not -32768 <= s <= 32767:
@@ -299,16 +226,10 @@ class NetworkIOMixIn(object):
         self.write(struct.pack("!h", s))
 
     def read_ulong(self):
-        """
-        @rtype:
-        @return:
-        """
         return struct.unpack("!L", self._read(4))[0]
 
     def write_ulong(self, l):
         """
-        @type l:
-        @param l:
         @raise ValueError: Not in range.
         """
         if not 0 <= l <= 4294967295:
@@ -317,16 +238,10 @@ class NetworkIOMixIn(object):
         self.write(struct.pack("!L", l))
 
     def read_long(self):
-        """
-        @rtype:
-        @return:
-        """
         return struct.unpack("!l", self._read(4))[0]
 
     def write_long(self, l):
         """
-        @type l:
-        @param l:
         @raise ValueError: Not in range.
         """
         if not -2147483648 <= l <= 2147483647:
@@ -335,48 +250,22 @@ class NetworkIOMixIn(object):
         self.write(struct.pack("!l", l))
 
     def read_double(self):
-        """
-        @rtype:
-        @return:
-        """
         return struct.unpack("!d", self._read(8))[0]
 
     def write_double(self, d):
-        """
-        @type d:
-        @param d:
-        """
         self.write(struct.pack("!d", d))
 
     def write_float(self, f):
-        """
-        @type f:
-        @param f:
-        """
         self.write(struct.pack("!f", f))
 
     def read_float(self):
-        """
-        @rtype:
-        @return:
-        """
         return struct.unpack("!f", self._read(4))[0]
 
     def read_utf8_string(self, length):
-        """
-        @param length:
-        @type length:
-        @rtype:
-        @return:
-        """
         str = struct.unpack("%ds" % length, self.read(length))[0]
         return unicode(str, "utf8")
 
     def write_utf8_string(self, u):
-        """
-        @type u:
-        @param u:
-        """
         self.write(u.encode("utf8"))
 
 class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
@@ -449,7 +338,7 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
 
     def at_eof(self):
         """
-        Returns true if next C{.read(1)} will trigger C{EOFError}.
+        Returns true if C{next.read(1)} will trigger an C{EOFError}.
 
         @rtype: bool
         @return:
@@ -500,7 +389,7 @@ def get_timestamp(d):
     """
     Returns a UTC timestamp for a C{datetime.datetime} object.
 
-    @type d: L{datetime.datetime}
+    @type d: C{datetime.datetime}
     @param d:
     @return: UTC timestamp.
     @rtype: str

@@ -22,7 +22,9 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-U{Twisted<http://twistedmatrix.com>} Server and Client implementations.
+Twisted server and client implementations.
+
+@see: U{Twisted homepage (external)<http://twistedmatrix.com>}
 
 @author: U{Thijs Triemstra<mailto:info@collab.nl>}
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
@@ -30,7 +32,7 @@ U{Twisted<http://twistedmatrix.com>} Server and Client implementations.
 @since: 0.1.0
 """
 
-# import twisted workaround for module name
+# import workaround for Twisted module name
 import sys, imp, os, os.path
 
 idx = []
@@ -81,7 +83,7 @@ class ServiceRequest(gateway.ServiceRequest):
 
     def authenticate(self, username, password):
         """
-        Twisted implementation of L{gateway.ServiceRequest}
+        Twisted implementation of L{ServiceRequest<gateway.ServiceRequest>}.
 
         @param username:
         @type username: str
@@ -89,7 +91,7 @@ class ServiceRequest(gateway.ServiceRequest):
         @type password: str
 
         @return: A Deferred which fires a callback containing the result
-                 (a bool)of the authentication.
+                 (a bool) of the authentication.
         @rtype: Deferred
         """
         if self.service.authenticator is None:
@@ -163,7 +165,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
 
         def eb(failure):
             """
-            Create error response for remoting request.
+            Create error response to remoting request.
             """
             response.body = self.getErrorResponse(failure)
             response.status = remoting.STATUS_ERROR
@@ -194,15 +196,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         return server.NOT_DONE_YET
 
     def _cbRender(self, result, request):
-        """
-        @type result:
-        @param result:
-        @type request:
-        @param request:
-        """
         def finishRequest(result):
-            """
-            """
             request.setHeader("Content-Length", str(len(result)))
             request.write(result.getvalue())
             request.finish()
@@ -211,10 +205,6 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
             ).addErrback(self._ebRender).addCallback(finishRequest)
 
     def _ebRender(self, failure):
-        """
-        @type failure:
-        @param failure:
-        """
         print failure
 
 class TwistedClient(client.HTTPPageGetter):

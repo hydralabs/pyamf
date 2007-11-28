@@ -22,7 +22,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Utility for PyAMF tests.
+Test utilities.
 
 @author: U{Arnar Birgisson<mailto:arnarbi@gmail.com>}
 @author: U{Thijs Triemstra<mailto:info@collab.nl>}
@@ -44,8 +44,8 @@ class GenericObject(object):
 
 class EncoderTester(object):
     """
-    A helper object that takes some input, runs over the encoder and checks
-    the output.
+    A helper object that takes some input, runs over the encoder
+    and checks the output.
     """
 
     def __init__(self, encoder, data):
@@ -67,8 +67,8 @@ class EncoderTester(object):
 
 class DecoderTester(object):
     """
-    A helper object that takes some input, runs over the decoder and checks
-    the output.
+    A helper object that takes some input, runs over the decoder
+    and checks the output.
     """
 
     def __init__(self, decoder, data):
