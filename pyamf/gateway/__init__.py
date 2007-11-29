@@ -282,8 +282,8 @@ class BaseGateway(object):
         @raise RemotingError: Service already exists.
         @raise TypeError: C{service} must be callable or a module.
         """
-        if not callable(service) and not isinstance(service, (types.ModuleType, types.InstanceType)):
-            raise TypeError, "service must be callable or a module"
+        if not callable(service) and not isinstance(service, (types.ModuleType, types.ObjectType)):
+            raise TypeError, "service must be callable, a module, or an object"
 
         if name is None:
             # TODO: include the module in the name
