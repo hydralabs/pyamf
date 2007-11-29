@@ -1,3 +1,5 @@
+# -*- encoding: utf8 -*-
+#
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
 #
 # Permission is hereby granted, free of charge, to any person obtaining
@@ -18,38 +20,11 @@
 # LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
 
-from ez_setup import use_setuptools
+"""
+@author: U{Arnar Birgisson<mailto:arnarbi@gmail.com>}
+@author: U{Thijs Triemstra<mailto:info@collab.nl>}
+@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
-use_setuptools()
-
-from setuptools import setup, find_packages
-
-setup(name = "PyAMF",
-    version = "0.1.0",
-    description = "AMF encoder and decoder for Python",
-    url = "http://pyamf.org",
-    packages = find_packages(exclude=["*.tests"]),
-    install_requires = ["elementtree>=1.2.6"],
-    test_suite = "pyamf.tests.suite",
-    license = "MIT License",
-    entry_points={
-        'console_scripts': [
-            'amfinfo = pyamf.scripts.parse_dump:main',
-        ],
-    },
-    extras_require={
-        'wsgi': ['wsgiref'],
-        'twisted': ['Twisted>=2.5.0'],
-        'django': ['Django>=0.96']
-    },
-    classifiers = [
-        "Development Status :: 3 - Alpha",
-        "Natural Language :: English",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
-        "Programming Language :: Python",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-    ])
+@since: 0.1.0
+"""
