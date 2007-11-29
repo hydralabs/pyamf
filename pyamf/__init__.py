@@ -489,7 +489,7 @@ class BaseEncoder(object):
 
     def _writeElementFunc(self, data):
         """
-        Gets a function based on the type of data.
+        Gets a function used to encode the data.
 
         @type   data: mixed
         @param  data: Python data.
