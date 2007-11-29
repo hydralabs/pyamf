@@ -392,6 +392,133 @@ class ClassAlias(object):
         else:
             return False
 
+class BaseDecoder(object):
+    context_class = BaseContext
+    type_map = {}
+
+    def __init__(self, data=None, context=None):
+        """
+        @type   data: L{BufferedByteStream}
+        @param  data: Data stream.
+        @type   context: L{Context}
+        @param  context: Context.
+        @raise TypeError: The C{context} parameter must be of
+        type L{Context<amf0.Context>}.
+        """
+        # coersce data to BufferedByteStream
+        if isinstance(data, util.BufferedByteStream):
+            self.stream = data
+        else:
+            self.stream = util.BufferedByteStream(data)
+
+        if context == None:
+            self.context = self.context_class()
+        elif isinstance(context, self.context_class):
+            self.context = context
+        else:
+            raise TypeError, "context must be of type %s.%s" % (
+                self.context_class.__module__, self.context_class.__name__)
+
+    def readType(self):
+        raise NotImplementedError
+
+    def readElement(self):
+        """
+        Reads an AMF3 element from the data stream.
+
+        @raise DecodeError: The ActionScript type is unknown
+        @raise EOFError: No more data left to decode
+        """
+        type = self.readType()
+
+        try:
+            func = getattr(self, self.type_map[type])
+        except KeyError, e:
+            raise pyamf.DecodeError(
+                "Unsupported ActionScript type 0x%02x" % type)
+
+        return func()
+
+    def __iter__(self):
+        try:
+            while 1:
+                yield self.readElement()
+        except EOFError:
+            raise StopIteration
+
+class BaseEncoder(object):
+    """
+    @ivar type_map: A list of types -> functions. The types is a list of
+        possible instances or functions to call (that return a C{bool}) to
+        determine the correct function to call to encode the data.
+    @type type_map: C{list}
+    @ivar context_class: Holds the class that will create context objects for
+        the implementing Encoder.
+    @type context_class: C{type} or C{types.ClassType}
+    @ivar stream: The underlying data stream.
+    @type stream: L{util.BufferedByteStream}
+    @ivar context: The context for the encoding.
+    @type context: An instance of C{BaseEncoder.context_class} 
+    """
+
+    context_class = BaseContext
+    type_map = []
+
+    def __init__(self, data=None, context=None):
+        """
+        @type   data: L{BufferedByteStream}
+        @param  data: Data stream.
+        @type   context: L{Context}
+        @param  context: Context.
+        @raise TypeError: The C{context} parameter must be of type
+            L{Context<amf0.Context>}.
+        """
+        # coersce data to BufferedByteStream
+        if isinstance(data, util.BufferedByteStream):
+            self.stream = data
+        else:
+            self.stream = util.BufferedByteStream(data)
+
+        if context == None:
+            self.context = self.context_class()
+        elif isinstance(context, self.context_class):
+            self.context = context
+        else:
+            raise TypeError, "context must be of type %s.%s" % (
+                self.context_class.__module__, self.context_class.__name__)
+
+    def _writeElementFunc(self, data):
+        """
+        Gets a function based on the type of data.
+
+        @type   data: mixed
+        @param  data: Python data.
+        @rtype: callable or None
+        @return: The function used to encode data to the stream.
+        """
+        func = None
+        td = type(data)
+
+        for tlist, method in self.type_map:
+            for t in tlist:
+                try:
+                    if isinstance(data, t):
+                        return getattr(self, method)
+                except TypeError:
+                    if callable(t) and t(data):
+                        return getattr(self, method)
+
+        return None
+
+    def writeElement(self, data):
+        """
+        Writes the data.
+
+        @type   data: mixed
+        @param  data: The data to be encoded to the data stream.
+        """
+        raise NotImplementedError
+
 def register_class(klass, alias, read_func=None, write_func=None,
     attrs=None, metadata=[]):
     """

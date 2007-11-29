@@ -67,6 +67,7 @@ for x in idx:
 os.chdir(cwd)
 
 del idx, imp, sys, os, cwd, t
+# end import hack
 
 from django.http import HttpResponse, HttpResponseNotAllowed
 from django.core.urlresolvers import get_mod_func

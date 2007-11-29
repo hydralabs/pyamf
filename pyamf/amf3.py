@@ -424,11 +424,12 @@ class Context(pyamf.BaseContext):
     def __copy__(self):
         return self.__class__()
 
-class Decoder(object):
+class Decoder(pyamf.BaseDecoder):
     """
     Decodes an AMF3 data stream.
     """
-    #: Decoder type mappings.
+
+    context_class = Context
     type_map = {
         ASTypes.UNDEFINED:  'readNull',
         ASTypes.NULL:       'readNull',
@@ -444,26 +445,6 @@ class Decoder(object):
         ASTypes.XMLSTRING:  'readXMLString',
         ASTypes.BYTEARRAY:  'readByteArray',
     }
-
-    def __init__(self, data=None, context=None):
-        """
-        @type   data: L{BufferedByteStream}
-        @param  data: AMF3 data
-        @type   context: L{Context}
-        @param  context: Context
-        @raise TypeError: C{context} must be of type L{amf3.Context}.
-        """
-        if isinstance(data, util.BufferedByteStream):
-            self.stream = data
-        else:
-            self.stream = util.BufferedByteStream(data)
-
-        if context == None:
-            self.context = Context()
-        elif isinstance(context, Context):
-            self.context = context
-        else:
-            raise TypeError, "context must be of type amf3.Context"
 
     def readType(self):
         """
@@ -513,28 +494,6 @@ class Decoder(object):
         Read number.
         """
         return self.stream.read_double()
-
-    def readElement(self):
-        """
-        Reads an AMF3 element from the data stream.
-
-        @raise DecodeError: The ActionScript type is unknown or
-        there is insufficient data left in the stream.
-        @return:
-        @rtype:
-        """
-        type = self.readType()
-
-        try:
-            func = getattr(self, self.type_map[type])
-        except KeyError, e:
-            raise pyamf.DecodeError(
-                "Unsupported ActionScript type 0x%02x" % type)
-
-        try:
-            return func()
-        except EOFError:
-            raise pyamf.DecodeError("Insufficient data")
 
     def readInteger(self):
         """
@@ -821,11 +780,12 @@ class Decoder(object):
 
         return obj
 
-class Encoder(object):
+class Encoder(pyamf.BaseEncoder):
     """
     Encodes an AMF3 data stream.
     """
-    #: Python to AMF type mapping.
+
+    context_class = Context
     type_map = [
         # Unsupported types go first
         ((types.BuiltinFunctionType, types.BuiltinMethodType,),
@@ -841,29 +801,27 @@ class Encoder(object):
         ((types.InstanceType,types.ObjectType,), "writeInstance"),
     ]
 
-    def __init__(self, output=None, context=None):
+    def writeElement(self, data, use_references=True):
         """
-        Constructs a new AMF3 Encoder.
+        Writes the data.
 
-        Output should be a writable file-like object.
-
-        @type   output: StringIO
-        @param  output: File-like object.
-        @type   context: L{Context}
-        @param  context: Context.
-        @raise TypeError: C{context} must be of type L{amf0.Context}.
+        @type   data: mixed
+        @param  data: The data to be encoded to the AMF3 data stream.
+        @type   use_references: bool
+        @param  use_references:
         """
-        if output is None:
-            self.stream = util.BufferedByteStream()
-        else:
-            self.stream = output
+        func = self._writeElementFunc(data)
 
-        if context == None:
-            self.context = Context()
-        elif isinstance(context, Context):
-            self.context = context
+        if func is None:
+            # XXX nick: Should we be generating a warning here?
+            self.writeUnsupported(data)
         else:
-            raise TypeError, "context must be of type amf0.Context"
+            try:
+                func(data, use_references)
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except:
+                raise pyamf.EncodeError, "Unable to encode '%r'" % data
 
     def writeType(self, type):
         """
@@ -878,46 +836,6 @@ class Encoder(object):
                 type, self.stream.tell() - 1))
 
         self.stream.write_uchar(type)
-
-    def _writeElementFunc(self, data):
-        """
-        Gets a function based on the type of data.
-
-        @type   data:
-        @param  data: Python data.
-        @rtype: callable or None
-        @return: The function used to encode data to the stream.
-        """
-        func = None
-        td = type(data)
-
-        for tlist, method in self.type_map:
-            for t in tlist:
-                try:
-                    if isinstance(data, t):
-                        return getattr(self, method)
-                except TypeError:
-                    if callable(t) and t(data):
-                        return getattr(self, method)
-
-        return None
-
-    def writeElement(self, data, use_references=True):
-        """
-        Writes the data.
-
-        @type   data: mixed
-        @param  data: The data to be encoded to the AMF3 data stream.
-        @type   use_references: bool
-        @param  use_references:
-        """
-        func = self._writeElementFunc(data)
-
-        if func is not None:
-            func(data, use_references)
-        else:
-            # XXX nick: Should we be generating a warning here?
-            self.writeUnsupported(data)
 
     def writeNull(self, n, use_references=True):
         """
