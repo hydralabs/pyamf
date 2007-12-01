@@ -431,6 +431,7 @@ class Encoder(pyamf.BaseEncoder):
 
         @type   type: Integer
         @param  type: ActionScript type.
+        
         @raise EncodeError: AMF0 type is not recognized.
         """
         if type not in ACTIONSCRIPT_TYPES:
@@ -467,6 +468,8 @@ class Encoder(pyamf.BaseEncoder):
 
         @type   data: mixed
         @param  data: The data to be encoded to the AMF0 data stream.
+
+        @raise EncodeError: Unable to encode data.
         """
         func = self._writeElementFunc(data)
 
