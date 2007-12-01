@@ -66,7 +66,7 @@ for x in idx:
 
 os.chdir(cwd)
 
-del idx, imp, sys, os, cwd, t, x
+del idx, imp, sys, os, cwd, t
 
 from twisted.internet import defer, threads, reactor
 from twisted.web import resource, server, client
