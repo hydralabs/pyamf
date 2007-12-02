@@ -25,7 +25,7 @@
 """
 AMF0 implementation.
 
-AMF0 supports the basic data types used for the NetConnection, NetStream,
+C{AMF0} supports the basic data types used for the NetConnection, NetStream,
 LocalConnection, SharedObjects and other classes in the Flash Player.
 
 @see: U{AMF documentation on OSFlash (external)
@@ -97,6 +97,7 @@ class ASTypes:
     #: built-in objects, etc. will be indicated by a single C{00x0D} byte.
     UNSUPPORTED = 0x0d
     #: Remoting Server -> Client only.
+    #: @see: L{RecordSet}
     #: @see: U{RecordSet structure on OSFlash (external)
     #: <http://osflash.org/documentation/amf/recordset>}
     RECORDSET   = 0x0e
@@ -143,10 +144,6 @@ class Context(pyamf.BaseContext):
         self.amf3_objs = []
 
     def __copy__(self):
-        """
-        @rtype:
-        @return:
-        """
         copy = self.__class__()
         copy.amf3_objs = self.amf3_objs
 
@@ -201,7 +198,7 @@ class Decoder(pyamf.BaseDecoder):
         In ActionScript 1 and 2 the NumberASTypes type represents all numbers,
         both floats and integers.
 
-        @rtype: number
+        @rtype: C{int}
         @return: Number
         """
         return self.stream.read_double()
@@ -210,7 +207,7 @@ class Decoder(pyamf.BaseDecoder):
         """
         Reads a Boolean.
 
-        @rtype: bool
+        @rtype: C{bool}
         @return: Boolean.
         """
         return bool(self.stream.read_uchar())
@@ -219,8 +216,8 @@ class Decoder(pyamf.BaseDecoder):
         """
         Reads null.
 
-        @return: None
-        @rtype: None
+        @return: C{None}
+        @rtype: C{None}
         """
         return None
 
@@ -228,8 +225,8 @@ class Decoder(pyamf.BaseDecoder):
         """
         Read mixed array.
 
-        @rtype: dict
-        @return: Dict read from the stream
+        @rtype: C{dict}
+        @return: C{dict} read from the stream
         """
         len = self.stream.read_ulong()
         obj = {}
@@ -255,8 +252,8 @@ class Decoder(pyamf.BaseDecoder):
         """
         Read a list from the data stream.
 
-        @rtype: list
-        @return: List
+        @rtype: C{list}
+        @return: C{list}
         """
         obj = []
         self.context.addObject(obj)
@@ -274,7 +271,7 @@ class Decoder(pyamf.BaseDecoder):
         @rtype:
         @return:
 
-        @see: L{load_class<pyamf.load_class>} for more info.
+        @see: L{load_class<pyamf.load_class>}
         """
         classname = self.readString()
         klass = pyamf.load_class(classname)
@@ -289,8 +286,8 @@ class Decoder(pyamf.BaseDecoder):
         """
         Read AMF3 elements from the data stream.
 
-        @rtype: mixed
-        @return: the AMF3 element read from the stream
+        @rtype: C{mixed}
+        @return: The AMF3 element read from the stream
         """
         decoder = pyamf._get_decoder_class(pyamf.AMF3)(self.stream)
 
@@ -303,17 +300,13 @@ class Decoder(pyamf.BaseDecoder):
         """
         Reads a string from the data stream.
 
-        @rtype: str
+        @rtype: C{str}
         @return:
         """
         len = self.stream.read_ushort()
         return self.stream.read_utf8_string(len)
 
     def _readObject(self, obj):
-        """
-        @type   obj:
-        @param  obj:
-        """
         key = self.readString()
 
         while self.stream.peek() != chr(ASTypes.OBJECTTERM):
@@ -337,7 +330,7 @@ class Decoder(pyamf.BaseDecoder):
         Reads an object from the data stream.
 
         @return: The object
-        @rtype: __builtin__.object
+        @rtype: C{__builtin__.object}
         """
         obj = pyamf.Bag()
 
@@ -429,7 +422,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         Writes the type to the stream.
 
-        @type   type: Integer
+        @type   type: C{int}
         @param  type: ActionScript type.
         
         @raise EncodeError: AMF0 type is not recognized.
@@ -451,8 +444,9 @@ class Encoder(pyamf.BaseEncoder):
 
     def _writeElementFunc(self, data):
         """
-        Gets a function based on the type of data. See
-        L{pyamf.BaseEncoder._writeElementFunc}
+        Gets a function based on the type of data.
+
+        @see: L{pyamf.BaseEncoder._writeElementFunc}
         """
         # There is a very specific use case that we must check for.
         # In the context there is an array of amf3_objs that contain references
@@ -466,7 +460,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         Writes the data.
 
-        @type   data: mixed
+        @type   data: C{mixed}
         @param  data: The data to be encoded to the AMF0 data stream.
 
         @raise EncodeError: Unable to encode data.
@@ -488,7 +482,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         Write null type to data stream.
 
-        @type   n: None
+        @type   n: C{None}
         @param  n: Is ignored.
         """
         self.writeType(ASTypes.NULL)
@@ -497,7 +491,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         Write array to the stream.
 
-        @type   a: L{BufferedByteStream}
+        @type   a: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param  a: AMF data.
         """
         try:
@@ -542,7 +536,7 @@ class Encoder(pyamf.BaseEncoder):
 
         @type   s: L{BufferedByteStream}
         @param  s: AMF data.
-        @type   writeType: bool
+        @type   writeType: C{bool}
         @param  writeType: Write data type.
         """
         s = unicode(s).encode('utf8')
@@ -573,7 +567,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         Write C{dict} to data stream.
 
-        @type   o: iterable
+        @type   o: C{iterable}
         @param  o: AMF data.
         """
         for key, val in o.iteritems():
@@ -613,9 +607,6 @@ class Encoder(pyamf.BaseEncoder):
         self._writeEndObject()
 
     def _writeEndObject(self):
-        """
-        Write end of object in the data stream.
-        """
         # Write a null string, this is an optimisation so that we don't have to
         # wasting precious cycles by encoding the string etc.
         self.stream.write('\x00\x00')
@@ -669,7 +660,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         Writes a date to the data stream.
 
-        @type   d: Instance of datetime.datetime
+        @type   d: Instance of C{datetime.datetime}
         @param  d: The date to be written.
         """
         # According to the Red5 implementation of AMF0, dates references are
@@ -698,7 +689,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         Writes an element to the datastream in L{AMF3<pyamf.amf3>} format.
 
-        @type data: mixed
+        @type data: C{mixed}
         @param data: The data to be encoded.
         """
         encoder = pyamf._get_encoder_class(pyamf.AMF3)(self.stream)
@@ -724,12 +715,12 @@ def encode(element, context=None):
     """
     A helper function to encode an element into AMF0 format.
 
-    @type   element: mixed
+    @type   element: C{mixed}
     @param  element: The element to encode
     @type   context: L{Context<pyamf.amf0.Context>}
-    @param  context: AMF0 Context to use for the encoding. This holds previously
+    @param  context: AMF0 C{Context} to use for the encoding. This holds previously
         referenced objects etc.
-    @rtype: StringIO
+    @rtype: C{StringIO}
     @return: The encoded stream.
     """
     buf = util.BufferedByteStream()

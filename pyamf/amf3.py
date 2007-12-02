@@ -24,7 +24,7 @@
 """
 AMF3 implementation.
 
-AMF3 is the default serialization for
+C{AMF3} is the default serialization for
 U{ActionScript<http://en.wikipedia.org/wiki/ActionScript>} 3.0 and
 provides various advantages over L{AMF0<pyamf.amf0>}, which is used
 for ActionScript 1.0 and 2.0. It adds support for sending C{int}
@@ -174,9 +174,9 @@ class ClassDefinition(object):
                  or an empty string, the class is considered to be anonymous.
     @type alias: L{ClassAlias<pyamf.ClassAlias>}
     @ivar encoding: The type of encoding to use when serializing the object.
-    @type encoding: int
+    @type encoding: C{int}
     @ivar attrs: List of attributes to encode.
-    @type attrs: list
+    @type attrs: C{list}
     """
 
     def __init__(self, alias, encoding=ObjectEncoding.STATIC, num_attrs=None):
@@ -252,11 +252,11 @@ class Context(pyamf.BaseContext):
     I hold the AMF3 context for en/decoding streams.
 
     @ivar strings: A list of string references.
-    @type strings: list
+    @type strings: C{list}
     @ivar classes: A list of L{ClassDefinition}.
-    @type classes: list
+    @type classes: C{list}
     @ivar legacy_xml: A list of legacy encoded XML documents.
-    @type legacy_xml: list
+    @type legacy_xml: C{list}
     """
 
     def clear(self):
@@ -274,10 +274,10 @@ class Context(pyamf.BaseContext):
         Gets a string based on a reference C{ref}.
 
         @param ref: The reference index.
-        @type ref: str
+        @type ref: C{str}
         @raise ReferenceError: The referenced string could not be found.
 
-        @rtype: str
+        @rtype: C{str}
         @return: The referenced string.
         """
         try:
@@ -289,11 +289,11 @@ class Context(pyamf.BaseContext):
         """
         Return string reference.
 
-        @type s: str
+        @type s: C{str}
         @param s: The referenced string.
         @raise ReferenceError: The string reference could not be found.
         @return: The reference index to the string.
-        @rtype: int
+        @rtype: C{int}
         """
         try:
             return self.strings.index(s)
@@ -306,11 +306,11 @@ class Context(pyamf.BaseContext):
 
         If the reference already exists, that reference is returned.
 
-        @type s: str
+        @type s: C{str}
         @param s: The string to be referenced.
         @raise ValueError: Trying to store a reference to an empty string.
 
-        @rtype: int
+        @rtype: C{int}
         @return: The reference index.
         """
         if len(s) == 0:
@@ -346,7 +346,7 @@ class Context(pyamf.BaseContext):
         @param class_def: The class definition reference to be found.
         @raise ReferenceError: The reference could not be found.
         @return: The reference to U{class_def}
-        @rtype: int
+        @rtype: C{int}
         """
         try:
             return self.classes.index(class_def)
@@ -377,10 +377,10 @@ class Context(pyamf.BaseContext):
         This is the C{flash.xml.XMLDocument} class in Actionscript 3.0
         and the top-level C{XML} class in Actionscript 1.0 and 2.0.
 
-        @type ref: int
+        @type ref: C{int}
         @param ref: The reference index.
         @raise ReferenceError: The reference could not be found.
-        @return: Instance of L{util.ET}
+        @return: Instance of L{ET<util.ET>}
         """
         try:
             return self.legacy_xml[ref]
@@ -406,13 +406,15 @@ class Context(pyamf.BaseContext):
 
     def addLegacyXML(self, doc):
         """
-        Creates a reference to U{doc}. If U{doc} is already referenced that
-        index will be returned. Otherwise a new index will be created.
+        Creates a reference to U{doc}.
 
-        @type doc: L{util.ET}
+        If U{doc} is already referenced that index will be returned.
+        Otherwise a new index will be created.
+
+        @type doc: L{ET<util.ET>}
         @param doc: The XML document to reference.
-        @rtype: int
-        @return: The reference to doc
+        @rtype: C{int}
+        @return: The reference to C{doc}.
         """
         try:
             return self.legacy_xml.index(doc)
@@ -448,11 +450,12 @@ class Decoder(pyamf.BaseDecoder):
 
     def readType(self):
         """
-        Read and returns the next byte in the stream and determine its type.
+        Read and returns the next byte in the stream and determine
+        its type.
 
         @raise DecodeError: AMF3 type not recognized
         @return: AMF3 type
-        @rtype: int
+        @rtype: C{int}
         """
         type = self.stream.read_uchar()
 
@@ -464,28 +467,28 @@ class Decoder(pyamf.BaseDecoder):
 
     def readNull(self):
         """
-        Read null and return None.
+        Read null.
 
-        @return: None
-        @rtype: None
+        @return: C{None}
+        @rtype: C{None}
         """
         return None
 
     def readBoolFalse(self):
         """
-        Returns False.
+        Returns C{False}.
 
-        @return: False
-        @rtype: bool
+        @return: C{False}
+        @rtype: C{bool}
         """
         return False
 
     def readBoolTrue(self):
         """
-        Returns True.
+        Returns C{True}.
 
-        @return: True
-        @rtype: bool
+        @return: C{True}
+        @rtype: C{bool}
         """
         return True
 
@@ -591,10 +594,9 @@ class Decoder(pyamf.BaseDecoder):
         first three bytes of an encoded empty C{dict} will mirror that
         of an encoded C{{'': 1, '2': 2}}
 
-        @bug: See the U{Docuverse blog
+        @see: U{Docuverse blog
         <http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug>}
-        for more information.
-
+        
         @return:
         @rtype:
         """
@@ -710,7 +712,7 @@ class Decoder(pyamf.BaseDecoder):
         """
         Reads an object from the stream.
 
-        @type legacy: bool
+        @type legacy: C{bool}
         @param legacy: 
         @return:
         @rtype:
@@ -736,16 +738,16 @@ class Decoder(pyamf.BaseDecoder):
         an XML Tree.
 
         @return: The XML Document
-        @rtype: L{util.ET}
+        @rtype: L{ET<util.ET>}
         """
         return self._readXML()
 
     def readXML(self):
         """
-        Read a Legacy XML Document from the stream.
+        Read a legacy XML Document from the stream.
 
         @return: The XML Document
-        @rtype: L{util.ET}
+        @rtype: L{ET<util.ET>}
         """
         return self._readXML(True)
 
@@ -805,9 +807,9 @@ class Encoder(pyamf.BaseEncoder):
         """
         Writes the data.
 
-        @type   data: mixed
+        @type   data: C{mixed}
         @param  data: The data to be encoded to the AMF3 data stream.
-        @type   use_references: bool
+        @type   use_references: C{bool}
         @param  use_references:
         """
         func = self._writeElementFunc(data)
@@ -842,8 +844,8 @@ class Encoder(pyamf.BaseEncoder):
         Writes a C{null} value to the stream.
 
         @type   n:
-        @param  n: null data
-        @type   use_references: bool
+        @param  n: C{null} data
+        @type   use_references: C{bool}
         @param  use_references:
         """
         self.writeType(ASTypes.NULL)
@@ -853,8 +855,8 @@ class Encoder(pyamf.BaseEncoder):
         Writes a Boolean to the stream.
 
         @param n:
-        @type n: bool
-        @type   use_references: bool
+        @type n: boolean data
+        @type   use_references: C{bool}
         @param  use_references:
         """
         if n:
@@ -893,7 +895,7 @@ class Encoder(pyamf.BaseEncoder):
 
         @type   n:
         @param  n: integer data
-        @type   use_references: bool
+        @type   use_references: C{bool}
         @param  use_references:
         """
         self.writeType(ASTypes.INTEGER)
@@ -905,7 +907,7 @@ class Encoder(pyamf.BaseEncoder):
 
         @type   n:
         @param  n: number data
-        @type   use_references: bool
+        @type   use_references: C{bool}
         @param  use_references:
         """
         self.writeType(ASTypes.NUMBER)
@@ -917,7 +919,7 @@ class Encoder(pyamf.BaseEncoder):
 
         @type   n:
         @param  n: string data
-        @type   use_references: bool
+        @type   use_references: C{bool}
         @param  use_references:
         """
         if len(n) == 0:
@@ -946,7 +948,7 @@ class Encoder(pyamf.BaseEncoder):
 
         @type   n:
         @param  n: string data
-        @type   use_references: bool
+        @type   use_references: C{bool}
         @param  use_references:
         """
         self.writeType(ASTypes.STRING)
@@ -958,7 +960,7 @@ class Encoder(pyamf.BaseEncoder):
 
         @type n: Instance of L{datetime}
         @param n: Date data
-        @type   use_references: bool
+        @type   use_references: C{bool}
         @param  use_references:
         """
         self.writeType(ASTypes.DATE)
@@ -981,10 +983,10 @@ class Encoder(pyamf.BaseEncoder):
         """
         Writes a tuple, set or list to the stream.
 
-        @type n: One of __builtin__.tuple, __builtin__.set
-        or __builtin__.list
+        @type n: One of C{__builtin__.tuple}, C{__builtin__.set}
+        or C{__builtin__.list}
         @param n: list data
-        @type   use_references: bool
+        @type   use_references: C{bool}
         @param  use_references:
         """
         self.writeType(ASTypes.ARRAY)
@@ -1007,13 +1009,13 @@ class Encoder(pyamf.BaseEncoder):
 
     def writeDict(self, n, use_references=True):
         """
-        Writes a dict to the stream.
+        Writes a C{dict} to the stream.
 
-        @type   n:__builtin__.dict
-        @param  n: dict data
-        @type   use_references: bool
+        @type   n: C{__builtin__.dict}
+        @param  n: C{dict} data
+        @type   use_references: C{bool}
         @param  use_references:
-        @raise ValueError: non int/str key value found in the C{dict}
+        @raise ValueError: Non C{int}/C{str} key value found in the C{dict}
         @raise EncodeError: C{dict} contains empty string keys.
         """
         self.writeType(ASTypes.ARRAY)
@@ -1124,7 +1126,7 @@ class Encoder(pyamf.BaseEncoder):
 
         @type   obj:
         @param  obj:
-        @type   use_references: bool
+        @type   use_references: C{bool}
         @param  use_references:
         """
         if obj.__class__ == dict:
@@ -1140,7 +1142,7 @@ class Encoder(pyamf.BaseEncoder):
 
         @type   obj:
         @param  obj:
-        @type   use_references: bool
+        @type   use_references: C{bool}
         @param  use_references:
         @raise EncodeError: Unknown object encoding.
         """
@@ -1201,7 +1203,7 @@ class Encoder(pyamf.BaseEncoder):
 
         @type   n: L{ByteArray}
         @param  n: Data.
-        @type   use_references: bool
+        @type   use_references: C{bool}
         @param  use_references:
         """
         self.writeType(ASTypes.BYTEARRAY)
@@ -1230,9 +1232,9 @@ class Encoder(pyamf.BaseEncoder):
         """
         Writes a XML string to the data stream.
 
-        @type   n: L{util.ET}
+        @type   n: L{ET<util.ET>}
         @param  n: XML Document to encode.
-        @type   use_references: bool
+        @type   use_references: C{bool}
         @param  use_references:
         """
         try:
@@ -1279,7 +1281,7 @@ class DataOutput(object):
         """
         Writes a Boolean value.
 
-        @type value: bool
+        @type value: C{bool}
         @param value: A Boolean value determining which byte is written.
         If the parameter is C{True}, 1 is written; if C{False}, 0 is written.
 
@@ -1297,7 +1299,7 @@ class DataOutput(object):
         """
         Writes a byte.
 
-        @type value: int
+        @type value: C{int}
         @param value:
         """
         self.stream.write_char(value)
@@ -1307,7 +1309,7 @@ class DataOutput(object):
         Writes an IEEE 754 double-precision (64-bit) floating
         point number.
 
-        @type value: number
+        @type value: C{number}
         @param value:
         """
         self.stream.write_double(value)
@@ -1317,7 +1319,7 @@ class DataOutput(object):
         Writes an IEEE 754 single-precision (32-bit) floating
         point number.
 
-        @type value: number
+        @type value: C{float}
         @param value:
         """
         self.stream.write_float(value)
@@ -1326,7 +1328,7 @@ class DataOutput(object):
         """
         Writes a 32-bit signed integer.
 
-        @type value: int
+        @type value: C{int}
         @param value:
         """
         self.stream.write_long(value)
@@ -1336,13 +1338,13 @@ class DataOutput(object):
         Writes a multibyte string to the datastream using the
         specified character set.
 
-        @type value: str
+        @type value: C{str}
         @param value: The string value to be written.
-        @type charset: str
+        @type charset: C{str}
         @param charset: The string denoting the character
         set to use. Possible character set strings include
         C{shift-jis}, C{cn-gb}, C{iso-8859-1} and others.
-        @see: U{Supported Character Sets on Livedocs (external)
+        @see: U{Supported character sets on Livedocs (external)
         <http://livedocs.adobe.com/labs/flex/3/langref/charset-codes.html>}
         """
         self.stream.write(unicode(value).encode(charset))
@@ -1353,7 +1355,7 @@ class DataOutput(object):
 
         @type value:
         @param value: The object to be serialized.
-        @type use_references: bool
+        @type use_references: C{bool}
         @param use_references:
         """
         self.encoder.writeElement(value, use_references)
@@ -1362,7 +1364,7 @@ class DataOutput(object):
         """
         Writes a 16-bit integer.
 
-        @type value: int
+        @type value: C{int}
         @param value: A byte value as an integer.
         """
         self.stream.write_short(value)
@@ -1371,7 +1373,7 @@ class DataOutput(object):
         """
         Writes a 32-bit unsigned integer.
 
-        @type value: int
+        @type value: C{int}
         @param value: A byte value as an unsigned integer.
         """
         self.stream.write_ulong(value)
@@ -1384,7 +1386,7 @@ class DataOutput(object):
         as a 16-bit integer, followed by the bytes representing the
         characters of the string.
 
-        @type value: str
+        @type value: C{str}
         @param value: The string value to be written.
         """
         val = None
@@ -1401,7 +1403,7 @@ class DataOutput(object):
         Writes a UTF-8 string. Similar to L{writeUTF}, but does
         not prefix the string with a 16-bit length word.
 
-        @type value: str
+        @type value: C{str}
         @param value: The string value to be written.
         """
 
@@ -1437,7 +1439,7 @@ class DataInput(object):
         Read Boolean.
 
         @raise ValueError: Error reading Boolean.
-        @rtype: bool
+        @rtype: C{bool}
         @return: A Boolean value, C{True} if the byte
         is nonzero, C{False} otherwise.
         """
@@ -1454,7 +1456,7 @@ class DataInput(object):
         """
         Reads a signed byte.
 
-        @rtype: int
+        @rtype: C{int}
         @return: The returned value is in the range -128 to 127.
         """
         return self.stream.read_char()
@@ -1464,7 +1466,7 @@ class DataInput(object):
         Reads an IEEE 754 double-precision floating point number from the
         data stream.
 
-        @rtype: number
+        @rtype: C{number}
         @return: An IEEE 754 double-precision floating point number.
         """
         return self.stream.read_double()
@@ -1474,7 +1476,7 @@ class DataInput(object):
         Reads an IEEE 754 single-precision floating point number from the
         data stream.
 
-        @rtype: number
+        @rtype: C{number}
         @return: An IEEE 754 single-precision floating point number.
         """
         return self.stream.read_float()
@@ -1483,7 +1485,7 @@ class DataInput(object):
         """
         Reads a signed 32-bit integer from the data stream.
 
-        @rtype: int
+        @rtype: C{int}
         @return: The returned value is in the range -2147483648 to 2147483647.
         """
         return self.stream.read_long()
@@ -1493,13 +1495,13 @@ class DataInput(object):
         Reads a multibyte string of specified length from the data stream
         using the specified character set.
 
-        @type length: int
+        @type length: C{int}
         @param length: The number of bytes from the data stream to read.
 
-        @type charset: str
+        @type charset: C{str}
         @param charset: The string denoting the character set to use.
 
-        @rtype: str
+        @rtype: C{str}
         @return: UTF-8 encoded string.
         """
         #FIXME nick: how to work out the code point byte size (on the fly)?
@@ -1520,7 +1522,7 @@ class DataInput(object):
         """
         Reads a signed 16-bit integer from the data stream.
 
-        @rtype: uint
+        @rtype: C{uint}
         @return: The returned value is in the range -32768 to 32767.
         """
         return self.stream.read_short()
@@ -1529,7 +1531,7 @@ class DataInput(object):
         """
         Reads an unsigned byte from the data stream.
 
-        @rtype: uint
+        @rtype: C{uint}
         @return: The returned value is in the range 0 to 255.
         """
         return self.stream.read_uchar()
@@ -1538,7 +1540,7 @@ class DataInput(object):
         """
         Reads an unsigned 32-bit integer from the data stream.
 
-        @rtype: uint
+        @rtype: C{uint}
         @return: The returned value is in the range 0 to 4294967295.
         """
         return self.stream.read_ulong()
@@ -1547,7 +1549,7 @@ class DataInput(object):
         """
         Reads an unsigned 16-bit integer from the data stream.
 
-        @rtype: uint
+        @rtype: C{uint}
         @return: The returned value is in the range 0 to 65535.
         """
         return self.stream.read_ushort()
@@ -1559,7 +1561,7 @@ class DataInput(object):
         The string is assumed to be prefixed with an unsigned
         short indicating the length in bytes.
 
-        @rtype: str
+        @rtype: C{str}
         @return: A UTF-8 string produced by the byte
         representation of characters.
         """
@@ -1573,7 +1575,7 @@ class DataInput(object):
         Reads a sequence of C{length} UTF-8 bytes from the data
         stream and returns a string.
 
-        @type length: int
+        @type length: C{int}
         @param length: The number of bytes from the data stream to read.
         @rtype: str
         @return: A UTF-8 string produced by the byte
@@ -1626,7 +1628,7 @@ def decode_utf8_modified(data):
     @type   data:
     @param  data:
     @return: Unicode string
-    @rtype: str
+    @rtype: C{str}
     @raise ValueError: Data is not valid modified UTF-8.
 
     @see: U{UTF-8 Java on Wikipedia<http://en.wikipedia.org/wiki/UTF-8#Java>}
@@ -1687,7 +1689,7 @@ def encode(element, context=None):
     @type   context: L{Context}
     @param  context: Context.
     @return: Object containing the encoded AMF3 data.
-    @rtype: StringIO
+    @rtype: C{StringIO}
     """
     buf = util.BufferedByteStream()
     encoder = Encoder(buf, context)

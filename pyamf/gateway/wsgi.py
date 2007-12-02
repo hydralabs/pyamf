@@ -46,8 +46,8 @@ class WSGIGateway(gateway.BaseGateway):
         Processes the AMF request, returning an AMF response.
 
         @param request: The AMF Request.
-        @type request: L{remoting.Envelope}
-        @rtype: L{remoting.Envelope}
+        @type request: L{Envelope<remoting.Envelope>}
+        @rtype: L{Envelope<remoting.Envelope>}
         @return: The AMF Response.
         """
         response = remoting.Envelope(request.amfVersion, request.clientType)
@@ -76,7 +76,7 @@ class WSGIGateway(gateway.BaseGateway):
         @type start_response:
         @param start_response:
 
-        @rtype: StringIO
+        @rtype: C{StringIO}
         @return: File-like object.
         """
         if environ['REQUEST_METHOD'] != 'POST':

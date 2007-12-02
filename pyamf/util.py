@@ -61,8 +61,6 @@ class StringIOProxy(object):
 
     def __init__(self, buf=None):
         """
-        @param buf:
-        @type buf:
         @raise TypeError: Unable to coerce buffer to C{StringIO}.
         """
         self._buffer = StringIOProxy._wrapped_class()
@@ -118,14 +116,6 @@ class StringIOProxy(object):
         return lines
 
     def seek(self, pos, mode=0):
-        """
-        @type pos:
-        @param pos:
-        @type mode:
-        @param mode:
-        @rtype:
-        @return:
-        """
         return self._buffer.seek(pos, mode)
 
     def tell(self):
@@ -157,7 +147,7 @@ class StringIOProxy(object):
 class NetworkIOMixIn(object):
     """
     Provides mix-in methods for file-like objects to read and write basic
-    datatypes in network (= big-endian) byte-order.
+    datatypes in big-endian byte-order.
     """
 
     def _read(self, length):
@@ -274,7 +264,7 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
 
     Features:
      - Raises C{EOFError} if reading past end.
-     - Allows you to peek() at the next byte.
+     - Allows you to C{peek()} at the next byte.
     """
 
     def __init__(self, buf=None):
@@ -293,12 +283,12 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
         specified C{IOError} is raised.
 
         @param length: Number of bytes to read.
-        @type length: int
+        @type length: C{int}
         @raise EOFError: Reading past end of stream.
         @raise IOError: Length specified but not enough buffer
         available.
 
-        @rtype: array of char
+        @rtype: array of C{char}
         @return: The bytes read from the stream.
         """
         if length > 0 and self.at_eof():
@@ -360,7 +350,7 @@ def hexdump(data):
 
     @type data:
     @param data:
-    @rtype: str
+    @rtype: C{str}
     @return: Hexadecimal string.
     """
     import string
@@ -392,7 +382,7 @@ def get_timestamp(d):
     @type d: C{datetime.datetime}
     @param d:
     @return: UTC timestamp.
-    @rtype: str
+    @rtype: C{str}
 
     @see: Inspiration taken from the U{Intertwingly blog
     <http://intertwingly.net/blog/2007/09/02/Dealing-With-Dates>}.
@@ -403,8 +393,8 @@ def get_datetime(secs):
     """
     Return a UTC date from a timestamp.
 
-    @type secs: long
-    @param secs: seconds since 1970
+    @type secs: C{long}
+    @param secs: Seconds since 1970.
     @return: UTC timestamp.
     @rtype: C{datetime.datetime}
     """

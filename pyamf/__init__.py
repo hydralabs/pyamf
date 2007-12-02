@@ -121,7 +121,7 @@ class UnknownClassAlias(BaseError):
     Raised if the AMF stream specifies a class that does not
     have an alias.
 
-    @see: L{register_class} for more info.
+    @see: L{register_class}
     """
 
 class BaseContext(object):
@@ -139,14 +139,14 @@ class BaseContext(object):
         """
         Gets an object based on a reference.
 
-        @type ref: int
+        @type ref: C{int}
         @param ref: The reference to an object.
 
         @raise TypeError: Bad reference type.
         @raise ReferenceError: The object reference could not
         be found.
 
-        @rtype: mixed
+        @rtype: C{mixed}
         @return: The object referenced.
         """
         if not isinstance(ref, (int, long)):
@@ -178,10 +178,10 @@ class BaseContext(object):
         """
         Gets a reference to C{obj}, creating one if necessary.
 
-        @type obj: mixed
+        @type obj: C{mixed}
         @param obj: The object to add to the context.
 
-        @rtype: int
+        @rtype: C{int}
         @return: Reference to C{obj}.
         """
         try:
@@ -201,7 +201,7 @@ class Bag(object):
 
     def __init__(self, d={}):
         """
-        @type d: dict
+        @type d: C{dict}
         @param d: Initial data for the bag.
         """
         for k, v in d.iteritems():
@@ -245,10 +245,6 @@ class ClassMetaData(list):
     )
 
     def __init__(self, *args):
-        """
-        @type args:
-        @param args:
-        """
         if len(args) == 1 and hasattr(args[0], '__iter__'):
             for x in args[0]:
                 self.append(x)
@@ -257,12 +253,6 @@ class ClassMetaData(list):
                 self.append(x)
 
     def _is_tag_allowed(self, x):
-        """
-        @param x:
-        @type x:
-        @rtype: tuple
-        @return:
-        """
         for y in self._allowed_tags:
             if isinstance(y, (types.ListType, types.TupleType)):
                 if x in y:
@@ -318,16 +308,16 @@ class ClassAlias(object):
     All classes are initially set to a dynamic state.
 
     @ivar attrs: A list of attributes to encode for this class.
-    @type attrs: list
+    @type attrs: C{list}
     @ivar metadata: A list of metadata tags similar to ActionScript tags.
-    @type metadata: list
+    @type metadata: C{list}
     """
     def __init__(self, klass, alias, read_func=None, write_func=None,
                  attrs=None, metadata=[]):
         """
         @type klass: class
         @param klass: The class to alias.
-        @type alias: str
+        @type alias: C{str}
         @param alias: The alias to the class e.g. C{org.example.Person}.
         @type read_func: callable
         @param read_func: Function that gets called when reading the object
@@ -491,9 +481,9 @@ class BaseEncoder(object):
         """
         Gets a function used to encode the data.
 
-        @type   data: mixed
+        @type   data: C{mixed}
         @param  data: Python data.
-        @rtype: callable or None
+        @rtype: callable or C{None}
         @return: The function used to encode data to the stream.
         """
         func = None
@@ -514,7 +504,7 @@ class BaseEncoder(object):
         """
         Writes the data.
 
-        @type   data: mixed
+        @type   data: C{mixed}
         @param  data: The data to be encoded to the data stream.
         """
         raise NotImplementedError
@@ -524,7 +514,7 @@ def register_class(klass, alias, read_func=None, write_func=None,
     """
     Registers a class to be used in the data streaming.
 
-    @type alias: str
+    @type alias: C{str}
     @param alias: The alias of klass, i.e. C{org.example.Person}.
     @type read_func:
     @param read_func:
@@ -565,7 +555,7 @@ def unregister_class(alias):
 
     If C{alias} is a class, the matching alias is found.
 
-    @type alias: class or str
+    @type alias: C{class} or C{str}
     @param alias: Alias for class to delete.
     @raise UnknownClassAlias: Unknown alias.
     """
@@ -583,10 +573,10 @@ def unregister_class(alias):
 
 def register_class_loader(loader):
     """
-    Registers a loader that is called to provide the Class for a specific
+    Registers a loader that is called to provide the C{Class} for a specific
     alias.
 
-    The L{loader} is provided with one argument, the Class alias. If the
+    The L{loader} is provided with one argument, the C{Class} alias. If the
     loader succeeds in finding a suitable class then it should return that
     class, otherwise it should return L{None}.
 
@@ -622,7 +612,7 @@ def get_module(mod_name):
     """
     Load a module based on C{mod_name}.
 
-    @type mod_name: str
+    @type mod_name: C{str}
     @param mod_name: The module name.
     @rtype:
     @return: Module
@@ -644,7 +634,7 @@ def load_class(alias):
       2. Checks all functions registered via L{register_class_loader}.
       3. Attempts to load the class via standard module loading techniques.
 
-    @type alias: str
+    @type alias: C{str}
     @param alias: The class name.
     @raise UnknownClassAlias: The C{alias} was not found.
     @raise TypeError: Expecting class type or L{ClassAlias} from loader.
@@ -701,7 +691,7 @@ def get_class_alias(klass):
     """
     Finds the alias registered to the class.
 
-    @type klass: object or class
+    @type klass: C{object} or class
     @param klass:
     @raise UnknownClassAlias: Class not found.
     @raise TypeError: Expecting string or class type.
@@ -732,9 +722,9 @@ def decode(stream, encoding=AMF0, context=None):
     """
     A generator function to decode a datastream.
 
-    @type   stream: L{BufferedByteStream}
+    @type   stream: L{BufferedByteStream<util.BufferedByteStream>}
     @param  stream: AMF data.
-    @type   encoding: int
+    @type   encoding: C{int}
     @param  encoding: AMF encoding type.
     @type   context: L{AMF0 Context<pyamf.amf0.Context>} or
     L{AMF3 Context<pyamf.amf3.Context>}
@@ -750,9 +740,9 @@ def encode(element, encoding=AMF0, context=None):
     """
     A helper function to encode an element.
 
-    @type   element: mixed
+    @type   element: C{mixed}
     @param  element: Python data.
-    @type   encoding: int
+    @type   encoding: C{int}
     @param  encoding: AMF encoding type.
     @type   context: L{amf0.Context<pyamf.amf0.Context>} or
     L{amf3.Context<pyamf.amf3.Context>}
@@ -769,17 +759,13 @@ def encode(element, encoding=AMF0, context=None):
     return buf
 
 def get_decoder(encoding):
-    """
-    @type   encoding:
-    @param  encoding:
-    """
     return _get_decoder_class(encoding)()
 
 def _get_decoder_class(encoding):
     """
     Get compatible decoder.
 
-    @type encoding: int
+    @type encoding: C{int}
     @param encoding: AMF encoding version.
     @raise ValueError: AMF encoding version is unknown.
 
@@ -799,17 +785,13 @@ def _get_decoder_class(encoding):
     raise ValueError, "Unknown encoding %s" % encoding
 
 def get_encoder(encoding):
-    """
-    @type   encoding:
-    @param  encoding:
-    """
     return _get_encoder_class(encoding)()
 
 def _get_encoder_class(encoding):
     """
     Get compatible encoder.
 
-    @type encoding: int
+    @type encoding: C{int}
     @param encoding: AMF encoding version.
     @raise ValueError: AMF encoding version is unknown.
 
@@ -829,17 +811,13 @@ def _get_encoder_class(encoding):
     raise ValueError, "Unknown encoding %s" % encoding
 
 def get_context(encoding):
-    """
-    @type   encoding:
-    @param  encoding:
-    """
     return _get_context_class(encoding)()
 
 def _get_context_class(encoding):
     """
     Gets a compatible context class.
 
-    @type encoding: int
+    @type encoding: C{int}
     @param encoding: AMF encoding version
     @raise ValueError: AMF encoding version is unknown.
 

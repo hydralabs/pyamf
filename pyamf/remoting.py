@@ -97,7 +97,7 @@ class HeaderCollection(dict):
         """
         @type idx:
         @param idx:
-        @type value: bool
+        @type value: C{bool}
         @param value:
 
         @raise KeyError: Unknown header found.
@@ -190,12 +190,12 @@ def _read_header(stream, decoder, strict=False):
     @type   decoder: L{amf0.Decoder<pyamf.amf0.Decoder>} or
     L{amf3.Decoder<pyamf.amf3.Decoder>}
     @param  decoder: AMF decoder instance
-    @type strict: bool
+    @type strict: C{bool}
     @param strict:
     @raise DecodeError: The data that was read from the stream
     does not match the header length.
 
-    @rtype: tuple
+    @rtype: C{tuple}
     @return:
      - Name of the header.
      - A boolean determining if understanding this header is
@@ -223,7 +223,7 @@ def _write_header(name, header, required, stream, encoder, strict=False):
     """
     Write AMF message header.
 
-    @type   name: str
+    @type   name: C{str}
     @param  name: Name of header
     @type   header:
     @param  header: Raw header data.
@@ -234,7 +234,7 @@ def _write_header(name, header, required, stream, encoder, strict=False):
     @type   encoder: L{amf0.Encoder<pyamf.amf0.Encoder>}
     or L{amf3.Encoder<pyamf.amf3.Encoder>}
     @param  encoder: AMF encoder instance.
-    @type strict: bool
+    @type strict: C{bool}
     @param strict:
     """
     stream.write_ushort(len(name))
@@ -262,11 +262,11 @@ def _read_body(stream, decoder, strict=False):
     @type   decoder: L{amf0.Decoder<pyamf.amf0.Decoder>} or
     L{amf3.Decoder<pyamf.amf3.Decoder>}
     @param  decoder: AMF decoder instance.
-    @type strict: bool
+    @type strict: C{bool}
     @param strict:
     @raise DecodeError: Data read from stream does not match body length.
 
-    @rtype: tuple
+    @rtype: C{tuple}
     @return:
      - The target of the body.
      - The id (as sent by the client) of the body.
@@ -300,7 +300,7 @@ def _write_body(name, message, stream, encoder, strict=False):
     """
     Write AMF message body.
 
-    @type   name: str
+    @type   name: C{str}
     @param  name: Name of body.
     @type   message: L{Message}
     @param  message: Message to write.
@@ -309,7 +309,7 @@ def _write_body(name, message, stream, encoder, strict=False):
     @type   encoder: L{amf0.Encoder<pyamf.amf0.Encoder>}
     or L{amf3.Encoder<pyamf.amf3.Encoder>}
     @param  encoder: Encoder to use.
-    @type strict: bool
+    @type strict: C{bool}
     @param strict:
     """
     target = u"%s%s" % (name, _get_status(message.status))
@@ -363,7 +363,7 @@ def decode(stream, context=None, strict=False):
     @type   context: L{AMF0 Context<pyamf.amf0.Context>} or
     L{AMF3 Context<pyamf.amf3.Context>}
     @param  context: Context.
-    @type strict: bool
+    @type strict: C{bool}
     @param strict:
 
     @raise DecodeError: Malformed stream.
@@ -380,7 +380,7 @@ def decode(stream, context=None, strict=False):
 
     msg.amfVersion = stream.read_uchar()
 
-    # See http://osflash.org/documentation/amf/envelopes/remoting#preamble
+    # see http://osflash.org/documentation/amf/envelopes/remoting#preamble
     # why we are doing this...
     if msg.amfVersion > 0x09:
         raise pyamf.DecodeError("Malformed stream (amfVersion=%d)" %
@@ -433,7 +433,7 @@ def encode(msg, old_context=None, strict=False):
     @type   old_context: L{AMF0 Context<pyamf.amf0.Context>} or
     L{AMF3 Context<pyamf.amf3.Context>}
     @param  old_context: Context.
-    @type strict: bool
+    @type strict: C{bool}
     @param strict: Determines whether encoding should be strict. Specifically
         header/body lengths will be written correctly, instead of the default 0.
 
@@ -441,10 +441,6 @@ def encode(msg, old_context=None, strict=False):
     @return: File object.
     """
     def getNewContext():
-        """
-        @rtype:
-        @return:
-        """
         if old_context:
             import copy
 
@@ -479,33 +475,27 @@ class RecordSet(object):
     I represent the RecordSet class used in Flash
     Remoting to hold (amongst other things) SQL records.
 
-    @ivar columns: The columns to send
-    @type columns: List of strings
-    @ivar items: The recordset data
+    @ivar columns: The columns to send.
+    @type columns: List of strings.
+    @ivar items: The recordset data.
     @type items: List of lists, the order of the data corresponds
-        to the order of the columns
-    @ivar service: Service linked to the recordset
-    @type: ?
-    @ivar id: The id of the recordset
-    @type id: str
+        to the order of the columns.
+    @ivar service: Service linked to the recordset.
+    @type service: 
+    @ivar id: The id of the recordset.
+    @type id: C{str}
 
     @see: U{RecordSet on OSFlash (external)
     <http://osflash.org/documentation/amf/recordset>}
     """
 
     def __init__(self, columns=[], items=[], service=None, id=None):
-        """
-        """
         self.columns = columns
         self.items = items
         self.service = service
         self.id = id
 
     def _get_server_info(self):
-        """
-        @rtype: dict
-        @return: The object to be encoded.
-        """
         ret = dict(totalCount=len(self.items), cursor=1, version=1,
             initialData=self.items, columnNames=self.columns)
 
@@ -518,10 +508,6 @@ class RecordSet(object):
         return ret
 
     def _set_server_info(self, val):
-        """
-        @type val:
-        @param val:
-        """
         self.columns = val['columnNames']
         self.items = val['initialData']
 

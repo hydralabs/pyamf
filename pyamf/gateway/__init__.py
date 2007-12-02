@@ -52,7 +52,7 @@ class Fault(object):
     @type description: C{str}
     
     @ivar root_cause: The root cause of the fault.
-    @type root_cause: object or None
+    @type root_cause: C{object} or C{None}
     """
 
     def __init__(self, code=None, detail=None, description=None, root_cause=None):
@@ -119,15 +119,15 @@ class ServiceWrapper(object):
     Wraps a supplied service with extra functionality.
 
     @ivar service: The original service.
-    @type service: callable
+    @type service: C{callable}
     
     @ivar authenticator: Will be called before the service is called to check
         that the supplied credentials (if any) can access the service.
     @type authenticator: callable with two args, username and password. Returns
-        a bool based on the success of authentication.
+        a C{bool} based on the success of authentication.
         
     @ivar description: A description of the service.
-    @type description: str
+    @type description: C{str}
 
     @raise NameError: Calls to private methods are not allowed.
     @raise NameError: Unknown method.
@@ -182,11 +182,11 @@ class ServiceWrapper(object):
         If the service is a class, it will be instantiated.
 
         @param method: The method to call on the service.
-        @type method: None or mixed
+        @type method: C{None} or C{mixed}
         @param params: The params to pass to the service.
-        @type params: list or tuple
+        @type params: C{list} or C{tuple}
         @return: The result of the execution.
-        @rtype: mixed
+        @rtype: C{mixed}
         """
         func = self._get_service_func(method, params)
 
@@ -202,13 +202,10 @@ class ServiceRequest(object):
     @type service: L{ServiceWrapper}
     @ivar method: The method to call on the service. A value of C{None}
         means that the service will be called directly.
-    @type method: None or str
+    @type method: C{None} or C{str}
     """
 
     def __init__(self, request, service, method):
-        """
-        Initialises the service request.
-        """
         self.request = request
         self.service = service
         self.method = method
@@ -224,7 +221,7 @@ class ServiceRequest(object):
 
         @return: Boolean determining whether the supplied credentials can
             access the service.
-        @rtype: bool
+        @rtype: C{bool}
         """
         if self.service.authenticator is None:
             # The default is to allow anything through
@@ -256,7 +253,7 @@ class BaseGateway(object):
     def __init__(self, services={}):
         """
         @param services: Initial services.
-        @type services: dict
+        @type services: C{dict}
         @raise TypeError: C{dict} type required for C{services}.
         """
         self.services = ServiceCollection()
@@ -274,10 +271,10 @@ class BaseGateway(object):
         @param service: The service to add to the gateway.
         @type service: callable, class instance, or a module
         @param name: The name of the service.
-        @type name: str
+        @type name: C{str}
         @param authenticator: A callable that will check the credentials of
             the request before allowing access to the service.
-        @type authenticator: Callable
+        @type authenticator: C{Callable}
 
         @raise RemotingError: Service already exists.
         @raise TypeError: C{service} must be callable or a module.

@@ -86,7 +86,8 @@ class DjangoGateway(gateway.BaseGateway):
             (r'^gateway/', 'yourproject.yourapp.gateway.gw_instance'),
         )
 
-    where C{yourproject.yourapp.gateway.gw_instance} refers to an instance of this class.
+    where C{yourproject.yourapp.gateway.gw_instance} refers to an
+    instance of this class.
     """
 
     def getResponse(self, request):

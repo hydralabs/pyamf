@@ -87,9 +87,9 @@ class ServiceRequest(gateway.ServiceRequest):
         Twisted implementation of L{ServiceRequest<gateway.ServiceRequest>}.
 
         @param username: Username.
-        @type username: str
+        @type username: C{str}
         @param password: Password.
-        @type password: str
+        @type password: C{str}
 
         @return: A Deferred which fires a callback containing the result
                  (a C{bool}) of the authentication.
