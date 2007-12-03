@@ -149,7 +149,7 @@ class DjangoGateway(gateway.BaseGateway):
             return HttpResponseServerError('Unable to encode the response')
 
         buf = stream.getvalue()
-        http_response.headers['Content-Type'] = gateway.CONTENT_TYPE
+        http_response['Content-Type'] = gateway.CONTENT_TYPE
         http_response['Content-Length'] = str(len(buf))
         http_response.write(buf)
 
