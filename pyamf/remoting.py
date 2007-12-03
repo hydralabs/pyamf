@@ -24,16 +24,17 @@
 """
 AMF Remoting support.
 
-A Remoting request from the client consists of a short preamble, headers, and bodies.
-The preamble contains basic information about the nature of the request. Headers can
-be used to request debugging information, send authentication info, tag transactions,
-etc. Bodies contain actual Remoting requests and responses. A single Remoting envelope
-can contain several requests; Remoting supports batching out of the box.
+A Remoting request from the client consists of a short preamble, headers, and
+bodies. The preamble contains basic information about the nature of the
+request. Headers can be used to request debugging information, send
+authentication info, tag transactions, etc. Bodies contain actual Remoting
+requests and responses. A single Remoting envelope can contain several
+requests; Remoting supports batching out of the box.
 
-Client headers and bodies need not be responded to in a one-to-one manner. That is, a
-body or header may not require a response. Debug information is requested by a header
-but sent back as a body object. The response index is essential for the Flash Player
-to understand the response therefore.
+Client headers and bodies need not be responded to in a one-to-one manner. That
+is, a body or header may not require a response. Debug information is requested
+by a header but sent back as a body object. The response index is essential for
+the Flash Player to understand the response therefore.
 
 @see: U{Remoting Envelope on OSFlash (external)
 <http://osflash.org/documentation/amf/envelopes/remoting>}
@@ -155,7 +156,13 @@ class Envelope(dict):
         dict.__setitem__(self, idx, value)
 
     def __iter__(self):
-        return self.iteritems()
+        order = self.keys()
+        order.sort()
+
+        for x in order:
+            yield x, self[x]
+
+        raise StopIteration
 
 class Message(object):
     """
