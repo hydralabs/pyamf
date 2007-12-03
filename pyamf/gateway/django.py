@@ -125,13 +125,14 @@ class DjangoGateway(gateway.BaseGateway):
         context = pyamf.get_context(pyamf.AMF0)
         stream = None
         http_response = HttpResponse()
-        http_response.headers['Content-Type'] = gateway.CONTENT_TYPE
 
         # Decode the request
         try:
             request = remoting.decode(request.raw_post_data, context)
         except pyamf.DecodeError:
-            return HttpResponse(status=400)
+            http_response.status_code = 400
+
+            return http_response
 
         # Process the request
         try:
@@ -148,6 +149,7 @@ class DjangoGateway(gateway.BaseGateway):
             return HttpResponseServerError('Unable to encode the response')
 
         buf = stream.getvalue()
+        http_response.headers['Content-Type'] = gateway.CONTENT_TYPE
         http_response['Content-Length'] = str(len(buf))
         http_response.write(buf)
 
