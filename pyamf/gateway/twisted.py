@@ -71,6 +71,7 @@ del idx, imp, sys, os, cwd, t
 from twisted.internet import defer, threads, reactor
 from twisted.web import resource, server, client
 del version, __version__
+# end import hack
 
 import pyamf
 from pyamf import remoting, gateway
