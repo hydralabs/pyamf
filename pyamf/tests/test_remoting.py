@@ -368,7 +368,6 @@ def suite():
 
     suite.addTest(unittest.makeSuite(DecoderTestCase))
     suite.addTest(unittest.makeSuite(EncoderTestCase))
-    suite.addTest(unittest.makeSuite(RecordSetTestCase))
 
     return suite
 

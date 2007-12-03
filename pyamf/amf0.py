@@ -733,3 +733,59 @@ def encode(element, context=None):
     encoder.writeElement(element)
 
     return buf
+
+class RecordSet(object):
+    """
+    I represent the RecordSet class used in Flash
+    Remoting to hold (amongst other things) SQL records.
+
+    @ivar columns: The columns to send.
+    @type columns: List of strings.
+    @ivar items: The recordset data.
+    @type items: List of lists, the order of the data corresponds
+        to the order of the columns.
+    @ivar service: Service linked to the recordset.
+    @type service: 
+    @ivar id: The id of the recordset.
+    @type id: C{str}
+
+    @see: U{RecordSet on OSFlash (external)
+    <http://osflash.org/documentation/amf/recordset>}
+    """
+
+    def __init__(self, columns=[], items=[], service=None, id=None):
+        self.columns = columns
+        self.items = items
+        self.service = service
+        self.id = id
+
+    def _get_server_info(self):
+        ret = dict(totalCount=len(self.items), cursor=1, version=1,
+            initialData=self.items, columnNames=self.columns)
+
+        if self.service is not None:
+            ret.update(serviceName=str(self.service.name))
+
+        if self.id is not None:
+            ret.update(id=str(self.id))
+
+        return ret
+
+    def _set_server_info(self, val):
+        self.columns = val['columnNames']
+        self.items = val['initialData']
+
+        try:
+            # TODO nick: find relevant service and link in here.
+            self.service = pyamf.Bag({'name': val['serviceName']})
+        except KeyError:
+            self.service = None
+
+        try:
+            self.id = val['id']
+        except KeyError:
+            self.id = None
+
+    serverInfo = property(_get_server_info, _set_server_info)
+
+pyamf.register_class(RecordSet, 'RecordSet', attrs=['serverInfo'])

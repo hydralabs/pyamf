@@ -469,6 +469,134 @@ class HelperTestCase(unittest.TestCase):
     def test_encode(self):
         pass
 
+class RecordSetTestCase(unittest.TestCase):
+    def test_create(self):
+        x = amf0.RecordSet()
+
+        self.assertEquals(x.columns, [])
+        self.assertEquals(x.items, [])
+        self.assertEquals(x.service, None)
+        self.assertEquals(x.id, None)
+
+        x = amf0.RecordSet(columns=['foo', 'bar'], items=[[1, 2]])
+
+        self.assertEquals(x.columns, ['foo', 'bar'])
+        self.assertEquals(x.items, [[1, 2]])
+        self.assertEquals(x.service, None)
+        self.assertEquals(x.id, None)
+
+        x = amf0.RecordSet(service={}, id=54)
+
+        self.assertEquals(x.columns, [])
+        self.assertEquals(x.items, [])
+        self.assertEquals(x.service, {})
+        self.assertEquals(x.id, 54)
+
+    def test_server_info(self):
+        # empty recordset
+        x = amf0.RecordSet()
+
+        si = x.serverInfo
+
+        self.assertTrue(isinstance(si, dict))
+        self.assertEquals(si['cursor'], 1)
+        self.assertEquals(si['version'], 1)
+        self.assertEquals(si['columnNames'], [])
+        self.assertEquals(si['initialData'], [])
+        self.assertEquals(si['totalCount'], 0)
+
+        try:
+            si['serviceName']
+        except KeyError:
+            pass
+
+        try:
+            si['id']
+        except KeyError:
+            pass
+
+        # basic create
+        x = amf0.RecordSet(columns=['a', 'b', 'c'], items=[
+            [1, 2, 3], [4, 5, 6], [7, 8, 9]])
+
+        si = x.serverInfo
+
+        self.assertTrue(isinstance(si, dict))
+        self.assertEquals(si['cursor'], 1)
+        self.assertEquals(si['version'], 1)
+        self.assertEquals(si['columnNames'], ['a', 'b', 'c'])
+        self.assertEquals(si['initialData'], [[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        self.assertEquals(si['totalCount'], 3)
+
+        try:
+            si['serviceName']
+        except KeyError:
+            pass
+
+        try:
+            si['id']
+        except KeyError:
+            pass
+
+        # with service & id
+        service = pyamf.Bag({'name': 'baz'})
+
+        service.__dict__.update(name='baz')
+        x = amf0.RecordSet(columns=['foo'], items=[['bar']],
+            service=service, id='asdfasdf')
+
+        si = x.serverInfo
+
+        self.assertTrue(isinstance(si, dict))
+        self.assertEquals(si['cursor'], 1)
+        self.assertEquals(si['version'], 1)
+        self.assertEquals(si['columnNames'], ['foo'])
+        self.assertEquals(si['initialData'], [['bar']])
+        self.assertEquals(si['totalCount'], 1)
+        self.assertEquals(si['serviceName'], 'baz')
+        self.assertEquals(si['id'], 'asdfasdf')
+
+    def test_encode(self):
+        stream = util.BufferedByteStream()
+        encoder = pyamf._get_encoder_class(pyamf.AMF0)(stream)
+
+        x = amf0.RecordSet(columns=['a', 'b', 'c'], items=[
+            [1, 2, 3], [4, 5, 6], [7, 8, 9]])
+
+        encoder.writeElement(x)
+
+        self.assertEquals(stream.getvalue(), '\x10\x00\tRecordSet\x00\n'
+            'serverInfo\x08\x00\x00\x00\x00\x00\x06cursor\x00?\xf0\x00\x00\x00'
+            '\x00\x00\x00\x00\x0bcolumnNames\n\x00\x00\x00\x03\x02\x00\x01a'
+            '\x02\x00\x01b\x02\x00\x01c\x00\x0binitialData\n\x00\x00\x00\x03'
+            '\n\x00\x00\x00\x03\x00?\xf0\x00\x00\x00\x00\x00\x00\x00@\x00\x00'
+            '\x00\x00\x00\x00\x00\x00@\x08\x00\x00\x00\x00\x00\x00\n\x00\x00'
+            '\x00\x03\x00@\x10\x00\x00\x00\x00\x00\x00\x00@\x14\x00\x00\x00'
+            '\x00\x00\x00\x00@\x18\x00\x00\x00\x00\x00\x00\n\x00\x00\x00\x03'
+            '\x00@\x1c\x00\x00\x00\x00\x00\x00\x00@ \x00\x00\x00\x00\x00\x00'
+            '\x00@"\x00\x00\x00\x00\x00\x00\x00\x07version\x00?\xf0\x00\x00'
+            '\x00\x00\x00\x00\x00\ntotalCount\x00@\x08\x00\x00\x00\x00\x00\x00'
+            '\x00\x00\t\x00\x00\t')
+
+    def test_decode(self):
+        stream = util.BufferedByteStream()
+        decoder = pyamf._get_decoder_class(pyamf.AMF0)(stream)
+
+        stream.write('\x11\x0a\x13\x13RecordSet\x15serverInfo\t\x01\rcursor\x04'
+            '\x01\x17columnNames\t\x07\x01\x06\x03a\x06\x03b\x06\x03c\x17initia'
+            'lData\t\x07\x01\t\x07\x01\x04\x01\x04\x02\x04\x03\t\x07\x01\x04'
+            '\x04\x04\x05\x04\x06\t\x07\x01\x04\x07\x04\x08\x04\t\x0fversion'
+            '\x04\x01\x15totalCount\x04\x03\x01')
+        stream.seek(0, 0)
+
+        x = decoder.readElement()
+
+        self.assertTrue(isinstance(x, amf0.RecordSet))
+        self.assertEquals(x.columns, ['a', 'b', 'c'])
+        self.assertEquals(x.items, [[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        self.assertEquals(x.service, None)
+        self.assertEquals(x.id, None)
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -476,6 +604,7 @@ def suite():
     suite.addTest(unittest.makeSuite(ContextTestCase))
     suite.addTest(unittest.makeSuite(EncoderTestCase))
     suite.addTest(unittest.makeSuite(DecoderTestCase))
+    suite.addTest(unittest.makeSuite(RecordSetTestCase))
     suite.addTest(unittest.makeSuite(HelperTestCase))
 
     return suite
