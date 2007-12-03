@@ -440,7 +440,7 @@ class Decoder(pyamf.BaseDecoder):
 
     context_class = Context
     type_map = {
-        ASTypes.UNDEFINED:  'readNull',
+        ASTypes.UNDEFINED:  'readUndefined',
         ASTypes.NULL:       'readNull',
         ASTypes.BOOL_FALSE: 'readBoolFalse',
         ASTypes.BOOL_TRUE:  'readBoolTrue',
@@ -471,6 +471,12 @@ class Decoder(pyamf.BaseDecoder):
                 type, self.stream.tell() - 1))
 
         return type
+
+    def readUndefined(self):
+        """
+        Read undefined.
+        """
+        return pyamf.Undefined
 
     def readNull(self):
         """
@@ -799,6 +805,7 @@ class Encoder(pyamf.BaseEncoder):
         # Unsupported types go first
         ((types.BuiltinFunctionType, types.BuiltinMethodType,),
             "writeUnsupported"),
+        ((lambda x: x == pyamf.Undefined,), "writeUndefined"),
         ((bool,), "writeBoolean"),
         ((int,long), "writeInteger"),
         ((float,), "writeNumber"),
@@ -845,6 +852,15 @@ class Encoder(pyamf.BaseEncoder):
                 type, self.stream.tell() - 1))
 
         self.stream.write_uchar(type)
+
+    def writeUndefined(self, d, use_references=True):
+        """
+        Writes an C{pyamf.Undefined} value to the stream.
+
+        @type   use_references: C{bool}
+        @param  use_references:
+        """
+        self.writeType(ASTypes.UNDEFINED)
 
     def writeNull(self, n, use_references=True):
         """

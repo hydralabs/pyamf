@@ -184,6 +184,9 @@ class EncoderTestCase(unittest.TestCase):
     def test_null(self):
         self._run([(None, '\x05')])
 
+    def test_undefined(self):
+        self._run([(pyamf.Undefined, '\x06')])
+
     def test_list(self):
         data = [
             ([], '\x0a\x00\x00\x00\x00'),
@@ -333,6 +336,9 @@ class DecoderTestCase(unittest.TestCase):
         self.buf.write('x')
         self.buf.seek(0)
         self.assertRaises(pyamf.DecodeError, self.decoder.readType)
+
+    def test_undefined(self):
+        self._run([(pyamf.Undefined, '\x06')])
 
     def test_number(self):
         self._run([

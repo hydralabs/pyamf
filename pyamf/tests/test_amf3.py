@@ -303,6 +303,8 @@ class EncoderTestCase(unittest.TestCase):
 
         self.assertRaises(AttributeError, x)
 
+        self._run([(pyamf.Undefined, '\x00')])
+
     def test_null(self):
         self._run([(None, '\x01')])
 
@@ -505,6 +507,9 @@ class DecoderTestCase(unittest.TestCase):
         self.buf.seek(0)
         self.assertRaises(pyamf.DecodeError, self.decoder.readType)
 
+    def test_undefined(self):
+        self._run([(pyamf.Undefined, '\x00')])
+
     def test_number(self):
         self._run([
             (0,    '\x04\x00'),
@@ -521,7 +526,7 @@ class DecoderTestCase(unittest.TestCase):
         self._run([(None, '\x01')])
 
     def test_undefined(self):
-        self._run([(None, '\x00')])
+        self._run([(pyamf.Undefined, '\x00')])
 
     def test_string(self):
         self._run([

@@ -162,8 +162,7 @@ class Decoder(pyamf.BaseDecoder):
         ASTypes.STRING:     'readString',
         ASTypes.OBJECT:     'readObject',
         ASTypes.NULL:       'readNull',
-        # TODO: do we need a special value here?
-        ASTypes.UNDEFINED:  'readNull',
+        ASTypes.UNDEFINED:  'readUndefined',
         ASTypes.REFERENCE:  'readReference',
         ASTypes.MIXEDARRAY: 'readMixedArray',
         ASTypes.ARRAY:      'readList',
@@ -220,6 +219,14 @@ class Decoder(pyamf.BaseDecoder):
         @rtype: C{None}
         """
         return None
+
+    def readUndefined(self):
+        """
+        Reads an undefined value.
+
+        @return: L{pyamf.Undefined}
+        """
+        return pyamf.Undefined
 
     def readMixedArray(self):
         """
@@ -406,6 +413,7 @@ class Encoder(pyamf.BaseEncoder):
     type_map = [
         ((types.BuiltinFunctionType, types.BuiltinMethodType,),
             "writeUnsupported"),
+        ((lambda x: x == pyamf.Undefined,), "writeUndefined"),
         ((bool,), "writeBoolean"),
         ((int,long,float), "writeNumber"),
         ((types.StringTypes,), "writeString"),
@@ -432,6 +440,12 @@ class Encoder(pyamf.BaseEncoder):
                 type, self.stream.tell() - 1))
 
         self.stream.write_uchar(type)
+
+    def writeUndefined(self, data):
+        """
+        Writes the undefined data type to the stream.
+        """
+        self.writeType(ASTypes.UNDEFINED)
 
     def writeUnsupported(self, data):
         """
