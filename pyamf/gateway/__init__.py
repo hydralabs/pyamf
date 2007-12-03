@@ -279,8 +279,12 @@ class BaseGateway(object):
         @raise RemotingError: Service already exists.
         @raise TypeError: C{service} must be callable or a module.
         """
-        allowed_types = (types.ModuleType, types.FunctionType,
-            types.MethodType, types.InstanceType)
+        if isinstance(service, (int, long, float, basestring)):
+            raise TypeError, "service cannot be a scalar value"
+
+        allowed_types = (types.ModuleType, types.FunctionType, types.DictType,
+            types.MethodType, types.InstanceType, types.ObjectType)
+
         if not callable(service) and not isinstance(service, allowed_types):
             raise TypeError, "service must be callable, a module, or an object"
 
