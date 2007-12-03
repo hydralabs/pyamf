@@ -124,7 +124,8 @@ class DjangoGateway(gateway.BaseGateway):
 
         context = pyamf.get_context(pyamf.AMF0)
         stream = None
-        http_response = HttpResponse(content_type=gateway.CONTENT_TYPE)
+        http_response = HttpResponse()
+        http_response.headers['Content-Type'] = gateway.CONTENT_TYPE
 
         # Decode the request
         try:
