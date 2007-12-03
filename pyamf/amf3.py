@@ -177,6 +177,10 @@ class ClassDefinition(object):
     @type encoding: C{int}
     @ivar attrs: List of attributes to encode.
     @type attrs: C{list}
+    @ivar name:
+    @type name:
+    @ivar klass:
+    @type klass:
     """
 
     def __init__(self, alias, encoding=ObjectEncoding.STATIC, num_attrs=None):
@@ -205,7 +209,7 @@ class ClassDefinition(object):
 
     def _getClass(self):
         """
-        If C{alias} is C{None}, an anonymous class is returned (L{Bag<pyamf.Bag>}),
+        If C{alias} is C{None}, an L{anonymous class<pyamf.Bag>} is returned,
         otherwise the class is loaded externally.
 
         @rtype:
@@ -348,7 +352,7 @@ class Context(pyamf.BaseContext):
         @type class_def: L{ClassDefinition}
         @param class_def: The class definition reference to be found.
         @raise ReferenceError: The reference could not be found.
-        @return: The reference to U{class_def}
+        @return: The reference to C{class_def}
         @rtype: C{int}
         """
         try:
@@ -359,7 +363,7 @@ class Context(pyamf.BaseContext):
 
     def addClassDefinition(self, class_def):
         """
-        Creates a reference to class_def.
+        Creates a reference to C{class_def}.
 
         @type class_def:
         @param class_def:
@@ -395,11 +399,11 @@ class Context(pyamf.BaseContext):
         """
         Return legacy XML reference.
 
-        @type doc: L{util.ET}
+        @type doc: L{ET<util.ET>}
         @param doc: The XML document to reference.
         @raise ReferenceError: The reference could not be found.
-        @return: The reference to U{doc}
-        @rtype: int
+        @return: The reference to C{doc}.
+        @rtype: C{int}
         """
         try:
             return self.legacy_xml.index(doc)

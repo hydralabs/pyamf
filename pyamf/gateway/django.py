@@ -22,7 +22,10 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Django Remoting gateway.
+Gateway for the Django framework.
+
+This gateway allows you to expose functions in Django to AMF clients and
+servers.
 
 @see: U{Django homepage (external)<http://djangoproject.org>}
 

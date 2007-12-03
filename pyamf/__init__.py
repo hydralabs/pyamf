@@ -398,7 +398,7 @@ class BaseDecoder(object):
         """
         @type   data: L{BufferedByteStream}
         @param  data: Data stream.
-        @type   context: L{Context}
+        @type   context: L{Context<pyamf.amf0.Context>}
         @param  context: Context.
         @raise TypeError: The C{context} parameter must be of
         type L{Context<amf0.Context>}.
@@ -466,10 +466,10 @@ class BaseEncoder(object):
         """
         @type   data: L{BufferedByteStream}
         @param  data: Data stream.
-        @type   context: L{Context}
+        @type   context: L{Context<pyamf.amf0.Context>}
         @param  context: Context.
         @raise TypeError: The C{context} parameter must be of type
-            L{Context<amf0.Context>}.
+            L{Context<pyamf.amf0.Context>}.
         """
         # coersce data to BufferedByteStream
         if isinstance(data, util.BufferedByteStream):
@@ -646,6 +646,8 @@ def load_class(alias):
 
     @type alias: C{str}
     @param alias: The class name.
+    @type mod_class:
+    @param mod_class:
     @raise UnknownClassAlias: The C{alias} was not found.
     @raise TypeError: Expecting class type or L{ClassAlias} from loader.
     @return:
@@ -677,6 +679,7 @@ def load_class(alias):
 
     # XXX nick: Are there security concerns for loading classes this way?
     mod_class = alias.split('.')
+    
     if mod_class:
         module = '.'.join(mod_class[:-1])
         klass = mod_class[-1]
