@@ -236,6 +236,17 @@ class ClassAliasTestCase(unittest.TestCase):
 
         pyamf.unregister_class(Foo)
 
+    def test_anonymous(self):
+        pyamf.register_class(Foo)
+
+        x = pyamf.get_class_alias(Foo)
+
+        self.assertTrue(isinstance(x, pyamf.ClassAlias))
+        self.assertEquals(x.klass, Foo)
+        self.assertEquals(x.alias, '%s.%s' % (Foo.__module__, Foo.__name__,))
+
+        pyamf.unregister_class(Foo)
+
 class HelperTestCase(unittest.TestCase):
     """
     Tests all helper functions in pyamf.__init__
@@ -314,6 +325,12 @@ class RegisterClassTestCase(unittest.TestCase):
             metadata=['blah'])
 
         self.unregister = False
+
+    def test_anonymous(self):
+        pyamf.register_class(Foo)
+        alias = pyamf.CLASS_CACHE['%s.%s' % (Foo.__module__, Foo.__name__,)]
+
+        self.assertEquals(alias.metadata, ['anonymous'])
 
 class UnregisterClassTestCase(unittest.TestCase):
     def test_klass(self):

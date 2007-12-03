@@ -196,6 +196,9 @@ class ClassDefinition(object):
             # anonymous class
             return ''
 
+        if 'anonymous' in self.alias.metadata:
+            return ''
+
         return str(self.alias)
 
     name = property(_get_name)

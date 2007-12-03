@@ -471,6 +471,14 @@ class EncoderTestCase(unittest.TestCase):
 
         pyamf.unregister_class(Foo)
 
+    def test_anonymous(self):
+        pyamf.register_class(Foo)
+
+        x = Foo({'foo': 'bar'})
+
+        self._run([(x, '\n\x13\x01\x07foo\x06\x07bar')])
+        pyamf.unregister_class(Foo)
+
 class DecoderTestCase(unittest.TestCase):
     """
     Tests the output from the AMF3 L{Decoder<pyamf.amf3.Decoder>} class.

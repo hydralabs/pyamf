@@ -242,6 +242,7 @@ class ClassMetaData(list):
     _allowed_tags = (
         ('static', 'dynamic', 'external'),
         ('amf3',),
+        ('anonymous',),
     )
 
     def __init__(self, *args):
@@ -318,7 +319,9 @@ class ClassAlias(object):
         @type klass: class
         @param klass: The class to alias.
         @type alias: C{str}
-        @param alias: The alias to the class e.g. C{org.example.Person}.
+        @param alias: The alias to the class e.g. C{org.example.Person}. If the
+            value of this is None, then it is worked out based on the klass.
+            The anonymous tag is also added to the class.
         @type read_func: callable
         @param read_func: Function that gets called when reading the object
             from the data stream.
@@ -345,12 +348,17 @@ class ClassAlias(object):
         if write_func is not None and not callable(write_func):
             raise TypeError("write_func must be callable")
 
+        self.metadata = ClassMetaData(metadata)
+
+        if alias is None:
+            self.metadata.append('anonymous')
+            alias = "%s.%s" % (klass.__module__, klass.__name__,)
+
         self.klass = klass
-        self.alias = str(alias)
+        self.alias = alias
         self.read_func = read_func
         self.write_func = write_func
         self.attrs = attrs
-        self.metadata = ClassMetaData(metadata)
 
         # if both funcs are defined, we add the metadata
         if read_func and write_func:
@@ -509,7 +517,7 @@ class BaseEncoder(object):
         """
         raise NotImplementedError
 
-def register_class(klass, alias, read_func=None, write_func=None,
+def register_class(klass, alias=None, read_func=None, write_func=None,
     attrs=None, metadata=[]):
     """
     Registers a class to be used in the data streaming.
@@ -533,18 +541,20 @@ def register_class(klass, alias, read_func=None, write_func=None,
     @return:
     """
     if not callable(klass):
-        raise TypeError("klass must be callable")
+        raise TypeError, "klass must be callable"
 
     if klass in CLASS_CACHE:
-        raise ValueError("klass %s already registered" % k)
+        raise ValueError, "klass %s already registered" % k
 
-    alias = str(alias)
-
-    if alias in CLASS_CACHE.keys():
-        raise ValueError("alias '%s' already registered" % alias)
+    if alias is not None and alias in CLASS_CACHE.keys():
+        raise ValueError, "alias '%s' already registered" % alias
 
     x = ClassAlias(klass, alias, read_func=read_func, write_func=write_func,
         attrs=attrs, metadata=metadata)
+
+    if alias is None:
+        alias = "%s.%s" % (klass.__module__, klass.__name__,)
+
     CLASS_CACHE[alias] = x
 
     return x

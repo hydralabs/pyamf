@@ -291,6 +291,23 @@ class EncoderTestCase(unittest.TestCase):
         self.encoder.writeElement(x)
         self.assertEquals(self.buf.getvalue(), '\x11\x04\x01')
 
+    def test_anonymous(self):
+        class Foo(pyamf.Bag):
+            pass
+
+        pyamf.register_class(Foo)
+
+        x = Foo()
+
+        x.foo = 'bar'
+        x.hello = 'world'
+
+        self._run([
+            (x, '\x03\x00\x03foo\x02\x00\x03bar\x00\x05hello\x02\x00\x05world'
+                '\x00\x00\t')])
+
+        pyamf.unregister_class(Foo)
+
 class DecoderTestCase(unittest.TestCase):
     """
     Tests the output from the AMF0 L{Decoder<pyamf.amf0.Decoder>} class.
