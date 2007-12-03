@@ -384,7 +384,7 @@ def get_timestamp(d):
     @return: UTC timestamp.
     @rtype: C{str}
 
-    @see: Inspiration taken from the U{Intertwingly blog
+    @note: Inspiration taken from the U{Intertwingly blog
     <http://intertwingly.net/blog/2007/09/02/Dealing-With-Dates>}.
     """
     return calendar.timegm(d.utctimetuple())

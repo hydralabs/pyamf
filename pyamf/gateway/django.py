@@ -82,7 +82,7 @@ class DjangoGateway(gateway.BaseGateway):
     """
     An instance of this class is suitable as a Django view.
 
-    An example usage would be through urlconf::
+    An example usage would be through C{urlconf}::
 
         from django.conf.urls.defaults import *
 
@@ -99,8 +99,8 @@ class DjangoGateway(gateway.BaseGateway):
         Processes the AMF request, returning an AMF response.
 
         @param request: The AMF Request.
-        @type request: L{remoting.Envelope}
-        @rtype: L{remoting.Envelope}
+        @type request: L{Envelope<remoting.Envelope>}
+        @rtype: L{Envelope<remoting.Envelope>}
         @return: The AMF Response.
         """
         response = remoting.Envelope(request.amfVersion, request.clientType)
@@ -113,12 +113,12 @@ class DjangoGateway(gateway.BaseGateway):
 
     def __call__(self, request):
         """
-        Processes & dispatches the request.
+        Processes and dispatches the request.
 
         @param request: The HTTPRequest object
-        @type request: U{HTTPRequest<django.http.HTTPRequest>}
-        @return The response to the request
-        @rtype U{HTTPResponse<django.http.HTTPResponse>}
+        @type request: L{HTTPRequest<django.http.HTTPRequest>}
+        @return: The response to the request
+        @rtype: L{HTTPResponse<django.http.HTTPResponse>}
         """
         if request.method != 'POST':
             return HttpResponseNotAllowed(['POST'])
