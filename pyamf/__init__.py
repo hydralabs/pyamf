@@ -42,6 +42,7 @@ U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>} 6 and newer.
 
 import types
 
+import pyamf
 from pyamf import util
 
 __all__ = [
@@ -288,7 +289,7 @@ class ClassMetaData(list):
             for y in tags:
                 if y in self:
                     if x != y:
-                        import warnings, traceback
+                        import warnings
 
                         warnings.warn(
                             "Previously defined tag %s superceded by %s" % (
@@ -546,7 +547,7 @@ def register_class(klass, alias=None, read_func=None, write_func=None,
         raise TypeError, "klass must be callable"
 
     if klass in CLASS_CACHE:
-        raise ValueError, "klass %s already registered" % k
+        raise ValueError, "klass %s already registered" % klass
 
     if alias is not None and alias in CLASS_CACHE.keys():
         raise ValueError, "alias '%s' already registered" % alias

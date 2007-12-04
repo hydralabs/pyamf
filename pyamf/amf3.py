@@ -45,7 +45,7 @@ L{ArrayCollection}.
 import types, datetime, zlib
 
 import pyamf
-from pyamf import util, flex
+from pyamf import util
 
 class ASTypes:
     """

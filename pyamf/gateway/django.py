@@ -70,7 +70,6 @@ del idx, imp, sys, os, cwd, t
 # end import hack
 
 from django.http import HttpResponse, HttpResponseNotAllowed
-from django.core.urlresolvers import get_mod_func
 
 import pyamf
 from pyamf import remoting, gateway

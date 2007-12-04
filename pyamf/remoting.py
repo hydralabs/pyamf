@@ -48,7 +48,7 @@ the Flash Player to understand the response therefore.
 """
 
 import pyamf
-from pyamf import util, flex
+from pyamf import util
 
 __all__ = ['Envelope', 'Request', 'decode', 'encode']
 
