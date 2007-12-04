@@ -490,6 +490,7 @@ class Encoder(pyamf.BaseEncoder):
             except (KeyboardInterrupt, SystemExit):
                 raise
             except:
+                raise
                 raise pyamf.EncodeError, "Unable to encode '%r'" % data
 
     def writeNull(self, n):
@@ -553,7 +554,9 @@ class Encoder(pyamf.BaseEncoder):
         @type   writeType: C{bool}
         @param  writeType: Write data type.
         """
-        s = unicode(s).encode('utf8')
+        if not isinstance(s, unicode):
+            s = unicode(s, errors='ignore').encode('utf8')
+
         if len(s) > 0xffff:
             if writeType:
                 self.writeType(ASTypes.LONGSTRING)

@@ -746,7 +746,7 @@ def decode(stream, encoding=AMF0, context=None):
     @param  context: Context.
     @return: Each element in the stream.
     """
-    decoder = _get_decoder(encoding)(stream, context)
+    decoder = _get_decoder_class(encoding)(stream, context)
 
     for el in decoder.readElement():
         yield el
@@ -767,11 +767,11 @@ def encode(element, encoding=AMF0, context=None):
     @return: File-like object.
     """
     stream = util.BufferedByteStream()
-    encoder = _get_encoder(encoding)(stream, context)
+    encoder = _get_encoder_class(encoding)(stream, context)
 
     encoder.writeElement(element)
 
-    return buf
+    return stream
 
 def get_decoder(encoding):
     return _get_decoder_class(encoding)()
