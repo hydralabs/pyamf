@@ -22,7 +22,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Server/client implementations.
+Server implementations.
 
 @author: U{Thijs Triemstra<mailto:info@collab.nl>}
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
@@ -406,9 +406,7 @@ class BaseGateway(object):
         @return: The response to the request.
         @rtype: L{Message<remoting.Message>}
         """
-        response = remoting.Message(None, request.target,
-            # everything is OK, until it isn't
-            remoting.STATUS_OK, None)
+        response = remoting.Response(None)
 
         try:
             service_request = self.getServiceRequest(request)

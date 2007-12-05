@@ -140,17 +140,10 @@ class Envelope(dict):
 
     def __setitem__(self, idx, value):
         """
-        @type idx:
-        @param idx:
-        @type value:
-        @param value:
-        @raise TypeError: The parameter C{value} is not of the C{tuple},
-        C{set} or C{list} type.
+        @type value: L{Message}
         """
-        if isinstance(value, (tuple, set, list)):
-            value = Message(self, value[0], value[1], value[2])
-        elif not isinstance(value, Message):
-            raise TypeError("value must be a tuple/set/list")
+        if not isinstance(value, Message):
+            raise TypeError, "Message instance expected"
 
         value.envelope = self
         dict.__setitem__(self, idx, value)
@@ -166,15 +159,23 @@ class Envelope(dict):
 
 class Message(object):
     """
-    I represent a singular message, containing a collection of
+    I represent a singular request/response, containing a collection of
     headers and one body of data.
 
     I am used to iterate over all requests in the L{Envelope}.
+
+    @ivar envelope: The parent envelope of this AMF Message.
+    @type envelope: L{Envelope}
+    @ivar status: The status of the message
+    @type status: Member of L{STATUS_CODES}
+    @ivar body: The body of the message
+    @type body: mixed
+    @ivar headers: The message headers
+    @type headers: C{dict} type
     """
 
-    def __init__(self, envelope, target, status, body):
+    def __init__(self, envelope, status, body):
         self.envelope = envelope
-        self.target = target
         self.status = status
         self.body = body
 
@@ -183,10 +184,31 @@ class Message(object):
 
     headers = property(_get_headers)
 
+class Request(Message):
+    """
+    An AMF Request Payload.
+
+    @ivar target: The target of the request
+    @type target: C{basestinrg}
+    """
+    def __init__(self, envelope, target, status=STATUS_OK, body=[]):
+        Message.__init__(self, envelope, status, body)
+
+        self.target = target
+
     def __repr__(self):
-        return "<%s target=%s status=%s>%s</Message>" % (
+        return "<%s target=%s status=%s>%s</%s>" % (
             type(self).__name__, self.target,
-            _get_status(self.status), self.body)
+            _get_status(self.status), self.body, type(self).__name__)
+
+class Response(Message):
+    def __init__(self, envelope, status=STATUS_OK, body=None):
+        Message.__init__(self, envelope, status, body)
+
+    def __repr__(self):
+        return "<%s status=%s>%s</%s>" % (
+            type(self).__name__, _get_status(self.status), self.body,
+            type(self).__name__)
 
 def _read_header(stream, decoder, strict=False):
     """
@@ -274,73 +296,86 @@ def _read_body(stream, decoder, strict=False):
     @raise DecodeError: Data read from stream does not match body length.
 
     @rtype: C{tuple}
-    @return:
-     - The target of the body.
-     - The id (as sent by the client) of the body.
-     - The data of the body.
+    @return: A tuple containing:
+        - id of the request
+        - L{Request} or L{Response}
     """
-    target_len = stream.read_ushort()
-    target = stream.read_utf8_string(target_len)
-
-    response_len = stream.read_ushort()
-    response = stream.read_utf8_string(response_len)
+    target = stream.read_utf8_string(stream.read_ushort())
+    response = stream.read_utf8_string(stream.read_ushort())
 
     status = STATUS_OK
+    is_request = True
 
     for (code, s) in STATUS_CODES.iteritems():
-        if response.endswith(s):
+        if target.endswith(s):
+            is_request = False
             status = code
-            response = response[:0 - len(s)]
+            target = target[:0 - len(s)]
+
+    payload = None
 
     data_len = stream.read_ulong()
     pos = stream.tell()
     data = decoder.readElement()
 
     if strict and pos + data_len != stream.tell():
-        raise pyamf.DecodeError("Data read from stream "
-            "does not match body length (%d != %d)" %
-                (pos + data_len, stream.tell(),))
+        raise pyamf.DecodeError("Data read from stream does not match body "
+            "length (%d != %d)" % (pos + data_len, stream.tell(),))
 
-    return (target, response, status, data)
+    if is_request:
+        return (response, Request(None, target, status, data))
+    else:
+        return (target, Response(None, status, data))
 
 def _write_body(name, message, stream, encoder, strict=False):
     """
     Write AMF message body.
 
-    @type   name: C{str}
-    @param  name: Name of body.
-    @type   message: L{Message}
-    @param  message: Message to write.
-    @type   stream: L{BufferedByteStream}
-    @param  stream: AMF data
-    @type   encoder: L{amf0.Encoder<pyamf.amf0.Encoder>}
-    or L{amf3.Encoder<pyamf.amf3.Encoder>}
-    @param  encoder: Encoder to use.
+    @param name: The name of the request.
+    @type name: C{basestring}
+    @param message: The AMF Payload.
+    @type message: L{Request} or L{Response}
+    @type stream: L{util.BufferedByteStream}
+    @type encoder: L{amf0.Encoder<pyamf.amf0.Encoder>}
+        or L{amf3.Encoder<pyamf.amf3.Encoder>}
+    @param encoder: Encoder to use.
     @type strict: C{bool}
-    @param strict:
+    @param strict: Use strict encoding policy.
     """
-    target = u"%s%s" % (name, _get_status(message.status))
+    if not isinstance(message, (Request, Response)):
+        raise TypeError, "Unknown message type"
+
+    target = None
+
+    if isinstance(message, Request):
+        target = unicode(message.target)
+    else:
+        target = u"%s%s" % (name, _get_status(message.status))
+
+    target = target.encode('utf8')
 
     stream.write_ushort(len(target))
     stream.write_utf8_string(target)
 
-    response = u'null'
+    response = 'null'
+
+    if isinstance(message, Request):
+        response = name
+
     stream.write_ushort(len(response))
     stream.write_utf8_string(response)
 
-    write_pos = stream.tell()
-    stream.write_ulong(0)
-    old_pos = stream.tell()
-
-    try:
+    if not strict:
+        stream.write_ulong(0)
         encoder.writeElement(message.body)
-    except RuntimeError:
-        # TODO
-        print "doh"
+    else:
+        write_pos = stream.tell()
+        stream.write_ulong(0)
+        old_pos = stream.tell()
 
-    new_pos = stream.tell()
+        encoder.writeElement(message.body)
+        new_pos = stream.tell()
 
-    if strict:
         stream.seek(write_pos)
         stream.write_ulong(new_pos - old_pos)
         stream.seek(new_pos)
@@ -371,7 +406,7 @@ def decode(stream, context=None, strict=False):
     L{AMF3 Context<pyamf.amf3.Context>}
     @param  context: Context.
     @type strict: C{bool}
-    @param strict:
+    @param strict: Enforce strict encoding.
 
     @raise DecodeError: Malformed stream.
     @raise RuntimeError: Decoder is unable to fully consume the
@@ -411,23 +446,11 @@ def decode(stream, context=None, strict=False):
     body_count = stream.read_short()
 
     for i in range(body_count):
-        target, response, status, data = _read_body(stream, decoder, strict)
+        target, payload = _read_body(stream, decoder, strict)
+        msg[target] = payload
 
-        if response == 'null':
-            # the body is a response
-            x = target.rsplit('/', 1)
-            response = x[0]
-
-            for (code, s) in STATUS_CODES.iteritems():
-                if s.endswith(x[1]):
-                    status = code
-
-                    break
-
-        msg[response] = (target, status, data)
-
-    if stream.remaining() > 0:
-        raise RuntimeError("Unable to fully consume the buffer")
+    if strict and stream.remaining() > 0:
+        raise RuntimeError, "Unable to fully consume the buffer"
 
     return msg
 
@@ -470,9 +493,9 @@ def encode(msg, old_context=None, strict=False):
 
     stream.write_short(len(msg))
 
-    for name, body in msg.iteritems():
+    for name, message in msg.iteritems():
         # Each body requires a new context
         encoder.context = getNewContext()
-        _write_body(name, body, stream, encoder, strict)
+        _write_body(name, message, stream, encoder, strict)
 
     return stream
