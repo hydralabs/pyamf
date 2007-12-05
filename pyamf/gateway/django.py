@@ -69,7 +69,7 @@ os.chdir(cwd)
 del idx, imp, sys, os, cwd, t
 # end import hack
 
-from django import http
+from django.http import HttpResponse, HttpResponseNotAllowed
 
 import pyamf
 from pyamf import remoting, gateway
@@ -119,11 +119,11 @@ class DjangoGateway(gateway.BaseGateway):
         @rtype: L{HTTPResponse<django.http.HTTPResponse>}
         """
         if request.method != 'POST':
-            return http.HttpResponseNotAllowed(['POST'])
+            return HttpResponseNotAllowed(['POST'])
 
         context = pyamf.get_context(pyamf.AMF0)
         stream = None
-        http_response = http.HttpResponse()
+        http_response = HttpResponse()
 
         # Decode the request
         try:
@@ -139,13 +139,13 @@ class DjangoGateway(gateway.BaseGateway):
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
-            return http.HttpResponseServerError()
+            return HttpResponseServerError()
 
         # Encode the response
         try:
             stream = remoting.encode(response, context)
         except pyamf.EncodeError:
-            return http.HttpResponseServerError('Unable to encode the response')
+            return HttpResponseServerError('Unable to encode the response')
 
         buf = stream.getvalue()
         http_response['Content-Type'] = gateway.CONTENT_TYPE
