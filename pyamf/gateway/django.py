@@ -69,7 +69,7 @@ os.chdir(cwd)
 del idx, imp, sys, os, cwd, t
 # end import hack
 
-from django.http import HttpResponse, HttpResponseNotAllowed
+from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseServerError
 
 import pyamf
 from pyamf import remoting, gateway
