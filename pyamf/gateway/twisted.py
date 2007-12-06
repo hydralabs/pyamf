@@ -59,10 +59,10 @@ tw = imp.load_module('twisted', None, t[1], t[2])
 
 tw.__name__ = 'twisted'
 
+import sys
+
 sys.modules[name] = sys.modules['twisted']
 sys.modules['twisted'] = tw
-
-import sys
 
 for x in idx:
     sys.path.insert(x[0], x[1])
