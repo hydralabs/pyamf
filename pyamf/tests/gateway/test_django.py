@@ -37,7 +37,7 @@ from django import http
 
 import pyamf
 from pyamf import remoting, util, gateway
-from pyamf.gateway.django import DjangoGateway
+from pyamf.gateway.djangogateway import DjangoGateway
 
 class HttpRequest(http.HttpRequest):
     """
@@ -51,7 +51,10 @@ class HttpRequest(http.HttpRequest):
         self.raw_post_data = ''
 
 if 'DJANGO_SETTINGS_MODULE' not in os.environ:
-    os.environ['DJANGO_SETTINGS_MODULE'] = 'pyamf.tests.gateway.django_settings'
+    import imp, sys
+
+    sys.modules['pyamf.test_django'] = imp.new_module('pyamf.test_django')
+    os.environ['DJANGO_SETTINGS_MODULE'] = 'pyamf.test_django'
 
 class DjangoGatewayTestCase(unittest.TestCase):
     def test_request_method(self):

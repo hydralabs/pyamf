@@ -33,7 +33,7 @@ import unittest
 
 import pyamf
 from pyamf import remoting, util, gateway
-from pyamf.gateway.wsgi import WSGIGateway
+from pyamf.gateway.wsgigateway import WSGIGateway
 
 class WSGIServerTestCase(unittest.TestCase):
     def test_request_method(self):

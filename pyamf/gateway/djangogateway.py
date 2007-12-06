@@ -34,45 +34,7 @@ servers.
 @since: 0.1.0
 """
 
-# import django workaround for module name
-import sys, imp, os, os.path
-
-idx = []
-
-if '' in sys.path:
-    idx.append((sys.path.index(''), ''))
-    sys.path.remove('')
-
-cwd = os.getcwd()
-
-for name, mod in sys.modules.iteritems():
-    if not name.endswith('django') or mod is None:
-        continue
-
-    if __file__ == mod.__file__:
-        if name != 'django':
-            os.chdir(os.path.abspath(os.path.dirname(__file__)))
-            sys.modules['django'] = mod
-
-        break
-
-t = imp.find_module('django', sys.path)
-dj = imp.load_module('django', None, t[1], t[2])
-
-dj.__name__ = 'django'
-
-sys.modules[name] = sys.modules['django']
-sys.modules['django'] = dj
-
-for x in idx:
-    sys.path.insert(x[0], x[1])
-
-os.chdir(cwd)
-
-del idx, imp, sys, os, cwd, t, name, dj, mod
-# end import hack
-
-from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseServerError
+from django import http
 
 import pyamf
 from pyamf import remoting, gateway
@@ -122,11 +84,11 @@ class DjangoGateway(gateway.BaseGateway):
         @rtype: L{HTTPResponse<django.http.HTTPResponse>}
         """
         if request.method != 'POST':
-            return HttpResponseNotAllowed(['POST'])
+            return http.HttpResponseNotAllowed(['POST'])
 
         context = pyamf.get_context(pyamf.AMF0)
         stream = None
-        http_response = HttpResponse()
+        http_response = http.HttpResponse()
 
         # Decode the request
         try:
@@ -142,13 +104,13 @@ class DjangoGateway(gateway.BaseGateway):
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
-            return HttpResponseServerError()
+            return http.HttpResponseServerError()
 
         # Encode the response
         try:
             stream = remoting.encode(response, context)
         except pyamf.EncodeError:
-            return HttpResponseServerError('Unable to encode the response')
+            return http.HttpResponseServerError('Unable to encode the response')
 
         buf = stream.getvalue()
         http_response['Content-Type'] = gateway.CONTENT_TYPE

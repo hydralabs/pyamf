@@ -32,49 +32,8 @@ Twisted server and client implementations.
 @since: 0.1.0
 """
 
-# import workaround for Twisted module name
-import sys, imp, os, os.path
-
-idx = []
-
-if '' in sys.path:
-    idx.append((sys.path.index(''), ''))
-    sys.path.remove('')
-
-cwd = os.getcwd()
-
-for name, mod in sys.modules.iteritems():
-    if not name.endswith('twisted') or mod is None:
-        continue
-
-    if __file__ == mod.__file__:
-        if name != 'twisted':
-            os.chdir(os.path.abspath(os.path.dirname(__file__)))
-            sys.modules['twisted'] = mod
-
-        break
-
-t = imp.find_module('twisted', sys.path)
-tw = imp.load_module('twisted', None, t[1], t[2])
-
-tw.__name__ = 'twisted'
-
-import sys
-
-sys.modules[name] = sys.modules['twisted']
-sys.modules['twisted'] = tw
-
-for x in idx:
-    sys.path.insert(x[0], x[1])
-
-os.chdir(cwd)
-
-del idx, imp, sys, os, cwd, t, tw, mod, name
-
 from twisted.internet import defer, threads, reactor
 from twisted.web import resource, server, client
-del version, __version__
-# end import hack
 
 import pyamf
 from pyamf import remoting, gateway
