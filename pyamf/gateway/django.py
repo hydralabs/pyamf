@@ -56,17 +56,20 @@ for name, mod in sys.modules.iteritems():
 
         break
 
-del name, mod
-
 t = imp.find_module('django', sys.path)
-imp.load_module('django', None, t[1], t[2])
+dj = imp.load_module('django', None, t[1], t[2])
+
+dj.__name__ = 'django'
+
+sys.modules[name] = sys.modules['django']
+sys.modules['django'] = dj
 
 for x in idx:
     sys.path.insert(x[0], x[1])
 
 os.chdir(cwd)
 
-del idx, imp, sys, os, cwd, t
+del idx, imp, sys, os, cwd, t, name, dj, mod
 # end import hack
 
 from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseServerError

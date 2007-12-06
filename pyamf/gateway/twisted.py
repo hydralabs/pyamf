@@ -54,10 +54,13 @@ for name, mod in sys.modules.iteritems():
 
         break
 
-del name, mod
-
 t = imp.find_module('twisted', sys.path)
-imp.load_module('twisted', None, t[1], t[2])
+tw = imp.load_module('twisted', None, t[1], t[2])
+
+tw.__name__ = 'twisted'
+
+sys.modules[name] = sys.modules['twisted']
+sys.modules['twisted'] = tw
 
 import sys
 
@@ -66,7 +69,7 @@ for x in idx:
 
 os.chdir(cwd)
 
-del idx, imp, sys, os, cwd, t
+del idx, imp, sys, os, cwd, t, tw, mod, name
 
 from twisted.internet import defer, threads, reactor
 from twisted.web import resource, server, client
