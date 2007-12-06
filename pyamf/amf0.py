@@ -354,7 +354,9 @@ class Decoder(pyamf.BaseDecoder):
     def _readObject(self, obj):
         key = self.readString()
 
-        while self.stream.peek() != chr(ASTypes.OBJECTTERM):
+        ot = chr(ASTypes.OBJECTTERM)
+
+        while self.stream.peek() != ot:
             if isinstance(obj, (list, dict, tuple)):
                 obj[key] = self.readElement()
             else:
@@ -368,7 +370,7 @@ class Decoder(pyamf.BaseDecoder):
             key = self.readString()
 
         # discard the end marker (ASTypes.OBJECTTERM)
-        self.stream.read(len(chr(ASTypes.OBJECTTERM)))
+        self.stream.read(len(ot))
 
     def readObject(self):
         """
