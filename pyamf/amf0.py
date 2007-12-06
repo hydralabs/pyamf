@@ -142,12 +142,50 @@ class Context(pyamf.BaseContext):
         pyamf.BaseContext.clear(self)
 
         self.amf3_objs = []
+        self.rev_amf3_objs = {}
 
     def __copy__(self):
+        """
+        @rtype:
+        @return:
+        """
         copy = self.__class__()
         copy.amf3_objs = self.amf3_objs
+        copy.rev_amf3_objs = self.rev_amf3_objs
 
         return copy
+
+    def getAMF3ObjectReference(self, obj):
+        """
+        Gets a reference for an object.
+
+        @type obj:
+        @param obj:
+        @raise ReferenceError: Object reference could not be found.
+
+        @rtype:
+        @return:
+        """
+        try:
+            return self.rev_amf3_objs[id(obj)]
+        except KeyError:
+            raise ReferenceError
+
+    def addAMF3Object(self, obj):
+        """
+        Adds an AMF3 reference to C{obj}.
+
+        @type obj: mixed
+        @param obj: The object to add to the context.
+
+        @rtype: int
+        @return: Reference to C{obj}.
+        """
+        self.amf3_objs.append(obj)
+        idx = len(self.amf3_objs) - 1
+        self.rev_amf3_objs[id(obj)] = idx
+
+        return idx
 
 class Decoder(pyamf.BaseDecoder):
     """
@@ -299,7 +337,7 @@ class Decoder(pyamf.BaseDecoder):
         decoder = pyamf._get_decoder_class(pyamf.AMF3)(self.stream)
 
         element = decoder.readElement()
-        self.context.amf3_objs.append(element)
+        self.context.addAMF3Object(element)
 
         return element
 
@@ -465,8 +503,11 @@ class Encoder(pyamf.BaseEncoder):
         # There is a very specific use case that we must check for.
         # In the context there is an array of amf3_objs that contain references
         # to objects that are to be encoded in amf3
-        if data in self.context.amf3_objs:
+        try:
+            self.context.getAMF3ObjectReference(data)
             return self.writeAMF3
+        except ReferenceError:
+            pass
 
         return pyamf.BaseEncoder._writeElementFunc(self, data)
 

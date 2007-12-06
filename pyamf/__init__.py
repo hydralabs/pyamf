@@ -137,19 +137,20 @@ class BaseContext(object):
 
     def clear(self):
         self.objects = []
+        self.rev_objects = {}
 
     def getObject(self, ref):
         """
         Gets an object based on a reference.
 
-        @type ref: C{int}
+        @type ref: int
         @param ref: The reference to an object.
 
         @raise TypeError: Bad reference type.
         @raise ReferenceError: The object reference could not
         be found.
 
-        @rtype: C{mixed}
+        @rtype: mixed
         @return: The object referenced.
         """
         if not isinstance(ref, (int, long)):
@@ -158,7 +159,7 @@ class BaseContext(object):
         try:
             return self.objects[ref]
         except IndexError:
-            raise ReferenceError, "Object reference %d not found" % ref
+            raise ReferenceError
 
     def getObjectReference(self, obj):
         """
@@ -172,30 +173,28 @@ class BaseContext(object):
         @return:
         """
         try:
-            return self.objects.index(obj)
-        except ValueError:
-            raise ReferenceError, "Reference for object %r not found" % repr(
-                obj)
+            return self.rev_objects[id(obj)]
+        except KeyError:
+            raise ReferenceError
 
     def addObject(self, obj):
         """
-        Gets a reference to C{obj}, creating one if necessary.
+        Adds a reference to C{obj}.
 
-        @type obj: C{mixed}
+        @type obj: mixed
         @param obj: The object to add to the context.
 
-        @rtype: C{int}
+        @rtype: int
         @return: Reference to C{obj}.
         """
-        try:
-            return self.objects.index(obj) - 1
-        except ValueError:
-            self.objects.append(obj)
+        self.objects.append(obj)
+        idx = len(self.objects) - 1
+        self.rev_objects[id(obj)] = idx
 
-        return len(self.objects) - 1
+        return idx
 
     def __copy__(self):
-        pass
+        raise NotImplementedError
 
 class Bag(object):
     """

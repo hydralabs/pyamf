@@ -290,7 +290,7 @@ class EncoderTestCase(unittest.TestCase):
     def test_amf3(self):
         x = 1
 
-        self.context.amf3_objs.append(x)
+        self.context.addAMF3Object(x)
         self.encoder.writeElement(x)
         self.assertEquals(self.buf.getvalue(), '\x11\x04\x01')
 
@@ -457,7 +457,7 @@ class DecoderTestCase(unittest.TestCase):
             ([[{u'a': u'foo', u'b': u'bar'}, {u'a': u'foo', u'b': u'bar'}]],
                 '\x0A\x00\x00\x00\x01\x0A\x00\x00\x00\x02\x03\x00\x01\x62\x02'
                 '\x00\x03\x62\x61\x72\x00\x01\x61\x02\x00\x03\x66\x6F\x6F\x00'
-                '\x00\x09\x07\x00\x01')])
+                '\x00\x09\x07\x00\x02')])
         self._run([
             ([[1.0]], '\x0A\x00\x00\x00\x01\x0A\x00\x00\x00\x01\x00\x3F\xF0\x00'
                 '\x00\x00\x00\x00\x00')])
