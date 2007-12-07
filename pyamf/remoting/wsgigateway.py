@@ -32,7 +32,8 @@ WSGI server implementation.
 """
 
 import pyamf
-from pyamf import remoting, gateway
+from pyamf import remoting
+from pyamf.remoting import gateway
 
 __all__ = ['WSGIGateway']
 

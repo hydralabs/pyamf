@@ -32,7 +32,8 @@ General gateway tests.
 import unittest
 
 import pyamf
-from pyamf import gateway, remoting
+from pyamf import remoting
+from pyamf.remoting import gateway
 
 class TestService(object):
     def foo(self):
@@ -74,7 +75,7 @@ class FaultTestCase(unittest.TestCase):
         self.assertEquals(len(tb), 4)
 
         self.assertTrue(__file__.startswith(tb[0]))
-        self.assertEquals(tb[1], 65)
+        self.assertEquals(tb[1], 66)
         self.assertEquals(tb[2], 'test_build')
         self.assertEquals(tb[3], 'raise TypeError, "unknown type"')
 
