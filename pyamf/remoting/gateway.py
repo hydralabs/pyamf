@@ -38,82 +38,6 @@ from pyamf import remoting
 #: AMF mimetype.
 CONTENT_TYPE = 'application/x-amf'
 
-class Fault(object):
-    """
-    I represent a Fault message (C{mx.rpc.Fault}).
-
-    @ivar code: A simple code describing the fault.
-    @type code: C{str}
-    
-    @ivar detail: Any extra details of the fault.
-    @type detail: C{str}
-    
-    @ivar description: Text description of the fault.
-    @type description: C{str}
-    
-    @ivar root_cause: The root cause of the fault.
-    @type root_cause: C{object} or C{None}
-    """
-
-    def __init__(self, code=None, detail=None, description=None, root_cause=None):
-        self.code = code
-        self.detail = detail
-        self.description = description
-        self.root_cause = root_cause
-
-    def _get_faultCode(self):
-        if self.code is None:
-            return 'null'
-
-        return str(self.code)
-
-    def _set_faultCode(self, val):
-        if val is 'null':
-            self.code = None
-        else:
-            self.code = str(val)
-
-    def _get_faultDetail(self):
-        if self.detail is None:
-            return 'null'
-
-        return str(self.detail)
-
-    def _set_faultDetail(self, val):
-        if val is 'null':
-            self.detail = None
-        else:
-            self.detail = str(val)
-
-    def _get_faultDescription(self):
-        if self.description is None:
-            return 'null'
-
-        return str(self.description)
-
-    def _set_faultDescription(self, val):
-        if val is 'null':
-            self.description = None
-        else:
-            self.description = str(val)
-
-    def _get_rootCause(self):
-        return self.root_cause
-
-    def _set_rootCause(self, val):
-        self.root_cause = val
-
-    faultCode = property(_get_faultCode, _set_faultCode)
-    faultDetail = property(_get_faultDetail, _set_faultDetail)
-    faultString = property(_get_faultDescription, _set_faultDescription)
-    rootCause = property(_get_rootCause, _set_rootCause)
-
-try:
-    pyamf.register_class(Fault, 'mx.rpc.Fault',
-        attrs=['faultCode', 'faultDetail', 'faultString', 'rootCause'])
-except ValueError:
-    pass
-
 class ServiceWrapper(object):
     """
     Wraps a supplied service with extra functionality.
@@ -462,10 +386,14 @@ class BaseGateway(object):
 
 def build_fault():
     """
-    Builds a L{Fault} object based on the last exception raised.
+    Builds a L{remoting.ErrorFault} object based on the last exception raised.
     """
     cls, e, tb = sys.exc_info()
 
-    return Fault(code=cls.__name__, description=str(e),
-        detail=traceback.format_exception(cls, e, tb), 
-        root_cause=traceback.extract_tb(tb))
+    if hasattr(cls, '_amf_code'):
+        code = cls._amf_code
+    else:
+        code = cls.__name__
+
+    return remoting.ErrorFault(code=code, description=str(e),
+        details=traceback.format_exception(cls, e, tb))

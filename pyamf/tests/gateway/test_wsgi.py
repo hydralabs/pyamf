@@ -95,7 +95,7 @@ class WSGIServerTestCase(unittest.TestCase):
         self.assertEquals(message.status, remoting.STATUS_ERROR)
         body = message.body
 
-        self.assertTrue(isinstance(body, gateway.Fault))
+        self.assertTrue(isinstance(body, remoting.ErrorFault))
         self.assertEquals(body.code, 'NameError')
 
 def suite():

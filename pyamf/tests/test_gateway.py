@@ -44,20 +44,17 @@ class TestService(object):
 
 class FaultTestCase(unittest.TestCase):
     def test_create(self):
-        x = gateway.Fault()
+        x = remoting.ErrorFault()
 
-        self.assertEquals(x.code, None)
-        self.assertEquals(x.detail, None)
-        self.assertEquals(x.description, None)
-        self.assertEquals(x.root_cause, None)
+        self.assertEquals(x.code, '')
+        self.assertEquals(x.details, '')
+        self.assertEquals(x.description, '')
 
-        x = gateway.Fault(code=404, detail='Not Found', root_cause=[],
-            description='Foo bar')
+        x = remoting.ErrorFault(code=404, details='Not Found', description='Foo bar')
 
         self.assertEquals(x.code, 404)
-        self.assertEquals(x.detail, 'Not Found')
+        self.assertEquals(x.details, 'Not Found')
         self.assertEquals(x.description, 'Foo bar')
-        self.assertEquals(x.root_cause, [])
 
     def test_build(self):
         fault = None
@@ -67,17 +64,9 @@ class FaultTestCase(unittest.TestCase):
         except TypeError, e:
             fault = gateway.build_fault()
 
-        self.assertTrue(isinstance(fault, gateway.Fault))
+        self.assertTrue(isinstance(fault, remoting.ErrorFault))
+        self.assertEquals(fault.level, 'error')
         self.assertEquals(fault.code, 'TypeError')
-        self.assertEquals(len(fault.root_cause), 1)
-
-        tb = fault.root_cause[0]
-        self.assertEquals(len(tb), 4)
-
-        self.assertTrue(__file__.startswith(tb[0]))
-        self.assertEquals(tb[1], 66)
-        self.assertEquals(tb[2], 'test_build')
-        self.assertEquals(tb[3], 'raise TypeError, "unknown type"')
 
     def test_encode(self):
         encoder = pyamf.get_encoder(pyamf.AMF0)
@@ -95,9 +84,22 @@ class FaultTestCase(unittest.TestCase):
         fault = decoder.readElement()
         old_fault = gateway.build_fault()
 
-        self.assertEquals(fault.faultCode, old_fault.faultCode)
-        self.assertEquals(fault.faultDetail, old_fault.faultDetail)
-        self.assertEquals(fault.faultString, old_fault.faultString)
+        self.assertEquals(fault.level, old_fault.level)
+        self.assertEquals(fault.type, old_fault.type)
+        self.assertEquals(fault.code, old_fault.code)
+        self.assertEquals(fault.details, old_fault.details)
+        self.assertEquals(fault.description, old_fault.description)
+
+    def test_explicit_code(self):
+        class X(Exception):
+            _amf_code = 'Server.UnknownResource'
+
+        try:
+            raise X
+        except X, e:
+            fault = gateway.build_fault()
+
+        self.assertEquals(fault.code, 'Server.UnknownResource')
 
 class ServiceWrapperTestCase(unittest.TestCase):
     def test_create(self):
@@ -376,7 +378,7 @@ class BaseGatewayTestCase(unittest.TestCase):
 
         self.assertTrue(isinstance(response, remoting.Message))
         self.assertEquals(response.status, remoting.STATUS_ERROR)
-        self.assertTrue(isinstance(response.body, gateway.Fault))
+        self.assertTrue(isinstance(response.body, remoting.ErrorFault))
 
         self.assertEquals(response.body.code, 'NameError')
         self.assertEquals(response.body.description, 'Unknown service nope')
@@ -392,7 +394,7 @@ class BaseGatewayTestCase(unittest.TestCase):
 
         self.assertTrue(isinstance(response, remoting.Response))
         self.assertEquals(response.status, remoting.STATUS_ERROR)
-        self.assertTrue(isinstance(response.body, gateway.Fault))
+        self.assertTrue(isinstance(response.body, remoting.ErrorFault))
 
         self.assertEquals(response.body.code, 'RemotingError')
         self.assertEquals(response.body.description,

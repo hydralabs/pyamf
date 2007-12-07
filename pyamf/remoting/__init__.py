@@ -210,6 +210,41 @@ class Response(Message):
             type(self).__name__, _get_status(self.status), self.body,
             type(self).__name__)
 
+class BaseFault(object):
+    """
+    I represent a Fault message (C{mx.rpc.Fault}).
+
+    @ivar level: The level of the fault.
+    @type level: C{str}
+    @ivar code: A simple code describing the fault.
+    @type code: C{str}
+    @ivar details: Any extra details of the fault.
+    @type details: C{str}
+    @ivar description: Text description of the fault.
+    @type description: C{str}
+    """
+
+    level = None
+
+    def __init__(self, code='', type='', details='', description=''):
+        self.code = code
+        self.type = type
+        self.details = details
+        self.description = description
+
+pyamf.register_class(BaseFault,
+    attrs=['level', 'code', 'type', 'details', 'description'])
+
+class ErrorFault(BaseFault):
+    """
+    I represent an error level fault.
+    """
+
+    level = 'error'
+
+pyamf.register_class(ErrorFault,
+    attrs=['level', 'code', 'type', 'details', 'description'])
+
 def _read_header(stream, decoder, strict=False):
     """
     Read AMF L{Message} header.
@@ -325,6 +360,10 @@ def _read_body(stream, decoder, strict=False):
     if is_request:
         return (response, Request(None, target, status, data))
     else:
+        if status == STATUS_ERROR and isinstance(data, pyamf.Bag):
+            data = get_fault(data)
+            print data
+
         return (target, Response(None, status, data))
 
 def _write_body(name, message, stream, encoder, strict=False):
@@ -395,6 +434,21 @@ def _get_status(status):
         raise ValueError, "Unknown status code"
 
     return STATUS_CODES[status]
+
+def get_fault_class(level):
+    if level == 'error':
+        return ErrorFault
+
+    return BaseFault
+
+def get_fault(data):
+    try:
+        level = data['level']
+        del data['level']
+    except KeyError:
+        level = 'error'
+
+    return get_fault_class(level)(**data.__dict__)
 
 def decode(stream, context=None, strict=False):
     """
