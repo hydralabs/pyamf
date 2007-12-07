@@ -1728,6 +1728,6 @@ def flex_loader(alias):
         try:
             return pyamf.CLASS_CACHE[alias]
         except KeyError:
-            raise UnknownClassAlias, alias
+            raise pyamf.UnknownClassAlias, alias
 
 pyamf.register_class_loader(flex_loader)

@@ -35,7 +35,7 @@ from twisted.internet import defer, reactor
 
 from pyamf import remoting, util
 from pyamf.remoting import gateway
-#from pyamf.remoting.twistedgateway import TwistedGateway, ServiceRequest
+from pyamf.remoting.twistedgateway import TwistedGateway, ServiceRequest
 
 class TestService(object):
     def foo(self):
