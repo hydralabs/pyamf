@@ -38,18 +38,40 @@ from pyamf import remoting
 #: AMF mimetype.
 CONTENT_TYPE = 'application/x-amf'
 
+fault_alias = pyamf.get_class_alias(remoting.ErrorFault)
+
+class BaseServiceError(Exception, remoting.ErrorFault):
+    pass
+
+class UnknownServiceError(BaseServiceError):
+    _amf_code = 'Service.ResourceNotFound'
+
+pyamf.register_class(UnknownServiceError, attrs=fault_alias.attrs)
+
+class UnknownServiceMethodError(BaseServiceError):
+    _amf_code = 'Service.MethodNotFound'
+
+pyamf.register_class(UnknownServiceMethodError, attrs=fault_alias.attrs)
+
+class InvalidServiceMethodError(BaseServiceError):
+    _amf_code = 'Service.MethodInvalid'
+
+pyamf.register_class(InvalidServiceMethodError, attrs=fault_alias.attrs)
+
+del fault_alias
+
 class ServiceWrapper(object):
     """
     Wraps a supplied service with extra functionality.
 
     @ivar service: The original service.
     @type service: C{callable}
-    
+
     @ivar authenticator: Will be called before the service is called to check
         that the supplied credentials (if any) can access the service.
     @type authenticator: callable with two args, username and password. Returns
         a C{bool} based on the success of authentication.
-        
+
     @ivar description: A description of the service.
     @type description: C{str}
 
@@ -82,20 +104,20 @@ class ServiceWrapper(object):
             method = str(method)
 
             if method.startswith('_'):
-                raise NameError, "Calls to private methods are not allowed"
+                raise InvalidServiceMethodError, "Calls to private methods are not allowed"
 
             try:
                 func = getattr(service, method)
             except AttributeError:
-                raise NameError, "Unknown method %s" % method
+                raise UnknownServiceMethodError, "Unknown method %s" % str(method)
 
             if not callable(func):
-                raise TypeError, "Service method %s must be callable" % method
+                raise InvalidServiceMethodError, "Service method %s must be callable" % str(method)
 
             return func
 
         if not callable(service):
-            raise TypeError, "Service %s must be callable" % self.service
+            raise UnknownServiceMethodError, "Unknown method %s" % str(self.service)
 
         return service
 

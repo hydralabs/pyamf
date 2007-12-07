@@ -135,15 +135,15 @@ class ServiceWrapperTestCase(unittest.TestCase):
 
         x = gateway.ServiceWrapper('blah')
 
-        self.assertRaises(TypeError, x, None, [])
+        self.assertRaises(gateway.UnknownServiceMethodError, x, None, [])
 
         x = gateway.ServiceWrapper(TestService)
 
-        self.assertRaises(TypeError, x, None, [])
+        self.assertRaises(gateway.UnknownServiceMethodError, x, None, [])
         self.assertEquals(x('foo', []), 'foo')
 
-        self.assertRaises(NameError, x, 'xyx', [])
-        self.assertRaises(NameError, x, '_private', [])
+        self.assertRaises(gateway.UnknownServiceMethodError, x, 'xyx', [])
+        self.assertRaises(gateway.InvalidServiceMethodError, x, '_private', [])
 
         self.assertEquals(x('echo', [x]), x)
 
@@ -186,7 +186,7 @@ class ServiceRequestTestCase(unittest.TestCase):
 
         x = gateway.ServiceRequest(request, sw, None)
 
-        self.assertRaises(TypeError, x)
+        self.assertRaises(gateway.UnknownServiceMethodError, x)
 
         x = gateway.ServiceRequest(request, sw, 'foo')
         self.assertEquals(x(), 'foo')
