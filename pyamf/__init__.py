@@ -599,10 +599,10 @@ def register_class_loader(loader):
     @raise ValueError: The C{loader} is already registered.
     """
     if not callable(loader):
-        raise TypeError("loader must be callable")
+        raise TypeError, "loader must be callable"
 
     if loader in CLASS_LOADERS:
-        raise ValueError("loader has already been registered")
+        raise ValueError, "loader has already been registered"
 
     CLASS_LOADERS.append(loader)
 
@@ -730,8 +730,7 @@ def get_class_alias(klass):
             if klass == k.klass:
                 return k
 
-    # All available methods for finding the alias have been exhausted
-    raise UnknownClassAlias, "Unknown alias for class %s" % klass
+    return load_class(klass)
 
 def decode(stream, encoding=AMF0, context=None):
     """

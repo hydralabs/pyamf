@@ -1720,3 +1720,14 @@ def encode(element, context=None):
     encoder.writeElement(element)
 
     return buf
+
+def flex_loader(alias):
+    if alias.startswith('flex.'):
+        import pyamf.flex
+
+        try:
+            return pyamf.CLASS_CACHE[alias]
+        except KeyError:
+            raise UnknownClassAlias, alias
+
+pyamf.register_class_loader(flex_loader)
