@@ -431,12 +431,12 @@ class ClassLoaderTestCase(unittest.TestCase):
 
 class FloatingPointTestCase(unittest.TestCase):
     def test_nan(self):
-        import struct, fpconst
+        import struct, decimal
 
         bytes = '\xff\xf8\x00\x00\x00\x00\x00\x00'
     	fp = struct.unpack("!d", bytes)[0]
 
-        self.assertTrue(fpconst.isNaN(fp))
+        self.assertTrue(decimal._isnan(fp))
 
 def suite():
     suite = unittest.TestSuite()
