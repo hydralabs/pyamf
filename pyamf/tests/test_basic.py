@@ -429,6 +429,15 @@ class ClassLoaderTestCase(unittest.TestCase):
         self.assertRaises(pyamf.UnknownClassAlias, pyamf.load_class,
             '__builtin__.tuple.')
 
+class FloatingPointTestCase(unittest.TestCase):
+    def test_nan(self):
+        import struct, fpconst
+
+        bytes = '\xff\xf8\x00\x00\x00\x00\x00\x00'
+    	fp = struct.unpack("!d", bytes)[0]
+
+        self.assertTrue(fpconst.isNaN(fp))
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -439,6 +448,7 @@ def suite():
     suite.addTest(unittest.makeSuite(RegisterClassTestCase))
     suite.addTest(unittest.makeSuite(UnregisterClassTestCase))
     suite.addTest(unittest.makeSuite(ClassLoaderTestCase))
+    suite.addTest(unittest.makeSuite(FloatingPointTestCase))
 
     return suite
 
