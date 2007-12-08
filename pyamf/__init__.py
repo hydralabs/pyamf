@@ -90,6 +90,7 @@ for x in ClientTypes.__dict__:
         CLIENT_TYPES.append(ClientTypes.__dict__[x])
 del x
 
+#:
 Undefined = object()
 
 class BaseError(Exception):
