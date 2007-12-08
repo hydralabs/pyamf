@@ -22,7 +22,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Twisted server and client implementations.
+Twisted server implementation.
 
 @see: U{Twisted homepage (external)<http://twistedmatrix.com>}
 

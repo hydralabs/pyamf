@@ -39,7 +39,7 @@ __all__ = ['WSGIGateway']
 
 class WSGIGateway(gateway.BaseGateway):
     """
-    U{WSGI<http://wsgi.org>} Remoting Gateway.
+    WSGI Remoting Gateway.
     """
 
     def getResponse(self, request):
@@ -60,6 +60,9 @@ class WSGIGateway(gateway.BaseGateway):
         return response
 
     def badRequestMethod(self, environ, start_response):
+        """
+        Return HTTP400 Bad Request
+        """
         response = "400 Bad Request\n\nTo access this PyAMF gateway you " \
             "must use POST requests (%s received)" % environ['REQUEST_METHOD']
 

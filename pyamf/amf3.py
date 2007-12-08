@@ -82,14 +82,13 @@ class ASTypes:
     #: @see: According to U{the OSFlash documentation
     #:<http://osflash.org/documentation/amf3#x07_-_xml_legacy_flash.xml.xmldocument_class>}
     #: this represents the legacy C{flash.xml.XMLDocument} in
-    #: Actionscript 1.0 and 2.0.
+    #: ActionScript 1.0 and 2.0.
     XML        = 0x07
     #: C{0×08} integer-data.
     DATE       = 0x08
-    #: C{0×09} integer-data ( [ 1OCTET *amf3-data ]
-    #: | [OCTET *amf3-data 1] | [ OCTET *amf-data ] )
+    #: C{0×09}
     ARRAY      = 0x09
-    #: C{0x0A} integer-data [ class-def ] [ *amf3-data ]
+    #: C{0x0A}
     OBJECT     = 0x0a
     #: This type is used for the
     #: U{E4X<http://en.wikipedia.org/wiki/E4X>} top-level XML class
@@ -547,7 +546,7 @@ class Decoder(pyamf.BaseDecoder):
         """
         Reads and returns a string from the stream.
 
-        @type use_references:
+        @type use_references: C{bool}
         @param use_references:
         @return:
         @rtype:
@@ -1611,7 +1610,6 @@ def encode_utf8_modified(data):
     Encodes a unicode string to Modified UTF-8 data.
 
     @see: U{UTF-8 Java on Wikipedia<http://en.wikipedia.org/wiki/UTF-8#Java>}
-    for details.
 
     @type   data:
     @param  data:
@@ -1655,11 +1653,10 @@ def decode_utf8_modified(data):
     @raise ValueError: Data is not valid modified UTF-8.
 
     @see: U{UTF-8 Java on Wikipedia<http://en.wikipedia.org/wiki/UTF-8#Java>}
-    for more details.
     @copyright: Ruby version is Copyright (c) 2006 Ross Bamford
         (rosco AT roscopeco DOT co DOT uk)
     @note: Ported from U{Ruva
-    <http://viewvc.rubyforge.mmmultiworks.com/cgi/viewvc.cgi/trunk/lib/ruva/class.rb>}.
+    <http://ruva.rubyforge.org/svn/trunk/lib/ruva/class.rb>}.
     """
     size = ((ord(data[0]) << 8) & 0xff) + ((ord(data[1]) << 0) & 0xff)
     data = data[2:]
@@ -1693,7 +1690,7 @@ def decode(stream, context=None):
     """
     A helper function to decode an AMF3 datastream.
 
-    @type   stream: L{BufferedByteStream}
+    @type   stream: L{BufferedByteStream<util.BufferedByteStream>}
     @param  stream: AMF3 data.
     @type   context: L{Context}
     @param  context: Context.
@@ -1722,6 +1719,13 @@ def encode(element, context=None):
     return buf
 
 def flex_loader(alias):
+    """
+    Loader for Flex framework compatibility classes.
+
+    @type alias:
+    @param alias:
+    @raise UnknownClassAlias:
+    """
     if alias.startswith('flex.'):
         import pyamf.flex
 

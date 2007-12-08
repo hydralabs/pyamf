@@ -318,11 +318,11 @@ class ClassAlias(object):
     def __init__(self, klass, alias, read_func=None, write_func=None,
                  attrs=None, metadata=[]):
         """
-        @type klass: class
+        @type klass: C{class}
         @param klass: The class to alias.
         @type alias: C{str}
         @param alias: The alias to the class e.g. C{org.example.Person}. If the
-            value of this is None, then it is worked out based on the klass.
+            value of this is C{None}, then it is worked out based on the C{klass}.
             The anonymous tag is also added to the class.
         @type read_func: callable
         @param read_func: Function that gets called when reading the object
@@ -393,12 +393,22 @@ class ClassAlias(object):
             return False
 
 class BaseDecoder(object):
+    """
+    Base AMF decoder.
+
+    @ivar context_class: The context for the decoding.
+    @type context_class: An instance of C{BaseDecoder.context_class}
+    @ivar type_map:
+    @type type_map: C{list}
+    @ivar stream: The underlying data stream.
+    @type stream: L{BufferedByteStream<util.BufferedByteStream>}
+    """
     context_class = BaseContext
     type_map = {}
 
     def __init__(self, data=None, context=None):
         """
-        @type   data: L{BufferedByteStream}
+        @type   data: L{BufferedByteStream<util.BufferedByteStream>}
         @param  data: Data stream.
         @type   context: L{Context<pyamf.amf0.Context>}
         @param  context: Context.
@@ -448,6 +458,8 @@ class BaseDecoder(object):
 
 class BaseEncoder(object):
     """
+    Base AMF encoder.
+    
     @ivar type_map: A list of types -> functions. The types is a list of
         possible instances or functions to call (that return a C{bool}) to
         determine the correct function to call to encode the data.
@@ -456,17 +468,16 @@ class BaseEncoder(object):
         the implementing Encoder.
     @type context_class: C{type} or C{types.ClassType}
     @ivar stream: The underlying data stream.
-    @type stream: L{util.BufferedByteStream}
+    @type stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     @ivar context: The context for the encoding.
     @type context: An instance of C{BaseEncoder.context_class} 
     """
-
     context_class = BaseContext
     type_map = []
 
     def __init__(self, data=None, context=None):
         """
-        @type   data: L{BufferedByteStream}
+        @type   data: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param  data: Data stream.
         @type   context: L{Context<pyamf.amf0.Context>}
         @param  context: Context.
