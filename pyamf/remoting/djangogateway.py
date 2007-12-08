@@ -80,9 +80,9 @@ class DjangoGateway(gateway.BaseGateway):
         Processes and dispatches the request.
 
         @param request: The HTTPRequest object
-        @type request: L{HTTPRequest<django.http.HTTPRequest>}
+        @type request: C{HTTPRequest}
         @return: The response to the request
-        @rtype: L{HTTPResponse<django.http.HTTPResponse>}
+        @rtype: C{HTTPResponse}
         """
         if request.method != 'POST':
             return http.HttpResponseNotAllowed(['POST'])

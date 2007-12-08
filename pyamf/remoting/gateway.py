@@ -376,7 +376,7 @@ class BaseGateway(object):
         if not authd:
             # authentication failed
             response.status = remoting.STATUS_ERROR
-            response.body = Fault(code='AuthenticationError',
+            response.body = remoting.ErrorFault(code='AuthenticationError',
                 description='Authentication failed')
 
             return response

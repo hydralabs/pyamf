@@ -36,7 +36,6 @@ import os
 from django import http
 
 from pyamf import remoting, util
-from pyamf.remoting import gateway
 from pyamf.remoting.djangogateway import DjangoGateway
 
 class HttpRequest(http.HttpRequest):

@@ -32,7 +32,6 @@ WSGI gateway tests.
 import unittest
 
 from pyamf import remoting, util
-from pyamf.remoting import gateway
 from pyamf.remoting.wsgigateway import WSGIGateway
 
 class WSGIServerTestCase(unittest.TestCase):
