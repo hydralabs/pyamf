@@ -648,8 +648,6 @@ def load_class(alias):
 
     @type alias: C{str}
     @param alias: The class name.
-    @type mod_class:
-    @param mod_class:
     @raise UnknownClassAlias: The C{alias} was not found.
     @raise TypeError: Expecting class type or L{ClassAlias} from loader.
     @return:
@@ -707,7 +705,6 @@ def get_class_alias(klass):
     Finds the alias registered to the class.
 
     @type klass: C{object} or class
-    @param klass:
     @raise UnknownClassAlias: Class not found.
     @raise TypeError: Expecting string or class type.
 
@@ -762,7 +759,7 @@ def encode(element, encoding=AMF0, context=None):
     L{amf3.Context<pyamf.amf3.Context>}
     @param  context: Context.
 
-    @rtype:
+    @rtype: C{StringIO}
     @return: File-like object.
     """
     stream = util.BufferedByteStream()
