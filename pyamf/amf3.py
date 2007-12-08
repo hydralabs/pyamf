@@ -380,8 +380,8 @@ class Context(pyamf.BaseContext):
         """
         Return the legacy XML reference.
 
-        This is the C{flash.xml.XMLDocument} class in Actionscript 3.0
-        and the top-level C{XML} class in Actionscript 1.0 and 2.0.
+        This is the C{flash.xml.XMLDocument} class in ActionScript 3.0
+        and the top-level C{XML} class in ActionScript 1.0 and 2.0.
 
         @type ref: C{int}
         @param ref: The reference index.
@@ -758,7 +758,7 @@ class Decoder(pyamf.BaseDecoder):
         """
         Read a legacy XML Document from the stream.
 
-        @return: The XML Document
+        @return: The XML Document.
         @rtype: L{ET<util.ET>}
         """
         return self._readXML(True)
@@ -824,6 +824,7 @@ class Encoder(pyamf.BaseEncoder):
         @param  data: The data to be encoded to the AMF3 data stream.
         @type   use_references: C{bool}
         @param  use_references:
+        @raise EncodeError: Unable to encode data.
         """
         func = self._writeElementFunc(data)
 
@@ -866,7 +867,7 @@ class Encoder(pyamf.BaseEncoder):
         Writes a C{null} value to the stream.
 
         @type   n:
-        @param  n: C{null} data
+        @param  n: C{null} data.
         @type   use_references: C{bool}
         @param  use_references:
         """
@@ -916,7 +917,7 @@ class Encoder(pyamf.BaseEncoder):
         Writes an integer to the stream.
 
         @type   n:
-        @param  n: integer data
+        @param  n: integer data.
         @type   use_references: C{bool}
         @param  use_references:
         """
@@ -928,7 +929,7 @@ class Encoder(pyamf.BaseEncoder):
         Writes a non integer to the stream.
 
         @type   n:
-        @param  n: number data
+        @param  n: number data.
         @type   use_references: C{bool}
         @param  use_references:
         """
@@ -940,7 +941,7 @@ class Encoder(pyamf.BaseEncoder):
         Writes a raw string to the stream.
 
         @type   n:
-        @param  n: string data
+        @param  n: string data.
         @type   use_references: C{bool}
         @param  use_references:
         """
@@ -969,7 +970,7 @@ class Encoder(pyamf.BaseEncoder):
         Writes a unicode string to the stream.
 
         @type   n:
-        @param  n: string data
+        @param  n: string data.
         @type   use_references: C{bool}
         @param  use_references:
         """
@@ -980,8 +981,8 @@ class Encoder(pyamf.BaseEncoder):
         """
         Writes a C{datetime} instance to the stream.
 
-        @type n: Instance of L{datetime}
-        @param n: Date data
+        @type n: L{datetime}
+        @param n: C{Date} data.
         @type   use_references: C{bool}
         @param  use_references:
         """
@@ -1003,11 +1004,11 @@ class Encoder(pyamf.BaseEncoder):
 
     def writeList(self, n, use_references=True):
         """
-        Writes a tuple, set or list to the stream.
+        Writes a C{tuple}, C{set} or C{list} to the stream.
 
         @type n: One of C{__builtin__.tuple}, C{__builtin__.set}
         or C{__builtin__.list}
-        @param n: list data
+        @param n: C{list} data.
         @type   use_references: C{bool}
         @param  use_references:
         """
@@ -1034,7 +1035,7 @@ class Encoder(pyamf.BaseEncoder):
         Writes a C{dict} to the stream.
 
         @type   n: C{__builtin__.dict}
-        @param  n: C{dict} data
+        @param  n: C{dict} data.
         @type   use_references: C{bool}
         @param  use_references:
         @raise ValueError: Non C{int}/C{str} key value found in the C{dict}
@@ -1294,7 +1295,7 @@ class DataOutput(object):
     def __init__(self, encoder):
         """
         @param encoder: Encoder containing the stream.
-        @type encoder: L{Encoder<pyamf.amf3.Encoder>}
+        @type encoder: L{amf3.Encoder<pyamf.amf3.Encoder>}
         """
         self.encoder = encoder
         self.stream = encoder.stream
@@ -1367,7 +1368,7 @@ class DataOutput(object):
         set to use. Possible character set strings include
         C{shift-jis}, C{cn-gb}, C{iso-8859-1} and others.
         @see: U{Supported character sets on Livedocs (external)
-        <http://livedocs.adobe.com/labs/flex/3/langref/charset-codes.html>}
+        <http://livedocs.adobe.com/flex/201/langref/charset-codes.html>}
         """
         self.stream.write(unicode(value).encode(charset))
 
@@ -1451,7 +1452,7 @@ class DataInput(object):
     def __init__(self, decoder):
         """
         @param decoder: AMF3 decoder containing the stream.
-        @type decoder: L{Decoder<pyamf.amf3.Decoder>}
+        @type decoder: L{amf3.Decoder<pyamf.amf3.Decoder>}
         """
         self.decoder = decoder
         self.stream = decoder.stream
@@ -1610,11 +1611,6 @@ def encode_utf8_modified(data):
     Encodes a unicode string to Modified UTF-8 data.
 
     @see: U{UTF-8 Java on Wikipedia<http://en.wikipedia.org/wiki/UTF-8#Java>}
-
-    @type   data:
-    @param  data:
-    @return:
-    @rtype:
     """
     if not isinstance(data, unicode):
         data = unicode(data, "utf8")
@@ -1648,7 +1644,7 @@ def decode_utf8_modified(data):
 
     @type   data:
     @param  data:
-    @return: Unicode string
+    @return: Unicode string.
     @rtype: C{str}
     @raise ValueError: Data is not valid modified UTF-8.
 

@@ -44,8 +44,8 @@ class ArrayCollection(dict):
 
     The ArrayCollection class is a wrapper class that exposes an Array
     as a collection that can be accessed and manipulated using the
-    methods and properties of the ICollectionView or IList interfaces
-    in the Flex framework.
+    methods and properties of the C{ICollectionView} or C{IList}
+    interfaces in the Flex framework.
 
     @see: U{ArrayCollection on Livedocs (external)
     <http://livedocs.adobe.com/flex/201/langref/mx/collections/ArrayCollection.html>}

@@ -44,6 +44,7 @@ the Flash Player to understand the response therefore.
 <http://osflash.org/documentation/amf/envelopes/remoting/debuginfo>}
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
+
 @since: 0.1.0
 """
 
@@ -85,8 +86,6 @@ class HeaderCollection(dict):
 
     def is_required(self, idx):
         """
-        @type idx:
-        @param idx:
         @raise KeyError: Unknown header found.
         """
         if not idx in self:
@@ -96,11 +95,6 @@ class HeaderCollection(dict):
 
     def set_required(self, idx, value=True):
         """
-        @type idx:
-        @param idx:
-        @type value: C{bool}
-        @param value:
-
         @raise KeyError: Unknown header found.
         """
         if not idx in self:
@@ -139,9 +133,6 @@ class Envelope(dict):
         return r
 
     def __setitem__(self, idx, value):
-        """
-        @type value: L{Message}
-        """
         if not isinstance(value, Message):
             raise TypeError, "Message instance expected"
 
@@ -166,11 +157,11 @@ class Message(object):
 
     @ivar envelope: The parent envelope of this AMF Message.
     @type envelope: L{Envelope}
-    @ivar status: The status of the message
+    @ivar status: The status of the message.
     @type status: Member of L{STATUS_CODES}
-    @ivar body: The body of the message
-    @type body: mixed
-    @ivar headers: The message headers
+    @ivar body: The body of the message.
+    @type body: C{mixed}
+    @ivar headers: The message headers.
     @type headers: C{dict} type
     """
 
@@ -186,10 +177,10 @@ class Message(object):
 
 class Request(Message):
     """
-    An AMF Request Payload.
+    An AMF Request payload.
 
     @ivar target: The target of the request
-    @type target: C{basestinrg}
+    @type target: C{basestring}
     """
     def __init__(self, envelope, target, status=STATUS_OK, body=[]):
         Message.__init__(self, envelope, status, body)
@@ -202,6 +193,9 @@ class Request(Message):
             _get_status(self.status), self.body, type(self).__name__)
 
 class Response(Message):
+    """
+    An AMF Response payload.
+    """
     def __init__(self, envelope, status=STATUS_OK, body=None):
         Message.__init__(self, envelope, status, body)
 
@@ -222,6 +216,9 @@ class BaseFault(object):
     @type details: C{str}
     @ivar description: Text description of the fault.
     @type description: C{str}
+
+    @see: U{mx.rpc.Fault on Livedocs (external)
+    <http://livedocs.adobe.com/flex/201/langref/mx/rpc/Fault.html>}
     """
 
     level = None
@@ -249,7 +246,7 @@ def _read_header(stream, decoder, strict=False):
     """
     Read AMF L{Message} header.
 
-    @type   stream: L{BufferedByteStream}
+    @type   stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     @param  stream: AMF data.
     @type   decoder: L{amf0.Decoder<pyamf.amf0.Decoder>} or
     L{amf3.Decoder<pyamf.amf3.Decoder>}
@@ -262,7 +259,7 @@ def _read_header(stream, decoder, strict=False):
     @rtype: C{tuple}
     @return:
      - Name of the header.
-     - A boolean determining if understanding this header is
+     - A C{bool} determining if understanding this header is
      required.
      - Value of the header.
     """
@@ -288,12 +285,12 @@ def _write_header(name, header, required, stream, encoder, strict=False):
     Write AMF message header.
 
     @type   name: C{str}
-    @param  name: Name of header
+    @param  name: Name of the header.
     @type   header:
     @param  header: Raw header data.
     @type   required: L{bool}
     @param  required: Required header.
-    @type   stream: L{BufferedByteStream}
+    @type   stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     @param  stream: AMF data.
     @type   encoder: L{amf0.Encoder<pyamf.amf0.Encoder>}
     or L{amf3.Encoder<pyamf.amf3.Encoder>}
@@ -321,7 +318,7 @@ def _read_body(stream, decoder, strict=False):
     """
     Read AMF message body.
 
-    @type   stream: L{BufferedByteStream}
+    @type   stream: L{BufferedByteStream<util.BufferedByteStream>}
     @param  stream: AMF data.
     @type   decoder: L{amf0.Decoder<pyamf.amf0.Decoder>} or
     L{amf3.Decoder<pyamf.amf3.Decoder>}
@@ -331,7 +328,7 @@ def _read_body(stream, decoder, strict=False):
     @raise DecodeError: Data read from stream does not match body length.
 
     @rtype: C{tuple}
-    @return: A tuple containing:
+    @return: A C{tuple} containing:
         - id of the request
         - L{Request} or L{Response}
     """
@@ -374,7 +371,7 @@ def _write_body(name, message, stream, encoder, strict=False):
     @type name: C{basestring}
     @param message: The AMF Payload.
     @type message: L{Request} or L{Response}
-    @type stream: L{util.BufferedByteStream}
+    @type stream: L{BufferedByteStream<util.BufferedByteStream>}
     @type encoder: L{amf0.Encoder<pyamf.amf0.Encoder>}
         or L{amf3.Encoder<pyamf.amf3.Encoder>}
     @param encoder: Encoder to use.
@@ -423,7 +420,7 @@ def _get_status(status):
     """
     Get status code.
 
-    @type status:
+    @type status: C{str}
     @param status:
     @raise ValueError: The status code is unknown.
 
@@ -454,10 +451,10 @@ def decode(stream, context=None, strict=False):
     """
     Decodes the incoming stream. .
 
-    @type   stream: L{BufferedByteStream}
+    @type   stream: L{BufferedByteStream<util.BufferedByteStream>}
     @param  stream: AMF data.
-    @type   context: L{AMF0 Context<pyamf.amf0.Context>} or
-    L{AMF3 Context<pyamf.amf3.Context>}
+    @type   context: L{amf0.Context<pyamf.amf0.Context>} or
+    L{amf3.Context<pyamf.amf3.Context>}
     @param  context: Context.
     @type strict: C{bool}
     @param strict: Enforce strict encoding.
@@ -514,14 +511,14 @@ def encode(msg, old_context=None, strict=False):
 
     @type   msg: L{Envelope}
     @param  msg: The message to encode.
-    @type   old_context: L{AMF0 Context<pyamf.amf0.Context>} or
-    L{AMF3 Context<pyamf.amf3.Context>}
+    @type   old_context: L{amf0.Context<pyamf.amf0.Context>} or
+    L{amf3.Context<pyamf.amf3.Context>}
     @param  old_context: Context.
     @type strict: C{bool}
     @param strict: Determines whether encoding should be strict. Specifically
         header/body lengths will be written correctly, instead of the default 0.
 
-    @rtype:
+    @rtype: C{StringIO}
     @return: File object.
     """
     def getNewContext():
