@@ -15,7 +15,6 @@ different versions of PyAMF.
  - Authentication/setCredentials support (#36)
  - zlib compression support for ByteArray (#40)
 
-
 2007-10-19
 ------------------------------------------------------------
  - Started project based on previous work done in the
