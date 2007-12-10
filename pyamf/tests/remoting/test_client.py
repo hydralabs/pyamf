@@ -262,6 +262,10 @@ class RemotingServiceTestCase(unittest.TestCase):
         self.assertRaises(ValueError, client.RemotingService,
             'ftp://example.org')
 
+    def test_port(self):
+        x = client.RemotingService('http://example.org:8080')
+        self.assertEquals(x.connection.port, 8080)
+
     def test_get_service(self):
         x = client.RemotingService('http://example.org')
 

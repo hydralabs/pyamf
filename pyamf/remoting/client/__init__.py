@@ -195,21 +195,34 @@ class RemotingService(object):
 
         self.amf_version = amf_version
         self.client_type = client_type
+        
+        port = None
+        hostname = None
 
-        if self.url.scheme == 'http':
-            port = 80
-
+        if hasattr(self.url, 'port'):
             if self.url.port is not None:
                 port = self.url.port
+        else:
+            if ':' not in self.url[1]:
+                port = None
+            else:
+                hostname, port = self.url[1].rsplit(':', 1)
+                port = int(port)
 
-            self.connection = httplib.HTTPConnection(self.url.hostname, port)
-        elif self.url.scheme == 'https':
-            port = 443
+        if hostname is None:
+            if hasattr(self.url, 'hostname'):
+                hostname = self.url.hostname
 
-            if self.url.port is not None:
-                port = self.url.port
+        if self.url[0] == 'http':
+            if port is None:
+                port = 80
 
-            self.connection = httplib.HTTPSConnection(self.url.hostname, port)
+            self.connection = httplib.HTTPConnection(hostname, port)
+        elif self.url[0] == 'https':
+            if port is None:
+                port = 443
+
+            self.connection = httplib.HTTPSConnection(hostname, port)
         else:
             raise ValueError, 'Unknown scheme'
 
