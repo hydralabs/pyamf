@@ -67,6 +67,9 @@ STATUS_CODES = {
     STATUS_DEBUG: '/onDebugEvents'
 }
 
+#: AMF mimetype.
+CONTENT_TYPE = 'application/x-amf'
+
 class RemotingError(pyamf.BaseError):
     """
     Generic remoting error class.
@@ -157,17 +160,14 @@ class Message(object):
 
     @ivar envelope: The parent envelope of this AMF Message.
     @type envelope: L{Envelope}
-    @ivar status: The status of the message.
-    @type status: Member of L{STATUS_CODES}
     @ivar body: The body of the message.
     @type body: C{mixed}
     @ivar headers: The message headers.
     @type headers: C{dict} type
     """
 
-    def __init__(self, envelope, status, body):
+    def __init__(self, envelope, body):
         self.envelope = envelope
-        self.status = status
         self.body = body
 
     def _get_headers(self):
@@ -182,22 +182,30 @@ class Request(Message):
     @ivar target: The target of the request
     @type target: C{basestring}
     """
-    def __init__(self, envelope, target, status=STATUS_OK, body=[]):
-        Message.__init__(self, envelope, status, body)
+
+    status = STATUS_OK
+
+    def __init__(self, target, body=[], envelope=None):
+        Message.__init__(self, envelope, body)
 
         self.target = target
 
     def __repr__(self):
-        return "<%s target=%s status=%s>%s</%s>" % (
-            type(self).__name__, self.target,
-            _get_status(self.status), self.body, type(self).__name__)
+        return "<%s target=%s>%s</%s>" % (
+            type(self).__name__, self.target, self.body, type(self).__name__)
 
 class Response(Message):
     """
-    An AMF Response payload.
+    An AMF Response.
+
+    @ivar status: The status of the message
+    @type status: Member of L{STATUS_CODES}
     """
-    def __init__(self, envelope, status=STATUS_OK, body=None):
-        Message.__init__(self, envelope, status, body)
+
+    def __init__(self, body, status=STATUS_OK, envelope=None):
+        Message.__init__(self, envelope, body)
+
+        self.status = status
 
     def __repr__(self):
         return "<%s status=%s>%s</%s>" % (
@@ -355,13 +363,12 @@ def _read_body(stream, decoder, strict=False):
             "length (%d != %d)" % (pos + data_len, stream.tell(),))
 
     if is_request:
-        return (response, Request(None, target, status, data))
+        return (response, Request(target, body=data))
     else:
         if status == STATUS_ERROR and isinstance(data, pyamf.Bag):
             data = get_fault(data)
-            print data
 
-        return (target, Response(None, status, data))
+        return (target, Response(data, status))
 
 def _write_body(name, message, stream, encoder, strict=False):
     """

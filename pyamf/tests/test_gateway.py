@@ -311,10 +311,10 @@ class BaseGatewayTestCase(unittest.TestCase):
         gw = gateway.BaseGateway({'test': TestService})
         envelope = remoting.Envelope()
 
-        message = remoting.Request(envelope, 'foo', None, None)
+        message = remoting.Request('foo', [], envelope=envelope)
         self.assertRaises(NameError, gw.getServiceRequest, message)
 
-        message = remoting.Request(envelope, 'test.foo', None, None)
+        message = remoting.Request('test.foo', [], envelope=envelope)
         sr = gw.getServiceRequest(message)
 
         self.assertTrue(isinstance(sr, gateway.ServiceRequest))
@@ -322,35 +322,35 @@ class BaseGatewayTestCase(unittest.TestCase):
         self.assertEquals(sr.service, TestService)
         self.assertEquals(sr.method, 'foo')
 
-        message = remoting.Request(envelope, 'test', None, None)
+        message = remoting.Request('test')
         sr = gw.getServiceRequest(message)
 
         self.assertTrue(isinstance(sr, gateway.ServiceRequest))
-        self.assertEquals(sr.request, envelope)
+        self.assertEquals(sr.request, None)
         self.assertEquals(sr.service, TestService)
         self.assertEquals(sr.method, None)
 
         gw = gateway.BaseGateway({'test': TestService})
         envelope = remoting.Envelope()
-        message = remoting.Request(envelope, 'test')
+        message = remoting.Request('test')
 
         sr = gw.getServiceRequest(message)
 
         self.assertTrue(isinstance(sr, gateway.ServiceRequest))
-        self.assertEquals(sr.request, envelope)
+        self.assertEquals(sr.request, None)
         self.assertEquals(sr.service, TestService)
         self.assertEquals(sr.method, None)
 
         # try to access an unknown service
-        message = remoting.Request(None, 'foo')
+        message = remoting.Request('foo')
         self.assertRaises(NameError, gw.getServiceRequest, message)
 
         # check x.x calls
-        message = remoting.Request(envelope, 'test.test')
+        message = remoting.Request('test.test')
         sr = gw.getServiceRequest(message)
 
         self.assertTrue(isinstance(sr, gateway.ServiceRequest))
-        self.assertEquals(sr.request, envelope)
+        self.assertEquals(sr.request, None)
         self.assertEquals(sr.service, TestService)
         self.assertEquals(sr.method, 'test')
 
@@ -362,18 +362,18 @@ class BaseGatewayTestCase(unittest.TestCase):
 
     def test_process_request(self):
         gw = gateway.BaseGateway({'test': TestService})
-
         envelope = remoting.Envelope()
-        request = remoting.Request(envelope, 'test.foo')
+
+        request = remoting.Request('test.foo', envelope=envelope)
 
         response = gw.processRequest(request)
-
-        self.assertTrue(isinstance(response, remoting.Message))
+        
+        self.assertTrue(isinstance(response, remoting.Response))
         self.assertEquals(response.status, remoting.STATUS_OK)
         self.assertEquals(response.body, 'foo')
 
         # Test a non existant service call
-        request = remoting.Request(envelope, 'nope')
+        request = remoting.Request('nope', envelope=envelope)
         response = gw.processRequest(request)
 
         self.assertTrue(isinstance(response, remoting.Message))
@@ -387,7 +387,7 @@ class BaseGatewayTestCase(unittest.TestCase):
         gw = gateway.BaseGateway({'test': TestService})
         envelope = remoting.Envelope()
 
-        request = remoting.Request(envelope, 'test.foo')
+        request = remoting.Request('test.foo', envelope=envelope)
         request.headers['Credentials'] = {'foo': 'bar'}
 
         response = gw.processRequest(request)

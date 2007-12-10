@@ -213,7 +213,7 @@ class EncoderTestCase(unittest.TestCase):
         """
         msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash6)
 
-        msg['/1'] = remoting.Request(msg, 'test.test', body='hello')
+        msg['/1'] = remoting.Request('test.test', body='hello')
 
         self.assertEquals(len(msg), 1)
 
@@ -236,7 +236,7 @@ class EncoderTestCase(unittest.TestCase):
         """
         msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash6)
 
-        msg['/1'] = remoting.Response(msg, body=[1, 2, 3])
+        msg['/1'] = remoting.Response(body=[1, 2, 3])
 
         self.assertEquals(len(msg), 1)
 
@@ -256,9 +256,9 @@ class EncoderTestCase(unittest.TestCase):
     def test_message_order(self):
         msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash6)
 
-        msg['/3'] = remoting.Request(None, 'test.test', body='hello')
-        msg['/1'] = remoting.Request(None, 'test.test', body='hello')
-        msg['/2'] = remoting.Request(None, 'test.test', body='hello')
+        msg['/3'] = remoting.Request('test.test', body='hello')
+        msg['/1'] = remoting.Request('test.test', body='hello')
+        msg['/2'] = remoting.Request('test.test', body='hello')
 
         it = iter(msg)
 
@@ -272,7 +272,7 @@ class StrictEncodingTestCase(unittest.TestCase):
     def test_request(self):
         msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash6)
 
-        msg['/1'] = remoting.Request(msg, 'test.test', body='hello')
+        msg['/1'] = remoting.Request('test.test', body='hello')
 
         self.assertEquals(remoting.encode(msg, strict=True).getvalue(),
             '\x00\x00\x00\x00\x00\x01\x00\ttest.test\x00\x02/1\x00\x00\x00\x08'
@@ -281,7 +281,7 @@ class StrictEncodingTestCase(unittest.TestCase):
     def test_response(self):
         msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash6)
 
-        msg['/1'] = remoting.Response(None, body=['foo'])
+        msg['/1'] = remoting.Response(['foo'])
 
         self.assertEquals(remoting.encode(msg, strict=True).getvalue(),
             '\x00\x00\x00\x00\x00\x01\x00\x0b/1/onResult\x00\x04null\x00\x00'
@@ -296,6 +296,10 @@ def suite():
     suite.addTest(unittest.makeSuite(DecoderTestCase))
     suite.addTest(unittest.makeSuite(EncoderTestCase))
     suite.addTest(unittest.makeSuite(StrictEncodingTestCase))
+
+    from pyamf.tests.remoting import test_client
+
+    suite.addTest(test_client.suite())
 
     return suite
 

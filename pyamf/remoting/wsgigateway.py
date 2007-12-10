@@ -147,7 +147,7 @@ class WSGIGateway(gateway.BaseGateway):
         response = stream.getvalue()
 
         start_response('200 OK', [
-            ('Content-Type', gateway.CONTENT_TYPE),
+            ('Content-Type', remoting.CONTENT_TYPE),
             ('Content-Length', str(len(response))),
         ])
 
