@@ -22,7 +22,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Gateway for the Django framework.
+Django server implementation.
 
 This gateway allows you to expose functions in Django to AMF clients and
 servers.

@@ -22,7 +22,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Client implementation.
+Remoting client implementation.
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
@@ -34,6 +34,8 @@ import httplib, urlparse
 import pyamf
 from pyamf import remoting
 
+#: Default AMF client type.
+#: @see: L{ClientTypes<pyamf.ClientTypes>}
 DEFAULT_CLIENT_TYPE = pyamf.ClientTypes.Flash6
 
 class ServiceMethodProxy(object):
@@ -45,7 +47,7 @@ class ServiceMethodProxy(object):
     @ivar name: The name of the method
     @type name: C{str} or C{None}
 
-    @see L{ServiceProxy.__getattr__}
+    @see: L{ServiceProxy.__getattr__}
     """
 
     def __init__(self, service, name):
@@ -75,9 +77,9 @@ class ServiceProxy(object):
     Serves as a service object proxy for RPC calls. Generates
     L{ServiceMethodProxy} objects for method calls.
 
-    @ivar _gw: The parent gateway
+    @ivar _gw: The parent gateway.
     @type _gw: L{RemotingService}
-    @ivar _name: The name of the service
+    @ivar _name: The name of the service.
     @type _name: C{str}
     @ivar _auto_execute: If set to C{True}, when a service method is called,
         the AMF request is immediately sent to the remote gateway and a
@@ -85,7 +87,7 @@ class ServiceProxy(object):
         returned, waiting for the underlying gateway to fire the
         {execute<L{RemotingService.execute}>} method.
 
-    @see L{RequestWrapper} for more info.
+    @see: L{RequestWrapper} for more info.
     """
 
     def __init__(self, gw, name, auto_execute=True):
