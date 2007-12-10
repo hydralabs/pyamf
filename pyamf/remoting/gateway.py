@@ -40,16 +40,16 @@ CONTENT_TYPE = 'application/x-amf'
 
 fault_alias = pyamf.get_class_alias(remoting.ErrorFault)
 
-class BaseServiceError(Exception, remoting.ErrorFault):
+class BaseServiceError(pyamf.BaseError):
     """
     Base service error.
     """
-    pass
 
 class UnknownServiceError(BaseServiceError):
     """
     Client made a request for an unknown service.
     """
+
     _amf_code = 'Service.ResourceNotFound'
 
 pyamf.register_class(UnknownServiceError, attrs=fault_alias.attrs)
@@ -58,6 +58,7 @@ class UnknownServiceMethodError(BaseServiceError):
     """
     Client made a request for an unknown method.
     """
+
     _amf_code = 'Service.MethodNotFound'
 
 pyamf.register_class(UnknownServiceMethodError, attrs=fault_alias.attrs)
@@ -66,6 +67,7 @@ class InvalidServiceMethodError(BaseServiceError):
     """
     Client made a request for an invalid methodname.
     """
+
     _amf_code = 'Service.MethodInvalid'
 
 pyamf.register_class(InvalidServiceMethodError, attrs=fault_alias.attrs)
