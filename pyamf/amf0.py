@@ -155,6 +155,9 @@ class Context(pyamf.BaseContext):
 
         return copy
 
+    def _getObjectIndex(self):
+        return len(self.objects)
+
     def getAMF3ObjectReference(self, obj):
         """
         Gets a reference for an object.

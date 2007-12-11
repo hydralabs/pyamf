@@ -178,6 +178,9 @@ class BaseContext(object):
         except KeyError:
             raise ReferenceError
 
+    def _getObjectIndex(self):
+        return len(self.objects) - 1
+
     def addObject(self, obj):
         """
         Adds a reference to C{obj}.
@@ -189,7 +192,7 @@ class BaseContext(object):
         @return: Reference to C{obj}.
         """
         self.objects.append(obj)
-        idx = len(self.objects) - 1
+        idx = self._getObjectIndex()
         self.rev_objects[id(obj)] = idx
 
         return idx
