@@ -163,7 +163,7 @@ class Message(object):
     @ivar body: The body of the message.
     @type body: C{mixed}
     @ivar headers: The message headers.
-    @type headers: C{dict} type
+    @type headers: C{dict}
     """
 
     def __init__(self, envelope, body):
@@ -177,7 +177,7 @@ class Message(object):
 
 class Request(Message):
     """
-    An AMF Request payload.
+    An AMF request payload.
 
     @ivar target: The target of the request
     @type target: C{basestring}
@@ -196,9 +196,9 @@ class Request(Message):
 
 class Response(Message):
     """
-    An AMF Response.
+    An AMF response.
 
-    @ivar status: The status of the message
+    @ivar status: The status of the message.
     @type status: Member of L{STATUS_CODES}
     """
 
@@ -333,7 +333,8 @@ def _read_body(stream, decoder, strict=False):
     @param  decoder: AMF decoder instance.
     @type strict: C{bool}
     @param strict:
-    @raise DecodeError: Data read from stream does not match body length.
+    @raise DecodeError: Data read from stream does not match body
+    length.
 
     @rtype: C{tuple}
     @return: A C{tuple} containing:

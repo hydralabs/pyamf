@@ -107,8 +107,8 @@ class StringIOProxy(object):
 
     def readlines(self, sizehint=0):
         """
-        @type sizehint:
-        @param sizehint:
+        @type sizehint: C{int}
+        @param sizehint: Number of lines to read.
         @note: This function does not consume the buffer.
         """
         lines = self._buffer.readlines(sizehint)
@@ -155,8 +155,8 @@ class NetworkIOMixIn(object):
         @type length:
         @param length:
         @raise EOFError: Not in range.
-        @rtype:
-        @return:
+        @rtype: C{StringIO}
+        @return: Bytes.
         """
         bytes = self.read(length)
 
@@ -269,8 +269,8 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
 
     def __init__(self, buf=None):
         """
-        @param buf: Initial byte stream
-        @type buf: str or C{StringIO} instance
+        @param buf: Initial byte stream.
+        @type buf: C{str} or C{StringIO} instance
         """
         StringIOProxy.__init__(self, buf=buf)
 
@@ -288,7 +288,7 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
         @raise IOError: Length specified but not enough buffer
         available.
 
-        @rtype: array of C{char}
+        @rtype: C{array of char}
         @return: The bytes read from the stream.
         """
         if length > 0 and self.at_eof():
@@ -300,14 +300,14 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
 
     def peek(self, size=1):
         """
-        Looks size bytes ahead in the stream, returning what it finds,
-        returning the stream pointer to its initial position.
+        Looks C{size} bytes ahead in the stream, returning what it
+        finds, returning the stream pointer to its initial position.
 
-        @param size:
-        @type size:
+        @param size: Number of bytes to look ahead.
+        @type size: C{int}
         @raise ValueError: Raised when trying to peek backwards.
 
-        @rtype:
+        @rtype: C{StringIO}
         @return: Bytes.
         """
         if size == -1:
@@ -328,10 +328,11 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
 
     def at_eof(self):
         """
-        Returns true if C{next.read(1)} will trigger an C{EOFError}.
+        Returns C{True} if C{next.read(1)} will trigger an
+        C{EOFError}.
 
-        @rtype: bool
-        @return:
+        @rtype: C{bool}
+        @return: C{True} or C{False}
         """
         return self.tell() >= len(self)
 
@@ -348,10 +349,10 @@ def hexdump(data):
     """
     Get hexadecimal representation of C{StringIO} data.
 
-    @type data:
-    @param data:
+    @type data: C{StringIO}
+    @param data: Data to convert to a hexadecimal string.
     @rtype: C{str}
-    @return: Hexadecimal string.
+    @return: Hexadecimal output string.
     """
     import string
 
@@ -380,7 +381,7 @@ def get_timestamp(d):
     Returns a UTC timestamp for a C{datetime.datetime} object.
 
     @type d: C{datetime.datetime}
-    @param d:
+    @param d: Date.
     @return: UTC timestamp.
     @rtype: C{str}
 

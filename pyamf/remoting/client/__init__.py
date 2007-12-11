@@ -44,7 +44,7 @@ class ServiceMethodProxy(object):
 
     @ivar service: The parent service.
     @type service: L{ServiceProxy}
-    @ivar name: The name of the method
+    @ivar name: The name of the method.
     @type name: C{str} or C{None}
 
     @see: L{ServiceProxy.__getattr__}
@@ -161,6 +161,8 @@ class RequestWrapper(object):
         """
         Returns the result of the called remote request. If the request has not
         yet been called, an exception is raised.
+
+        @raise AttributeError: 'RequestWrapper' object has no attribute 'result'.
         """
         if not hasattr(self, '_result'):
             raise AttributeError, "'RequestWrapper' object has no attribute 'result'"
@@ -246,6 +248,8 @@ class RemotingService(object):
     def getRequest(self, id_):
         """
         Gets a request based on the id.
+
+        @raise LookupError: Request not found.
         """
         for request in self.requests:
             if request.id == id_:
@@ -336,7 +340,7 @@ class RemotingService(object):
         """
         Gets and handles the HTTP response from the remote gateway.
 
-        @raise RemotingError: Incorrect MIME-type received.
+        @raise RemotingError: Incorrect MIME type received.
         """
         http_response = self.connection.getresponse()
 
