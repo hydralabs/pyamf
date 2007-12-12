@@ -33,7 +33,7 @@ import unittest
 
 import pyamf
 from pyamf import remoting
-from pyamf.remoting import gateway
+from pyamf.remoting import gateway, amf0, amf3
 
 class TestService(object):
     def foo(self):
@@ -62,7 +62,7 @@ class FaultTestCase(unittest.TestCase):
         try:
             raise TypeError, "unknown type"
         except TypeError, e:
-            fault = gateway.build_fault()
+            fault = amf0.build_fault()
 
         self.assertTrue(isinstance(fault, remoting.ErrorFault))
         self.assertEquals(fault.level, 'error')
@@ -76,13 +76,13 @@ class FaultTestCase(unittest.TestCase):
         try:
             raise TypeError, "unknown type"
         except TypeError, e:
-            encoder.writeElement(gateway.build_fault())
+            encoder.writeElement(amf0.build_fault())
 
         buffer = encoder.stream
         buffer.seek(0, 0)
 
         fault = decoder.readElement()
-        old_fault = gateway.build_fault()
+        old_fault = amf0.build_fault()
 
         self.assertEquals(fault.level, old_fault.level)
         self.assertEquals(fault.type, old_fault.type)
@@ -97,7 +97,7 @@ class FaultTestCase(unittest.TestCase):
         try:
             raise X
         except X, e:
-            fault = gateway.build_fault()
+            fault = amf0.build_fault()
 
         self.assertEquals(fault.code, 'Server.UnknownResource')
 
@@ -312,10 +312,11 @@ class BaseGatewayTestCase(unittest.TestCase):
         envelope = remoting.Envelope()
 
         message = remoting.Request('foo', [], envelope=envelope)
-        self.assertRaises(NameError, gw.getServiceRequest, message)
+        self.assertRaises(gateway.UnknownServiceError, gw.getServiceRequest,
+            message, 'foo')
 
         message = remoting.Request('test.foo', [], envelope=envelope)
-        sr = gw.getServiceRequest(message)
+        sr = gw.getServiceRequest(message, 'test.foo')
 
         self.assertTrue(isinstance(sr, gateway.ServiceRequest))
         self.assertEquals(sr.request, envelope)
@@ -323,7 +324,7 @@ class BaseGatewayTestCase(unittest.TestCase):
         self.assertEquals(sr.method, 'foo')
 
         message = remoting.Request('test')
-        sr = gw.getServiceRequest(message)
+        sr = gw.getServiceRequest(message, 'test')
 
         self.assertTrue(isinstance(sr, gateway.ServiceRequest))
         self.assertEquals(sr.request, None)
@@ -334,7 +335,7 @@ class BaseGatewayTestCase(unittest.TestCase):
         envelope = remoting.Envelope()
         message = remoting.Request('test')
 
-        sr = gw.getServiceRequest(message)
+        sr = gw.getServiceRequest(message, 'test')
 
         self.assertTrue(isinstance(sr, gateway.ServiceRequest))
         self.assertEquals(sr.request, None)
@@ -343,11 +344,12 @@ class BaseGatewayTestCase(unittest.TestCase):
 
         # try to access an unknown service
         message = remoting.Request('foo')
-        self.assertRaises(NameError, gw.getServiceRequest, message)
+        self.assertRaises(gateway.UnknownServiceError, gw.getServiceRequest,
+            message, 'foo')
 
         # check x.x calls
         message = remoting.Request('test.test')
-        sr = gw.getServiceRequest(message)
+        sr = gw.getServiceRequest(message, 'test.test')
 
         self.assertTrue(isinstance(sr, gateway.ServiceRequest))
         self.assertEquals(sr.request, None)
@@ -366,7 +368,8 @@ class BaseGatewayTestCase(unittest.TestCase):
 
         request = remoting.Request('test.foo', envelope=envelope)
 
-        response = gw.processRequest(request)
+        processor = gw.getProcessor(request)
+        response = processor(request)
         
         self.assertTrue(isinstance(response, remoting.Response))
         self.assertEquals(response.status, remoting.STATUS_OK)
@@ -374,13 +377,14 @@ class BaseGatewayTestCase(unittest.TestCase):
 
         # Test a non existant service call
         request = remoting.Request('nope', envelope=envelope)
-        response = gw.processRequest(request)
+        processor = gw.getProcessor(request)
+        response = processor(request)
 
         self.assertTrue(isinstance(response, remoting.Message))
         self.assertEquals(response.status, remoting.STATUS_ERROR)
         self.assertTrue(isinstance(response.body, remoting.ErrorFault))
 
-        self.assertEquals(response.body.code, 'NameError')
+        self.assertEquals(response.body.code, 'Service.ResourceNotFound')
         self.assertEquals(response.body.description, 'Unknown service nope')
 
     def test_malformed_credentials_header(self):
@@ -390,15 +394,14 @@ class BaseGatewayTestCase(unittest.TestCase):
         request = remoting.Request('test.foo', envelope=envelope)
         request.headers['Credentials'] = {'foo': 'bar'}
 
-        response = gw.processRequest(request)
+        processor = gw.getProcessor(request)
+        response = processor(request)
 
         self.assertTrue(isinstance(response, remoting.Response))
         self.assertEquals(response.status, remoting.STATUS_ERROR)
         self.assertTrue(isinstance(response.body, remoting.ErrorFault))
 
-        self.assertEquals(response.body.code, 'RemotingError')
-        self.assertEquals(response.body.description,
-            'Invalid credentials object')
+        self.assertEquals(response.body.code, 'KeyError')
 
 def suite():
     suite = unittest.TestSuite()

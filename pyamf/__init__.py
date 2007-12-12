@@ -90,7 +90,6 @@ for x in ClientTypes.__dict__:
         CLIENT_TYPES.append(ClientTypes.__dict__[x])
 del x
 
-#:
 Undefined = object()
 
 class BaseError(Exception):
@@ -143,16 +142,6 @@ class BaseContext(object):
     def getObject(self, ref):
         """
         Gets an object based on a reference.
-
-        @type ref: int
-        @param ref: The reference to an object.
-
-        @raise TypeError: Bad reference type.
-        @raise ReferenceError: The object reference could not
-        be found.
-
-        @rtype: mixed
-        @return: The object referenced.
         """
         if not isinstance(ref, (int, long)):
             raise TypeError, "Bad reference type"
@@ -165,21 +154,11 @@ class BaseContext(object):
     def getObjectReference(self, obj):
         """
         Gets a reference for an object.
-
-        @type obj:
-        @param obj:
-        @raise ReferenceError: Object reference could not be found.
-
-        @rtype:
-        @return:
         """
         try:
             return self.rev_objects[id(obj)]
         except KeyError:
             raise ReferenceError
-
-    def _getObjectIndex(self):
-        return len(self.objects) - 1
 
     def addObject(self, obj):
         """
@@ -192,7 +171,7 @@ class BaseContext(object):
         @return: Reference to C{obj}.
         """
         self.objects.append(obj)
-        idx = self._getObjectIndex()
+        idx = len(self.objects) - 1
         self.rev_objects[id(obj)] = idx
 
         return idx

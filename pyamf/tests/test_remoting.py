@@ -297,9 +297,10 @@ def suite():
     suite.addTest(unittest.makeSuite(EncoderTestCase))
     suite.addTest(unittest.makeSuite(StrictEncodingTestCase))
 
-    from pyamf.tests.remoting import test_client
+    from pyamf.tests.remoting import test_client, test_remoteobject
 
     suite.addTest(test_client.suite())
+    suite.addTest(test_remoteobject.suite())
 
     return suite
 

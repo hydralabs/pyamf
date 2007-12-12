@@ -294,17 +294,15 @@ class BaseGateway(object):
         # shouldn't ever get here
         raise RuntimeError, "Something went wrong ..."
 
-    def getServiceRequest(self, message):
+    def getServiceRequest(self, message, target):
         """
         Returns a service based on the message.
 
         @raise RemotingError: Unknown service.
         @param message: The AMF message.
-        @type message: L{Message<remoting.Message>}
+        @type message: L{Request<remoting.Request>}
         @rtype: L{ServiceRequest}
         """
-        target = message.target
-
         try:
             return self._request_class(
                 message.envelope, self.services[target], None)
@@ -318,93 +316,21 @@ class BaseGateway(object):
         except (ValueError, KeyError):
             pass
 
-        # All methods exhausted
-        raise NameError, "Unknown service %s" % target
+        raise UnknownServiceError, "Unknown service %s" % target
 
     def getProcessor(self, request):
         """
         @param request:
         @type request:
         """
-        if 'DescribeService' in request.headers:
-            return NotImplementedError
+        if request.target == 'null':
+            from pyamf.remoting import amf3
 
-        return self.processRequest
+            return amf3.RequestProcessor(self)
+        else:
+            from pyamf.remoting import amf0
 
-    def authenticateRequest(self, service_request, request):
-        """
-        Authenticates the request against the service.
-
-        @param service_request:
-        @type service_request:
-        
-        @param request:
-        @type request:
-        
-        @raise RemotingError: Invalid credentials object.
-        """ 
-        username = password = None
-
-        if 'Credentials' in request.headers:
-            cred = request.headers['Credentials']
-
-            try:
-                username = cred['userid']
-                password = cred['password']
-            except KeyError:
-                raise remoting.RemotingError, "Invalid credentials object"
-
-        return service_request.authenticate(username, password)
-
-    def processRequest(self, request):
-        """
-        Processes a request.
-
-        @param request: The request to be processed.
-        @type request: L{Message<remoting.Message>}
-        
-        @return: The response to the request.
-        @rtype: L{Message<remoting.Message>}
-        """
-        response = remoting.Response(None)
-
-        try:
-            service_request = self.getServiceRequest(request)
-        except NameError, e:
-            response.status = remoting.STATUS_ERROR
-            response.body = build_fault()
-
-            return response
-
-        # we have a valid service, now attempt authentication
-        try:
-            authd = self.authenticateRequest(service_request, request)
-        except (SystemExit, KeyboardInterrupt):
-            raise
-        except:
-            response.status = remoting.STATUS_ERROR
-            response.body = build_fault()
-
-            return response
-
-        if not authd:
-            # authentication failed
-            response.status = remoting.STATUS_ERROR
-            response.body = remoting.ErrorFault(code='AuthenticationError',
-                description='Authentication failed')
-
-            return response
-
-        # process the request
-        try:
-            response.body = service_request(*request.body)
-        except (SystemExit, KeyboardInterrupt):
-            raise
-        except:
-            response.body = build_fault()
-            response.status = remoting.STATUS_ERROR
-
-        return response
+            return amf0.RequestProcessor(self)
 
     def getResponse(self, request):
         """
@@ -419,17 +345,3 @@ class BaseGateway(object):
         @rtype: L{Envelope<remoting.Envelope>}
         """
         raise NotImplementedError
-
-def build_fault():
-    """
-    Builds a L{remoting.ErrorFault} object based on the last exception raised.
-    """
-    cls, e, tb = sys.exc_info()
-
-    if hasattr(cls, '_amf_code'):
-        code = cls._amf_code
-    else:
-        code = cls.__name__
-
-    return remoting.ErrorFault(code=code, description=str(e),
-        details=traceback.format_exception(cls, e, tb))

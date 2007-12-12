@@ -22,8 +22,6 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Test for client implementation.
-
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
 @since: 0.1.0
@@ -354,7 +352,7 @@ class RemotingServiceTestCase(unittest.TestCase):
 
         request = envelope['/1']
         self.assertEquals(request.target, 'baz.gak')
-        self.assertEquals(request.body, (1, 2, 3))
+        self.assertEquals(request.body, [1, 2, 3])
         
         envelope2 = gw.getAMFRequest(gw.requests)
 
@@ -364,7 +362,7 @@ class RemotingServiceTestCase(unittest.TestCase):
 
         request = envelope2['/1']
         self.assertEquals(request.target, 'baz.gak')
-        self.assertEquals(request.body, (1, 2, 3))
+        self.assertEquals(request.body, [1, 2, 3])
 
     def test_execute_single(self):
         gw = client.RemotingService('http://example.org/x/y/z')
@@ -375,15 +373,15 @@ class RemotingServiceTestCase(unittest.TestCase):
 
         service = gw.getService('baz', auto_execute=False)
         wrapper = service.gak()
-        
-        response = DummyResponse(200, '\x00\x00\x00\x00\x00\x01\x00\ttest.test'
-            '\x00\x02/1\x00\x00\x00\x00\x02\x00\x05hello', {
-            'Content-Type': 'application/x-amf', 'Content-Length': 33})
+
+        response = DummyResponse(200, '\x00\x00\x00\x00\x00\x01\x00\x0b/1/onRe'
+            'sult\x00\x04null\x00\x00\x00\x00\x00\x02\x00\x05hello', {
+            'Content-Type': 'application/x-amf', 'Content-Length': 50})
         response.tc = self
 
         dc.expected_url = '/x/y/z'
         dc.expected_value = '\x00\x00\x00\x00\x00\x01\x00\x07baz.gak\x00' + \
-            '\x02/1\x00\x00\x00\x00\n\x00\x00\x00\x01\n\x00\x00\x00\x00'
+            '\x02/1\x00\x00\x00\x00\x0a\x00\x00\x00\x00'
         dc.response = response
 
         gw.execute_single(wrapper)
@@ -391,14 +389,14 @@ class RemotingServiceTestCase(unittest.TestCase):
         
         wrapper = service.gak()
 
-        response = DummyResponse(200, '\x00\x00\x00\x00\x00\x01\x00\ttest.test'
-            '\x00\x02/2\x00\x00\x00\x00\x02\x00\x05hello', {
+        response = DummyResponse(200, '\x00\x00\x00\x00\x00\x01\x00\x0b/2/onRe'
+            'sult\x00\x04null\x00\x00\x00\x00\x00\x02\x00\x05hello', {
             'Content-Type': 'application/x-amf'})
         response.tc = self
 
         dc.expected_url = '/x/y/z'
         dc.expected_value = '\x00\x00\x00\x00\x00\x01\x00\x07baz.gak\x00' + \
-            '\x02/2\x00\x00\x00\x00\n\x00\x00\x00\x01\n\x00\x00\x00\x00'
+            '\x02/2\x00\x00\x00\x00\n\x00\x00\x00\x00'
         dc.response = response
 
         gw.execute_single(wrapper)
@@ -415,17 +413,16 @@ class RemotingServiceTestCase(unittest.TestCase):
         wrapper = baz.gak()
         wrapper2 = foo.bar()
 
-        response = DummyResponse(200, '\x00\x00\x00\x00\x00\x02\x00\ttest.test'
-            '\x00\x02/1\x00\x00\x00\x00\x02\x00\x05hello\x00\ttest.test\x00'
-            '\x02/2\x00\x00\x00\x00\x02\x00\x05hello', {
-            'Content-Type': 'application/x-amf'})
+        response = DummyResponse(200, '\x00\x00\x00\x00\x00\x02\x00\x0b/1/onRe'
+            'sult\x00\x04null\x00\x00\x00\x00\x00\x02\x00\x05hello\x00\x0b/2/o'
+            'nResult\x00\x04null\x00\x00\x00\x00\x00\x02\x00\x05hello', {
+                'Content-Type': 'application/x-amf'})
         response.tc = self
 
         dc.expected_url = '/x/y/z'
         dc.expected_value = '\x00\x00\x00\x00\x00\x02\x00\x07foo.bar\x00' + \
-            '\x02/2\x00\x00\x00\x00\n\x00\x00\x00\x01\n\x00\x00\x00\x00' + \
-            '\x00\x07baz.gak\x00\x02/1\x00\x00\x00\x00\n\x00\x00\x00\x01\n' + \
-            '\x00\x00\x00\x00'
+            '\x02/2\x00\x00\x00\x00\x0a\x00\x00\x00\x00' + \
+            '\x00\x07baz.gak\x00\x02/1\x00\x00\x00\x00\x0a\x00\x00\x00\x00'
         dc.response = response
 
         gw.execute()

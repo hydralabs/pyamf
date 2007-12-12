@@ -163,7 +163,7 @@ class Message(object):
     @ivar body: The body of the message.
     @type body: C{mixed}
     @ivar headers: The message headers.
-    @type headers: C{dict}
+    @type headers: C{dict} type
     """
 
     def __init__(self, envelope, body):
@@ -177,7 +177,7 @@ class Message(object):
 
 class Request(Message):
     """
-    An AMF request payload.
+    An AMF Request payload.
 
     @ivar target: The target of the request
     @type target: C{basestring}
@@ -196,9 +196,9 @@ class Request(Message):
 
 class Response(Message):
     """
-    An AMF response.
+    An AMF Response.
 
-    @ivar status: The status of the message.
+    @ivar status: The status of the message
     @type status: Member of L{STATUS_CODES}
     """
 
@@ -333,14 +333,21 @@ def _read_body(stream, decoder, strict=False):
     @param  decoder: AMF decoder instance.
     @type strict: C{bool}
     @param strict:
-    @raise DecodeError: Data read from stream does not match body
-    length.
+    @raise DecodeError: Data read from stream does not match body length.
 
     @rtype: C{tuple}
     @return: A C{tuple} containing:
         - id of the request
         - L{Request} or L{Response}
     """
+    def _read_args():
+        if stream.read(1) != '\x0a':
+            raise pyamf.DecodeError, "Array type required for request body"
+
+        x = stream.read_ulong()
+
+        return [decoder.readElement() for i in xrange(x)]
+
     target = stream.read_utf8_string(stream.read_ushort())
     response = stream.read_utf8_string(stream.read_ushort())
 
@@ -353,11 +360,16 @@ def _read_body(stream, decoder, strict=False):
             status = code
             target = target[:0 - len(s)]
 
-    payload = None
+    if target == 'null':
+        from pyamf.flex import messaging
 
     data_len = stream.read_ulong()
     pos = stream.tell()
-    data = decoder.readElement()
+
+    if is_request:
+        data = _read_args()
+    else:
+        data = decoder.readElement()
 
     if strict and pos + data_len != stream.tell():
         raise pyamf.DecodeError("Data read from stream does not match body "

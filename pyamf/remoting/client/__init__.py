@@ -22,7 +22,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Remoting client implementation.
+Client implementation.
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
@@ -34,8 +34,6 @@ import httplib, urlparse
 import pyamf
 from pyamf import remoting
 
-#: Default AMF client type.
-#: @see: L{ClientTypes<pyamf.ClientTypes>}
 DEFAULT_CLIENT_TYPE = pyamf.ClientTypes.Flash6
 
 class ServiceMethodProxy(object):
@@ -44,10 +42,10 @@ class ServiceMethodProxy(object):
 
     @ivar service: The parent service.
     @type service: L{ServiceProxy}
-    @ivar name: The name of the method.
+    @ivar name: The name of the method
     @type name: C{str} or C{None}
 
-    @see: L{ServiceProxy.__getattr__}
+    @see L{ServiceProxy.__getattr__}
     """
 
     def __init__(self, service, name):
@@ -56,7 +54,7 @@ class ServiceMethodProxy(object):
 
     def __call__(self, *args):
         """
-        Inform the proxied service that this function has been called.
+        Inform the proxied service that this function has been called
         """
         return self.service._call(self, args)
 
@@ -77,17 +75,17 @@ class ServiceProxy(object):
     Serves as a service object proxy for RPC calls. Generates
     L{ServiceMethodProxy} objects for method calls.
 
-    @ivar _gw: The parent gateway.
+    @ivar _gw: The parent gateway
     @type _gw: L{RemotingService}
-    @ivar _name: The name of the service.
+    @ivar _name: The name of the service
     @type _name: C{str}
     @ivar _auto_execute: If set to C{True}, when a service method is called,
         the AMF request is immediately sent to the remote gateway and a
         response is returned. If set to C{False}, a L{RequestWrapper} is
         returned, waiting for the underlying gateway to fire the
-        L{execute<RemotingService.execute>} method.
+        {execute<L{RemotingService.execute}>} method.
 
-    @see: L{RequestWrapper} for more info.
+    @see L{RequestWrapper} for more info.
     """
 
     def __init__(self, gw, name, auto_execute=True):
@@ -98,13 +96,13 @@ class ServiceProxy(object):
     def __getattr__(self, name):
         return ServiceMethodProxy(self, name)
 
-    def _call(self, method_proxy, args):
+    def _call(self, method_proxy, *args):
         """
-        Executed when a L{ServiceMethodProxy} is called. Adds a request to
-        the underlying gateway. If C{_auto_execute} is set to C{True}, then
-        the request is immediately called on the remote gateway.
+        Executed when a L{ServiceMethodProxy} is called. Adds a request to the
+        underlying gateway. If _auto_execute is set to C{True}, then the
+        request is immediately called on the remote gateway.
         """
-        request = self._gw.addRequest(method_proxy, args)
+        request = self._gw.addRequest(method_proxy, *args)
 
         if self._auto_execute:
             response = self._gw.execute_single(request)
@@ -130,13 +128,13 @@ class RequestWrapper(object):
     """
     A container object that wraps a service method request.
 
-    @ivar gw: The underlying gateway.
+    @ivar gw: The underlying gateway
     @type gw: L{RemotingService}
-    @ivar id: The id of the request.
+    @ivar id: The id of the request
     @type id: C{str}
-    @ivar service: The service proxy.
+    @ivar service: The service proxy
     @type service: L{ServiceProxy}
-    @ivar args: The args used to invoke the call.
+    @ivar args: The args used to invoke the call
     @type args: C{list}
     """
 
@@ -161,8 +159,6 @@ class RequestWrapper(object):
         """
         Returns the result of the called remote request. If the request has not
         yet been called, an exception is raised.
-
-        @raise AttributeError: 'RequestWrapper' object has no attribute 'result'.
         """
         if not hasattr(self, '_result'):
             raise AttributeError, "'RequestWrapper' object has no attribute 'result'"
@@ -178,20 +174,17 @@ class RemotingService(object):
     """
     Acts as a client for AMF calls.
 
-    @ivar url: The url of the remote gateway. Accepts http or https as schemes.
+    @ivar url: The url of the remote gateway. Accepts http or https as schemes
     @type url: C{str}
-    @ivar requests: The list of pending requests to process.
+    @ivar requests: The list of pending requests to process
     @type requests: C{list}
     @ivar request_number: A unique identifier for an tracking the number of
         requests.
-    @ivar amf_version: The AMF version to use.
-        See L{ENCODING_TYPES<pyamf.ENCODING_TYPES>}.
+    @ivar amf_version: The AMF version to use. See L{pyamf.ENCODING_TYPES}
     @type amf_version: C{int}
-    @ivar client_type: The client type. See L{ClientTypes<pyamf.ClientTypes>}.
+    @ivar client_type: The client type. See L{pyamf.ClientTypes}
     @ivar connection: The underlying connection to the remoting server.
-    @type connection: C{httplib.HTTPConnection} or C{httplib.HTTPSConnection}
-
-    @raise ValueError: Unknown scheme.
+    @type connection: C{httplib.HTTPConnection} or C{httplib.HTTPSConnection} 
     """
 
     def __init__(self, url, amf_version=pyamf.AMF0, client_type=DEFAULT_CLIENT_TYPE):
@@ -237,8 +230,6 @@ class RemotingService(object):
         """
         Returns a L{ServiceProxy} for the supplied name. Sets up an object that
         can have method calls made to it that build the AMF requests.
-
-        @raise TypeError: string type required for C{name}.
         """
         if not isinstance(name, basestring):
             raise TypeError, 'string type required'
@@ -247,9 +238,7 @@ class RemotingService(object):
 
     def getRequest(self, id_):
         """
-        Gets a request based on the id.
-
-        @raise LookupError: Request not found.
+        Gets a request based on the id
         """
         for request in self.requests:
             if request.id == id_:
@@ -259,8 +248,11 @@ class RemotingService(object):
 
     def addRequest(self, service, *args):
         """
-        Adds a request to be sent to the remoting gateway.
+        Adds a request to be sent to the remoting gateway
         """
+        if args == (tuple(),):
+            args = []
+
         wrapper = RequestWrapper(self, '/%d' % self.request_number,
             service, args)
 
@@ -271,9 +263,7 @@ class RemotingService(object):
 
     def removeRequest(self, service, *args):
         """
-        Removes a request from the pending request list.
-
-        @raise LookupError: Request not found.
+        Removes a request from the pending request list
         """
         if isinstance(service, RequestWrapper):
             del self.requests[self.requests.index(service)]
@@ -291,13 +281,13 @@ class RemotingService(object):
     def getAMFRequest(self, requests):
         """
         Builds an AMF request L{envelope<pyamf.remoting.Envelope>} from a
-        supplied list of requests.
+        supplied list of requests
         """
         envelope = remoting.Envelope(self.amf_version, self.client_type)
 
         for request in requests:
             service = request.service
-            args = request.args
+            args = list(request.args)
 
             envelope[request.id] = remoting.Request(str(service), args)
 
@@ -338,9 +328,7 @@ class RemotingService(object):
 
     def _getResponse(self):
         """
-        Gets and handles the HTTP response from the remote gateway.
-
-        @raise RemotingError: Incorrect MIME type received.
+        Gets and handles the http response from the remote gateway
         """
         http_response = self.connection.getresponse()
 
@@ -351,7 +339,7 @@ class RemotingService(object):
         content_type = http_response.getheader('Content-Type')
 
         if content_type != remoting.CONTENT_TYPE:
-            raise remoting.RemotingError, "Incorrect MIME type received."
+            raise remoting.RemotingError, "Incorrect mime type received."
 
         content_length = http_response.getheader('Content-Length')
         bytes = ''

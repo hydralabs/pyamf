@@ -22,7 +22,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-Django server implementation.
+Gateway for the Django framework.
 
 This gateway allows you to expose functions in Django to AMF clients and
 servers.
@@ -68,10 +68,9 @@ class DjangoGateway(gateway.BaseGateway):
         @return: The AMF Response.
         """
         response = remoting.Envelope(request.amfVersion, request.clientType)
-        processor = self.getProcessor(request)
 
         for name, message in request:
-            response[name] = processor(message)
+            response[name] = self.getProcessor(message)(message)
 
         return response
 

@@ -95,7 +95,7 @@ class WSGIServerTestCase(unittest.TestCase):
         body = message.body
 
         self.assertTrue(isinstance(body, remoting.ErrorFault))
-        self.assertEquals(body.code, 'NameError')
+        self.assertEquals(body.code, 'Service.ResourceNotFound')
 
 def suite():
     suite = unittest.TestSuite()

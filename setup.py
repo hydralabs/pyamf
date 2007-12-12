@@ -31,7 +31,7 @@ setup(name = "PyAMF",
     description = "AMF encoder and decoder for Python",
     url = "http://pyamf.org",
     packages = find_packages(exclude=["*.tests"]),
-    install_requires = ["elementtree>=1.2.6"],
+    install_requires = ["elementtree>=1.2.6", "uuid>=1.30"],
     test_suite = "pyamf.tests.suite",
     license = "MIT License",
     entry_points={

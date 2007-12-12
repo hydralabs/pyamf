@@ -90,7 +90,7 @@ class ContextTestCase(unittest.TestCase):
         x = amf0.Context()
         y = [1, 2, 3]
 
-        self.assertEquals(x.addObject(y), 1)
+        self.assertEquals(x.addObject(y), 0)
         self.assertTrue(y in x.objects)
         self.assertEquals(len(x.objects), 1)
 
@@ -285,7 +285,7 @@ class EncoderTestCase(unittest.TestCase):
         self._run([
             ([[x, x]],
                 '\n\x00\x00\x00\x01\n\x00\x00\x00\x02\x03\x00\x01a\x02\x00\x03'
-                'foo\x00\x01b\x02\x00\x03bar\x00\x00\t\x07\x00\x03')])
+                'foo\x00\x01b\x02\x00\x03bar\x00\x00\t\x07\x00\x02')])
 
     def test_amf3(self):
         x = 1

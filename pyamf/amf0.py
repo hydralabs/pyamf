@@ -1,7 +1,6 @@
 # -*- encoding: utf8 -*-
 #
 # Copyright (c) 2007 The PyAMF Project. All rights reserved.
-#
 # 
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -144,6 +143,9 @@ class Context(pyamf.BaseContext):
         self.amf3_objs = []
         self.rev_amf3_objs = {}
 
+    def _getObject(self, ref):
+        return self.objects[ref + 1]
+
     def __copy__(self):
         """
         @rtype:
@@ -154,9 +156,6 @@ class Context(pyamf.BaseContext):
         copy.rev_amf3_objs = self.rev_amf3_objs
 
         return copy
-
-    def _getObjectIndex(self):
-        return len(self.objects)
 
     def getAMF3ObjectReference(self, obj):
         """
@@ -380,11 +379,11 @@ class Decoder(pyamf.BaseDecoder):
         Reads an object from the data stream.
 
         @return: The object
-        @rtype: C{__builtin__.object}
+        @rtype: L{pyamf.Bag}
         """
         obj = pyamf.Bag()
-
         self.context.addObject(obj)
+
         self._readObject(obj)
 
         return obj
@@ -857,3 +856,4 @@ class RecordSet(object):
     serverInfo = property(_get_server_info, _set_server_info)
 
 pyamf.register_class(RecordSet, 'RecordSet', attrs=['serverInfo'])
+        

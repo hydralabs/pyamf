@@ -52,10 +52,9 @@ class WSGIGateway(gateway.BaseGateway):
         @return: The AMF Response.
         """
         response = remoting.Envelope(request.amfVersion, request.clientType)
-        processor = self.getProcessor(request)
 
         for name, message in request:
-            response[name] = processor(message)
+            response[name] = self.getProcessor(message)(message)
 
         return response
 
