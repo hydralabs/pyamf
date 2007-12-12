@@ -9,12 +9,11 @@ different versions of PyAMF.
 ------------------------------------------------------------
  - AMF0 and AMF3 encoders/decoders
  - Additional support for IExternalizable, ArrayCollection,
-   ObjectProxy, ByteArray, RecordSet and basic RemoteObject
-   support.
+   ObjectProxy, ByteArray, RecordSet and RemoteObject
  - Remoting gateways for Twisted, WSGI, and Django
  - Authentication/setCredentials support
  - zlib compression support for ByteArray
- - Remoting client for httplib
+ - Remoting client with httplib
 
 2007-10-19
 ------------------------------------------------------------

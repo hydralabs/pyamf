@@ -199,8 +199,6 @@ class ErrorMessage(AbstractMessage):
     RETRYABLE_HINT_HEADER = "DSRetryableErrorHint"
 
     def __init__(self, *args, **kwargs):
-        """
-        """
         AbstractMessage.__init__(self, *args, **kwargs)
         #: Extended data that the remote destination has chosen to associate
         #: with this error to facilitate custom error processing on the client.

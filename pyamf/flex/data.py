@@ -38,8 +38,6 @@ class DataMessage(AsyncMessage):
     """
 
     def __init__(self):
-        """
-        """
         AsyncMessage.__init__(self)
         #: Provides access to the identity map which defines the
         #: unique identity of the item affected by this DataMessage
@@ -60,8 +58,6 @@ class SequencedMessage(AcknowledgeMessage):
     """
 
     def __init__(self):
-        """
-        """
         AcknowledgeMessage.__init__(self)
         #: Provides access to the sequence id for this message.
         #:
@@ -88,8 +84,6 @@ class PagedMessage(SequencedMessage):
     """
 
     def __init__(self):
-        """
-        """
         SequencedMessage.__init__(self)
         #: Provides access to the number of total pages in a sequence
         #: based on the current page size.
@@ -111,8 +105,6 @@ class DataErrorMessage(ErrorMessage):
     """
 
     def __init__(self):
-        """
-        """
         ErrorMessage.__init__(self)
         #: The client oringinated message which caused the conflict.
         self.cause = None
