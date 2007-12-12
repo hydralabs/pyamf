@@ -15,6 +15,7 @@ different versions of PyAMF.
    WSGI (#16), and Django (#17)
  - Authentication/setCredentials support (#36)
  - zlib compression support for ByteArray (#40)
+ - Basic RemoteObject support (#23)
 
 2007-10-19
 ------------------------------------------------------------
