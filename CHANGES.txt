@@ -18,4 +18,4 @@ different versions of PyAMF.
 2007-10-19
 ------------------------------------------------------------
  - Started project based on previous work done in the
-   RTMPy (http://rtmpy.org) project.
+   RTMPy (http://rtmpy.org) project
