@@ -290,7 +290,7 @@ class RemotingServiceTestCase(unittest.TestCase):
         self.assertEquals(gw.request_number, 2)
         self.assertEquals(wrapper.id, '/1')
         self.assertEquals(wrapper.service, service)
-        self.assertEquals(wrapper.args, (1, 2, 3))
+        self.assertEquals(wrapper.args, [1, 2, 3])
 
         # add 1 arg
         wrapper2 = gw.addRequest(service, None)
@@ -300,14 +300,25 @@ class RemotingServiceTestCase(unittest.TestCase):
         self.assertEquals(gw.request_number, 3)
         self.assertEquals(wrapper2.id, '/2')
         self.assertEquals(wrapper2.service, service)
-        self.assertEquals(wrapper2.args, (None,))
+        self.assertEquals(wrapper2.args, [None])
+
+        # add no args
+        wrapper3 = gw.addRequest(service)
+
+        self.assertEquals(gw.requests, [wrapper, wrapper2, wrapper3])
+        self.assertEquals(wrapper3.gw, gw)
+        self.assertEquals(gw.request_number, 4)
+        self.assertEquals(wrapper3.id, '/3')
+        self.assertEquals(wrapper3.service, service)
+        self.assertEquals(wrapper3.args, [])
+
 
     def test_remove_request(self):
         gw = client.RemotingService('http://foobar.net')
         self.assertEquals(gw.requests, [])
         
         service = gw.getService('baz')
-        wrapper = gw.addRequest(service, (1, 2, 3))
+        wrapper = gw.addRequest(service, 1, 2, 3)
         self.assertEquals(gw.requests, [wrapper])
 
         gw.removeRequest(wrapper)

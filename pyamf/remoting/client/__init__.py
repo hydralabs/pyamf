@@ -38,6 +38,12 @@ from pyamf import remoting
 #: @see: L{ClientTypes<pyamf.ClientTypes>}
 DEFAULT_CLIENT_TYPE = pyamf.ClientTypes.Flash6
 
+def convert_args(args):
+    if args == (tuple(),):
+        return []
+    else:
+        return [x for x in args]
+
 class ServiceMethodProxy(object):
     """
     Serves as a proxy for calling a service method.
@@ -78,10 +84,10 @@ class ServiceProxy(object):
     L{ServiceMethodProxy} objects for method calls.
 
     @see: L{RequestWrapper} for more info.
-    
-    @ivar _gw: The parent gateway.
+
+    @ivar _gw: The parent gateway
     @type _gw: L{RemotingService}
-    @ivar _name: The name of the service.
+    @ivar _name: The name of the service
     @type _name: C{str}
     @ivar _auto_execute: If set to C{True}, when a service method is called,
         the AMF request is immediately sent to the remote gateway and a
@@ -104,7 +110,7 @@ class ServiceProxy(object):
         the underlying gateway. If C{_auto_execute} is set to C{True}, then
         the request is immediately called on the remote gateway.
         """
-        request = self._gw.addRequest(method_proxy, args)
+        request = self._gw.addRequest(method_proxy, *args)
 
         if self._auto_execute:
             response = self._gw.execute_single(request)
@@ -118,7 +124,10 @@ class ServiceProxy(object):
         """
         This allows services to be 'called' without a method name.
         """
-        return self._call(ServiceMethodProxy(self, None), args)
+        if args == ():
+            args = (tuple(),)
+
+        return self._call(ServiceMethodProxy(self, None), *args)
 
     def __str__(self):
         """
@@ -155,7 +164,7 @@ class RequestWrapper(object):
         """
         # XXX nick: What to do about Fault objects here?
         self.response = response
-        self.result = self.response.body 
+        self.result = self.response.body
 
     def _get_result(self):
         """
@@ -259,9 +268,8 @@ class RemotingService(object):
         """
         Adds a request to be sent to the remoting gateway.
         """
-        if args == (tuple(),):
-            args = []
-        
+        args = convert_args(args)
+
         wrapper = RequestWrapper(self, '/%d' % self.request_number,
             service, args)
 
@@ -276,6 +284,8 @@ class RemotingService(object):
 
         @raise LookupError: Request not found.
         """
+        args = convert_args(args)
+
         if isinstance(service, RequestWrapper):
             del self.requests[self.requests.index(service)]
 
@@ -298,7 +308,7 @@ class RemotingService(object):
 
         for request in requests:
             service = request.service
-            args = list(request.args)
+            args = request.args
 
             envelope[request.id] = remoting.Request(str(service), args)
 
@@ -339,9 +349,7 @@ class RemotingService(object):
 
     def _getResponse(self):
         """
-        Gets and handles the HTTP response from the remote gateway.
-
-        @raise RemotingError: Incorrect MIME type received.
+        Gets and handles the HTTP response from the remote gateway
         """
         http_response = self.connection.getresponse()
 
