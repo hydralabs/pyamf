@@ -22,9 +22,9 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 """
-B{PyAMF} is a B{A}ction B{M}essage B{F}ormat
-(U{AMF<http://en.wikipedia.org/wiki/Action_Message_Format>}) decoder
-and encoder for Python that is compatible with the
+B{PyAMF} provides B{A}ction B{M}essage B{F}ormat
+(U{AMF<http://en.wikipedia.org/wiki/Action_Message_Format>}) support for
+Python that is compatible with the
 U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>} 6 and newer.
 
 @author: U{Arnar Birgisson<mailto:arnarbi@gmail.com>}

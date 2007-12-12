@@ -254,3 +254,4 @@ class RemotingMessage(AbstractMessage):
 for x in (RemotingMessage, ErrorMessage, CommandMessage, AcknowledgeMessage):
     pyamf.register_class(x, 'flex.messaging.messages.%s' % x.__name__,
         metadata=['amf3'])
+del x
