@@ -31,11 +31,6 @@ AMF3 Remote Object support.
 
 import calendar, time, uuid
 
-try:
-    from hashlib import md5
-except ImportError:
-    from md5 import new as md5
-
 from pyamf import remoting
 from pyamf.remoting import gateway
 from pyamf.flex.messaging import *

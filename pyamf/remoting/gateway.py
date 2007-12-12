@@ -30,7 +30,7 @@ Remoting server implementations.
 @since: 0.1.0
 """
 
-import sys, traceback, types
+import types
 
 import pyamf
 from pyamf import remoting
