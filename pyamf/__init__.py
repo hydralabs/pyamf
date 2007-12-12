@@ -29,7 +29,9 @@ __all__ = [
     'register_class',
     'register_class_loader',
     'encode',
-    'decode']
+    'decode', '__version__']
+
+__version__ = (0, 1, 0, 'alpha')
 
 #: Class mapping support for Flex.
 CLASS_CACHE = {}
