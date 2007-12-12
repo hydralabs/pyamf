@@ -5,8 +5,8 @@ PyAMF Changelog
 This file contains information about the changes between the different versions
 of PyAMF.
 
-0.1.0a
-------
+0.1.0a (2007-12-12)
+-------------------
 
  - AMF0 and AMF3 encoders/decoders
  - Additional support for IExternalizable, ArrayCollection,
