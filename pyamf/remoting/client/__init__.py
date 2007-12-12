@@ -98,7 +98,7 @@ class ServiceProxy(object):
     def __getattr__(self, name):
         return ServiceMethodProxy(self, name)
 
-    def _call(self, method_proxy, args):
+    def _call(self, method_proxy, *args):
         """
         Executed when a L{ServiceMethodProxy} is called. Adds a request to
         the underlying gateway. If C{_auto_execute} is set to C{True}, then
@@ -259,6 +259,9 @@ class RemotingService(object):
         """
         Adds a request to be sent to the remoting gateway.
         """
+        if args == (tuple(),):
+            args = []
+        
         wrapper = RequestWrapper(self, '/%d' % self.request_number,
             service, args)
 
@@ -295,7 +298,7 @@ class RemotingService(object):
 
         for request in requests:
             service = request.service
-            args = request.args
+            args = list(request.args)
 
             envelope[request.id] = remoting.Request(str(service), args)
 
