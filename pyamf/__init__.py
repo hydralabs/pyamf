@@ -11,7 +11,7 @@ U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>} 6 and newer.
 @author: U{Thijs Triemstra<mailto:info@collab.nl>}
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
-@copyright: Copyright (c) 2007 The PyAMF Project. All rights reserved.
+@copyright: Copyright (c) 2007-2008 The PyAMF Project. All rights reserved.
 @contact: U{dev@pyamf.org<mailto:dev@pyamf.org>}
 @see: U{http://pyamf.org}
 
