@@ -21,9 +21,8 @@ Installing
 
 ::
 
-    $ tar zxf PyAMF-<version>.tar.gz
+    $ tar zxfv PyAMF-<version>.tar.gz
     $ cd PyAMF-<version>
-    $ python setup.py build
     $ python setup.py install
 
 If you have installed setuptools you can also optionally run tests like this:
