@@ -2,6 +2,8 @@
 # See LICENSE for details.
 
 """
+Test for Remoting client.
+
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
 @since: 0.1.0
