@@ -1590,7 +1590,7 @@ class DataInput(object):
 
 def encode_utf8_modified(data):
     """
-    Encodes a unicode string to Modified UTF-8 data.
+    Encodes a string to Modified UTF-8 data.
 
     @see: U{UTF-8 Java on Wikipedia<http://en.wikipedia.org/wiki/UTF-8#Java>}
     """
@@ -1658,7 +1658,7 @@ def decode_utf8_modified(data):
                 (ord(data[i+2]) & 0x3f))
             i += 3
         else:
-            raise ValueError("Data is not valid modified UTF-8")
+            raise ValueError, "Data is not valid modified UTF-8"
 
     utf16 = "".join([chr((c >> 8) & 0xff) + chr(c & 0xff) for c in utf16])
 
@@ -1695,21 +1695,3 @@ def encode(element, context=None):
     encoder.writeElement(element)
 
     return buf
-
-def flex_loader(alias):
-    """
-    Loader for Flex framework compatibility classes.
-
-    @type alias:
-    @param alias:
-    @raise UnknownClassAlias:
-    """
-    if alias.startswith('flex.'):
-        import pyamf.flex
-
-        try:
-            return pyamf.CLASS_CACHE[alias]
-        except KeyError:
-            raise pyamf.UnknownClassAlias, alias
-
-pyamf.register_class_loader(flex_loader)

@@ -822,3 +822,26 @@ def _get_context_class(encoding):
         return amf3.Context
 
     raise ValueError, "Unknown encoding %s" % encoding
+
+def flex_loader(alias):
+    """
+    Loader for Flex framework compatibility classes.
+
+    @type alias:
+    @param alias:
+    @raise UnknownClassAlias:
+    """
+    if not alias.startswith('flex.messaging.'):
+        return
+
+    try:
+        if alias.startswith('flex.messaging.messages'):
+            import pyamf.flex.messaging
+        elif alias.startswith('flex.messaging.io'):
+            import pyamf.flex
+
+        return pyamf.CLASS_CACHE[alias]
+    except KeyError:
+        raise pyamf.UnknownClassAlias, alias
+
+pyamf.register_class_loader(flex_loader)

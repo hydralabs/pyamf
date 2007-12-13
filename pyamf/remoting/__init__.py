@@ -340,9 +340,6 @@ def _read_body(stream, decoder, strict=False):
             status = code
             target = target[:0 - len(s)]
 
-    if target == 'null':
-        from pyamf.flex import messaging
-
     data_len = stream.read_ulong()
     pos = stream.tell()
 
