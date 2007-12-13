@@ -34,14 +34,26 @@ class DjangoGateway(gateway.BaseGateway):
             (r'^gateway/', 'yourproject.yourapp.gateway.gw_instance'),
         )
 
-    where C{yourproject.yourapp.gateway.gw_instance} refers to an
-    instance of this class.
+    where C{yourproject.yourapp.gateway.gw_instance} refers to an instance of
+    this class.
+
+    @ivar expose_request: The standard django view always has the request
+        object as the first parameter. To enable this functionality, set this
+        to C{True}.
+    @type expose_request: C{bool}
     """
 
-    def getResponse(self, request):
+    def __init__(self, services={}, expose_request=False):
+        gateway.BaseGateway.__init__(self, services)
+
+        self.expose_request = expose_request
+
+    def getResponse(self, http_request, request):
         """
         Processes the AMF request, returning an AMF response.
 
+        @param http_request: The underlying HTTP Request.
+        @type http_request: C{HTTPRequest<django.core.http.HTTPRequest>}
         @param request: The AMF Request.
         @type request: L{Envelope<remoting.Envelope>}
         @rtype: L{Envelope<remoting.Envelope>}
@@ -50,20 +62,23 @@ class DjangoGateway(gateway.BaseGateway):
         response = remoting.Envelope(request.amfVersion, request.clientType)
 
         for name, message in request:
+            if self.expose_request:
+                message.body.insert(0, http_request)
+
             response[name] = self.getProcessor(message)(message)
 
         return response
 
-    def __call__(self, request):
+    def __call__(self, http_request):
         """
         Processes and dispatches the request.
 
-        @param request: The HTTPRequest object
-        @type request: C{HTTPRequest}
+        @param http_request: The HTTPRequest object
+        @type http_request: C{HTTPRequest}
         @return: The response to the request
         @rtype: C{HTTPResponse}
         """
-        if request.method != 'POST':
+        if http_request.method != 'POST':
             return http.HttpResponseNotAllowed(['POST'])
 
         context = pyamf.get_context(pyamf.AMF0)
@@ -72,7 +87,7 @@ class DjangoGateway(gateway.BaseGateway):
 
         # Decode the request
         try:
-            request = remoting.decode(request.raw_post_data, context)
+            request = remoting.decode(http_request.raw_post_data, context)
         except pyamf.DecodeError:
             http_response.status_code = 400
 
@@ -80,7 +95,7 @@ class DjangoGateway(gateway.BaseGateway):
 
         # Process the request
         try:
-            response = self.getResponse(request)
+            response = self.getResponse(http_request, request)
         except (KeyboardInterrupt, SystemExit):
             raise
         except:

@@ -8,6 +8,8 @@ of PyAMF.
 0.1.0b (unreleased)
 -------------------
 
+ - Added 'expose_request' argument to DjangoGateway to expose the underlying
+   HTTP Request object as the first arg in the called services.
 
 0.1.0a (2007-12-12)
 -------------------

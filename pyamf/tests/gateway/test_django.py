@@ -87,6 +87,24 @@ class DjangoGatewayTestCase(unittest.TestCase):
         self.assertTrue(isinstance(body, remoting.ErrorFault))
         self.assertEquals(body.code, 'Service.ResourceNotFound')
 
+    def test_expose_request(self):
+        http_request = HttpRequest()
+
+        def test(request):
+            self.assertEquals(http_request, request)
+
+        gw = DjangoGateway({'test.test': test}, expose_request=True)
+
+        request = util.BufferedByteStream()
+        request.write('\x00\x00\x00\x00\x00\x01\x00\x09test.test\x00'
+            '\x02/1\x00\x00\x00\x05\x0a\x00\x00\x00\x00')
+        request.seek(0, 0)
+
+        http_request.method = 'POST'
+        http_request.raw_post_data = request.getvalue()
+
+        gw(http_request)
+
 def suite():
     suite = unittest.TestSuite()
 
