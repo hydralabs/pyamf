@@ -18,12 +18,10 @@ class RequestProcessor(object):
     def __init__(self, gateway):
         self.gateway = gateway
 
-    def authenticateRequest(self, service_request, request):
+    def authenticateRequest(self, request):
         """
         Authenticates the request against the service.
 
-        @param service_request:
-        @type service_request:
         @param request: The AMF request
         @type request: L{Request<remoting.Request>}
         """ 
@@ -35,7 +33,7 @@ class RequestProcessor(object):
             username = cred['userid']
             password = cred['password']
 
-        return service_request.authenticate(username, password)
+        return self.gateway.authenticateRequest(username, password)
 
     def __call__(self, request):
         """
@@ -59,7 +57,7 @@ class RequestProcessor(object):
 
         # we have a valid service, now attempt authentication
         try:
-            authd = self.authenticateRequest(service_request, request)
+            authd = self.authenticateRequest(request)
         except (SystemExit, KeyboardInterrupt):
             raise
         except:

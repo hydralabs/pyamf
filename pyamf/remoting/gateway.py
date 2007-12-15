@@ -60,24 +60,12 @@ class ServiceWrapper(object):
 
     @ivar service: The original service.
     @type service: C{callable}
-
-    @ivar authenticator: Will be called before the service is called to check
-        that the supplied credentials (if any) can access the service.
-    @type authenticator: callable with two args, username and password. Returns
-        a C{bool} based on the success of authentication.
-
     @ivar description: A description of the service.
     @type description: C{str}
-
-    @raise NameError: Calls to private methods are not allowed.
-    @raise NameError: Unknown method.
-    @raise TypeError: Service method must be callable.
-    @raise TypeError: Service must be callable.
     """
 
-    def __init__(self, service, authenticator=None, description=None):
+    def __init__(self, service, description=None):
         self.service = service
-        self.authenticator = authenticator
         self.description = description
 
     def __cmp__(self, other):
@@ -153,22 +141,6 @@ class ServiceRequest(object):
     def __call__(self, *args):
         return self.service(self.method, args)
 
-    def authenticate(self, username, password):
-        """
-        Authenticates the supplied credentials for the service.
-
-        The default is to allow anything through.
-
-        @return: Boolean determining whether the supplied credentials can
-            access the service.
-        @rtype: C{bool}
-        """
-        if self.service.authenticator is None:
-            # The default is to allow anything through
-            return True
-
-        return self.service.authenticator(username, password)
-
 class ServiceCollection(dict):
     """
     I hold a collection of services, mapping names to objects.
@@ -186,17 +158,17 @@ class BaseGateway(object):
 
     @ivar services: A map of service names to callables.
     @type services: L{ServiceCollection}
+    @ivar authenticator: A callable that will check the credentials of
+        the request before allowing access to the service. Will return a
+        C{bool} value.
+    @type authenticator: C{Callable} or C{None}
     """
 
     _request_class = ServiceRequest
 
-    def __init__(self, services={}):
-        """
-        @param services: Initial services.
-        @type services: C{dict}
-        @raise TypeError: C{dict} type required for C{services}.
-        """
+    def __init__(self, services={}, authenticator=None):
         self.services = ServiceCollection()
+        self.authenticator = authenticator
 
         if not hasattr(services, 'iteritems'):
             raise TypeError, "dict type required for services"
@@ -204,7 +176,7 @@ class BaseGateway(object):
         for name, service in services.iteritems():
             self.addService(service, name)
 
-    def addService(self, service, name=None, authenticator=None, description=None):
+    def addService(self, service, name=None, description=None):
         """
         Adds a service to the gateway.
 
@@ -212,10 +184,6 @@ class BaseGateway(object):
         @type service: callable, class instance, or a module
         @param name: The name of the service.
         @type name: C{str}
-        @param authenticator: A callable that will check the credentials of
-            the request before allowing access to the service.
-        @type authenticator: C{Callable}
-
         @raise RemotingError: Service already exists.
         @raise TypeError: C{service} must be callable or a module.
         """
@@ -242,8 +210,7 @@ class BaseGateway(object):
         if name in self.services:
             raise remoting.RemotingError, "Service %s already exists" % name
 
-        self.services[name] = ServiceWrapper(service, authenticator,
-            description)
+        self.services[name] = ServiceWrapper(service, description)
 
     def removeService(self, service):
         """
@@ -325,3 +292,16 @@ class BaseGateway(object):
         @rtype: L{Envelope<remoting.Envelope>}
         """
         raise NotImplementedError
+
+    def authenticateRequest(self, username, password):
+        """
+        Processes an authentication request. If no authenticator is supplied,
+        then authentication succeeds.
+
+        @return: Returns a C{bool} based on the result of authorisation.
+        @rtype: C{bool}
+        """
+        if self.authenticator is None:
+            return True
+
+        return self.authenticator(username, password) == True

@@ -86,12 +86,6 @@ class ServiceWrapperTestCase(unittest.TestCase):
         x = gateway.ServiceWrapper('blah')
 
         self.assertEquals(x.service, 'blah')
-        self.assertEquals(x.authenticator, None)
-
-        x = gateway.ServiceWrapper(ord, authenticator=chr)
-
-        self.assertEquals(x.service, ord)
-        self.assertEquals(x.authenticator, chr)
 
     def test_cmp(self):
         x = gateway.ServiceWrapper('blah')
@@ -137,28 +131,6 @@ class ServiceRequestTestCase(unittest.TestCase):
         self.assertEquals(x.request, request)
         self.assertEquals(x.service, sw)
         self.assertEquals(x.method, None)
-
-    def test_authenticate(self):
-        sw = gateway.ServiceWrapper(TestService)
-        request = remoting.Envelope()
-
-        x = gateway.ServiceRequest(request, sw, None)
-
-        self.assertTrue(x.authenticate(None, None))
-
-        def auth(u, p):
-            if u == 'foo' and p == 'bar':
-                return True
-
-            return False
-
-        sw = gateway.ServiceWrapper(TestService, authenticator=auth)
-        request = remoting.Envelope()
-
-        x = gateway.ServiceRequest(request, sw, None)
-
-        self.assertFalse(x.authenticate(None, None))
-        self.assertTrue(x.authenticate('foo', 'bar'))
 
     def test_call(self):
         sw = gateway.ServiceWrapper(TestService)
@@ -382,6 +354,22 @@ class BaseGatewayTestCase(unittest.TestCase):
         self.assertTrue(isinstance(response.body, remoting.ErrorFault))
 
         self.assertEquals(response.body.code, 'KeyError')
+
+    def test_authenticate(self):
+        gw = gateway.BaseGateway({'test': TestService})
+
+        self.assertTrue(gw.authenticateRequest(None, None))
+
+        def auth(u, p):
+            if u == 'foo' and p == 'bar':
+                return True
+
+            return False
+
+        gw = gateway.BaseGateway({'test': TestService}, authenticator=auth)
+
+        self.assertFalse(gw.authenticateRequest(None, None))
+        self.assertTrue(gw.authenticateRequest('foo', 'bar'))
 
 def suite():
     suite = unittest.TestSuite()
