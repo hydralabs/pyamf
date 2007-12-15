@@ -14,6 +14,8 @@ and C{uint} objects as integers and supports data types that are
 available only in ActionScript 3.0, such as L{ByteArray} and
 L{ArrayCollection}.
 
+@see: U{Official AMF3 Specification (external)
+<http://download.macromedia.com/pub/labs/amf/amf3_spec_121207.pdf>}
 @see: U{AMF3 documentation on OSFlash (external)
 <http://osflash.org/documentation/amf3>}
 
@@ -41,42 +43,75 @@ class ASTypes:
     @see: U{AMF3 data types on OSFlash (external)
     <http://osflash.org/documentation/amf3#data_types>}
     """
-    #: Simple type that doesn't have any inner data.
+    #: The undefined type is represented by the undefined type marker.
+    #: No further information is encoded for this value.
     UNDEFINED  = 0x00
-    #: Simple type that doesn't have any inner data.
+    #: The undefined type is represented by the undefined type marker.
+    #: No further information is encoded for this value.
     NULL       = 0x01
-    #: Simple type that doesn't have any inner data.
+    #: The false type is represented by the false type marker and is
+    #: used to encode a Boolean value of C{false}. No further information
+    #: is encoded for this value.
+    #: @note: In ActionScript 3.0 the concept of a primitive and Object
+    #: form of Boolean does not exist.  
     BOOL_FALSE = 0x02
-    #: Simple type that doesn't have any inner data.
+    #: The true type is represented by the true type marker and is
+    #: used to encode a Boolean value of C{true}. No further information
+    #: is encoded for this value.
+    #: @note: In ActionScript 3.0 the concept of a primitive and Object
+    #: form of Boolean does not exist. 
     BOOL_TRUE  = 0x03
-    #: C{0×04} integer type code, followed by up to 4 bytes of data.
+    #: In AMF 3 integers are serialized using a variable length unsigned
+    #: 29-bit integer.
     #: @see: U{Parsing Integers on OSFlash (external)
     #: <http://osflash.org/documentation/amf3/parsing_integers>}
     INTEGER    = 0x04
-    #: C{0x05} Number type-code followed by 8 bytes of data.
-    #:
-    #: Format is the same as an AMF0
-    #: L{Number<pyamf.amf0.ASTypes.NUMBER>}.
+    #: This type is used to encode an ActionScript Number
+    #: or an ActionScript C{int} of value greater than or equal to 2^28
+    #: or an ActionScript uint of value greater than or equal to 2^29.
+    #: The encoded value is is always an 8 byte IEEE-754 double precision
+    #: floating point value in network byte order (sign bit in low memory).
+    #: The AMF 3 number type is encoded in the same manner as the
+    #: AMF 0 L{Number<pyamf.amf0.ASTypes.NUMBER>} type.
     NUMBER     = 0x05
-    #: C{0x06} string-data.
+    #: ActionScript String values are represented using a single string
+    #: type in AMF 3 - the concept of string and long string types from
+    #: AMF 0 is not used. Strings can be sent as a reference to a previously
+    #: occurring String by using an index to the implicit string reference
+    #: table. 
+    #: Strings are encoding using UTF-8 - however the header may either
+    #: describe a string literal or a string reference. 
     STRING     = 0x06
-    #: C{0x07} XML type code followed by a string.
-    #: @see: According to U{the OSFlash documentation
-    #:<http://osflash.org/documentation/amf3#x07_-_xml_legacy_flash.xml.xmldocument_class>}
-    #: this represents the legacy C{flash.xml.XMLDocument} in
-    #: ActionScript 1.0 and 2.0.
+    #: ActionScript 3.0 introduced a new XML type however the legacy
+    #: C{XMLDocument} type from ActionScript 1.0 and 2.0.is retained
+    #: in the language as C{flash.xml.XMLDocument}. Similar to AMF 0, the
+    #: structure of an C{XMLDocument} needs to be flattened into a string
+    #: representation for serialization. As with other strings in AMF,
+    #: the content is encoded in UTF-8. XMLDocuments can be sent as a reference
+    #: to a previously occurring C{XMLDocument} instance by using an index to
+    #: the implicit object reference table. 
+    #: @see: U{OSFlash documentation (external)
+    #: <http://osflash.org/documentation/amf3#x07_-_xml_legacy_flash.xml.xmldocument_class>}
     XML        = 0x07
-    #: C{0×08} integer-data.
+    #: In AMF 3 an ActionScript Date is serialized simply as the number of
+    #: milliseconds elapsed since the epoch of midnight, 1st Jan 1970 in the
+    #: UTC time zone. Local time zone information is not sent. 
     DATE       = 0x08
-    #: C{0×09}
+    #: ActionScript Arrays are described based on the nature of their indices,
+    #: i.e. their type and how they are positioned in the Array.
     ARRAY      = 0x09
-    #: C{0x0A}
+    #: A single AMF 3 type handles ActionScript Objects and custom user classes.
     OBJECT     = 0x0a
-    #: This type is used for the
-    #: U{E4X<http://en.wikipedia.org/wiki/E4X>} top-level XML class
-    #: in Actionscript 3.0.
+    #: ActionScript 3.0 introduces a new top-level XML class that supports
+    #: U{E4X<http://en.wikipedia.org/wiki/E4X>} syntax.
+    #: For serialization purposes the XML type needs to be flattened into a
+    #: string representation. As with other strings in AMF, the content is
+    #: encoded using UTF-8.
     XMLSTRING  = 0x0b
-    #: C{0x0c} L{ByteArray} flag, followed by string data.
+    #: ActionScript 3.0 introduces the L{ByteArray} type to hold an Array
+    #: of bytes. AMF 3 serializes this type using a variable length encoding
+    #: 29-bit integer for the byte-length prefix followed by the raw bytes
+    #: of the L{ByteArray}.
     #: @see: U{Parsing ByteArrays on OSFlash (external)
     #: <http://osflash.org/documentation/amf3/parsing_byte_arrays>}
     BYTEARRAY  = 0x0c
@@ -123,7 +158,9 @@ class ObjectEncoding:
 class ByteArray(util.StringIOProxy):
     """
     I am a C{StringIO} type object containing byte data from
-    the AMF stream.
+    the AMF stream. ActionScript 3.0 introduced the
+    C{flash.utils.ByteArray} class to support the manipulation of
+    raw data in the form of an Array of bytes.
 
     Supports C{zlib} compression.
 
