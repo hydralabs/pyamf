@@ -422,6 +422,89 @@ class FloatingPointTestCase(unittest.TestCase):
 
         # TODO nick: find a workaround for this bug
 
+class TypeMapTestCase(unittest.TestCase):
+    def setUp(self):
+        self.tm = dict(pyamf.TYPE_MAP)
+
+    def tearDown(self):
+        pyamf.TYPE_MAP = self.tm
+
+    def test_add_invalid(self):
+        import imp
+
+        mod = imp.new_module('foo')
+        self.assertRaises(TypeError, pyamf.add_type, mod)
+        self.assertRaises(TypeError, pyamf.add_type, {})
+        self.assertRaises(TypeError, pyamf.add_type, 'foo')
+        self.assertRaises(TypeError, pyamf.add_type, u'bar')
+        self.assertRaises(TypeError, pyamf.add_type, 1)
+        self.assertRaises(TypeError, pyamf.add_type, 234234L)
+        self.assertRaises(TypeError, pyamf.add_type, 34.23)
+        self.assertRaises(TypeError, pyamf.add_type, None)
+        self.assertRaises(TypeError, pyamf.add_type, object())
+
+        class A:
+            pass
+
+        self.assertRaises(TypeError, pyamf.add_type, A())
+
+    def test_add_same(self):
+        td = pyamf.add_type(chr)
+        self.assertRaises(KeyError, pyamf.add_type, chr)
+        
+    def test_add_class(self):
+        class A:
+            pass
+
+        class B(object):
+            pass
+
+        pyamf.add_type(A)
+        self.assertTrue(A in pyamf.TYPE_MAP)
+
+        td2 = pyamf.add_type(B)
+        self.assertTrue(B in pyamf.TYPE_MAP)
+
+    def test_add_callable(self):
+        td = pyamf.add_type(ord)
+
+        self.assertTrue(ord in pyamf.TYPE_MAP)
+        self.assertTrue(td in pyamf.TYPE_MAP.values())
+
+    def test_add_multiple(self):
+        td = pyamf.add_type((chr,))
+
+        class A(object):
+            pass
+
+        class B(object):
+            pass
+
+        class C(object):
+            pass
+
+        td = pyamf.add_type([A, B, C])
+
+    def test_get_type(self):
+        self.assertRaises(KeyError, pyamf.get_type, chr)
+        td = pyamf.add_type((chr,))
+        self.assertRaises(KeyError, pyamf.get_type, chr)
+
+        td2 = pyamf.get_type((chr,))
+        self.assertEquals(td, td2)
+
+        td2 = pyamf.get_type([chr,])
+        self.assertEquals(td, td2)
+
+    def test_remove(self):
+        self.assertRaises(KeyError, pyamf.remove_type, chr)
+        td = pyamf.add_type((chr,))
+
+        self.assertRaises(KeyError, pyamf.remove_type, chr)
+        td2 = pyamf.remove_type((chr,))
+
+        self.assertEquals(td, td2)
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -433,6 +516,7 @@ def suite():
     suite.addTest(unittest.makeSuite(UnregisterClassTestCase))
     suite.addTest(unittest.makeSuite(ClassLoaderTestCase))
     suite.addTest(unittest.makeSuite(FloatingPointTestCase))
+    suite.addTest(unittest.makeSuite(TypeMapTestCase))
 
     return suite
 

@@ -38,13 +38,14 @@ CLASS_CACHE = {}
 #: Class loaders.
 CLASS_LOADERS = []
 
+#: Custom type map
+TYPE_MAP = {} 
+
 #: Specifies that objects are serialized using AMF for ActionScript
 #: 1.0 and 2.0.
 AMF0 = 0
 #: Specifies that objects are serialized using AMF for ActionScript 3.0.
 AMF3 = 3
-#: Specifies the default (latest) format for the current player.
-AMF_DEFAULT = AMF3
 #: Supported AMF encoding types.
 ENCODING_TYPES = (AMF0, AMF3)
 
@@ -421,6 +422,14 @@ class BaseDecoder(object):
         except EOFError:
             raise StopIteration
 
+class CustomTypeFunc(object):
+    def __init__(self, encoder, func):
+        self.encoder = encoder
+        self.func = func
+
+    def __call__(self, data):
+        self.encoder.writeElement(self.func(data))
+
 class BaseEncoder(object):
     """
     Base AMF encoder.
@@ -472,8 +481,13 @@ class BaseEncoder(object):
         @rtype: callable or C{None}
         @return: The function used to encode data to the stream.
         """
-        func = None
-        td = type(data)
+        for type_, func in TYPE_MAP.iteritems():
+            try:
+                if isinstance(data, type_):
+                    return CustomTypeFunc(self, func)
+            except TypeError:
+                if callable(type_) and type_(data):
+                    return CustomTypeFunc(self, func)
 
         for tlist, method in self.type_map:
             for t in tlist:
@@ -496,7 +510,7 @@ class BaseEncoder(object):
         raise NotImplementedError
 
 def register_class(klass, alias=None, read_func=None, write_func=None,
-    attrs=None, metadata=[]):
+                   attrs=None, metadata=[]):
     """
     Registers a class to be used in the data streaming.
 
@@ -510,13 +524,9 @@ def register_class(klass, alias=None, read_func=None, write_func=None,
     @type attrs: C{list} or C{None}
     @type metadata:
     @param metadata:
-
     @raise TypeError: The C{klass} is not callable.
-    @raise ValueError: The C{klass} is already registered.
-    @raise ValueError: The C{alias} is already registered.
-
-    @rtype:
-    @return:
+    @raise ValueError: The C{klass} or C{alias} is already registered.
+    @return: The registered L{ClassAlias}
     """
     if not callable(klass):
         raise TypeError, "klass must be callable"
@@ -845,3 +855,50 @@ def flex_loader(alias):
         raise pyamf.UnknownClassAlias, alias
 
 pyamf.register_class_loader(flex_loader)
+
+def add_type(type_, func=None):
+    """
+    Adds a custom type to L{TYPE_MAP}.
+
+    @see: L{TypeDeclaration} for more info on args.
+    """
+    def _check_type(type_):
+        if not (isinstance(type_, (type, types.ClassType)) or callable(type_)):
+            raise TypeError, "Unable add '%r' as a custom type (expected a class or callable)" % type_
+
+    if isinstance(type_, list):
+        type_ = tuple(type_)
+
+    if type_ in TYPE_MAP:
+        raise KeyError, 'Type %r already exists' % type_
+
+    if isinstance(type_, types.TupleType):
+        for x in type_:
+           _check_type(x)
+    else:
+        _check_type(type_)
+
+    TYPE_MAP[type_] = func
+
+def get_type(type_):
+    """
+    Gets the declaration for the corresponding custom type.
+    """
+    if isinstance(type_, list):
+        type_ = tuple(type_)
+
+    for (k, v) in TYPE_MAP.iteritems():
+        if k == type_:
+            return v
+
+    raise KeyError, "Unknown type %r" % type_
+
+def remove_type(type_):
+    """
+    Removes the custom type declaration.
+    """
+    declaration = get_type(type_)
+
+    del TYPE_MAP[type_]
+
+    return declaration

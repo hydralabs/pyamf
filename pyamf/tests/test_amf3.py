@@ -463,6 +463,26 @@ class EncoderTestCase(unittest.TestCase):
         self._run([(x, '\n\x13\x01\x07foo\x06\x07bar')])
         pyamf.unregister_class(Foo)
 
+    def test_custom_type(self):
+        def write_as_list(list_interface_obj):
+            list_interface_obj.ran = True
+
+            return list(list_interface_obj)
+
+        class ListWrapper(object):
+            ran = False
+
+            def __iter__(self):
+                return iter([1, 2, 3])
+
+        pyamf.add_type(ListWrapper, write_as_list)
+        x = ListWrapper()
+
+        self.encoder.writeElement(x)
+        self.assertEquals(x.ran, True)
+
+        self.assertEquals(self.buf.getvalue(), '\t\x07\x01\x04\x01\x04\x02\x04\x03')
+
 class DecoderTestCase(unittest.TestCase):
     """
     Tests the output from the AMF3 L{Decoder<pyamf.amf3.Decoder>} class.

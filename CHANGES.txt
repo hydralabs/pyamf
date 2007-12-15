@@ -8,8 +8,12 @@ of PyAMF.
 0.1.0b (unreleased)
 -------------------
 
+ - Added 'add_type' allowing finer grain control of how a class is encoded in
+   an AMF stream. (Ticket:130)
+ - 'authenticator' keyword added to all gateways (moved from ServiceRequest)
+   (Ticket:129)
  - Added 'expose_request' argument to DjangoGateway to expose the underlying
-   HTTP Request object as the first arg in the called services.
+   HTTP Request object as the first arg in the called services. (Ticket:103)
 
 0.1.0a (2007-12-12)
 -------------------

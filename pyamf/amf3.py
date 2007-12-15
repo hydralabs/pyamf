@@ -852,7 +852,10 @@ class Encoder(pyamf.BaseEncoder):
             self.writeUnsupported(data)
         else:
             try:
-                func(data, use_references)
+                if isinstance(func, pyamf.CustomTypeFunc):
+                    func(data)
+                else:
+                    func(data, use_references=use_references)
             except (KeyboardInterrupt, SystemExit):
                 raise
             except:
