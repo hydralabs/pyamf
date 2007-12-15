@@ -11,10 +11,13 @@ Django gateway tests.
 
 import unittest
 
-import os
+import os, sys
 
+import django
 from django import http
+from django.db import models, connection
 
+import pyamf
 from pyamf import remoting, util
 from pyamf.remoting.djangogateway import DjangoGateway
 
@@ -28,12 +31,6 @@ class HttpRequest(http.HttpRequest):
         http.HttpRequest.__init__(self, *args, **kwargs)
 
         self.raw_post_data = ''
-
-if 'DJANGO_SETTINGS_MODULE' not in os.environ:
-    import imp, sys
-
-    sys.modules['pyamf.test_django'] = imp.new_module('pyamf.test_django')
-    os.environ['DJANGO_SETTINGS_MODULE'] = 'pyamf.test_django'
 
 class DjangoGatewayTestCase(unittest.TestCase):
     def test_request_method(self):
@@ -105,10 +102,29 @@ class DjangoGatewayTestCase(unittest.TestCase):
 
         gw(http_request)
 
+class TypeMapTestCase(unittest.TestCase):
+    def test_objects_all(self):
+        class Foo(models.Model):
+            pass
+
+        cursor = connection.cursor()
+        cursor.execute('CREATE TABLE gateway_foo (id INTEGER PRIMARY KEY)')
+
+        encoder = pyamf.get_encoder(pyamf.AMF0)
+        encoder.writeElement(Foo.objects.all())
+        self.assertEquals(encoder.stream.getvalue(), '\n\x00\x00\x00\x00')
+
+        encoder = pyamf.get_encoder(pyamf.AMF3)
+        encoder.writeElement(Foo.objects.all())
+        self.assertEquals(encoder.stream.getvalue(), '\t\x01\x01')
+
+        cursor.execute('DROP TABLE gateway_foo')
+
 def suite():
     suite = unittest.TestSuite()
 
     suite.addTest(unittest.makeSuite(DjangoGatewayTestCase))
+    suite.addTest(unittest.makeSuite(TypeMapTestCase))
 
     return suite
 

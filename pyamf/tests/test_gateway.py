@@ -407,6 +407,18 @@ def suite():
         django = None
 
     if django:
+        import os, sys
+
+        if 'DJANGO_SETTINGS_MODULE' not in os.environ:
+            import imp, sys
+
+            mod = imp.new_module('pyamf.test_django')
+            os.environ['DJANGO_SETTINGS_MODULE'] = 'pyamf.test_django'
+            sys.modules['pyamf.test_django'] = mod 
+
+            setattr(mod, 'DATABASE_ENGINE', 'sqlite3')
+            setattr(mod, 'DATABASE_NAME', ':memory:')
+
         from pyamf.tests.gateway import test_django
 
         suite.addTest(test_django.suite())

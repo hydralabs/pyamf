@@ -8,6 +8,7 @@ of PyAMF.
 0.1.0b (unreleased)
 -------------------
 
+ - Added support for easy encoding of Django object queries (Foo.objects.all())
  - Added 'add_type' allowing finer grain control of how a class is encoded in
    an AMF stream. (Ticket:130)
  - 'authenticator' keyword added to all gateways (moved from ServiceRequest)
