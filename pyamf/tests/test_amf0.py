@@ -507,21 +507,21 @@ class RecordSetTestCase(unittest.TestCase):
 
         si = x.serverInfo
 
-        self.assertTrue(isinstance(si, dict))
-        self.assertEquals(si['cursor'], 1)
-        self.assertEquals(si['version'], 1)
-        self.assertEquals(si['columnNames'], [])
-        self.assertEquals(si['initialData'], [])
-        self.assertEquals(si['totalCount'], 0)
+        self.assertTrue(isinstance(si, pyamf.Bag))
+        self.assertEquals(si.cursor, 1)
+        self.assertEquals(si.version, 1)
+        self.assertEquals(si.columnNames, [])
+        self.assertEquals(si.initialData, [])
+        self.assertEquals(si.totalCount, 0)
 
         try:
-            si['serviceName']
-        except KeyError:
+            si.serviceName
+        except AttributeError:
             pass
 
         try:
-            si['id']
-        except KeyError:
+            si.id
+        except AttributeError:
             pass
 
         # basic create
@@ -530,21 +530,21 @@ class RecordSetTestCase(unittest.TestCase):
 
         si = x.serverInfo
 
-        self.assertTrue(isinstance(si, dict))
-        self.assertEquals(si['cursor'], 1)
-        self.assertEquals(si['version'], 1)
-        self.assertEquals(si['columnNames'], ['a', 'b', 'c'])
-        self.assertEquals(si['initialData'], [[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-        self.assertEquals(si['totalCount'], 3)
+        self.assertTrue(isinstance(si, pyamf.Bag))
+        self.assertEquals(si.cursor, 1)
+        self.assertEquals(si.version, 1)
+        self.assertEquals(si.columnNames, ['a', 'b', 'c'])
+        self.assertEquals(si.initialData, [[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        self.assertEquals(si.totalCount, 3)
 
         try:
-            si['serviceName']
-        except KeyError:
+            si.serviceName
+        except AttributeError:
             pass
 
         try:
-            si['id']
-        except KeyError:
+            si.id
+        except AttributeError:
             pass
 
         # with service & id
@@ -556,14 +556,14 @@ class RecordSetTestCase(unittest.TestCase):
 
         si = x.serverInfo
 
-        self.assertTrue(isinstance(si, dict))
-        self.assertEquals(si['cursor'], 1)
-        self.assertEquals(si['version'], 1)
-        self.assertEquals(si['columnNames'], ['foo'])
-        self.assertEquals(si['initialData'], [['bar']])
-        self.assertEquals(si['totalCount'], 1)
-        self.assertEquals(si['serviceName'], 'baz')
-        self.assertEquals(si['id'], 'asdfasdf')
+        self.assertTrue(isinstance(si, pyamf.Bag))
+        self.assertEquals(si.cursor, 1)
+        self.assertEquals(si.version, 1)
+        self.assertEquals(si.columnNames, ['foo'])
+        self.assertEquals(si.initialData, [['bar']])
+        self.assertEquals(si.totalCount, 1)
+        self.assertEquals(si.serviceName, 'baz')
+        self.assertEquals(si.id, 'asdfasdf')
 
     def test_encode(self):
         stream = util.BufferedByteStream()
@@ -574,18 +574,17 @@ class RecordSetTestCase(unittest.TestCase):
 
         encoder.writeElement(x)
 
-        self.assertEquals(stream.getvalue(), '\x10\x00\tRecordSet\x00\n'
-            'serverInfo\x08\x00\x00\x00\x00\x00\x06cursor\x00?\xf0\x00\x00\x00'
-            '\x00\x00\x00\x00\x0bcolumnNames\n\x00\x00\x00\x03\x02\x00\x01a'
-            '\x02\x00\x01b\x02\x00\x01c\x00\x0binitialData\n\x00\x00\x00\x03'
-            '\n\x00\x00\x00\x03\x00?\xf0\x00\x00\x00\x00\x00\x00\x00@\x00\x00'
-            '\x00\x00\x00\x00\x00\x00@\x08\x00\x00\x00\x00\x00\x00\n\x00\x00'
-            '\x00\x03\x00@\x10\x00\x00\x00\x00\x00\x00\x00@\x14\x00\x00\x00'
-            '\x00\x00\x00\x00@\x18\x00\x00\x00\x00\x00\x00\n\x00\x00\x00\x03'
-            '\x00@\x1c\x00\x00\x00\x00\x00\x00\x00@ \x00\x00\x00\x00\x00\x00'
-            '\x00@"\x00\x00\x00\x00\x00\x00\x00\x07version\x00?\xf0\x00\x00'
-            '\x00\x00\x00\x00\x00\ntotalCount\x00@\x08\x00\x00\x00\x00\x00\x00'
-            '\x00\x00\t\x00\x00\t')
+        self.assertEquals(stream.getvalue(), '\x10\x00\tRecordSet\x00\nserverI'
+            'nfo\x03\x00\x06cursor\x00?\xf0\x00\x00\x00\x00\x00\x00\x00\x0bcol'
+            'umnNames\n\x00\x00\x00\x03\x02\x00\x01a\x02\x00\x01b\x02\x00\x01c'
+            '\x00\ntotalCount\x00@\x08\x00\x00\x00\x00\x00\x00\x00\x07version'
+            '\x00?\xf0\x00\x00\x00\x00\x00\x00\x00\x0binitialData\n\x00\x00'
+            '\x00\x03\n\x00\x00\x00\x03\x00?\xf0\x00\x00\x00\x00\x00\x00\x00@'
+            '\x00\x00\x00\x00\x00\x00\x00\x00@\x08\x00\x00\x00\x00\x00\x00\n'
+            '\x00\x00\x00\x03\x00@\x10\x00\x00\x00\x00\x00\x00\x00@\x14\x00'
+            '\x00\x00\x00\x00\x00\x00@\x18\x00\x00\x00\x00\x00\x00\n\x00\x00'
+            '\x00\x03\x00@\x1c\x00\x00\x00\x00\x00\x00\x00@ \x00\x00\x00\x00'
+            '\x00\x00\x00@"\x00\x00\x00\x00\x00\x00\x00\x00\t\x00\x00\t')
 
     def test_decode(self):
         stream = util.BufferedByteStream()

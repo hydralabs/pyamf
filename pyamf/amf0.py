@@ -818,7 +818,7 @@ class RecordSet(object):
         if self.id is not None:
             ret.update(id=str(self.id))
 
-        return ret
+        return pyamf.Bag(ret)
 
     def _set_server_info(self, val):
         self.columns = val['columnNames']
@@ -838,4 +838,3 @@ class RecordSet(object):
     serverInfo = property(_get_server_info, _set_server_info)
 
 pyamf.register_class(RecordSet, 'RecordSet', attrs=['serverInfo'])
-        
