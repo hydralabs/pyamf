@@ -17,7 +17,7 @@ import unittest
 
 import pyamf
 from pyamf import amf3, util
-from pyamf.tests.util import GenericObject, EncoderTester, DecoderTester
+from pyamf.tests.util import EncoderTester, DecoderTester
 
 class Foo(object):
     """

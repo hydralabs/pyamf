@@ -11,17 +11,6 @@ Test utilities.
 @since: 0.1.0
 """
 
-class GenericObject(object):
-    """
-    A basic object for en/decoding.
-    """
-
-    def __init__(self, dict):
-        self.__dict__ = dict
-
-    def __cmp__(self, other):
-        return cmp(self.__dict__, other)
-
 class EncoderTester(object):
     """
     A helper object that takes some input, runs over the encoder

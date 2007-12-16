@@ -17,7 +17,7 @@ import unittest, datetime
 
 import pyamf
 from pyamf import amf0, util
-from pyamf.tests.util import GenericObject, EncoderTester, DecoderTester
+from pyamf.tests.util import EncoderTester, DecoderTester
 
 class TypesTestCase(unittest.TestCase):
     """
