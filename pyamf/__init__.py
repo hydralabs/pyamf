@@ -29,7 +29,8 @@ __all__ = [
     'register_class',
     'register_class_loader',
     'encode',
-    'decode', '__version__']
+    'decode',
+    '__version__']
 
 __version__ = (0, 1, 0, 'alpha')
 
@@ -85,6 +86,11 @@ class BaseError(Exception):
 class DecodeError(BaseError):
     """
     Raised if there is an error in decoding an AMF data stream.
+    """
+
+class EOStream(DecodeError):
+    """
+    Raised if the data stream has come to a natural end.
     """
 
 class ReferenceError(BaseError):
@@ -405,7 +411,10 @@ class BaseDecoder(object):
         @raise DecodeError: The ActionScript type is unknown
         @raise EOFError: No more data left to decode
         """
-        type = self.readType()
+	try:
+            type = self.readType()
+        except EOFError:
+	    raise EOStream
 
         try:
             func = getattr(self, self.type_map[type])
@@ -730,10 +739,13 @@ def decode(stream, encoding=AMF0, context=None):
     """
     decoder = _get_decoder_class(encoding)(stream, context)
 
-    for el in decoder.readElement():
-        yield el
+    while 1:
+        try:
+	    yield decoder.readElement()
+	except EOStream:
+	    break
 
-def encode(element, encoding=AMF0, context=None):
+def encode(*args, **kwargs):
     """
     A helper function to encode an element.
 
@@ -748,10 +760,16 @@ def encode(element, encoding=AMF0, context=None):
     @rtype: C{StringIO}
     @return: File-like object.
     """
+    encoding = kwargs.get('encoding', AMF0)
+    context = kwargs.get('context', None)
+
     stream = util.BufferedByteStream()
     encoder = _get_encoder_class(encoding)(stream, context)
 
-    encoder.writeElement(element)
+    for el in args:
+        encoder.writeElement(el)
+
+    stream.seek(0)
 
     return stream
 

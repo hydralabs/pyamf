@@ -254,6 +254,18 @@ class HelperTestCase(unittest.TestCase):
         self.assertTrue(isinstance(pyamf.get_encoder(pyamf.AMF3), amf3.Encoder))
         self.assertRaises(ValueError, pyamf.get_encoder, 'foo')
 
+    def test_encode(self):
+        self.assertEquals('\x02\x00\x07connect\x00?\xf0\x00\x00\x00\x00\x00\x00',
+            pyamf.encode(u'connect', 1.0).getvalue())
+
+    def test_decode(self):
+        expected = [u'connect', 1.0]
+        bytes = '\x02\x00\x07connect\x00?\xf0\x00\x00\x00\x00\x00\x00'
+
+        returned = [x for x in pyamf.decode(bytes)]
+
+        self.assertEquals(expected, returned)
+
 class RegisterClassTestCase(unittest.TestCase):
     def setUp(self):
         import copy
