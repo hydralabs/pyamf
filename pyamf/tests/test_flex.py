@@ -15,6 +15,16 @@ import pyamf
 from pyamf import flex, util, amf3
 
 class ArrayCollectionTestCase(unittest.TestCase):
+    def test_create(self):
+        ac = flex.ArrayCollection([1, 2, 3])
+        self.assertEquals(ac, {0: 1, 1: 2, 2: 3})
+
+        ac = flex.ArrayCollection(('a', 'b', 'b'))
+        self.assertEquals(ac, {0: 'a', 1: 'b', 2: 'b'})
+
+        ac = flex.ArrayCollection({'first': 'Matt', 'last': 'Matthews'})
+        self.assertEquals(ac, {'first': 'Matt', 'last': 'Matthews'})
+
     def test_encode(self):
         stream = util.BufferedByteStream()
         encoder = amf3.Encoder(stream)

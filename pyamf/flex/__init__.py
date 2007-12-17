@@ -31,6 +31,17 @@ class ArrayCollection(dict):
     <http://livedocs.adobe.com/flex/201/langref/mx/collections/ArrayCollection.html>}
     """
 
+    def __init__(self, source=None):
+        dict.__init__(self)
+
+        if source is not None:
+            if isinstance(source, (list, tuple)):
+                for i in range(len(source)):
+                    self[i] = source[i]
+            elif isinstance(source, (dict)):
+                for k, v in source.iteritems():
+                    self[k] = v
+
     def __repr__(self):
         return "<flex.messaging.io.ArrayCollection %s>" % dict.__repr__(self)
 
