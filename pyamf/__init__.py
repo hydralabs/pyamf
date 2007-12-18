@@ -29,9 +29,9 @@ __all__ = [
     'register_class',
     'register_class_loader',
     'encode',
-    'decode',
-    '__version__']
+    'decode', '__version__']
 
+#: PyAMF version number.
 __version__ = (0, 1, 0, 'alpha')
 
 #: Class mapping support for Flex.
@@ -86,11 +86,6 @@ class BaseError(Exception):
 class DecodeError(BaseError):
     """
     Raised if there is an error in decoding an AMF data stream.
-    """
-
-class EOStream(DecodeError):
-    """
-    Raised if the data stream has come to a natural end.
     """
 
 class ReferenceError(BaseError):
@@ -411,10 +406,7 @@ class BaseDecoder(object):
         @raise DecodeError: The ActionScript type is unknown
         @raise EOFError: No more data left to decode
         """
-	try:
-            type = self.readType()
-        except EOFError:
-	    raise EOStream
+        type = self.readType()
 
         try:
             func = getattr(self, self.type_map[type])
@@ -739,13 +731,10 @@ def decode(stream, encoding=AMF0, context=None):
     """
     decoder = _get_decoder_class(encoding)(stream, context)
 
-    while 1:
-        try:
-	    yield decoder.readElement()
-	except EOStream:
-	    break
+    for el in decoder.readElement():
+        yield el
 
-def encode(*args, **kwargs):
+def encode(element, encoding=AMF0, context=None):
     """
     A helper function to encode an element.
 
@@ -760,16 +749,10 @@ def encode(*args, **kwargs):
     @rtype: C{StringIO}
     @return: File-like object.
     """
-    encoding = kwargs.get('encoding', AMF0)
-    context = kwargs.get('context', None)
-
     stream = util.BufferedByteStream()
     encoder = _get_encoder_class(encoding)(stream, context)
 
-    for el in args:
-        encoder.writeElement(el)
-
-    stream.seek(0)
+    encoder.writeElement(element)
 
     return stream
 
@@ -878,7 +861,7 @@ def add_type(type_, func=None):
     """
     Adds a custom type to L{TYPE_MAP}.
 
-    @see: L{TypeDeclaration} for more info on args.
+    @see: C{TypeDeclaration} for more info on args.
     """
     def _check_type(type_):
         if not (isinstance(type_, (type, types.ClassType)) or callable(type_)):
