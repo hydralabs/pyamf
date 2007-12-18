@@ -723,7 +723,17 @@ def get_class_alias(klass):
             if klass == k.klass:
                 return k
 
-    return load_class(klass)
+    if isinstance(klass, basestring):
+        return load_class(klass)
+    
+    raise UnknownClassAlias, "Unknown alias %s" % klass
+
+def has_alias(obj):
+    try:
+        alias = get_class_alias(obj)
+        return True
+    except UnknownClassAlias:
+        return False
 
 def decode(stream, encoding=AMF0, context=None):
     """

@@ -12,7 +12,7 @@ Flex compatibility tests.
 import unittest
 
 import pyamf
-from pyamf import flex, util, amf3
+from pyamf import flex, util, amf3, amf0
 
 class ArrayCollectionTestCase(unittest.TestCase):
     def test_create(self):
@@ -38,6 +38,19 @@ class ArrayCollectionTestCase(unittest.TestCase):
         self.assertEquals(stream.getvalue(),
             '\n\x07Cflex.messaging.io.ArrayCollection'
             '\t\x01\x07foo\x06\x07bar\x01')
+            
+        stream = util.BufferedByteStream()
+        encoder = amf0.Encoder(stream)
+
+        x = flex.ArrayCollection()
+
+        x['foo'] = 'bar'
+
+        encoder.writeElement(x)
+
+        self.assertEquals(stream.getvalue(),
+            '\x11\n\x07Cflex.messaging.io.ArrayCollection\t\x01\x07foo\x06\x07'
+            'bar\x01')
 
     def test_decode(self):
         stream = util.BufferedByteStream(

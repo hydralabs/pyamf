@@ -324,6 +324,12 @@ class RegisterClassTestCase(unittest.TestCase):
 
         self.assertEquals(alias.metadata, ['anonymous'])
 
+    def test_has_alias(self):
+        self.assertEquals(pyamf.has_alias(Foo), False)
+        pyamf.register_class(Foo)
+
+        self.assertEquals(pyamf.has_alias(Foo), True)
+
 class UnregisterClassTestCase(unittest.TestCase):
     def test_klass(self):
         alias = pyamf.register_class(Foo, 'foo.bar')

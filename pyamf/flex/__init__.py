@@ -32,8 +32,6 @@ class ArrayCollection(dict):
     """
 
     def __init__(self, source=None):
-        dict.__init__(self)
-
         if source is not None:
             if isinstance(source, (list, tuple)):
                 for i in range(len(source)):
@@ -62,7 +60,7 @@ class ArrayCollection(dict):
 
 pyamf.register_class(ArrayCollection, 'flex.messaging.io.ArrayCollection',
     read_func=ArrayCollection.__readamf__,
-    write_func=ArrayCollection.__writeamf__)
+    write_func=ArrayCollection.__writeamf__, metadata=['amf3'])
 
 class ObjectProxy(object):
     """
@@ -99,4 +97,4 @@ class ObjectProxy(object):
 
 pyamf.register_class(ObjectProxy, 'flex.messaging.io.ObjectProxy',
     read_func=ObjectProxy.__readamf__,
-    write_func=ObjectProxy.__writeamf__)
+    write_func=ObjectProxy.__writeamf__, metadata=['amf3'])

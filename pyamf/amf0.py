@@ -442,6 +442,7 @@ class Encoder(pyamf.BaseEncoder):
         ((int,long,float), "writeNumber"),
         ((types.StringTypes,), "writeString"),
         ((util.ET.iselement,), "writeXML"),
+        ((pyamf.has_alias,), "writeObject"),
         ((pyamf.Bag,), "writeObject"),
         ((types.DictType,), "writeMixedArray"),
         ((types.ListType,types.TupleType,), "writeArray"),
