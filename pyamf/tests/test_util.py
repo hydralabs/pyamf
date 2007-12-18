@@ -466,6 +466,17 @@ class BufferedByteStreamTestCase(unittest.TestCase):
     Tests for L{util.BufferedByteStream}
     """
 
+    def test_create(self):
+        x = util.BufferedByteStream()
+
+        self.assertEquals(x.getvalue(), '')
+        self.assertEquals(x.tell(), 0)
+
+        x = util.BufferedByteStream('abc')
+
+        self.assertEquals(x.getvalue(), 'abc')
+        self.assertEquals(x.tell(), 0)
+
     def test_read(self):
         x = util.BufferedByteStream()
 
@@ -504,6 +515,31 @@ class BufferedByteStreamTestCase(unittest.TestCase):
         x.seek(2)
         self.assertEqual(x.tell(), 2)
         self.assertEqual(x.remaining(), 4)
+
+    def test_add(self):
+        a = util.BufferedByteStream('a')
+        b = util.BufferedByteStream('b')
+
+        c = a + b
+
+        self.assertTrue(isinstance(c, util.BufferedByteStream))
+        self.assertEquals(c.getvalue(), 'ab')
+        self.assertEquals(c.tell(), 0)
+
+    def test_add_pos(self):
+        a = util.BufferedByteStream('abc')
+        b = util.BufferedByteStream('def')
+
+        a.seek(1)
+        b.seek(0, 2)
+
+        self.assertEquals(a.tell(), 1)
+        self.assertEquals(b.tell(), 3)
+
+        c = a + b
+
+        self.assertEquals(a.tell(), 1)
+        self.assertEquals(b.tell(), 3)
 
 def suite():
     """

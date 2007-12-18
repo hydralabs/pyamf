@@ -57,7 +57,7 @@ class StringIOProxy(object):
         elif buf is None:
             pass
         else:
-            raise TypeError("Unable to coerce buf->StringIO")
+            raise TypeError, "Unable to coerce buf->StringIO"
 
         self._len = self._buffer.tell()
         self._buffer.seek(0, 0)
@@ -254,6 +254,8 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
         """
         StringIOProxy.__init__(self, buf=buf)
 
+        self.seek(0)
+
     def read(self, length=-1):
         """
         Read bytes from stream.
@@ -323,6 +325,22 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
         @return: Number of remaining bytes.
         """
         return len(self) - self.tell()
+
+    def __add__(self, other):
+        old_pos = self.tell()
+        old_other_pos = other.tell()
+
+        new = BufferedByteStream(self)
+
+        other.seek(0)
+        new.seek(0, 2)
+        new.write(other.read())
+
+        self.seek(old_pos)
+        other.seek(old_other_pos)
+        new.seek(0)
+
+        return new
 
 def hexdump(data):
     """
