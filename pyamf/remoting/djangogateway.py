@@ -37,7 +37,7 @@ class DjangoGateway(gateway.BaseGateway):
     where C{yourproject.yourapp.gateway.gw_instance} refers to an instance of
     this class.
 
-    @ivar expose_request: The standard Django view always has the request
+    @ivar expose_request: The standard django view always has the request
         object as the first parameter. To enable this functionality, set this
         to C{True}.
     @type expose_request: C{bool}
