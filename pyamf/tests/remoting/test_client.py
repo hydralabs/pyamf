@@ -446,17 +446,19 @@ class RemotingServiceTestCase(unittest.TestCase):
 
     def test_credentials(self):
         gw = client.RemotingService('http://example.org/amf-gateway')
-        
-        self.assertEquals(gw.credentials, None)
+
+        self.assertFalse('Credentials' in gw.headers)
         gw.setCredentials('foo', 'bar')
-        self.assertEquals(gw.credentials, {'userid' : u'foo', 'password': u'bar'})
+        self.assertTrue('Credentials' in gw.headers)
+        self.assertEquals(gw.headers['Credentials'],
+            pyamf.Bag({'userid' : u'foo', 'password': u'bar'}))
 
         envelope = gw.getAMFRequest([])
         self.assertTrue('Credentials' in envelope.headers)
-        
+
         cred = envelope.headers['Credentials']
 
-        self.assertEquals(gw.credentials, cred)
+        self.assertEquals(envelope.headers['Credentials'], gw.headers['Credentials'])
 
     def test_append_url_header(self):
         gw = client.RemotingService('http://example.org/amf-gateway')

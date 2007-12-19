@@ -175,8 +175,8 @@ class RemotingService(object):
     @ivar client_type: The client type. See L{ClientTypes<pyamf.ClientTypes>}.
     @ivar connection: The underlying connection to the remoting server.
     @type connection: C{httplib.HTTPConnection} or C{httplib.HTTPSConnection}
-    @ivar credentials: Supplied credentials to access the remote gateway.
-    @type credentials: C{dict} with keys 'username' and 'password' or C{None}
+    @ivar headers: A list of persistent headers to send with each request.
+    @type headers: L{remoting.HeaderCollection}
     """
 
     def __init__(self, url, amf_version=pyamf.AMF0, client_type=DEFAULT_CLIENT_TYPE):
@@ -186,7 +186,7 @@ class RemotingService(object):
 
         self.amf_version = amf_version
         self.client_type = client_type
-        self.credentials = None
+        self.headers = remoting.HeaderCollection()
 
         self._setUrl(url)
 
@@ -223,6 +223,13 @@ class RemotingService(object):
             self.connection = httplib.HTTPSConnection(hostname, port)
         else:
             raise ValueError, 'Unknown scheme'
+
+    def addHeader(self, name, value, must_understand=False):
+        """
+        Sets a persistent header to send with each request.
+        """
+        self.headers[name] = value
+        self.headers.set_required(name, must_understand)
 
     def getService(self, name, auto_execute=True):
         """
@@ -292,8 +299,7 @@ class RemotingService(object):
 
             envelope[request.id] = remoting.Request(str(service), args)
 
-        if self.credentials is not None:
-            envelope.headers['Credentials'] = pyamf.Bag(self.credentials)
+        envelope.headers = self.headers
 
         return envelope
 
@@ -367,7 +373,10 @@ class RemotingService(object):
         return response
 
     def setCredentials(self, username, password):
-        self.credentials = {
+        """
+        Sets authentication credentials for accessing the remote gateway.
+        """
+        self.addHeader('Credentials', pyamf.Bag({
             'userid': unicode(username),
             'password': unicode(password)
-        }
+        }), True)
