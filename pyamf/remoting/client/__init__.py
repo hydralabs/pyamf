@@ -44,7 +44,7 @@ class ServiceMethodProxy(object):
         """
         Inform the proxied service that this function has been called.
         """
-        return self.service._call(self, args)
+        return self.service._call(self, *args)
 
     def __str__(self):
         """
@@ -86,10 +86,11 @@ class ServiceProxy(object):
 
     def _call(self, method_proxy, *args):
         """
-        Executed when a L{ServiceMethodProxy} is called. Adds a request to
-        the underlying gateway. If C{_auto_execute} is set to C{True}, then
-        the request is immediately called on the remote gateway.
+        Executed when a L{ServiceMethodProxy} is called. Adds a request to the
+        underlying gateway. If C{_auto_execute} is set to C{True}, then the
+        request is immediately called on the remote gateway.
         """
+
         request = self._gw.addRequest(method_proxy, *args)
 
         if self._auto_execute:
@@ -104,9 +105,6 @@ class ServiceProxy(object):
         """
         This allows services to be 'called' without a method name.
         """
-        if args == ():
-            args = (tuple(),)
-
         return self._call(ServiceMethodProxy(self, None), *args)
 
     def __str__(self):
@@ -129,7 +127,7 @@ class RequestWrapper(object):
     @type args: C{list}
     """
 
-    def __init__(self, gw, id_, service, args):
+    def __init__(self, gw, id_, service, *args):
         self.gw = gw
         self.id = id_
         self.service = service
@@ -249,10 +247,8 @@ class RemotingService(object):
         """
         Adds a request to be sent to the remoting gateway.
         """
-        args = convert_args(args)
-
         wrapper = RequestWrapper(self, '/%d' % self.request_number,
-            service, args)
+            service, *args)
 
         self.request_number += 1
         self.requests.append(wrapper)
@@ -265,8 +261,6 @@ class RemotingService(object):
 
         @raise LookupError: Request not found.
         """
-        args = convert_args(args)
-
         if isinstance(service, RequestWrapper):
             del self.requests[self.requests.index(service)]
 
@@ -289,12 +283,12 @@ class RemotingService(object):
 
         for request in requests:
             service = request.service
-            args = request.args
+            args = list(request.args)
 
             envelope[request.id] = remoting.Request(str(service), args)
 
         if self.credentials is not None:
-            envelope.headers['Credentials'] = self.credentials
+            envelope.headers['Credentials'] = pyamf.Bag(self.credentials)
 
         return envelope
 
@@ -358,6 +352,6 @@ class RemotingService(object):
 
     def setCredentials(self, username, password):
         self.credentials = {
-            'username': unicode(username),
+            'userid': unicode(username),
             'password': unicode(password)
         }

@@ -79,7 +79,7 @@ class ServiceProxyTestCase(unittest.TestCase):
             def __init__(self, tc):
                 self.tc = tc
 
-            def addRequest(self, method_proxy, args):
+            def addRequest(self, method_proxy, *args):
                 self.tc.assertEquals(method_proxy, self.method_proxy)
                 self.tc.assertEquals(args, self.args)
 
@@ -109,7 +109,7 @@ class ServiceProxyTestCase(unittest.TestCase):
             def __init__(self, tc):
                 self.tc = tc
 
-            def addRequest(self, method_proxy, args):
+            def addRequest(self, method_proxy, *args):
                 self.tc.assertEquals(method_proxy.service, self.x)
                 self.tc.assertEquals(method_proxy.name, None)
 
@@ -129,7 +129,7 @@ class ServiceProxyTestCase(unittest.TestCase):
             def __init__(self, tc):
                 self.tc = tc
 
-            def addRequest(self, method_proxy, args):
+            def addRequest(self, method_proxy, *args):
                 self.tc.assertEquals(method_proxy, self.method_proxy)
                 self.tc.assertEquals(args, self.args)
 
@@ -161,7 +161,7 @@ class RequestWrapperTestCase(unittest.TestCase):
         self.assertEquals(x.gw, 1)
         self.assertEquals(x.id, 2)
         self.assertEquals(x.service, 3)
-        self.assertEquals(x.args, 4)
+        self.assertEquals(x.args, (4,))
 
     def test_str(self):
         x = client.RequestWrapper(None, '/1', None, None)
@@ -272,7 +272,7 @@ class RemotingServiceTestCase(unittest.TestCase):
         self.assertEquals(gw.request_number, 2)
         self.assertEquals(wrapper.id, '/1')
         self.assertEquals(wrapper.service, service)
-        self.assertEquals(wrapper.args, [1, 2, 3])
+        self.assertEquals(wrapper.args, (1, 2, 3))
 
         # add 1 arg
         wrapper2 = gw.addRequest(service, None)
@@ -282,7 +282,7 @@ class RemotingServiceTestCase(unittest.TestCase):
         self.assertEquals(gw.request_number, 3)
         self.assertEquals(wrapper2.id, '/2')
         self.assertEquals(wrapper2.service, service)
-        self.assertEquals(wrapper2.args, [None])
+        self.assertEquals(wrapper2.args, (None,))
 
         # add no args
         wrapper3 = gw.addRequest(service)
@@ -292,7 +292,7 @@ class RemotingServiceTestCase(unittest.TestCase):
         self.assertEquals(gw.request_number, 4)
         self.assertEquals(wrapper3.id, '/3')
         self.assertEquals(wrapper3.service, service)
-        self.assertEquals(wrapper3.args, [])
+        self.assertEquals(wrapper3.args, tuple())
 
     def test_remove_request(self):
         gw = client.RemotingService('http://foobar.net')
@@ -449,12 +449,13 @@ class RemotingServiceTestCase(unittest.TestCase):
         
         self.assertEquals(gw.credentials, None)
         gw.setCredentials('foo', 'bar')
-        self.assertEquals(gw.credentials, {'username' : u'foo', 'password': u'bar'})
+        self.assertEquals(gw.credentials, {'userid' : u'foo', 'password': u'bar'})
 
         envelope = gw.getAMFRequest([])
         self.assertTrue('Credentials' in envelope.headers)
         
         cred = envelope.headers['Credentials']
+
         self.assertEquals(gw.credentials, cred)
 
 def suite():

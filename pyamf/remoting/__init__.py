@@ -86,6 +86,9 @@ class HeaderCollection(dict):
         if not idx in self.required:
             self.required.append(idx)
 
+    def __len__(self):
+        return len(self.keys())
+
 class Envelope(dict):
     """
     I wrap an entire request, encapsulating headers and bodies.
