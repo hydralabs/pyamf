@@ -101,4 +101,4 @@ def build_fault():
         code = cls.__name__
 
     return remoting.ErrorFault(code=code, description=str(e),
-        details=traceback.format_exception(cls, e, tb))
+        details=traceback.format_exception(cls, e, tb).replace("\n", ''))
