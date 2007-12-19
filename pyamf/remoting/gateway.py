@@ -133,8 +133,8 @@ class ServiceRequest(object):
     @type method: C{None} or C{str}
     """
 
-    def __init__(self, request, service, method):
-        self.request = request
+    def __init__(self, amf_request, service, method):
+        self.request = amf_request
         self.service = service
         self.method = method
 
@@ -241,25 +241,25 @@ class BaseGateway(object):
         # shouldn't ever get here
         raise RuntimeError, "Something went wrong ..."
 
-    def getServiceRequest(self, message, target):
+    def getServiceRequest(self, request, target):
         """
         Returns a service based on the message.
 
         @raise RemotingError: Unknown service.
-        @param message: The AMF message.
-        @type message: L{Request<remoting.Request>}
+        @param request: The AMF request.
+        @type request: L{Request<remoting.Request>}
         @rtype: L{ServiceRequest}
         """
         try:
             return self._request_class(
-                message.envelope, self.services[target], None)
+                amf_request.envelope, self.services[target], None)
         except KeyError:
             pass
 
         try:
             name, meth = target.rsplit('.', 1)
             return self._request_class(
-                message.envelope, self.services[name], meth)
+                amf_request.envelope, self.services[name], meth)
         except (ValueError, KeyError):
             pass
 
@@ -267,8 +267,8 @@ class BaseGateway(object):
 
     def getProcessor(self, request):
         """
-        @param request:
-        @type request:
+        @param request: The AMF message.
+        @type request: L{Request<remoting.Request>}
         """
         if request.target == 'null':
             from pyamf.remoting import amf3
@@ -279,7 +279,7 @@ class BaseGateway(object):
 
             return amf0.RequestProcessor(self)
 
-    def getResponse(self, request):
+    def getResponse(self, amf_request):
         """
         Returns the response to the request.
 
