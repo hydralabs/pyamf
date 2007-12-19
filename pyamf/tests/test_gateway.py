@@ -371,6 +371,25 @@ class BaseGatewayTestCase(unittest.TestCase):
         self.assertFalse(gw.authenticateRequest(None, None))
         self.assertTrue(gw.authenticateRequest('foo', 'bar'))
 
+class QueryBrowserTestCase(unittest.TestCase):
+    def test_request(self):
+        gw = gateway.BaseGateway()
+        echo = lambda x: x
+
+        gw.addService(echo, 'echo', description='This is a test')
+
+        envelope = remoting.Envelope()
+        request = remoting.Request('echo')
+        envelope['/1'] = request
+
+        request.headers['DescribeService'] = None
+
+        processor = gw.getProcessor(request)
+        response = processor(request)
+
+        self.assertEquals(response.status, remoting.STATUS_OK)
+        self.assertEquals(response.body, 'This is a test')
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -380,6 +399,7 @@ def suite():
     suite.addTest(unittest.makeSuite(ServiceRequestTestCase))
     suite.addTest(unittest.makeSuite(ServiceCollectionTestCase))
     suite.addTest(unittest.makeSuite(BaseGatewayTestCase))
+    suite.addTest(unittest.makeSuite(QueryBrowserTestCase))
 
     try:
         import wsgiref

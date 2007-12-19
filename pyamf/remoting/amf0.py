@@ -74,6 +74,11 @@ class RequestProcessor(object):
 
             return response
 
+        if 'DescribeService' in request.headers:
+            response.body = service_request.service.description
+
+            return response
+
         try:
             response.body = service_request(*request.body)
         except (SystemExit, KeyboardInterrupt):
