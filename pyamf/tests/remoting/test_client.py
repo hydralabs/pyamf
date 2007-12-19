@@ -294,7 +294,6 @@ class RemotingServiceTestCase(unittest.TestCase):
         self.assertEquals(wrapper3.service, service)
         self.assertEquals(wrapper3.args, [])
 
-
     def test_remove_request(self):
         gw = client.RemotingService('http://foobar.net')
         self.assertEquals(gw.requests, [])
@@ -444,6 +443,19 @@ class RemotingServiceTestCase(unittest.TestCase):
         dc.response = response
 
         self.assertRaises(remoting.RemotingError, gw._getResponse)
+
+    def test_credentials(self):
+        gw = client.RemotingService('http://example.org/amf-gateway')
+        
+        self.assertEquals(gw.credentials, None)
+        gw.setCredentials('foo', 'bar')
+        self.assertEquals(gw.credentials, {'username' : u'foo', 'password': u'bar'})
+
+        envelope = gw.getAMFRequest([])
+        self.assertTrue('Credentials' in envelope.headers)
+        
+        cred = envelope.headers['Credentials']
+        self.assertEquals(gw.credentials, cred)
 
 def suite():
     suite = unittest.TestSuite()

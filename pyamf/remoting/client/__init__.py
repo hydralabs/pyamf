@@ -177,8 +177,8 @@ class RemotingService(object):
     @ivar client_type: The client type. See L{ClientTypes<pyamf.ClientTypes>}.
     @ivar connection: The underlying connection to the remoting server.
     @type connection: C{httplib.HTTPConnection} or C{httplib.HTTPSConnection}
-
-    @raise ValueError: Unknown scheme.
+    @ivar credentials: Supplied credentials to access the remote gateway.
+    @type credentials: C{dict} with keys 'username' and 'password' or C{None}
     """
 
     def __init__(self, url, amf_version=pyamf.AMF0, client_type=DEFAULT_CLIENT_TYPE):
@@ -189,7 +189,8 @@ class RemotingService(object):
 
         self.amf_version = amf_version
         self.client_type = client_type
-        
+        self.credentials = None
+
         port = None
         hostname = None
 
@@ -292,6 +293,9 @@ class RemotingService(object):
 
             envelope[request.id] = remoting.Request(str(service), args)
 
+        if self.credentials is not None:
+            envelope.headers['Credentials'] = self.credentials
+
         return envelope
 
     def execute_single(self, request):
@@ -351,3 +355,9 @@ class RemotingService(object):
             bytes = http_response.read(content_length)
 
         return remoting.decode(bytes)
+
+    def setCredentials(self, username, password):
+        self.credentials = {
+            'username': unicode(username),
+            'password': unicode(password)
+        }
