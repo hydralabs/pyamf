@@ -252,14 +252,14 @@ class BaseGateway(object):
         """
         try:
             return self._request_class(
-                amf_request.envelope, self.services[target], None)
+                request.envelope, self.services[target], None)
         except KeyError:
             pass
 
         try:
             name, meth = target.rsplit('.', 1)
             return self._request_class(
-                amf_request.envelope, self.services[name], meth)
+                request.envelope, self.services[name], meth)
         except (ValueError, KeyError):
             pass
 

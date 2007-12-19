@@ -180,14 +180,19 @@ class RemotingService(object):
     """
 
     def __init__(self, url, amf_version=pyamf.AMF0, client_type=DEFAULT_CLIENT_TYPE):
-        self.url = urlparse.urlparse(url)
+        self.original_url = url
         self.requests = []
         self.request_number = 1
-        self._root_url = urlparse.urlunparse(['', ''] + list(self.url[2:]))
 
         self.amf_version = amf_version
         self.client_type = client_type
         self.credentials = None
+
+        self._setUrl(url)
+
+    def _setUrl(self, url):
+        self.url = urlparse.urlparse(url)
+        self._root_url = urlparse.urlunparse(['', ''] + list(self.url[2:]))
 
         port = None
         hostname = None
@@ -348,7 +353,18 @@ class RemotingService(object):
         else:
             bytes = http_response.read(content_length)
 
-        return remoting.decode(bytes)
+        response = remoting.decode(bytes)
+
+        if 'AppendToGatewayUrl' in response.headers:
+            self.original_url += response.headers['AppendToGatewayUrl']
+
+            self._setUrl(self.original_url)
+        elif 'ReplaceGatewayUrl' in response.headers:
+            self.original_url = response.headers['ReplaceGatewayUrl']
+
+            self._setUrl(self.original_url)
+
+        return response
 
     def setCredentials(self, username, password):
         self.credentials = {

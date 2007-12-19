@@ -458,6 +458,34 @@ class RemotingServiceTestCase(unittest.TestCase):
 
         self.assertEquals(gw.credentials, cred)
 
+    def test_append_url_header(self):
+        gw = client.RemotingService('http://example.org/amf-gateway')
+        dc = DummyConnection()
+        gw.connection = dc
+
+        response = DummyResponse(200, '\x00\x00\x00\x01\x00\x12AppendToGatewayUrl'
+            '\x01\x00\x00\x00\x00\x02\x00\x05hello\x00\x00', {
+            'Content-Type': 'application/x-amf'})
+
+        dc.response = response
+
+        response = gw._getResponse()
+        self.assertEquals(gw.original_url, 'http://example.org/amf-gatewayhello')
+
+    def test_replace_url_header(self):
+        gw = client.RemotingService('http://example.org/amf-gateway')
+        dc = DummyConnection()
+        gw.connection = dc
+
+        response = DummyResponse(200, '\x00\x00\x00\x01\x00\x11ReplaceGatewayUrl'
+            '\x01\x00\x00\x00\x00\x02\x00\x0ehttp://foo.bar\x00\x00', {
+            'Content-Type': 'application/x-amf'})
+
+        dc.response = response
+
+        response = gw._getResponse()
+        self.assertEquals(gw.original_url, 'http://foo.bar')
+
 def suite():
     suite = unittest.TestSuite()
 
