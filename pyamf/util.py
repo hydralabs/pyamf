@@ -397,3 +397,21 @@ def get_datetime(secs):
     @rtype: C{datetime.datetime}
     """
     return datetime.datetime.utcfromtimestamp(secs)
+
+# workaround for python2.4's shortcomings with NaN
+# see: http://blog.pyamf.org/archives/when-is-nan-not-a-number-with-python-24
+import fpconst
+
+bytes = '\xff\xf8\x00\x00\x00\x00\x00\x00'
+fp = struct.unpack("!d", bytes)[0]
+
+if not fpconst.isNaN(fp):
+    def read_nan_workaround(self):
+        bytes = self._read(8)
+
+        if bytes == '\xff\xf8\x00\x00\x00\x00\x00\x00':
+            return fpconst.NaN
+
+        return struct.unpack("!d", bytes)[0]
+
+    NetworkIOMixIn.read_double = read_nan_workaround

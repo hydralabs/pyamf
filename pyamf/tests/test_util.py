@@ -461,6 +461,13 @@ class NetworkIOMixInTestCase(unittest.TestCase):
 
         self.assertEquals(x.read_utf8_string(9), u'ᚠᛇᚻ')
 
+    def test_nan(self):
+        import fpconst
+
+        x = NetworkStream('\xff\xf8\x00\x00\x00\x00\x00\x00')
+        
+        self.assertTrue(fpconst.isNaN(x.read_double())) 
+
 class BufferedByteStreamTestCase(unittest.TestCase):
     """
     Tests for L{util.BufferedByteStream}

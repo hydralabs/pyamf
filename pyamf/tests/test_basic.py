@@ -427,19 +427,6 @@ class ClassLoaderTestCase(unittest.TestCase):
         self.assertRaises(pyamf.UnknownClassAlias, pyamf.load_class,
             '__builtin__.tuple.')
 
-class FloatingPointTestCase(unittest.TestCase):
-    def test_nan(self):
-        import struct, decimal, sys
-
-        bytes = '\xff\xf8\x00\x00\x00\x00\x00\x00'
-    	fp = struct.unpack("!d", bytes)[0]
-
-        # this test is skipped because there is a bug in Python 2.4.4 and below  
-        if sys.version[:2] > (2, 4, 4):
-            self.assertTrue(decimal._isnan(fp))
-
-        # TODO nick: find a workaround for this bug
-
 class TypeMapTestCase(unittest.TestCase):
     def setUp(self):
         self.tm = dict(pyamf.TYPE_MAP)
@@ -533,7 +520,6 @@ def suite():
     suite.addTest(unittest.makeSuite(RegisterClassTestCase))
     suite.addTest(unittest.makeSuite(UnregisterClassTestCase))
     suite.addTest(unittest.makeSuite(ClassLoaderTestCase))
-    suite.addTest(unittest.makeSuite(FloatingPointTestCase))
     suite.addTest(unittest.makeSuite(TypeMapTestCase))
 
     return suite
