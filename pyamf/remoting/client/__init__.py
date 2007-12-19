@@ -370,6 +370,12 @@ class RemotingService(object):
 
             self._setUrl(self.original_url)
 
+        if 'RequestPersistentHeader' in response.headers:
+            data = response.headers['RequestPersistentHeader']
+
+            # FIXME nick: Work out what the data structure and amend
+            # self.headers accordingly
+
         return response
 
     def setCredentials(self, username, password):
