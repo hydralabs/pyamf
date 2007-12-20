@@ -38,12 +38,12 @@ class DjangoGateway(gateway.BaseGateway):
     this class.
 
     @ivar expose_request: The standard django view always has the request
-        object as the first parameter. To enable this functionality, set this
-        to C{True}.
+        object as the first parameter. To disable this functionality, set this
+        to C{False}.
     @type expose_request: C{bool}
     """
 
-    def __init__(self, services={}, expose_request=False):
+    def __init__(self, services={}, expose_request=True):
         gateway.BaseGateway.__init__(self, services)
 
         self.expose_request = expose_request
