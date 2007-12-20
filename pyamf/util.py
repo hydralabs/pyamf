@@ -415,3 +415,5 @@ if not fpconst.isNaN(fp):
         return struct.unpack("!d", bytes)[0]
 
     NetworkIOMixIn.read_double = read_nan_workaround
+
+del bytes, fp
