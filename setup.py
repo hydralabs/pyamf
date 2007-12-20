@@ -6,15 +6,35 @@ from ez_setup import use_setuptools
 use_setuptools()
 
 from setuptools import setup, find_packages
+from setuptools.command import test as test_
+
+class TestCommand(test_.test):
+    def run_twisted(self):
+        from twisted.trial import runner
+        from twisted.trial import reporter
+
+        from pyamf.tests import suite
+
+        r = runner.TrialRunner(reporter.VerboseTextReporter)
+        r.run(suite())
+
+    def run_tests(self):
+        try:
+            import twisted
+
+            self.run_twisted()
+        except ImportError:
+            test_.test.run_tests(self)
 
 setup(name = "PyAMF",
-    version = "0.1.0a",
+    version = "0.1b",
     description = "AMF encoder and decoder for Python",
     url = "http://pyamf.org",
     packages = find_packages(exclude=["*.tests"]),
     install_requires = ["elementtree>=1.2.6", "uuid>=1.30", "fpconst"],
     test_suite = "pyamf.tests.suite",
     license = "MIT License",
+    cmdclass = {'test': TestCommand},
     entry_points={
         'console_scripts': [
             'amfinfo = pyamf.scripts.parse_dump:main',
