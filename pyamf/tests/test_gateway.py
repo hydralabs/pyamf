@@ -419,7 +419,7 @@ def suite():
     if twisted:
         from pyamf.tests.gateway import test_twisted
 
-        #suite.addTest(test_twisted.suite())
+        suite.addTest(test_twisted.suite())
 
     try:
         import django
