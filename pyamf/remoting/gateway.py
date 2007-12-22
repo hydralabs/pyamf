@@ -305,3 +305,47 @@ class BaseGateway(object):
             return True
 
         return self.authenticator(username, password) == True
+
+from glob import glob
+import sys, types, os.path
+
+thismodule = None
+
+for name, mod in sys.modules.iteritems():
+    if not isinstance(mod, types.ModuleType):
+        continue
+
+    if not hasattr(mod, '__file__'):
+        continue
+
+    if mod.__file__ == __file__:
+        thismodule = (name, mod)
+
+        break
+
+class LazyImporter(object):
+    module = '.'.join(thismodule[0].split('.')[:-1])
+
+    def __init__(self, module_name):
+        self.__name__ = module_name
+
+    def __getattr__(self, name):
+        full_import_name = '%s.%s' % (LazyImporter.module, self.__name__)
+        __import__(full_import_name)
+        mod = sys.modules[full_import_name]
+        setattr(sys.modules[LazyImporter.module], self.__name__, mod)
+
+        self.__dict__.update(mod.__dict__)
+
+        return getattr(mod, name)
+
+for f in glob(os.path.join(os.path.dirname(thismodule[1].__file__), '*gateway.py')):
+    name = f.rsplit('/', 1)[1].rsplit('.py')[0]
+    localname = name.rsplit('gateway', 1)[0]
+
+    if localname == '':
+        continue
+
+    importer = LazyImporter(name)
+    sys.modules['%s.%s' % (thismodule[0], localname)] = importer
+    setattr(sys.modules[thismodule[0]], localname, importer)
