@@ -6,9 +6,9 @@ from ez_setup import use_setuptools
 use_setuptools()
 
 from setuptools import setup, find_packages
-from setuptools.command import test as test_
+from setuptools.command import test
 
-class TestCommand(test_.test):
+class TestCommand(test.test):
     def run_twisted(self):
         from twisted.trial import runner
         from twisted.trial import reporter
@@ -24,7 +24,7 @@ class TestCommand(test_.test):
 
             self.run_twisted()
         except ImportError:
-            test_.test.run_tests(self)
+            test.test.run_tests(self)
 
 setup(name = "PyAMF",
     version = "0.1b",
