@@ -60,3 +60,18 @@ class DecoderTester(object):
 
             # make sure that the entire buffer was consumed
             testcase.assertEqual(self.buf.remaining(), 0)
+
+# Some workarounds to bring unittest module up to scratch
+import unittest
+
+if not hasattr(unittest.TestCase, 'assertTrue'):
+    def assertTrue(self, value):
+        self.assertEquals(value, True)
+
+    unittest.TestCase.assertTrue = assertTrue
+
+if not hasattr(unittest.TestCase, 'assertFalse'):
+    def assertFalse(self, value):
+        self.assertEquals(value, False)
+
+    unittest.TestCase.assertFalse = assertFalse
