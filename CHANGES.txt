@@ -8,6 +8,7 @@ of PyAMF.
 0.1.0b (unreleased)
 -------------------
 
+ - Added tests for TwisteGateway (Ticket: #132)
  - Workaround for Python 2.4 float shortcomings (Ticket:78) 
  - Service Browser ('DescribeService' header) requests supported. (Ticket:#138)
  - Remoting client now supports authentication. (Ticket:#137)
@@ -25,8 +26,8 @@ of PyAMF.
 -------------------
 
  - AMF0 and AMF3 encoders/decoders
- - Additional support for IExternalizable, ArrayCollection,
-   ObjectProxy, ByteArray, RecordSet and RemoteObject
+ - Additional support for IExternalizable, ArrayCollection, ObjectProxy,
+   ByteArray, RecordSet and RemoteObject
  - Remoting gateways for Twisted, WSGI, and Django
  - Authentication/setCredentials support
  - zlib compression support for ByteArray

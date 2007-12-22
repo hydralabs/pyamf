@@ -42,6 +42,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         request.setHeader("Content-Length", str(len(content)))
 
         request.write(content)
+        request.finish()
 
     def render_POST(self, request):
         """
