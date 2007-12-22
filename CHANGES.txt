@@ -8,7 +8,7 @@ of PyAMF.
 0.1.0b (unreleased)
 -------------------
 
- - Added tests for TwisteGateway (Ticket: #132)
+ - Added tests for TwistedGateway (Ticket: #132)
  - Workaround for Python 2.4 float shortcomings (Ticket:78) 
  - Service Browser ('DescribeService' header) requests supported. (Ticket:#138)
  - Remoting client now supports authentication. (Ticket:#137)
