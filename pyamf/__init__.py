@@ -41,7 +41,7 @@ CLASS_CACHE = {}
 CLASS_LOADERS = []
 
 #: Custom type map
-TYPE_MAP = {} 
+TYPE_MAP = {}
 
 #: Specifies that objects are serialized using AMF for ActionScript
 #: 1.0 and 2.0.

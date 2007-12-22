@@ -1,7 +1,6 @@
 # Copyright (c) 2007-2008 The PyAMF Project.
 # See LICENSE for details.
 
-
 """
 Twisted server implementation.
 
@@ -27,18 +26,22 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
     Twisted Remoting gateway for C{twisted.web}
     """
 
+    allowedMethods = ('POST',)
+
+    def __init__(self, services={}, authenticator=None):
+        gateway.BaseGateway.__init__(self, services, authenticator)
+        resource.Resource.__init__(self)
+
     def _finaliseRequest(self, request, status, content, mimetype='text/plain'):
         """
         Finalizes the request
         """
-        request.code = http.BAD_REQUEST
-        request.code_message = http.RESPONSES[request.code]
+        request.setResponseCode(status)
 
         request.setHeader("Content-Type", mimetype)
         request.setHeader("Content-Length", str(len(content)))
 
         request.write(content)
-        request.finish()
 
     def render_POST(self, request):
         """
@@ -50,20 +53,18 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         def handleDecodeError(failure):
             import sys, traceback
 
+            try:
+                raise failure.raiseException()
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except:
+                pass                
+
             body = "400 Bad Request\n\nThe request body was unable to " \
                 "be successfully decoded.\n\nTraceback:\n\n%s" % (
                     traceback.format_exception(*sys.exc_info()))
 
             self._finaliseRequest(request, 400, body)
-
-        def handleProcessError(failure):
-            import sys, traceback
-
-            body = "500 Internal Server Error\n\nThe request was unable to " \
-                "be successfully processed.\n\nTraceback:\n\n%s" % (
-                    traceback.format_exception(*sys.exc_info()))
-
-            self._finaliseRequest(request, 500, body)
 
         request.content.seek(0, 0)
 
@@ -77,8 +78,6 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         def process_request(amf_request):
             d = self.getResponse(request, amf_request)
 
-            # Something went wrong processing the request
-            d.addErrback(handleProcessError)
             d.addCallback(self.sendResponse, request, context)
 
         # Process the request
@@ -94,6 +93,8 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         def eb(failure):
             body = "500 Internal Server Error\n\nThere was an error encoding" \
                 " the response.\n\nTraceback:\n\n%s" % (
+                    traceback.format_exception(*sys.exc_info()))
+
             self._finaliseRequest(request, 500, body)
 
         d = threads.deferToThread(remoting.encode, amf_response, context)
@@ -107,21 +108,21 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         @param amf_request: The AMF Request
         @type amf_request: L{remoting.Envelope}
         """
-        response = remoting.Envelope(request.amfVersion, request.clientType)
+        response = remoting.Envelope(amf_request.amfVersion, amf_request.clientType)
         dl = []
 
-        def cb(body):
+        def cb(body, name):
             response[name] = body
 
-        for name, message in request:
+        for name, message in amf_request:
             processor = self.getProcessor(message)
 
-            d = threads.deferToThread(processor, message).addCallback(cb)
+            d = threads.deferToThread(processor, message).addCallback(cb, name)
             dl.append(d)
 
         def cb2(result):
             return response
 
         d = defer.DeferredList(dl)
-        
+
         return d.addCallback(cb2)
