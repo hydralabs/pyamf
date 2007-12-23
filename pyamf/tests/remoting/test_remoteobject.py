@@ -2,7 +2,7 @@
 # See LICENSE for details.
 
 """
-Remote Object Tests.
+RemoteObject Tests.
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 

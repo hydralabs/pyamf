@@ -1,4 +1,4 @@
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Copyright (c) 2007-2008 The PyAMF Project.
 # See LICENSE for details.
@@ -488,8 +488,8 @@ class Encoder(pyamf.BaseEncoder):
         @see: L{pyamf.BaseEncoder._writeElementFunc}
         """
         # There is a very specific use case that we must check for.
-        # In the context there is an array of amf3_objs that contain references
-        # to objects that are to be encoded in amf3
+        # In the context there is an array of amf3_objs that contain
+        # references to objects that are to be encoded in amf3
         try:
             self.context.getAMF3ObjectReference(data)
             return self.writeAMF3
@@ -553,7 +553,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         Write number to data stream.
 
-        @type   n: L{BufferedByteStream}
+        @type   n: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param  n: AMF data.
         """
         self.writeType(ASTypes.NUMBER)
@@ -563,7 +563,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         Write boolean to data stream.
 
-        @type   b: L{BufferedByteStream}
+        @type   b: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param  b: AMF data.
         """
         self.writeType(ASTypes.BOOL)
@@ -577,7 +577,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         Write string to data stream.
 
-        @type   s: L{BufferedByteStream}
+        @type   s: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param  s: AMF data.
         @type   writeType: C{bool}
         @param  writeType: Write data type.
@@ -605,7 +605,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         Write reference to data stream.
 
-        @type   o: L{BufferedByteStream}
+        @type   o: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param  o: AMF data.
         """
         idx = self.context.getObjectReference(o)
@@ -628,7 +628,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         Write mixed array to data stream.
 
-        @type   o: L{BufferedByteStream}
+        @type   o: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param  o: AMF data.
         """
         try:
@@ -657,8 +657,8 @@ class Encoder(pyamf.BaseEncoder):
         self._writeEndObject()
 
     def _writeEndObject(self):
-        # Write a null string, this is an optimisation so that we don't have to
-        # wasting precious cycles by encoding the string etc.
+        # Write a null string, this is an optimisation so that we don't
+        # have to wasting precious cycles by encoding the string etc.
         self.stream.write('\x00\x00')
         self.writeType(ASTypes.OBJECTTERM)
 
@@ -666,7 +666,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         Write object to the stream.
 
-        @type   o: L{BufferedByteStream}
+        @type   o: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param  o: AMF data.
         """
         try:
@@ -730,7 +730,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         Write XML to data stream.
 
-        @type   e: L{BufferedByteStream}
+        @type   e: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param  e: AMF data.
         """
         data = util.ET.tostring(e, 'utf8')
@@ -755,7 +755,7 @@ def decode(stream, context=None):
     """
     A helper function to decode an AMF0 datastream.
 
-    @type   stream: L{BufferedByteStream}
+    @type   stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     @param  stream: AMF0 datastream.
     @type   context: L{Context<pyamf.amf0.Context>}
     @param  context: AMF0 Context.
@@ -772,8 +772,8 @@ def encode(element, context=None):
     @type   element: C{mixed}
     @param  element: The element to encode
     @type   context: L{Context<pyamf.amf0.Context>}
-    @param  context: AMF0 C{Context} to use for the encoding. This holds previously
-        referenced objects etc.
+    @param  context: AMF0 C{Context} to use for the encoding. This holds
+        previously referenced objects etc.
     @rtype: C{StringIO}
     @return: The encoded stream.
     """

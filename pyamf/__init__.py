@@ -410,7 +410,7 @@ class BaseDecoder(object):
         Reads an AMF3 element from the data stream.
 
         @raise DecodeError: The ActionScript type is unknown
-        @raise EOFError: No more data left to decode
+        @raise EOStream: No more data left to decode
         """
 	try:
             type = self.readType()
@@ -433,6 +433,9 @@ class BaseDecoder(object):
             raise StopIteration
 
 class CustomTypeFunc(object):
+    """
+    Custom type mappings.
+    """
     def __init__(self, encoder, func):
         self.encoder = encoder
         self.func = func
@@ -729,6 +732,10 @@ def get_class_alias(klass):
     raise UnknownClassAlias, "Unknown alias %s" % klass
 
 def has_alias(obj):
+    """
+    @rtype: C{bool}
+    @return:
+    """
     try:
         alias = get_class_alias(obj)
         return True
@@ -890,10 +897,13 @@ def add_type(type_, func=None):
     Adds a custom type to L{TYPE_MAP}.
 
     @see: C{TypeDeclaration} for more info on args.
+    @raise TypeError: Unable to add as custom type
+    (expected a class or callable).
+    @raise KeyError: Type already exists.
     """
     def _check_type(type_):
         if not (isinstance(type_, (type, types.ClassType)) or callable(type_)):
-            raise TypeError, "Unable add '%r' as a custom type (expected a class or callable)" % type_
+            raise TypeError, "Unable to add '%r' as a custom type (expected a class or callable)" % type_
 
     if isinstance(type_, list):
         type_ = tuple(type_)
@@ -912,6 +922,8 @@ def add_type(type_, func=None):
 def get_type(type_):
     """
     Gets the declaration for the corresponding custom type.
+
+    @raise KeyError: Unknown type.
     """
     if isinstance(type_, list):
         type_ = tuple(type_)
