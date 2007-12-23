@@ -285,8 +285,8 @@ class BaseGateway(object):
 
         Any implementing gateway must define this function.
 
-        @param request: The AMF request.
-        @type request: L{Envelope<remoting.Envelope>}
+        @param amf_request: The AMF request.
+        @type amf_request: L{Envelope<remoting.Envelope>}
 
         @return: The AMF response.
         @rtype: L{Envelope<remoting.Envelope>}

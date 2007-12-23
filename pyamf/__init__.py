@@ -767,13 +767,13 @@ def encode(*args, **kwargs):
     """
     A helper function to encode an element.
 
-    @type   element: C{mixed}
-    @param  element: Python data.
-    @type   encoding: C{int}
-    @param  encoding: AMF encoding type.
-    @type   context: L{amf0.Context<pyamf.amf0.Context>} or
+    @type element: C{mixed}
+    @keyword element: Python data.
+    @type encoding: C{int}
+    @keyword encoding: AMF encoding type.
+    @type context: L{amf0.Context<pyamf.amf0.Context>} or
     L{amf3.Context<pyamf.amf3.Context>}
-    @param  context: Context.
+    @keyword context: Context.
 
     @rtype: C{StringIO}
     @return: File-like object.

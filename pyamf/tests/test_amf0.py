@@ -386,7 +386,7 @@ class DecoderTestCase(unittest.TestCase):
                 '\x00\x00\x09')])
 
     def test_date(self):
-        import datetime, time
+        import datetime
 
         self._run([
             (datetime.datetime(2005, 3, 18, 1, 58, 31),

@@ -13,7 +13,7 @@ import unittest
 
 import pyamf
 from pyamf import remoting
-from pyamf.remoting import gateway, amf0, amf3
+from pyamf.remoting import gateway, amf0
 
 class TestService(object):
     def foo(self):

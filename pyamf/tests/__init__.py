@@ -13,8 +13,6 @@ Unit tests.
 
 import unittest
 
-import pyamf
-
 def suite():
     import os.path, sys
     from glob import glob

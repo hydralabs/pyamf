@@ -11,6 +11,7 @@ Twisted server implementation.
 
 @since: 0.1.0
 """
+import sys, traceback
 
 from twisted.internet import defer, threads
 from twisted.web import resource, server
@@ -23,7 +24,7 @@ __all__ = ['TwistedGateway']
 
 class TwistedGateway(gateway.BaseGateway, resource.Resource):
     """
-    Twisted Remoting gateway for C{twisted.web}
+    Twisted Remoting gateway for C{twisted.web}.
     """
 
     allowedMethods = ('POST',)
@@ -48,7 +49,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         """
         Read remoting request from client.
 
-        @type request: The HTTP Request
+        @type request: The HTTP Request.
         @param request: C{twisted.web.http.Request}
         """
         def handleDecodeError(failure):

@@ -13,7 +13,6 @@ Flex compatibility tests.
 
 import unittest
 
-import pyamf
 from pyamf import flex, util, amf3, amf0
 
 class ArrayCollectionTestCase(unittest.TestCase):

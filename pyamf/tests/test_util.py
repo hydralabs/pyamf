@@ -563,7 +563,6 @@ def suite():
     suite.addTest(unittest.makeSuite(StringIOProxyTestCase))
 
     try:
-        import cStringIO
         suite.addTest(unittest.makeSuite(cStringIOProxyTestCase))
     except ImportError:
         pass
