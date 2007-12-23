@@ -12,8 +12,8 @@ Twisted server implementation.
 @since: 0.1.0
 """
 
-from twisted.internet import defer, threads, reactor
-from twisted.web import resource, server, client, http
+from twisted.internet import defer, threads
+from twisted.web import resource, server
 
 import pyamf
 from pyamf import remoting

@@ -13,9 +13,6 @@ Django gateway tests.
 
 import unittest
 
-import os, sys
-
-import django
 from django import http
 from django.db import models, connection
 

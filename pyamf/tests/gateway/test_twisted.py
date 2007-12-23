@@ -5,17 +5,15 @@
 Twisted gateway tests.
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
-
 @since: 0.1.0
 """
 
-from twisted.internet import defer, reactor
+from twisted.internet import reactor
 from twisted.web import http, server, client, error, resource
-from twisted.protocols import loopback
 from twisted.trial import unittest
 
 import pyamf
-from pyamf import remoting, util
+from pyamf import remoting
 from pyamf.remoting.twistedgateway import TwistedGateway
 
 class TestService(object):

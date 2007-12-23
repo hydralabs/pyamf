@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+#
 # Copyright (c) 2007-2008 The PyAMF Project.
 # See LICENSE for details.
 
@@ -41,7 +43,7 @@ class StringIOProxy(object):
 
     def __init__(self, buf=None):
         """
-        @raise TypeError: Unable to coerce buffer to C{StringIO}.
+        @raise TypeError: Unable to coerce C{buf} to C{StringIO}.
         """
         self._buffer = StringIOProxy._wrapped_class()
 
@@ -136,7 +138,7 @@ class NetworkIOMixIn(object):
         @param length:
         @raise EOFError: Not in range.
         @rtype:
-        @return:
+        @return: Bytes.
         """
         bytes = self.read(length)
 
@@ -249,8 +251,8 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
 
     def __init__(self, buf=None):
         """
-        @param buf: Initial byte stream
-        @type buf: str or C{StringIO} instance
+        @param buf: Initial byte stream.
+        @type buf: C{str} or C{StringIO} instance
         """
         StringIOProxy.__init__(self, buf=buf)
 
@@ -286,8 +288,8 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
         returning the stream pointer to its initial position.
 
         @param size:
-        @type size:
-        @raise ValueError: Raised when trying to peek backwards.
+        @type size: C{int}
+        @raise ValueError: Trying to peek backwards.
 
         @rtype:
         @return: Bytes.
@@ -312,7 +314,7 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
         """
         Returns true if C{next.read(1)} will trigger an C{EOFError}.
 
-        @rtype: bool
+        @rtype: C{bool}
         @return:
         """
         return self.tell() >= len(self)
@@ -321,7 +323,7 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
         """
         Returns number of remaining bytes.
 
-        @rtype: number
+        @rtype: C{number}
         @return: Number of remaining bytes.
         """
         return len(self) - self.tell()

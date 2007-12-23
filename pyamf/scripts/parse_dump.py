@@ -24,7 +24,7 @@ def parse_options():
     parser = OptionParser()
 
     parser.add_option("-d", "--debug", action="store_true", dest="debug",
-        default=False, help="Turns debugging on")
+        default=False, help="Enable debugging")
     parser.add_option("--dump", action="store_true", dest="dump",
         default=False, help="Shows a hexdump of the file")
 
@@ -52,7 +52,7 @@ def main():
             body = read_file(fname)
 
             try:
-                print "Decoding file:", fname.rsplit("\\",1)[-1], "\n"
+                print "Decoding file:", fname, "\n"
                 request = remoting.decode(body)
                 response = remoting.Envelope(request.amfVersion, request.clientType)
 
