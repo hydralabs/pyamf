@@ -33,11 +33,11 @@ class ServiceMethodProxyTestCase(unittest.TestCase):
                 self.args = args
 
             def _call(self, service, *args):
-                tc.assertEquals(self.service, service)
-                tc.assertEquals(self.args, args)
+                tc.assertTrue(self.service, service)
+                tc.assertTrue(self.args, args)
 
         x = client.ServiceMethodProxy(None, None)
-        ts = TestService(x, (1,2,3))
+        ts = TestService(x, [1,2,3])
         x.service = ts
 
         x(1,2,3)

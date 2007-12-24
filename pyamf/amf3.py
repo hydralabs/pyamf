@@ -556,8 +556,8 @@ class Decoder(pyamf.BaseDecoder):
             result <<= 8
             result |= b
 
-            if result & 0x10000000L:
-                result |= 0xe0000000L
+            if result & 0x10000000:
+                result |= 0xe0000000
 
         return result
 
@@ -919,7 +919,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         bytes = []
 
-        if n & 0xff000000L == 0:
+        if n & 0xff000000 == 0:
             for i in xrange(3, -1, -1):
                 bytes.append((n >> (7 * i)) & 0x7F)
         else:

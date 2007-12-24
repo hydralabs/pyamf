@@ -204,7 +204,7 @@ class RemotingService(object):
             if ':' not in self.url[1]:
                 port = None
             else:
-                hostname, port = self.url[1].split(':')[-2:]
+                hostname, port = self.url[1].rsplit(':', 1)
                 port = int(port)
 
         if hostname is None:
