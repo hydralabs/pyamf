@@ -176,7 +176,7 @@ class RemotingService(object):
     @ivar connection: The underlying connection to the remoting server.
     @type connection: C{httplib.HTTPConnection} or C{httplib.HTTPSConnection}
     @ivar headers: A list of persistent headers to send with each request.
-    @type headers: L{remoting.HeaderCollection}
+    @type headers: L{pyamf.remoting.HeaderCollection}
     """
 
     def __init__(self, url, amf_version=pyamf.AMF0, client_type=DEFAULT_CLIENT_TYPE):

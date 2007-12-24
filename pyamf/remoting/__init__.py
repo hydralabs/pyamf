@@ -146,7 +146,7 @@ class Message(object):
     @ivar body: The body of the message.
     @type body: C{mixed}
     @ivar headers: The message headers.
-    @type headers: C{dict} type
+    @type headers: C{dict}
     """
 
     def __init__(self, envelope, body):
@@ -181,7 +181,7 @@ class Response(Message):
     """
     An AMF Response.
 
-    @ivar status: The status of the message
+    @ivar status: The status of the message.
     @type status: Member of L{STATUS_CODES}
     """
 
@@ -309,7 +309,7 @@ def _read_body(stream, decoder, strict=False):
     """
     Read AMF message body.
 
-    @type   stream: L{BufferedByteStream<util.BufferedByteStream>}
+    @type   stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     @param  stream: AMF data.
     @type   decoder: L{amf0.Decoder<pyamf.amf0.Decoder>} or
     L{amf3.Decoder<pyamf.amf3.Decoder>}
@@ -320,7 +320,7 @@ def _read_body(stream, decoder, strict=False):
 
     @rtype: C{tuple}
     @return: A C{tuple} containing:
-        - id of the request
+        - ID of the request
         - L{Request} or L{Response}
     """
     def _read_args():
@@ -371,7 +371,7 @@ def _write_body(name, message, stream, encoder, strict=False):
     @type name: C{basestring}
     @param message: The AMF Payload.
     @type message: L{Request} or L{Response}
-    @type stream: L{BufferedByteStream<util.BufferedByteStream>}
+    @type stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     @type encoder: L{amf0.Encoder<pyamf.amf0.Encoder>}
         or L{amf3.Encoder<pyamf.amf3.Encoder>}
     @param encoder: Encoder to use.
@@ -451,7 +451,7 @@ def decode(stream, context=None, strict=False):
     """
     Decodes the incoming stream. .
 
-    @type   stream: L{BufferedByteStream<util.BufferedByteStream>}
+    @type   stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     @param  stream: AMF data.
     @type   context: L{amf0.Context<pyamf.amf0.Context>} or
     L{amf3.Context<pyamf.amf3.Context>}

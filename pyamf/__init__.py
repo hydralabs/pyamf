@@ -374,19 +374,19 @@ class BaseDecoder(object):
     @ivar type_map:
     @type type_map: C{list}
     @ivar stream: The underlying data stream.
-    @type stream: L{BufferedByteStream<util.BufferedByteStream>}
+    @type stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     """
     context_class = BaseContext
     type_map = {}
 
     def __init__(self, data=None, context=None):
         """
-        @type   data: L{BufferedByteStream<util.BufferedByteStream>}
+        @type   data: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param  data: Data stream.
         @type   context: L{Context<pyamf.amf0.Context>}
         @param  context: Context.
         @raise TypeError: The C{context} parameter must be of
-        type L{Context<amf0.Context>}.
+        type L{Context<pyamf.amf0.Context>}.
         """
         # coersce data to BufferedByteStream
         if isinstance(data, util.BufferedByteStream):
@@ -897,7 +897,7 @@ def add_type(type_, func=None):
     Adds a custom type to L{TYPE_MAP}.
 
     @see: C{TypeDeclaration} for more info on args.
-    @raise TypeError: Unable to add as custom type
+    @raise TypeError: Unable to add as custom type.
     (expected a class or callable).
     @raise KeyError: Type already exists.
     """

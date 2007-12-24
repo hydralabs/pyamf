@@ -247,7 +247,7 @@ class BaseGateway(object):
 
         @raise RemotingError: Unknown service.
         @param request: The AMF request.
-        @type request: L{Request<remoting.Request>}
+        @type request: L{Request<pyamf.remoting.Request>}
         @rtype: L{ServiceRequest}
         """
         try:
@@ -286,10 +286,10 @@ class BaseGateway(object):
         Any implementing gateway must define this function.
 
         @param amf_request: The AMF request.
-        @type amf_request: L{Envelope<remoting.Envelope>}
+        @type amf_request: L{Envelope<pyamf.remoting.Envelope>}
 
         @return: The AMF response.
-        @rtype: L{Envelope<remoting.Envelope>}
+        @rtype: L{Envelope<pyamf.remoting.Envelope>}
         """
         raise NotImplementedError
 
@@ -298,7 +298,7 @@ class BaseGateway(object):
         Processes an authentication request. If no authenticator is supplied,
         then authentication succeeds.
 
-        @return: Returns a C{bool} based on the result of authorisation.
+        @return: Returns a C{bool} based on the result of authorization.
         @rtype: C{bool}
         """
         if self.authenticator is None:

@@ -1,25 +1,5 @@
-# -*- encoding: utf8 -*-
-#
-# Copyright (c) 2007 The PyAMF Project. All rights reserved.
-#
-# Permission is hereby granted, free of charge, to any person obtaining
-# a copy of this software and associated documentation files (the
-# "Software"), to deal in the Software without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish,
-# distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so, subject to
-# the following conditions:
-#
-# The above copyright notice and this permission notice shall be
-# included in all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-# LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# Copyright (c) 2007-2008 The PyAMF Project.
+# See LICENSE for details.
 
 """
 WSGI server implementation.
@@ -27,7 +7,6 @@ WSGI server implementation.
 @see: U{WSGI homepage (external)<http://wsgi.org>}
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
-
 @since: 0.1.0
 """
 
@@ -47,8 +26,8 @@ class WSGIGateway(gateway.BaseGateway):
         Processes the AMF request, returning an AMF response.
 
         @param request: The AMF Request.
-        @type request: L{Envelope<remoting.Envelope>}
-        @rtype: L{Envelope<remoting.Envelope>}
+        @type request: L{Envelope<pyamf.remoting.Envelope>}
+        @rtype: L{Envelope<pyamf.remoting.Envelope>}
         @return: The AMF Response.
         """
         response = remoting.Envelope(request.amfVersion, request.clientType)
@@ -60,7 +39,7 @@ class WSGIGateway(gateway.BaseGateway):
 
     def badRequestMethod(self, environ, start_response):
         """
-        Return HTTP400 Bad Request
+        Return HTTP 400 Bad Request
         """
         response = "400 Bad Request\n\nTo access this PyAMF gateway you " \
             "must use POST requests (%s received)" % environ['REQUEST_METHOD']

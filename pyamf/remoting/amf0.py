@@ -23,7 +23,7 @@ class RequestProcessor(object):
         Authenticates the request against the service.
 
         @param request: The AMF request
-        @type request: L{Request<remoting.Request>}
+        @type request: L{Request<pyamf.remoting.Request>}
         """ 
         username = password = None
 
@@ -40,10 +40,10 @@ class RequestProcessor(object):
         Processes an AMF0 request.
 
         @param request: The request to be processed.
-        @type request: L{Request<remoting.Request>}
+        @type request: L{Request<pyamf.remoting.Request>}
 
         @return: The response to the request.
-        @rtype: L{Response<remoting.Response>}
+        @rtype: L{Response<pyamf.remoting.Response>}
         """
         response = remoting.Response(None)
 

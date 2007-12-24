@@ -2,7 +2,7 @@
 # See LICENSE for details.
 
 """
-AMF3 Remote Object support.
+AMF3 RemoteObject support.
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
@@ -39,10 +39,10 @@ class RequestProcessor(object):
         Processes an AMF3 Remote Object request.
 
         @param amf_request: The request to be processed.
-        @type amf_request: L{Request<remoting.Request>}
+        @type amf_request: L{Request<pyamf.remoting.Request>}
 
         @return: The response to the request.
-        @rtype: L{Response<remoting.Response>}
+        @rtype: L{Response<pyamf.remoting.Response>}
         """
         amf_response = remoting.Response(None)
         ro_request = amf_request.body[0]

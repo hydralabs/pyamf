@@ -159,10 +159,10 @@ class Context(pyamf.BaseContext):
         """
         Adds an AMF3 reference to C{obj}.
 
-        @type obj: mixed
+        @type obj: C{mixed}
         @param obj: The object to add to the context.
 
-        @rtype: int
+        @rtype: C{int}
         @return: Reference to C{obj}.
         """
         self.amf3_objs.append(obj)
@@ -244,7 +244,7 @@ class Decoder(pyamf.BaseDecoder):
 
     def readUndefined(self):
         """
-        Reads an undefined value.
+        Reads an C{undefined} value.
 
         @return: L{pyamf.Undefined}
         """
@@ -360,7 +360,7 @@ class Decoder(pyamf.BaseDecoder):
         """
         Reads an object from the data stream.
 
-        @return: The object
+        @return: The object.
         @rtype: L{pyamf.Bag}
         """
         obj = pyamf.Bag()

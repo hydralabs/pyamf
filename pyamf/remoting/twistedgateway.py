@@ -11,7 +11,6 @@ Twisted server implementation.
 
 @since: 0.1.0
 """
-import sys, traceback
 
 from twisted.internet import defer, threads
 from twisted.web import resource, server
@@ -93,6 +92,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
                 result.getvalue(), remoting.CONTENT_TYPE)
 
         def eb(failure):
+            import sys, traceback
             body = "500 Internal Server Error\n\nThere was an error encoding" \
                 " the response.\n\nTraceback:\n\n%s" % (
                     traceback.format_exception(*sys.exc_info()))
@@ -107,8 +107,8 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         """
         @param http_request: The underlying HTTP Request
         @type http_request: C{twisted.web.http.Request}
-        @param amf_request: The AMF Request
-        @type amf_request: L{remoting.Envelope}
+        @param amf_request: The AMF Request.
+        @type amf_request: L{pyamf.remoting.Envelope}
         """
         response = remoting.Envelope(amf_request.amfVersion, amf_request.clientType)
         dl = []

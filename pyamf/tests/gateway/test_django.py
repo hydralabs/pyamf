@@ -23,7 +23,7 @@ from pyamf.remoting.djangogateway import DjangoGateway
 class HttpRequest(http.HttpRequest):
     """
     Custom HttpRequest to support raw_post_data provided by
-    django.core.handlers.*
+    C{django.core.handlers.*}
     """
 
     def __init__(self, *args, **kwargs):
