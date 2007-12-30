@@ -26,12 +26,18 @@ class TestCommand(test.test):
         except ImportError:
             test.test.run_tests(self)
 
+import sys
+
+install_requires = ["uuid>=1.30", "fpconst>=0.7.2"]
+if sys.version_info < (2, 5):
+    install_requires.extend(["elementtree >= 1.2.6"])
+
 setup(name = "PyAMF",
     version = "0.1b",
     description = "AMF encoder and decoder for Python",
     url = "http://pyamf.org",
     packages = find_packages(exclude=["*.tests"]),
-    install_requires = ["elementtree>=1.2.6", "uuid>=1.30", "fpconst>=0.7.2"],
+    install_requires = install_requires,
     test_suite = "pyamf.tests.suite",
     license = "MIT License",
     cmdclass = {'test': TestCommand},
