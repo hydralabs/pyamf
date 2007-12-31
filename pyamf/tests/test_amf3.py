@@ -294,10 +294,14 @@ class EncoderTestCase(unittest.TestCase):
         self._run([(True, '\x03'), (False, '\x02')])
 
     def test_integer(self):
-        self._run([
-            (0, '\x04\x00'),
-            (94L, '\x04\x5e'),
-            (-3422345L, '\x04\xff\x97\xc7\x77')])
+        self._run([(0, '\x04\x00')])
+        self._run([(0x7f, '\x04\x7f')])
+        self._run([(0x80, '\x04\x81\x00')])
+        self._run([(0x3fff, '\x04\xff\x7f')])
+        self._run([(0x4000, '\x04\x81\x80\x00')])
+        self._run([(0x1fffff, '\x04\xff\xff\x7f')])
+        self._run([(0x200000, '\x04\x80\xc0\x80\x00')])
+        self._run([(0x3fffffff, '\x04\xff\xff\xff\xff')])
 
     def test_number(self):
         self._run([
@@ -520,6 +524,16 @@ class DecoderTestCase(unittest.TestCase):
             (42,   '\x04\x2a'),
             (-123, '\x05\xc0\x5e\xc0\x00\x00\x00\x00\x00'),
             (1.23456789, '\x05\x3f\xf3\xc0\xca\x42\x83\xde\x1b')])
+
+    def test_integer(self):
+        self._run([(0, '\x04\x00')])
+        self._run([(0x7f, '\x04\x7f')])
+        self._run([(0x80, '\x04\x81\x00')])
+        self._run([(0x3fff, '\x04\xff\x7f')])
+        self._run([(0x4000, '\x04\x81\x80\x00')])
+        self._run([(0x1fffff, '\x04\xff\xff\x7f')])
+        self._run([(0x200000, '\x04\x80\xc0\x80\x00')])
+        self._run([(0x3fffffff, '\x04\xff\xff\xff\xff')])
 
     def test_boolean(self):
         self._run([(True, '\x03'), (False, '\x02')])
@@ -1170,16 +1184,16 @@ class DataInputTestCase(unittest.TestCase):
 def suite():
     suite = unittest.TestSuite()
 
-    suite.addTest(unittest.makeSuite(TypesTestCase))
-    suite.addTest(unittest.makeSuite(ModifiedUTF8TestCase))
-    suite.addTest(unittest.makeSuite(ClassDefinitionTestCase))
-    suite.addTest(unittest.makeSuite(ContextTestCase))
-    suite.addTest(unittest.makeSuite(EncoderTestCase))
+    #suite.addTest(unittest.makeSuite(TypesTestCase))
+    #suite.addTest(unittest.makeSuite(ModifiedUTF8TestCase))
+    #suite.addTest(unittest.makeSuite(ClassDefinitionTestCase))
+    #suite.addTest(unittest.makeSuite(ContextTestCase))
+    #suite.addTest(unittest.makeSuite(EncoderTestCase))
     suite.addTest(unittest.makeSuite(DecoderTestCase))
-    suite.addTest(unittest.makeSuite(ObjectEncodingTestCase))
-    suite.addTest(unittest.makeSuite(ObjectDecodingTestCase))
-    suite.addTest(unittest.makeSuite(DataOutputTestCase))
-    suite.addTest(unittest.makeSuite(DataInputTestCase))
+    #suite.addTest(unittest.makeSuite(ObjectEncodingTestCase))
+    #suite.addTest(unittest.makeSuite(ObjectDecodingTestCase))
+    #suite.addTest(unittest.makeSuite(DataOutputTestCase))
+    #suite.addTest(unittest.makeSuite(DataInputTestCase))
 
     return suite
 

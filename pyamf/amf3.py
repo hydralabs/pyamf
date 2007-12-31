@@ -534,16 +534,13 @@ class Decoder(pyamf.BaseDecoder):
         Reads and returns an integer from the stream.
 
         @see: U{Parsing integers on OSFlash
-        <http://osflash.org/amf3/parsing_integers>} for the AMF3
-        integer data format.
-        @return:
-        @rtype:
+        <http://osflash.org/amf3/parsing_integers>} for the AMF3 integer data
+        format.
         """
-        n = 0
+        n = result = 0
         b = self.stream.read_uchar()
-        result = 0
 
-        while b & 0x80 and n < 3:
+        while b & 0x80 != 0 and n < 3:
             result <<= 7
             result |= b & 0x7f
             b = self.stream.read_uchar()
@@ -556,8 +553,9 @@ class Decoder(pyamf.BaseDecoder):
             result <<= 8
             result |= b
 
-            if result & 0x10000000:
-                result |= 0xe0000000
+            if result & 0x10000000 != 0:
+                result <<= 1
+                result += 1
 
         return result
 
@@ -567,8 +565,6 @@ class Decoder(pyamf.BaseDecoder):
 
         @type use_references: C{bool}
         @param use_references:
-        @return:
-        @rtype:
         """
         def readLength():
             x = self.readInteger()
@@ -859,6 +855,7 @@ class Encoder(pyamf.BaseEncoder):
             except (KeyboardInterrupt, SystemExit):
                 raise
             except:
+                raise
                 raise pyamf.EncodeError, "Unable to encode '%r'" % data
 
     def writeType(self, type):
@@ -917,22 +914,19 @@ class Encoder(pyamf.BaseEncoder):
         <http://osflash.org/documentation/amf3/parsing_integers>}
         for more info.
         """
-        bytes = []
+        if n > 0x40000000:
+            raise ValueError, "Out of range"
 
-        if n & 0xff000000 == 0:
-            for i in xrange(3, -1, -1):
-                bytes.append((n >> (7 * i)) & 0x7F)
-        else:
-            for i in xrange(2, -1, -1):
-                bytes.append(n >> (8 + 7 * i) & 0x7F)
+        if n > 0x1fffff:
+            self.stream.write_uchar(0x80 | ((n >> 21) & 0xff))
 
-            bytes.append(n & 0xFF)
+        if n > 0x3fff:
+            self.stream.write_uchar(0x80 | ((n >> 14) & 0xff))
 
-        for x in bytes[:-1]:
-            if x > 0:
-                self.stream.write_uchar(x | 0x80)
+        if n > 0x7f:
+            self.stream.write_uchar(0x80 | ((n >> 7) & 0xff))
 
-        self.stream.write_uchar(bytes[-1])
+        self.stream.write_uchar(n & 0x7f)
 
     def writeInteger(self, n, use_references=True):
         """
@@ -943,6 +937,11 @@ class Encoder(pyamf.BaseEncoder):
         @type   use_references: C{bool}
         @param  use_references:
         """
+        if n > 0x3fffffff:
+            self.writeNumber(n)
+
+            return
+
         self.writeType(ASTypes.INTEGER)
         self._writeInteger(n)
 
