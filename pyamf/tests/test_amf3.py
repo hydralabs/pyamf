@@ -1184,16 +1184,16 @@ class DataInputTestCase(unittest.TestCase):
 def suite():
     suite = unittest.TestSuite()
 
-    #suite.addTest(unittest.makeSuite(TypesTestCase))
-    #suite.addTest(unittest.makeSuite(ModifiedUTF8TestCase))
-    #suite.addTest(unittest.makeSuite(ClassDefinitionTestCase))
-    #suite.addTest(unittest.makeSuite(ContextTestCase))
-    #suite.addTest(unittest.makeSuite(EncoderTestCase))
+    suite.addTest(unittest.makeSuite(TypesTestCase))
+    suite.addTest(unittest.makeSuite(ModifiedUTF8TestCase))
+    suite.addTest(unittest.makeSuite(ClassDefinitionTestCase))
+    suite.addTest(unittest.makeSuite(ContextTestCase))
+    suite.addTest(unittest.makeSuite(EncoderTestCase))
     suite.addTest(unittest.makeSuite(DecoderTestCase))
-    #suite.addTest(unittest.makeSuite(ObjectEncodingTestCase))
-    #suite.addTest(unittest.makeSuite(ObjectDecodingTestCase))
-    #suite.addTest(unittest.makeSuite(DataOutputTestCase))
-    #suite.addTest(unittest.makeSuite(DataInputTestCase))
+    suite.addTest(unittest.makeSuite(ObjectEncodingTestCase))
+    suite.addTest(unittest.makeSuite(ObjectDecodingTestCase))
+    suite.addTest(unittest.makeSuite(DataOutputTestCase))
+    suite.addTest(unittest.makeSuite(DataInputTestCase))
 
     return suite
 

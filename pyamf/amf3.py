@@ -917,7 +917,11 @@ class Encoder(pyamf.BaseEncoder):
         if n > 0x40000000:
             raise ValueError, "Out of range"
 
+        real_value = None
+
         if n > 0x1fffff:
+            real_value = n
+            n >>= 1
             self.stream.write_uchar(0x80 | ((n >> 21) & 0xff))
 
         if n > 0x3fff:
@@ -926,7 +930,13 @@ class Encoder(pyamf.BaseEncoder):
         if n > 0x7f:
             self.stream.write_uchar(0x80 | ((n >> 7) & 0xff))
 
-        self.stream.write_uchar(n & 0x7f)
+        if real_value is not None:
+            n = real_value
+
+        if n > 0x1fffff:
+            self.stream.write_uchar(n & 0xff)
+        else:
+            self.stream.write_uchar(n & 0x7f)
 
     def writeInteger(self, n, use_references=True):
         """
