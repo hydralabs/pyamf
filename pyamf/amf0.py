@@ -246,7 +246,7 @@ class Decoder(pyamf.BaseDecoder):
         """
         Reads an C{undefined} value.
 
-        @return: L{pyamf.Undefined}
+        @return: L{Undefined<pyamf.Undefined>}
         """
         return pyamf.Undefined
 
@@ -279,7 +279,7 @@ class Decoder(pyamf.BaseDecoder):
 
     def readList(self):
         """
-        Read a list from the data stream.
+        Read a C{list} from the data stream.
 
         @rtype: C{list}
         @return: C{list}
@@ -330,7 +330,7 @@ class Decoder(pyamf.BaseDecoder):
         Reads a string from the data stream.
 
         @rtype: C{str}
-        @return:
+        @return: string
         """
         len = self.stream.read_ushort()
         return self.stream.read_utf8_string(len)
@@ -361,7 +361,7 @@ class Decoder(pyamf.BaseDecoder):
         Reads an object from the data stream.
 
         @return: The object.
-        @rtype: L{pyamf.Bag}
+        @rtype: L{Bag<pyamf.Bag>}
         """
         obj = pyamf.Bag()
         self.context.addObject(obj)

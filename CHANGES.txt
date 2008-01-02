@@ -8,10 +8,10 @@ of PyAMF.
 0.1.0b (unreleased)
 -------------------
 
- - Added tests for TwistedGateway (Ticket: #132)
+ - Added tests for TwistedGateway (Ticket:132)
  - Workaround for Python 2.4 float shortcomings (Ticket:78) 
- - Service Browser ('DescribeService' header) requests supported. (Ticket:#138)
- - Remoting client now supports authentication. (Ticket:#137)
+ - Service Browser ('DescribeService' header) requests supported. (Ticket:138)
+ - Remoting client now supports authentication. (Ticket:137)
  - Proper encoding for aliased subclassed builtin types, specifically
    flex.ArrayCollection.
  - Added support for easy encoding of Django object queries (Foo.objects.all())
