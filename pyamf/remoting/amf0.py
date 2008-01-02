@@ -35,7 +35,7 @@ class RequestProcessor(object):
 
         return self.gateway.authenticateRequest(username, password)
 
-    def __call__(self, request):
+    def __call__(self, request, service_wrapper=lambda service_request, *body: service_request(*body)):
         """
         Processes an AMF0 request.
 
@@ -80,7 +80,7 @@ class RequestProcessor(object):
             return response
 
         try:
-            response.body = service_request(*request.body)
+            response.body = service_wrapper(service_request, *request.body)
         except (SystemExit, KeyboardInterrupt):
             raise
         except:

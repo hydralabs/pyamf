@@ -34,7 +34,7 @@ class RequestProcessor(object):
     def __init__(self, gateway):
         self.gateway = gateway
 
-    def __call__(self, amf_request):
+    def __call__(self, amf_request, service_wrapper=lambda service_request, *body: service_request(*body)):
         """
         Processes an AMF3 Remote Object request.
 
@@ -68,7 +68,7 @@ class RequestProcessor(object):
                 return amf_response
 
             ro_response = generate_acknowledgement(ro_request)
-            ro_response.body = service_request(*ro_request.body)
+            ro_response.body = service_wrapper(service_request, *ro_request.body)
 
         amf_response.body = ro_response
 

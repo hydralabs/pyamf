@@ -61,11 +61,16 @@ class DjangoGateway(gateway.BaseGateway):
         """
         response = remoting.Envelope(request.amfVersion, request.clientType)
 
-        for name, message in request:
-            if self.expose_request:
-                message.body.insert(0, http_request)
+        if self.expose_request:
+            def wrapper(service_request, *body):
+                return service_request(http_request, *body)
+            kwargs = {'service_wrapper': wrapper}
+        else:
+            kwargs = {}
 
-            response[name] = self.getProcessor(message)(message)
+        for name, message in request:
+            processor = self.getProcessor(message)
+            response[name] = processor(message, **kwargs)
 
         return response
 
