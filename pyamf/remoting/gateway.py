@@ -328,6 +328,7 @@ class LazyImporter(object):
 
     def __init__(self, module_name):
         self.__name__ = module_name
+        self.__file__ = None
 
     def __getattr__(self, name):
         full_import_name = '%s.%s' % (LazyImporter.module, self.__name__)
@@ -336,7 +337,7 @@ class LazyImporter(object):
         setattr(sys.modules[LazyImporter.module], self.__name__, mod)
 
         self.__dict__.update(mod.__dict__)
-
+ 
         return getattr(mod, name)
 
 for f in glob(os.path.join(os.path.dirname(thismodule[1].__file__), '*gateway.py')):

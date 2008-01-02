@@ -8,6 +8,9 @@ of PyAMF.
 0.1.0b (unreleased)
 -------------------
 
+ - LazyImporter objects now set the __file__ attribute to None, so that
+   querying sys.modules don't accidentally import the underlying module.
+   (Ticket:147)  
  - Fixed argument positioning for RemoteObject processing. Thanks akaihola!
    (Ticket:145)
  - Added tests for TwistedGateway (Ticket:132)
