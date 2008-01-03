@@ -47,6 +47,7 @@ class FaultTestCase(unittest.TestCase):
         self.assertTrue(isinstance(fault, remoting.ErrorFault))
         self.assertEquals(fault.level, 'error')
         self.assertEquals(fault.code, 'TypeError')
+        self.assertTrue("\\n" not in fault.details)
 
     def test_encode(self):
         encoder = pyamf.get_encoder(pyamf.AMF0)
