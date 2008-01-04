@@ -235,10 +235,10 @@ class ClassDefinitionTestCase(unittest.TestCase):
     def test_get_class(self):
         # anonymous class
         x = amf3.ClassDefinition('')
-        self.assertEquals(x.getClass(), pyamf.Bag)
+        self.assertEquals(x.getClass(), pyamf.ASObject)
 
         x = amf3.ClassDefinition(None)
-        self.assertEquals(x.getClass(), pyamf.Bag)
+        self.assertEquals(x.getClass(), pyamf.ASObject)
 
         pyamf.register_class(Foo, 'foo.bar')
 
@@ -351,13 +351,27 @@ class EncoderTestCase(unittest.TestCase):
 
     def test_dict(self):
         self._run([
-            ({0: u'hello', 'foo': u'bar'},
-            '\x09\x03\x07\x66\x6f\x6f\x06\x07\x62\x61\x72\x01\x06\x0b\x68\x65'
-            '\x6c\x6c\x6f')])
+            ({'foo': 'bar'}, '\n\x13\x01\x07foo\x06\x07bar')])
 
-        self._run([({0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 'a': 'a'},
-            '\x09\x0d\x03\x61\x06\x00\x01\x04\x00\x04\x01\x04\x02\x04\x03\x04'
-            '\x04\x04\x05')])
+        self._run([
+            ({'a': u'a', 'b': u'b', 'c': u'c', 'd': u'd'}, '\nC\x01\x03a\x03c'
+                '\x03b\x03d\x06\x00\x06\x02\x06\x04\x06\x06')])
+
+        x = amf3.Decoder('\nC\x01\x03a\x03c\x03b\x03d\x06\x00\x06\x02\x06\x04\x06\x06')
+        self.assertEqual(x.readElement(), {'a': u'a', 'b': u'b', 'c': u'c', 'd': u'd'})
+
+    def test_mixed_array(self):
+        x = pyamf.MixedArray()
+        x.update({0:u'hello', 'foo': u'bar'})
+        
+        self._run([
+            (x, '\x09\x03\x07\x66\x6f\x6f\x06\x07\x62\x61\x72\x01\x06\x0b\x68'
+                '\x65\x6c\x6c\x6f')])
+
+        x = pyamf.MixedArray()
+        x.update({0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 'a': 'a'})
+        self._run([(x, '\x09\x0d\x03\x61\x06\x00\x01\x04\x00\x04\x01\x04\x02'
+            '\x04\x03\x04\x04\x04\x05')])
 
         x = amf3.Decoder('\x09\x09\x03\x62\x06\x00\x03\x64\x06\x02\x03\x61\x06'
         '\x04\x03\x63\x06\x06\x01\x04\x00\x04\x01\x04\x02\x04\x03')
@@ -375,13 +389,15 @@ class EncoderTestCase(unittest.TestCase):
         for more info.
         """
         def x():
-            self._run([({'': 1, 0: 1}, '\x09\x03\x01\x04\x01\x01\x04\x01')])
+            y = pyamf.MixedArray()
+            y.update({'': 1, 0: 1})
+            self._run([(y, '\x09\x03\x01\x04\x01\x01\x04\x01')])
 
         self.failUnlessRaises(pyamf.EncodeError, x)
 
     def test_object(self):
         self._run([
-            (pyamf.Bag({'a': u'foo', 'b': 5}),
+            ({'a': u'foo', 'b': 5},
                 '\n\x23\x01\x03a\x03b\x06\x07foo\x04\x05')])
 
         pyamf.register_class(Foo, 'com.collab.dev.pyamf.foo')
@@ -436,12 +452,12 @@ class EncoderTestCase(unittest.TestCase):
         pyamf.unregister_class(Foo)
 
         # test anonymous object
-        x = pyamf.Bag({'foo': 'bar'})
+        x = {'foo': 'bar'}
 
         class_def = self.encoder._getClassDefinition(x)
 
         self.assertEquals(class_def.name, '')
-        self.assertEquals(class_def.klass, pyamf.Bag)
+        self.assertEquals(class_def.klass, pyamf.ASObject)
         self.assertEquals(class_def.attrs, ['foo'])
 
         # test supplied attributes
@@ -724,7 +740,7 @@ class ObjectEncodingTestCase(unittest.TestCase):
         self.encoder = amf3.Encoder(self.stream, self.context)
 
     def test_object_references(self):
-        obj = pyamf.Bag({'a': 'b'})
+        obj = pyamf.ASObject(a='b')
 
         self.encoder.writeElement(obj)
         pos = self.stream.tell()
@@ -1032,7 +1048,7 @@ class DataOutputTestCase(unittest.TestCase):
 
     def test_object(self):
         x = amf3.DataOutput(self.encoder)
-        obj = {'foo': 'bar'}
+        obj = pyamf.MixedArray(foo='bar')
 
         x.writeObject(obj)
         self.assertEquals(self.stream.getvalue(),

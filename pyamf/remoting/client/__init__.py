@@ -382,7 +382,5 @@ class RemotingService(object):
         """
         Sets authentication credentials for accessing the remote gateway.
         """
-        self.addHeader('Credentials', pyamf.Bag({
-            'userid': unicode(username),
-            'password': unicode(password)
-        }), True)
+        self.addHeader('Credentials', dict(userid=unicode(username),
+            password=unicode(password)), True)

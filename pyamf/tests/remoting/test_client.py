@@ -85,14 +85,13 @@ class ServiceProxyTestCase(unittest.TestCase):
                 self.tc.assertEquals(method_proxy, self.method_proxy)
                 self.tc.assertEquals(args, self.args)
 
-                self.request = pyamf.Bag({'method_proxy': method_proxy,
-                    'args': args})
+                self.request = {'method_proxy': method_proxy, 'args': args}
                 return self.request
 
             def execute_single(self, request):
                 self.tc.assertEquals(request, self.request)
 
-                return pyamf.Bag({'body': None})
+                return pyamf.ASObject(body=None)
 
         gw = DummyGateway(self)
         x = client.ServiceProxy(gw, 'test')
@@ -115,10 +114,10 @@ class ServiceProxyTestCase(unittest.TestCase):
                 self.tc.assertEquals(method_proxy.service, self.x)
                 self.tc.assertEquals(method_proxy.name, None)
 
-                return pyamf.Bag({'method_proxy': method_proxy, 'args': args})
+                return pyamf.ASObject(method_proxy=method_proxy, args=args)
 
             def execute_single(self, request):
-                return pyamf.Bag({'body': None})
+                return pyamf.ASObject(body=None)
 
         gw = DummyGateway(self)
         x = client.ServiceProxy(gw, 'test')
@@ -135,8 +134,7 @@ class ServiceProxyTestCase(unittest.TestCase):
                 self.tc.assertEquals(method_proxy, self.method_proxy)
                 self.tc.assertEquals(args, self.args)
 
-                self.request = pyamf.Bag({'method_proxy': method_proxy,
-                    'args': args})
+                self.request = pyamf.ASObject(method_proxy=method_proxy, args=args)
 
                 return self.request
 
@@ -178,7 +176,7 @@ class RequestWrapperTestCase(unittest.TestCase):
     def test_set_response(self):
         x = client.RequestWrapper(None, None, None, None)
 
-        y = pyamf.Bag({'body': 'foo.bar'})
+        y = pyamf.ASObject(body='foo.bar')
 
         x.setResponse(y)
 
@@ -453,7 +451,7 @@ class RemotingServiceTestCase(unittest.TestCase):
         gw.setCredentials('foo', 'bar')
         self.assertTrue('Credentials' in gw.headers)
         self.assertEquals(gw.headers['Credentials'],
-            pyamf.Bag({'userid' : u'foo', 'password': u'bar'}))
+            {'userid' : u'foo', 'password': u'bar'})
 
         envelope = gw.getAMFRequest([])
         self.assertTrue('Credentials' in envelope.headers)

@@ -258,7 +258,7 @@ class Decoder(pyamf.BaseDecoder):
         @return: C{dict} read from the stream
         """
         len = self.stream.read_ulong()
-        obj = {}
+        obj = pyamf.MixedArray()
         self.context.addObject(obj)
         self._readObject(obj)
         ikeys = []
@@ -341,7 +341,7 @@ class Decoder(pyamf.BaseDecoder):
         ot = chr(ASTypes.OBJECTTERM)
 
         while self.stream.peek() != ot:
-            if isinstance(obj, (list, dict, tuple)):
+            if isinstance(obj, (list, dict)):
                 obj[key] = self.readElement()
             else:
                 value = self.readElement()
@@ -360,10 +360,9 @@ class Decoder(pyamf.BaseDecoder):
         """
         Reads an object from the data stream.
 
-        @return: The object.
-        @rtype: L{Bag<pyamf.Bag>}
+        @rtype: L{Bag<pyamf.ASObject>}
         """
-        obj = pyamf.Bag()
+        obj = pyamf.ASObject()
         self.context.addObject(obj)
 
         self._readObject(obj)
@@ -443,9 +442,9 @@ class Encoder(pyamf.BaseEncoder):
         ((types.StringTypes,), "writeString"),
         ((util.ET.iselement,), "writeXML"),
         ((pyamf.has_alias,), "writeObject"),
-        ((pyamf.Bag,), "writeObject"),
-        ((types.DictType,), "writeMixedArray"),
-        ((types.ListType,types.TupleType,), "writeArray"),
+        ((pyamf.ASObject,), "writeObject"),
+        ((pyamf.MixedArray,), "writeMixedArray"),
+        ((types.ListType, types.TupleType,), "writeArray"),
         ((datetime.date, datetime.datetime), "writeDate"),
         ((types.NoneType,), "writeNull"),
         ((types.InstanceType,types.ObjectType,), "writeObject"),
@@ -675,7 +674,6 @@ class Encoder(pyamf.BaseEncoder):
         except pyamf.ReferenceError:
             self.context.addObject(o)
 
-        # Need to check here if this object has a registered alias
         try:
             alias = pyamf.get_class_alias(o)
         except pyamf.UnknownClassAlias:
@@ -697,16 +695,19 @@ class Encoder(pyamf.BaseEncoder):
 
         # TODO: give objects a chance of controlling what we send
         if alias is not None and alias.attrs is not None:
-            it = alias.attrs
+            for key in alias.attrs:
+                self.writeString(key, False)
+                self.writeElement(getattr(o, key))
+        elif hasattr(o, 'iteritems'):
+            for k, v in o.iteritems():
+                self.writeString(k, False)
+                self.writeElement(v)
         elif hasattr(o, '__dict__'):
-            it = o.__dict__.keys()
+            for key in o.__dict__.keys():
+                self.writeString(key, False)
+                self.writeElement(getattr(o, key))
         else:
-            # FIXME nick: Don't know how to represent the object here.
-            it = []
-
-        for key in it:
-            self.writeString(key, False)
-            self.writeElement(getattr(o, key))
+            raise pyamf.EncodeError, 'Unable to determine object attributes'
 
         self._writeEndObject()
 
@@ -810,11 +811,11 @@ class RecordSet(object):
         self.id = id
 
     def _get_server_info(self):
-        ret = dict(totalCount=len(self.items), cursor=1, version=1,
+        ret = pyamf.ASObject(totalCount=len(self.items), cursor=1, version=1,
             initialData=self.items, columnNames=self.columns)
 
         if self.service is not None:
-            ret.update(serviceName=str(self.service.name))
+            ret.update(serviceName=str(self.service['name']))
 
         if self.id is not None:
             ret.update(id=str(self.id))
@@ -827,7 +828,7 @@ class RecordSet(object):
 
         try:
             # TODO nick: find relevant service and link in here.
-            self.service = pyamf.Bag({'name': val['serviceName']})
+            self.service = dict(name=val['serviceName'])
         except KeyError:
             self.service = None
 

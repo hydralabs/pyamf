@@ -358,7 +358,7 @@ def _read_body(stream, decoder, strict=False):
     if is_request:
         return (response, Request(target, body=data))
     else:
-        if status == STATUS_ERROR and isinstance(data, pyamf.Bag):
+        if status == STATUS_ERROR and isinstance(data, pyamf.ASObject):
             data = get_fault(data)
 
         return (target, Response(data, status))
@@ -445,7 +445,15 @@ def get_fault(data):
     except KeyError:
         level = 'error'
 
-    return get_fault_class(level)(**data.__dict__)
+    e = {}
+
+    for x, y in data.iteritems():
+        if isinstance(x, unicode):
+            e[str(x)] = y
+        else:
+            e[x] = y
+
+    return get_fault_class(level)(**e)
 
 def decode(stream, context=None, strict=False):
     """

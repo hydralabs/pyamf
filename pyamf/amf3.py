@@ -227,7 +227,7 @@ class ClassDefinition(object):
 
     def _getClass(self):
         """
-        If C{alias} is C{None}, an L{anonymous class<pyamf.Bag>} is returned,
+        If C{alias} is C{None}, an L{anonymous class<pyamf.ASObject>} is returned,
         otherwise the class is loaded externally.
 
         @rtype:
@@ -235,7 +235,7 @@ class ClassDefinition(object):
         """
         if self.alias in (None, ''):
             # anonymous class
-            return pyamf.Bag
+            return pyamf.ASObject
 
         return self.getClassAlias().klass
 
@@ -1161,12 +1161,30 @@ class Encoder(pyamf.BaseEncoder):
 
         if encoding in (ObjectEncoding.STATIC, ObjectEncoding.DYNAMIC):
             if alias is None:
-                for k in obj.__dict__.keys():
-                    class_def.attrs.append(k)
+                if hasattr(obj, 'keys'):
+                    for k in obj.keys():
+                        class_def.attrs.append(unicode(k))
+                elif hasattr(obj, 'iteritems'):
+                    for k, v in obj.iteritems():
+                        class_def.attrs.append(unicode(k))
+                elif hasattr(obj, '__dict__'):
+                    for k in obj.__dict__.keys():
+                        class_def.attrs.append(unicode(k))
+                else:
+                    raise pyamf.EncodingError, 'Unable to determine object attributes'
             else:
                 if alias.attrs is None:
-                    for k in obj.__dict__.keys():
-                        class_def.attrs.append(k)
+                    if hasattr(obj, 'keys'):
+                        for k in obj.keys():
+                            class_def.attrs.append(unicode(k))
+                    elif hasattr(obj, 'iteritems'):
+                        for k, v in obj.iteritems():
+                            class_def.attrs.append(unicode(k))
+                    elif hasattr(obj, '__dict__'):
+                        for k in obj.__dict__.keys():
+                            class_def.attrs.append(unicode(k))
+                    else:
+                        raise pyamf.EncodingError, 'Unable to determine object attributes'
                 else:
                     import copy
 
@@ -1183,9 +1201,9 @@ class Encoder(pyamf.BaseEncoder):
         @type   use_references: C{bool}
         @param  use_references:
         """
-        if obj.__class__ == dict:
+        if obj.__class__ == pyamf.MixedArray:
             self.writeDict(obj, use_references)
-        elif obj.__class__ in (list, set):
+        elif obj.__class__ in (list, set, tuple):
             self.writeList(obj, use_references)
         else:
             self.writeObject(obj, use_references)
@@ -1200,6 +1218,15 @@ class Encoder(pyamf.BaseEncoder):
         @param  use_references:
         @raise EncodeError: Unknown object encoding.
         """
+        def get_attr(obj, attr):
+            try:
+                return getattr(obj, attr)
+            except AttributeError:
+                if obj.__class__ == dict:
+                    return obj[attr]
+
+                raise
+
         self.writeType(ASTypes.OBJECT)
 
         if use_references is True:
@@ -1236,18 +1263,18 @@ class Encoder(pyamf.BaseEncoder):
             if not class_ref:
                 for attr in class_def.attrs:
                     self._writeString(attr)
-                    self.writeElement(getattr(obj, attr))
+                    self.writeElement(get_attr(obj, attr))
 
                 self.writeString("")
             else:
                 for attr in class_def.attrs:
-                    self.writeElement(getattr(obj, attr))
+                    self.writeElement(get_attr(obj, attr))
         elif class_def.encoding == ObjectEncoding.STATIC:
             if not class_ref:
                 for attr in class_def.attrs:
                     self._writeString(attr)
             for attr in class_def.attrs:
-                self.writeElement(getattr(obj, attr))
+                self.writeElement(get_attr(obj, attr))
         else:
             raise pyamf.EncodeError("Unknown object encoding")
 

@@ -18,32 +18,32 @@ class Foo(object):
     A generic class used in class registering etc.
     """
 
-class BagTestCase(unittest.TestCase):
+class ASObjectTestCase(unittest.TestCase):
     """
-    I exercise all functionality relating to the L{Bag} class.
+    I exercise all functionality relating to the L{pyamf.ASObject} class.
     """
 
     def test_init(self):
-        bag = pyamf.Bag(dict(foo='bar', baz='foo'))
+        bag = pyamf.ASObject(foo='bar', baz='foo')
 
         self.assertEquals(bag, dict(foo='bar', baz='foo'))
         self.assertEquals(bag.foo, 'bar')
         self.assertEquals(bag.baz, 'foo')
 
     def test_eq(self):
-        bag = pyamf.Bag()
+        bag = pyamf.ASObject()
 
         self.assertEquals(bag, {})
         self.assertNotEquals(bag, {'foo': 'bar'})
 
-        bag2 = pyamf.Bag()
+        bag2 = pyamf.ASObject()
 
         self.assertEquals(bag2, {})
         self.assertEquals(bag, bag2)
         self.assertNotEquals(bag, None)
 
     def test_setitem(self):
-        bag = pyamf.Bag()
+        bag = pyamf.ASObject()
 
         self.assertEquals(bag, {})
 
@@ -52,7 +52,7 @@ class BagTestCase(unittest.TestCase):
         self.assertEquals(bag.foo, 'bar')
 
     def test_delitem(self):
-        bag = pyamf.Bag({'foo': 'bar'})
+        bag = pyamf.ASObject({'foo': 'bar'})
 
         self.assertEquals(bag.foo, 'bar')
         del bag['foo']
@@ -60,12 +60,12 @@ class BagTestCase(unittest.TestCase):
         self.assertRaises(AttributeError, lambda: bag.foo)
 
     def test_getitem(self):
-        bag = pyamf.Bag({'foo': 'bar'})
+        bag = pyamf.ASObject({'foo': 'bar'})
 
         self.assertEquals(bag['foo'], 'bar')
 
     def test_iter(self):
-        bag = pyamf.Bag({'foo': 'bar'})
+        bag = pyamf.ASObject({'foo': 'bar'})
 
         x = []
 
@@ -513,7 +513,7 @@ class TypeMapTestCase(unittest.TestCase):
 def suite():
     suite = unittest.TestSuite()
 
-    suite.addTest(unittest.makeSuite(BagTestCase))
+    suite.addTest(unittest.makeSuite(ASObjectTestCase))
     suite.addTest(unittest.makeSuite(ClassMetaDataTestCase))
     suite.addTest(unittest.makeSuite(ClassAliasTestCase))
     suite.addTest(unittest.makeSuite(HelperTestCase))

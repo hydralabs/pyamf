@@ -13,6 +13,7 @@ Flex compatibility tests.
 
 import unittest
 
+import pyamf
 from pyamf import flex, util, amf3, amf0
 
 class ArrayCollectionTestCase(unittest.TestCase):
@@ -70,7 +71,7 @@ class ObjectProxyTestCase(unittest.TestCase):
         stream = util.BufferedByteStream()
         encoder = amf3.Encoder(stream)
 
-        x = flex.ObjectProxy({'a': 'foo', 'b': 5})
+        x = flex.ObjectProxy(pyamf.MixedArray(a='foo', b=5))
 
         encoder.writeElement(x)
 

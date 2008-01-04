@@ -33,7 +33,7 @@ __all__ = [
     '__version__']
 
 #: PyAMF version number.
-__version__ = (0, 1, 0, 'alpha')
+__version__ = (0, 1, 0, 'beta')
 
 #: Class mapping support for Flex.
 CLASS_CACHE = {}
@@ -169,50 +169,43 @@ class BaseContext(object):
     def __copy__(self):
         raise NotImplementedError
 
-class Bag(object):
+class ASObject(dict):
     """
     I supply a C{__builtin__.dict} interface to support get/setattr calls.
     """
 
-    def __init__(self, d={}):
-        """
-        @type d: C{dict}
-        @param d: Initial data for the bag.
-        """
-        for k, v in d.iteritems():
-            setattr(self, k, v)
+    def __init__(self, *args, **kwargs):
+        dict.__init__(self, *args, **kwargs)
 
-    def __getitem__(self, k):
-        return getattr(self, k)
+    def __getattr__(self, k):
+        try:
+            return self[k]
+        except KeyError:
+            raise AttributeError, 'unknown attribute \'%s\'' % k
 
-    def __setitem__(self, k, v):
-        return setattr(self, k, v)
-
-    def __eq__(self, other):
-        if isinstance(other, dict):
-            return self.__dict__ == other
-        if isinstance(other, Bag):
-            return self.__dict__ == other.__dict__
-
-        return False
-
-    def iteritems(self):
-        return self.__dict__.iteritems()
+    def __setattr__(self, k, v):
+        self[k] = v
 
     def __repr__(self):
         return dict.__repr__(self.__dict__)
 
-    def __delitem__(self, k):
-        del self.__dict__[k]
+class Bag(ASObject):
+    def __init__(self, *args, **kwargs):
+        import warnings
+
+        warnings.warn('The Bag class will be removed in a 0.1 release of PyAMF',
+            category=DeprecationWarning)
+
+        ASObject.__init__(self, *args, **kwargs)
+
+class MixedArray(dict):
+    pass
 
 class ClassMetaData(list):
     """
     I hold a list of tags relating to the class. The idea behind this is
     to emulate the metadata tags you can supply to ActionScript,
     e.g. static/dynamic.
-
-    At the moment, only C{static}, C{dynamic} and C{external} are allowed
-    but this may be extended in the future.
     """
     _allowed_tags = (
         ('static', 'dynamic', 'external'),

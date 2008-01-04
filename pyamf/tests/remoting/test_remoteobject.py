@@ -36,7 +36,7 @@ class AcknowlegdementGeneratorTestCase(unittest.TestCase):
         self.assertTrue(ack.timestamp is not None)
 
     def test_request(self):
-        ack = amf3.generate_acknowledgement(pyamf.Bag({'messageId': '123123'}))
+        ack = amf3.generate_acknowledgement(pyamf.ASObject(messageId='123123'))
 
         self.assertTrue(isinstance(ack, messaging.AcknowledgeMessage))
         self.assertTrue(ack.messageId is not None)

@@ -56,7 +56,7 @@ class ArrayCollection(dict):
                 count += 1
 
     def __writeamf__(self, output):
-        output.writeObject(dict(self), use_references=False)
+        output.writeObject(pyamf.MixedArray(self), use_references=False)
 
 pyamf.register_class(ArrayCollection, 'flex.messaging.io.ArrayCollection',
     read_func=ArrayCollection.__readamf__,

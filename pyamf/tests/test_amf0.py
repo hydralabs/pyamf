@@ -185,12 +185,14 @@ class EncoderTestCase(unittest.TestCase):
 
     def test_dict(self):
         self._run([
-            ({'a': 'a'}, '\x08\x00\x00\x00\x00\x00\x01\x61\x02\x00\x01\x61\x00'
-                '\x00\x09'),
-            ({1: 1, 2: 2, 3: 3}, '\x08\x00\x00\x00\x03\x00\x01\x31\x00\x3f\xf0'
-                '\x00\x00\x00\x00\x00\x00\x00\x01\x32\x00\x40\x00\x00\x00\x00'
-                '\x00\x00\x00\x00\x01\x33\x00\x40\x08\x00\x00\x00\x00\x00\x00'
-                '\x00\x00\x09')])
+            ({'a': 'a'}, '\x03\x00\x01a\x02\x00\x01a\x00\x00\t')])
+
+    def test_mixed_array(self):
+        self._run([
+            (pyamf.MixedArray(a=1, b=2, c=3), '\x08\x00\x00\x00\x00\x00\x01a'
+                '\x00?\xf0\x00\x00\x00\x00\x00\x00\x00\x01c\x00@\x08\x00\x00'
+                '\x00\x00\x00\x00\x00\x01b\x00@\x00\x00\x00\x00\x00\x00\x00'
+                '\x00\x00\t')])
 
     def test_date(self):
         import datetime
@@ -219,16 +221,19 @@ class EncoderTestCase(unittest.TestCase):
 
     def test_object(self):
         self._run([
-            (pyamf.Bag({'a': 'b'}), '\x03\x00\x01a\x02\x00\x01b\x00\x00\x09')])
+            ({'a': 'b'}, '\x03\x00\x01a\x02\x00\x01b\x00\x00\x09')])
 
     def test_force_amf3(self):
-        class Foo(pyamf.Bag):
+        class Foo(object):
             pass
 
         pyamf.register_class(Foo, 'foo.bar', metadata=['amf3'])
 
+        x = Foo()
+        x.x = 'y'
+
         self._run([
-            (Foo({'x': 'y'}), '\x11\n\x13\x0ffoo.bar\x03x\x06\x03y')])
+            (x, '\x11\n\x13\x0ffoo.bar\x03x\x06\x03y')])
 
         pyamf.unregister_class(Foo)
 
@@ -251,8 +256,6 @@ class EncoderTestCase(unittest.TestCase):
         pyamf.unregister_class(Foo)
 
     def test_complex_list(self):
-        x = pyamf.Bag({'a': 'foo', 'b': 'bar'})
-
         self._run([
             ([[1.0]], '\x0A\x00\x00\x00\x01\x0A\x00\x00\x00\x01\x00\x3F\xF0\x00'
                 '\x00\x00\x00\x00\x00')])
@@ -263,10 +266,10 @@ class EncoderTestCase(unittest.TestCase):
                 '\x74\x02\x00\x04\x74\x65\x73\x74\x02\x00\x04\x74\x65\x73\x74')
         ])
 
+        x = {'a': 'foo', 'b': 'bar'}
         self._run([
-            ([[x, x]],
-                '\n\x00\x00\x00\x01\n\x00\x00\x00\x02\x03\x00\x01a\x02\x00\x03'
-                'foo\x00\x01b\x02\x00\x03bar\x00\x00\t\x07\x00\x02')])
+            ([[x, x]], '\n\x00\x00\x00\x01\n\x00\x00\x00\x02\x03\x00\x01a\x02'
+                '\x00\x03foo\x00\x01b\x02\x00\x03bar\x00\x00\t\x07\x00\x02')])
 
     def test_amf3(self):
         x = 1
@@ -276,19 +279,18 @@ class EncoderTestCase(unittest.TestCase):
         self.assertEquals(self.buf.getvalue(), '\x11\x04\x01')
 
     def test_anonymous(self):
-        class Foo(pyamf.Bag):
+        class Foo(object):
             pass
 
         pyamf.register_class(Foo)
 
         x = Foo()
-
         x.foo = 'bar'
         x.hello = 'world'
 
         self._run([
-            (x, '\x03\x00\x03foo\x02\x00\x03bar\x00\x05hello\x02\x00\x05world'
-                '\x00\x00\t')])
+            (x, '\x03\x00\x03foo\x02\x00\x03bar\x00\x05hello\x02\x00\x05wo'
+                'rld\x00\x00\t')])
 
         pyamf.unregister_class(Foo)
 
@@ -379,11 +381,14 @@ class DecoderTestCase(unittest.TestCase):
     def test_dict(self):
         self._run([
             ({'a': 'a'}, '\x08\x00\x00\x00\x00\x00\x01\x61\x02\x00\x01\x61\x00'
-                '\x00\x09'),
-            ({1: 1, 2: 2, 3: 3}, '\x08\x00\x00\x00\x03\x00\x01\x31\x00\x3f\xf0'
-                '\x00\x00\x00\x00\x00\x00\x00\x01\x32\x00\x40\x00\x00\x00\x00'
-                '\x00\x00\x00\x00\x01\x33\x00\x40\x08\x00\x00\x00\x00\x00\x00'
-                '\x00\x00\x09')])
+                '\x00\x09')])
+
+    def test_mixed_array(self):
+        self._run([
+            (pyamf.MixedArray(a=1, b=2, c=3), '\x08\x00\x00\x00\x00\x00\x01a'
+                '\x00?\xf0\x00\x00\x00\x00\x00\x00\x00\x01c\x00@\x08\x00\x00'
+                '\x00\x00\x00\x00\x00\x01b\x00@\x00\x00\x00\x00\x00\x00\x00'
+                '\x00\x00\t')])
 
     def test_date(self):
         import datetime
@@ -417,8 +422,7 @@ class DecoderTestCase(unittest.TestCase):
 
     def test_object(self):
         self._run([
-            (pyamf.Bag({'a': 'b'}),
-                '\x03\x00\x01a\x02\x00\x01b\x00\x00\x09')])
+            ({'a': 'b'}, '\x03\x00\x01a\x02\x00\x01b\x00\x00\x09')])
 
     def test_registered_class(self):
         class Foo(object):
@@ -454,13 +458,13 @@ class DecoderTestCase(unittest.TestCase):
                 '\x74\x02\x00\x04\x74\x65\x73\x74\x02\x00\x04\x74\x65\x73\x74')
         ])
         self._run([
-            ([x], '\x0A\x00\x00\x00\x01\x0B\x42\x71\x60\x48\xCF\xED\xD0\x00'
+            ([x], '\x0a\x00\x00\x00\x01\x0b\x42\x71\x60\x48\xcf\xed\xd0\x00'
                 '\x00\x00')])
         self._run([
             ([[{u'a': u'foo', u'b': u'bar'}, {u'a': u'foo', u'b': u'bar'}]],
-                '\x0A\x00\x00\x00\x01\x0A\x00\x00\x00\x02\x03\x00\x01\x62\x02'
-                '\x00\x03\x62\x61\x72\x00\x01\x61\x02\x00\x03\x66\x6F\x6F\x00'
-                '\x00\x09\x07\x00\x02')])
+                '\n\x00\x00\x00\x01\n\x00\x00\x00\x02\x08\x00\x00\x00\x00\x00'
+                '\x01a\x02\x00\x03foo\x00\x01b\x02\x00\x03bar\x00\x00\t\x07'
+                '\x00\x02')])
         self._run([
             ([[1.0]], '\x0A\x00\x00\x00\x01\x0A\x00\x00\x00\x01\x00\x3F\xF0\x00'
                 '\x00\x00\x00\x00\x00')])
@@ -507,7 +511,7 @@ class RecordSetTestCase(unittest.TestCase):
 
         si = x.serverInfo
 
-        self.assertTrue(isinstance(si, pyamf.Bag))
+        self.assertTrue(isinstance(si, dict))
         self.assertEquals(si.cursor, 1)
         self.assertEquals(si.version, 1)
         self.assertEquals(si.columnNames, [])
@@ -530,7 +534,7 @@ class RecordSetTestCase(unittest.TestCase):
 
         si = x.serverInfo
 
-        self.assertTrue(isinstance(si, pyamf.Bag))
+        self.assertTrue(isinstance(si, dict))
         self.assertEquals(si.cursor, 1)
         self.assertEquals(si.version, 1)
         self.assertEquals(si.columnNames, ['a', 'b', 'c'])
@@ -548,15 +552,14 @@ class RecordSetTestCase(unittest.TestCase):
             pass
 
         # with service & id
-        service = pyamf.Bag({'name': 'baz'})
+        service = {'name': 'baz'}
 
-        service.__dict__.update(name='baz')
         x = amf0.RecordSet(columns=['foo'], items=[['bar']],
             service=service, id='asdfasdf')
 
         si = x.serverInfo
 
-        self.assertTrue(isinstance(si, pyamf.Bag))
+        self.assertTrue(isinstance(si, dict))
         self.assertEquals(si.cursor, 1)
         self.assertEquals(si.version, 1)
         self.assertEquals(si.columnNames, ['foo'])
@@ -574,27 +577,33 @@ class RecordSetTestCase(unittest.TestCase):
 
         encoder.writeElement(x)
 
-        self.assertEquals(stream.getvalue(), '\x10\x00\tRecordSet\x00\nserverI'
-            'nfo\x03\x00\x06cursor\x00?\xf0\x00\x00\x00\x00\x00\x00\x00\x0bcol'
-            'umnNames\n\x00\x00\x00\x03\x02\x00\x01a\x02\x00\x01b\x02\x00\x01c'
-            '\x00\ntotalCount\x00@\x08\x00\x00\x00\x00\x00\x00\x00\x07version'
-            '\x00?\xf0\x00\x00\x00\x00\x00\x00\x00\x0binitialData\n\x00\x00'
-            '\x00\x03\n\x00\x00\x00\x03\x00?\xf0\x00\x00\x00\x00\x00\x00\x00@'
-            '\x00\x00\x00\x00\x00\x00\x00\x00@\x08\x00\x00\x00\x00\x00\x00\n'
-            '\x00\x00\x00\x03\x00@\x10\x00\x00\x00\x00\x00\x00\x00@\x14\x00'
-            '\x00\x00\x00\x00\x00\x00@\x18\x00\x00\x00\x00\x00\x00\n\x00\x00'
-            '\x00\x03\x00@\x1c\x00\x00\x00\x00\x00\x00\x00@ \x00\x00\x00\x00'
-            '\x00\x00\x00@"\x00\x00\x00\x00\x00\x00\x00\x00\t\x00\x00\t')
+        self.assertEquals(stream.getvalue(), '\x10\x00\tRecordSet\x00\n'
+            'serverInfo\x03\x00\x06cursor\x00?\xf0\x00\x00\x00\x00\x00\x00\x00'
+            '\x0bcolumnNames\n\x00\x00\x00\x03\x02\x00\x01a\x02\x00\x01b\x02'
+            '\x00\x01c\x00\x0binitialData\n\x00\x00\x00\x03\n\x00\x00\x00\x03'
+            '\x00?\xf0\x00\x00\x00\x00\x00\x00\x00@\x00\x00\x00\x00\x00\x00'
+            '\x00\x00@\x08\x00\x00\x00\x00\x00\x00\n\x00\x00\x00\x03\x00@\x10'
+            '\x00\x00\x00\x00\x00\x00\x00@\x14\x00\x00\x00\x00\x00\x00\x00@\x18'
+            '\x00\x00\x00\x00\x00\x00\n\x00\x00\x00\x03\x00@\x1c\x00\x00\x00'
+            '\x00\x00\x00\x00@ \x00\x00\x00\x00\x00\x00\x00@"\x00\x00\x00\x00'
+            '\x00\x00\x00\x07version\x00?\xf0\x00\x00\x00\x00\x00\x00\x00\n'
+            'totalCount\x00@\x08\x00\x00\x00\x00\x00\x00\x00\x00\t\x00\x00\t')
 
     def test_decode(self):
         stream = util.BufferedByteStream()
         decoder = pyamf._get_decoder_class(pyamf.AMF0)(stream)
 
-        stream.write('\x11\x0a\x13\x13RecordSet\x15serverInfo\t\x01\rcursor\x04'
-            '\x01\x17columnNames\t\x07\x01\x06\x03a\x06\x03b\x06\x03c\x17initia'
-            'lData\t\x07\x01\t\x07\x01\x04\x01\x04\x02\x04\x03\t\x07\x01\x04'
-            '\x04\x04\x05\x04\x06\t\x07\x01\x04\x07\x04\x08\x04\t\x0fversion'
-            '\x04\x01\x15totalCount\x04\x03\x01')
+        stream.write('\x10\x00\tRecordSet\x00\nserverI'
+            'nfo\x03\x00\x06cursor\x00?\xf0\x00\x00\x00\x00\x00\x00\x00\x0bcol'
+            'umnNames\n\x00\x00\x00\x03\x02\x00\x01a\x02\x00\x01b\x02\x00\x01c'
+            '\x00\x0binitialData\n\x00\x00\x00\x03\n\x00\x00\x00\x03\x00?\xf0'
+            '\x00\x00\x00\x00\x00\x00\x00@\x00\x00\x00\x00\x00\x00\x00\x00@'
+            '\x08\x00\x00\x00\x00\x00\x00\n\x00\x00\x00\x03\x00@\x10\x00\x00'
+            '\x00\x00\x00\x00\x00@\x14\x00\x00\x00\x00\x00\x00\x00@\x18\x00'
+            '\x00\x00\x00\x00\x00\n\x00\x00\x00\x03\x00@\x1c\x00\x00\x00\x00'
+            '\x00\x00\x00@ \x00\x00\x00\x00\x00\x00\x00@"\x00\x00\x00\x00\x00'
+            '\x00\x00\x07version\x00?\xf0\x00\x00\x00\x00\x00\x00\x00\ntotalCo'
+            'unt\x00@\x08\x00\x00\x00\x00\x00\x00\x00\x00\t\x00\x00\t')
         stream.seek(0, 0)
 
         x = decoder.readElement()
