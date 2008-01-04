@@ -373,8 +373,8 @@ class RemotingService(object):
         if 'RequestPersistentHeader' in response.headers:
             data = response.headers['RequestPersistentHeader']
 
-            # FIXME nick: Work out what the data structure and amend
-            # self.headers accordingly
+            for k, v in data.iteritems():
+                self.headers[k] = v
 
         return response
 
