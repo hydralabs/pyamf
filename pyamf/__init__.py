@@ -190,6 +190,9 @@ class ASObject(dict):
         return dict.__repr__(self.__dict__)
 
 class Bag(ASObject):
+    """
+    @deprecated: Use ASObject instead.
+    """
     def __init__(self, *args, **kwargs):
         import warnings
 
@@ -199,7 +202,9 @@ class Bag(ASObject):
         ASObject.__init__(self, *args, **kwargs)
 
 class MixedArray(dict):
-    pass
+    """
+    Used to be able to specify the mixedarray type. 
+    """
 
 class ClassMetaData(list):
     """
