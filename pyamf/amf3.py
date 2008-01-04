@@ -577,15 +577,7 @@ class Decoder(pyamf.BaseDecoder):
             return self.context.getString(length)
 
         buf = self.stream.read(length)
-
-        try:
-            # Try decoding as regular utf8 first since that will
-            # cover most cases and is more efficient.
-            # XXX: I'm not sure if it's ok though..
-            # will it always raise exception?
-            result = unicode(buf, "utf8")
-        except UnicodeDecodeError:
-            result = decode_utf8_modified(buf)
+        result = unicode(buf, "utf8")
 
         if len(result) != 0 and use_references:
             self.context.addString(result)
@@ -914,29 +906,7 @@ class Encoder(pyamf.BaseEncoder):
         <http://osflash.org/documentation/amf3/parsing_integers>}
         for more info.
         """
-        if n > 0x40000000:
-            raise ValueError, "Out of range"
-
-        real_value = None
-
-        if n > 0x1fffff:
-            real_value = n
-            n >>= 1
-            self.stream.write_uchar(0x80 | ((n >> 21) & 0xff))
-
-        if n > 0x3fff:
-            self.stream.write_uchar(0x80 | ((n >> 14) & 0xff))
-
-        if n > 0x7f:
-            self.stream.write_uchar(0x80 | ((n >> 7) & 0xff))
-
-        if real_value is not None:
-            n = real_value
-
-        if n > 0x1fffff:
-            self.stream.write_uchar(n & 0xff)
-        else:
-            self.stream.write_uchar(n & 0x7f)
+        self.stream.write(_encode_int(n))
 
     def writeInteger(self, n, use_references=True):
         """
@@ -953,7 +923,7 @@ class Encoder(pyamf.BaseEncoder):
             return
 
         self.writeType(ASTypes.INTEGER)
-        self._writeInteger(n)
+        self.stream.write(_encode_int(n))
 
     def writeNumber(self, n, use_references=True):
         """
@@ -990,11 +960,9 @@ class Encoder(pyamf.BaseEncoder):
             except pyamf.ReferenceError:
                 self.context.addString(n)
 
-        s = encode_utf8_modified(n)[2:]
-        self._writeInteger((len(s) << 1) | REFERENCE_BIT)
+        self._writeInteger((len(n) << 1) | REFERENCE_BIT)
 
-        for ch in s:
-            self.stream.write_uchar(ord(ch))
+        self.stream.write_utf8_string(n)
 
     def writeString(self, n, use_references=True):
         """
@@ -1470,14 +1438,15 @@ class DataOutput(object):
         @type value: C{str}
         @param value: The string value to be written.
         """
-        val = None
+        if not isinstance(value, unicode):
+            value = unicode(value, 'utf8')
 
-        if isinstance(value, unicode):
-            val = value
-        else:
-            val = unicode(value, 'utf8')
+        buf = util.BufferedByteStream()
+        buf.write_utf8_string(value)
+        bytes = buf.getvalue()
 
-        self.stream.write(encode_utf8_modified(val))
+        self.encoder._writeInteger(len(bytes))
+        self.stream.write(bytes)
 
     def writeUTFBytes(self, value):
         """
@@ -1495,7 +1464,7 @@ class DataOutput(object):
         else:
             val = unicode(value, 'utf8')
 
-        self.stream.write(encode_utf8_modified(val)[2:])
+        self.stream.write_utf8_string(val)
 
 class DataInput(object):
     """
@@ -1646,10 +1615,8 @@ class DataInput(object):
         @return: A UTF-8 string produced by the byte
         representation of characters.
         """
-        data = self.stream.peek(2)
-        length = ((ord(data[0]) << 8) & 0xff) + ((ord(data[1]) << 0) & 0xff)
-
-        return decode_utf8_modified(self.stream.read(length + 2))
+        length = self.decoder.readInteger()
+        return self.stream.read_utf8_string(length)
 
     def readUTFBytes(self, length):
         """
@@ -1771,3 +1738,31 @@ def encode(element, context=None):
     encoder.writeElement(element)
 
     return buf
+
+def _encode_int(n):
+    if n > 0x40000000:
+        raise ValueError, "Out of range"
+
+    bytes = util.BufferedByteStream()
+    real_value = None
+
+    if n > 0x1fffff:
+        real_value = n
+        n >>= 1
+        bytes.write_uchar(0x80 | ((n >> 21) & 0xff))
+
+    if n > 0x3fff:
+        bytes.write_uchar(0x80 | ((n >> 14) & 0xff))
+
+    if n > 0x7f:
+        bytes.write_uchar(0x80 | ((n >> 7) & 0xff))
+
+    if real_value is not None:
+        n = real_value
+
+    if n > 0x1fffff:
+        bytes.write_uchar(n & 0xff)
+    else:
+        bytes.write_uchar(n & 0x7f)
+
+    return bytes.getvalue()
