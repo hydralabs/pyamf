@@ -8,6 +8,10 @@ of PyAMF.
 0.1.0b (unreleased)
 -------------------
 
+ - dicts are now used as the default for anonymous objects (Ticket:131)
+ - remoting.client mostly fully supports the predefined headers (defined at
+   http://osflash.org/documentation/amf/envelopes/remoting/headers). The only
+   one missing is amf_server_debug (Ticket:39) 
  - LazyImporter objects now set the __file__ attribute to None, so that
    querying sys.modules don't accidentally import the underlying module.
    (Ticket:147)  
