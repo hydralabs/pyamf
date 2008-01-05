@@ -475,8 +475,10 @@ class DecoderTestCase(unittest.TestCase):
         self.buf.write('\x11\x04\x01')
         self.buf.seek(0)
 
+        self.assertFalse(hasattr(self.decoder, '_amf3_context'))
         self.assertEquals(self.decoder.readElement(), 1)
         self.assertTrue(x in self.context.amf3_objs)
+        self.assertTrue(hasattr(self.decoder, '_amf3_context'))
 
 class HelperTestCase(unittest.TestCase):
     def test_encode(self):

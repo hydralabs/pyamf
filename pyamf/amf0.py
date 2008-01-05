@@ -318,7 +318,12 @@ class Decoder(pyamf.BaseDecoder):
         @rtype: C{mixed}
         @return: The AMF3 element read from the stream
         """
-        decoder = pyamf._get_decoder_class(pyamf.AMF3)(self.stream)
+        if not hasattr(self, '_amf3_context'):
+            from pyamf import amf3
+
+            self._amf3_context = amf3.Context()
+
+        decoder = pyamf._get_decoder_class(pyamf.AMF3)(self.stream, self._amf3_context)
 
         element = decoder.readElement()
         self.context.addAMF3Object(element)
