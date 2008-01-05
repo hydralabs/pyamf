@@ -387,6 +387,9 @@ def get_timestamp(d):
     @note: Inspiration taken from the U{Intertwingly blog
     <http://intertwingly.net/blog/2007/09/02/Dealing-With-Dates>}.
     """
+    if isinstance(d, datetime.date) and not isinstance(d, datetime.datetime):
+        d = datetime.datetime.combine(d, datetime.time(0, 0, 0, 0))
+
     return calendar.timegm(d.utctimetuple())
 
 def get_datetime(secs):

@@ -820,7 +820,7 @@ class RecordSet(object):
         if self.id is not None:
             ret.update(id=str(self.id))
 
-        return pyamf.Bag(ret)
+        return ret
 
     def _set_server_info(self, val):
         self.columns = val['columnNames']

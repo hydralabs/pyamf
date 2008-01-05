@@ -325,7 +325,8 @@ class EncoderTestCase(unittest.TestCase):
         x = datetime.datetime(2005, 3, 18, 1, 58, 31)
 
         self._run([
-            (x, '\x08\x01Bp+6!\x15\x80\x00')])
+            (x, '\x08\x01Bp+6!\x15\x80\x00'),
+            (datetime.date(2003, 12, 1), '\x08\x01Bo%\xe2\xb2\x80\x00\x00')])
 
     def test_date_references(self):
         import datetime
