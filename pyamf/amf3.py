@@ -637,8 +637,7 @@ class Decoder(pyamf.BaseDecoder):
                 result.append(self.readElement())
 
         else:
-            # key,value pairs -> python dict
-            result = {}
+            result = pyamf.MixedArray()
             self.context.addObject(result)
 
             while key != "":

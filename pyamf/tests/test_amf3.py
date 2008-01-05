@@ -377,8 +377,9 @@ class EncoderTestCase(unittest.TestCase):
         x = amf3.Decoder('\x09\x09\x03\x62\x06\x00\x03\x64\x06\x02\x03\x61\x06'
         '\x04\x03\x63\x06\x06\x01\x04\x00\x04\x01\x04\x02\x04\x03')
 
-        self.assertEqual(
-            x.readElement(), {'a': u'a', 'b': u'b', 'c': u'c', 'd': u'd',
+        y = x.readElement()
+        self.assertTrue(isinstance(y,pyamf.MixedArray))
+        self.assertEqual(y, {'a': u'a', 'b': u'b', 'c': u'c', 'd': u'd',
                 0: 0, 1: 1, 2: 2, 3: 3})
 
     def test_empty_key_string(self):
