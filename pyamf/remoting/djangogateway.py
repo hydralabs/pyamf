@@ -7,7 +7,7 @@ Gateway for the Django framework.
 This gateway allows you to expose functions in Django to AMF clients and
 servers.
 
-@see: U{Django homepage (external)<http://djangoproject.org>}
+@see: U{Django homepage (external)<http://djangoproject.com>}
 
 @author: U{Arnar Birgisson<mailto:arnarbi@gmail.com>}
 
@@ -37,7 +37,7 @@ class DjangoGateway(gateway.BaseGateway):
     where C{yourproject.yourapp.gateway.gw_instance} refers to an instance of
     this class.
 
-    @ivar expose_request: The standard django view always has the request
+    @ivar expose_request: The standard Django view always has the request
         object as the first parameter. To disable this functionality, set this
         to C{False}.
     @type expose_request: C{bool}
@@ -78,9 +78,9 @@ class DjangoGateway(gateway.BaseGateway):
         """
         Processes and dispatches the request.
 
-        @param http_request: The HTTPRequest object
+        @param http_request: The HTTPRequest object.
         @type http_request: C{HTTPRequest}
-        @return: The response to the request
+        @return: The response to the request.
         @rtype: C{HTTPResponse}
         """
         if http_request.method != 'POST':
