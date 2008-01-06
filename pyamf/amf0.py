@@ -129,10 +129,6 @@ class Context(pyamf.BaseContext):
         return self.objects[ref + 1]
 
     def __copy__(self):
-        """
-        @rtype:
-        @return:
-        """
         copy = self.__class__()
         copy.amf3_objs = self.amf3_objs
         copy.rev_amf3_objs = self.rev_amf3_objs
@@ -214,9 +210,9 @@ class Decoder(pyamf.BaseDecoder):
 
     def readNumber(self):
         """
-        Reads a Number.
+        Reads a ActionScript C{Number} value.
 
-        In ActionScript 1 and 2 the NumberASTypes type represents all numbers,
+        In ActionScript 1 and 2 the C{NumberASTypes} type represents all numbers,
         both floats and integers.
 
         @rtype: C{int}
@@ -226,7 +222,7 @@ class Decoder(pyamf.BaseDecoder):
 
     def readBoolean(self):
         """
-        Reads a Boolean.
+        Reads a ActionScript C{Boolean} value.
 
         @rtype: C{bool}
         @return: Boolean.
@@ -235,7 +231,7 @@ class Decoder(pyamf.BaseDecoder):
 
     def readNull(self):
         """
-        Reads null.
+        Reads a ActionScript C{null} value.
 
         @return: C{None}
         @rtype: C{None}
@@ -244,7 +240,7 @@ class Decoder(pyamf.BaseDecoder):
 
     def readUndefined(self):
         """
-        Reads an C{undefined} value.
+        Reads an ActionScript C{undefined} value.
 
         @return: L{Undefined<pyamf.Undefined>}
         """
@@ -295,7 +291,8 @@ class Decoder(pyamf.BaseDecoder):
 
     def readTypedObject(self):
         """
-        Reads an object from the stream and attempts to 'cast' it.
+        Reads an ActionScript object from the stream and attempts to
+        'cast' it.
 
         @rtype:
         @return:
@@ -365,7 +362,7 @@ class Decoder(pyamf.BaseDecoder):
         """
         Reads an object from the data stream.
 
-        @rtype: L{Bag<pyamf.ASObject>}
+        @rtype: L{ASObject<pyamf.ASObject>}
         """
         obj = pyamf.ASObject()
         self.context.addObject(obj)
@@ -411,9 +408,6 @@ class Decoder(pyamf.BaseDecoder):
     def readLongString(self):
         """
         Read UTF8 string.
-
-        @rtype:
-        @return:
         """
         len = self.stream.read_ulong()
 
@@ -422,9 +416,6 @@ class Decoder(pyamf.BaseDecoder):
     def readXML(self):
         """
         Read XML.
-
-        @rtype:
-        @return:
         """
         data = self.readLongString()
         xml = util.ET.fromstring(data)
@@ -479,9 +470,6 @@ class Encoder(pyamf.BaseEncoder):
     def writeUnsupported(self, data):
         """
         Writes unsupported data type to the stream.
-
-        @type   data:
-        @param  data:
         """
         self.writeType(ASTypes.UNSUPPORTED)
 
@@ -493,7 +481,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         # There is a very specific use case that we must check for.
         # In the context there is an array of amf3_objs that contain
-        # references to objects that are to be encoded in amf3
+        # references to objects that are to be encoded in amf3.
         try:
             self.context.getAMF3ObjectReference(data)
             return self.writeAMF3
@@ -509,7 +497,7 @@ class Encoder(pyamf.BaseEncoder):
         @type   data: C{mixed}
         @param  data: The data to be encoded to the AMF0 data stream.
 
-        @raise EncodeError: Unable to encode data.
+        @raise EncodeError: Unable to encode the data.
         """
         func = self._writeElementFunc(data)
 
@@ -555,7 +543,7 @@ class Encoder(pyamf.BaseEncoder):
 
     def writeNumber(self, n):
         """
-        Write number to data stream.
+        Write number to the data stream.
 
         @type   n: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param  n: AMF data.
@@ -565,7 +553,7 @@ class Encoder(pyamf.BaseEncoder):
 
     def writeBoolean(self, b):
         """
-        Write boolean to data stream.
+        Write boolean to the data stream.
 
         @type   b: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param  b: AMF data.
@@ -579,7 +567,7 @@ class Encoder(pyamf.BaseEncoder):
 
     def writeString(self, s, writeType=True):
         """
-        Write string to data stream.
+        Write string to the data stream.
 
         @type   s: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param  s: AMF data.
@@ -607,7 +595,7 @@ class Encoder(pyamf.BaseEncoder):
 
     def writeReference(self, o):
         """
-        Write reference to data stream.
+        Write reference to the data stream.
 
         @type   o: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param  o: AMF data.
@@ -619,7 +607,7 @@ class Encoder(pyamf.BaseEncoder):
 
     def _writeDict(self, o):
         """
-        Write C{dict} to data stream.
+        Write C{dict} to the data stream.
 
         @type   o: C{iterable}
         @param  o: AMF data.
@@ -630,7 +618,7 @@ class Encoder(pyamf.BaseEncoder):
 
     def writeMixedArray(self, o):
         """
-        Write mixed array to data stream.
+        Write mixed array to the data stream.
 
         @type   o: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param  o: AMF data.
@@ -734,7 +722,7 @@ class Encoder(pyamf.BaseEncoder):
 
     def writeXML(self, e):
         """
-        Write XML to data stream.
+        Write XML to the data stream.
 
         @type   e: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param  e: AMF data.
@@ -773,7 +761,7 @@ def decode(stream, context=None):
 
 def encode(element, context=None):
     """
-    A helper function to encode an element into AMF0 format.
+    A helper function to encode an element into the AMF0 format.
 
     @type   element: C{mixed}
     @param  element: The element to encode

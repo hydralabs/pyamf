@@ -165,7 +165,6 @@ class ByteArray(util.StringIOProxy):
     Supports C{zlib} compression.
 
     Possible uses of the C{ByteArray} class:
-
      - Creating a custom protocol to connect to a client.
      - Writing your own AMF/Remoting packet.
      - Optimizing the size of your data by using custom data types.
@@ -227,11 +226,8 @@ class ClassDefinition(object):
 
     def _getClass(self):
         """
-        If C{alias} is C{None}, an L{anonymous class<pyamf.ASObject>} is returned,
-        otherwise the class is loaded externally.
-
-        @rtype:
-        @return:
+        If C{alias} is C{None}, an L{anonymous class<pyamf.ASObject>} is
+        returned, otherwise the class is loaded externally.
         """
         if self.alias in (None, ''):
             # anonymous class
@@ -370,7 +366,7 @@ class Context(pyamf.BaseContext):
         @type class_def: L{ClassDefinition}
         @param class_def: The class definition reference to be found.
         @raise ReferenceError: The reference could not be found.
-        @return: The reference to C{class_def}
+        @return: The reference to C{class_def}.
         @rtype: C{int}
         """
         try:
@@ -382,11 +378,6 @@ class Context(pyamf.BaseContext):
     def addClassDefinition(self, class_def):
         """
         Creates a reference to C{class_def}.
-
-        @type class_def:
-        @param class_def:
-        @rtype:
-        @return:
         """
         try:
             return self.classes.index(class_def)
@@ -589,9 +580,6 @@ class Decoder(pyamf.BaseDecoder):
         Read date from the stream.
 
         The timezone is ignored as the date is always in UTC.
-
-        @return:
-        @rtype:
         """
         ref = self.readInteger()
 
@@ -615,9 +603,6 @@ class Decoder(pyamf.BaseDecoder):
 
         @see: U{Docuverse blog
         <http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug>}
-        
-        @return:
-        @rtype:
         """
         size = self.readInteger()
 
@@ -659,11 +644,6 @@ class Decoder(pyamf.BaseDecoder):
     def _getClassDefinition(self, ref):
         """
         Reads class definition from the stream.
-
-        @type ref:
-        @param ref:
-        @return:
-        @rtype:
         """
         class_ref = ref & REFERENCE_BIT == 0
 
@@ -731,9 +711,7 @@ class Decoder(pyamf.BaseDecoder):
         Reads an object from the stream.
 
         @type legacy: C{bool}
-        @param legacy: 
-        @return:
-        @rtype:
+        @param legacy:
         """
         ref = self.readInteger()
 
@@ -777,8 +755,6 @@ class Decoder(pyamf.BaseDecoder):
 
         @see: L{ByteArray}
         @note: This is not supported in ActionScript 1.0 and 2.0.
-        @return:
-        @rtype:
         """
         ref = self.readInteger()
 

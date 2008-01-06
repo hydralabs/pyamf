@@ -132,6 +132,8 @@ class BaseContext(object):
     def getObject(self, ref):
         """
         Gets an object based on a reference.
+
+        @raise TypeError: Bad reference type.
         """
         if not isinstance(ref, (int, long)):
             raise TypeError, "Bad reference type"
@@ -154,10 +156,10 @@ class BaseContext(object):
         """
         Adds a reference to C{obj}.
 
-        @type obj: mixed
+        @type obj: C{mixed}
         @param obj: The object to add to the context.
 
-        @rtype: int
+        @rtype: C{int}
         @return: Reference to C{obj}.
         """
         self.objects.append(obj)
@@ -191,7 +193,7 @@ class ASObject(dict):
 
 class Bag(ASObject):
     """
-    @deprecated: Use ASObject instead.
+    @deprecated: Use L{ASObject} instead.
     """
     def __init__(self, *args, **kwargs):
         import warnings
@@ -572,9 +574,7 @@ def unregister_class(alias):
         for s, a in CLASS_CACHE.iteritems():
             if a.klass == alias:
                 alias = s
-
                 break
-
     try:
         del CLASS_CACHE[alias]
     except KeyError:
@@ -587,9 +587,9 @@ def register_class_loader(loader):
 
     The L{loader} is provided with one argument, the C{Class} alias. If the
     loader succeeds in finding a suitable class then it should return that
-    class, otherwise it should return L{None}.
+    class, otherwise it should return C{None}.
 
-    @type loader: callable
+    @type loader: C{callable}
     @param loader:
 
     @raise TypeError: The C{loader} is not callable.
@@ -607,7 +607,7 @@ def unregister_class_loader(loader):
     """
     Unregisters a class loader.
 
-    @type loader: callable
+    @type loader: C{callable}
     @param loader: The object to be unregistered
 
     @raise LookupError: The C{loader} was not registered.
@@ -647,7 +647,7 @@ def load_class(alias):
     @param alias: The class name.
     @raise UnknownClassAlias: The C{alias} was not found.
     @raise TypeError: Expecting class type or L{ClassAlias} from loader.
-    @return:
+    @return: Class registered to the alias.
     @rtype:
     """
     alias = str(alias)
@@ -869,7 +869,7 @@ def _get_context_class(encoding):
 
 def flex_loader(alias):
     """
-    Loader for Flex framework compatibility classes.
+    Loader for L{Flex<pyamf.flex>} framework compatibility classes.
 
     @type alias:
     @param alias:
