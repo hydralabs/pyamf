@@ -415,7 +415,7 @@ class BaseDecoder(object):
         try:
             type = self.readType()
         except EOFError:
-	        raise EOStream
+            raise EOStream
 
         try:
             func = getattr(self, self.type_map[type])
