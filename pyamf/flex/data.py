@@ -52,7 +52,7 @@ class DataMessage(AsyncMessage):
 class SequencedMessage(AcknowledgeMessage):
     """
     Response to L{DataMessage} requests.
-    
+
     @see: U{SequencedMessage on Livedocs (external)
     <http://livedocs.adobe.com/flex/201/langref/mx/data/messages/SequencedMessage.html>}
     """
@@ -91,7 +91,7 @@ class PagedMessage(SequencedMessage):
         #: Provides access to the index of the current page in a
         #: sequence.
         self.pageIndex = None
-        
+
 class DataErrorMessage(ErrorMessage):
     """
     Special cases of ErrorMessage will be sent when a data conflict
@@ -114,7 +114,7 @@ class DataErrorMessage(ErrorMessage):
         #: The value that the server had for the object with the
         #: conflicting properties.
         self.serverObject = None
-        
+
 #: Namespace for C{flex.data} messages.
 MESSAGES_NS = 'flex.data.messages'
 

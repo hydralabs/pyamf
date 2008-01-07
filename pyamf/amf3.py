@@ -53,13 +53,13 @@ class ASTypes:
     #: used to encode a Boolean value of C{false}. No further information
     #: is encoded for this value.
     #: @note: In ActionScript 3.0 the concept of a primitive and Object
-    #: form of Boolean does not exist.  
+    #: form of Boolean does not exist.
     BOOL_FALSE = 0x02
     #: The true type is represented by the true type marker and is
     #: used to encode a Boolean value of C{true}. No further information
     #: is encoded for this value.
     #: @note: In ActionScript 3.0 the concept of a primitive and Object
-    #: form of Boolean does not exist. 
+    #: form of Boolean does not exist.
     BOOL_TRUE  = 0x03
     #: In AMF 3 integers are serialized using a variable length unsigned
     #: 29-bit integer.
@@ -78,9 +78,9 @@ class ASTypes:
     #: type in AMF 3 - the concept of string and long string types from
     #: AMF 0 is not used. Strings can be sent as a reference to a previously
     #: occurring String by using an index to the implicit string reference
-    #: table. 
+    #: table.
     #: Strings are encoding using UTF-8 - however the header may either
-    #: describe a string literal or a string reference. 
+    #: describe a string literal or a string reference.
     STRING     = 0x06
     #: ActionScript 3.0 introduced a new XML type however the legacy
     #: C{XMLDocument} type from ActionScript 1.0 and 2.0.is retained
@@ -89,13 +89,13 @@ class ASTypes:
     #: representation for serialization. As with other strings in AMF,
     #: the content is encoded in UTF-8. XMLDocuments can be sent as a reference
     #: to a previously occurring C{XMLDocument} instance by using an index to
-    #: the implicit object reference table. 
+    #: the implicit object reference table.
     #: @see: U{OSFlash documentation (external)
     #: <http://osflash.org/documentation/amf3#x07_-_xml_legacy_flash.xml.xmldocument_class>}
     XML        = 0x07
     #: In AMF 3 an ActionScript Date is serialized simply as the number of
     #: milliseconds elapsed since the epoch of midnight, 1st Jan 1970 in the
-    #: UTC time zone. Local time zone information is not sent. 
+    #: UTC time zone. Local time zone information is not sent.
     DATE       = 0x08
     #: ActionScript Arrays are described based on the nature of their indices,
     #: i.e. their type and how they are positioned in the Array.

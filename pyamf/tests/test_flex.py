@@ -40,7 +40,7 @@ class ArrayCollectionTestCase(unittest.TestCase):
         self.assertEquals(stream.getvalue(),
             '\n\x07Cflex.messaging.io.ArrayCollection'
             '\t\x01\x07foo\x06\x07bar\x01')
-            
+
         stream = util.BufferedByteStream()
         encoder = amf0.Encoder(stream)
 

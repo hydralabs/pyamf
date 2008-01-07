@@ -456,7 +456,7 @@ class TypeMapTestCase(unittest.TestCase):
     def test_add_same(self):
         td = pyamf.add_type(chr)
         self.assertRaises(KeyError, pyamf.add_type, chr)
-        
+
     def test_add_class(self):
         class A:
             pass

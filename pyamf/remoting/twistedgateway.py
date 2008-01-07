@@ -59,7 +59,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
             except (KeyboardInterrupt, SystemExit):
                 raise
             except:
-                pass                
+                pass
 
             body = "400 Bad Request\n\nThe request body was unable to " \
                 "be successfully decoded.\n\nTraceback:\n\n%s" % (

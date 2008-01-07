@@ -24,7 +24,7 @@ class RequestProcessor(object):
 
         @param request: The AMF request
         @type request: L{Request<pyamf.remoting.Request>}
-        """ 
+        """
         username = password = None
 
         if 'Credentials' in request.headers:

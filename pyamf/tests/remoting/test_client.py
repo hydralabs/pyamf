@@ -261,7 +261,7 @@ class RemotingServiceTestCase(unittest.TestCase):
 
     def test_add_request(self):
         gw = client.RemotingService('http://foobar.net')
-        
+
         self.assertEquals(gw.request_number, 1)
         self.assertEquals(gw.requests, [])
         service = gw.getService('baz')
@@ -297,7 +297,7 @@ class RemotingServiceTestCase(unittest.TestCase):
     def test_remove_request(self):
         gw = client.RemotingService('http://foobar.net')
         self.assertEquals(gw.requests, [])
-        
+
         service = gw.getService('baz')
         wrapper = gw.addRequest(service, 1, 2, 3)
         self.assertEquals(gw.requests, [wrapper])
@@ -315,7 +315,7 @@ class RemotingServiceTestCase(unittest.TestCase):
 
     def test_get_request(self):
         gw = client.RemotingService('http://foobar.net')
-        
+
         service = gw.getService('baz')
         wrapper = gw.addRequest(service, 1, 2, 3)
 
@@ -345,7 +345,7 @@ class RemotingServiceTestCase(unittest.TestCase):
         request = envelope['/1']
         self.assertEquals(request.target, 'baz.gak')
         self.assertEquals(request.body, [1, 2, 3])
-        
+
         envelope2 = gw.getAMFRequest(gw.requests)
 
         self.assertEquals(envelope2.amfVersion, pyamf.AMF3)
@@ -378,7 +378,7 @@ class RemotingServiceTestCase(unittest.TestCase):
 
         gw.execute_single(wrapper)
         self.assertEquals(gw.requests, [])
-        
+
         wrapper = service.gak()
 
         response = DummyResponse(200, '\x00\x00\x00\x00\x00\x01\x00\x0b/2/onRe'

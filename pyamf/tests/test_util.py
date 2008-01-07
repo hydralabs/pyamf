@@ -465,13 +465,13 @@ class NetworkIOMixInTestCase(unittest.TestCase):
         import fpconst
 
         x = NetworkStream('\xff\xf8\x00\x00\x00\x00\x00\x00')
-        self.assertTrue(fpconst.isNaN(x.read_double())) 
+        self.assertTrue(fpconst.isNaN(x.read_double()))
 
         x = NetworkStream('\xff\xf0\x00\x00\x00\x00\x00\x00')
         self.assertTrue(fpconst.isNegInf(x.read_double()))
- 
+
         x = NetworkStream('\x7f\xf0\x00\x00\x00\x00\x00\x00')
-        self.assertTrue(fpconst.isPosInf(x.read_double())) 
+        self.assertTrue(fpconst.isPosInf(x.read_double()))
 
 class BufferedByteStreamTestCase(unittest.TestCase):
     """

@@ -323,7 +323,7 @@ class BaseGatewayTestCase(unittest.TestCase):
 
         processor = gw.getProcessor(request)
         response = processor(request)
-        
+
         self.assertTrue(isinstance(response, remoting.Response))
         self.assertEquals(response.status, remoting.STATUS_OK)
         self.assertEquals(response.body, 'foo')
@@ -435,7 +435,7 @@ def suite():
 
             mod = imp.new_module('pyamf.test_django')
             os.environ['DJANGO_SETTINGS_MODULE'] = 'pyamf.test_django'
-            sys.modules['pyamf.test_django'] = mod 
+            sys.modules['pyamf.test_django'] = mod
 
             setattr(mod, 'DATABASE_ENGINE', 'sqlite3')
             setattr(mod, 'DATABASE_NAME', ':memory:')

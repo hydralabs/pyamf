@@ -205,7 +205,7 @@ class Bag(ASObject):
 
 class MixedArray(dict):
     """
-    Used to be able to specify the mixedarray type. 
+    Used to be able to specify the mixedarray type.
     """
 
 class ClassMetaData(list):
@@ -446,7 +446,7 @@ class CustomTypeFunc(object):
 class BaseEncoder(object):
     """
     Base AMF encoder.
-    
+
     @ivar type_map: A list of types -> functions. The types is a list of
         possible instances or functions to call (that return a C{bool}) to
         determine the correct function to call to encode the data.
@@ -457,7 +457,7 @@ class BaseEncoder(object):
     @ivar stream: The underlying data stream.
     @type stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     @ivar context: The context for the encoding.
-    @type context: An instance of C{BaseEncoder.context_class} 
+    @type context: An instance of C{BaseEncoder.context_class}
     """
     context_class = BaseContext
     type_map = []
@@ -676,7 +676,7 @@ def load_class(alias):
 
     # XXX nick: Are there security concerns for loading classes this way?
     mod_class = alias.split('.')
-    
+
     if mod_class:
         module = '.'.join(mod_class[:-1])
         klass = mod_class[-1]
@@ -726,7 +726,7 @@ def get_class_alias(klass):
 
     if isinstance(klass, basestring):
         return load_class(klass)
-    
+
     raise UnknownClassAlias, "Unknown alias %s" % klass
 
 def has_alias(obj):

@@ -452,7 +452,7 @@ class Encoder(pyamf.BaseEncoder):
 
         @type   type: C{int}
         @param  type: ActionScript type.
-        
+
         @raise EncodeError: AMF0 type is not recognized.
         """
         if type not in ACTIONSCRIPT_TYPES:
@@ -576,7 +576,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         if not isinstance(s, basestring):
             s = str(s)
- 
+
         if not isinstance(s, unicode):
             s = unicode(s, errors='ignore')
 
@@ -792,7 +792,7 @@ class RecordSet(object):
     @type items: List of lists, the order of the data corresponds
         to the order of the columns.
     @ivar service: Service linked to the recordset.
-    @type service: 
+    @type service:
     @ivar id: The id of the recordset.
     @type id: C{str}
 

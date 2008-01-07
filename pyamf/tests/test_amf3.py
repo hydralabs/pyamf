@@ -364,7 +364,7 @@ class EncoderTestCase(unittest.TestCase):
     def test_mixed_array(self):
         x = pyamf.MixedArray()
         x.update({0:u'hello', 'foo': u'bar'})
-        
+
         self._run([
             (x, '\x09\x03\x07\x66\x6f\x6f\x06\x07\x62\x61\x72\x01\x06\x0b\x68'
                 '\x65\x6c\x6c\x6f')])
