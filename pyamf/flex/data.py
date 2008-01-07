@@ -78,7 +78,7 @@ class SequencedMessage(AcknowledgeMessage):
 class PagedMessage(SequencedMessage):
     """
     This messsage provides information about a partial sequence result.
-    
+
     @see: U{PagedMessage on Livedocs (external)
     <http://livedocs.adobe.com/flex/201/langref/mx/data/messages/PagedMessage.html>}
     """
@@ -118,11 +118,6 @@ class DataErrorMessage(ErrorMessage):
 #: Namespace for C{flex.data} messages.
 MESSAGES_NS = 'flex.data.messages'
 
-pyamf.register_class(DataMessage, MESSAGES_NS + '.DataMessage',
-    metadata=['amf3'])
-pyamf.register_class(SequencedMessage, MESSAGES_NS + '.SequencedMessage',
-    metadata=['amf3'])
-pyamf.register_class(PagedMessage, MESSAGES_NS + '.PagedMessage',
-    metadata=['amf3'])
-pyamf.register_class(DataErrorMessage, MESSAGES_NS + '.DataErrorMessage',
-    metadata=['amf3'])
+for x in (DataMessage, SequencedMessage, PagedMessage, DataErrorMessage):
+    pyamf.register_class(x, '%s.%s' % (MESSAGES_NS, x.__name__), metadata=['amf3'])
+del x

@@ -875,7 +875,7 @@ def flex_loader(alias):
     @param alias:
     @raise UnknownClassAlias:
     """
-    if not alias.startswith('flex.messaging.'):
+    if not alias.startswith('flex.'):
         return
 
     try:
@@ -883,6 +883,8 @@ def flex_loader(alias):
             import pyamf.flex.messaging
         elif alias.startswith('flex.messaging.io'):
             import pyamf.flex
+        elif alias.startswith('flex.data.messages'):
+            import pyamf.flex.data
 
         return pyamf.CLASS_CACHE[alias]
     except KeyError:
