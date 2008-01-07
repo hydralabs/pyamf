@@ -1631,8 +1631,11 @@ def decode(stream, context=None):
     """
     decoder = Decoder(stream, context)
 
-    for el in decoder.readElement():
-        yield el
+    while 1:
+        try:
+    	    yield decoder.readElement()
+    	except pyamf.EOStream:
+    	    break
 
 def encode(element, context=None):
     """

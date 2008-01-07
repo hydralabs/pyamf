@@ -412,10 +412,10 @@ class BaseDecoder(object):
         @raise DecodeError: The ActionScript type is unknown
         @raise EOStream: No more data left to decode
         """
-	try:
+        try:
             type = self.readType()
         except EOFError:
-	    raise EOStream
+	        raise EOStream
 
         try:
             func = getattr(self, self.type_map[type])
