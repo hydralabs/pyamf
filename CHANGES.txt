@@ -5,7 +5,7 @@ PyAMF Changelog
 This file contains information about the changes between the different versions
 of PyAMF.
 
-0.1.0b (unreleased)
+0.1b (unreleased)
 -------------------
 
  - dicts are now used as the default for anonymous objects (Ticket:131)
