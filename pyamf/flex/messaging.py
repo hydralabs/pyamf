@@ -229,7 +229,7 @@ class RemotingMessage(AbstractMessage):
         #: This property is provided for backwards compatibility.
         self.source = kwargs.get('source', None)
 
-for x in (RemotingMessage, ErrorMessage, CommandMessage, AcknowledgeMessage, AsyncMessage, DataMessage):
+for x in (RemotingMessage, ErrorMessage, CommandMessage, AcknowledgeMessage, AsyncMessage):
     pyamf.register_class(x, 'flex.messaging.messages.%s' % x.__name__,
         metadata=['amf3'])
 del x
