@@ -292,7 +292,7 @@ class DataOutput(object):
         buf.write_utf8_string(value)
         bytes = buf.getvalue()
 
-        self.encoder._writeInteger(len(bytes))
+        self.stream.write_ushort(len(bytes))
         self.stream.write(bytes)
 
     def writeUTFBytes(self, value):
@@ -462,7 +462,7 @@ class DataInput(object):
         @return: A UTF-8 string produced by the byte
         representation of characters.
         """
-        length = self.decoder.readInteger()
+        length = self.stream.read_ushort()
         return self.stream.read_utf8_string(length)
 
     def readUTFBytes(self, length):

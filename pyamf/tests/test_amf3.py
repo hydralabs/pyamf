@@ -1056,7 +1056,7 @@ class DataOutputTestCase(unittest.TestCase):
 
         x.writeUTF(u'ἔδωσαν')
 
-        self.assertEquals(self.stream.getvalue(), '\r\xe1\xbc\x94\xce'
+        self.assertEquals(self.stream.getvalue(), '\x00\r\xe1\xbc\x94\xce'
             '\xb4\xcf\x89\xcf\x83\xce\xb1\xce\xbd')
 
     def test_utf_bytes(self):
@@ -1155,8 +1155,8 @@ class DataInputTestCase(unittest.TestCase):
     def test_utf(self):
         x = amf3.DataInput(self.decoder)
 
-        self._test('\x0bhello world', u'hello world', x.readUTF)
-        self._test('\r\xe1\xbc\x94\xce\xb4\xcf\x89\xcf\x83\xce\xb1\xce\xbd',
+        self._test('\x00\x0bhello world', u'hello world', x.readUTF)
+        self._test('\x00\r\xe1\xbc\x94\xce\xb4\xcf\x89\xcf\x83\xce\xb1\xce\xbd',
             u'ἔδωσαν', x.readUTF)
 
     def test_utf_bytes(self):
