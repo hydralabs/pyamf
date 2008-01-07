@@ -155,12 +155,334 @@ class ObjectEncoding:
     #: Proxy object.
     PROXY = 0x03
 
-class ByteArray(util.StringIOProxy):
+class DataOutput(object):
     """
-    I am a C{StringIO} type object containing byte data from
-    the AMF stream. ActionScript 3.0 introduced the
-    C{flash.utils.ByteArray} class to support the manipulation of
-    raw data in the form of an Array of bytes.
+    I provide a set of methods for writing binary data with ActionScript 3.0.
+
+    This class is the I/O counterpart to the L{DataInput} class, which reads
+    binary data.
+
+    @see: U{IDataOutput on Livedocs (external)
+    <http://livedocs.adobe.com/flex/201/langref/flash/utils/IDataOutput.html>}
+    """
+    def __init__(self, encoder):
+        """
+        @param encoder: Encoder containing the stream.
+        @type encoder: L{amf3.Encoder<pyamf.amf3.Encoder>}
+        """
+        self.encoder = encoder
+        self.stream = encoder.stream
+
+    def writeBoolean(self, value):
+        """
+        Writes a Boolean value.
+
+        @type value: C{bool}
+        @param value: A Boolean value determining which byte is written.
+        If the parameter is C{True}, 1 is written; if C{False}, 0 is written.
+
+        @raise ValueError: Non-boolean value is found.
+        """
+        if isinstance(value, bool):
+            if value is True:
+                self.stream.write_uchar(1)
+            else:
+                self.stream.write_uchar(0)
+        else:
+            raise ValueError("Non-boolean value found")
+
+    def writeByte(self, value):
+        """
+        Writes a byte.
+
+        @type value: C{int}
+        @param value:
+        """
+        self.stream.write_char(value)
+
+    def writeDouble(self, value):
+        """
+        Writes an IEEE 754 double-precision (64-bit) floating
+        point number.
+
+        @type value: C{number}
+        @param value:
+        """
+        self.stream.write_double(value)
+
+    def writeFloat(self, value):
+        """
+        Writes an IEEE 754 single-precision (32-bit) floating
+        point number.
+
+        @type value: C{float}
+        @param value:
+        """
+        self.stream.write_float(value)
+
+    def writeInt(self, value):
+        """
+        Writes a 32-bit signed integer.
+
+        @type value: C{int}
+        @param value:
+        """
+        self.stream.write_long(value)
+
+    def writeMultiByte(self, value, charset):
+        """
+        Writes a multibyte string to the datastream using the
+        specified character set.
+
+        @type value: C{str}
+        @param value: The string value to be written.
+        @type charset: C{str}
+        @param charset: The string denoting the character
+        set to use. Possible character set strings include
+        C{shift-jis}, C{cn-gb}, C{iso-8859-1} and others.
+        @see: U{Supported character sets on Livedocs (external)
+        <http://livedocs.adobe.com/flex/201/langref/charset-codes.html>}
+        """
+        self.stream.write(unicode(value).encode(charset))
+
+    def writeObject(self, value, use_references=True):
+        """
+        Writes an object to data stream in AMF serialized format.
+
+        @type value:
+        @param value: The object to be serialized.
+        @type use_references: C{bool}
+        @param use_references:
+        """
+        self.encoder.writeElement(value, use_references)
+
+    def writeShort(self, value):
+        """
+        Writes a 16-bit integer.
+
+        @type value: C{int}
+        @param value: A byte value as an integer.
+        """
+        self.stream.write_short(value)
+
+    def writeUnsignedInt(self, value):
+        """
+        Writes a 32-bit unsigned integer.
+
+        @type value: C{int}
+        @param value: A byte value as an unsigned integer.
+        """
+        self.stream.write_ulong(value)
+
+    def writeUTF(self, value):
+        """
+        Writes a UTF-8 string to the data stream.
+
+        The length of the UTF-8 string in bytes is written first,
+        as a 16-bit integer, followed by the bytes representing the
+        characters of the string.
+
+        @type value: C{str}
+        @param value: The string value to be written.
+        """
+        if not isinstance(value, unicode):
+            value = unicode(value, 'utf8')
+
+        buf = util.BufferedByteStream()
+        buf.write_utf8_string(value)
+        bytes = buf.getvalue()
+
+        self.encoder._writeInteger(len(bytes))
+        self.stream.write(bytes)
+
+    def writeUTFBytes(self, value):
+        """
+        Writes a UTF-8 string. Similar to L{writeUTF}, but does
+        not prefix the string with a 16-bit length word.
+
+        @type value: C{str}
+        @param value: The string value to be written.
+        """
+
+        val = None
+
+        if isinstance(value, unicode):
+            val = value
+        else:
+            val = unicode(value, 'utf8')
+
+        self.stream.write_utf8_string(val)
+
+class DataInput(object):
+    """
+    I provide a set of methods for reading binary data with ActionScript 3.0.
+
+    This class is the I/O counterpart to the L{DataOutput} class,
+    which writes binary data.
+
+    @see: U{IDataInput on Livedocs (external)
+    <http://livedocs.adobe.com/flex/201/langref/flash/utils/IDataInput.html>}
+    """
+    def __init__(self, decoder):
+        """
+        @param decoder: AMF3 decoder containing the stream.
+        @type decoder: L{amf3.Decoder<pyamf.amf3.Decoder>}
+        """
+        self.decoder = decoder
+        self.stream = decoder.stream
+
+    def readBoolean(self):
+        """
+        Read Boolean.
+
+        @raise ValueError: Error reading Boolean.
+        @rtype: C{bool}
+        @return: A Boolean value, C{True} if the byte
+        is nonzero, C{False} otherwise.
+        """
+        byte = self.stream.read(1)
+
+        if byte == '\x00':
+            return False
+        elif byte == '\x01':
+            return True
+        else:
+            raise ValueError("Error reading boolean")
+
+    def readByte(self):
+        """
+        Reads a signed byte.
+
+        @rtype: C{int}
+        @return: The returned value is in the range -128 to 127.
+        """
+        return self.stream.read_char()
+
+    def readDouble(self):
+        """
+        Reads an IEEE 754 double-precision floating point number from the
+        data stream.
+
+        @rtype: C{number}
+        @return: An IEEE 754 double-precision floating point number.
+        """
+        return self.stream.read_double()
+
+    def readFloat(self):
+        """
+        Reads an IEEE 754 single-precision floating point number from the
+        data stream.
+
+        @rtype: C{number}
+        @return: An IEEE 754 single-precision floating point number.
+        """
+        return self.stream.read_float()
+
+    def readInt(self):
+        """
+        Reads a signed 32-bit integer from the data stream.
+
+        @rtype: C{int}
+        @return: The returned value is in the range -2147483648 to 2147483647.
+        """
+        return self.stream.read_long()
+
+    def readMultiByte(self, length, charset):
+        """
+        Reads a multibyte string of specified length from the data stream
+        using the specified character set.
+
+        @type length: C{int}
+        @param length: The number of bytes from the data stream to read.
+
+        @type charset: C{str}
+        @param charset: The string denoting the character set to use.
+
+        @rtype: C{str}
+        @return: UTF-8 encoded string.
+        """
+        #FIXME nick: how to work out the code point byte size (on the fly)?
+        bytes = self.stream.read(length)
+
+        return unicode(bytes, charset)
+
+    def readObject(self):
+        """
+        Reads an object from the data stream.
+
+        @rtype:
+        @return: The deserialized object.
+        """
+        return self.decoder.readElement()
+
+    def readShort(self):
+        """
+        Reads a signed 16-bit integer from the data stream.
+
+        @rtype: C{uint}
+        @return: The returned value is in the range -32768 to 32767.
+        """
+        return self.stream.read_short()
+
+    def readUnsignedByte(self):
+        """
+        Reads an unsigned byte from the data stream.
+
+        @rtype: C{uint}
+        @return: The returned value is in the range 0 to 255.
+        """
+        return self.stream.read_uchar()
+
+    def readUnsignedInt(self):
+        """
+        Reads an unsigned 32-bit integer from the data stream.
+
+        @rtype: C{uint}
+        @return: The returned value is in the range 0 to 4294967295.
+        """
+        return self.stream.read_ulong()
+
+    def readUnsignedShort(self):
+        """
+        Reads an unsigned 16-bit integer from the data stream.
+
+        @rtype: C{uint}
+        @return: The returned value is in the range 0 to 65535.
+        """
+        return self.stream.read_ushort()
+
+    def readUTF(self):
+        """
+        Reads a UTF-8 string from the data stream.
+
+        The string is assumed to be prefixed with an unsigned
+        short indicating the length in bytes.
+
+        @rtype: C{str}
+        @return: A UTF-8 string produced by the byte
+        representation of characters.
+        """
+        length = self.decoder.readInteger()
+        return self.stream.read_utf8_string(length)
+
+    def readUTFBytes(self, length):
+        """
+        Reads a sequence of C{length} UTF-8 bytes from the data
+        stream and returns a string.
+
+        @type length: C{int}
+        @param length: The number of bytes from the data stream to read.
+        @rtype: str
+        @return: A UTF-8 string produced by the byte
+        representation of characters of specified length.
+        """
+        return self.readMultiByte(length, 'utf-8')
+
+class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
+    """
+    I am a C{StringIO} type object containing byte data from the AMF stream.
+    ActionScript 3.0 introduced the C{flash.utils.ByteArray} class to support
+    the manipulation of raw data in the form of an Array of bytes.
 
     Supports C{zlib} compression.
 
@@ -168,20 +490,41 @@ class ByteArray(util.StringIOProxy):
      - Creating a custom protocol to connect to a client.
      - Writing your own AMF/Remoting packet.
      - Optimizing the size of your data by using custom data types.
-    
+
     @see: U{ByteArray on Livedocs (external)
     <http://livedocs.adobe.com/flex/201/langref/flash/utils/ByteArray.html>}
     """
 
     def __init__(self, *args, **kwargs):
-        util.StringIOProxy.__init__(self, *args, **kwargs)
-        self._was_compressed = False
+        self.context = kwargs.pop('context', Context())
+
+        util.BufferedByteStream.__init__(self, *args, **kwargs)
+        DataInput.__init__(self, Encoder(self, self.context))
+        DataOutput.__init__(self, Decoder(self, self.context))
+
+        self.compressed = False
 
     def __cmp__(self, other):
         if isinstance(other, ByteArray):
-            return cmp(self._buffer.getvalue(), other._buffer.getvalue())
+            return cmp(self.getvalue(), other.getvalue())
 
         return cmp(self._buffer, other)
+
+    def __str__(self):
+        buf = self.getvalue()
+
+        if self.compressed:
+            buf = zlib.compress(buf)
+            #FIXME nick: hacked
+            buf = buf[0] + '\xda' + buf[2:]
+
+        return buf
+
+    def compress(self):
+        """
+        Forces compression of the underlying stream
+        """
+        self.compressed = True
 
 class ClassDefinition(object):
     """
@@ -769,8 +1112,8 @@ class Decoder(pyamf.BaseDecoder):
         except zlib.error:
             compressed = False
 
-        obj = ByteArray(buffer)
-        obj._was_compressed = compressed
+        obj = ByteArray(buffer, context=self.context)
+        obj.compressed = compressed
 
         self.context.addObject(obj)
 
@@ -1241,13 +1584,7 @@ class Encoder(pyamf.BaseEncoder):
             except pyamf.ReferenceError:
                 self.context.addObject(n)
 
-        buf = n.getvalue()
-
-        if n._was_compressed:
-            buf = zlib.compress(buf)
-            #FIXME nick: hacked
-            buf = buf[0] + '\xda' + buf[2:]
-
+        buf = str(n)
         l = len(buf)
         self._writeInteger(l << 1 | REFERENCE_BIT)
         self.stream.write(buf)
@@ -1282,329 +1619,6 @@ class Encoder(pyamf.BaseEncoder):
                 self.context.addObject(n)
 
         self._writeString(util.ET.tostring(n), False)
-
-class DataOutput(object):
-    """
-    I provide a set of methods for writing binary data with ActionScript 3.0.
-
-    This class is the I/O counterpart to the L{DataInput} class, which reads
-    binary data.
-
-    @see: U{IDataOutput on Livedocs (external)
-    <http://livedocs.adobe.com/flex/201/langref/flash/utils/IDataOutput.html>}
-    """
-    def __init__(self, encoder):
-        """
-        @param encoder: Encoder containing the stream.
-        @type encoder: L{amf3.Encoder<pyamf.amf3.Encoder>}
-        """
-        self.encoder = encoder
-        self.stream = encoder.stream
-
-    def writeBoolean(self, value):
-        """
-        Writes a Boolean value.
-
-        @type value: C{bool}
-        @param value: A Boolean value determining which byte is written.
-        If the parameter is C{True}, 1 is written; if C{False}, 0 is written.
-
-        @raise ValueError: Non-boolean value is found.
-        """
-        if isinstance(value, bool):
-            if value is True:
-                self.stream.write_uchar(1)
-            else:
-                self.stream.write_uchar(0)
-        else:
-            raise ValueError("Non-boolean value found")
-
-    def writeByte(self, value):
-        """
-        Writes a byte.
-
-        @type value: C{int}
-        @param value:
-        """
-        self.stream.write_char(value)
-
-    def writeDouble(self, value):
-        """
-        Writes an IEEE 754 double-precision (64-bit) floating
-        point number.
-
-        @type value: C{number}
-        @param value:
-        """
-        self.stream.write_double(value)
-
-    def writeFloat(self, value):
-        """
-        Writes an IEEE 754 single-precision (32-bit) floating
-        point number.
-
-        @type value: C{float}
-        @param value:
-        """
-        self.stream.write_float(value)
-
-    def writeInt(self, value):
-        """
-        Writes a 32-bit signed integer.
-
-        @type value: C{int}
-        @param value:
-        """
-        self.stream.write_long(value)
-
-    def writeMultiByte(self, value, charset):
-        """
-        Writes a multibyte string to the datastream using the
-        specified character set.
-
-        @type value: C{str}
-        @param value: The string value to be written.
-        @type charset: C{str}
-        @param charset: The string denoting the character
-        set to use. Possible character set strings include
-        C{shift-jis}, C{cn-gb}, C{iso-8859-1} and others.
-        @see: U{Supported character sets on Livedocs (external)
-        <http://livedocs.adobe.com/flex/201/langref/charset-codes.html>}
-        """
-        self.stream.write(unicode(value).encode(charset))
-
-    def writeObject(self, value, use_references=True):
-        """
-        Writes an object to data stream in AMF serialized format.
-
-        @type value:
-        @param value: The object to be serialized.
-        @type use_references: C{bool}
-        @param use_references:
-        """
-        self.encoder.writeElement(value, use_references)
-
-    def writeShort(self, value):
-        """
-        Writes a 16-bit integer.
-
-        @type value: C{int}
-        @param value: A byte value as an integer.
-        """
-        self.stream.write_short(value)
-
-    def writeUnsignedInt(self, value):
-        """
-        Writes a 32-bit unsigned integer.
-
-        @type value: C{int}
-        @param value: A byte value as an unsigned integer.
-        """
-        self.stream.write_ulong(value)
-
-    def writeUTF(self, value):
-        """
-        Writes a UTF-8 string to the data stream.
-
-        The length of the UTF-8 string in bytes is written first,
-        as a 16-bit integer, followed by the bytes representing the
-        characters of the string.
-
-        @type value: C{str}
-        @param value: The string value to be written.
-        """
-        if not isinstance(value, unicode):
-            value = unicode(value, 'utf8')
-
-        buf = util.BufferedByteStream()
-        buf.write_utf8_string(value)
-        bytes = buf.getvalue()
-
-        self.encoder._writeInteger(len(bytes))
-        self.stream.write(bytes)
-
-    def writeUTFBytes(self, value):
-        """
-        Writes a UTF-8 string. Similar to L{writeUTF}, but does
-        not prefix the string with a 16-bit length word.
-
-        @type value: C{str}
-        @param value: The string value to be written.
-        """
-
-        val = None
-
-        if isinstance(value, unicode):
-            val = value
-        else:
-            val = unicode(value, 'utf8')
-
-        self.stream.write_utf8_string(val)
-
-class DataInput(object):
-    """
-    I provide a set of methods for reading binary data with ActionScript 3.0.
-
-    This class is the I/O counterpart to the L{DataOutput} class,
-    which writes binary data.
-
-    @see: U{IDataInput on Livedocs (external)
-    <http://livedocs.adobe.com/flex/201/langref/flash/utils/IDataInput.html>}
-    """
-    def __init__(self, decoder):
-        """
-        @param decoder: AMF3 decoder containing the stream.
-        @type decoder: L{amf3.Decoder<pyamf.amf3.Decoder>}
-        """
-        self.decoder = decoder
-        self.stream = decoder.stream
-
-    def readBoolean(self):
-        """
-        Read Boolean.
-
-        @raise ValueError: Error reading Boolean.
-        @rtype: C{bool}
-        @return: A Boolean value, C{True} if the byte
-        is nonzero, C{False} otherwise.
-        """
-        byte = self.stream.read(1)
-
-        if byte == '\x00':
-            return False
-        elif byte == '\x01':
-            return True
-        else:
-            raise ValueError("Error reading boolean")
-
-    def readByte(self):
-        """
-        Reads a signed byte.
-
-        @rtype: C{int}
-        @return: The returned value is in the range -128 to 127.
-        """
-        return self.stream.read_char()
-
-    def readDouble(self):
-        """
-        Reads an IEEE 754 double-precision floating point number from the
-        data stream.
-
-        @rtype: C{number}
-        @return: An IEEE 754 double-precision floating point number.
-        """
-        return self.stream.read_double()
-
-    def readFloat(self):
-        """
-        Reads an IEEE 754 single-precision floating point number from the
-        data stream.
-
-        @rtype: C{number}
-        @return: An IEEE 754 single-precision floating point number.
-        """
-        return self.stream.read_float()
-
-    def readInt(self):
-        """
-        Reads a signed 32-bit integer from the data stream.
-
-        @rtype: C{int}
-        @return: The returned value is in the range -2147483648 to 2147483647.
-        """
-        return self.stream.read_long()
-
-    def readMultiByte(self, length, charset):
-        """
-        Reads a multibyte string of specified length from the data stream
-        using the specified character set.
-
-        @type length: C{int}
-        @param length: The number of bytes from the data stream to read.
-
-        @type charset: C{str}
-        @param charset: The string denoting the character set to use.
-
-        @rtype: C{str}
-        @return: UTF-8 encoded string.
-        """
-        #FIXME nick: how to work out the code point byte size (on the fly)?
-        bytes = self.stream.read(length)
-
-        return unicode(bytes, charset)
-
-    def readObject(self):
-        """
-        Reads an object from the data stream.
-
-        @rtype:
-        @return: The deserialized object.
-        """
-        return self.decoder.readElement()
-
-    def readShort(self):
-        """
-        Reads a signed 16-bit integer from the data stream.
-
-        @rtype: C{uint}
-        @return: The returned value is in the range -32768 to 32767.
-        """
-        return self.stream.read_short()
-
-    def readUnsignedByte(self):
-        """
-        Reads an unsigned byte from the data stream.
-
-        @rtype: C{uint}
-        @return: The returned value is in the range 0 to 255.
-        """
-        return self.stream.read_uchar()
-
-    def readUnsignedInt(self):
-        """
-        Reads an unsigned 32-bit integer from the data stream.
-
-        @rtype: C{uint}
-        @return: The returned value is in the range 0 to 4294967295.
-        """
-        return self.stream.read_ulong()
-
-    def readUnsignedShort(self):
-        """
-        Reads an unsigned 16-bit integer from the data stream.
-
-        @rtype: C{uint}
-        @return: The returned value is in the range 0 to 65535.
-        """
-        return self.stream.read_ushort()
-
-    def readUTF(self):
-        """
-        Reads a UTF-8 string from the data stream.
-
-        The string is assumed to be prefixed with an unsigned
-        short indicating the length in bytes.
-
-        @rtype: C{str}
-        @return: A UTF-8 string produced by the byte
-        representation of characters.
-        """
-        length = self.decoder.readInteger()
-        return self.stream.read_utf8_string(length)
-
-    def readUTFBytes(self, length):
-        """
-        Reads a sequence of C{length} UTF-8 bytes from the data
-        stream and returns a string.
-
-        @type length: C{int}
-        @param length: The number of bytes from the data stream to read.
-        @rtype: str
-        @return: A UTF-8 string produced by the byte
-        representation of characters of specified length.
-        """
-        return self.readMultiByte(length, 'utf-8')
 
 def encode_utf8_modified(data):
     """
