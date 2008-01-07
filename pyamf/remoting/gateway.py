@@ -350,3 +350,5 @@ for f in glob(os.path.join(os.path.dirname(thismodule[1].__file__), '*gateway.py
     importer = LazyImporter(name)
     sys.modules['%s.%s' % (thismodule[0], localname)] = importer
     setattr(sys.modules[thismodule[0]], localname, importer)
+
+del f, importer, thismodule, name
