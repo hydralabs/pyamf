@@ -352,3 +352,4 @@ for f in glob(os.path.join(os.path.dirname(thismodule[1].__file__), '*gateway.py
     setattr(sys.modules[thismodule[0]], localname, importer)
 
 del f, importer, thismodule, name
+del glob, sys, types, os
