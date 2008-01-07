@@ -441,4 +441,4 @@ if not fpconst.isNaN(fp):
     NetworkIOMixIn.write_double = write_float_workaround
     write_float_workaround.old_func = x
 
-del bytes, fp, x
+del bytes, fp
