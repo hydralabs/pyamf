@@ -626,6 +626,9 @@ def get_module(mod_name):
     @rtype:
     @return: Module
     """
+    if mod_name is '':
+        raise ImportError, "Unable to import empty module"
+
     mod = __import__(mod_name)
     components = mod_name.split('.')
 
@@ -695,7 +698,7 @@ def load_class(alias):
                 return klass
 
     # All available methods for finding the class have been exhausted
-    raise UnknownClassAlias("Unknown alias %s" % alias)
+    raise UnknownClassAlias, "Unknown alias %s" % alias
 
 def get_class_alias(klass):
     """
