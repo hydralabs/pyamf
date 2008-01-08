@@ -341,7 +341,7 @@ class LazyImporter(object):
         return getattr(mod, name)
 
 for f in glob(os.path.join(os.path.dirname(thismodule[1].__file__), '*gateway.py')):
-    name = f.rsplit('/', 1)[1].rsplit('.py')[0]
+    name = f.rsplit(os.path.sep, 1)[1].rsplit('.py')[0]
     localname = name.rsplit('gateway', 1)[0]
 
     if localname == '':
