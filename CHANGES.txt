@@ -8,7 +8,7 @@ of PyAMF.
 0.1b (unreleased)
 -------------------
 
- - Implemented Local Shared Object (SOL) support (Ticket:11) 
+ - Implemented Local Shared Object (LSO) support (Ticket:11) 
  - dicts are now used as the default for anonymous objects (Ticket:131)
  - remoting.client mostly fully supports the predefined headers (defined at
    http://osflash.org/documentation/amf/envelopes/remoting/headers). The only
