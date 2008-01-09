@@ -170,6 +170,8 @@ class DataOutput(object):
         @param encoder: Encoder containing the stream.
         @type encoder: L{amf3.Encoder<pyamf.amf3.Encoder>}
         """
+        assert isinstance(encoder, Encoder)
+
         self.encoder = encoder
         self.stream = encoder.stream
 
@@ -328,6 +330,8 @@ class DataInput(object):
         @param decoder: AMF3 decoder containing the stream.
         @type decoder: L{amf3.Decoder<pyamf.amf3.Decoder>}
         """
+        assert isinstance(decoder, Decoder)
+
         self.decoder = decoder
         self.stream = decoder.stream
 
@@ -499,8 +503,8 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
         self.context = kwargs.pop('context', Context())
 
         util.BufferedByteStream.__init__(self, *args, **kwargs)
-        DataInput.__init__(self, Encoder(self, self.context))
-        DataOutput.__init__(self, Decoder(self, self.context))
+        DataInput.__init__(self, Decoder(self, self.context))
+        DataOutput.__init__(self, Encoder(self, self.context))
 
         self.compressed = False
 
