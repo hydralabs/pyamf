@@ -21,7 +21,12 @@ class WSGIGateway(gateway.BaseGateway):
     WSGI Remoting Gateway.
     """
 
-    def getResponse(self, request):
+    def __init__(self, services={}, expose_environ=True):
+        gateway.BaseGateway.__init__(self, services)
+
+        self.expose_environ = expose_environ
+
+    def getResponse(self, request, environ):
         """
         Processes the AMF request, returning an AMF response.
 
@@ -31,9 +36,18 @@ class WSGIGateway(gateway.BaseGateway):
         @return: The AMF Response.
         """
         response = remoting.Envelope(request.amfVersion, request.clientType)
+        
+        kwargs = {}
+
+        if self.expose_environ:
+            def wrapper(service_request, *body):
+                return service_request(environ, *body)
+
+            kwargs.update({'service_wrapper': wrapper})
 
         for name, message in request:
-            response[name] = self.getProcessor(message)(message)
+            processor = self.getProcessor(message)
+            response[name] = processor(message, **kwargs)
 
         return response
 
@@ -88,7 +102,7 @@ class WSGIGateway(gateway.BaseGateway):
 
         # Process the request
         try:
-            response = self.getResponse(request)
+            response = self.getResponse(request, environ)
         except (KeyboardInterrupt, SystemExit):
             raise
         except:

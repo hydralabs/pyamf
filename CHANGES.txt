@@ -8,6 +8,8 @@ of PyAMF.
 0.1b (unreleased)
 -------------------
 
+ - Added 'expose_environ' argument to WSGIGateway to expose the WSGI environ
+   as the first arg in the called services.
  - Implemented Local Shared Object (LSO) support (Ticket:11) 
  - dicts are now used as the default for anonymous objects (Ticket:131)
  - remoting.client mostly fully supports the predefined headers (defined at
