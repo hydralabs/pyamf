@@ -309,8 +309,22 @@ class BaseGateway(object):
 from glob import glob
 import sys, os.path
 
+thismodule = None
+
+for name, mod in sys.modules.iteritems():
+    if not isinstance(mod, types.ModuleType):
+        continue
+
+    if not hasattr(mod, '__file__'):
+        continue
+
+    if mod.__file__ == __file__:
+        thismodule = (name, mod)
+
+        break
+
 class LazyImporter(object):
-    module = 'pyamf.remoting.gateway'
+    module = '.'.join(thismodule[0].split('.')[:-1])
 
     def __init__(self, module_name):
         self.__name__ = module_name
@@ -326,7 +340,7 @@ class LazyImporter(object):
 
         return getattr(mod, name)
 
-for f in glob(os.path.join(os.path.dirname(__file__), '*gateway.py')):
+for f in glob(os.path.join(os.path.dirname(thismodule[1].__file__), '*gateway.py')):
     name = f.rsplit(os.path.sep, 1)[1].rsplit('.py')[0]
     localname = name.rsplit('gateway', 1)[0]
 
@@ -334,8 +348,8 @@ for f in glob(os.path.join(os.path.dirname(__file__), '*gateway.py')):
         continue
 
     importer = LazyImporter(name)
-    sys.modules['%s.%s' % (LazyImporter.module, localname)] = importer
-    setattr(sys.modules[LazyImporter.module], localname, importer)
+    sys.modules['%s.%s' % (thismodule[0], localname)] = importer
+    setattr(sys.modules[thismodule[0]], localname, importer)
 
-del f, importer, name
+del f, importer, thismodule, name
 del glob, os
