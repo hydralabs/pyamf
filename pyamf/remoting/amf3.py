@@ -11,9 +11,28 @@ AMF3 RemoteObject support.
 
 import calendar, time, uuid
 
+import pyamf
 from pyamf import remoting
 from pyamf.remoting import gateway
 from pyamf.flex.messaging import *
+
+error_alias = pyamf.get_class_alias(ErrorMessage)
+
+class BaseServerError(pyamf.BaseError):
+    """
+    Base server errror
+    """
+
+class ServerCallFailed(BaseServerError):
+    """
+    A catchall error.
+    """
+
+    _amf_code = 'Server.Call.Failed'
+
+pyamf.register_class(ServerCallFailed, attrs=error_alias.attrs)
+
+del error_alias
 
 def generate_random_id():
     return str(uuid.uuid4())
@@ -29,6 +48,28 @@ def generate_acknowledgement(request=None):
         ack.correlationId = request.messageId
 
     return ack
+
+def generate_error(request):
+    """
+    Builds an L{pyamf.flex.messaging.ErrorMessage} based on the last traceback
+    and the request that was sent
+    """
+    import sys, traceback
+    cls, e, tb = sys.exc_info()
+
+    if hasattr(cls, '_amf_code'):
+        code = cls._amf_code
+    else:
+        code = cls.__name__
+
+    detail = []
+
+    for x in traceback.format_exception(cls, e, tb):
+        detail.append(x.replace("\\n", ''))
+
+    return ErrorMessage(messageId=generate_random_id(), clientId=generate_random_id(),
+        timestamp=calendar.timegm(time.gmtime()), correlationId = request.messageId,
+        faultCode=code, faultString=str(e), faultDetail=str(detail), extendedData=detail)
 
 class RequestProcessor(object):
     def __init__(self, gateway):
@@ -56,14 +97,18 @@ class RequestProcessor(object):
                 # authentication here
                 pass
             else:
-                # generate an error here
-                ro_response = generate_error()
+                try:
+                    raise ServerCallFailed, "Unknown command operation %s" % ro_request.operation
+                except:
+                    ro_response = generate_error(ro_request)
+                    amf_response.status = remoting.STATUS_ERROR
         elif isinstance(ro_request, RemotingMessage):
             try:
                 service_request = self.gateway.getServiceRequest(amf_request,
                     ro_request.operation)
             except gateway.UnknownServiceError:
                 amf_response.body = generate_error(ro_request)
+                amf_response.status = remoting.STATUS_ERROR
 
                 return amf_response
 

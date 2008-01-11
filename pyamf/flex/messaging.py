@@ -179,7 +179,7 @@ class CommandMessage(AsyncMessage):
         #: handles.
         self.messageRefType = kwargs.get('messageRefType', None)
 
-class ErrorMessage(AbstractMessage):
+class ErrorMessage(AcknowledgeMessage):
     """
     I am the Flex error message to be returned to the client.
 
@@ -199,7 +199,7 @@ class ErrorMessage(AbstractMessage):
     RETRYABLE_HINT_HEADER = "DSRetryableErrorHint"
 
     def __init__(self, *args, **kwargs):
-        AbstractMessage.__init__(self, *args, **kwargs)
+        AcknowledgeMessage.__init__(self, *args, **kwargs)
         #: Extended data that the remote destination has chosen to associate
         #: with this error to facilitate custom error processing on the client.
         self.extendedData = kwargs.get('extendedData', {})
@@ -230,6 +230,5 @@ class RemotingMessage(AbstractMessage):
         self.source = kwargs.get('source', None)
 
 for x in (RemotingMessage, ErrorMessage, CommandMessage, AcknowledgeMessage, AsyncMessage):
-    pyamf.register_class(x, 'flex.messaging.messages.%s' % x.__name__,
-        metadata=['amf3'])
+    pyamf.register_class(x, 'flex.messaging.messages.%s' % x.__name__, metadata=['amf3'])
 del x

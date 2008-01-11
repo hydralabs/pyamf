@@ -239,8 +239,7 @@ def _read_header(stream, decoder, strict=False):
 
     @type   stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     @param  stream: AMF data.
-    @type   decoder: L{amf0.Decoder<pyamf.amf0.Decoder>} or
-    L{amf3.Decoder<pyamf.amf3.Decoder>}
+    @type   decoder: L{amf0.Decoder<pyamf.amf0.Decoder>}
     @param  decoder: AMF decoder instance
     @type strict: C{bool}
     @param strict:
@@ -311,8 +310,7 @@ def _read_body(stream, decoder, strict=False):
 
     @type   stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     @param  stream: AMF data.
-    @type   decoder: L{amf0.Decoder<pyamf.amf0.Decoder>} or
-    L{amf3.Decoder<pyamf.amf3.Decoder>}
+    @type   decoder: L{amf0.Decoder<pyamf.amf0.Decoder>}
     @param  decoder: AMF decoder instance.
     @type strict: C{bool}
     @param strict:
@@ -373,7 +371,6 @@ def _write_body(name, message, stream, encoder, strict=False):
     @type message: L{Request} or L{Response}
     @type stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     @type encoder: L{amf0.Encoder<pyamf.amf0.Encoder>}
-        or L{amf3.Encoder<pyamf.amf3.Encoder>}
     @param encoder: Encoder to use.
     @type strict: C{bool}
     @param strict: Use strict encoding policy.

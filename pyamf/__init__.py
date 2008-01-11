@@ -189,7 +189,7 @@ class ASObject(dict):
         self[k] = v
 
     def __repr__(self):
-        return dict.__repr__(self.__dict__)
+        return dict.__repr__(self)
 
 class Bag(ASObject):
     """
