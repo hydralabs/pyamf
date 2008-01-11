@@ -8,8 +8,6 @@ of PyAMF.
 0.1b (unreleased)
 -------------------
 
- - Added an adapter framework that gets imported when the related module is
-   imported. See http://pyamf.org/wiki/AdapterFramework for more info
  - Added 'expose_environ' argument to WSGIGateway to expose the WSGI environ
    as the first arg in the called services.
  - Implemented Local Shared Object (LSO) support (Ticket:11) 

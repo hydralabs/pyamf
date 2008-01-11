@@ -70,20 +70,16 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         request.content.seek(0, 0)
 
         context = pyamf.get_context(pyamf.AMF0)
-        d = threads.deferToThread(remoting.decode, request.content.read(), context)
+        d = threads.deferToThread(remoting.decode,
+            request.content.read(), context)
 
         # The request was unable to be decoded
         d.addErrback(handleDecodeError)
 
         def process_request(amf_request):
-            if amf_request is None:
-                return amf_request
+            d = self.getResponse(request, amf_request)
 
-            x = self.getResponse(request, amf_request)
-
-            x.addCallback(self.sendResponse, request, context)
-
-            return amf_request
+            d.addCallback(self.sendResponse, request, context)
 
         # Process the request
         d.addCallback(process_request)
