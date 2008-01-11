@@ -16,6 +16,7 @@ The following software packages are pre-requisites:
 - **uuid 1.30 or newer** 
 - **ElementTree 1.2.6 or newer** (included in Python 2.5 and newer)
 - **fpconst 0.7.2 or newer**
+- **Importing 1.9.2 or newer**
 
 Installing
 -------------------------------------------------
