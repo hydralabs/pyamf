@@ -9,7 +9,7 @@ packages. This includes registering classes, setting up type maps etc.
 @since: 0.1b
 """
 
-import sys, os.path, glob, types
+import sys, os.path, glob, types, imp
 
 from peak.util import imports
 
@@ -40,4 +40,9 @@ for f in glob.glob(os.path.join(os.path.dirname(__file__), '*.py')):
     if not mod.startswith('_') or mod == '__init__':
         continue
 
+    try:
+        imp.find_module(mod[1:])
+    except ImportError:
+        continue
+    
     imports.whenImported(mod[1:], PackageImporter(mod))
