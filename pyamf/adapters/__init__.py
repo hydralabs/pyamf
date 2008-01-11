@@ -13,26 +13,12 @@ import sys, os.path, glob, types, imp
 
 from peak.util import imports
 
-thismodule = None
-
-for name, mod in sys.modules.iteritems():
-    if not isinstance(mod, types.ModuleType):
-        continue
-
-    if not hasattr(mod, '__file__'):
-        continue
-
-    if mod.__file__ == __file__:
-        thismodule = (name, mod)
-
-        break
-
 class PackageImporter(object):
     def __init__(self, name):
         self.name = name
 
     def __call__(self, name):
-        __import__('%s.%s' % (thismodule[0], self.name))
+        __import__('%s.%s' % ('pyamf.adapters', self.name))
 
 for f in glob.glob(os.path.join(os.path.dirname(__file__), '*.py')):
     mod = os.path.basename(f).split(os.path.extsep, 1)[0]
@@ -44,5 +30,5 @@ for f in glob.glob(os.path.join(os.path.dirname(__file__), '*.py')):
         imp.find_module(mod[1:])
     except ImportError:
         continue
-    
+
     imports.whenImported(mod[1:], PackageImporter(mod))

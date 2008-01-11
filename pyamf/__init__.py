@@ -25,9 +25,6 @@ import types
 import pyamf
 from pyamf import util
 
-# Causes a PyFlakes error, but its necessary to setup the adapter hooks
-import pyamf.adapters
-
 __all__ = [
     'register_class',
     'register_class_loader',
@@ -945,3 +942,6 @@ def remove_type(type_):
     del TYPE_MAP[type_]
 
     return declaration
+
+# Causes a PyFlakes error, but its necessary to setup the adapter hooks
+import pyamf.adapters
