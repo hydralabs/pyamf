@@ -21,7 +21,7 @@ class WSGIGateway(gateway.BaseGateway):
     WSGI Remoting Gateway.
     """
 
-    def __init__(self, services={}, expose_environ=True):
+    def __init__(self, services={}, expose_environ=False):
         gateway.BaseGateway.__init__(self, services)
 
         self.expose_environ = expose_environ
