@@ -115,4 +115,3 @@ def encode(name, values, strict=True):
     stream.seek(0)
 
     return stream
-
