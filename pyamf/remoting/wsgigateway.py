@@ -36,7 +36,7 @@ class WSGIGateway(gateway.BaseGateway):
         @return: The AMF Response.
         """
         response = remoting.Envelope(request.amfVersion, request.clientType)
-        
+
         kwargs = {}
 
         if self.expose_environ:
