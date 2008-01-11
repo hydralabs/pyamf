@@ -96,6 +96,23 @@ class RequestProcessorTestCase(unittest.TestCase):
         self.assertTrue(isinstance(ack, messaging.ErrorMessage))
         self.assertEquals(ack.faultCode, 'TypeError')
 
+    def test_too_many_args(self):
+        def foo(bar):
+            return bar
+
+        gw = gateway.BaseGateway({'foo': foo})
+        rp = amf3.RequestProcessor(gw)
+        message = messaging.RemotingMessage(body=['bar', 'baz'], operation='foo')
+        request = remoting.Request('null', body=[message])
+
+        response = rp(request)
+        ack = response.body
+
+        self.assertTrue(isinstance(response, remoting.Response))
+        self.assertEquals(response.status, remoting.STATUS_ERROR)
+        self.assertTrue(isinstance(ack, messaging.ErrorMessage))
+        self.assertEquals(ack.faultCode, 'TypeError')
+
 def suite():
     suite = unittest.TestSuite()
 
