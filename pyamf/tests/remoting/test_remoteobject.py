@@ -5,8 +5,7 @@
 RemoteObject Tests.
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
-
-@since: 0.1.0
+@since: 0.1
 """
 
 import unittest
@@ -79,6 +78,23 @@ class RequestProcessorTestCase(unittest.TestCase):
         self.assertEquals(response.status, remoting.STATUS_OK)
         self.assertTrue(isinstance(ack, messaging.AcknowledgeMessage))
         self.assertEquals(ack.body, 'foo.bar')
+
+    def test_error(self):
+        def echo(x):
+            raise TypeError
+
+        gw = gateway.BaseGateway({'echo': echo})
+        rp = amf3.RequestProcessor(gw)
+        message = messaging.RemotingMessage(body=['foo.bar'], operation='echo')
+        request = remoting.Request('null', body=[message])
+
+        response = rp(request)
+        ack = response.body
+
+        self.assertTrue(isinstance(response, remoting.Response))
+        self.assertEquals(response.status, remoting.STATUS_ERROR)
+        self.assertTrue(isinstance(ack, messaging.ErrorMessage))
+        self.assertEquals(ack.faultCode, 'TypeError')
 
 def suite():
     suite = unittest.TestSuite()

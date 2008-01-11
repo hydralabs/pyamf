@@ -106,14 +106,16 @@ class RequestProcessor(object):
             try:
                 service_request = self.gateway.getServiceRequest(amf_request,
                     ro_request.operation)
-            except gateway.UnknownServiceError:
+
+                ro_response = generate_acknowledgement(ro_request)
+                ro_response.body = service_wrapper(service_request, *ro_request.body)
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except:
                 amf_response.body = generate_error(ro_request)
                 amf_response.status = remoting.STATUS_ERROR
 
                 return amf_response
-
-            ro_response = generate_acknowledgement(ro_request)
-            ro_response.body = service_wrapper(service_request, *ro_request.body)
 
         amf_response.body = ro_response
 
