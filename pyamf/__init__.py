@@ -25,6 +25,9 @@ import types
 import pyamf
 from pyamf import util
 
+# Causes a PyFlakes error, but its necessary to setup the adapter hooks
+import pyamf.adapters
+
 __all__ = [
     'register_class',
     'register_class_loader',
@@ -897,12 +900,8 @@ pyamf.register_class_loader(flex_loader)
 
 def add_type(type_, func=None):
     """
-    Adds a custom type to L{TYPE_MAP}.
-
-    @see: C{TypeDeclaration} for more info on args.
-    @raise TypeError: Unable to add as custom type.
-    (expected a class or callable).
-    @raise KeyError: Type already exists.
+    Adds a custom type to L{TYPE_MAP}. A custom type allows fine grain control
+    of what to encode to an AMF data stream.
     """
     def _check_type(type_):
         if not (isinstance(type_, (type, types.ClassType)) or callable(type_)):

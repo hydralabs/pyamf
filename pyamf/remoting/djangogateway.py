@@ -118,11 +118,3 @@ class DjangoGateway(gateway.BaseGateway):
         http_response.write(buf)
 
         return http_response
-
-# custom type mappings
-from django.db.models.query import QuerySet
-
-def _write_queryset(qs):
-    return list(qs)
-
-pyamf.add_type(QuerySet, _write_queryset)
