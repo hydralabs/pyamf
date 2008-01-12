@@ -15,9 +15,6 @@ import types
 import pyamf
 from pyamf import remoting
 
-#: AMF mimetype.
-CONTENT_TYPE = 'application/x-amf'
-
 fault_alias = pyamf.get_class_alias(remoting.ErrorFault)
 
 class BaseServiceError(pyamf.BaseError):
