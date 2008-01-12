@@ -16,7 +16,7 @@ This file can also be run as a script to install or upgrade setuptools.
 """
 import sys
 LATEST_VERSION = "0.6c7"
-DEFAULT_VERSION = "0.6b1"
+DEFAULT_VERSION = "0.6b3"
 DEFAULT_URL     = "http://pypi.python.org/packages/%s/s/setuptools/" % sys.version[:3]
 
 md5_data = {
