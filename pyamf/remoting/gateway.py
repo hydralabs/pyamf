@@ -310,6 +310,13 @@ from glob import glob
 import sys, os.path
 
 class LazyImporter(object):
+    """
+    Lazily import modules, such that they don't actually get loaded until
+    you use them.
+
+    @ivar module: Module name.
+    @type module: C{str}
+    """
     module = 'pyamf.remoting'
 
     def __init__(self, module_name):

@@ -6,15 +6,28 @@
 """
 Local Shared Object implementation.
 
+Local Shared Object (LSO), sometimes known as flash cookies, is a cookie-like data
+entity used by the Flash Player and Gnash. The players allow web content to read
+and write LSO data to the computer's local drive on a per-domain basis.
+
+@see: U{Local Shared Object on WikiPedia (external)
+<http://en.wikipedia.org/wiki/Local_Shared_Object>}
+@see: U{Local Shared Object envelope (external)
+<http://osflash.org/documentation/amf/envelopes/sharedobject>}
+
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
+
 @since: 0.1.0
 """
 
 import pyamf
 from pyamf import amf0, util
 
+#: Magic Number - 2 bytes
 HEADER_VERSION = '\x00\xbf'
+#: Marker - 10 bytes
 HEADER_SIGNATURE = 'TCSO\x00\x04\x00\x00\x00\x00'
+#: Padding - 4 bytes
 PADDING_BYTE = '\x00'
 
 def decode(stream, strict=True):
@@ -22,7 +35,15 @@ def decode(stream, strict=True):
     Decodes a SOL stream. C{strict} mode ensures that the sol stream is as spec
     compatible as possible.
 
-    @return: A tuple containing the root_name and a dict of name, value pairs.
+    @raise DecodeError: One of:
+     - Unknown SOL version in header.
+     - Inconsistent stream header length.
+     - Invalid signature.
+     - Invalid padding read.
+     - Missing padding byte.
+     
+    @return: A C{tuple} containing the C{root_name} and a C{dict} of name, value pairs.
+    @rtype: C{tuple}
     """
     if not isinstance(stream, util.BufferedByteStream):
         stream = util.BufferedByteStream(stream)
@@ -72,14 +93,14 @@ def decode(stream, strict=True):
 
 def encode(name, values, strict=True):
     """
-    Produces a SO encoded stream based on the name and values.
+    Produces a SharedObject encoded stream based on the name and values.
 
-    @param name: The root name of the shared object
+    @param name: The root name of the SharedObject.
     @type name: C{basestring}
-    @param values: A dict of name value pairs to be encoded in the stream.
+    @param values: A C{dict} of name value pairs to be encoded in the stream.
     @type values: C{dict}
-    @return: A SO encoded stream.
-    @rtype: L{util.BufferedByteStream}
+    @return: A SharedObject encoded stream.
+    @rtype: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     """
     stream = util.BufferedByteStream()
     encoder = amf0.Encoder(stream)

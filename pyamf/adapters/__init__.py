@@ -7,7 +7,7 @@ packages. This includes registering classes, setting up type maps etc.
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
-@since: 0.1b
+@since: 0.1.0
 """
 
 import sys, os.path, glob, types, imp
