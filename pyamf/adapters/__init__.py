@@ -33,3 +33,5 @@ for f in glob.glob(os.path.join(os.path.dirname(__file__), '*.py')):
         continue
 
     imports.whenImported(mod[1:], PackageImporter(mod))
+del f
+
