@@ -2,12 +2,15 @@
 # See LICENSE for details.
 
 """
-Django adapter module. Sets up basic type mapping and class mappings for the
-Django project
+Django adapter module.
 
-@see L{Django Project<http://www.djangoproject.com>}
+Sets up basic type mapping and class mappings for a
+Django project.
+
+@see: U{Django Project<http://www.djangoproject.com>}
  
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
+
 @since: 0.1b
 """
 

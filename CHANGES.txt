@@ -12,7 +12,9 @@ of PyAMF.
    imported. See http://pyamf.org/wiki/AdapterFramework for more info
  - Added 'expose_environ' argument to WSGIGateway to expose the WSGI environ
    as the first arg in the called services.
- - Implemented Local Shared Object (LSO) support (Ticket:11) 
+ - Implemented Local Shared Object (LSO) support (Ticket:11)
+ - ByteArray now implements IDataInput and IDataOutput instead of
+   StringIOProxy (Ticket:151)
  - dicts are now used as the default for anonymous objects (Ticket:131)
  - remoting.client mostly fully supports the predefined headers (defined at
    http://osflash.org/documentation/amf/envelopes/remoting/headers). The only
@@ -22,6 +24,7 @@ of PyAMF.
    (Ticket:147)
  - Fixed argument positioning for RemoteObject processing. Thanks akaihola!
    (Ticket:145)
+ - ElementTree requirement is now ignored when using Python >= 2.5 (Ticket:144)
  - Added tests for TwistedGateway (Ticket:132)
  - Workaround for Python 2.4 float shortcomings (Ticket:78) 
  - Service Browser ('DescribeService' header) requests supported. (Ticket:138)
