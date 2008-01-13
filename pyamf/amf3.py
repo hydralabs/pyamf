@@ -742,10 +742,10 @@ class Context(pyamf.BaseContext):
         """
         if not isinstance(class_def, ClassDefinition) and isinstance(class_def, (type, types.ClassType)):
             try:
-                return self.class_defs['%s.%s' % (class_def.__module__.__name__, class_def.__class__.__name__)]
+                return self.class_defs[class_def.__class__]
             except KeyError:
                 raise pyamf.ReferenceError("Reference for class %s not found" %
-                    class_def.__name__)
+                    class_def.__class__)
 
         try:
             return self.classes.index(class_def)
@@ -761,7 +761,7 @@ class Context(pyamf.BaseContext):
             return self.classes.index(class_def)
         except ValueError:
             self.classes.append(class_def)
-            self.class_defs['%s.%s' % (class_def.klass.__module__, class_def.klass.__class__)] = class_def
+            self.class_defs[class_def.__class__] = class_def
 
             return len(self.classes) - 1
 
