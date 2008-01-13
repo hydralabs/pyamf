@@ -33,62 +33,62 @@ class ArrayCollectionTestCase(unittest.TestCase):
 
         x = flex.ArrayCollection()
 
-        x['foo'] = 'bar'
+        x['spam'] = 'eggs'
 
         encoder.writeElement(x)
 
         self.assertEquals(stream.getvalue(),
             '\n\x07Cflex.messaging.io.ArrayCollection'
-            '\t\x01\x07foo\x06\x07bar\x01')
+            '\t\x01\tspam\x06\teggs\x01')
 
         stream = util.BufferedByteStream()
         encoder = amf0.Encoder(stream)
 
         x = flex.ArrayCollection()
 
-        x['foo'] = 'bar'
+        x['spam'] = 'eggs'
 
         encoder.writeElement(x)
 
         self.assertEquals(stream.getvalue(),
-            '\x11\n\x07Cflex.messaging.io.ArrayCollection\t\x01\x07foo\x06\x07'
-            'bar\x01')
+            '\x11\n\x07Cflex.messaging.io.ArrayCollection\t\x01\tspam\x06\x09'
+            'eggs\x01')
 
     def test_decode(self):
         stream = util.BufferedByteStream(
             '\n\x07Cflex.messaging.io.ArrayCollection'
-            '\t\x01\x07foo\x06\x07bar\x01')
+            '\t\x01\x09spam\x06\x09eggs\x01')
         decoder = amf3.Decoder(stream)
 
         x = decoder.readElement()
 
         self.assertEquals(x.__class__, flex.ArrayCollection)
-        self.assertEquals(x.keys(), ['foo'])
-        self.assertEquals(x.items(), [('foo', u'bar')])
+        self.assertEquals(x.keys(), ['spam'])
+        self.assertEquals(x.items(), [('spam', u'eggs')])
 
 class ObjectProxyTestCase(unittest.TestCase):
     def test_encode(self):
         stream = util.BufferedByteStream()
         encoder = amf3.Encoder(stream)
 
-        x = flex.ObjectProxy(pyamf.MixedArray(a='foo', b=5))
+        x = flex.ObjectProxy(pyamf.MixedArray(a='spam', b=5))
 
         encoder.writeElement(x)
 
         self.assertEquals(stream.getvalue(),
-            '\x0a\x07;flex.messaging.io.ObjectProxy\x09\x01\x03a\x06\x07foo'
+            '\x0a\x07;flex.messaging.io.ObjectProxy\x09\x01\x03a\x06\x09spam'
             '\x03b\x04\x05\x01')
 
     def test_decode(self):
         stream = util.BufferedByteStream(
-            '\x0a\x07;flex.messaging.io.ObjectProxy\x09\x01\x03a\x06\x07foo'
+            '\x0a\x07;flex.messaging.io.ObjectProxy\x09\x01\x03a\x06\x09spam'
             '\x03b\x04\x05\x01')
         decoder = amf3.Decoder(stream)
 
         x = decoder.readElement()
 
         self.assertEquals(x.__class__, flex.ObjectProxy)
-        self.assertEquals(x._amf_object, {'a': 'foo', 'b': 5})
+        self.assertEquals(x._amf_object, {'a': 'spam', 'b': 5})
 
 def suite():
     suite = unittest.TestSuite()

@@ -4,9 +4,10 @@
 # See LICENSE for details.
 
 """
-Tests for SOL Implementation.
+Tests for Local Shared Object (LSO) Implementation.
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
+
 @since: 0.1.0
 """
 
@@ -61,12 +62,12 @@ class EncoderTestCase(unittest.TestCase):
             '\x00\xbf\x00\x00\x00\x15TCSO\x00\x04\x00\x00\x00\x00\x00\x05hello\x00\x00\x00\x00')
 
     def test_multiple_values(self):
-        stream = sol.encode('hello', {'name': 'value', 'foo': 'bar'})
+        stream = sol.encode('hello', {'name': 'value', 'spam': 'eggs'})
 
         self.assertEquals(stream.getvalue(),
-            '\x00\xbf\x00\x00\x000TCSO\x00\x04\x00\x00\x00\x00\x00\x05hello'
-            '\x00\x00\x00\x00\x00\x03foo\x02\x00\x03bar\x00\x00\x04name\x02'
-            '\x00\x05value\x00')
+            '\x00\xbf\x00\x00\x002TCSO\x00\x04\x00\x00\x00\x00\x00\x05hello'
+            '\x00\x00\x00\x00\x00\x04name\x02\x00\x05value\x00\x00\x04spam'
+            '\x02\x00\x04eggs\x00')
 
 def suite():
     suite = unittest.TestSuite()

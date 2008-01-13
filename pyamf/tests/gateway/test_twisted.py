@@ -5,6 +5,7 @@
 Twisted gateway tests.
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
+
 @since: 0.1.0
 """
 
@@ -17,8 +18,8 @@ from pyamf import remoting
 from pyamf.remoting.twistedgateway import TwistedGateway
 
 class TestService(object):
-    def foo(self):
-        return 'foo'
+    def spam(self):
+        return 'spam'
 
     def echo(self, x):
         return x

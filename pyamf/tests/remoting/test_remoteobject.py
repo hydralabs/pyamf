@@ -68,7 +68,7 @@ class RequestProcessorTestCase(unittest.TestCase):
 
         gw = gateway.BaseGateway({'echo': echo})
         rp = amf3.RequestProcessor(gw)
-        message = messaging.RemotingMessage(body=['foo.bar'], operation='echo')
+        message = messaging.RemotingMessage(body=['spam.eggs'], operation='echo')
         request = remoting.Request('null', body=[message])
 
         response = rp(request)
@@ -77,7 +77,7 @@ class RequestProcessorTestCase(unittest.TestCase):
         self.assertTrue(isinstance(response, remoting.Response))
         self.assertEquals(response.status, remoting.STATUS_OK)
         self.assertTrue(isinstance(ack, messaging.AcknowledgeMessage))
-        self.assertEquals(ack.body, 'foo.bar')
+        self.assertEquals(ack.body, 'spam.eggs')
 
     def test_error(self):
         def echo(x):
@@ -85,7 +85,7 @@ class RequestProcessorTestCase(unittest.TestCase):
 
         gw = gateway.BaseGateway({'echo': echo})
         rp = amf3.RequestProcessor(gw)
-        message = messaging.RemotingMessage(body=['foo.bar'], operation='echo')
+        message = messaging.RemotingMessage(body=['spam.eggs'], operation='echo')
         request = remoting.Request('null', body=[message])
 
         response = rp(request)
@@ -97,12 +97,12 @@ class RequestProcessorTestCase(unittest.TestCase):
         self.assertEquals(ack.faultCode, 'TypeError')
 
     def test_too_many_args(self):
-        def foo(bar):
+        def spam(bar):
             return bar
 
-        gw = gateway.BaseGateway({'foo': foo})
+        gw = gateway.BaseGateway({'spam': spam})
         rp = amf3.RequestProcessor(gw)
-        message = messaging.RemotingMessage(body=['bar', 'baz'], operation='foo')
+        message = messaging.RemotingMessage(body=['eggs', 'baz'], operation='spam')
         request = remoting.Request('null', body=[message])
 
         response = rp(request)

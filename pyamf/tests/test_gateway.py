@@ -16,8 +16,8 @@ from pyamf import remoting
 from pyamf.remoting import gateway, amf0
 
 class TestService(object):
-    def foo(self):
-        return 'foo'
+    def spam(self):
+        return 'spam'
 
     def echo(self, x):
         return x
@@ -30,11 +30,11 @@ class FaultTestCase(unittest.TestCase):
         self.assertEquals(x.details, '')
         self.assertEquals(x.description, '')
 
-        x = remoting.ErrorFault(code=404, details='Not Found', description='Foo bar')
+        x = remoting.ErrorFault(code=404, details='Not Found', description='Spam eggs')
 
         self.assertEquals(x.code, 404)
         self.assertEquals(x.details, 'Not Found')
-        self.assertEquals(x.description, 'Foo bar')
+        self.assertEquals(x.description, 'Spam eggs')
 
     def test_build(self):
         fault = None
@@ -115,7 +115,7 @@ class ServiceWrapperTestCase(unittest.TestCase):
         x = gateway.ServiceWrapper(TestService)
 
         self.assertRaises(gateway.UnknownServiceMethodError, x, None, [])
-        self.assertEquals(x('foo', []), 'foo')
+        self.assertEquals(x('spam', []), 'spam')
 
         self.assertRaises(gateway.UnknownServiceMethodError, x, 'xyx', [])
         self.assertRaises(gateway.InvalidServiceMethodError, x, '_private', [])
@@ -141,8 +141,8 @@ class ServiceRequestTestCase(unittest.TestCase):
 
         self.assertRaises(gateway.UnknownServiceMethodError, x)
 
-        x = gateway.ServiceRequest(request, sw, 'foo')
-        self.assertEquals(x(), 'foo')
+        x = gateway.ServiceRequest(request, sw, 'spam')
+        self.assertEquals(x(), 'spam')
 
         x = gateway.ServiceRequest(request, sw, 'echo')
         self.assertEquals(x(x), x)
@@ -152,12 +152,12 @@ class ServiceCollectionTestCase(unittest.TestCase):
         x = gateway.ServiceCollection()
 
         self.assertFalse(TestService in x)
-        self.assertFalse('foo.bar' in x)
+        self.assertFalse('spam.eggs' in x)
 
-        x['foo.bar'] = gateway.ServiceWrapper(TestService)
+        x['spam.eggs'] = gateway.ServiceWrapper(TestService)
 
         self.assertTrue(TestService in x)
-        self.assertTrue('foo.bar' in x)
+        self.assertTrue('spam.eggs' in x)
 
 class BaseGatewayTestCase(unittest.TestCase):
     def test_create(self):
@@ -185,26 +185,26 @@ class BaseGatewayTestCase(unittest.TestCase):
 
         del gw.services['TestService']
 
-        gw.addService(TestService, 'foo.bar')
+        gw.addService(TestService, 'spam.eggs')
         self.assertTrue(TestService in gw.services)
-        self.assertTrue('foo.bar' in gw.services)
+        self.assertTrue('spam.eggs' in gw.services)
 
-        del gw.services['foo.bar']
+        del gw.services['spam.eggs']
 
-        class FooService(object):
+        class SpamService(object):
             def __str__(self):
-                return 'foo'
+                return 'spam'
 
             def __call__(*args, **kwargs):
                 pass
 
-        x = FooService()
+        x = SpamService()
 
         gw.addService(x)
         self.assertTrue(x in gw.services)
-        self.assertTrue('foo' in gw.services)
+        self.assertTrue('spam' in gw.services)
 
-        del gw.services['foo']
+        del gw.services['spam']
 
         self.assertEquals(gw.services, {})
 
@@ -264,17 +264,17 @@ class BaseGatewayTestCase(unittest.TestCase):
         gw = gateway.BaseGateway({'test': TestService})
         envelope = remoting.Envelope()
 
-        message = remoting.Request('foo', [], envelope=envelope)
+        message = remoting.Request('spam', [], envelope=envelope)
         self.assertRaises(gateway.UnknownServiceError, gw.getServiceRequest,
-            message, 'foo')
+            message, 'spam')
 
-        message = remoting.Request('test.foo', [], envelope=envelope)
-        sr = gw.getServiceRequest(message, 'test.foo')
+        message = remoting.Request('test.spam', [], envelope=envelope)
+        sr = gw.getServiceRequest(message, 'test.spam')
 
         self.assertTrue(isinstance(sr, gateway.ServiceRequest))
         self.assertEquals(sr.request, envelope)
         self.assertEquals(sr.service, TestService)
-        self.assertEquals(sr.method, 'foo')
+        self.assertEquals(sr.method, 'spam')
 
         message = remoting.Request('test')
         sr = gw.getServiceRequest(message, 'test')
@@ -296,9 +296,9 @@ class BaseGatewayTestCase(unittest.TestCase):
         self.assertEquals(sr.method, None)
 
         # try to access an unknown service
-        message = remoting.Request('foo')
+        message = remoting.Request('spam')
         self.assertRaises(gateway.UnknownServiceError, gw.getServiceRequest,
-            message, 'foo')
+            message, 'spam')
 
         # check x.x calls
         message = remoting.Request('test.test')
@@ -319,14 +319,14 @@ class BaseGatewayTestCase(unittest.TestCase):
         gw = gateway.BaseGateway({'test': TestService})
         envelope = remoting.Envelope()
 
-        request = remoting.Request('test.foo', envelope=envelope)
+        request = remoting.Request('test.spam', envelope=envelope)
 
         processor = gw.getProcessor(request)
         response = processor(request)
 
         self.assertTrue(isinstance(response, remoting.Response))
         self.assertEquals(response.status, remoting.STATUS_OK)
-        self.assertEquals(response.body, 'foo')
+        self.assertEquals(response.body, 'spam')
 
         # Test a non existant service call
         request = remoting.Request('nope', envelope=envelope)
@@ -344,8 +344,8 @@ class BaseGatewayTestCase(unittest.TestCase):
         gw = gateway.BaseGateway({'test': TestService})
         envelope = remoting.Envelope()
 
-        request = remoting.Request('test.foo', envelope=envelope)
-        request.headers['Credentials'] = {'foo': 'bar'}
+        request = remoting.Request('test.spam', envelope=envelope)
+        request.headers['Credentials'] = {'spam': 'eggs'}
 
         processor = gw.getProcessor(request)
         response = processor(request)
@@ -362,7 +362,7 @@ class BaseGatewayTestCase(unittest.TestCase):
         self.assertTrue(gw.authenticateRequest(None, None))
 
         def auth(u, p):
-            if u == 'foo' and p == 'bar':
+            if u == 'spam' and p == 'eggs':
                 return True
 
             return False
@@ -370,7 +370,7 @@ class BaseGatewayTestCase(unittest.TestCase):
         gw = gateway.BaseGateway({'test': TestService}, authenticator=auth)
 
         self.assertFalse(gw.authenticateRequest(None, None))
-        self.assertTrue(gw.authenticateRequest('foo', 'bar'))
+        self.assertTrue(gw.authenticateRequest('spam', 'eggs'))
 
 class QueryBrowserTestCase(unittest.TestCase):
     def test_request(self):

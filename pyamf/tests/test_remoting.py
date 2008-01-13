@@ -87,18 +87,18 @@ class DecoderTestCase(unittest.TestCase):
 
     def test_multiple_headers(self):
         msg = remoting.decode('\x00\x00\x00\x02\x00\x04name\x00\x00\x00\x00'
-            '\x05\x0a\x00\x00\x00\x00\x00\x03foo\x01\x00\x00\x00\x01\x05\x00'
+            '\x05\x0a\x00\x00\x00\x00\x00\x04spam\x01\x00\x00\x00\x01\x05\x00'
             '\x00')
 
         self.assertEquals(msg.amfVersion, 0)
         self.assertEquals(msg.clientType, 0)
         self.assertEquals(len(msg.headers), 2)
         self.assertEquals('name' in msg.headers, True)
-        self.assertEquals('foo' in msg.headers, True)
+        self.assertEquals('spam' in msg.headers, True)
         self.assertEquals(msg.headers['name'], [])
         self.assertFalse(msg.headers.is_required('name'))
-        self.assertEquals(msg.headers['foo'], None)
-        self.assertTrue(msg.headers.is_required('foo'))
+        self.assertEquals(msg.headers['spam'], None)
+        self.assertTrue(msg.headers.is_required('spam'))
         self.assertEquals(msg, {})
 
         y = [x for x in msg]
@@ -143,7 +143,7 @@ class DecoderTestCase(unittest.TestCase):
 
     def test_message_order(self):
         request = util.BufferedByteStream()
-        request.write('\x00\x00\x00\x00\x00\x02\x00\x07get_foo\x00\x02/2\x00'
+        request.write('\x00\x00\x00\x00\x00\x02\x00\x08get_spam\x00\x02/2\x00'
             '\x00\x00\x00\x0a\x00\x00\x00\x00\x00\x04echo\x00\x02/1\x00\x00'
             '\x00\x00\x0a\x00\x00\x00\x01\x02\x00\x0bhello world')
         request.seek(0, 0)
@@ -176,16 +176,16 @@ class EncoderTestCase(unittest.TestCase):
         """
         msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash6)
 
-        msg.headers['foo'] = (False, 'bar')
+        msg.headers['spam'] = (False, 'eggs')
         self.assertEquals(remoting.encode(msg).getvalue(),
-            '\x00\x00\x00\x01\x00\x03foo\x00\x00\x00\x00\x00\n\x00\x00\x00\x02'
-            '\x01\x00\x02\x00\x03bar\x00\x00')
+            '\x00\x00\x00\x01\x00\x04spam\x00\x00\x00\x00\x00\n\x00\x00\x00\x02'
+            '\x01\x00\x02\x00\x04eggs\x00\x00')
 
         msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash6)
 
-        msg.headers['foo'] = (True, ['a', 'b', 'c'])
+        msg.headers['spam'] = (True, ['a', 'b', 'c'])
         self.assertEquals(remoting.encode(msg).getvalue(),
-            '\x00\x00\x00\x01\x00\x03foo\x00\x00\x00\x00\x00\n\x00\x00\x00\x02'
+            '\x00\x00\x00\x01\x00\x04spam\x00\x00\x00\x00\x00\n\x00\x00\x00\x02'
             '\x01\x01\n\x00\x00\x00\x03\x02\x00\x01a\x02\x00\x01b\x02\x00\x01c'
             '\x00\x00')
 
@@ -263,11 +263,11 @@ class StrictEncodingTestCase(unittest.TestCase):
     def test_response(self):
         msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash6)
 
-        msg['/1'] = remoting.Response(['foo'])
+        msg['/1'] = remoting.Response(['spam'])
 
         self.assertEquals(remoting.encode(msg, strict=True).getvalue(),
             '\x00\x00\x00\x00\x00\x01\x00\x0b/1/onResult\x00\x04null\x00\x00'
-            '\x00\x0b\n\x00\x00\x00\x01\x02\x00\x03foo')
+            '\x00\x0c\n\x00\x00\x00\x01\x02\x00\x04spam')
 
 def suite():
     """

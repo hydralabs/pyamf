@@ -57,7 +57,7 @@ class ContextTestCase(unittest.TestCase):
 
         orig = amf0.Context()
 
-        orig.addObject({'foo': 'bar'})
+        orig.addObject({'spam': 'eggs'})
         orig.amf3_objs.append([1, 2, 3])
 
         new = copy.copy(orig)
@@ -94,7 +94,7 @@ class ContextTestCase(unittest.TestCase):
     def test_get_by_reference(self):
         x = amf0.Context()
         y = [1, 2, 3]
-        z = {'foo': 'bar'}
+        z = {'spam': 'eggs'}
 
         x.addObject(y)
         x.addObject(z)
@@ -108,7 +108,7 @@ class ContextTestCase(unittest.TestCase):
     def test_get_reference(self):
         x = amf0.Context()
         y = [1, 2, 3]
-        z = {'foo': 'bar'}
+        z = {'spam': 'eggs'}
 
         ref1 = x.addObject(y)
         ref2 = x.addObject(z)
@@ -224,36 +224,34 @@ class EncoderTestCase(unittest.TestCase):
             ({'a': 'b'}, '\x03\x00\x01a\x02\x00\x01b\x00\x00\x09')])
 
     def test_force_amf3(self):
-        class Foo(object):
+        class Spam(object):
             pass
 
-        pyamf.register_class(Foo, 'foo.bar', metadata=['amf3'])
+        pyamf.register_class(Spam, 'spam.eggs', metadata=['amf3'])
 
-        x = Foo()
+        x = Spam()
         x.x = 'y'
 
         self._run([
-            (x, '\x11\n\x13\x0ffoo.bar\x03x\x06\x03y')])
+            (x, '\x11\n\x13\x13spam.eggs\x03x\x06\x03y')])
 
-        pyamf.unregister_class(Foo)
+        pyamf.unregister_class(Spam)
 
     def test_typed_object(self):
-        class Foo(object):
+        class Spam(object):
             pass
 
-        pyamf.register_class(Foo, alias='com.collab.dev.pyamf.foo')
+        pyamf.register_class(Spam, alias='org.pyamf.spam')
 
-        x = Foo()
+        x = Spam()
         x.baz = 'hello'
 
         self.encoder.writeElement(x)
 
         self.assertEquals(self.buf.getvalue(),
-            '\x10\x00\x18\x63\x6f\x6d\x2e\x63\x6f\x6c\x6c\x61\x62\x2e\x64\x65'
-            '\x76\x2e\x70\x79\x61\x6d\x66\x2e\x66\x6f\x6f\x00\x03\x62\x61\x7a'
-            '\x02\x00\x05\x68\x65\x6c\x6c\x6f\x00\x00\x09')
+            '\x10\x00\x0eorg.pyamf.spam\x00\x03baz\x02\x00\x05hello\x00\x00\t')
 
-        pyamf.unregister_class(Foo)
+        pyamf.unregister_class(Spam)
 
     def test_complex_list(self):
         self._run([
@@ -266,10 +264,10 @@ class EncoderTestCase(unittest.TestCase):
                 '\x74\x02\x00\x04\x74\x65\x73\x74\x02\x00\x04\x74\x65\x73\x74')
         ])
 
-        x = {'a': 'foo', 'b': 'bar'}
+        x = {'a': 'spam', 'b': 'eggs'}
         self._run([
             ([[x, x]], '\n\x00\x00\x00\x01\n\x00\x00\x00\x02\x03\x00\x01a\x02'
-                '\x00\x03foo\x00\x01b\x02\x00\x03bar\x00\x00\t\x07\x00\x02')])
+                '\x00\x04spam\x00\x01b\x02\x00\x04eggs\x00\x00\t\x07\x00\x02')])
 
     def test_amf3(self):
         x = 1
@@ -279,20 +277,19 @@ class EncoderTestCase(unittest.TestCase):
         self.assertEquals(self.buf.getvalue(), '\x11\x04\x01')
 
     def test_anonymous(self):
-        class Foo(object):
+        class Spam(object):
             pass
 
-        pyamf.register_class(Foo)
+        pyamf.register_class(Spam)
 
-        x = Foo()
-        x.foo = 'bar'
+        x = Spam()
+        x.spam = 'eggs'
         x.hello = 'world'
 
         self._run([
-            (x, '\x03\x00\x03foo\x02\x00\x03bar\x00\x05hello\x02\x00\x05wo'
-                'rld\x00\x00\t')])
+            (x, '\x03\x00\x05hello\x02\x00\x05world\x00\x04spam\x02\x00\x04eggs\x00\x00\t')])
 
-        pyamf.unregister_class(Foo)
+        pyamf.unregister_class(Spam)
 
     def test_custom_type(self):
         def write_as_list(list_interface_obj):
@@ -425,29 +422,28 @@ class DecoderTestCase(unittest.TestCase):
             ({'a': 'b'}, '\x03\x00\x01a\x02\x00\x01b\x00\x00\x09')])
 
     def test_registered_class(self):
-        class Foo(object):
+        class Spam(object):
             pass
 
         try:
-            del pyamf.CLASS_CACHE['com.collab.dev.pyamf.foo']
+            del pyamf.CLASS_CACHE['org.pyamf.spam']
         except KeyError:
             pass
 
-        pyamf.register_class(Foo, alias='com.collab.dev.pyamf.foo')
+        pyamf.register_class(Spam, alias='org.pyamf.spam')
 
-        self.buf.write('\x10\x00\x18\x63\x6f\x6d\x2e\x63\x6f\x6c\x6c\x61\x62'
-            '\x2e\x64\x65\x76\x2e\x70\x79\x61\x6d\x66\x2e\x66\x6f\x6f\x00\x03'
-            '\x62\x61\x7a\x02\x00\x05\x68\x65\x6c\x6c\x6f\x00\x00\x09')
+        self.buf.write('\x10\x00\x0eorg.pyamf.spam\x00\x03'
+            'baz\x02\x00\x05hello\x00\x00\x09')
         self.buf.seek(0)
 
         obj = self.decoder.readElement()
 
-        self.assertEquals(type(obj), Foo)
+        self.assertEquals(type(obj), Spam)
 
         self.failUnless(hasattr(obj, 'baz'))
         self.assertEquals(obj.baz, 'hello')
 
-        del pyamf.CLASS_CACHE['com.collab.dev.pyamf.foo']
+        del pyamf.CLASS_CACHE['org.pyamf.spam']
 
     def test_complex_list(self):
         x = datetime.datetime(2007, 11, 3, 8, 7, 37, 437000)
@@ -461,9 +457,9 @@ class DecoderTestCase(unittest.TestCase):
             ([x], '\x0a\x00\x00\x00\x01\x0b\x42\x71\x60\x48\xcf\xed\xd0\x00'
                 '\x00\x00')])
         self._run([
-            ([[{u'a': u'foo', u'b': u'bar'}, {u'a': u'foo', u'b': u'bar'}]],
+            ([[{u'a': u'spam', u'b': u'eggs'}, {u'a': u'spam', u'b': u'eggs'}]],
                 '\n\x00\x00\x00\x01\n\x00\x00\x00\x02\x08\x00\x00\x00\x00\x00'
-                '\x01a\x02\x00\x03foo\x00\x01b\x02\x00\x03bar\x00\x00\t\x07'
+                '\x01a\x02\x00\x04spam\x00\x01b\x02\x00\x04eggs\x00\x00\t\x07'
                 '\x00\x02')])
         self._run([
             ([[1.0]], '\x0A\x00\x00\x00\x01\x0A\x00\x00\x00\x01\x00\x3F\xF0\x00'
@@ -493,9 +489,9 @@ class RecordSetTestCase(unittest.TestCase):
         self.assertEquals(x.service, None)
         self.assertEquals(x.id, None)
 
-        x = amf0.RecordSet(columns=['foo', 'bar'], items=[[1, 2]])
+        x = amf0.RecordSet(columns=['spam', 'eggs'], items=[[1, 2]])
 
-        self.assertEquals(x.columns, ['foo', 'bar'])
+        self.assertEquals(x.columns, ['spam', 'eggs'])
         self.assertEquals(x.items, [[1, 2]])
         self.assertEquals(x.service, None)
         self.assertEquals(x.id, None)
@@ -556,7 +552,7 @@ class RecordSetTestCase(unittest.TestCase):
         # with service & id
         service = {'name': 'baz'}
 
-        x = amf0.RecordSet(columns=['foo'], items=[['bar']],
+        x = amf0.RecordSet(columns=['spam'], items=[['eggs']],
             service=service, id='asdfasdf')
 
         si = x.serverInfo
@@ -564,8 +560,8 @@ class RecordSetTestCase(unittest.TestCase):
         self.assertTrue(isinstance(si, dict))
         self.assertEquals(si.cursor, 1)
         self.assertEquals(si.version, 1)
-        self.assertEquals(si.columnNames, ['foo'])
-        self.assertEquals(si.initialData, [['bar']])
+        self.assertEquals(si.columnNames, ['spam'])
+        self.assertEquals(si.initialData, [['eggs']])
         self.assertEquals(si.totalCount, 1)
         self.assertEquals(si.serviceName, 'baz')
         self.assertEquals(si.id, 'asdfasdf')

@@ -43,18 +43,18 @@ class ServiceMethodProxyTestCase(unittest.TestCase):
         x(1,2,3)
 
     def test_str(self):
-        x = client.ServiceMethodProxy('foo', 'bar')
-        self.assertEquals(str(x), 'foo.bar')
+        x = client.ServiceMethodProxy('spam', 'eggs')
+        self.assertEquals(str(x), 'spam.eggs')
 
-        x = client.ServiceMethodProxy('foo', None)
-        self.assertEquals(str(x), 'foo')
+        x = client.ServiceMethodProxy('spam', None)
+        self.assertEquals(str(x), 'spam')
 
 class ServiceProxyTestCase(unittest.TestCase):
     def test_create(self):
-        x = client.ServiceProxy('foo', 'bar')
+        x = client.ServiceProxy('spam', 'eggs')
 
-        self.assertEquals(x._gw, 'foo')
-        self.assertEquals(x._name, 'bar')
+        self.assertEquals(x._gw, 'spam')
+        self.assertEquals(x._name, 'eggs')
         self.assertEquals(x._auto_execute, True)
 
         x = client.ServiceProxy('hello', 'world', True)
@@ -71,10 +71,10 @@ class ServiceProxyTestCase(unittest.TestCase):
 
     def test_getattr(self):
         x = client.ServiceProxy(None, None)
-        y = x.foo
+        y = x.spam
 
         self.assertTrue(isinstance(y, client.ServiceMethodProxy))
-        self.assertEquals(y.name, 'foo')
+        self.assertEquals(y.name, 'spam')
 
     def test_call(self):
         class DummyGateway(object):
@@ -95,7 +95,7 @@ class ServiceProxyTestCase(unittest.TestCase):
 
         gw = DummyGateway(self)
         x = client.ServiceProxy(gw, 'test')
-        y = x.foo
+        y = x.spam
 
         gw.method_proxy = y
         gw.args = ()
@@ -140,7 +140,7 @@ class ServiceProxyTestCase(unittest.TestCase):
 
         gw = DummyGateway(self)
         x = client.ServiceProxy(gw, 'test', False)
-        y = x.bar
+        y = x.eggs
 
         gw.method_proxy = y
         gw.args = ()
@@ -176,12 +176,12 @@ class RequestWrapperTestCase(unittest.TestCase):
     def test_set_response(self):
         x = client.RequestWrapper(None, None, None, None)
 
-        y = pyamf.ASObject(body='foo.bar')
+        y = pyamf.ASObject(body='spam.eggs')
 
         x.setResponse(y)
 
         self.assertEquals(x.response, y)
-        self.assertEquals(x.result, 'foo.bar')
+        self.assertEquals(x.result, 'spam.eggs')
 
 class DummyResponse(object):
     tc = None
@@ -251,16 +251,16 @@ class RemotingServiceTestCase(unittest.TestCase):
     def test_get_service(self):
         x = client.RemotingService('http://example.org')
 
-        y = x.getService('foo')
+        y = x.getService('spam')
 
         self.assertTrue(isinstance(y, client.ServiceProxy))
-        self.assertEquals(y._name, 'foo')
+        self.assertEquals(y._name, 'spam')
         self.assertEquals(y._gw, x)
 
         self.assertRaises(TypeError, x.getService, 1)
 
     def test_add_request(self):
-        gw = client.RemotingService('http://foobar.net')
+        gw = client.RemotingService('http://spameggs.net')
 
         self.assertEquals(gw.request_number, 1)
         self.assertEquals(gw.requests, [])
@@ -295,7 +295,7 @@ class RemotingServiceTestCase(unittest.TestCase):
         self.assertEquals(wrapper3.args, tuple())
 
     def test_remove_request(self):
-        gw = client.RemotingService('http://foobar.net')
+        gw = client.RemotingService('http://spameggs.net')
         self.assertEquals(gw.requests, [])
 
         service = gw.getService('baz')
@@ -314,7 +314,7 @@ class RemotingServiceTestCase(unittest.TestCase):
         self.assertRaises(LookupError, gw.removeRequest, service, 1, 2, 3)
 
     def test_get_request(self):
-        gw = client.RemotingService('http://foobar.net')
+        gw = client.RemotingService('http://spameggs.net')
 
         service = gw.getService('baz')
         wrapper = gw.addRequest(service, 1, 2, 3)
@@ -401,9 +401,9 @@ class RemotingServiceTestCase(unittest.TestCase):
         dc.tc = self
 
         baz = gw.getService('baz', auto_execute=False)
-        foo = gw.getService('foo', auto_execute=False)
+        spam = gw.getService('spam', auto_execute=False)
         wrapper = baz.gak()
-        wrapper2 = foo.bar()
+        wrapper2 = spam.eggs()
 
         response = DummyResponse(200, '\x00\x00\x00\x00\x00\x02\x00\x0b/1/onRe'
             'sult\x00\x04null\x00\x00\x00\x00\x00\x02\x00\x05hello\x00\x0b/2/o'
@@ -412,7 +412,7 @@ class RemotingServiceTestCase(unittest.TestCase):
         response.tc = self
 
         dc.expected_url = '/x/y/z'
-        dc.expected_value = '\x00\x00\x00\x00\x00\x02\x00\x07foo.bar\x00' + \
+        dc.expected_value = '\x00\x00\x00\x00\x00\x02\x00\x09spam.eggs\x00' + \
             '\x02/2\x00\x00\x00\x00\x0a\x00\x00\x00\x00' + \
             '\x00\x07baz.gak\x00\x02/1\x00\x00\x00\x00\x0a\x00\x00\x00\x00'
         dc.response = response
@@ -448,10 +448,10 @@ class RemotingServiceTestCase(unittest.TestCase):
         gw = client.RemotingService('http://example.org/amf-gateway')
 
         self.assertFalse('Credentials' in gw.headers)
-        gw.setCredentials('foo', 'bar')
+        gw.setCredentials('spam', 'eggs')
         self.assertTrue('Credentials' in gw.headers)
         self.assertEquals(gw.headers['Credentials'],
-            {'userid' : u'foo', 'password': u'bar'})
+            {'userid' : u'spam', 'password': u'eggs'})
 
         envelope = gw.getAMFRequest([])
         self.assertTrue('Credentials' in envelope.headers)
@@ -480,13 +480,13 @@ class RemotingServiceTestCase(unittest.TestCase):
         gw.connection = dc
 
         response = DummyResponse(200, '\x00\x00\x00\x01\x00\x11ReplaceGatewayUrl'
-            '\x01\x00\x00\x00\x00\x02\x00\x0ehttp://foo.bar\x00\x00', {
+            '\x01\x00\x00\x00\x00\x02\x00\x10http://spam.eggs\x00\x00', {
             'Content-Type': 'application/x-amf'})
 
         dc.response = response
 
         response = gw._getResponse()
-        self.assertEquals(gw.original_url, 'http://foo.bar')
+        self.assertEquals(gw.original_url, 'http://spam.eggs')
 
 def suite():
     suite = unittest.TestSuite()

@@ -22,7 +22,7 @@ from pyamf.remoting.djangogateway import DjangoGateway
 
 class HttpRequest(http.HttpRequest):
     """
-    Custom HttpRequest to support raw_post_data provided by
+    Custom C{HttpRequest} to support raw_post_data provided by
     C{django.core.handlers.*}
     """
 
@@ -103,21 +103,21 @@ class DjangoGatewayTestCase(unittest.TestCase):
 
 class TypeMapTestCase(unittest.TestCase):
     def test_objects_all(self):
-        class Foo(models.Model):
+        class Spam(models.Model):
             pass
 
         cursor = connection.cursor()
-        cursor.execute('CREATE TABLE gateway_foo (id INTEGER PRIMARY KEY)')
+        cursor.execute('CREATE TABLE gateway_spam (id INTEGER PRIMARY KEY)')
 
         encoder = pyamf.get_encoder(pyamf.AMF0)
-        encoder.writeElement(Foo.objects.all())
+        encoder.writeElement(Spam.objects.all())
         self.assertEquals(encoder.stream.getvalue(), '\n\x00\x00\x00\x00')
 
         encoder = pyamf.get_encoder(pyamf.AMF3)
-        encoder.writeElement(Foo.objects.all())
+        encoder.writeElement(Spam.objects.all())
         self.assertEquals(encoder.stream.getvalue(), '\t\x01\x01')
 
-        cursor.execute('DROP TABLE gateway_foo')
+        cursor.execute('DROP TABLE gateway_spam')
 
 def suite():
     suite = unittest.TestSuite()
