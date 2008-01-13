@@ -8,6 +8,8 @@ of PyAMF.
 0.1b (unreleased)
 -------------------
 
+ - IExternalizable now takes its methods from the class and fine grain control
+   over attr encoding (Ticket:110)
  - Added an adapter framework that gets imported when the related module is
    imported. See http://pyamf.org/wiki/AdapterFramework for more info
  - Added 'expose_environ' argument to WSGIGateway to expose the WSGI environ
