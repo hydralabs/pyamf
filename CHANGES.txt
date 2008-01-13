@@ -5,7 +5,7 @@ PyAMF Changelog
 This file contains information about the changes between the different versions
 of PyAMF.
 
-0.1b (2008-10-13)
+0.1b (2008-01-13)
 -------------------
 
  - IExternalizable now takes its methods from the class and fine grain control
