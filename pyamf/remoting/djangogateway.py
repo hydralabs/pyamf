@@ -43,10 +43,10 @@ class DjangoGateway(gateway.BaseGateway):
     @type expose_request: C{bool}
     """
 
-    def __init__(self, services={}, expose_request=True):
-        gateway.BaseGateway.__init__(self, services)
+    def __init__(self, *args, **kwargs):
+        self.expose_request = kwargs.pop('expose_request', False)
 
-        self.expose_request = expose_request
+        gateway.BaseGateway.__init__(self, *args, **kwargs)
 
     def getResponse(self, http_request, request):
         """
