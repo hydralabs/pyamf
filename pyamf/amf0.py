@@ -300,11 +300,11 @@ class Decoder(pyamf.BaseDecoder):
         @see: L{load_class<pyamf.load_class>}
         """
         classname = self.readString()
-        klass = pyamf.load_class(classname)
+        alias = pyamf.load_class(classname)
 
-        ret = klass()
+        ret = alias()
         self.context.addObject(ret)
-        self._readObject(ret)
+        self._readObject(ret, alias)
 
         return ret
 
@@ -337,12 +337,26 @@ class Decoder(pyamf.BaseDecoder):
         len = self.stream.read_ushort()
         return self.stream.read_utf8_string(len)
 
-    def _readObject(self, obj):
+    def _readObject(self, obj, alias=None):
+        attrs = []
+
+        if alias is not None:
+            attrs = alias.getAttrs(obj)
+
+            if attrs is None:
+                alias = None
+
         key = self.readString()
 
         ot = chr(ASTypes.OBJECTTERM)
 
         while self.stream.peek() != ot:
+            if alias:
+                if key not in attrs:
+                    self.readElement()
+                    key = self.readString()
+                    continue
+ 
             if isinstance(obj, (list, dict)):
                 obj[key] = self.readElement()
             else:
@@ -374,9 +388,6 @@ class Decoder(pyamf.BaseDecoder):
     def readReference(self):
         """
         Reads a reference from the data stream.
-
-        @rtype:
-        @return:
         """
         idx = self.stream.read_ushort()
 
@@ -392,9 +403,6 @@ class Decoder(pyamf.BaseDecoder):
         This format is UTC 1970. C{Z1} and C{Z0} for a 16 bit Big
         Endian number indicating the indicated time's timezone in
         minutes.
-
-        @rtype:
-        @return:
         """
         ms = self.stream.read_double() / 1000.0
         tz = self.stream.read_short()
@@ -453,7 +461,7 @@ class Encoder(pyamf.BaseEncoder):
         @type   type: C{int}
         @param  type: ActionScript type.
 
-        @raise EncodeError: AMF0 type is not recognized.
+        @raise pyamf.EncodeError: AMF0 type is not recognized.
         """
         if type not in ACTIONSCRIPT_TYPES:
             raise pyamf.EncodeError("Unknown AMF0 type 0x%02x at %d" % (
@@ -508,6 +516,8 @@ class Encoder(pyamf.BaseEncoder):
             try:
                 func(data)
             except (KeyboardInterrupt, SystemExit):
+                raise
+            except pyamf.EncodeError:
                 raise
             except:
                 raise
@@ -686,11 +696,16 @@ class Encoder(pyamf.BaseEncoder):
                 self.writeType(ASTypes.TYPEDOBJECT)
                 self.writeString(alias.alias, False)
 
-        # TODO: give objects a chance of controlling what we send
-        if alias is not None and alias.attrs is not None:
-            for key in alias.attrs:
+        if alias is not None:
+            it = alias.getAttrs(o)
+
+            if it is None:
+                # no predefined attrs to use, do it dynamically
+                it = o.__dict__.keys()
+
+            for key in it:
                 self.writeString(key, False)
-                self.writeElement(getattr(o, key))
+                self.writeElement(util.get_attr(o, key))
         elif hasattr(o, 'iteritems'):
             for k, v in o.iteritems():
                 self.writeString(k, False)
@@ -783,8 +798,8 @@ def encode(element, context=None):
 
 class RecordSet(object):
     """
-    I represent the RecordSet class used in Flash
-    Remoting to hold (amongst other things) SQL records.
+    I represent the RecordSet class used in Flash Remoting to hold (amongst
+    other things) SQL records.
 
     @ivar columns: The columns to send.
     @type columns: List of strings.
@@ -835,4 +850,5 @@ class RecordSet(object):
 
     serverInfo = property(_get_server_info, _set_server_info)
 
-pyamf.register_class(RecordSet, 'RecordSet', attrs=['serverInfo'])
+pyamf.register_class(RecordSet, 'RecordSet', attrs=['serverInfo'],
+    metadata=['amf0'])

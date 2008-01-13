@@ -233,7 +233,7 @@ class EncoderTestCase(unittest.TestCase):
         x.x = 'y'
 
         self._run([
-            (x, '\x11\n\x13\x13spam.eggs\x03x\x06\x03y')])
+            (x, '\x11\n\x0b\x13spam.eggs\x03x\x06\x03y\x01')])
 
         pyamf.unregister_class(Spam)
 
@@ -290,6 +290,55 @@ class EncoderTestCase(unittest.TestCase):
             (x, '\x03\x00\x05hello\x02\x00\x05world\x00\x04spam\x02\x00\x04eggs\x00\x00\t')])
 
         pyamf.unregister_class(Spam)
+
+    def test_dynamic(self):
+        class Foo(pyamf.ASObject):
+            pass
+
+        def attr_func(obj):
+            self.assertTrue(isinstance(obj, Foo))
+
+            return ['hello']
+
+        x = Foo()
+
+        x.foo = 'bar'
+        x.hello = 'world'
+
+        pyamf.register_class(Foo, attr_func=attr_func, metadata=['dynamic'])
+        self._run([(x, '\x03\x00\x05hello\x02\x00\x05world\x00\x00\t')])
+        pyamf.unregister_class(Foo)
+
+        # try duplicate attributes
+        pyamf.register_class(Foo, attrs=['hello'], attr_func=attr_func,
+            metadata=['dynamic'])
+        self._run([(x, '\x03\x00\x05hello\x02\x00\x05world\x00\x00\t')])
+        pyamf.unregister_class(Foo)
+
+        pyamf.register_class(Foo, attrs=['foo'], attr_func=attr_func,
+            metadata=['dynamic'])
+        self._run([(x, '\x03\x00\x03foo\x02\x00\x03bar\x00\x05hello\x02\x00'
+            '\x05world\x00\x00\t')])
+        pyamf.unregister_class(Foo)
+        
+        # and now typedobject
+        pyamf.register_class(Foo, 'x', attr_func=attr_func,
+            metadata=['dynamic'])
+        self._run([(x,
+            '\x10\x00\x01x\x00\x05hello\x02\x00\x05world\x00\x00\t')])
+        pyamf.unregister_class(Foo)
+
+        pyamf.register_class(Foo, 'x', attrs=['hello'], attr_func=attr_func,
+            metadata=['dynamic'])
+        self._run([(x,
+            '\x10\x00\x01x\x00\x05hello\x02\x00\x05world\x00\x00\t')])
+        pyamf.unregister_class(Foo)
+
+        pyamf.register_class(Foo, 'x', attrs=['foo'], attr_func=attr_func,
+            metadata=['dynamic'])
+        self._run([(x, '\x10\x00\x01x\x00\x03foo\x02\x00\x03bar\x00\x05hello'
+            '\x02\x00\x05world\x00\x00\t')])
+        pyamf.unregister_class(Foo)
 
     def test_custom_type(self):
         def write_as_list(list_interface_obj):
@@ -440,7 +489,7 @@ class DecoderTestCase(unittest.TestCase):
 
         self.assertEquals(type(obj), Spam)
 
-        self.failUnless(hasattr(obj, 'baz'))
+        self.assertTrue(hasattr(obj, 'baz'))
         self.assertEquals(obj.baz, 'hello')
 
         del pyamf.CLASS_CACHE['org.pyamf.spam']
@@ -475,6 +524,41 @@ class DecoderTestCase(unittest.TestCase):
         self.assertEquals(self.decoder.readElement(), 1)
         self.assertTrue(x in self.context.amf3_objs)
         self.assertTrue(hasattr(self.decoder, '_amf3_context'))
+
+    def test_dynamic(self):
+        class Foo(pyamf.ASObject):
+            pass
+
+        def attr_func(obj):
+            self.assertTrue(isinstance(obj, Foo))
+
+            return ['hello']
+
+        x = Foo()
+
+        x.foo = 'bar'
+        x.hello = 'world'
+
+        y = Foo()
+        y.hello = x.hello
+
+        pyamf.register_class(Foo, 'x', attr_func=attr_func,
+            metadata=['dynamic'])
+        self._run([(y, '\x10\x00\x01x\x00\x03foo\x02\x00\x03bar\x00\x05hello'
+            '\x02\x00\x05world\x00\x00\t')])
+        pyamf.unregister_class(Foo)
+
+        pyamf.register_class(Foo, 'x', attrs=['hello'], attr_func=attr_func,
+            metadata=['dynamic'])
+        self._run([(y, '\x10\x00\x01x\x00\x03foo\x02\x00\x03bar\x00\x05hello'
+            '\x02\x00\x05world\x00\x00\t')])
+        pyamf.unregister_class(Foo)
+
+        pyamf.register_class(Foo, 'x', attrs=['foo'], attr_func=attr_func,
+            metadata=['dynamic'])
+        self._run([(x, '\x10\x00\x01x\x00\x03foo\x02\x00\x03bar\x00\x05hello'
+            '\x02\x00\x05world\x00\x00\t')])
+        pyamf.unregister_class(Foo)
 
 class HelperTestCase(unittest.TestCase):
     def test_encode(self):
@@ -591,19 +675,20 @@ class RecordSetTestCase(unittest.TestCase):
         stream = util.BufferedByteStream()
         decoder = pyamf._get_decoder_class(pyamf.AMF0)(stream)
 
-        stream.write('\x10\x00\tRecordSet\x00\nserverI'
-            'nfo\x03\x00\x06cursor\x00?\xf0\x00\x00\x00\x00\x00\x00\x00\x0bcol'
-            'umnNames\n\x00\x00\x00\x03\x02\x00\x01a\x02\x00\x01b\x02\x00\x01c'
-            '\x00\x0binitialData\n\x00\x00\x00\x03\n\x00\x00\x00\x03\x00?\xf0'
-            '\x00\x00\x00\x00\x00\x00\x00@\x00\x00\x00\x00\x00\x00\x00\x00@'
-            '\x08\x00\x00\x00\x00\x00\x00\n\x00\x00\x00\x03\x00@\x10\x00\x00'
-            '\x00\x00\x00\x00\x00@\x14\x00\x00\x00\x00\x00\x00\x00@\x18\x00'
-            '\x00\x00\x00\x00\x00\n\x00\x00\x00\x03\x00@\x1c\x00\x00\x00\x00'
-            '\x00\x00\x00@ \x00\x00\x00\x00\x00\x00\x00@"\x00\x00\x00\x00\x00'
-            '\x00\x00\x07version\x00?\xf0\x00\x00\x00\x00\x00\x00\x00\ntotalCo'
-            'unt\x00@\x08\x00\x00\x00\x00\x00\x00\x00\x00\t\x00\x00\t')
-        stream.seek(0, 0)
+        stream.write('\x10\x00\tRecordSet\x00\n'
+            'serverInfo\x08\x00\x00\x00\x00\x00\x06cursor\x00?\xf0\x00\x00\x00'
+            '\x00\x00\x00\x00\x0bcolumnNames\n\x00\x00\x00\x03\x02\x00\x01a'
+            '\x02\x00\x01b\x02\x00\x01c\x00\x0binitialData\n\x00\x00\x00\x03'
+            '\n\x00\x00\x00\x03\x00?\xf0\x00\x00\x00\x00\x00\x00\x00@\x00\x00'
+            '\x00\x00\x00\x00\x00\x00@\x08\x00\x00\x00\x00\x00\x00\n\x00\x00'
+            '\x00\x03\x00@\x10\x00\x00\x00\x00\x00\x00\x00@\x14\x00\x00\x00'
+            '\x00\x00\x00\x00@\x18\x00\x00\x00\x00\x00\x00\n\x00\x00\x00\x03'
+            '\x00@\x1c\x00\x00\x00\x00\x00\x00\x00@ \x00\x00\x00\x00\x00\x00'
+            '\x00@"\x00\x00\x00\x00\x00\x00\x00\x07version\x00?\xf0\x00\x00'
+            '\x00\x00\x00\x00\x00\ntotalCount\x00@\x08\x00\x00\x00\x00\x00\x00'
+            '\x00\x00\t\x00\x00\t')
 
+        stream.seek(0, 0)
         x = decoder.readElement()
 
         self.assertTrue(isinstance(x, amf0.RecordSet))

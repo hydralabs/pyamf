@@ -59,8 +59,7 @@ class ArrayCollection(dict):
         output.writeObject(pyamf.MixedArray(self), use_references=False)
 
 pyamf.register_class(ArrayCollection, 'flex.messaging.io.ArrayCollection',
-    read_func=ArrayCollection.__readamf__,
-    write_func=ArrayCollection.__writeamf__, metadata=['amf3'])
+    metadata=['external', 'amf3'])
 
 class ObjectProxy(object):
     """
@@ -96,5 +95,4 @@ class ObjectProxy(object):
         output.writeObject(self._amf_object)
 
 pyamf.register_class(ObjectProxy, 'flex.messaging.io.ObjectProxy',
-    read_func=ObjectProxy.__readamf__,
-    write_func=ObjectProxy.__writeamf__, metadata=['amf3'])
+    metadata=['external', 'amf3'])

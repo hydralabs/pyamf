@@ -403,6 +403,15 @@ def get_datetime(secs):
     """
     return datetime.datetime.utcfromtimestamp(secs)
 
+def get_attr(obj, attr):
+    try:
+        return getattr(obj, attr)
+    except AttributeError:
+        if obj.__class__ == dict:
+            return obj[attr]
+
+        raise
+
 # workaround for python2.4's shortcomings with exceptional floats
 # see: http://blog.pyamf.org/archives/when-is-nan-not-a-number-with-python-24
 import fpconst

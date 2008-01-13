@@ -43,8 +43,7 @@ CLASS_LOADERS = []
 #: Custom type map
 TYPE_MAP = {}
 
-#: Specifies that objects are serialized using AMF for ActionScript
-#: 1.0 and 2.0.
+#: Specifies that objects are serialized using AMF for ActionScript 1.0 and 2.0.
 AMF0 = 0
 #: Specifies that objects are serialized using AMF for ActionScript 3.0.
 AMF3 = 3
@@ -214,9 +213,10 @@ class ClassMetaData(list):
     to emulate the metadata tags you can supply to ActionScript,
     e.g. static/dynamic.
     """
+
     _allowed_tags = (
         ('static', 'dynamic', 'external'),
-        ('amf3',),
+        ('amf3', 'amf0'),
         ('anonymous',),
     )
 
@@ -288,8 +288,7 @@ class ClassAlias(object):
     @ivar metadata: A list of metadata tags similar to ActionScript tags.
     @type metadata: C{list}
     """
-    def __init__(self, klass, alias, read_func=None, write_func=None,
-                 attrs=None, metadata=[]):
+    def __init__(self, klass, alias, attrs=None, attr_func=None, metadata=[]):
         """
         @type klass: C{class}
         @param klass: The class to alias.
@@ -297,12 +296,6 @@ class ClassAlias(object):
         @param alias: The alias to the class e.g. C{org.example.Person}. If the
             value of this is C{None}, then it is worked out based on the C{klass}.
             The anonymous tag is also added to the class.
-        @type read_func: callable
-        @param read_func: Function that gets called when reading the object
-            from the data stream.
-        @type write_func: callable
-        @param write_func: Function that gets called when writing the object to
-                          the data steam.
         @type attrs:
         @param attrs:
         @type metadata:
@@ -313,15 +306,7 @@ class ClassAlias(object):
         @raise TypeError: The C{write_func} must be callable.
         """
         if not isinstance(klass, (type, types.ClassType)):
-            raise TypeError("klass must be a class type")
-
-        # XXX nick: If either read_func or write_func is defined, does the
-        # other need to be defined as well?
-        if read_func is not None and not callable(read_func):
-            raise TypeError("read_func must be callable")
-
-        if write_func is not None and not callable(write_func):
-            raise TypeError("write_func must be callable")
+            raise TypeError, "klass must be a class type"
 
         self.metadata = ClassMetaData(metadata)
 
@@ -331,13 +316,36 @@ class ClassAlias(object):
 
         self.klass = klass
         self.alias = alias
-        self.read_func = read_func
-        self.write_func = write_func
+        self.attr_func = attr_func
         self.attrs = attrs
 
-        # if both funcs are defined, we add the metadata
-        if read_func and write_func:
-            self.metadata.append('external')
+        if 'external' in self.metadata:
+            # class is declared as external, lets check
+            if not hasattr(klass, '__readamf__'):
+                raise AttributeError("An externalised class was specified, but"
+                    " no __readamf__ attribute was found for class %s" % (
+                        klass.__name__))
+
+            if not hasattr(klass, '__writeamf__'):
+                raise AttributeError("An externalised class was specified, but"
+                    " no __writeamf__ attribute was found for class %s" % (
+                        klass.__name__))
+
+            if not isinstance(klass.__readamf__, types.UnboundMethodType):
+                raise TypeError, "%s.__readamf__ must be callable" % (
+                    klass.__name__)
+
+            if not isinstance(klass.__writeamf__, types.UnboundMethodType):
+                raise TypeError, "%s.__writeamf__ must be callable" % (
+                    klass.__name__)
+
+        if 'dynamic' in self.metadata:
+            if attr_func is not None and not callable(attr_func):
+                raise TypeError, "attr_func must be callable"
+
+        if 'static' in self.metadata:
+            if attrs is None:
+                raise ValueError, "attrs keyword must be specified for static classes" 
 
     def __call__(self, *args, **kwargs):
         """
@@ -364,6 +372,27 @@ class ClassAlias(object):
             return self.klass == other
         else:
             return False
+
+    def getAttrs(self, obj):
+        attrs = []
+        did_something = False
+
+        if self.attrs is not None:
+            did_something = True
+            attrs = self.attrs
+
+        if 'dynamic' in self.metadata and self.attr_func is not None:
+            did_something = True
+            extra_attrs = self.attr_func(obj)
+
+            for key in extra_attrs:
+                if key not in attrs:
+                    attrs.append(key)
+
+        if did_something is False:
+            return None
+
+        return attrs
 
 class BaseDecoder(object):
     """
@@ -522,8 +551,7 @@ class BaseEncoder(object):
         """
         raise NotImplementedError
 
-def register_class(klass, alias=None, read_func=None, write_func=None,
-                   attrs=None, metadata=[]):
+def register_class(klass, alias=None, attrs=None, attr_func=None, metadata=[]):
     """
     Registers a class to be used in the data streaming.
 
@@ -550,8 +578,8 @@ def register_class(klass, alias=None, read_func=None, write_func=None,
     if alias is not None and alias in CLASS_CACHE.keys():
         raise ValueError, "alias '%s' already registered" % alias
 
-    x = ClassAlias(klass, alias, read_func=read_func, write_func=write_func,
-        attrs=attrs, metadata=metadata)
+    x = ClassAlias(klass, alias, attr_func=attr_func, attrs=attrs,
+        metadata=metadata)
 
     if alias is None:
         alias = "%s.%s" % (klass.__module__, klass.__name__,)

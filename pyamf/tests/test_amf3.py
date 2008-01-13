@@ -24,7 +24,13 @@ class Spam(object):
     A generic object to use for object encoding
     """
     def __init__(self, d={}):
-        self.__dict__ = dict(d)
+        self.__dict__.update(d)
+
+    def __readamf__(self, input):
+        pass
+
+    def __writeamf__(self, output):
+        pass
 
 class TypesTestCase(unittest.TestCase):
     """
@@ -193,28 +199,25 @@ class ClassDefinitionTestCase(unittest.TestCase):
         x = amf3.ClassDefinition('')
 
         self.assertEquals(x.alias, None)
-        self.assertEquals(x.encoding, 0)
-        self.assertEquals(x.attrs, [])
-        self.assertEquals(len(x.attrs), 0)
-        self.assertEquals(x.num_attrs, None)
+        self.assertEquals(x.encoding, 2)
+        self.assertEquals(x.static_attrs, [])
+        self.assertEquals(len(x.static_attrs), 0)
 
         x = amf3.ClassDefinition(None)
 
         self.assertEquals(x.alias, None)
-        self.assertEquals(x.encoding, 0)
-        self.assertEquals(x.attrs, [])
-        self.assertEquals(len(x.attrs), 0)
-        self.assertEquals(x.num_attrs, None)
+        self.assertEquals(x.encoding, 2)
+        self.assertEquals(x.static_attrs, [])
+        self.assertEquals(len(x.static_attrs), 0)
 
         pyamf.register_class(Spam, 'spam.eggs')
 
         x = amf3.ClassDefinition('spam.eggs')
         self.assertTrue(isinstance(x.alias, pyamf.ClassAlias))
         self.assertEquals(x.alias, pyamf.get_class_alias('spam.eggs'))
-        self.assertEquals(x.encoding, 0)
-        self.assertEquals(x.attrs, [])
-        self.assertEquals(len(x.attrs), 0)
-        self.assertEquals(x.num_attrs, None)
+        self.assertEquals(x.encoding, 2)
+        self.assertEquals(x.static_attrs, [])
+        self.assertEquals(len(x.static_attrs), 0)
 
         pyamf.unregister_class(Spam)
 
@@ -352,13 +355,13 @@ class EncoderTestCase(unittest.TestCase):
 
     def test_dict(self):
         self._run([
-            ({'spam': 'eggs'}, '\n\x13\x01\x09spam\x06\x09eggs')])
+            ({'spam': 'eggs'}, '\n\x0b\x01\tspam\x06\teggs\x01')])
 
         self._run([
-            ({'a': u'a', 'b': u'b', 'c': u'c', 'd': u'd'}, '\nC\x01\x03a\x03c'
-                '\x03b\x03d\x06\x00\x06\x02\x06\x04\x06\x06')])
+            ({'a': u'a', 'b': u'b', 'c': u'c', 'd': u'd'},
+                '\n\x0b\x01\x03a\x06\x00\x03c\x06\x02\x03b\x06\x04\x03d\x06\x06\x01')])
 
-        x = amf3.Decoder('\nC\x01\x03a\x03c\x03b\x03d\x06\x00\x06\x02\x06\x04\x06\x06')
+        x = amf3.Decoder('\n\x0b\x01\x03a\x06\x00\x03c\x06\x02\x03b\x06\x04\x03d\x06\x06\x01')
         self.assertEqual(x.readElement(), {'a': u'a', 'b': u'b', 'c': u'c', 'd': u'd'})
 
     def test_mixed_array(self):
@@ -399,7 +402,7 @@ class EncoderTestCase(unittest.TestCase):
     def test_object(self):
         self._run([
             ({'a': u'spam', 'b': 5},
-                '\n\x23\x01\x03a\x03b\x06\x09spam\x04\x05')])
+                '\n\x0b\x01\x03a\x06\tspam\x03b\x04\x05\x01')])
 
         pyamf.register_class(Spam, 'org.pyamf.spam')
 
@@ -408,8 +411,8 @@ class EncoderTestCase(unittest.TestCase):
 
         self.encoder.writeElement(obj)
 
-        self.assertEqual(self.buf.getvalue(), '\n\x13\x1dorg.pyamf.spam\x07baz'
-            '\x06\x0bhello')
+        self.assertEqual(self.buf.getvalue(), '\n\x0b\x1dorg.pyamf.spam\x07baz'
+            '\x06\x0bhello\x01')
 
         pyamf.unregister_class(Spam)
 
@@ -448,7 +451,7 @@ class EncoderTestCase(unittest.TestCase):
 
         self.assertEquals(class_def.name, 'abc.xyz')
         self.assertEquals(class_def.klass, Spam)
-        self.assertEquals(class_def.attrs, ['spam'])
+        self.assertEquals(class_def.static_attrs, [])
 
         pyamf.unregister_class(Spam)
 
@@ -459,7 +462,7 @@ class EncoderTestCase(unittest.TestCase):
 
         self.assertEquals(class_def.name, '')
         self.assertEquals(class_def.klass, pyamf.ASObject)
-        self.assertEquals(class_def.attrs, ['spam'])
+        self.assertEquals(class_def.static_attrs, [])
 
         # test supplied attributes
         attrs = ['spam', 'eggs']
@@ -471,8 +474,7 @@ class EncoderTestCase(unittest.TestCase):
 
         self.assertEquals(class_def.name, 'abc.xyz')
         self.assertEquals(class_def.klass, Spam)
-        self.assertEquals(class_def.attrs, attrs)
-        self.assertNotEquals(id(class_def.attrs), id(attrs))
+        self.assertEquals(class_def.static_attrs, attrs)
 
         pyamf.unregister_class(Spam)
 
@@ -481,7 +483,7 @@ class EncoderTestCase(unittest.TestCase):
 
         x = Spam({'spam': 'eggs'})
 
-        self._run([(x, '\n\x13\x01\x09spam\x06\x09eggs')])
+        self._run([(x, '\n\x0b\x01\x09spam\x06\x09eggs\x01')])
         pyamf.unregister_class(Spam)
 
     def test_custom_type(self):
@@ -691,7 +693,7 @@ class DecoderTestCase(unittest.TestCase):
         self.buf.write('\x0fabc.xyz')
         self.buf.seek(0, 0)
 
-        is_ref, class_def = self.decoder._getClassDefinition(0x01)
+        is_ref, class_def, num_attrs = self.decoder._getClassDefinition(0x01)
 
         self.assertFalse(is_ref)
         self.assertTrue(isinstance(class_def, amf3.ClassDefinition))
@@ -705,7 +707,7 @@ class DecoderTestCase(unittest.TestCase):
         self.buf.write('\x0fabc.xyz')
         self.buf.seek(0, 0)
 
-        is_ref, class_def = self.decoder._getClassDefinition(0x03)
+        is_ref, class_def, num_attrs = self.decoder._getClassDefinition(0x03)
 
         self.assertFalse(is_ref)
         self.assertTrue(isinstance(class_def, amf3.ClassDefinition))
@@ -719,7 +721,7 @@ class DecoderTestCase(unittest.TestCase):
         self.buf.write('\x0fabc.xyz')
         self.buf.seek(0, 0)
 
-        is_ref, class_def = self.decoder._getClassDefinition(0x05)
+        is_ref, class_def, num_attrs = self.decoder._getClassDefinition(0x05)
 
         self.assertFalse(is_ref)
         self.assertTrue(isinstance(class_def, amf3.ClassDefinition))
@@ -773,23 +775,20 @@ class ObjectEncodingTestCase(unittest.TestCase):
         #self.assertEquals(self.stream.getvalue()[pos:], '\x0a\x00')
 
     def test_static(self):
-        pyamf.register_class(Spam, 'abc.xyz', metadata='static')
+        pyamf.register_class(Spam, 'abc.xyz', metadata='static', attrs=[])
 
         x = Spam({'spam': 'eggs'})
         self.encoder.writeElement(x)
-        buf = self.stream.getvalue()
+        self.assertEquals(self.stream.getvalue(), '\n\x03\x0fabc.xyz')
+        pyamf.unregister_class(Spam)
+        self.stream.truncate()
+        self.encoder.context.clear()
 
-        # an inline object with and inline class-def, encoding = 0x00, 1 attr
-        self.assertEquals(buf[:2], '\x0a\x13')
-        # class alias name
-        self.assertEquals(buf[2:10], '\x0fabc.xyz')
-        # first key
-        self.assertEquals(buf[10:15], '\x09spam')
-        # first value
-        self.assertEquals(buf[15:21], '\x06\x09eggs')
+        pyamf.register_class(Spam, 'abc.xyz', metadata='static', attrs=['spam'])
 
-        self.assertEquals(len(buf), 21)
-
+        x = Spam({'spam': 'eggs'})
+        self.encoder.writeElement(x)
+        self.assertEquals(self.stream.getvalue(), '\n\x13\x0fabc.xyz\tspam\x06\teggs')
         pyamf.unregister_class(Spam)
 
     def test_dynamic(self):
@@ -798,28 +797,27 @@ class ObjectEncodingTestCase(unittest.TestCase):
         x = Spam({'spam': 'eggs'})
         self.encoder.writeElement(x)
 
+        self.assertEquals(self.stream.getvalue(), '\n\x0b\x0fabc.xyz\tspam\x06\teggs\x01')
+
+        pyamf.unregister_class(Spam)
+
+    def test_combined(self):
+        def wf(obj):
+            return ['eggs']
+
+        pyamf.register_class(Spam, 'abc.xyz', attrs=['spam'], attr_func=wf)
+
+        x = Spam({'spam': 'foo', 'eggs': 'bar'})
+        self.encoder.writeElement(x)
+
         buf = self.stream.getvalue()
 
-        # an inline object with and inline class-def, encoding = 0x01, 1 attr
-        self.assertEquals(buf[:2], '\x0a\x1b')
-        # class alias name
-        self.assertEquals(buf[2:10], '\x0fabc.xyz')
-        # first key
-        self.assertEquals(buf[10:15], '\x09spam')
-        # first value
-        self.assertEquals(buf[15:21], '\x06\x09eggs')
-        # empty key
-        self.assertEquals(buf[21:23], '\x06\x01')
-
-        self.assertEquals(len(buf), 23)
+        self.assertEquals(buf, '\n\x1b\x0fabc.xyz\tspam\x06\x07foo\teggs\x06\x07bar\x01')
 
         pyamf.unregister_class(Spam)
 
     def test_external(self):
-        def read(self, x):
-            pass
-
-        pyamf.register_class(Spam, 'abc.xyz', read_func=read, write_func=read)
+        pyamf.register_class(Spam, 'abc.xyz', metadata=['external'])
 
         x = Spam({'spam': 'eggs'})
         self.encoder.writeElement(x)
@@ -860,7 +858,7 @@ class ObjectDecodingTestCase(unittest.TestCase):
         pass
 
     def test_static(self):
-        pyamf.register_class(Spam, 'abc.xyz', metadata='static')
+        pyamf.register_class(Spam, 'abc.xyz')
 
         self.assertEquals(self.context.objects, [])
         self.assertEquals(self.context.strings, [])
@@ -873,8 +871,7 @@ class ObjectDecodingTestCase(unittest.TestCase):
 
         class_def = self.context.classes[0]
 
-        self.assertEquals(class_def.attrs, ['spam'])
-        self.assertEquals(class_def.num_attrs, 1)
+        self.assertEquals(class_def.static_attrs, ['spam'])
 
         self.assertTrue(isinstance(obj, Spam))
         self.assertEquals(obj.__dict__, {'spam': 'eggs'})
@@ -895,8 +892,7 @@ class ObjectDecodingTestCase(unittest.TestCase):
 
         class_def = self.context.classes[0]
 
-        self.assertEquals(class_def.attrs, [])
-        self.assertEquals(class_def.num_attrs, 0)
+        self.assertEquals(class_def.static_attrs, [])
 
         self.assertTrue(isinstance(obj, Spam))
         self.assertEquals(obj.__dict__, {'spam': 'eggs'})
@@ -922,8 +918,7 @@ class ObjectDecodingTestCase(unittest.TestCase):
 
         class_def = self.context.classes[0]
 
-        self.assertEquals(class_def.attrs, ['spam'])
-        self.assertEquals(class_def.num_attrs, 1)
+        self.assertEquals(class_def.static_attrs, ['spam'])
 
         self.assertTrue(isinstance(obj, Spam))
         self.assertEquals(obj.__dict__, {'spam': 'eggs', 'baz': 'nat'})
@@ -931,7 +926,16 @@ class ObjectDecodingTestCase(unittest.TestCase):
         pyamf.unregister_class(Spam)
 
     def test_external(self):
-        pass
+        pyamf.register_class(Spam, 'abc.xyz', metadata=['external'])
+
+        self.stream.write('\x0a\x07\x0fabc.xyz')
+        self.stream.seek(0)
+        x = self.decoder.readElement()
+
+        self.assertTrue(isinstance(x, Spam))
+        self.assertEquals(x.__dict__, {})
+
+        pyamf.unregister_class(Spam)
 
 class DataOutputTestCase(unittest.TestCase):
     def setUp(self):

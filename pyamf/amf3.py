@@ -7,12 +7,11 @@
 AMF3 implementation.
 
 C{AMF3} is the default serialization for
-U{ActionScript<http://en.wikipedia.org/wiki/ActionScript>} 3.0 and
-provides various advantages over L{AMF0<pyamf.amf0>}, which is used
-for ActionScript 1.0 and 2.0. It adds support for sending C{int}
-and C{uint} objects as integers and supports data types that are
-available only in ActionScript 3.0, such as L{ByteArray} and
-L{ArrayCollection}.
+U{ActionScript<http://en.wikipedia.org/wiki/ActionScript>} 3.0 and provides
+various advantages over L{AMF0<pyamf.amf0>}, which is used for ActionScript 1.0
+and 2.0. It adds support for sending C{int} and C{uint} objects as integers and
+supports data types that are available only in ActionScript 3.0, such as
+L{ByteArray} and L{ArrayCollection}.
 
 @see: U{Official AMF3 Specification (external)
 <http://download.macromedia.com/pub/labs/amf/amf3_spec_121207.pdf>}
@@ -35,10 +34,9 @@ class ASTypes:
     """
     All AMF3 data types used in ActionScript 3.0.
 
-    AMF represents ActionScript objects by a single byte representing
-    type, and then by a type-specific byte array that may be of fixed
-    length, may contain length information, or may come with its own end
-    code.
+    AMF represents ActionScript objects by a single byte representing type, and
+    then by a type-specific byte array that may be of fixed length, may contain
+    length information, or may come with its own end code.
 
     @see: U{AMF3 data types on OSFlash (external)
     <http://osflash.org/documentation/amf3#data_types>}
@@ -132,24 +130,22 @@ class ObjectEncoding:
     AMF object encodings.
     """
     #: Property list encoding.
-    #: The remaining integer-data represents the number of
-    #: class members that exist. The property names are read
-    #: as string-data. The values are then read as AMF3-data.
+    #: The remaining integer-data represents the number of class members that
+    #: exist. The property names are read as string-data. The values are then
+    #: read as AMF3-data.
     STATIC = 0x00
 
     #: Externalizable object.
-    #: What follows is the value of the "inner" object,
-    #: including type code. This value appears for objects
-    #: that implement IExternalizable, such as
+    #: What follows is the value of the "inner" object, including type code.
+    #: This value appears for objects that implement IExternalizable, such as
     #: L{ArrayCollection} and L{ObjectProxy}.
     EXTERNAL = 0x01
 
     #: Name-value encoding.
-    #: The property names and values are encoded as string-data
-    #: followed by AMF3-data until there is an empty string
-    #: property name. If there is a class-def reference there
-    #: are no property names and the number of values is equal
-    #: to the number of properties in the class-def.
+    #: The property names and values are encoded as string-data followed by
+    #: AMF3-data until there is an empty string property name. If there is a
+    #: class-def reference there are no property names and the number of values
+    #: is equal to the number of properties in the class-def.
     DYNAMIC = 0x02
 
     #: Proxy object.
@@ -157,6 +153,9 @@ class ObjectEncoding:
 
 class DataOutput(object):
     """
+    I am a C{StringIO} type object containing byte data from the AMF stream.
+    ActionScript 3.0 introduced the C{flash.utils.ByteArray} class to support
+    the manipulation of raw data in the form of an Array of bytes.
     I provide a set of methods for writing binary data with ActionScript 3.0.
 
     This class is the I/O counterpart to the L{DataInput} class, which reads
@@ -305,7 +304,6 @@ class DataOutput(object):
         @type value: C{str}
         @param value: The string value to be written.
         """
-
         val = None
 
         if isinstance(value, unicode):
@@ -535,19 +533,13 @@ class ClassDefinition(object):
     I contain meta relating to the class definition.
 
     @ivar alias: The alias to this class definition. If this value is C{None},
-                 or an empty string, the class is considered to be anonymous.
+        or an empty string, the class is considered to be anonymous.
     @type alias: L{ClassAlias<pyamf.ClassAlias>}
     @ivar encoding: The type of encoding to use when serializing the object.
     @type encoding: C{int}
-    @ivar attrs: List of attributes to encode.
-    @type attrs: C{list}
-    @ivar name:
-    @type name:
-    @ivar klass:
-    @type klass:
     """
 
-    def __init__(self, alias, encoding=ObjectEncoding.STATIC, num_attrs=None):
+    def __init__(self, alias, encoding=ObjectEncoding.DYNAMIC):
         if alias in (None, ''):
             self.alias = None
         elif isinstance(alias, pyamf.ClassAlias):
@@ -556,8 +548,11 @@ class ClassDefinition(object):
             self.alias = pyamf.get_class_alias(alias)
 
         self.encoding = encoding
-        self.attrs = []
-        self.num_attrs = num_attrs
+
+        if self.alias and self.alias.attrs is not None:
+            self.static_attrs = self.alias.attrs
+        else:
+            self.static_attrs = []
 
     def _get_name(self):
         if self.alias is None:
@@ -595,8 +590,7 @@ class ClassDefinition(object):
         """
         if not hasattr(self, '_alias'):
             if self.name == '':
-                raise pyamf.UnknownClassAlias, '%s' % (
-                    'Anonymous class definitions do not have class aliases')
+                raise pyamf.UnknownClassAlias, 'Anonymous class definitions do not have class aliases'
 
             self._alias = pyamf.load_class(self.alias)
 
@@ -614,6 +608,36 @@ class ClassDefinition(object):
         return self._klass
 
     klass = property(getClass)
+
+    def getAttrs(self, obj):
+        """
+        Returns a tuple containing a list of static attrs and a list of dynamic
+        attrs for C{obj}
+        """
+        attrs = None
+ 
+        if hasattr(obj, 'keys'):
+            attrs = set([unicode(k) for k in obj.keys()])
+        elif hasattr(obj, 'iteritems'):
+            attrs = set([unicode(k) for k, v in obj.iteritems()])
+        elif hasattr(obj, '__dict__'):
+            attrs = set([unicode(k) for k in obj.__dict__.keys()])
+
+        static_attrs = dynamic_attrs = None
+
+        if self.alias:
+            if self.alias.attrs:
+                static_attrs = self.alias.attrs
+                [attrs.remove(x) for x in static_attrs]
+
+            if self.alias.attr_func:
+                dynamic_attrs = self.alias.attr_func(obj)
+            else:
+                dynamic_attrs = attrs
+        else:
+            dynamic_attrs = attrs
+
+        return (static_attrs, dynamic_attrs)
 
 class Context(pyamf.BaseContext):
     """
@@ -670,9 +694,8 @@ class Context(pyamf.BaseContext):
 
     def addString(self, s):
         """
-        Creates a reference to C{s}.
-
-        If the reference already exists, that reference is returned.
+        Creates a reference to C{s}. If the reference already exists, that
+        reference is returned.
 
         @type s: C{str}
         @param s: The string to be referenced.
@@ -735,10 +758,9 @@ class Context(pyamf.BaseContext):
 
     def getLegacyXML(self, ref):
         """
-        Return the legacy XML reference.
-
-        This is the C{flash.xml.XMLDocument} class in ActionScript 3.0
-        and the top-level C{XML} class in ActionScript 1.0 and 2.0.
+        Return the legacy XML reference. This is the C{flash.xml.XMLDocument}
+        class in ActionScript 3.0 and the top-level C{XML} class in
+        ActionScript 1.0 and 2.0.
 
         @type ref: C{int}
         @param ref: The reference index.
@@ -764,15 +786,14 @@ class Context(pyamf.BaseContext):
         try:
             return self.legacy_xml.index(doc)
         except ValueError:
-            raise pyamf.ReferenceError(
-                "Reference for document %r not found" % doc)
+            raise pyamf.ReferenceError, "Reference for document %r not found" % doc
 
     def addLegacyXML(self, doc):
         """
         Creates a reference to U{doc}.
 
-        If U{doc} is already referenced that index will be returned.
-        Otherwise a new index will be created.
+        If U{doc} is already referenced that index will be returned. Otherwise
+        a new index will be created.
 
         @type doc: L{ET<util.ET>}
         @param doc: The XML document to reference.
@@ -813,8 +834,7 @@ class Decoder(pyamf.BaseDecoder):
 
     def readType(self):
         """
-        Read and returns the next byte in the stream and determine
-        its type.
+        Read and returns the next byte in the stream and determine its type.
 
         @raise DecodeError: AMF3 type not recognized
         @return: AMF3 type
@@ -823,8 +843,7 @@ class Decoder(pyamf.BaseDecoder):
         type = self.stream.read_uchar()
 
         if type not in ACTIONSCRIPT_TYPES:
-            raise pyamf.DecodeError("Unknown AMF3 type 0x%02x at %d" % (
-                type, self.stream.tell() - 1))
+            raise pyamf.DecodeError, "Unknown AMF3 type 0x%02x at %d" % (type, self.stream.tell() - 1)
 
         return type
 
@@ -944,9 +963,9 @@ class Decoder(pyamf.BaseDecoder):
         """
         Reads an array from the stream.
 
-        @warning: There is a very specific problem with AMF3 where the
-        first three bytes of an encoded empty C{dict} will mirror that
-        of an encoded C{{'': 1, '2': 2}}
+        @warning: There is a very specific problem with AMF3 where the first
+        three bytes of an encoded empty C{dict} will mirror that of an encoded
+        C{{'': 1, '2': 2}}
 
         @see: U{Docuverse blog
         <http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug>}
@@ -999,26 +1018,23 @@ class Decoder(pyamf.BaseDecoder):
         if class_ref:
             class_def = self.context.getClassDefinition(ref)
         else:
-            class_def = ClassDefinition(self.readString(),
-                encoding=ref & 0x03, num_attrs=ref >> 2)
+            class_def = ClassDefinition(self.readString(), encoding=ref & 0x03)
             self.context.addClassDefinition(class_def)
 
-        return class_ref, class_def
+        return class_ref, class_def, ref >> 2
 
     def readObject(self):
         """
         Reads an object from the stream.
-
-        @raise DecodeError: The object encoding is unknown.
-        @return:
-        @rtype:
         """
-        def readStatic(is_ref, class_def, obj):
+        def readStatic(is_ref, class_def, obj, num_attrs):
             if not is_ref:
-                for i in range(class_def.num_attrs):
-                    class_def.attrs.append(self.readString())
+                for i in range(num_attrs):
+                    key = self.readString()
 
-            for attr in class_def.attrs:
+                    class_def.static_attrs.append(key)
+
+            for attr in class_def.static_attrs:
                 setattr(obj, attr, self.readElement())
 
         def readDynamic(is_ref, class_def, obj):
@@ -1035,21 +1051,25 @@ class Decoder(pyamf.BaseDecoder):
 
         ref >>= 1
 
-        (class_ref, class_def) = self._getClassDefinition(ref)
+        class_ref, class_def, num_attrs = self._getClassDefinition(ref)
+
+        if class_def.alias and 'amf0' in class_def.alias.metadata:
+            raise pyamf.EncodeError, "Decoding an object in amf3 tagged as amf0 only is not allowed"
+
         klass = class_def.getClass()
 
         obj = klass()
         self.context.addObject(obj)
 
         if class_def.encoding in (ObjectEncoding.EXTERNAL, ObjectEncoding.PROXY):
-            class_def.alias.read_func(obj, DataInput(self))
+            obj.__readamf__(DataInput(self))
         elif class_def.encoding == ObjectEncoding.DYNAMIC:
-            readStatic(class_ref, class_def, obj)
+            readStatic(class_ref, class_def, obj, num_attrs)
             readDynamic(class_ref, class_def, obj)
         elif class_def.encoding == ObjectEncoding.STATIC:
-            readStatic(class_ref, class_def, obj)
+            readStatic(class_ref, class_def, obj, num_attrs)
         else:
-            raise pyamf.DecodeError("Unknown object encoding")
+            raise pyamf.DecodeError, "Unknown object encoding"
 
         return obj
 
@@ -1058,7 +1078,7 @@ class Decoder(pyamf.BaseDecoder):
         Reads an object from the stream.
 
         @type legacy: C{bool}
-        @param legacy:
+        @param legacy: The read XML is in 'legacy' format. 
         """
         ref = self.readInteger()
 
@@ -1077,8 +1097,7 @@ class Decoder(pyamf.BaseDecoder):
 
     def readXMLString(self):
         """
-        Reads a string from the data stream and converts it into
-        an XML Tree.
+        Reads a string from the data stream and converts it into an XML Tree.
 
         @return: The XML Document
         @rtype: L{ET<util.ET>}
@@ -1176,7 +1195,6 @@ class Encoder(pyamf.BaseEncoder):
         """
         Writes the data type to the stream.
 
-        @type   type:
         @param  type: ActionScript type.
         @raise EncodeError: AMF3 type is not recognized.
         """
@@ -1328,7 +1346,7 @@ class Encoder(pyamf.BaseEncoder):
         Writes a C{tuple}, C{set} or C{list} to the stream.
 
         @type n: One of C{__builtin__.tuple}, C{__builtin__.set}
-        or C{__builtin__.list}
+            or C{__builtin__.list}
         @param n: C{list} data.
         @type   use_references: C{bool}
         @param  use_references:
@@ -1355,10 +1373,10 @@ class Encoder(pyamf.BaseEncoder):
         """
         Writes a C{dict} to the stream.
 
-        @type   n: C{__builtin__.dict}
-        @param  n: C{dict} data.
-        @type   use_references: C{bool}
-        @param  use_references:
+        @type n: C{__builtin__.dict}
+        @param n: C{dict} data.
+        @type use_references: C{bool}
+        @param use_references:
         @raise ValueError: Non C{int}/C{str} key value found in the C{dict}
         @raise EncodeError: C{dict} contains empty string keys.
         """
@@ -1384,7 +1402,7 @@ class Encoder(pyamf.BaseEncoder):
             elif isinstance(x, (str, unicode)):
                 str_keys.append(x)
             else:
-                raise ValueError("Non int/str key value found in dict")
+                raise ValueError, "Non int/str key value found in dict"
 
         # Make sure the integer keys are within range
         l = len(int_keys)
@@ -1410,8 +1428,7 @@ class Encoder(pyamf.BaseEncoder):
             # http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug
             # for more info
             if x == '':
-                raise pyamf.EncodeError(
-                    "dicts cannot contain empty string keys")
+                raise pyamf.EncodeError, "dicts cannot contain empty string keys"
 
             self._writeString(x)
             self.writeElement(n[x])
@@ -1423,19 +1440,14 @@ class Encoder(pyamf.BaseEncoder):
 
     def _getClassDefinition(self, obj):
         """
-        Read class definition.
-
-        @type   obj:
-        @param  obj:
-        @rtype:
-        @return:
+        Builds a class definition based on the C{obj}.
         """
+        encoding = ObjectEncoding.DYNAMIC
+
         try:
             alias = pyamf.get_class_alias(obj)
         except pyamf.UnknownClassAlias:
             alias = None
-
-        encoding = ObjectEncoding.STATIC
 
         if alias:
             if 'dynamic' in alias.metadata:
@@ -1444,41 +1456,26 @@ class Encoder(pyamf.BaseEncoder):
                 encoding = ObjectEncoding.STATIC
             elif 'external' in alias.metadata:
                 encoding = ObjectEncoding.EXTERNAL
-            elif alias.write_func and alias.read_func:
-                encoding = ObjectEncoding.EXTERNAL
 
         class_def = ClassDefinition(alias, encoding)
 
-        if encoding in (ObjectEncoding.STATIC, ObjectEncoding.DYNAMIC):
-            if alias is None:
+        if alias and encoding == ObjectEncoding.STATIC:
+            if alias.attrs is not None:
+                import copy
+
+                class_def.static_attrs = copy.copy(alias.attrs)
+            else:
                 if hasattr(obj, 'keys'):
                     for k in obj.keys():
-                        class_def.attrs.append(unicode(k))
+                        class_def.static_attrs.append(unicode(k))
                 elif hasattr(obj, 'iteritems'):
                     for k, v in obj.iteritems():
-                        class_def.attrs.append(unicode(k))
+                        class_def.static_attrs.append(unicode(k))
                 elif hasattr(obj, '__dict__'):
                     for k in obj.__dict__.keys():
-                        class_def.attrs.append(unicode(k))
+                        class_def.static_attrs.append(unicode(k))
                 else:
                     raise pyamf.EncodingError, 'Unable to determine object attributes'
-            else:
-                if alias.attrs is None:
-                    if hasattr(obj, 'keys'):
-                        for k in obj.keys():
-                            class_def.attrs.append(unicode(k))
-                    elif hasattr(obj, 'iteritems'):
-                        for k, v in obj.iteritems():
-                            class_def.attrs.append(unicode(k))
-                    elif hasattr(obj, '__dict__'):
-                        for k in obj.__dict__.keys():
-                            class_def.attrs.append(unicode(k))
-                    else:
-                        raise pyamf.EncodingError, 'Unable to determine object attributes'
-                else:
-                    import copy
-
-                    class_def.attrs = copy.copy(alias.attrs)
 
         return class_def
 
@@ -1508,14 +1505,11 @@ class Encoder(pyamf.BaseEncoder):
         @param  use_references:
         @raise EncodeError: Unknown object encoding.
         """
-        def get_attr(obj, attr):
-            try:
-                return getattr(obj, attr)
-            except AttributeError:
-                if obj.__class__ == dict:
-                    return obj[attr]
+        def writeStatic(obj, attrs, class_ref):
+            if not class_ref:
+                [self._writeString(attr) for attr in attrs]
 
-                raise
+            [self.writeElement(util.get_attr(obj, attr)) for attr in attrs]
 
         self.writeType(ASTypes.OBJECT)
 
@@ -1536,37 +1530,40 @@ class Encoder(pyamf.BaseEncoder):
         except pyamf.ReferenceError:
             class_def = self._getClassDefinition(obj)
             class_ref = False
-
             ref = 0
 
+            if class_def.alias and 'amf0' in class_def.alias.metadata:
+                raise pyamf.EncodeError, "Encoding an object in amf3 tagged as amf0 only"
+
             if class_def.encoding != ObjectEncoding.EXTERNAL:
-                ref += len(class_def.attrs) << 4
+                if class_def.alias and class_def.alias.attrs is not None:
+                    ref += len(class_def.alias.attrs) << 4
+                    print ref
 
-            self._writeInteger(ref | class_def.encoding << 2 |
-                REFERENCE_BIT << 1 | REFERENCE_BIT)
-
+            self._writeInteger(ref | class_def.encoding << 2 | REFERENCE_BIT << 1 | REFERENCE_BIT)
             self._writeString(class_def.name)
 
         if class_def.encoding in (ObjectEncoding.EXTERNAL, ObjectEncoding.PROXY):
-            class_def.alias.write_func(obj, DataOutput(self))
+            obj.__writeamf__(DataOutput(self))
         elif class_def.encoding == ObjectEncoding.DYNAMIC:
-            if not class_ref:
-                for attr in class_def.attrs:
-                    self._writeString(attr)
-                    self.writeElement(get_attr(obj, attr))
+            static_attrs, dynamic_attrs = class_def.getAttrs(obj)
 
-                self.writeString("")
-            else:
-                for attr in class_def.attrs:
-                    self.writeElement(get_attr(obj, attr))
-        elif class_def.encoding == ObjectEncoding.STATIC:
-            if not class_ref:
-                for attr in class_def.attrs:
+            if static_attrs is not None:            
+                writeStatic(obj, static_attrs, class_ref)
+
+            if dynamic_attrs is not None:
+                for attr in dynamic_attrs:
                     self._writeString(attr)
-            for attr in class_def.attrs:
-                self.writeElement(get_attr(obj, attr))
+                    self.writeElement(util.get_attr(obj, attr))
+
+                self._writeString("")
+        elif class_def.encoding == ObjectEncoding.STATIC:
+            static_attrs, dynamic_attrs = class_def.getAttrs(obj)
+
+            if static_attrs is not None:
+                writeStatic(obj, static_attrs, class_ref)
         else:
-            raise pyamf.EncodeError("Unknown object encoding")
+            raise pyamf.EncodeError, "Unknown object encoding"
 
     def writeByteArray(self, n, use_references=True):
         """

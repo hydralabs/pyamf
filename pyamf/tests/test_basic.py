@@ -130,30 +130,27 @@ class ClassAliasTestCase(unittest.TestCase):
 
         self.assertEquals(x.klass, Spam)
         self.assertEquals(x.alias, 'org.example.spam.Spam')
-        self.assertEquals(x.read_func, None)
-        self.assertEquals(x.write_func, None)
         self.assertEquals(x.attrs, None)
         self.assertEquals(x.metadata, [])
-
-        x = pyamf.ClassAlias(Spam, 'org.example.spam.Spam', read_func=ord,
-            write_func=str)
-
-        self.assertEquals(x.klass, Spam)
-        self.assertEquals(x.alias, 'org.example.spam.Spam')
-        self.assertEquals(x.read_func, ord)
-        self.assertEquals(x.write_func, str)
-        self.assertEquals(x.attrs, None)
-        self.assertEquals(x.metadata, ['external'])
+        self.assertEquals(x.attr_func, None)
 
         x = pyamf.ClassAlias(Spam, 'org.example.spam.Spam', attrs=['spam', 'eggs'],
-            metadata=['dynamic'])
+            metadata=['static'])
 
         self.assertEquals(x.klass, Spam)
         self.assertEquals(x.alias, 'org.example.spam.Spam')
-        self.assertEquals(x.read_func, None)
-        self.assertEquals(x.write_func, None)
+        self.assertEquals(x.attrs, ['spam', 'eggs'])
+        self.assertEquals(x.metadata, ['static'])
+        self.assertEquals(x.attr_func, None)
+
+        x = pyamf.ClassAlias(Spam, 'org.example.foo.Spam', attrs=['spam', 'eggs'],
+            attr_func=ord, metadata=['dynamic'])
+
+        self.assertEquals(x.klass, Spam)
+        self.assertEquals(x.alias, 'org.example.foo.Spam')
         self.assertEquals(x.attrs, ['spam', 'eggs'])
         self.assertEquals(x.metadata, ['dynamic'])
+        self.assertEquals(x.attr_func, ord)
 
     def test_bad_class(self):
         self.assertRaises(TypeError, pyamf.ClassAlias, 'eggs', 'blah')
@@ -228,6 +225,102 @@ class ClassAliasTestCase(unittest.TestCase):
 
         pyamf.unregister_class(Spam)
 
+    def test_external(self):
+        class A(object):
+            pass
+
+        class B:
+            pass
+
+        self.assertRaises(AttributeError, pyamf.register_class, A,
+            metadata=['external'])
+        self.assertRaises(AttributeError, pyamf.register_class, B,
+            metadata=['external'])
+
+        A.__readamf__ = None
+        B.__readamf__ = None
+
+        self.assertRaises(AttributeError, pyamf.register_class, A,
+            metadata=['external'])
+        self.assertRaises(AttributeError, pyamf.register_class, B,
+            metadata=['external'])
+
+        A.__readamf__ = lambda x: None
+        B.__readamf__ = lambda x: None
+
+        self.assertRaises(AttributeError, pyamf.register_class, A,
+            metadata=['external'])
+        self.assertRaises(AttributeError, pyamf.register_class, B,
+            metadata=['external'])
+
+        A.__writeamf__ = 'foo'
+        B.__writeamf__ = 'bar'
+
+        self.assertRaises(TypeError, pyamf.register_class, A,
+            metadata=['external'])
+        self.assertRaises(TypeError, pyamf.register_class, B,
+            metadata=['external'])
+
+        A.__writeamf__ = lambda x: None
+        B.__writeamf__ = lambda x: None
+
+        pyamf.register_class(A, metadata=['external'])
+        pyamf.register_class(B, metadata=['external'])
+
+        pyamf.unregister_class(A)
+        pyamf.unregister_class(B)
+
+    def test_get_attrs(self):
+        pyamf.register_class(Spam)
+        alias = pyamf.get_class_alias(Spam)
+
+        x = Spam()
+        self.assertEquals(alias.getAttrs(x), None)
+
+        pyamf.unregister_class(Spam)
+
+        pyamf.register_class(Spam, attrs=['foo'])
+        alias = pyamf.get_class_alias(Spam)
+
+        x = Spam()
+        self.assertEquals(alias.getAttrs(x), ['foo'])
+
+        pyamf.unregister_class(Spam)
+
+        pyamf.register_class(Spam, metadata=['dynamic'])
+        alias = pyamf.get_class_alias(Spam)
+
+        x = Spam()
+        self.assertEquals(alias.getAttrs(x), None)
+
+        pyamf.unregister_class(Spam)
+
+        def af(x):
+            self.assertEquals(self._obj, x)
+
+            return ['bar']
+
+        pyamf.register_class(Spam, attr_func=af, metadata=['dynamic'])
+        alias = pyamf.get_class_alias(Spam)
+
+        self._obj = Spam()
+        self.assertEquals(alias.getAttrs(self._obj), ['bar'])
+
+        pyamf.unregister_class(Spam)
+
+        def af(x):
+            self.assertEquals(self._obj, x)
+
+            return ['bar']
+
+        pyamf.register_class(Spam, attrs=['foo', 'bar'], attr_func=af, metadata=['dynamic'])
+        alias = pyamf.get_class_alias(Spam)
+
+        self._obj = Spam()
+        self.assertEquals(alias.getAttrs(self._obj), ['foo', 'bar'])
+
+        pyamf.unregister_class(Spam)
+
 class HelperTestCase(unittest.TestCase):
     """
     Tests all helper functions in C{pyamf.__init__}
@@ -290,8 +383,6 @@ class RegisterClassTestCase(unittest.TestCase):
         self.assertEquals(alias.alias, 'spam.eggs')
         self.assertEquals(alias.attrs, None)
         self.assertEquals(alias.metadata, [])
-        self.assertEquals(alias.read_func, None)
-        self.assertEquals(alias.write_func, None)
 
     def test_attrs(self):
         pyamf.register_class(Spam, 'spam.eggs', attrs=['x', 'y', 'z'])
@@ -299,18 +390,14 @@ class RegisterClassTestCase(unittest.TestCase):
 
         self.assertEquals(alias.attrs, ['x', 'y', 'z'])
 
-    def test_funcs(self):
-        pyamf.register_class(Spam, 'spam.eggs', read_func=ord, write_func=chr)
-        alias = pyamf.CLASS_CACHE['spam.eggs']
-
-        self.assertEquals(alias.read_func, ord)
-        self.assertEquals(alias.write_func, chr)
-
     def test_metadata(self):
-        pyamf.register_class(Spam, 'spam.eggs', metadata=['static'])
+        self.assertRaises(ValueError, pyamf.register_class, Spam, 'spam.eggs',
+            metadata=['static'])
+        pyamf.register_class(Spam, 'spam.eggs', metadata=['static'], attrs=['x'])
         alias = pyamf.CLASS_CACHE['spam.eggs']
 
         self.assertEquals(alias.metadata, ['static'])
+        self.assertEquals(alias.attrs, ['x'])
         self.assertTrue(isinstance(alias.metadata, pyamf.ClassMetaData))
 
     def test_bad_metadata(self):
@@ -324,6 +411,19 @@ class RegisterClassTestCase(unittest.TestCase):
         alias = pyamf.CLASS_CACHE['%s.%s' % (Spam.__module__, Spam.__name__,)]
 
         self.assertEquals(alias.metadata, ['anonymous'])
+
+    def test_dynamic(self):
+        pyamf.register_class(Spam, attr_func=ord, metadata=['dynamic'])
+
+        alias = pyamf.CLASS_CACHE['%s.%s' % (Spam.__module__, Spam.__name__,)]
+
+        self.assertTrue('dynamic' in alias.metadata)
+        self.assertEquals(alias.attr_func, ord)
+
+    def test_bad_attr_fun(self):
+        self.assertRaises(TypeError, pyamf.register_class, Spam, attr_func='boo', metadata=['dynamic'])
+
+        self.unregister = False
 
     def test_has_alias(self):
         self.assertEquals(pyamf.has_alias(Spam), False)
