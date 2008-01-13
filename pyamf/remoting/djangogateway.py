@@ -44,7 +44,7 @@ class DjangoGateway(gateway.BaseGateway):
     """
 
     def __init__(self, *args, **kwargs):
-        self.expose_request = kwargs.pop('expose_request', False)
+        self.expose_request = kwargs.pop('expose_request', True)
 
         gateway.BaseGateway.__init__(self, *args, **kwargs)
 
