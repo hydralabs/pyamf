@@ -15,6 +15,9 @@ import sys, os.path, glob, types, imp
 from peak.util import imports
 
 class PackageImporter(object):
+    """
+    Package importer used for lazy module loading.
+    """
     def __init__(self, name):
         self.name = name
 

@@ -17,7 +17,7 @@ U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>}.
 
 @since: October 2007
 @status: Beta
-@version: 0.1.0
+@version: 1.0
 """
 
 import types
