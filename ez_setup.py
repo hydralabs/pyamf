@@ -1,6 +1,5 @@
 #!python
-"""
-Bootstrap setuptools installation
+"""Bootstrap setuptools installation
 
 If you want to use setuptools in your package's setup.py, just include this
 file in the same directory with it, and add this to the top of your setup.py::
@@ -15,8 +14,7 @@ the appropriate options to ``use_setuptools()``.
 This file can also be run as a script to install or upgrade setuptools.
 """
 import sys
-LATEST_VERSION = "0.6c7"
-DEFAULT_VERSION = "0.6b3"
+DEFAULT_VERSION = "0.6c7"
 DEFAULT_URL     = "http://pypi.python.org/packages/%s/s/setuptools/" % sys.version[:3]
 
 md5_data = {
@@ -106,7 +104,7 @@ def use_setuptools(
         sys.exit(2)
 
 def download_setuptools(
-    version=LATEST_VERSION, download_base=DEFAULT_URL, to_dir=os.curdir,
+    version=DEFAULT_VERSION, download_base=DEFAULT_URL, to_dir=os.curdir,
     delay = 15
 ):
     """Download setuptools from a specified location and return its filename
