@@ -123,7 +123,8 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         for name, message in amf_request:
             processor = self.getProcessor(message)
 
-            d = threads.deferToThread(processor, message).addCallback(cb, name)
+            d = defer.maybeDeferred(processor, message)
+            d.addCallback(cb, name)
             dl.append(d)
 
         def cb2(result):
