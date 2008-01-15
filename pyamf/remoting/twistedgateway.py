@@ -24,12 +24,18 @@ __all__ = ['TwistedGateway']
 class TwistedGateway(gateway.BaseGateway, resource.Resource):
     """
     Twisted Remoting gateway for C{twisted.web}.
+
+    @ivar expose_request: Forces the underlying HTTP request to be the first
+        argument to any service call.
+    @type expose_request: C{bool}
     """
 
     allowedMethods = ('POST',)
 
-    def __init__(self, services={}, authenticator=None):
-        gateway.BaseGateway.__init__(self, services, authenticator)
+    def __init__(self, *args, **kwargs):
+        self.expose_request = kwargs.pop('expose_request', True)
+
+        gateway.BaseGateway.__init__(self, *args, **kwargs)
         resource.Resource.__init__(self)
 
     def _finaliseRequest(self, request, status, content, mimetype='text/plain'):
@@ -120,10 +126,18 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         def cb(body, name):
             response[name] = body
 
+        kwargs = {}
+
+        if self.expose_request:
+            def wrapper(service_request, *body):
+                return service_request(http_request, *body)
+
+            kwargs.update({'service_wrapper': wrapper})
+
         for name, message in amf_request:
             processor = self.getProcessor(message)
 
-            d = defer.maybeDeferred(processor, message)
+            d = defer.maybeDeferred(processor, message, **kwargs)
             d.addCallback(cb, name)
             dl.append(d)
 

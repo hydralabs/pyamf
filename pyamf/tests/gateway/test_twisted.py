@@ -26,7 +26,7 @@ class TestService(object):
 
 class TwistedServerTestCase(unittest.TestCase):
     def setUp(self):
-        self.gw = TwistedGateway()
+        self.gw = TwistedGateway(expose_request=False)
         root = resource.Resource()
         root.putChild('', self.gw)
 
@@ -104,6 +104,23 @@ class TwistedServerTestCase(unittest.TestCase):
             self.assertEquals(body.code, 'Service.ResourceNotFound')
 
         return d.addCallback(cb)
+
+    def test_expose_request(self):
+        self.gw.expose_request = True
+        
+        def echo(request, data):
+            self.assertTrue(isinstance(request, http.Request))
+
+            return data
+
+        self.gw.addService(echo)
+
+        env = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash9)
+        request = remoting.Request('echo', body=['hello'])
+        env['/1'] = request
+
+        return client.getPage("http://127.0.0.1:%d/" % (self.port,),
+                method="POST", postdata=remoting.encode(env).getvalue())
 
 def suite():
     import unittest
