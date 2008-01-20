@@ -220,6 +220,18 @@ class BaseFault(object):
         self.details = details
         self.description = description
 
+    def __repr__(self):
+        x = '<%s level=%s' % (self.__class__.__name__, self.level)
+        
+        if self.code not in ('', None):
+            x += ' code=%s' % self.code
+        if self.type not in ('', None):
+            x += ' type=%s' % self.type
+        if self.description not in ('', None):
+            x += ' description=%s' % self.description
+
+        return x + '>'
+
 pyamf.register_class(BaseFault,
     attrs=['level', 'code', 'type', 'details', 'description'])
 
