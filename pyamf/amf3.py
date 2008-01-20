@@ -1548,7 +1548,6 @@ class Encoder(pyamf.BaseEncoder):
             if class_def.encoding != ObjectEncoding.EXTERNAL:
                 if class_def.alias and class_def.alias.attrs is not None:
                     ref += len(class_def.alias.attrs) << 4
-                    print ref
 
             self._writeInteger(ref | class_def.encoding << 2 | REFERENCE_BIT << 1 | REFERENCE_BIT)
             self._writeString(class_def.name)
