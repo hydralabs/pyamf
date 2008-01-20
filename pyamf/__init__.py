@@ -520,7 +520,7 @@ class BaseEncoder(object):
 
         @type   data: C{mixed}
         @param  data: Python data.
-        @rtype: callable or C{None}
+        @rtype: callable or C{None}.
         @return: The function used to encode data to the stream.
         """
         for type_, func in TYPE_MAP.iteritems():
@@ -557,12 +557,10 @@ def register_class(klass, alias=None, attrs=None, attr_func=None, metadata=[]):
 
     @type alias: C{str}
     @param alias: The alias of klass, i.e. C{org.example.Person}.
-    @type read_func:
-    @param read_func:
-    @type write_func:
-    @param write_func:
     @param attrs: A list of attributes that will be encoded for the class.
     @type attrs: C{list} or C{None}
+    @type attr_func:
+    @param attr_func:
     @type metadata:
     @param metadata:
     @raise TypeError: The C{klass} is not callable.
