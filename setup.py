@@ -33,7 +33,7 @@ if sys.version_info < (2, 5):
     install_requires.extend(["elementtree >= 1.2.6"])
 
 setup(name = "PyAMF",
-    version = "1.0",
+    version = "0.1",
     description = "AMF encoder and decoder for Python",
     url = "http://pyamf.org",
     packages = find_packages(exclude=["*.tests"]),

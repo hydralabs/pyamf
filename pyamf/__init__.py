@@ -17,7 +17,7 @@ U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>}.
 
 @since: October 2007
 @status: Beta
-@version: 1.0.0
+@version: 0.1.0
 """
 
 import types
@@ -33,7 +33,7 @@ __all__ = [
     '__version__']
 
 #: PyAMF version number.
-__version__ = (1, 0, 0, 'beta')
+__version__ = (0, 1, 0, 'beta')
 
 #: Class mapping support for Flex.
 CLASS_CACHE = {}
