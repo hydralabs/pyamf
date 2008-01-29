@@ -222,7 +222,7 @@ class BaseFault(object):
 
     def __repr__(self):
         x = '<%s level=%s' % (self.__class__.__name__, self.level)
-        
+
         if self.code not in ('', None):
             x += ' code=%s' % self.code
         if self.type not in ('', None):

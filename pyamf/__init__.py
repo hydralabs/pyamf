@@ -345,7 +345,7 @@ class ClassAlias(object):
 
         if 'static' in self.metadata:
             if attrs is None:
-                raise ValueError, "attrs keyword must be specified for static classes" 
+                raise ValueError, "attrs keyword must be specified for static classes"
 
     def __call__(self, *args, **kwargs):
         """

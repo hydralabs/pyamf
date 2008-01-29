@@ -320,7 +320,7 @@ class EncoderTestCase(unittest.TestCase):
         self._run([(x, '\x03\x00\x03foo\x02\x00\x03bar\x00\x05hello\x02\x00'
             '\x05world\x00\x00\t')])
         pyamf.unregister_class(Spam)
-        
+
         # and now typedobject
         pyamf.register_class(Spam, 'x', attr_func=attr_func,
             metadata=['dynamic'])

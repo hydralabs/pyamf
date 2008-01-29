@@ -356,7 +356,7 @@ class Decoder(pyamf.BaseDecoder):
                     self.readElement()
                     key = self.readString()
                     continue
- 
+
             if isinstance(obj, (list, dict)):
                 obj[key] = self.readElement()
             else:

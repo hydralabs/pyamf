@@ -615,7 +615,7 @@ class ClassDefinition(object):
         attrs for C{obj}
         """
         attrs = None
- 
+
         if hasattr(obj, 'keys'):
             attrs = set([unicode(k) for k in obj.keys()])
         elif hasattr(obj, 'iteritems'):
@@ -1087,7 +1087,7 @@ class Decoder(pyamf.BaseDecoder):
         Reads an object from the stream.
 
         @type legacy: C{bool}
-        @param legacy: The read XML is in 'legacy' format. 
+        @param legacy: The read XML is in 'legacy' format.
         """
         ref = self.readInteger()
 
@@ -1557,7 +1557,7 @@ class Encoder(pyamf.BaseEncoder):
         elif class_def.encoding == ObjectEncoding.DYNAMIC:
             static_attrs, dynamic_attrs = class_def.getAttrs(obj)
 
-            if static_attrs is not None:            
+            if static_attrs is not None:
                 writeStatic(obj, static_attrs, class_ref)
 
             if dynamic_attrs is not None:

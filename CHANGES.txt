@@ -7,7 +7,7 @@ of PyAMF.
 
 0.1rc1 (unreleased)
 -------------------
-
+ - TwistedGateway now does something sane
 
 0.1b (2008-01-13)
 -------------------

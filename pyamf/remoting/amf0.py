@@ -35,6 +35,28 @@ class RequestProcessor(object):
 
         return self.gateway.authenticateRequest(username, password)
 
+    def buildErrorResponse(self, request, error=None):
+        """
+        Builds an error response.
+
+        @param request: The AMF request
+        @type request: L{Request<pyamf.remoting.Request>}
+        @return: The AMF response
+        @rtype: L{Response<pyamf.remoting.Response>}
+        """
+        if error is not None:
+            cls, e, tb = error
+        else:
+            cls, e, tb = sys.exc_info()
+
+        return remoting.Response(build_fault(cls, e, tb), status=remoting.STATUS_ERROR)
+
+    def _getBody(self, request, response, service_request, service_wrapper):
+        if 'DescribeService' in request.headers:
+            return service_request.service.description
+
+        return service_wrapper(service_request, *request.body)
+
     def __call__(self, request, service_wrapper=lambda service_request, *body: service_request(*body)):
         """
         Processes an AMF0 request.
@@ -50,10 +72,7 @@ class RequestProcessor(object):
         try:
             service_request = self.gateway.getServiceRequest(request, request.target)
         except gateway.UnknownServiceError, e:
-            response.status = remoting.STATUS_ERROR
-            response.body = build_fault()
-
-            return response
+            return self.buildErrorResponse(request)
 
         # we have a valid service, now attempt authentication
         try:
@@ -61,10 +80,7 @@ class RequestProcessor(object):
         except (SystemExit, KeyboardInterrupt):
             raise
         except:
-            response.status = remoting.STATUS_ERROR
-            response.body = build_fault()
-
-            return response
+            return self.buildErrorResponse(request)
 
         if not authd:
             # authentication failed
@@ -74,27 +90,19 @@ class RequestProcessor(object):
 
             return response
 
-        if 'DescribeService' in request.headers:
-            response.body = service_request.service.description
+        try:
+            response.body = self._getBody(request, response, service_request, service_wrapper)
 
             return response
-
-        try:
-            response.body = service_wrapper(service_request, *request.body)
         except (SystemExit, KeyboardInterrupt):
             raise
         except:
-            response.body = build_fault()
-            response.status = remoting.STATUS_ERROR
+            return self.buildErrorResponse(request)
 
-        return response
-
-def build_fault():
+def build_fault(cls, e, tb):
     """
     Builds a L{remoting.ErrorFault} object based on the last exception raised.
     """
-    cls, e, tb = sys.exc_info()
-
     if hasattr(cls, '_amf_code'):
         code = cls._amf_code
     else:

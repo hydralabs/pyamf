@@ -9,7 +9,7 @@ General gateway tests.
 @since: 0.1.0
 """
 
-import unittest
+import unittest, sys
 
 import pyamf
 from pyamf import remoting
@@ -42,7 +42,7 @@ class FaultTestCase(unittest.TestCase):
         try:
             raise TypeError, "unknown type"
         except TypeError, e:
-            fault = amf0.build_fault()
+            fault = amf0.build_fault(*sys.exc_info())
 
         self.assertTrue(isinstance(fault, remoting.ErrorFault))
         self.assertEquals(fault.level, 'error')
@@ -57,13 +57,13 @@ class FaultTestCase(unittest.TestCase):
         try:
             raise TypeError, "unknown type"
         except TypeError, e:
-            encoder.writeElement(amf0.build_fault())
+            encoder.writeElement(amf0.build_fault(*sys.exc_info()))
 
         buffer = encoder.stream
         buffer.seek(0, 0)
 
         fault = decoder.readElement()
-        old_fault = amf0.build_fault()
+        old_fault = amf0.build_fault(*sys.exc_info())
 
         self.assertEquals(fault.level, old_fault.level)
         self.assertEquals(fault.type, old_fault.type)
@@ -78,7 +78,7 @@ class FaultTestCase(unittest.TestCase):
         try:
             raise X
         except X, e:
-            fault = amf0.build_fault()
+            fault = amf0.build_fault(*sys.exc_info())
 
         self.assertEquals(fault.code, 'Server.UnknownResource')
 

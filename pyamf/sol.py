@@ -41,7 +41,7 @@ def decode(stream, strict=True):
      - Invalid signature.
      - Invalid padding read.
      - Missing padding byte.
-     
+
     @return: A C{tuple} containing the C{root_name} and a C{dict} of name, value pairs.
     @rtype: C{tuple}
     """

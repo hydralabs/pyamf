@@ -9,13 +9,13 @@ Twisted gateway tests.
 @since: 0.1.0
 """
 
-from twisted.internet import reactor
+from twisted.internet import reactor, defer
 from twisted.web import http, server, client, error, resource
 from twisted.trial import unittest
 
 import pyamf
 from pyamf import remoting
-from pyamf.remoting.twistedgateway import TwistedGateway
+from pyamf.remoting import twistedgateway
 
 class TestService(object):
     def spam(self):
@@ -26,16 +26,15 @@ class TestService(object):
 
 class TwistedServerTestCase(unittest.TestCase):
     def setUp(self):
-        self.gw = TwistedGateway(expose_request=False)
+        self.gw = twistedgateway.TwistedGateway(expose_request=False)
         root = resource.Resource()
         root.putChild('', self.gw)
 
-        self.p = reactor.listenTCP(0, server.Site(root),
-            interface="127.0.0.1")
+        self.p = reactor.listenTCP(0, server.Site(root), interface="127.0.0.1")
         self.port = self.p.getHost().port
 
     def tearDown(self):
-        return self.p.stopListening()
+        self.p.stopListening()
 
     def test_invalid_method(self):
         """
@@ -84,6 +83,36 @@ class TwistedServerTestCase(unittest.TestCase):
 
         return d.addCallback(cb)
 
+    def test_deferred_service(self):
+        def echo(data):
+            x = defer.Deferred()
+            reactor.callLater(0, x.callback, data)
+
+            return x
+
+        self.gw.addService(echo)
+
+        env = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash9)
+        request = remoting.Request('echo', body=['hello'])
+        env['/1'] = request
+
+        d = client.getPage("http://127.0.0.1:%d/" % (self.port,),
+                method="POST", postdata=remoting.encode(env).getvalue())
+
+        def cb(result):
+            response = remoting.decode(result)
+
+            self.assertEquals(response.amfVersion, pyamf.AMF0)
+            self.assertEquals(response.clientType, pyamf.ClientTypes.Flash9)
+
+            self.assertTrue('/1' in response)
+            body_response = response['/1']
+
+            self.assertEquals(body_response.status, remoting.STATUS_OK)
+            self.assertEquals(body_response.body, 'hello')
+
+        return d.addCallback(cb)
+
     def test_unknown_request(self):
         env = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash9)
         request = remoting.Request('echo', body=['hello'])
@@ -107,7 +136,7 @@ class TwistedServerTestCase(unittest.TestCase):
 
     def test_expose_request(self):
         self.gw.expose_request = True
-        
+
         def echo(request, data):
             self.assertTrue(isinstance(request, http.Request))
 
@@ -122,12 +151,74 @@ class TwistedServerTestCase(unittest.TestCase):
         return client.getPage("http://127.0.0.1:%d/" % (self.port,),
                 method="POST", postdata=remoting.encode(env).getvalue())
 
+class DummyHTTPRequest:
+    def __init__(self):
+        self.headers = {}
+        self.finished = False
+
+    def setResponseCode(self, status):
+        self.status = status
+
+    def setHeader(self, n, v):
+        self.headers[n] = v
+
+    def write(self, s):
+        self.content = s
+
+    def finish(self):
+        self.finished = True
+
+class TwistedGatewayTestCase(unittest.TestCase):
+    def test_finalise_request(self):
+        request = DummyHTTPRequest()
+        gw = twistedgateway.TwistedGateway()
+
+        gw._finaliseRequest(request, 200, 'xyz', 'text/plain')
+
+        self.assertEquals(request.status, 200)
+        self.assertEquals(request.content, 'xyz')
+
+        self.assertTrue('Content-Type' in request.headers)
+        self.assertEquals(request.headers['Content-Type'], 'text/plain')
+        self.assertTrue('Content-Length' in request.headers)
+        self.assertEquals(request.headers['Content-Length'], '3')
+
+        self.assertTrue(request.finished)
+
+    def test_get_processor(self):
+        a3 = pyamf.ASObject({'target': 'null'})
+        a0 = pyamf.ASObject({'target': 'foo.bar'})
+
+        gw = twistedgateway.TwistedGateway()
+
+        print gw.getProcessor(a3), type(gw.getProcessor(a3))
+        self.assertTrue(isinstance(gw.getProcessor(a3), twistedgateway.AMF3RequestProcessor))
+        self.assertTrue(isinstance(gw.getProcessor(a0), twistedgateway.AMF0RequestProcessor))
+
+class AMF0RequestProcessorTestCase(unittest.TestCase):
+    def test_auth_fail(self):
+        def auth(username, password):
+            return False
+
+        gw = twistedgateway.TwistedGateway(expose_request=False)
+        processor = twistedgateway.AMF0RequestProcessor(gw)
+
+        self.gw.authenticator = auth
+
+        env = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash9)
+        request = remoting.Request('echo', body=['hello'])
+        env['/1'] = request
+
+        print self.gw(env)
+
 def suite():
     import unittest
 
     suite = unittest.TestSuite()
 
     suite.addTest(unittest.makeSuite(TwistedServerTestCase))
+    suite.addTest(unittest.makeSuite(TwistedGatewayTestCase))
+    #suite.addTest(unittest.makeSuite(AMF0RequestProcessorTestCase))
 
     return suite
 
