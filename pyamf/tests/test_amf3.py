@@ -506,6 +506,23 @@ class EncoderTestCase(unittest.TestCase):
 
         self.assertEquals(self.buf.getvalue(), '\t\x07\x01\x04\x01\x04\x02\x04\x03')
 
+    def test_old_style_classes(self):
+        class Person:
+            pass
+
+        pyamf.register_class(Person, 'spam.eggs.Person')
+
+        u = Person()
+        u.family_name = 'Doe'
+        u.given_name = 'Jane'
+
+        self.encoder.writeElement(u)
+
+        self.assertEquals(self.buf.getvalue(), '\n\x0b!spam.eggs.Person\x17'
+            'family_name\x06\x07Doe\x15given_name\x06\tJane\x01')
+
+        pyamf.unregister_class(Person)
+
 class DecoderTestCase(unittest.TestCase):
     """
     Tests the output from the AMF3 L{Decoder<pyamf.amf3.Decoder>} class.

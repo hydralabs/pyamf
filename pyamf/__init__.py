@@ -738,7 +738,9 @@ def get_class_alias(klass):
     @return: The class alias linked to the C{klass}.
     """
     if not isinstance(klass, (type, types.ClassType, basestring)):
-        if isinstance(klass, types.ObjectType):
+        if isinstance(klass, types.InstanceType):
+            klass = klass.__class__
+        elif isinstance(klass, types.ObjectType):
             klass = type(klass)
 
     if not isinstance(klass, (type, types.ClassType, basestring)):
