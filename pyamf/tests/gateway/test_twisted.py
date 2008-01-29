@@ -191,7 +191,6 @@ class TwistedGatewayTestCase(unittest.TestCase):
 
         gw = twistedgateway.TwistedGateway()
 
-        print gw.getProcessor(a3), type(gw.getProcessor(a3))
         self.assertTrue(isinstance(gw.getProcessor(a3), twistedgateway.AMF3RequestProcessor))
         self.assertTrue(isinstance(gw.getProcessor(a0), twistedgateway.AMF0RequestProcessor))
 
