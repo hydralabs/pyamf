@@ -178,11 +178,11 @@ class BaseGateway(object):
         Adds a service to the gateway.
 
         @param service: The service to add to the gateway.
-        @type service: callable, class instance, or a module
+        @type service: C{callable}, class instance, or a module
         @param name: The name of the service.
         @type name: C{str}
         @raise RemotingError: Service already exists.
-        @raise TypeError: C{service} must be callable or a module.
+        @raise TypeError: C{service} must be C{callable} or a module.
         """
         if isinstance(service, (int, long, float, basestring)):
             raise TypeError, "service cannot be a scalar value"
@@ -214,7 +214,7 @@ class BaseGateway(object):
         Removes a service from the gateway.
 
         @param service: The service to remove from the gateway.
-        @type service: callable or a class instance
+        @type service: C{callable} or a class instance
         @raise NameError: Service not found.
         """
         if service not in self.services:
@@ -264,6 +264,8 @@ class BaseGateway(object):
 
     def getProcessor(self, request):
         """
+        Returns request processor.
+        
         @param request: The AMF message.
         @type request: L{Request<remoting.Request>}
         """

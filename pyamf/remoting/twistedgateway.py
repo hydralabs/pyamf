@@ -23,7 +23,7 @@ __all__ = ['TwistedGateway']
 
 class AMF0RequestProcessor(amf0.RequestProcessor):
     """
-    A Twisted friendly implementation of L{amf0.RequestProcessor)
+    A Twisted friendly implementation of L{amf0.RequestProcessor}
     """
 
     def __call__(self, request, service_wrapper=lambda service_request, *body: service_request(*body)):
@@ -31,7 +31,7 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
         Calls the underlying service method.
 
         @return: A deferred that will contain the AMF Response.
-        @rtype: C{defer.Deferred}
+        @rtype: L{Deferred<twisted.internet.defer.Deferred>}
         """
         try:
             service_request = self.gateway.getServiceRequest(request, request.target)
@@ -78,7 +78,7 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
 
 class AMF3RequestProcessor(amf3.RequestProcessor):
     """
-    A Twisted friendly implementation of L{amf3.RequestProcessor)
+    A Twisted friendly implementation of L{amf3.RequestProcessor}
     """
 
     def __call__(self, request, **kwargs):
@@ -86,7 +86,7 @@ class AMF3RequestProcessor(amf3.RequestProcessor):
         Calls the underlying service method.
 
         @return: A deferred that will contain the AMF Response.
-        @rtype: C{defer.Deferred}
+        @rtype: C{Deferred<twisted.internet.defer.Deferred>}
         """
         amf_response = remoting.Response(None)
         ro_request = request.body[0]
@@ -133,7 +133,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         @param request: The HTTP Request.
         @type request: C{http.Request}
         @param status: The HTTP status code
-        @type status: int
+        @type status: C{int}
         @param content: The content of the response.
         @type content: C{str}
         @param mimetype: The MIME Type of the request
@@ -212,7 +212,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
 
     def getProcessor(self, request):
         """
-        Returns
+        Returns RequestProcessor.
 
         @param request: The AMF message.
         @type request: L{Request<remoting.Request>}
@@ -264,7 +264,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         then authentication succeeds.
 
         @return: Deferred.
-        @rtype: C{defer.Deferred}
+        @rtype: L{Deferred<twisted.internet.defer.Deferred>}
         """
         if self.authenticator is None:
             return defer.succeed(True)
