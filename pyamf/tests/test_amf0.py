@@ -715,6 +715,66 @@ class RecordSetTestCase(unittest.TestCase):
         self.assertEquals(x.service, None)
         self.assertEquals(x.id, None)
 
+class ClassInheritanceTestCase(unittest.TestCase):
+    def test_simple(self):
+        class A(object):
+            pass
+
+        pyamf.register_class(A, 'A', attrs=['a'])
+
+        class B(A):
+            pass
+
+        pyamf.register_class(B, 'B', attrs=['b'])
+
+        x = B()
+        x.a = 'spam'
+        x.b = 'eggs'
+
+        stream = util.BufferedByteStream()
+        encoder = pyamf._get_encoder_class(pyamf.AMF0)(stream)
+
+        encoder.writeElement(x)
+
+        self.assertEquals(stream.getvalue(), '\x10\x00\x01B\x00\x01b\x02\x00'
+            '\x04eggs\x00\x01a\x02\x00\x04spam\x00\x00\t')
+
+        pyamf.unregister_class(A)
+        pyamf.unregister_class(B)
+
+    def test_deep(self):
+        class A(object):
+            pass
+
+        pyamf.register_class(A, 'A', attrs=['a'])
+
+        class B(A):
+            pass
+
+        pyamf.register_class(B, 'B', attrs=['b'])
+
+        class C(B):
+            pass
+
+        pyamf.register_class(C, 'C', attrs=['c'])
+
+        x = C()
+        x.a = 'spam'
+        x.b = 'eggs'
+        x.c = 'foo'
+
+        stream = util.BufferedByteStream()
+        encoder = pyamf._get_encoder_class(pyamf.AMF0)(stream)
+
+        encoder.writeElement(x)
+
+        self.assertEquals(stream.getvalue(), '\x10\x00\x01C\x00\x01c\x02\x00'
+            '\x03foo\x00\x01b\x02\x00\x04eggs\x00\x01a\x02\x00\x04spam\x00\x00\t')
+
+        pyamf.unregister_class(A)
+        pyamf.unregister_class(B)
+        pyamf.unregister_class(C)
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -724,6 +784,7 @@ def suite():
     suite.addTest(unittest.makeSuite(DecoderTestCase))
     suite.addTest(unittest.makeSuite(RecordSetTestCase))
     suite.addTest(unittest.makeSuite(HelperTestCase))
+    suite.addTest(unittest.makeSuite(ClassInheritanceTestCase))
 
     return suite
 

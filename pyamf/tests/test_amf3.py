@@ -1183,6 +1183,66 @@ class DataInputTestCase(unittest.TestCase):
         self._test('\xe1\xbc\x94\xce\xb4\xcf\x89\xcf\x83\xce\xb1\xce\xbd',
             u'ἔδωσαν', x.readUTFBytes, 13)
 
+class ClassInheritanceTestCase(unittest.TestCase):
+    def test_simple(self):
+        class A(object):
+            pass
+
+        pyamf.register_class(A, 'A', attrs=['a'])
+
+        class B(A):
+            pass
+
+        pyamf.register_class(B, 'B', attrs=['b'])
+
+        x = B()
+        x.a = 'spam'
+        x.b = 'eggs'
+
+        stream = util.BufferedByteStream()
+        encoder = pyamf._get_encoder_class(pyamf.AMF3)(stream)
+
+        encoder.writeElement(x)
+
+        self.assertEquals(stream.getvalue(), '\n\x1b\x03B\x03b\x06\teggs\x03a'
+            '\x06\tspam\x01')
+
+        pyamf.unregister_class(A)
+        pyamf.unregister_class(B)
+
+    def test_deep(self):
+        class A(object):
+            pass
+
+        pyamf.register_class(A, 'A', attrs=['a'])
+
+        class B(A):
+            pass
+
+        pyamf.register_class(B, 'B', attrs=['b'])
+
+        class C(B):
+            pass
+
+        pyamf.register_class(C, 'C', attrs=['c'])
+
+        x = C()
+        x.a = 'spam'
+        x.b = 'eggs'
+        x.c = 'foo'
+
+        stream = util.BufferedByteStream()
+        encoder = pyamf._get_encoder_class(pyamf.AMF3)(stream)
+
+        encoder.writeElement(x)
+
+        self.assertEquals(stream.getvalue(), '\n\x1b\x03C\x03c\x06\x07foo\x03a'
+            '\x06\tspam\x03b\x06\teggs\x01')
+
+        pyamf.unregister_class(A)
+        pyamf.unregister_class(B)
+        pyamf.unregister_class(C)
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -1195,6 +1255,7 @@ def suite():
     suite.addTest(unittest.makeSuite(ObjectDecodingTestCase))
     suite.addTest(unittest.makeSuite(DataOutputTestCase))
     suite.addTest(unittest.makeSuite(DataInputTestCase))
+    suite.addTest(unittest.makeSuite(ClassInheritanceTestCase))
 
     return suite
 

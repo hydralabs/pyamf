@@ -13,7 +13,7 @@ AMF Utilities.
 @since: 0.1.0
 """
 
-import struct, calendar, datetime
+import struct, calendar, datetime, types
 
 try:
     from cStringIO import StringIO
@@ -411,6 +411,46 @@ def get_attr(obj, attr):
             return obj[attr]
 
         raise
+
+def get_mro(C):
+    """
+    Compute the class precedence list (mro)
+    """
+    def merge(seqs):
+        res = []
+        i = 0
+
+        while 1:
+            nonemptyseqs = [seq for seq in seqs if seq]
+            if not nonemptyseqs:
+                return res
+
+            i += 1
+            for seq in nonemptyseqs:
+                cand = seq[0]
+                nothead = [s for s in nonemptyseqs if cand in s[1:]]
+
+                if nothead:
+                    cand = None
+                else:
+                    break
+
+            if not cand:
+                raise NameError, "Inconsistent hierarchy"
+
+            res.append(cand)
+
+            for seq in nonemptyseqs:
+                if seq[0] == cand:
+                    del seq[0]
+
+    if not isinstance(C, (types.ClassType, types.ObjectType)):
+        raise TypeError, 'class type expected'
+
+    if hasattr(C, '__mro__'):
+        return C.__mro__
+
+    return merge([[C]] + map(get_mro, C.__bases__) + [list(C.__bases__)])
 
 # workaround for python2.4's shortcomings with exceptional floats
 # see: http://blog.pyamf.org/archives/when-is-nan-not-a-number-with-python-24

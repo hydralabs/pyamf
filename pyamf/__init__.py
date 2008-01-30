@@ -373,13 +373,15 @@ class ClassAlias(object):
         else:
             return False
 
-    def getAttrs(self, obj):
-        attrs = []
+    def getAttrs(self, obj, attrs=None, traverse=True):
+        if attrs is None:
+            attrs = []
+
         did_something = False
 
         if self.attrs is not None:
             did_something = True
-            attrs = self.attrs
+            attrs += self.attrs
 
         if 'dynamic' in self.metadata and self.attr_func is not None:
             did_something = True
@@ -389,10 +391,29 @@ class ClassAlias(object):
                 if key not in attrs:
                     attrs.append(key)
 
+        if traverse is True:
+            for base in util.get_mro(obj.__class__):
+                try:
+                    alias = pyamf.get_class_alias(base)
+                except UnknownClassAlias:
+                    continue
+
+                x = alias.getAttrs(obj, attrs, False)
+
+                if x is not None:
+                    attrs += x
+                    did_something = True
+
         if did_something is False:
             return None
 
-        return attrs
+        a = []
+
+        for x in attrs:
+            if x not in a:
+                a.append(x)
+
+        return a
 
 class BaseDecoder(object):
     """
