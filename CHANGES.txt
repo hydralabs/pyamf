@@ -7,7 +7,12 @@ of PyAMF.
 
 0.1rc1 (unreleased)
 -------------------
- - TwistedGateway now does something sane
+
+ - The inheritance tree was not consulted when encoding attributes (Ticket:172)
+ - TypedObjects didn't work with old style classes (Ticket:171)
+ - ErrorFault now prints details (Ticket:168)
+ - Added expose_request to TwistedGateway (Ticket:165)
+ - TwistedGateway now expects deferred from service functions (Ticket:164)
 
 0.1b (2008-01-13)
 -------------------
