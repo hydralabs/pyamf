@@ -24,17 +24,25 @@ class PackageImporter(object):
     def __call__(self, name):
         __import__('%s.%s' % ('pyamf.adapters', self.name))
 
-for f in glob.glob(os.path.join(os.path.dirname(__file__), '*.py')):
-    mod = os.path.basename(f).split(os.path.extsep, 1)[0]
+adapters_registered = False
 
-    if not mod.startswith('_') or mod == '__init__':
-        continue
+def register_adapters():
+    global adapters_registered
 
-    try:
-        imp.find_module(mod[1:])
-    except ImportError:
-        continue
+    if adapters_registered is True:
+        return
 
-    imports.whenImported(mod[1:], PackageImporter(mod))
-del f
+    for f in glob.glob(os.path.join(os.path.dirname(__file__), '*.py')):
+        mod = os.path.basename(f).split(os.path.extsep, 1)[0]
 
+        if not mod.startswith('_') or mod == '__init__':
+            continue
+
+        try:
+            imp.find_module(mod[1:])
+        except ImportError:
+            continue
+
+        module = imports.whenImported(mod[1:], PackageImporter(mod))
+
+    adapters_registered = True
