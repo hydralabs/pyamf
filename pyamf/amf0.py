@@ -218,7 +218,14 @@ class Decoder(pyamf.BaseDecoder):
         @rtype: C{int}
         @return: Number
         """
-        return self.stream.read_double()
+        x = self.stream.read_double()
+        y = int(x)
+
+        # There is no in AMF0 to distinguish between integers and floats 
+        if y == x:
+            return y
+
+        return x
 
     def readBoolean(self):
         """
