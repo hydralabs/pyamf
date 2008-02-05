@@ -42,9 +42,8 @@ def read_file(fname):
 
 def print_message(req):
     for name, message in req:
-        print "  ", message
-        print "-" * 80
-        
+        print "  %s: %s" % (name, message)
+                
 def main():
     """
     Run AMF decoder on input file.
@@ -57,7 +56,7 @@ def main():
             body = read_file(fname)
 
             try:
-                print "Decoding file: %s\n" % fname
+                print "\nDecoding file:", fname
                 request = remoting.decode(body)
 
                 if options.debug:
@@ -65,12 +64,13 @@ def main():
                 
             except pyamf.UnknownClassAlias, c:
                 if options.debug:
-                    print '  WARN: %s\n' % c
-                pass  
-            
+                    print '\n    Warning: %s' % c
+                
             except:
                 raise
 
+            print "-" * 80
+            
             if options.dump:
                 print pyamf.util.hexdump(body)
 
