@@ -55,8 +55,9 @@ def main():
                 print "\nDecoding file:", fname
                 request = remoting.decode(body)
 
-                for name, message in request:
-                    print "  %s: %s" % (name, message)
+                if options.debug:
+                    for name, message in request:
+                        print "  %s: %s" % (name, message)
                 
             except pyamf.UnknownClassAlias, c:
                 if options.debug:
