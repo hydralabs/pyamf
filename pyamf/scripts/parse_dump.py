@@ -65,7 +65,7 @@ def main():
                 
             except pyamf.UnknownClassAlias, c:
                 if options.debug:
-                    print 'WARN: %s\n' % c
+                    print '  WARN: %s\n' % c
                 pass  
             
             except:
