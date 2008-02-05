@@ -349,7 +349,7 @@ class RemotingService(object):
         content_type = http_response.getheader('Content-Type')
 
         if content_type != remoting.CONTENT_TYPE:
-            raise remoting.RemotingError, "Incorrect MIME type received."
+            raise remoting.RemotingError, "Incorrect MIME type received. (got: %s)" % content_type
 
         content_length = http_response.getheader('Content-Length')
         bytes = ''
