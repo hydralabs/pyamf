@@ -39,7 +39,7 @@ class AbstractMessage(object):
 
     @ivar body: Specific data that needs to be delivered to the remote
         destination.
-    @type body: mixed
+    @type body: C{mixed}
     @ivar clientId: Indicates which client sent the message.
     @type clientId: C{str}
     @ivar destination: Message destination.
