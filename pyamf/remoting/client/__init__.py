@@ -342,7 +342,7 @@ class RemotingService(object):
         """
         http_response = self.connection.getresponse()
 
-        if http_response.status != 200:
+        if http_response.status != httplib.OK:
             raise remoting.RemotingError, "HTTP Gateway reported status %d" % (
                 http_response.status,)
 
