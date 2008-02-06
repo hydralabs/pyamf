@@ -23,15 +23,16 @@ __all__ = ['TwistedGateway']
 
 class AMF0RequestProcessor(amf0.RequestProcessor):
     """
-    A Twisted friendly implementation of L{amf0.RequestProcessor}
+    A Twisted friendly implementation of
+    L{amf0.RequestProcessor<pyamf.remoting.amf0.RequestProcessor>}
     """
 
     def __call__(self, request, service_wrapper=lambda service_request, *body: service_request(*body)):
         """
         Calls the underlying service method.
 
-        @return: A deferred that will contain the AMF Response.
-        @rtype: L{Deferred<twisted.internet.defer.Deferred>}
+        @return: A C{Deferred} that will contain the AMF Response.
+        @rtype: C{twisted.internet.defer.Deferred}
         """
         try:
             service_request = self.gateway.getServiceRequest(request, request.target)
@@ -78,7 +79,8 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
 
 class AMF3RequestProcessor(amf3.RequestProcessor):
     """
-    A Twisted friendly implementation of L{amf3.RequestProcessor}
+    A Twisted friendly implementation of
+    L{amf3.RequestProcessor<pyamf.remoting.amf3.RequestProcessor>}
     """
 
     def __call__(self, request, **kwargs):
@@ -132,11 +134,11 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
 
         @param request: The HTTP Request.
         @type request: C{http.Request}
-        @param status: The HTTP status code
+        @param status: The HTTP status code.
         @type status: C{int}
         @param content: The content of the response.
         @type content: C{str}
-        @param mimetype: The MIME Type of the request
+        @param mimetype: The MIME Type of the request.
         @type mimetype: C{str}
         """
         request.setResponseCode(status)
@@ -155,6 +157,9 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         @param request: C{twisted.web.http.Request}
         """
         def handleDecodeError(failure):
+            """
+            Return HTTP 400 Bad Request.
+            """
             import traceback
             body = "400 Bad Request\n\nThe request body was unable to " \
                 "be successfully decoded.\n\nTraceback:\n\n%s" % (
@@ -168,6 +173,9 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         d = threads.deferToThread(remoting.decode, request.content.read(), context)
 
         def eb(failure):
+            """
+            Return 500 Internal Server Error.
+            """
             import traceback
             body = "500 Internal Server Error\n\nThere was an error processing" \
                 " the request.\n\nTraceback:\n\n%s" % traceback.format_exception(
@@ -215,7 +223,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         Returns RequestProcessor.
 
         @param request: The AMF message.
-        @type request: L{Request<remoting.Request>}
+        @type request: L{Request<pyamf.remoting.Request>}
         """
         if request.target == 'null':
             return AMF3RequestProcessor(self)
@@ -224,10 +232,12 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
 
     def getResponse(self, http_request, amf_request):
         """
+        Processes the AMF request, returning an AMF response.
+        
         @param http_request: The underlying HTTP Request
         @type http_request: C{twisted.web.http.Request}
         @param amf_request: The AMF Request.
-        @type amf_request: L{pyamf.remoting.Envelope}
+        @type amf_request: L{Envelope<pyamf.remoting.Envelope>}
         """
         response = remoting.Envelope(amf_request.amfVersion, amf_request.clientType)
         dl = []
@@ -263,8 +273,8 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         Processes an authentication request. If no authenticator is supplied,
         then authentication succeeds.
 
-        @return: Deferred.
-        @rtype: L{Deferred<twisted.internet.defer.Deferred>}
+        @return: C{Deferred}.
+        @rtype: C{twisted.internet.defer.Deferred}
         """
         if self.authenticator is None:
             return defer.succeed(True)

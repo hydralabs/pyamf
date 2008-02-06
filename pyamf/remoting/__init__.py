@@ -437,6 +437,7 @@ def _get_status(status):
     @return: Status codes.
     """
     if status not in STATUS_CODES.keys():
+        # TODO print that status code..
         raise ValueError, "Unknown status code"
 
     return STATUS_CODES[status]

@@ -55,8 +55,8 @@ class DjangoGateway(gateway.BaseGateway):
         @param http_request: The underlying HTTP Request.
         @type http_request: C{HTTPRequest<django.core.http.HTTPRequest>}
         @param request: The AMF Request.
-        @type request: L{Envelope<remoting.Envelope>}
-        @rtype: L{Envelope<remoting.Envelope>}
+        @type request: L{Envelope<pyamf.remoting.Envelope>}
+        @rtype: L{Envelope<pyamf.remoting.Envelope>}
         @return: The AMF Response.
         """
         response = remoting.Envelope(request.amfVersion, request.clientType)
@@ -78,7 +78,7 @@ class DjangoGateway(gateway.BaseGateway):
         """
         Processes and dispatches the request.
 
-        @param http_request: The HTTPRequest object.
+        @param http_request: The C{HTTPRequest} object.
         @type http_request: C{HTTPRequest}
         @return: The response to the request.
         @rtype: C{HTTPResponse}

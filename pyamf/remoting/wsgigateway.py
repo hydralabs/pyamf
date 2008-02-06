@@ -5,6 +5,7 @@
 WSGI server implementation.
 
 @see: U{WSGI homepage (external)<http://wsgi.org>}
+@see: U{PEP-333 (external)<http://www.python.org/peps/pep-0333.html>}
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 @since: 0.1.0
@@ -53,7 +54,7 @@ class WSGIGateway(gateway.BaseGateway):
 
     def badRequestMethod(self, environ, start_response):
         """
-        Return HTTP 400 Bad Request
+        Return HTTP 400 Bad Request.
         """
         response = "400 Bad Request\n\nTo access this PyAMF gateway you " \
             "must use POST requests (%s received)" % environ['REQUEST_METHOD']

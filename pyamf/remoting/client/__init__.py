@@ -163,7 +163,7 @@ class RemotingService(object):
     """
     Acts as a client for AMF calls.
 
-    @ivar url: The url of the remote gateway. Accepts http or https as schemes.
+    @ivar url: The url of the remote gateway. Accepts C{http} or C{https} as schemes.
     @type url: C{str}
     @ivar requests: The list of pending requests to process.
     @type requests: C{list}
@@ -176,7 +176,7 @@ class RemotingService(object):
     @ivar connection: The underlying connection to the remoting server.
     @type connection: C{httplib.HTTPConnection} or C{httplib.HTTPSConnection}
     @ivar headers: A list of persistent headers to send with each request.
-    @type headers: L{pyamf.remoting.HeaderCollection}
+    @type headers: L{HeaderCollection<pyamf.remoting.HeaderCollection>}
     """
 
     def __init__(self, url, amf_version=pyamf.AMF0, client_type=DEFAULT_CLIENT_TYPE):
@@ -236,7 +236,8 @@ class RemotingService(object):
         Returns a L{ServiceProxy} for the supplied name. Sets up an object that
         can have method calls made to it that build the AMF requests.
 
-        @raise TypeError: string type required for C{name}.
+        @raise TypeError: C{string} type required for C{name}.
+        @rtype: L{ServiceProxy}
         """
         if not isinstance(name, basestring):
             raise TypeError, 'string type required'
@@ -290,6 +291,10 @@ class RemotingService(object):
         """
         Builds an AMF request L{envelope<pyamf.remoting.Envelope>} from a
         supplied list of requests.
+
+        @param requests: List of requests
+        @type requests: C{list}
+        @rtype: L{Envelope<pyamf.remoting.Envelope>}
         """
         envelope = remoting.Envelope(self.amf_version, self.client_type)
 
@@ -307,6 +312,10 @@ class RemotingService(object):
         """
         Builds, sends and handles the response to a single request, returning
         the response.
+
+        @param request:
+        @type request:
+        @rtype:
         """
         body = remoting.encode(self.getAMFRequest([request]))
 
@@ -338,7 +347,7 @@ class RemotingService(object):
 
     def _getResponse(self):
         """
-        Gets and handles the HTTP response from the remote gateway
+        Gets and handles the HTTP response from the remote gateway.
         """
         http_response = self.connection.getresponse()
 
