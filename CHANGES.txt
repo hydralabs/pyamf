@@ -8,6 +8,8 @@ of PyAMF.
 0.1rc1 (unreleased)
 -------------------
 
+ - expose_request per service control vastly improved (Ticket:169)
+ - Authentication per service control vastly improved (Ticket:166)
  - uuid is no longer installed when using Python 2.5 or newer (Ticket:182)
  - The inheritance tree was not consulted when encoding attributes (Ticket:172)
  - TypedObjects didn't work with old style classes (Ticket:171)
