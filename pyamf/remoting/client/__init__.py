@@ -354,7 +354,7 @@ class RemotingService(object):
         if http_response.status != httplib.OK:
             if hasattr(httplib, 'responses'):
                 raise remoting.RemotingError, "HTTP Gateway reported status %d %s" % (
-                    http_response.status, httplib.response[http_response.status])
+                    http_response.status, httplib.responses[http_response.status])
 
             raise remoting.RemotingError, "HTTP Gateway reported status %d" % (
                 http_response.status,)
