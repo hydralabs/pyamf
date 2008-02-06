@@ -8,6 +8,7 @@ of PyAMF.
 0.1rc1 (unreleased)
 -------------------
 
+ - uuid is no longer installed when using Python 2.5 or newer (Ticket:182)
  - The inheritance tree was not consulted when encoding attributes (Ticket:172)
  - TypedObjects didn't work with old style classes (Ticket:171)
  - ErrorFault now prints details (Ticket:168)
