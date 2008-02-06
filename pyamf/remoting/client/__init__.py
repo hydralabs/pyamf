@@ -213,12 +213,12 @@ class RemotingService(object):
 
         if self.url[0] == 'http':
             if port is None:
-                port = 80
+                port = httplib.HTTP_PORT
 
             self.connection = httplib.HTTPConnection(hostname, port)
         elif self.url[0] == 'https':
             if port is None:
-                port = 443
+                port = httplib.HTTPS_PORT
 
             self.connection = httplib.HTTPSConnection(hostname, port)
         else:
