@@ -22,14 +22,15 @@ class BaseServiceError(pyamf.BaseError):
     Base service error.
     """
 
+pyamf.register_class(BaseServiceError, attrs=fault_alias.attrs)
+del fault_alias
+
 class UnknownServiceError(BaseServiceError):
     """
     Client made a request for an unknown service.
     """
 
     _amf_code = 'Service.ResourceNotFound'
-
-pyamf.register_class(UnknownServiceError, attrs=fault_alias.attrs)
 
 class UnknownServiceMethodError(BaseServiceError):
     """
@@ -38,18 +39,12 @@ class UnknownServiceMethodError(BaseServiceError):
 
     _amf_code = 'Service.MethodNotFound'
 
-pyamf.register_class(UnknownServiceMethodError, attrs=fault_alias.attrs)
-
 class InvalidServiceMethodError(BaseServiceError):
     """
     Client made a request for an invalid methodname.
     """
 
     _amf_code = 'Service.MethodInvalid'
-
-pyamf.register_class(InvalidServiceMethodError, attrs=fault_alias.attrs)
-
-del fault_alias
 
 class ServiceWrapper(object):
     """
@@ -61,9 +56,10 @@ class ServiceWrapper(object):
     @type description: C{str}
     """
 
-    def __init__(self, service, description=None):
+    def __init__(self, service, description=None, authenticator=None):
         self.service = service
         self.description = description
+        self.authenticator = authenticator
 
     def __cmp__(self, other):
         if isinstance(other, ServiceWrapper):
@@ -116,6 +112,42 @@ class ServiceWrapper(object):
         func = self._get_service_func(method, params)
 
         return func(*params)
+
+    def getMethods(self):
+        """
+        Gets a dict of valid method callables for the underlying service object
+        """
+        callables = {}
+
+        for name in dir(self.service):
+            method = getattr(self.service, name)
+
+            if name.startswith('_') or not callable(method):
+                continue
+
+            callables[name] = method
+
+        return callables
+
+    def getAuthenticator(self, service_request=None):
+        if service_request == None:
+            return self.authenticator
+
+        methods = self.getMethods()
+
+        if service_request.method is None:
+            if hasattr(self.service, '_pyamf_authenticator'):
+                return self.service._pyamf_authenticator
+
+        if service_request.method not in methods:
+            return self.authenticator
+
+        method = methods[service_request.method]
+
+        if hasattr(method, '_pyamf_authenticator'):
+            return method._pyamf_authenticator
+
+        return self.authenticator
 
 class ServiceRequest(object):
     """
@@ -173,7 +205,7 @@ class BaseGateway(object):
         for name, service in services.iteritems():
             self.addService(service, name)
 
-    def addService(self, service, name=None, description=None):
+    def addService(self, service, name=None, description=None, authenticator=None):
         """
         Adds a service to the gateway.
 
@@ -207,7 +239,7 @@ class BaseGateway(object):
         if name in self.services:
             raise remoting.RemotingError, "Service %s already exists" % name
 
-        self.services[name] = ServiceWrapper(service, description)
+        self.services[name] = ServiceWrapper(service, description, authenticator)
 
     def removeService(self, service):
         """
@@ -265,7 +297,7 @@ class BaseGateway(object):
     def getProcessor(self, request):
         """
         Returns request processor.
-        
+
         @param request: The AMF message.
         @type request: L{Request<remoting.Request>}
         """
@@ -292,7 +324,21 @@ class BaseGateway(object):
         """
         raise NotImplementedError
 
-    def authenticateRequest(self, username, password):
+    def getAuthenticator(self, service_request):
+        """
+        Gets an authenticator callable based on the service_request. This is
+        granular, looking at the service method first, then at the service
+        level and finally to see if there is a global authenticator function
+        for the gateway. Returns C{None} if one could not be found. 
+        """
+        auth = service_request.service.getAuthenticator(service_request)
+
+        if auth is None:
+            return self.authenticator
+
+        return auth
+
+    def authenticateRequest(self, service_request, username, password):
         """
         Processes an authentication request. If no authenticator is supplied,
         then authentication succeeds.
@@ -300,10 +346,29 @@ class BaseGateway(object):
         @return: Returns a C{bool} based on the result of authorization.
         @rtype: C{bool}
         """
-        if self.authenticator is None:
+        authenticator = self.getAuthenticator(service_request)
+
+        if authenticator is None:
             return True
 
-        return self.authenticator(username, password) == True
+        return authenticator(username, password) == True
+
+def authenticate(func, c):
+    """
+    A decorator that facilitates authentication per method.
+    """
+    if not callable(func):
+        raise TypeError, "func must be callable"
+
+    if not callable(c):
+        raise TypeError, "authenticator must be callable"
+
+    if isinstance(func, types.UnboundMethodType):
+        setattr(func.im_func, '_pyamf_authenticator', c)
+    else:
+        setattr(func, '_pyamf_authenticator', c)
+
+    return func
 
 from glob import glob
 import sys, os.path

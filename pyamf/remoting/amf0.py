@@ -18,7 +18,7 @@ class RequestProcessor(object):
     def __init__(self, gateway):
         self.gateway = gateway
 
-    def authenticateRequest(self, request):
+    def authenticateRequest(self, request, service_request):
         """
         Authenticates the request against the service.
 
@@ -33,7 +33,7 @@ class RequestProcessor(object):
             username = cred['userid']
             password = cred['password']
 
-        return self.gateway.authenticateRequest(username, password)
+        return self.gateway.authenticateRequest(service_request, username, password)
 
     def buildErrorResponse(self, request, error=None):
         """
@@ -76,7 +76,7 @@ class RequestProcessor(object):
 
         # we have a valid service, now attempt authentication
         try:
-            authd = self.authenticateRequest(request)
+            authd = self.authenticateRequest(request, service_request)
         except (SystemExit, KeyboardInterrupt):
             raise
         except:

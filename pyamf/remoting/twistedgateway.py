@@ -71,7 +71,7 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
             d.addCallback(cb).addErrback(eb)
 
         # we have a valid service, now attempt authentication
-        d = defer.maybeDeferred(self.authenticateRequest, request)
+        d = defer.maybeDeferred(self.authenticateRequest, request, service_request)
         d.addCallback(auth_cb)
         d.addErrback(eb)
 
@@ -268,7 +268,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
 
         return d.addCallback(cb2)
 
-    def authenticateRequest(self, username, password):
+    def authenticateRequest(self, service_request, username, password):
         """
         Processes an authentication request. If no authenticator is supplied,
         then authentication succeeds.
@@ -276,7 +276,9 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         @return: C{Deferred}.
         @rtype: C{twisted.internet.defer.Deferred}
         """
-        if self.authenticator is None:
+        authenticator = self.getAuthenticator(service_request)
+
+        if authenticator is None:
             return defer.succeed(True)
 
-        return defer.mayBeDeferred(self.authenticator, username, password)
+        return defer.mayBeDeferred(authenticator, username, password)

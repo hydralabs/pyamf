@@ -358,8 +358,9 @@ class BaseGatewayTestCase(unittest.TestCase):
 
     def test_authenticate(self):
         gw = gateway.BaseGateway({'test': TestService})
+        sr = gateway.ServiceRequest(None, gw.services['test'], None)
 
-        self.assertTrue(gw.authenticateRequest(None, None))
+        self.assertTrue(gw.authenticateRequest(sr, None, None))
 
         def auth(u, p):
             if u == 'spam' and p == 'eggs':
@@ -369,8 +370,8 @@ class BaseGatewayTestCase(unittest.TestCase):
 
         gw = gateway.BaseGateway({'test': TestService}, authenticator=auth)
 
-        self.assertFalse(gw.authenticateRequest(None, None))
-        self.assertTrue(gw.authenticateRequest('spam', 'eggs'))
+        self.assertFalse(gw.authenticateRequest(sr, None, None))
+        self.assertTrue(gw.authenticateRequest(sr, 'spam', 'eggs'))
 
 class QueryBrowserTestCase(unittest.TestCase):
     def test_request(self):
@@ -391,6 +392,95 @@ class QueryBrowserTestCase(unittest.TestCase):
         self.assertEquals(response.status, remoting.STATUS_OK)
         self.assertEquals(response.body, 'This is a test')
 
+class AuthenticatorTestCase(unittest.TestCase):
+    def setUp(self):
+        self.called = False
+
+    def tearDown(self):
+        if self.called is False:
+            self.fail("authenticator not called")
+
+    def _auth(self, username, password):
+        self.called = True
+
+        if username == 'fred' and password == 'wilma':
+            return True
+
+        return False
+
+    def test_gateway(self):
+        gw = gateway.BaseGateway(authenticator=self._auth)
+        echo = lambda x: x
+
+        gw.addService(echo, 'echo')
+
+        envelope = remoting.Envelope()
+        request = remoting.Request('echo', body=['spam'])
+        envelope.headers['Credentials'] = dict(userid='fred', password='wilma')
+        envelope['/1'] = request
+
+        processor = gw.getProcessor(request)
+        response = processor(request)
+
+        self.assertEquals(response.status, remoting.STATUS_OK)
+        self.assertEquals(response.body, 'spam')
+
+    def test_service(self):
+        gw = gateway.BaseGateway()
+        echo = lambda x: x
+
+        gw.addService(echo, 'echo', authenticator=self._auth)
+
+        envelope = remoting.Envelope()
+        request = remoting.Request('echo', body=['spam'])
+        envelope.headers['Credentials'] = dict(userid='fred', password='wilma')
+        envelope['/1'] = request
+
+        processor = gw.getProcessor(request)
+        response = processor(request)
+
+        self.assertEquals(response.status, remoting.STATUS_OK)
+        self.assertEquals(response.body, 'spam')
+
+    def test_class_decorator(self):
+        class TestService:
+            def echo(self, x):
+                return x
+
+        TestService.echo = gateway.authenticate(TestService.echo, self._auth)
+
+        gw = gateway.BaseGateway({'test': TestService})
+
+        envelope = remoting.Envelope()
+        request = remoting.Request('test.echo', body=['spam'])
+        envelope.headers['Credentials'] = dict(userid='fred', password='wilma')
+        envelope['/1'] = request
+
+        processor = gw.getProcessor(request)
+        response = processor(request)
+
+        self.assertEquals(response.status, remoting.STATUS_OK)
+        self.assertEquals(response.body, 'spam')
+
+    def test_func_decorator(self):
+        def echo(x):
+            return x
+
+        echo = gateway.authenticate(echo, self._auth)
+
+        gw = gateway.BaseGateway({'echo': echo})
+
+        envelope = remoting.Envelope()
+        request = remoting.Request('echo', body=['spam'])
+        envelope.headers['Credentials'] = dict(userid='fred', password='wilma')
+        envelope['/1'] = request
+
+        processor = gw.getProcessor(request)
+        response = processor(request)
+
+        self.assertEquals(response.status, remoting.STATUS_OK)
+        self.assertEquals(response.body, 'spam')
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -401,6 +491,7 @@ def suite():
     suite.addTest(unittest.makeSuite(ServiceCollectionTestCase))
     suite.addTest(unittest.makeSuite(BaseGatewayTestCase))
     suite.addTest(unittest.makeSuite(QueryBrowserTestCase))
+    suite.addTest(unittest.makeSuite(AuthenticatorTestCase))
 
     try:
         import wsgiref
