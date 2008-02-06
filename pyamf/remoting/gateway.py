@@ -56,10 +56,12 @@ class ServiceWrapper(object):
     @type description: C{str}
     """
 
-    def __init__(self, service, description=None, authenticator=None):
+    def __init__(self, service, description=None,
+        authenticator=None, expose_request=None):
         self.service = service
         self.description = description
         self.authenticator = authenticator
+        self.expose_request = expose_request
 
     def __cmp__(self, other):
         if isinstance(other, ServiceWrapper):
@@ -149,6 +151,28 @@ class ServiceWrapper(object):
 
         return self.authenticator
 
+    def mustExposeRequest(self, service_request=None):
+        if service_request == None:
+            return self.expose_request
+
+        methods = self.getMethods()
+
+        if service_request.method is None:
+            if hasattr(self.service, '_pyamf_expose_request'):
+                return self.service._pyamf_expose_request
+
+            return self.expose_request
+
+        if service_request.method not in methods:
+            return self.expose_request
+
+        method = methods[service_request.method]
+
+        if hasattr(method, '_pyamf_expose_request'):
+            return method._pyamf_expose_request
+
+        return self.expose_request
+
 class ServiceRequest(object):
     """
     Remoting service request.
@@ -195,9 +219,10 @@ class BaseGateway(object):
 
     _request_class = ServiceRequest
 
-    def __init__(self, services={}, authenticator=None):
+    def __init__(self, services={}, authenticator=None, expose_request=False):
         self.services = ServiceCollection()
         self.authenticator = authenticator
+        self.expose_request = expose_request
 
         if not hasattr(services, 'iteritems'):
             raise TypeError, "dict type required for services"
@@ -205,7 +230,8 @@ class BaseGateway(object):
         for name, service in services.iteritems():
             self.addService(service, name)
 
-    def addService(self, service, name=None, description=None, authenticator=None):
+    def addService(self, service, name=None, description=None,
+        authenticator=None, expose_request=None):
         """
         Adds a service to the gateway.
 
@@ -239,7 +265,8 @@ class BaseGateway(object):
         if name in self.services:
             raise remoting.RemotingError, "Service %s already exists" % name
 
-        self.services[name] = ServiceWrapper(service, description, authenticator)
+        self.services[name] = ServiceWrapper(service, description,
+            authenticator, expose_request)
 
     def removeService(self, service):
         """
@@ -324,12 +351,31 @@ class BaseGateway(object):
         """
         raise NotImplementedError
 
+    def mustExposeRequest(self, service_request):
+        """
+        Decides whether the underlying http request should be exposed as the
+        first argument to the method call. This is
+        granular, looking at the service method first, then at the service
+        level and finally checking the gateway.
+
+        @rtype: C{bool}
+        """
+        expose_request = service_request.service.mustExposeRequest(service_request)
+
+        if expose_request is None:
+            if self.expose_request is None:
+                return False
+
+            return self.expose_request
+
+        return expose_request
+
     def getAuthenticator(self, service_request):
         """
         Gets an authenticator callable based on the service_request. This is
         granular, looking at the service method first, then at the service
         level and finally to see if there is a global authenticator function
-        for the gateway. Returns C{None} if one could not be found. 
+        for the gateway. Returns C{None} if one could not be found.
         """
         auth = service_request.service.getAuthenticator(service_request)
 
@@ -353,6 +399,16 @@ class BaseGateway(object):
 
         return authenticator(username, password) == True
 
+    def callServiceRequest(self, service_request, *args, **kwargs):
+        """
+        Executes the service_request call
+        """
+        if self.mustExposeRequest(service_request):
+            http_request = kwargs.get('http_request', None)
+            args = (http_request,) + args
+
+        return service_request(*args)
+
 def authenticate(func, c):
     """
     A decorator that facilitates authentication per method.
@@ -367,6 +423,20 @@ def authenticate(func, c):
         setattr(func.im_func, '_pyamf_authenticator', c)
     else:
         setattr(func, '_pyamf_authenticator', c)
+
+    return func
+
+def expose_request(func):
+    """
+    A decorator that adds an expose_request flag to the underlying callable
+    """
+    if not callable(func):
+        raise TypeError, "func must be callable"
+
+    if isinstance(func, types.UnboundMethodType):
+        setattr(func.im_func, '_pyamf_expose_request', True)
+    else:
+        setattr(func, '_pyamf_expose_request', True)
 
     return func
 

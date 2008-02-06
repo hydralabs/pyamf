@@ -481,6 +481,64 @@ class AuthenticatorTestCase(unittest.TestCase):
         self.assertEquals(response.status, remoting.STATUS_OK)
         self.assertEquals(response.body, 'spam')
 
+class ExposeRequestTestCase(unittest.TestCase):
+    def test_default(self):
+        gw = gateway.BaseGateway()
+
+        gw.addService(lambda x: x, 'test')
+
+        envelope = remoting.Envelope()
+        request = remoting.Request('test')
+        envelope['/1'] = request
+
+        service_request = gateway.ServiceRequest(envelope, gw.services['test'], None)
+
+        self.assertFalse(gw.mustExposeRequest(service_request))
+
+    def test_gateway(self):
+        gw = gateway.BaseGateway(expose_request=True)
+
+        gw.addService(lambda x: x, 'test')
+
+        envelope = remoting.Envelope()
+        request = remoting.Request('test')
+        envelope['/1'] = request
+
+        service_request = gateway.ServiceRequest(envelope, gw.services['test'], None)
+
+        self.assertTrue(gw.mustExposeRequest(service_request))
+
+    def test_service(self):
+        gw = gateway.BaseGateway()
+
+        gw.addService(lambda x: x, 'test', expose_request=True)
+
+        envelope = remoting.Envelope()
+        request = remoting.Request('test')
+        envelope['/1'] = request
+
+        service_request = gateway.ServiceRequest(envelope, gw.services['test'], None)
+
+        self.assertTrue(gw.mustExposeRequest(service_request))
+
+    def test_decorator(self):
+        def echo(x):
+            return x
+
+        gateway.expose_request(echo)
+
+        gw = gateway.BaseGateway()
+
+        gw.addService(echo, 'test')
+
+        envelope = remoting.Envelope()
+        request = remoting.Request('test')
+        envelope['/1'] = request
+
+        service_request = gateway.ServiceRequest(envelope, gw.services['test'], None)
+
+        self.assertTrue(gw.mustExposeRequest(service_request))
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -492,6 +550,7 @@ def suite():
     suite.addTest(unittest.makeSuite(BaseGatewayTestCase))
     suite.addTest(unittest.makeSuite(QueryBrowserTestCase))
     suite.addTest(unittest.makeSuite(AuthenticatorTestCase))
+    suite.addTest(unittest.makeSuite(ExposeRequestTestCase))
 
     try:
         import wsgiref

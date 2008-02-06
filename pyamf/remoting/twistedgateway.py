@@ -27,7 +27,7 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
     L{amf0.RequestProcessor<pyamf.remoting.amf0.RequestProcessor>}
     """
 
-    def __call__(self, request, service_wrapper=lambda service_request, *body: service_request(*body)):
+    def __call__(self, request, **kwargs):
         """
         Calls the underlying service method.
 
@@ -61,7 +61,7 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
 
             # authentication was successful
             d = defer.maybeDeferred(self._getBody, request, response,
-                service_request, service_wrapper)
+                service_request, **kwargs)
 
             def cb(result):
                 response.body = result
@@ -106,7 +106,7 @@ class AMF3RequestProcessor(amf3.RequestProcessor):
 
             return failure
 
-        d = defer.maybeDeferred(self._getBody, request, ro_request, kwargs.get('service_wrapper'))
+        d = defer.maybeDeferred(self._getBody, request, ro_request)
         d.addCallback(cb).addErrback(eb)
 
         return deferred_response
@@ -233,7 +233,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
     def getResponse(self, http_request, amf_request):
         """
         Processes the AMF request, returning an AMF response.
-        
+
         @param http_request: The underlying HTTP Request
         @type http_request: C{twisted.web.http.Request}
         @param amf_request: The AMF Request.
@@ -245,18 +245,10 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         def cb(body, name):
             response[name] = body
 
-        kwargs = {}
-
-        if self.expose_request:
-            def wrapper(service_request, *body):
-                return service_request(http_request, *body)
-
-            kwargs.update({'service_wrapper': wrapper})
-
         for name, message in amf_request:
             processor = self.getProcessor(message)
 
-            d = defer.maybeDeferred(processor, message, **kwargs)
+            d = defer.maybeDeferred(processor, message, http_request=http_request)
             d.addCallback(cb, name)
 
             dl.append(d)

@@ -89,7 +89,7 @@ class RequestProcessor(object):
 
         return remoting.Response(generate_error(request, cls, e, tb), status=remoting.STATUS_ERROR)
 
-    def _getBody(self, amf_request, ro_request, service_wrapper):
+    def _getBody(self, amf_request, ro_request, **kwargs):
         ro_response = generate_acknowledgement(ro_request)
 
         if isinstance(ro_request, CommandMessage):
@@ -104,13 +104,13 @@ class RequestProcessor(object):
         elif isinstance(ro_request, RemotingMessage):
             service_request = self.gateway.getServiceRequest(amf_request, ro_request.operation)
 
-            ro_response.body = service_wrapper(service_request, *ro_request.body)
+            ro_response.body = self.gateway.callServiceRequest(service_request, *ro_request.body, **kwargs)
 
             return ro_response
         else:
             raise ServerCallFailed, "Unknown RemoteObject request"
 
-    def __call__(self, amf_request, service_wrapper=lambda service_request, *body: service_request(*body)):
+    def __call__(self, amf_request, **kwargs):
         """
         Processes an AMF3 Remote Object request.
 
@@ -124,7 +124,7 @@ class RequestProcessor(object):
 
         try:
             return remoting.Response(self._getBody(
-                amf_request, ro_request, service_wrapper))
+                amf_request, ro_request, **kwargs))
         except (KeyboardInterrupt, SystemExit):
             raise
         except:

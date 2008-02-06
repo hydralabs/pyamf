@@ -44,7 +44,7 @@ class DjangoGateway(gateway.BaseGateway):
     """
 
     def __init__(self, *args, **kwargs):
-        self.expose_request = kwargs.pop('expose_request', True)
+        kwargs['expose_request'] = kwargs.get('expose_request', True)
 
         gateway.BaseGateway.__init__(self, *args, **kwargs)
 
@@ -61,16 +61,9 @@ class DjangoGateway(gateway.BaseGateway):
         """
         response = remoting.Envelope(request.amfVersion, request.clientType)
 
-        if self.expose_request:
-            def wrapper(service_request, *body):
-                return service_request(http_request, *body)
-            kwargs = {'service_wrapper': wrapper}
-        else:
-            kwargs = {}
-
         for name, message in request:
             processor = self.getProcessor(message)
-            response[name] = processor(message, **kwargs)
+            response[name] = processor(message, http_request=http_request)
 
         return response
 

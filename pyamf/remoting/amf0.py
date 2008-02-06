@@ -51,13 +51,13 @@ class RequestProcessor(object):
 
         return remoting.Response(build_fault(cls, e, tb), status=remoting.STATUS_ERROR)
 
-    def _getBody(self, request, response, service_request, service_wrapper):
+    def _getBody(self, request, response, service_request, **kwargs):
         if 'DescribeService' in request.headers:
             return service_request.service.description
 
-        return service_wrapper(service_request, *request.body)
+        return self.gateway.callServiceRequest(service_request, *request.body, **kwargs)
 
-    def __call__(self, request, service_wrapper=lambda service_request, *body: service_request(*body)):
+    def __call__(self, request, **kwargs):
         """
         Processes an AMF0 request.
 
@@ -91,7 +91,7 @@ class RequestProcessor(object):
             return response
 
         try:
-            response.body = self._getBody(request, response, service_request, service_wrapper)
+            response.body = self._getBody(request, response, service_request, **kwargs)
 
             return response
         except (SystemExit, KeyboardInterrupt):

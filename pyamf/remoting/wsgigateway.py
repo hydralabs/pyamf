@@ -23,8 +23,6 @@ class WSGIGateway(gateway.BaseGateway):
     """
 
     def __init__(self, *args, **kwargs):
-        self.expose_environ = kwargs.pop('expose_environ', False)
-
         gateway.BaseGateway.__init__(self, *args, **kwargs)
 
     def getResponse(self, request, environ):
@@ -38,17 +36,9 @@ class WSGIGateway(gateway.BaseGateway):
         """
         response = remoting.Envelope(request.amfVersion, request.clientType)
 
-        kwargs = {}
-
-        if self.expose_environ:
-            def wrapper(service_request, *body):
-                return service_request(environ, *body)
-
-            kwargs.update({'service_wrapper': wrapper})
-
         for name, message in request:
             processor = self.getProcessor(message)
-            response[name] = processor(message, **kwargs)
+            response[name] = processor(message, http_request=environ)
 
         return response
 

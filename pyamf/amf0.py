@@ -221,7 +221,7 @@ class Decoder(pyamf.BaseDecoder):
         x = self.stream.read_double()
         y = int(x)
 
-        # There is no way in AMF0 to distinguish between integers and floats 
+        # There is no way in AMF0 to distinguish between integers and floats
         if y == x:
             return y
 
