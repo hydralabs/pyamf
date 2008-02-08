@@ -20,6 +20,8 @@ and write LSO data to the computer's local drive on a per-domain basis.
 @since: 0.1.0
 """
 
+import types
+
 import pyamf
 from pyamf import amf0, util
 
@@ -136,3 +138,54 @@ def encode(name, values, strict=True):
     stream.seek(0)
 
     return stream
+
+def load(name_or_file):
+    """
+    Loads a sol file and returns a L{SOL} object
+    """
+    f = name_or_file
+    opened = False
+
+    if isinstance(name_or_file, basestring):
+        f = open(name_or_file, 'rb')
+        opened = True
+    elif not isinstance(name_or_file, types.FileType):
+        raise ValueError, 'file name or file resource expected'
+
+    name, values = decode(f.read())
+    s = SOL(name)
+    
+    for n, v in values.iteritems():
+        s[n] = v
+
+    if opened is True:
+        f.close()
+
+    return s
+
+def save(sol, name_or_file):
+    """
+    Writes a L{SOL} object to C{name_or_file}
+    """
+    f = name_or_file
+    opened = False
+
+    if isinstance(name_or_file, basestring):
+        f = open(name_or_file, 'wb+')
+        opened = True
+    elif not isinstance(name_or_file, types.FileType):
+        raise ValueError, 'file name or file resource expected'
+
+    f.write(encode(sol.name, sol).getvalue())
+
+    if opened:
+        f.close()
+
+class SOL(dict):
+    def __init__(self, name):
+        self.name = name
+
+    def save(self, name_or_file):
+        save(self, name_or_file)
+
+LSO = SOL

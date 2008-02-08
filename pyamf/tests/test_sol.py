@@ -11,7 +11,7 @@ Tests for Local Shared Object (LSO) Implementation.
 @since: 0.1.0
 """
 
-import unittest
+import unittest, os, os.path
 
 import pyamf
 from pyamf import amf0, util, sol
@@ -69,11 +69,125 @@ class EncoderTestCase(unittest.TestCase):
             '\x00\x00\x00\x00\x00\x04name\x02\x00\x05value\x00\x00\x04spam'
             '\x02\x00\x04eggs\x00')
 
+class HelperTestCase(unittest.TestCase):
+    contents = '\x00\xbf\x00\x00\x002TCSO\x00\x04\x00\x00\x00\x00\x00\x05h' + \
+        'ello\x00\x00\x00\x00\x00\x04name\x02\x00\x05value\x00\x00\x04spam' + \
+        '\x02\x00\x04eggs\x00'
+
+    def setUp(self):
+        self.file_name = os.tempnam()
+
+    def tearDown(self):
+        if os.path.isfile(self.file_name):
+            os.unlink(self.file_name)
+
+    def _load(self):
+        fp = open(self.file_name, 'wb+')
+
+        fp.write(self.contents)
+        fp.flush()
+
+        return fp
+
+    def test_load_name(self):
+        fp = self._load()
+        fp.close()
+
+        s = sol.load(self.file_name)
+
+        self.assertEquals(s.name, 'hello')
+        self.assertEquals(s, {'name': 'value', 'spam': 'eggs'})
+
+    def test_load_file(self):
+        fp = self._load()
+        y = fp.tell()
+        fp.seek(0)
+
+        s = sol.load(fp)
+
+        self.assertEquals(s.name, 'hello')
+        self.assertEquals(s, {'name': 'value', 'spam': 'eggs'})
+        self.assertEquals(y, fp.tell())
+
+    def test_save_name(self):
+        s = sol.SOL('hello')
+        s.update({'name': 'value', 'spam': 'eggs'})
+
+        sol.save(s, self.file_name)
+
+        fp = open(self.file_name, 'rb')
+
+        try:
+            self.assertEquals(fp.read(), self.contents)
+        except:
+            fp.close()
+
+            raise
+
+    def test_save_file(self):
+        fp = open(self.file_name, 'wb+')
+        s = sol.SOL('hello')
+        s.update({'name': 'value', 'spam': 'eggs'})
+
+        sol.save(s, fp)
+        fp.seek(0)
+
+        self.assertFalse(fp.closed)
+        self.assertEquals(fp.read(), self.contents)
+
+        fp.close()
+
+class SOLTestCase(unittest.TestCase):
+    def test_create(self):
+        s = sol.SOL('eggs')
+
+        self.assertEquals(s, {})
+        self.assertEquals(s.name, 'eggs')
+
+    def test_save(self):
+        s = sol.SOL('hello')
+        s.update({'name': 'value', 'spam': 'eggs'})
+
+        x = os.tempnam()
+        s.save(x)
+
+        try:
+            self.assertEquals(open(x, 'rb').read(), HelperTestCase.contents)
+        except:
+            if os.path.isfile(x):
+                os.unlink(x)
+
+            raise
+
+        x = os.tempnam()
+        fp = open(x, 'wb+')
+
+        self.assertEquals(fp.closed, False)
+
+        s.save(fp)
+        self.assertNotEquals(fp.tell(), 0)
+
+        fp.seek(0)
+
+        self.assertEquals(fp.read(), HelperTestCase.contents)
+        self.assertEquals(fp.closed, False)
+
+        try:
+            self.assertEquals(open(x, 'rb').read(), HelperTestCase.contents)
+        except:
+            if os.path.isfile(x):
+                os.unlink(x)
+
+            raise
+
+
 def suite():
     suite = unittest.TestSuite()
 
     suite.addTest(unittest.makeSuite(EncoderTestCase))
     suite.addTest(unittest.makeSuite(DecoderTestCase))
+    suite.addTest(unittest.makeSuite(HelperTestCase))
+    suite.addTest(unittest.makeSuite(SOLTestCase))
 
     return suite
 
