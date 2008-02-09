@@ -170,7 +170,7 @@ def load(name_or_file):
 
     return s
 
-def save(sol, name_or_file):
+def save(sol, name_or_file, encoding=pyamf.AMF0):
     """
     Writes a L{SOL} object to C{name_or_file}
     """
@@ -183,7 +183,7 @@ def save(sol, name_or_file):
     elif not isinstance(name_or_file, types.FileType):
         raise ValueError, 'file name or file resource expected'
 
-    f.write(encode(sol.name, sol).getvalue())
+    f.write(encode(sol.name, sol, encoding=encoding).getvalue())
 
     if opened:
         f.close()
