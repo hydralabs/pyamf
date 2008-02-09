@@ -50,8 +50,6 @@ def decode(stream, strict=True):
     if not isinstance(stream, util.BufferedByteStream):
         stream = util.BufferedByteStream(stream)
 
-    decoder = amf0.Decoder(stream)
-
     # read the version
     version = stream.read(2)
 
@@ -70,11 +68,15 @@ def decode(stream, strict=True):
     if signature != HEADER_SIGNATURE:
         raise pyamf.DecodeError, 'Invalid signature'
 
-    root_name = decoder.readString()
+    length = stream.read_ushort()
+    root_name = stream.read_utf8_string(length)
 
     # read padding
-    if stream.read(4) != PADDING_BYTE * 4:
+    if stream.read(3) != PADDING_BYTE * 3:
         raise pyamf.DecodeError, 'Invalid padding read'
+
+    decoder = pyamf.get_decoder(stream.read_uchar())
+    decoder.stream = stream
 
     values = {}
 
@@ -93,7 +95,7 @@ def decode(stream, strict=True):
 
     return (root_name, values)
 
-def encode(name, values, strict=True):
+def encode(name, values, strict=True, encoding=pyamf.AMF0):
     """
     Produces a SharedObject encoded stream based on the name and values.
 
@@ -104,8 +106,8 @@ def encode(name, values, strict=True):
     @return: A SharedObject encoded stream.
     @rtype: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     """
-    stream = util.BufferedByteStream()
-    encoder = amf0.Encoder(stream)
+    encoder = pyamf.get_encoder(encoding)
+    encoder.stream = stream = util.BufferedByteStream()
 
     # write the header
     stream.write(HEADER_VERSION)
@@ -119,13 +121,18 @@ def encode(name, values, strict=True):
     stream.write(HEADER_SIGNATURE)
 
     # write the root name
-    encoder.writeString(name, False)
+    if not isinstance(name, unicode):
+        name = unicode(name)
+
+    stream.write_ushort(len(name))
+    stream.write_utf8_string(name)
 
     # write the padding
-    stream.write(PADDING_BYTE * 4)
+    stream.write(PADDING_BYTE * 3)
+    stream.write_uchar(encoding)
 
     for n, v in values.iteritems():
-        encoder.writeString(n, False)
+        encoder._writeString(n)
         encoder.writeElement(v)
 
         # write the padding

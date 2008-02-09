@@ -51,8 +51,20 @@ class DecoderTestCase(unittest.TestCase):
         self.assertRaises(pyamf.DecodeError, sol.decode, bytes)
 
     def test_invalid_header_padding(self):
-        bytes = '\x00\xbf\x00\x00\x00\x15TCSO\x00\x04\x00\x00\x00\x00\x00\x05hello\x00\x00\x00\x01'
+        bytes = '\x00\xbf\x00\x00\x00\x15TCSO\x00\x04\x00\x00\x00\x00\x00\x05hello\x00\x00\x01\x00'
         self.assertRaises(pyamf.DecodeError, sol.decode, bytes)
+
+    def test_unknown_encoding(self):
+        bytes = '\x00\xbf\x00\x00\x00\x15TCSO\x00\x04\x00\x00\x00\x00\x00\x05hello\x00\x00\x00\x01'
+        self.assertRaises(ValueError, sol.decode, bytes)
+
+    def test_amf3(self):
+        bytes = '\x00\xbf\x00\x00\x00aTCSO\x00\x04\x00\x00\x00\x00\x00\x08' + \
+            'EchoTest\x00\x00\x00\x03\x0fhttpUri\x06=http://localhost:8000' + \
+            '/gateway/\x00\x0frtmpUri\x06+rtmp://localhost/echo\x00'
+
+        self.assertEquals(sol.decode(bytes), (u'EchoTest', 
+            {u'httpUri': u'http://localhost:8000/gateway/', u'rtmpUri': u'rtmp://localhost/echo'}))
 
 class EncoderTestCase(unittest.TestCase):
     def test_encode_header(self):
@@ -64,10 +76,17 @@ class EncoderTestCase(unittest.TestCase):
     def test_multiple_values(self):
         stream = sol.encode('hello', {'name': 'value', 'spam': 'eggs'})
 
-        self.assertEquals(stream.getvalue(),
-            '\x00\xbf\x00\x00\x002TCSO\x00\x04\x00\x00\x00\x00\x00\x05hello'
-            '\x00\x00\x00\x00\x00\x04name\x02\x00\x05value\x00\x00\x04spam'
-            '\x02\x00\x04eggs\x00')
+        self.assertEquals(stream.getvalue(), HelperTestCase.contents)
+
+    def test_amf3(self):
+        bytes = '\x00\xbf\x00\x00\x00aTCSO\x00\x04\x00\x00\x00\x00\x00\x08' + \
+            'EchoTest\x00\x00\x00\x03\x0fhttpUri\x06=http://localhost:8000' + \
+            '/gateway/\x00\x0frtmpUri\x06+rtmp://localhost/echo\x00'
+
+        stream = sol.encode(u'EchoTest',
+            {u'httpUri': u'http://localhost:8000/gateway/', u'rtmpUri': u'rtmp://localhost/echo'}, encoding=pyamf.AMF3)
+
+        self.assertEquals(stream.getvalue(), bytes)
 
 class HelperTestCase(unittest.TestCase):
     contents = '\x00\xbf\x00\x00\x002TCSO\x00\x04\x00\x00\x00\x00\x00\x05h' + \
@@ -179,7 +198,6 @@ class SOLTestCase(unittest.TestCase):
                 os.unlink(x)
 
             raise
-
 
 def suite():
     suite = unittest.TestSuite()
