@@ -23,7 +23,7 @@ and write LSO data to the computer's local drive on a per-domain basis.
 import types
 
 import pyamf
-from pyamf import amf0, util
+from pyamf import util
 
 #: Magic Number - 2 bytes
 HEADER_VERSION = '\x00\xbf'

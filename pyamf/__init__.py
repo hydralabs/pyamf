@@ -22,7 +22,6 @@ U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>}.
 
 import types
 
-import pyamf
 from pyamf import util
 from pyamf.adapters import register_adapters
 

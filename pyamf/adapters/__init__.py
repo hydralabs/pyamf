@@ -10,7 +10,7 @@ packages. This includes registering classes, setting up type maps etc.
 @since: 0.1.0
 """
 
-import sys, os.path, glob, types, imp
+import os.path, glob, imp
 
 from peak.util import imports
 
