@@ -470,8 +470,7 @@ class BaseDecoder(object):
         try:
             func = getattr(self, self.type_map[type])
         except KeyError, e:
-            raise pyamf.DecodeError(
-                "Unsupported ActionScript type 0x%02x" % type)
+            raise DecodeError, "Unsupported ActionScript type 0x%02x" % type
 
         return func()
 
