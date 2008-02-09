@@ -6,9 +6,9 @@
 """
 Local Shared Object implementation.
 
-Local Shared Object (LSO), sometimes known as flash cookies, is a cookie-like data
-entity used by the Flash Player and Gnash. The players allow web content to read
-and write LSO data to the computer's local drive on a per-domain basis.
+Local Shared Object (LSO), sometimes known as flash cookies, is a cookie-like
+data entity used by the Flash Player and Gnash. The players allow web content
+to read and write LSO data to the computer's local drive on a per-domain basis.
 
 @see: U{Local Shared Object on WikiPedia (external)
 <http://en.wikipedia.org/wiki/Local_Shared_Object>}
@@ -44,7 +44,8 @@ def decode(stream, strict=True):
      - Invalid padding read.
      - Missing padding byte.
 
-    @return: A C{tuple} containing the C{root_name} and a C{dict} of name, value pairs.
+    @return: A C{tuple} containing the C{root_name} and a C{dict} of name,
+        value pairs.
     @rtype: C{tuple}
     """
     if not isinstance(stream, util.BufferedByteStream):
@@ -189,6 +190,11 @@ def save(sol, name_or_file, encoding=pyamf.AMF0):
         f.close()
 
 class SOL(dict):
+    """
+    Local Shared Object class, allows easy manipulation of the internals of a
+    sol file.
+    """
+
     def __init__(self, name):
         self.name = name
 
