@@ -71,7 +71,10 @@ class ObjectProxy(object):
     """
 
     def __init__(self, object=None):
-        self._amf_object = object
+        if object is None:
+            self._amf_object = pyamf.ASObject()
+        else:
+            self._amf_object = object
 
     def __repr__(self):
         return "<flex.messaging.io.ObjectProxy %s>" % self._amf_object
