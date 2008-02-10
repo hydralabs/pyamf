@@ -46,8 +46,6 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
             deferred_response.callback(self.buildErrorResponse(request,
                 (failure.type, failure.value, failure.tb)))
 
-            return failure
-
         def auth_cb(authd):
             if not authd:
                 # authentication failed
