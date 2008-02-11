@@ -5,7 +5,7 @@ PyAMF Changelog
 This file contains information about the changes between the different versions
 of PyAMF.
 
-0.1 (unreleased)
+0.1 (2008-02-11)
 -------------------
 
  - a new error handling api useful for registering custom exception classes
