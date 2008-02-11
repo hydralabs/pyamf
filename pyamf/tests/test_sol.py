@@ -65,7 +65,7 @@ class DecoderTestCase(unittest.TestCase):
             'EchoTest\x00\x00\x00\x03\x0fhttpUri\x06=http://localhost:8000' + \
             '/gateway/\x00\x0frtmpUri\x06+rtmp://localhost/echo\x00'
 
-        self.assertEquals(sol.decode(bytes), (u'EchoTest', 
+        self.assertEquals(sol.decode(bytes), (u'EchoTest',
             {u'httpUri': u'http://localhost:8000/gateway/', u'rtmpUri': u'rtmp://localhost/echo'}))
 
 class EncoderTestCase(unittest.TestCase):

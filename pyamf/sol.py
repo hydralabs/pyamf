@@ -162,7 +162,7 @@ def load(name_or_file):
 
     name, values = decode(f.read())
     s = SOL(name)
-    
+
     for n, v in values.iteritems():
         s[n] = v
 
