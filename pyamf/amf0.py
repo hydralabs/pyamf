@@ -222,7 +222,6 @@ class Decoder(pyamf.BaseDecoder):
         try:
             y = int(x)
         except OverflowError:
-            print x
             pass
         else:
             # There is no way in AMF0 to distinguish between integers and floats
