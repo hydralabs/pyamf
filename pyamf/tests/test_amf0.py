@@ -418,6 +418,19 @@ class DecoderTestCase(unittest.TestCase):
             (-123, '\x00\xc0\x5e\xc0\x00\x00\x00\x00\x00'),
             (1.23456789, '\x00\x3f\xf3\xc0\xca\x42\x83\xde\x1b')])
 
+    def test_infinites(self):
+        import fpconst
+
+        self._run([(fpconst.NegInf, '\x00\xff\xf0\x00\x00\x00\x00\x00\x00')])
+        self._run([(fpconst.PosInf, '\x00\x7f\xf0\x00\x00\x00\x00\x00\x00')])
+
+        self.buf.truncate()
+        self.buf.write('\x00\xff\xf8\x00\x00\x00\x00\x00\x00')
+        self.buf.seek(0)
+        x = self.decoder.readElement()
+
+        self.assertTrue(fpconst.isNaN(x))
+
     def test_boolean(self):
         self._run([
             (True, '\x01\x01'),

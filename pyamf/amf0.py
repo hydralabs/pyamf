@@ -215,15 +215,19 @@ class Decoder(pyamf.BaseDecoder):
         In ActionScript 1 and 2 the C{NumberASTypes} type represents all numbers,
         both floats and integers.
 
-        @rtype: C{int}
-        @return: Number
+        @rtype: C{int} or C{float}
         """
         x = self.stream.read_double()
-        y = int(x)
 
-        # There is no way in AMF0 to distinguish between integers and floats
-        if y == x:
-            return y
+        try:
+            y = int(x)
+        except OverflowError:
+            print x
+            pass
+        else:
+            # There is no way in AMF0 to distinguish between integers and floats
+            if y == x:
+                return y
 
         return x
 

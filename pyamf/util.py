@@ -456,8 +456,7 @@ def get_mro(C):
 # see: http://blog.pyamf.org/archives/when-is-nan-not-a-number-with-python-24
 import fpconst
 
-bytes = '\xff\xf8\x00\x00\x00\x00\x00\x00'
-fp = struct.unpack("!d", bytes)[0]
+fp = struct.unpack("!d", '\xff\xf8\x00\x00\x00\x00\x00\x00')[0]
 
 if not fpconst.isNaN(fp):
     def read_float_workaround(self):
@@ -490,4 +489,4 @@ if not fpconst.isNaN(fp):
     NetworkIOMixIn.write_double = write_float_workaround
     write_float_workaround.old_func = x
 
-del bytes, fp
+del fp
