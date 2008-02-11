@@ -19,7 +19,7 @@ LocalConnection, SharedObjects and other classes in the Flash Player.
 @since: 0.1.0
 """
 
-import datetime, types
+import datetime, types, string
 
 import pyamf
 from pyamf import util
@@ -823,8 +823,8 @@ class RecordSet(object):
     @ivar columns: The columns to send.
     @type columns: List of strings.
     @ivar items: The recordset data.
-    @type items: List of lists, the order of the data corresponds
-        to the order of the columns.
+    @type items: List of lists, the order of the data corresponds to the order
+        of the columns.
     @ivar service: Service linked to the recordset.
     @type service:
     @ivar id: The id of the recordset.
@@ -869,5 +869,17 @@ class RecordSet(object):
 
     serverInfo = property(_get_server_info, _set_server_info)
 
-pyamf.register_class(RecordSet, 'RecordSet', attrs=['serverInfo'],
-    metadata=['amf0'])
+    def __repr__(self):
+        ret = '<%s.%s object' % (self.__module__, self.__class__.__name__)
+
+        if self.id is not None:
+            ret += ' id=%s' % self.id
+
+        if self.service is not None:
+            ret += ' service=%s' % self.service
+
+        ret += ' at 0x%x>' % id(self)
+
+        return ret
+
+pyamf.register_class(RecordSet, 'RecordSet', attrs=['serverInfo'], metadata=['amf0'])
