@@ -90,6 +90,14 @@ class ObjectProxyTestCase(unittest.TestCase):
         self.assertEquals(x.__class__, flex.ObjectProxy)
         self.assertEquals(x._amf_object, {'a': 'spam', 'b': 5})
 
+    def test_get_attrs(self):
+        x = flex.ObjectProxy()
+
+        self.assertEquals(x._amf_object, pyamf.ASObject())
+
+        x._amf_object = None
+        self.assertEquals(x._amf_object, None)
+
 def suite():
     suite = unittest.TestSuite()
 

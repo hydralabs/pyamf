@@ -81,15 +81,15 @@ class ObjectProxy(object):
 
     def __getattr__(self, name):
         if name == '_amf_object':
-            return self._amf_object
+            return self.__dict__['_amf_object']
 
-        return getattr(self._amf_object, name)
+        return getattr(self.__dict__['_amf_object'], name)
 
     def __setattr__(self, name, value):
         if name == '_amf_object':
             self.__dict__['_amf_object'] = value
         else:
-            return setattr(self._amf_object, name, value)
+            setattr(self._amf_object, name, value)
 
     def __readamf__(self, input):
         self._amf_object = input.readObject()
