@@ -43,6 +43,9 @@ CLASS_LOADERS = []
 #: Custom type map
 TYPE_MAP = {}
 
+#: Maps error classes to string codes
+ERROR_CLASS_MAP = {}
+
 #: Specifies that objects are serialized using AMF for ActionScript 1.0 and 2.0.
 AMF0 = 0
 #: Specifies that objects are serialized using AMF for ActionScript 3.0.
@@ -88,7 +91,7 @@ class DecodeError(BaseError):
     Raised if there is an error in decoding an AMF data stream.
     """
 
-class EOStream(DecodeError):
+class EOStream(BaseError):
     """
     Raised if the data stream has come to a natural end.
     """
@@ -990,5 +993,50 @@ def remove_type(type_):
     del TYPE_MAP[type_]
 
     return declaration
+
+def add_error_class(klass, code):
+    """
+    Maps an exception class to a string code. Used to map remoting onStatus
+    objects to an exception class so that an exception can be built to
+    represent that error.
+
+    class AuthenticationError(Exception):
+        pass
+
+    An example: add_error_class(AuthenticationError, 'Auth.Failed')
+    """
+    if not isinstance(code, basestring):
+        code = str(code)
+
+    if not isinstance(klass, (type, types.ClassType)):
+        raise TypeError, "klass must be a class type"
+
+    mro = util.get_mro(klass)
+
+    if not Exception in util.get_mro(klass):
+        raise TypeError, 'error classes must subclass the __builtin__.Exception class'
+
+    if code in ERROR_CLASS_MAP.keys():
+        raise ValueError, 'Code %s is already registered' % code
+
+    ERROR_CLASS_MAP[code] = klass
+
+def remove_error_class(klass):
+    """
+    Removes a class from ERROR_CLASS_MAP
+    """
+    if isinstance(klass, basestring):
+        if not klass in ERROR_CLASS_MAP.keys():
+            raise ValueError, 'Code %s is not registered' % klass
+    elif isinstance(klass, (type, types.ClassType)):
+        classes = ERROR_CLASS_MAP.values()
+        if not klass in classes:
+            raise ValueError, 'Class %s is not registered' % klass
+
+        klass = ERROR_CLASS_MAP.keys()[classes.index(klass)]
+    else:
+        raise TypeError, "Invalid type, expected class or string"
+
+    del ERROR_CLASS_MAP[klass]
 
 register_adapters()

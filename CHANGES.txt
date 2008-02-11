@@ -5,9 +5,12 @@ PyAMF Changelog
 This file contains information about the changes between the different versions
 of PyAMF.
 
-0.1rc1 (unreleased)
+0.1 (unreleased)
 -------------------
 
+ - a new error handling api useful for registering custom exception classes
+   (Ticket:185)
+ - when a client receives a remoting error, an exception is generated (Ticket:167)
  - expose_request per service control vastly improved (Ticket:169)
  - Authentication per service control vastly improved (Ticket:166)
  - uuid is no longer installed when using Python 2.5 or newer (Ticket:182)

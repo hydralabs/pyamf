@@ -269,6 +269,12 @@ class StrictEncodingTestCase(unittest.TestCase):
             '\x00\x00\x00\x00\x00\x01\x00\x0b/1/onResult\x00\x04null\x00\x00'
             '\x00\x0c\n\x00\x00\x00\x01\x02\x00\x04spam')
 
+class FaultTestCase(unittest.TestCase):
+    def test_exception(self):
+        x = remoting.get_fault({'level': 'error', 'code': 'Server.Call.Failed'})
+
+        self.assertRaises(remoting.RemotingCallFailed, x.raiseException)
+
 def suite():
     """
     Add tests.
@@ -278,6 +284,7 @@ def suite():
     suite.addTest(unittest.makeSuite(DecoderTestCase))
     suite.addTest(unittest.makeSuite(EncoderTestCase))
     suite.addTest(unittest.makeSuite(StrictEncodingTestCase))
+    suite.addTest(unittest.makeSuite(FaultTestCase))
 
     from pyamf.tests.remoting import test_client, test_remoteobject
 

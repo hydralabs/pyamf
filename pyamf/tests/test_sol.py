@@ -11,10 +11,12 @@ Tests for Local Shared Object (LSO) Implementation.
 @since: 0.1.0
 """
 
-import unittest, os, os.path
+import unittest, os, os.path, warnings
 
 import pyamf
 from pyamf import amf0, util, sol
+
+warnings.simplefilter('ignore', RuntimeWarning)
 
 class DecoderTestCase(unittest.TestCase):
     def test_header(self):

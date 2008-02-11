@@ -611,6 +611,60 @@ class TypeMapTestCase(unittest.TestCase):
 
         self.assertEquals(td, td2)
 
+class ErrorClassMapTestCase(unittest.TestCase):
+    """
+    I test all functionality related to manipulating L{pyamf.ERROR_CLASS_MAP}
+    """
+
+    def setUp(self):
+        self.map_copy = pyamf.ERROR_CLASS_MAP.copy()
+
+    def tearDown(self):
+        pyamf.ERROR_CLASS_MAP = self.map_copy
+
+    def test_add(self):
+        class A:
+            pass
+
+        class B(Exception):
+            pass
+
+        self.assertRaises(TypeError, pyamf.add_error_class, None, 'a')
+
+        # class A does not sub-class Exception
+        self.assertRaises(TypeError, pyamf.add_error_class, A, 'a')
+
+        pyamf.add_error_class(B, 'b')
+        self.assertEquals(pyamf.ERROR_CLASS_MAP['b'], B)
+
+        pyamf.add_error_class(B, 'a')
+        self.assertEquals(pyamf.ERROR_CLASS_MAP['a'], B)
+
+        class C(Exception):
+            pass
+
+        self.assertRaises(ValueError, pyamf.add_error_class, C, 'b')
+
+    def test_remove(self):
+        class B(Exception):
+            pass
+
+        pyamf.ERROR_CLASS_MAP['abc'] = B
+
+        self.assertRaises(TypeError, pyamf.remove_error_class, None)
+
+        pyamf.remove_error_class('abc')
+        self.assertFalse('abc' in pyamf.ERROR_CLASS_MAP.keys())
+        self.assertRaises(KeyError, pyamf.ERROR_CLASS_MAP.__getitem__, 'abc')
+
+        pyamf.ERROR_CLASS_MAP['abc'] = B
+
+        pyamf.remove_error_class(B)
+
+        self.assertRaises(KeyError, pyamf.ERROR_CLASS_MAP.__getitem__, 'abc')
+        self.assertRaises(ValueError, pyamf.remove_error_class, B)
+        self.assertRaises(ValueError, pyamf.remove_error_class, 'abc')
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -622,6 +676,7 @@ def suite():
     suite.addTest(unittest.makeSuite(UnregisterClassTestCase))
     suite.addTest(unittest.makeSuite(ClassLoaderTestCase))
     suite.addTest(unittest.makeSuite(TypeMapTestCase))
+    suite.addTest(unittest.makeSuite(ErrorClassMapTestCase))
 
     return suite
 

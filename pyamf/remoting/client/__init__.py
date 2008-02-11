@@ -144,6 +144,9 @@ class RequestWrapper(object):
         self.response = response
         self.result = self.response.body
 
+        if isinstance(self.result, remoting.ErrorFault):
+            self.result.raiseException()
+
     def _get_result(self):
         """
         Returns the result of the called remote request. If the request has not

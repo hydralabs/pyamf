@@ -50,10 +50,22 @@ STATUS_CODES = {
 #: AMF mimetype.
 CONTENT_TYPE = 'application/x-amf'
 
+ERROR_CALL_FAILED, = range(1)
+ERROR_CODES = {
+    ERROR_CALL_FAILED: 'Server.Call.Failed'
+}
+
 class RemotingError(pyamf.BaseError):
     """
     Generic remoting error class.
     """
+
+class RemotingCallFailed(RemotingError):
+    """
+    Raised if Server.Call.Failed received
+    """
+
+pyamf.add_error_class(RemotingCallFailed, ERROR_CODES[ERROR_CALL_FAILED])
 
 class HeaderCollection(dict):
     """
@@ -232,6 +244,13 @@ class BaseFault(object):
 
         return x + '>'
 
+    def raiseException(self):
+        """
+        Raises an exception based on the fault object. There is no traceback
+        available.
+        """
+        raise get_exception_from_fault(self), self.description, None
+
 pyamf.register_class(BaseFault,
     attrs=['level', 'code', 'type', 'details', 'description'])
 
@@ -242,8 +261,7 @@ class ErrorFault(BaseFault):
 
     level = 'error'
 
-pyamf.register_class(ErrorFault,
-    attrs=['level', 'code', 'type', 'details', 'description'])
+pyamf.register_class(ErrorFault)
 
 def _read_header(stream, decoder, strict=False):
     """
@@ -442,7 +460,8 @@ def _get_status(status):
 
     return STATUS_CODES[status]
 
-def get_fault_class(level):
+def get_fault_class(level, **kwargs):
+    code = kwargs.get('code', )
     if level == 'error':
         return ErrorFault
 
@@ -463,7 +482,7 @@ def get_fault(data):
         else:
             e[x] = y
 
-    return get_fault_class(level)(**e)
+    return get_fault_class(level, **e)(**e)
 
 def decode(stream, context=None, strict=False):
     """
@@ -568,3 +587,11 @@ def encode(msg, old_context=None, strict=False):
         _write_body(name, message, stream, encoder, strict)
 
     return stream
+
+def get_exception_from_fault(fault):
+    # XXX nick: threading problems here?
+    try:
+        return pyamf.ERROR_CLASS_MAP[fault.code]
+    except KeyError:
+        # default to RemotingError
+        return RemotingError
