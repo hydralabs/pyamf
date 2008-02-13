@@ -121,7 +121,8 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
     allowedMethods = ('POST',)
 
     def __init__(self, *args, **kwargs):
-        self.expose_request = kwargs.pop('expose_request', True)
+        if 'expose_request' not in kwargs:
+            kwargs['expose_request'] = True
 
         gateway.BaseGateway.__init__(self, *args, **kwargs)
         resource.Resource.__init__(self)
