@@ -532,6 +532,7 @@ def decode(stream, context=None, strict=False):
             msg.headers.set_required(name)
 
     body_count = stream.read_short()
+    context.clear()
 
     for i in range(body_count):
         target, payload = _read_body(stream, decoder, strict)

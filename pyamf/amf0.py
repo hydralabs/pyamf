@@ -125,6 +125,9 @@ class Context(pyamf.BaseContext):
         self.amf3_objs = []
         self.rev_amf3_objs = {}
 
+        if hasattr(self, 'amf3_context'):
+            self.amf3_context.clear()
+
     def _getObject(self, ref):
         return self.objects[ref + 1]
 
@@ -325,12 +328,12 @@ class Decoder(pyamf.BaseDecoder):
         @rtype: C{mixed}
         @return: The AMF3 element read from the stream
         """
-        if not hasattr(self, '_amf3_context'):
+        if not hasattr(self.context, 'amf3_context'):
             from pyamf import amf3
 
-            self._amf3_context = amf3.Context()
+            self.context.amf3_context = amf3.Context()
 
-        decoder = pyamf._get_decoder_class(pyamf.AMF3)(self.stream, self._amf3_context)
+        decoder = pyamf._get_decoder_class(pyamf.AMF3)(self.stream, self.context.amf3_context)
 
         element = decoder.readElement()
         self.context.addAMF3Object(element)

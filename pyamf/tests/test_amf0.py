@@ -554,7 +554,7 @@ class DecoderTestCase(unittest.TestCase):
         self.assertFalse(hasattr(self.decoder, '_amf3_context'))
         self.assertEquals(self.decoder.readElement(), 1)
         self.assertTrue(x in self.context.amf3_objs)
-        self.assertTrue(hasattr(self.decoder, '_amf3_context'))
+        self.assertTrue(hasattr(self.context, 'amf3_context'))
 
     def test_dynamic(self):
         class Foo(pyamf.ASObject):
