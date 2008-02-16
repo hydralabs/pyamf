@@ -1290,11 +1290,20 @@ class Encoder(pyamf.BaseEncoder):
         """
         Writes a raw string to the stream.
 
-        @type   n:
+        @type   n: C{str} or C{unicode}
         @param  n: string data.
         @type   use_references: C{bool}
         @param  use_references:
         """
+        if not isinstance(n, basestring):
+            raise TypeError, "str or unicode expected"
+
+        if not isinstance(n, unicode):
+            try:
+                n = unicode(n)
+            except UnicodeError:
+                raise pyamf.EncodeError, "error converting str to unicode"
+
         if len(n) == 0:
             self._writeInteger(REFERENCE_BIT)
 
@@ -1309,15 +1318,17 @@ class Encoder(pyamf.BaseEncoder):
             except pyamf.ReferenceError:
                 self.context.addString(n)
 
-        self._writeInteger((len(n) << 1) | REFERENCE_BIT)
+        bytes = n.encode('utf8')
+        self._writeInteger((len(bytes) << 1) | REFERENCE_BIT)
 
-        self.stream.write_utf8_string(n)
+        self.stream.write(bytes)
 
     def writeString(self, n, use_references=True):
         """
-        Writes a unicode string to the stream.
+        Writes a string to the stream. If C{n} is not a unicode string, an
+        attempt will be made to convert it.
 
-        @type   n:
+        @type   n: C{basestring}
         @param  n: string data.
         @type   use_references: C{bool}
         @param  use_references:

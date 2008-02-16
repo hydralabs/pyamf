@@ -314,7 +314,7 @@ class EncoderTestCase(unittest.TestCase):
     def test_string(self):
         self._run([
             ('hello', '\x06\x0bhello'),
-            (u'ᚠᛇᚻ', '\x06\x07\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb')])
+            (u'ᚠᛇᚻ', '\x06\x13\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb')])
 
     def test_string_references(self):
         self._run([
