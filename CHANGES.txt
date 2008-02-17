@@ -5,11 +5,13 @@ PyAMF Changelog
 This file contains information about the changes between the different versions
 of PyAMF.
 
-0.1.1 (unreleased)
+0.1.1 (2008-02-18)
 ------------------
 
- - Non-ASCII data caused error. Patch by akaihola. (Ticket:194)
- - Decoder Bug when using String References and AMF Headers (Ticket:192)
+ - AMF3 encoder reported incorrect byte length header for non-ASCII string data.
+   Patch supplied by akaihola. (Ticket:194)
+ - Decoder context not cleared between reading the remoting header and body.
+   Reported by gerard. (Ticket:192)
 
 0.1 (2008-02-11)
 ----------------
