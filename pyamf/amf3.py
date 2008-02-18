@@ -30,6 +30,11 @@ import types, datetime, zlib
 import pyamf
 from pyamf import util
 
+try:
+    set()
+except NameError:
+    from sets import Set as set
+
 class ASTypes:
     """
     All AMF3 data types used in ActionScript 3.0.

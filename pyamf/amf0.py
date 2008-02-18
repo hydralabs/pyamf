@@ -228,7 +228,7 @@ class Decoder(pyamf.BaseDecoder):
             pass
         else:
             # There is no way in AMF0 to distinguish between integers and floats
-            if y == x:
+            if x != x and y == x:
                 return y
 
         return x
@@ -848,10 +848,10 @@ class RecordSet(object):
             initialData=self.items, columnNames=self.columns)
 
         if self.service is not None:
-            ret.update(serviceName=str(self.service['name']))
+            ret.update({'serviceName': str(self.service['name'])})
 
         if self.id is not None:
-            ret.update(id=str(self.id))
+            ret.update({'id':str(self.id)})
 
         return ret
 

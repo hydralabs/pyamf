@@ -18,6 +18,8 @@ from pyamf import remoting
 #: @see: L{ClientTypes<pyamf.ClientTypes>}
 DEFAULT_CLIENT_TYPE = pyamf.ClientTypes.Flash6
 
+HTTP_OK = 200
+
 def convert_args(args):
     if args == (tuple(),):
         return []
@@ -207,7 +209,9 @@ class RemotingService(object):
             if ':' not in self.url[1]:
                 port = None
             else:
-                hostname, port = self.url[1].rsplit(':', 1)
+                sp = self.url[1].split(':')
+                
+                hostname, port = ':'.join(sp[:1]), sp[-1]
                 port = int(port)
 
         if hostname is None:
@@ -354,7 +358,7 @@ class RemotingService(object):
         """
         http_response = self.connection.getresponse()
 
-        if http_response.status != httplib.OK:
+        if http_response.status != HTTP_OK:
             if hasattr(httplib, 'responses'):
                 raise remoting.RemotingError, "HTTP Gateway reported status %d %s" % (
                     http_response.status, httplib.responses[http_response.status])

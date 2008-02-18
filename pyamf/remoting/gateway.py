@@ -313,7 +313,9 @@ class BaseGateway(object):
             pass
 
         try:
-            name, meth = target.rsplit('.', 1)
+            sp = target.split('.')
+            name, meth = '.'.join(sp[:1]), sp[-1]
+
             return self._request_class(
                 request.envelope, self.services[name], meth)
         except (ValueError, KeyError):
@@ -468,8 +470,8 @@ class LazyImporter(object):
         return getattr(mod, name)
 
 for f in glob(os.path.join(os.path.dirname(__file__), '*gateway.py')):
-    name = f.rsplit(os.path.sep, 1)[1].rsplit('.py')[0]
-    localname = name.rsplit('gateway', 1)[0]
+    name = f.split(os.path.sep)[-1][1].split('.py')[-1]
+    localname = name.split('gateway')[-1]
 
     if localname == '':
         continue

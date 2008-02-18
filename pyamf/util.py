@@ -104,7 +104,8 @@ class StringIOProxy(object):
         return self._buffer.tell()
 
     def truncate(self, size=0):
-        bytes = self._buffer.truncate(size)
+        self._buffer = StringIOProxy._wrapped_class()
+
         self._get_len()
 
     def write(self, s):
@@ -117,6 +118,11 @@ class StringIOProxy(object):
         self._get_len()
 
     def _get_len(self):
+        if hasattr(self._buffer, 'len'):
+            self._len = self._buffer.len
+
+            return
+
         old_pos = self._buffer.tell()
         self._buffer.seek(0, 2)
 
