@@ -314,7 +314,7 @@ class BaseGateway(object):
 
         try:
             sp = target.split('.')
-            name, meth = '.'.join(sp[:1]), sp[-1]
+            name, meth = '.'.join(sp[:-1]), sp[-1]
 
             return self._request_class(
                 request.envelope, self.services[name], meth)

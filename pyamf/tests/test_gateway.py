@@ -309,6 +309,18 @@ class BaseGatewayTestCase(unittest.TestCase):
         self.assertEquals(sr.service, TestService)
         self.assertEquals(sr.method, 'test')
 
+    def test_long_service_name(self):
+        gw = gateway.BaseGateway({'a.c.b.d': TestService})
+        envelope = remoting.Envelope()
+
+        message = remoting.Request('a.c.b.d', [], envelope=envelope)
+        sr = gw.getServiceRequest(message, 'a.c.b.d.spam')
+
+        self.assertTrue(isinstance(sr, gateway.ServiceRequest))
+        self.assertEquals(sr.request, envelope)
+        self.assertEquals(sr.service, TestService)
+        self.assertEquals(sr.method, 'spam')
+
     def test_get_response(self):
         gw = gateway.BaseGateway({'test': TestService})
         envelope = remoting.Envelope()
