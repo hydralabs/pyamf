@@ -34,7 +34,7 @@ if sys.version_info < (2, 5):
 
 setup(name = "PyAMF",
     version = "0.2",
-    description = "AMF encoder and decoder for Python",
+    description = "AMF support for Python",
     url = "http://pyamf.org",
     packages = find_packages(exclude=["*.tests"]),
     install_requires = install_requires,
