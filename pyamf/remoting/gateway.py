@@ -478,8 +478,8 @@ else:
     packageDir = os.path.dirname(__file__)
 
 for f in glob(os.path.join(packageDir, '*gateway.py')):
-    name = f.split(os.path.sep)[-1][1].split('.py')[-1]
-    localname = name.split('gateway')[-1]
+    name = f.split(os.path.sep)[-1].split('.py')[0]
+    localname = name.split('gateway')[0]
 
     if localname == '':
         continue
@@ -488,5 +488,5 @@ for f in glob(os.path.join(packageDir, '*gateway.py')):
     sys.modules['%s.%s' % ('pyamf.remoting.gateway', localname)] = importer
     setattr(sys.modules['pyamf.remoting.gateway'], localname, importer)
 
-del f, importer, name
+del f
 del glob, os
