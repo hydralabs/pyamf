@@ -42,7 +42,7 @@ class StringIOProxy(object):
     _wrapped_class = StringIO
 
     def __init__(self, buf=None):
-        """
+        """       
         @raise TypeError: Unable to coerce C{buf} to C{StringIO}.
         """
         self._buffer = StringIOProxy._wrapped_class()
@@ -89,7 +89,7 @@ class StringIOProxy(object):
 
     def readlines(self, sizehint=0):
         """
-        @type sizehint:
+        @type sizehint: C{int}
         @param sizehint:
         @note: This function does not consume the buffer.
         """

@@ -998,12 +998,12 @@ def add_error_class(klass, code):
     """
     Maps an exception class to a string code. Used to map remoting onStatus
     objects to an exception class so that an exception can be built to
-    represent that error.
+    represent that error::
 
-    class AuthenticationError(Exception):
-        pass
+        class AuthenticationError(Exception):
+            pass
 
-    An example: add_error_class(AuthenticationError, 'Auth.Failed')
+    An example: C{add_error_class(AuthenticationError, 'Auth.Failed')}
     """
     if not isinstance(code, basestring):
         code = str(code)
