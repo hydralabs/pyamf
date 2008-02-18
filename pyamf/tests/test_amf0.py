@@ -427,10 +427,8 @@ class DecoderTestCase(unittest.TestCase):
         self.buf.truncate()
         self.buf.write('\x00\xff\xf8\x00\x00\x00\x00\x00\x00')
         self.buf.seek(0)
-        print self.buf.getvalue()
         x = self.decoder.readElement()
 
-        print type(x)
         self.assertTrue(fpconst.isNaN(x))
 
     def test_boolean(self):
