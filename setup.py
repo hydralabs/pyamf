@@ -39,6 +39,7 @@ setup(name = "PyAMF",
     packages = find_packages(exclude=["*.tests"]),
     install_requires = install_requires,
     test_suite = "pyamf.tests.suite",
+    zip_safe=True,
     license = "MIT License",
     cmdclass = {'test': TestCommand},
     entry_points={

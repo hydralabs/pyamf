@@ -469,7 +469,15 @@ class LazyImporter(object):
 
         return getattr(mod, name)
 
-for f in glob(os.path.join(os.path.dirname(__file__), '*gateway.py')):
+try: 
+    import pkg_resources
+    packageDir = pkg_resources.resource_filename('pyamf', 'remoting')
+except:
+    pass
+else:
+    packageDir = os.path.dirname(__file__)
+
+for f in glob(os.path.join(packageDir, '*gateway.py')):
     name = f.split(os.path.sep)[-1][1].split('.py')[-1]
     localname = name.split('gateway')[-1]
 
