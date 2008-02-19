@@ -32,7 +32,7 @@ def register_adapters():
     if adapters_registered is True:
         return
 
-    try: 
+    try:
         import pkg_resources
         packageDir = pkg_resources.resource_filename('pyamf', 'adapters')
     except:

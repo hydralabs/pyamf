@@ -210,7 +210,7 @@ class RemotingService(object):
                 port = None
             else:
                 sp = self.url[1].split(':')
-                
+
                 hostname, port = ':'.join(sp[:1]), sp[-1]
                 port = int(port)
 

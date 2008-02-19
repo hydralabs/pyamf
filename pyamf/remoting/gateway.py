@@ -469,7 +469,7 @@ class LazyImporter(object):
 
         return getattr(mod, name)
 
-try: 
+try:
     import pkg_resources
     packageDir = pkg_resources.resource_filename('pyamf', 'remoting')
 except:

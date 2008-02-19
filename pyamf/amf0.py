@@ -222,16 +222,7 @@ class Decoder(pyamf.BaseDecoder):
         """
         x = self.stream.read_double()
 
-        try:
-            y = int(x)
-        except OverflowError:
-            pass
-        else:
-            # There is no way in AMF0 to distinguish between integers and floats
-            if x != x and y == x:
-                return y
-
-        return x
+        return _check_for_int(x)
 
     def readBoolean(self):
         """
@@ -886,3 +877,33 @@ class RecordSet(object):
         return ret
 
 pyamf.register_class(RecordSet, 'RecordSet', attrs=['serverInfo'], metadata=['amf0'])
+
+def _check_for_int(x):
+    """
+    This is a compatibility function that takes a float and converts it to an
+    C{int} if the values are equal
+    """
+    try:
+        y = int(x)
+    except OverflowError:
+        pass
+    else:
+        # There is no way in AMF0 to distinguish between integers and floats
+        if x == x and y == x:
+            return y
+
+    return x
+
+# check for some python2.3 problems with floats
+if float('nan') == 0:
+    def check_nan(func):
+        def f2(x):
+            if str(x).lower().find('nan') >= 0:
+                return x
+
+            return f2.func(x)
+        f2.func = func
+
+        return f2
+
+    _check_for_int = check_nan(_check_for_int)

@@ -176,7 +176,7 @@ class DecoderTestCase(unittest.TestCase):
 
         self.assertEquals(m.target, 'createGroup')
         self.assertEquals(m.body, [{'strB':'test', 'strA':'test'}])
-		
+
 class EncoderTestCase(unittest.TestCase):
     """
     Test the encoders.
