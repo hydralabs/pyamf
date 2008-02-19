@@ -663,9 +663,14 @@ class Context(pyamf.BaseContext):
         pyamf.BaseContext.clear(self)
 
         self.strings = []
+
         self.classes = []
+        self.rev_classes = {}
         self.class_defs = {}
+        self.rev_class_defs = {}
+
         self.legacy_xml = []
+        self.rev_legacy_xml = {}
 
     def getString(self, ref):
         """
@@ -681,7 +686,7 @@ class Context(pyamf.BaseContext):
         try:
             return self.strings[ref]
         except IndexError:
-            raise pyamf.ReferenceError("String reference %d not found" % ref)
+            raise pyamf.ReferenceError, "String reference %d not found" % ref
 
     def getStringReference(self, s):
         """
@@ -696,7 +701,7 @@ class Context(pyamf.BaseContext):
         try:
             return self.strings.index(s)
         except ValueError:
-            raise pyamf.ReferenceError("Reference for string %r not found" % s)
+            raise pyamf.ReferenceError, "Reference for string %r not found" % s
 
     def addString(self, s):
         """
@@ -710,6 +715,9 @@ class Context(pyamf.BaseContext):
         @rtype: C{int}
         @return: The reference index.
         """
+        if not isinstance(s, basestring):
+            raise TypeError
+
         if len(s) == 0:
             # do not store empty string references
             raise ValueError, "Cannot store a reference to an empty string"
@@ -733,42 +741,54 @@ class Context(pyamf.BaseContext):
         try:
             return self.classes[ref]
         except IndexError:
-            raise pyamf.ReferenceError("Class reference %d not found" % ref)
+            raise pyamf.ReferenceError, "Class reference %d not found" % ref
 
     def getClassDefinitionReference(self, class_def):
         """
         Return class definition reference.
 
-        @type class_def: L{ClassDefinition}
+        @type class_def: L{ClassDefinition} or C{instance} or C{class}
         @param class_def: The class definition reference to be found.
         @raise ReferenceError: The reference could not be found.
         @return: The reference to C{class_def}.
         @rtype: C{int}
         """
-        if not isinstance(class_def, ClassDefinition) and isinstance(class_def, (type, types.ClassType)):
-            try:
-                return self.class_defs[class_def.__class__]
-            except KeyError:
-                raise pyamf.ReferenceError("Reference for class %s not found" %
-                    class_def.__class__)
+        if not isinstance(class_def, ClassDefinition):
+            if isinstance(class_def, (type, types.ClassType)):
+                try:
+                    return self.rev_class_defs[class_def]
+                except KeyError:
+                    raise pyamf.ReferenceError("Reference for class definition for %s not found" %
+                        class_def)
+            elif isinstance(class_def, (types.InstanceType, types.ObjectType)):
+                try:
+                    return self.class_defs[class_def.__class__]
+                except KeyError:
+                    raise pyamf.ReferenceError("Reference for class definition for %s not found" %
+                        class_def.__class__)
 
-        try:
-            return self.classes.index(class_def)
-        except ValueError:
-            raise pyamf.ReferenceError("Reference for class %s not found" %
-                class_def.__class__)
+            raise TypeError, 'unable to determine class for %r' % class_def
+        else:
+            try:
+                return self.rev_class_defs[id(class_def)]
+            except ValueError:
+                raise pyamf.ReferenceError, "Reference for class %s not found" % kl
 
     def addClassDefinition(self, class_def):
         """
         Creates a reference to C{class_def}.
         """
         try:
-            return self.classes.index(class_def)
-        except ValueError:
+            return self.rev_class_defs[id(class_def)]
+        except KeyError:
             self.classes.append(class_def)
-            self.class_defs[class_def.__class__] = class_def
+            idx = len(self.classes) - 1
 
-            return len(self.classes) - 1
+            self.rev_classes[id(class_def)] = idx
+            self.class_defs[class_def.__class__] = class_def
+            self.rev_class_defs[id(class_def.__class__)] = idx
+
+            return idx
 
     def getLegacyXML(self, ref):
         """
@@ -798,8 +818,8 @@ class Context(pyamf.BaseContext):
         @rtype: C{int}
         """
         try:
-            return self.legacy_xml.index(doc)
-        except ValueError:
+            return self.rev_legacy_xml[id(doc)]
+        except KeyError:
             raise pyamf.ReferenceError, "Reference for document %r not found" % doc
 
     def addLegacyXML(self, doc):
@@ -815,11 +835,14 @@ class Context(pyamf.BaseContext):
         @return: The reference to C{doc}.
         """
         try:
-            return self.legacy_xml.index(doc)
-        except ValueError:
+            return self.rev_legacy_xml[id(doc)]
+        except KeyError:
             self.legacy_xml.append(doc)
 
-            return len(self.legacy_xml) - 1
+            idx = len(self.legacy_xml) - 1
+            self.rev_legacy_xml[id(doc)] = idx
+
+            return idx
 
     def __copy__(self):
         return self.__class__()
@@ -1166,16 +1189,16 @@ class Encoder(pyamf.BaseEncoder):
         # Unsupported types go first
         ((types.BuiltinFunctionType, types.BuiltinMethodType,),
             "writeUnsupported"),
-        ((lambda x: x == pyamf.Undefined,), "writeUndefined"),
         ((bool,), "writeBoolean"),
+        ((types.NoneType,), "writeNull"),
         ((int,long), "writeInteger"),
         ((float,), "writeNumber"),
-        ((ByteArray,), "writeByteArray"),
-        ((util.ET.iselement,), "writeXML"),
         ((types.StringTypes,), "writeString"),
+        ((ByteArray,), "writeByteArray"),
         ((datetime.date, datetime.datetime), "writeDate"),
-        ((types.NoneType,), "writeNull"),
-        ((types.InstanceType,types.ObjectType,), "writeInstance"),
+        ((util.ET.iselement,), "writeXML"),
+        ((lambda x: x is pyamf.Undefined,), "writeUndefined"),
+        ((types.InstanceType, types.ObjectType,), "writeInstance"),
     ]
 
     def writeElement(self, data, use_references=True):
@@ -1469,10 +1492,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         encoding = ObjectEncoding.DYNAMIC
 
-        try:
-            alias = pyamf.get_class_alias(obj)
-        except pyamf.UnknownClassAlias:
-            alias = None
+        alias = self.context.getClassAlias(obj.__class__)
 
         if alias:
             if 'dynamic' in alias.metadata:
@@ -1567,6 +1587,8 @@ class Encoder(pyamf.BaseEncoder):
 
             self._writeInteger(ref | class_def.encoding << 2 | REFERENCE_BIT << 1 | REFERENCE_BIT)
             self._writeString(class_def.name)
+        else:
+            class_def = self._getClassDefinition(obj)
 
         if class_def.encoding in (ObjectEncoding.EXTERNAL, ObjectEncoding.PROXY):
             obj.__writeamf__(DataOutput(self))
@@ -1685,26 +1707,26 @@ def _encode_int(n):
     if n > 0x40000000:
         raise ValueError, "Out of range"
 
-    bytes = util.BufferedByteStream()
+    bytes = ''
     real_value = None
 
     if n > 0x1fffff:
         real_value = n
         n >>= 1
-        bytes.write_uchar(0x80 | ((n >> 21) & 0xff))
+        bytes += chr(0x80 | ((n >> 21) & 0xff))
 
     if n > 0x3fff:
-        bytes.write_uchar(0x80 | ((n >> 14) & 0xff))
+        bytes += chr(0x80 | ((n >> 14) & 0xff))
 
     if n > 0x7f:
-        bytes.write_uchar(0x80 | ((n >> 7) & 0xff))
+        bytes += chr(0x80 | ((n >> 7) & 0xff))
 
     if real_value is not None:
         n = real_value
 
     if n > 0x1fffff:
-        bytes.write_uchar(n & 0xff)
+        bytes += chr(n & 0xff)
     else:
-        bytes.write_uchar(n & 0x7f)
+        bytes += chr(n & 0x7f)
 
-    return bytes.getvalue()
+    return bytes

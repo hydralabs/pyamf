@@ -444,17 +444,16 @@ class Encoder(pyamf.BaseEncoder):
     type_map = [
         ((types.BuiltinFunctionType, types.BuiltinMethodType,),
             "writeUnsupported"),
-        ((lambda x: x == pyamf.Undefined,), "writeUndefined"),
+        ((types.NoneType,), "writeNull"),
         ((bool,), "writeBoolean"),
         ((int,long,float), "writeNumber"),
         ((types.StringTypes,), "writeString"),
-        ((util.ET.iselement,), "writeXML"),
-        ((pyamf.has_alias,), "writeObject"),
-        ((pyamf.ASObject,), "writeObject"),
+        ((pyamf.has_alias,pyamf.ASObject), "writeObject"),
         ((pyamf.MixedArray,), "writeMixedArray"),
         ((types.ListType, types.TupleType,), "writeArray"),
         ((datetime.date, datetime.datetime), "writeDate"),
-        ((types.NoneType,), "writeNull"),
+        ((util.ET.iselement,), "writeXML"),
+        ((lambda x: x is pyamf.Undefined,), "writeUndefined"),
         ((types.InstanceType,types.ObjectType,), "writeObject"),
     ]
 
@@ -690,10 +689,7 @@ class Encoder(pyamf.BaseEncoder):
         except pyamf.ReferenceError:
             self.context.addObject(o)
 
-        try:
-            alias = pyamf.get_class_alias(o)
-        except pyamf.UnknownClassAlias:
-            alias = None
+        alias = self.context.getClassAlias(o.__class__)
 
         if alias is None:
             self.writeType(ASTypes.OBJECT)

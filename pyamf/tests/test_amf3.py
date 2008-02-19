@@ -464,6 +464,7 @@ class EncoderTestCase(unittest.TestCase):
         self.assertEquals(class_def.klass, pyamf.ASObject)
         self.assertEquals(class_def.static_attrs, [])
 
+    def test_get_class_definition_attrs(self):
         # test supplied attributes
         attrs = ['spam', 'eggs']
         pyamf.register_class(Spam, 'abc.xyz', attrs=attrs)
@@ -728,10 +729,12 @@ class DecoderTestCase(unittest.TestCase):
         self.assertFalse(is_ref)
         self.assertTrue(isinstance(class_def, amf3.ClassDefinition))
         self.assertTrue(class_def.getClass(), Spam)
+        self.assertTrue(class_def.klass, Spam)
         self.assertTrue(class_def.name, 'abc.xyz')
         self.assertEquals(class_def.encoding, amf3.ObjectEncoding.STATIC)
 
         self.assertTrue(class_def in self.context.classes)
+        self.assertTrue(id(class_def) in self.context.rev_classes)
 
         self.context.classes.remove(class_def)
         self.buf.write('\x0fabc.xyz')

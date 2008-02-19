@@ -131,6 +131,8 @@ class BaseContext(object):
         self.objects = []
         self.rev_objects = {}
 
+        self.class_aliases = {}
+
     def getObject(self, ref):
         """
         Gets an object based on a reference.
@@ -169,6 +171,18 @@ class BaseContext(object):
         self.rev_objects[id(obj)] = idx
 
         return idx
+
+    def getClassAlias(self, klass):
+        """
+        Gets a class alias based on the supplied C{klass}.
+        """
+        if klass not in self.class_aliases:
+            try:
+                self.class_aliases[klass] = get_class_alias(klass)
+            except UnknownClassAlias:
+                self.class_aliases[klass] = None
+
+        return self.class_aliases[klass]
 
     def __copy__(self):
         raise NotImplementedError
@@ -537,7 +551,9 @@ class BaseEncoder(object):
             raise TypeError, "context must be of type %s.%s" % (
                 self.context_class.__module__, self.context_class.__name__)
 
-    def _writeElementFunc(self, data):
+        self._write_elem_func_cache = {}
+
+    def _getWriteElementFunc(self, data):
         """
         Gets a function used to encode the data.
 
@@ -564,6 +580,20 @@ class BaseEncoder(object):
                         return getattr(self, method)
 
         return None
+
+    def _writeElementFunc(self, data):
+        """
+        Gets a function used to encode the data.
+
+        @type   data: C{mixed}
+        @param  data: Python data.
+        @rtype: callable or C{None}.
+        @return: The function used to encode data to the stream.
+        """
+        key = data.__class__
+        if key not in self._write_elem_func_cache:
+            self._write_elem_func_cache[key] =  self._getWriteElementFunc(data)
+        return self._write_elem_func_cache[key]
 
     def writeElement(self, data):
         """
@@ -765,9 +795,6 @@ def get_class_alias(klass):
             klass = klass.__class__
         elif isinstance(klass, types.ObjectType):
             klass = type(klass)
-
-    if not isinstance(klass, (type, types.ClassType, basestring)):
-        raise TypeError, "Expecting string or class type"
 
     if isinstance(klass, basestring):
         for a, k in CLASS_CACHE.iteritems():

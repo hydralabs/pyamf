@@ -61,12 +61,14 @@ class StringIOProxy(object):
         else:
             raise TypeError, "Unable to coerce buf->StringIO"
 
-        self._len = self._buffer.tell()
+        self._get_len()
+        self._len_changed = False
         self._buffer.seek(0, 0)
 
     def close(self):
         self._buffer.close()
         self._len = 0
+        self._len_changed = False
 
     def flush(self):
         self._buffer.flush()
@@ -105,17 +107,15 @@ class StringIOProxy(object):
 
     def truncate(self, size=0):
         self._buffer = StringIOProxy._wrapped_class()
-
-        self._get_len()
+        self._len_changed = True
 
     def write(self, s):
         self._buffer.write(s)
-
-        self._get_len()
+        self._len_changed = True
 
     def writelines(self, iterable):
         self._buffer.writelines(iterable)
-        self._get_len()
+        self._len_changed = True
 
     def _get_len(self):
         if hasattr(self._buffer, 'len'):
@@ -130,6 +130,12 @@ class StringIOProxy(object):
         self._buffer.seek(old_pos)
 
     def __len__(self):
+        if not self._len_changed:
+            return self._len
+
+        self._get_len()
+        self._len_changed = False
+
         return self._len
 
 class NetworkIOMixIn(object):
