@@ -590,9 +590,14 @@ class BaseEncoder(object):
         @rtype: callable or C{None}.
         @return: The function used to encode data to the stream.
         """
-        key = data.__class__
+        try:
+            key = data.__class__
+        except AttributeError:
+            return self._getWriteElementFunc(data)
+
         if key not in self._write_elem_func_cache:
             self._write_elem_func_cache[key] =  self._getWriteElementFunc(data)
+
         return self._write_elem_func_cache[key]
 
     def writeElement(self, data):
