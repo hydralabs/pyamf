@@ -473,8 +473,6 @@ try:
     import pkg_resources
     packageDir = pkg_resources.resource_filename('pyamf', 'remoting')
 except:
-    pass
-else:
     packageDir = os.path.dirname(__file__)
 
 for f in glob(os.path.join(packageDir, '*gateway.py')):

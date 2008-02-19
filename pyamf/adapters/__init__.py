@@ -36,8 +36,6 @@ def register_adapters():
         import pkg_resources
         packageDir = pkg_resources.resource_filename('pyamf', 'adapters')
     except:
-        pass
-    else:
         packageDir = os.path.dirname(__file__)
 
     for f in glob.glob(os.path.join(packageDir, '*.py')):
