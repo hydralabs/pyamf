@@ -51,6 +51,11 @@ sending int and uint objects as integers and supports data types that are
 available only in ActionScript 3.0, such as ByteArray, ArrayCollection,
 and IExternalizable."""
 
+keyw = """\
+amf amf0 amf3 flex flash remoting rpc http flashplayer air bytearray
+objectproxy arraycollection recordset actionscript decoder encoder
+gateway"""
+
 setup(name = "PyAMF",
     version = "0.2",
     description = "AMF support for Python",
@@ -58,6 +63,7 @@ setup(name = "PyAMF",
     url = "http://pyamf.org",
     author = "The PyAMF Project",
     author_email = "dev@pyamf.org",
+    keywords = keyw,
     packages = find_packages(exclude=["*.tests"]),
     install_requires = install_requires,
     test_suite = "pyamf.tests.suite",
