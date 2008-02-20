@@ -891,15 +891,20 @@ def _check_for_int(x):
     return x
 
 # check for some python2.3 problems with floats
-if float('nan') == 0:
-    def check_nan(func):
-        def f2(x):
-            if str(x).lower().find('nan') >= 0:
-                return x
+try:
+    float('nan')
+except ValueError:
+    pass
+else:
+    if float('nan') == 0:
+        def check_nan(func):
+            def f2(x):
+                if str(x).lower().find('nan') >= 0:
+                    return x
 
-            return f2.func(x)
-        f2.func = func
+                return f2.func(x)
+            f2.func = func
 
-        return f2
+            return f2
 
-    _check_for_int = check_nan(_check_for_int)
+        _check_for_int = check_nan(_check_for_int)
