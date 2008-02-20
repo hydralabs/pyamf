@@ -171,25 +171,10 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
 
         d = threads.deferToThread(remoting.decode, request.content.read(), context)
 
-        def eb(failure):
-            """
-            Return 500 Internal Server Error.
-            """
-            import traceback
-            body = "500 Internal Server Error\n\nThere was an error processing" \
-                " the request.\n\nTraceback:\n\n%s" % traceback.format_exception(
-                    failure.type, failure.value, failure.tb)
-
-            self._finaliseRequest(request, 500, body)
-
-            return request
-
         def cb(amf_request):
             x = self.getResponse(request, amf_request)
 
-            x.addCallback(self.sendResponse, request, context).addErrback(eb)
-
-            return amf_request
+            x.addCallback(self.sendResponse, request, context)
 
         # Process the request
         d.addCallback(cb).addErrback(handleDecodeError)
@@ -201,17 +186,16 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
             self._finaliseRequest(request, 200, result.getvalue(),
                 remoting.CONTENT_TYPE)
 
-            return request
-
         def eb(failure):
+            """
+            Return 500 Internal Server Error.
+            """
             import traceback
             body = "500 Internal Server Error\n\nThere was an error encoding" \
                 " the response.\n\nTraceback:\n\n%s" % traceback.format_exception(
                     failure.type, failure.value, failure.tb)
 
             self._finaliseRequest(request, 500, body)
-
-            return failure
 
         d = threads.deferToThread(remoting.encode, amf_response, context)
 

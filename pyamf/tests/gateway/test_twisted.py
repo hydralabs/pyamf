@@ -151,6 +151,38 @@ class TwistedServerTestCase(unittest.TestCase):
         return client.getPage("http://127.0.0.1:%d/" % (self.port,),
                 method="POST", postdata=remoting.encode(env).getvalue())
 
+    def test_encoding_error(self):
+        encode = twistedgateway.remoting.encode
+
+        def force_error(amf_request, context=None):
+            raise pyamf.EncodeError
+
+        def echo(request, data):
+            return data
+
+        self.gw.addService(echo)
+
+        env = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash9)
+        request = remoting.Request('echo', body=['hello'])
+        env['/1'] = request
+
+        d = client.getPage("http://127.0.0.1:%d/" % (self.port,),
+                method="POST", postdata=remoting.encode(env).getvalue())
+
+        twistedgateway.remoting.encode = force_error
+        def switch(x):
+            twistedgateway.remoting.encode = encode
+
+        d = self.assertFailure(d, error.Error)
+
+        def check(exc):
+            self.assertEquals(int(exc.args[0]), http.INTERNAL_SERVER_ERROR)
+            self.assertTrue(exc.args[1].startswith('500 Internal Server Error'))
+
+        d.addCallback(check)
+
+        return d.addBoth(switch)
+
 class DummyHTTPRequest:
     def __init__(self):
         self.headers = {}
