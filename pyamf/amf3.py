@@ -772,7 +772,7 @@ class Context(pyamf.BaseContext):
             try:
                 return self.rev_class_defs[id(class_def)]
             except ValueError:
-                raise pyamf.ReferenceError, "Reference for class %s not found" % kl
+                raise pyamf.ReferenceError, "Reference for class %s not found" % class_def.klass
 
     def addClassDefinition(self, class_def):
         """
