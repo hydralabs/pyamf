@@ -875,8 +875,8 @@ def encode(*args, **kwargs):
 
     return stream
 
-def get_decoder(encoding):
-    return _get_decoder_class(encoding)()
+def get_decoder(encoding, data=None, context=None):
+    return _get_decoder_class(encoding)(data=data, context=context)
 
 def _get_decoder_class(encoding):
     """
@@ -901,8 +901,8 @@ def _get_decoder_class(encoding):
 
     raise ValueError, "Unknown encoding %s" % encoding
 
-def get_encoder(encoding):
-    return _get_encoder_class(encoding)()
+def get_encoder(encoding, data=None, context=None):
+    return _get_encoder_class(encoding)(data=data, context=context)
 
 def _get_encoder_class(encoding):
     """

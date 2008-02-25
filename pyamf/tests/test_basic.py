@@ -337,6 +337,16 @@ class HelperTestCase(unittest.TestCase):
         self.assertTrue(isinstance(pyamf.get_decoder(pyamf.AMF3), amf3.Decoder))
         self.assertRaises(ValueError, pyamf.get_decoder, 'spam')
 
+        context = amf0.Context()
+        decoder = pyamf.get_decoder(pyamf.AMF0, data='123', context=context)
+        self.assertEquals(decoder.stream.getvalue(), '123')
+        self.assertEquals(decoder.context, context)
+
+        context = amf3.Context()
+        decoder = pyamf.get_decoder(pyamf.AMF3, data='456', context=context)
+        self.assertEquals(decoder.stream.getvalue(), '456')
+        self.assertEquals(decoder.context, context)
+
     def test_get_encoder(self):
         from pyamf import amf0, amf3
 
@@ -347,6 +357,16 @@ class HelperTestCase(unittest.TestCase):
         self.assertTrue(isinstance(pyamf.get_encoder(pyamf.AMF0), amf0.Encoder))
         self.assertTrue(isinstance(pyamf.get_encoder(pyamf.AMF3), amf3.Encoder))
         self.assertRaises(ValueError, pyamf.get_encoder, 'spam')
+
+        context = amf0.Context()
+        encoder = pyamf.get_encoder(pyamf.AMF0, data='spam', context=context)
+        self.assertEquals(encoder.stream.getvalue(), 'spam')
+        self.assertEquals(encoder.context, context)
+
+        context = amf3.Context()
+        encoder = pyamf.get_encoder(pyamf.AMF3, data='eggs', context=context)
+        self.assertEquals(encoder.stream.getvalue(), 'eggs')
+        self.assertEquals(encoder.context, context)
 
     def test_encode(self):
         self.assertEquals('\x02\x00\x07connect\x00?\xf0\x00\x00\x00\x00\x00\x00',
