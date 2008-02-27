@@ -189,6 +189,8 @@ class BaseContext(object):
 
 class ASObject(dict):
     """
+    This class represents a Flash Actionscript Object (typed or untyped).
+    
     I supply a C{__builtin__.dict} interface to support get/setattr calls.
     """
 

@@ -64,7 +64,8 @@ pyamf.register_class(ArrayCollection, 'flex.messaging.io.ArrayCollection',
 class ObjectProxy(object):
     """
     I represent the ActionScript 3 based class C{flex.messaging.io.ObjectProxy}
-    used in the Flex framework.
+    used in the Flex framework. Flex's ObjectProxy class allows an anonymous,
+    dynamic ActionScript Object to be bindable and report change events.
 
     @see: U{ObjectProxy on Livedocs (external)
     <http://livedocs.adobe.com/flex/201/langref/mx/utils/ObjectProxy.html>}

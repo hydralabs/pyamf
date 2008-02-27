@@ -26,7 +26,7 @@ from pyamf import util
 
 class ASTypes:
     """
-    All AMF0 data types used in ActionScript 1.0 and 2.0.
+    The AMF/RTMP data encoding format constants.
 
     @see: U{Data types on OSFlash (external)
     <http://osflash.org/documentation/amf/astypes>}
@@ -92,7 +92,7 @@ class ASTypes:
     #: gateway may use a mapping scheme, or send back as a vanilla object or
     #: associative array.
     TYPEDOBJECT = 0x10
-    #: An AMF message sent from an AS3 client such as the Flash Player 9 may break
+    #: An AMF message sent from an AVM+ client such as the Flash Player 9 may break
     #: out into L{AMF3<pyamf.amf3>} mode. In this case the next byte will be the
     #: AMF3 type code and the data will be in AMF3 format until the decoded object
     #: reaches it’s logical conclusion (for example, an object has no more keys).
@@ -399,7 +399,8 @@ class Decoder(pyamf.BaseDecoder):
 
     def readDate(self):
         """
-        Reads a UTC date from the data stream.
+        Reads a UTC date from the data stream. Client and servers are
+        responsible for applying their own timezones.
 
         Date: C{0x0B T7 T6} .. C{T0 Z1 Z2 T7} to C{T0} form a 64 bit
         Big Endian number that specifies the number of nanoseconds
