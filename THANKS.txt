@@ -1,5 +1,6 @@
  * Evert Pot                      evert@rooftopsolutions.nl
  * Bob Ippolito	                  bob@redivi.com
  * Joachim Bauch                  jojo@struktur.de
+ * Antti Kaihola		  akaihol+pyamf@ambitone.com
 
 And everyone who keeps sending feedback, helping us improve PyAMF.
