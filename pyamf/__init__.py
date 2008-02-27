@@ -209,18 +209,6 @@ class ASObject(dict):
     def __repr__(self):
         return dict.__repr__(self)
 
-class Bag(ASObject):
-    """
-    @deprecated: Use L{ASObject} instead.
-    """
-    def __init__(self, *args, **kwargs):
-        import warnings
-
-        warnings.warn('The Bag class will be removed in a 0.1 release of PyAMF',
-            category=DeprecationWarning)
-
-        ASObject.__init__(self, *args, **kwargs)
-
 class MixedArray(dict):
     """
     Used to be able to specify the mixedarray type.

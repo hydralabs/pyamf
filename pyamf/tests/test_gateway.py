@@ -575,7 +575,7 @@ def suite():
         suite.addTest(test_wsgi.suite())
 
     try:
-        import twisted.web
+        from twisted import web
     except ImportError:
         web = None
 
