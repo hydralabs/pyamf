@@ -575,11 +575,11 @@ def suite():
         suite.addTest(test_wsgi.suite())
 
     try:
-        import twisted
+        import twisted.web
     except ImportError:
-        twisted = None
+        web = None
 
-    if twisted:
+    if web:
         from pyamf.tests.gateway import test_twisted
 
         suite.addTest(test_twisted.suite())
