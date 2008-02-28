@@ -27,7 +27,7 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
     L{amf0.RequestProcessor<pyamf.remoting.amf0.RequestProcessor>}
     """
 
-    def __call__(self, request, **kwargs):
+    def __call__(self, request, *args, **kwargs):
         """
         Calls the underlying service method.
 
@@ -43,12 +43,19 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
         deferred_response = defer.Deferred()
 
         def eb(failure):
-            deferred_response.callback(self.buildErrorResponse(request,
-                (failure.type, failure.value, failure.tb)))
+            deferred_response.callback(self.buildErrorResponse(
+                request, (failure.type, failure.value, failure.tb)))
 
-        def auth_cb(authd):
-            if not authd:
-                # authentication failed
+        def response_cb(result):
+            response.body = result
+            deferred_response.callback(response)
+
+        def preprocess_cb(result):
+            d = defer.maybeDeferred(self._getBody, request, response, service_request, **kwargs)
+            d.addCallback(response_cb).addErrback(eb)
+
+        def auth_cb(result):
+            if result is not True:
                 response.status = remoting.STATUS_ERROR
                 response.body = remoting.ErrorFault(code='AuthenticationError',
                     description='Authentication failed')
@@ -57,21 +64,12 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
 
                 return
 
-            # authentication was successful
-            d = defer.maybeDeferred(self._getBody, request, response,
-                service_request, **kwargs)
-
-            def cb(result):
-                response.body = result
-
-                deferred_response.callback(response)
-
-            d.addCallback(cb).addErrback(eb)
+            d = defer.maybeDeferred(self.gateway.preprocessRequest, service_request, *args, **kwargs)
+            d.addCallback(preprocess_cb).addErrback(eb)
 
         # we have a valid service, now attempt authentication
-        d = defer.maybeDeferred(self.authenticateRequest, request, service_request)
-        d.addCallback(auth_cb)
-        d.addErrback(eb)
+        d = defer.maybeDeferred(self.authenticateRequest, request, service_request, **kwargs)
+        d.addCallback(auth_cb).addErrback(eb)
 
         return deferred_response
 
@@ -81,30 +79,52 @@ class AMF3RequestProcessor(amf3.RequestProcessor):
     L{amf3.RequestProcessor<pyamf.remoting.amf3.RequestProcessor>}
     """
 
-    def __call__(self, request, **kwargs):
+    def _processRemotingMessage(self, amf_request, ro_request, **kwargs):
+        ro_response = amf3.generate_acknowledgement(ro_request)
+        amf_response = remoting.Response(ro_response, status=remoting.STATUS_OK)
+
+        try:
+            service_request = self.gateway.getServiceRequest(amf_request, ro_request.operation)
+        except gateway.UnknownServiceError, e:
+            return defer.succeed(remoting.Response(self.buildErrorResponse(ro_request), status=remoting.STATUS_ERROR))
+
+        deferred_response = defer.Deferred()
+
+        def eb(failure):
+            ro_response = self.buildErrorResponse(ro_request, (failure.type, failure.value, failure.tb))
+            deferred_response.callback(remoting.Response(ro_response, status=remoting.STATUS_ERROR))
+
+        def response_cb(result):
+            ro_response.body = result
+            deferred_response.callback(remoting.Response(ro_response))
+
+        def process_cb(result):
+            d = defer.maybeDeferred(self.gateway.callServiceRequest, service_request, *ro_request.body, **kwargs)
+            d.addCallback(response_cb).addErrback(eb)
+
+        d = defer.maybeDeferred(self.gateway.preprocessRequest, service_request, *ro_request.body, **kwargs)
+        d.addCallback(process_cb).addErrback(eb)
+
+        return deferred_response
+
+    def __call__(self, amf_request, **kwargs):
         """
         Calls the underlying service method.
 
         @return: A deferred that will contain the AMF Response.
         @rtype: C{Deferred<twisted.internet.defer.Deferred>}
         """
-        amf_response = remoting.Response(None)
-        ro_request = request.body[0]
         deferred_response = defer.Deferred()
+        ro_request = amf_request.body[0]
 
-        def cb(result):
-            amf_response.body = result
+        def cb(amf_response):
             deferred_response.callback(amf_response)
-
-            return result
 
         def eb(failure):
             deferred_response.callback(self.buildErrorResponse(ro_request,
                 (failure.type, failure.value, failure.tb)))
 
-            return failure
-
-        d = defer.maybeDeferred(self._getBody, request, ro_request)
+        d = defer.maybeDeferred(self._getBody, amf_request, ro_request, **kwargs)
         d.addCallback(cb).addErrback(eb)
 
         return deferred_response
@@ -199,7 +219,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
 
         d = threads.deferToThread(remoting.encode, amf_response, context)
 
-        d.addErrback(eb).addCallback(cb)
+        d.addCallback(cb).addErrback(eb)
 
     def getProcessor(self, request):
         """
@@ -243,7 +263,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
 
         return d.addCallback(cb2)
 
-    def authenticateRequest(self, service_request, username, password):
+    def authenticateRequest(self, service_request, username, password, **kwargs):
         """
         Processes an authentication request. If no authenticator is supplied,
         then authentication succeeds.
@@ -256,4 +276,27 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         if authenticator is None:
             return defer.succeed(True)
 
-        return defer.mayBeDeferred(authenticator, username, password)
+        args = (username, password)
+
+        if hasattr(authenticator, '_pyamf_expose_request'):
+            http_request = kwargs.get('http_request', None)
+            args = (http_request,) + args
+
+        return defer.maybeDeferred(authenticator, *args)
+
+    def preprocessRequest(self, service_request, *args, **kwargs):
+        """
+        Preprocesses a request.
+        """
+        processor = self.getPreprocessor(service_request)
+
+        if processor is None:
+            return
+
+        args = (service_request,) + args
+
+        if hasattr(processor, '_pyamf_expose_request'):
+            http_request = kwargs.get('http_request', None)
+            args = (http_request,) + args
+
+        return defer.maybeDeferred(processor, *args)

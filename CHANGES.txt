@@ -8,6 +8,9 @@ of PyAMF.
 0.2 (unreleased)
 ----------------
 
+ - A new preprocessor function that runs after authentication, but before
+   invoking the service method (Ticket:196)
+ - authenticator can now be decorated with expose_request (Ticket:195)
  - Python 2.3 support (Ticket:33)
  - Made PyAMF distributable as zip-based Python Egg (Ticket:193)
 

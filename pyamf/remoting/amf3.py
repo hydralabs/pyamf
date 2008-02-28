@@ -87,28 +87,38 @@ class RequestProcessor(object):
         else:
             cls, e, tb = sys.exc_info()
 
-        return remoting.Response(generate_error(request, cls, e, tb), status=remoting.STATUS_ERROR)
+        return generate_error(request, cls, e, tb)
 
     def _getBody(self, amf_request, ro_request, **kwargs):
-        ro_response = generate_acknowledgement(ro_request)
-
         if isinstance(ro_request, CommandMessage):
-            if ro_request.operation == CommandMessage.PING_OPERATION:
-                ro_response.body = True
-
-                return ro_response
-            elif ro_request.operation == CommandMessage.LOGIN_OPERATION:
-                raise ServerCallFailed, "Authorisation is not supported in RemoteObject"
-            else:
-                raise ServerCallFailed, "Unknown command operation %s" % ro_request.operation
+            return self._processCommandMessage(amf_request, ro_request, **kwargs)
         elif isinstance(ro_request, RemotingMessage):
-            service_request = self.gateway.getServiceRequest(amf_request, ro_request.operation)
-
-            ro_response.body = self.gateway.callServiceRequest(service_request, *ro_request.body, **kwargs)
-
-            return ro_response
+            return self._processRemotingMessage(amf_request, ro_request, **kwargs)
         else:
             raise ServerCallFailed, "Unknown RemoteObject request"
+
+    def _processCommandMessage(self, amf_request, ro_request, **kwargs):
+        ro_response = generate_acknowledgement(ro_request)
+
+        if ro_request.operation == CommandMessage.PING_OPERATION:
+            ro_response.body = True
+
+            return remoting.Response(ro_response)
+        elif ro_request.operation == CommandMessage.LOGIN_OPERATION:
+            raise ServerCallFailed, "Authorisation is not supported in RemoteObject"
+        else:
+            raise ServerCallFailed, "Unknown command operation %s" % ro_request.operation
+
+    def _processRemotingMessage(self, amf_request, ro_request, **kwargs):
+        ro_response = generate_acknowledgement(ro_request)
+        service_request = self.gateway.getServiceRequest(amf_request, ro_request.operation)
+
+        # fire the preprocessor (if there is one)
+        self.gateway.preprocessRequest(service_request, *ro_request.body, **kwargs)
+
+        ro_response.body = self.gateway.callServiceRequest(service_request, *ro_request.body, **kwargs)
+
+        return remoting.Response(ro_response)
 
     def __call__(self, amf_request, **kwargs):
         """
@@ -123,9 +133,8 @@ class RequestProcessor(object):
         ro_request = amf_request.body[0]
 
         try:
-            return remoting.Response(self._getBody(
-                amf_request, ro_request, **kwargs))
+            return self._getBody(amf_request, ro_request, **kwargs)
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
-            return self.buildErrorResponse(ro_request)
+            return remoting.Response(self.buildErrorResponse(ro_request), status=remoting.STATUS_ERROR)

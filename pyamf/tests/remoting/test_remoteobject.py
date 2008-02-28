@@ -113,6 +113,52 @@ class RequestProcessorTestCase(unittest.TestCase):
         self.assertTrue(isinstance(ack, messaging.ErrorMessage))
         self.assertEquals(ack.faultCode, 'TypeError')
 
+    def test_preprocess(self):
+        def echo(x):
+            return x
+
+        self.called = False
+
+        def preproc(sr, *args):
+            self.called = True
+
+            self.assertEquals(args, ('spam.eggs',))
+            self.assertTrue(isinstance(sr, gateway.ServiceRequest))
+
+        gw = gateway.BaseGateway({'echo': echo}, preprocessor=preproc)
+        rp = amf3.RequestProcessor(gw)
+        message = messaging.RemotingMessage(body=['spam.eggs'], operation='echo')
+        request = remoting.Request('null', body=[message])
+
+        response = rp(request)
+        ack = response.body
+
+        self.assertTrue(isinstance(response, remoting.Response))
+        self.assertEquals(response.status, remoting.STATUS_OK)
+        self.assertTrue(isinstance(ack, messaging.AcknowledgeMessage))
+        self.assertEquals(ack.body, 'spam.eggs')
+        self.assertTrue(self.called)
+
+    def test_fail_preprocess(self):
+        def preproc(sr, *args):
+            raise IndexError
+
+        def echo(x):
+            return x
+
+        gw = gateway.BaseGateway({'echo': echo}, preprocessor=preproc)
+        rp = amf3.RequestProcessor(gw)
+        message = messaging.RemotingMessage(body=['spam.eggs'], operation='echo')
+        request = remoting.Request('null', body=[message])
+
+        response = rp(request)
+        ack = response.body
+
+        self.assertTrue(isinstance(response, remoting.Response))
+        self.assertEquals(response.status, remoting.STATUS_ERROR)
+        self.assertTrue(isinstance(ack, messaging.ErrorMessage))
+
+
 def suite():
     suite = unittest.TestSuite()
 

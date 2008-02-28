@@ -88,6 +88,11 @@ class ServiceWrapperTestCase(unittest.TestCase):
 
         self.assertEquals(x.service, 'blah')
 
+    def test_create_preprocessor(self):
+        x = gateway.ServiceWrapper('blah', preprocessor=ord)
+
+        self.assertEquals(x.preprocessor, ord)
+
     def test_cmp(self):
         x = gateway.ServiceWrapper('blah')
         y = gateway.ServiceWrapper('blah')
@@ -493,6 +498,50 @@ class AuthenticatorTestCase(unittest.TestCase):
         self.assertEquals(response.status, remoting.STATUS_OK)
         self.assertEquals(response.body, 'spam')
 
+    def test_expose_request_decorator(self):
+        def echo(x):
+            return x
+
+        def exposed_auth(request, username, password):
+            return self._auth(username, password)
+
+        exposed_auth = gateway.expose_request(exposed_auth)
+
+        echo = gateway.authenticate(echo, exposed_auth)
+        gw = gateway.BaseGateway({'echo': echo})
+
+        envelope = remoting.Envelope()
+        request = remoting.Request('echo', body=['spam'])
+        envelope.headers['Credentials'] = dict(userid='fred', password='wilma')
+        envelope['/1'] = request
+
+        processor = gw.getProcessor(request)
+        response = processor(request)
+
+        self.assertEquals(response.status, remoting.STATUS_OK)
+        self.assertEquals(response.body, 'spam')
+
+    def test_expose_request_keyword(self):
+        def echo(x):
+            return x
+
+        def exposed_auth(request, username, password):
+            return self._auth(username, password)
+
+        echo = gateway.authenticate(echo, exposed_auth, expose_request=True)
+        gw = gateway.BaseGateway({'echo': echo})
+
+        envelope = remoting.Envelope()
+        request = remoting.Request('echo', body=['spam'])
+        envelope.headers['Credentials'] = dict(userid='fred', password='wilma')
+        envelope['/1'] = request
+
+        processor = gw.getProcessor(request)
+        response = processor(request)
+
+        self.assertEquals(response.status, remoting.STATUS_OK)
+        self.assertEquals(response.body, 'spam')
+
 class ExposeRequestTestCase(unittest.TestCase):
     def test_default(self):
         gw = gateway.BaseGateway()
@@ -551,6 +600,102 @@ class ExposeRequestTestCase(unittest.TestCase):
 
         self.assertTrue(gw.mustExposeRequest(service_request))
 
+class PreProcessingTestCase(unittest.TestCase):
+    def _preproc(self):
+        pass
+
+    def test_default(self):
+        gw = gateway.BaseGateway()
+
+        gw.addService(lambda x: x, 'test')
+
+        envelope = remoting.Envelope()
+        request = remoting.Request('test')
+        envelope['/1'] = request
+
+        service_request = gateway.ServiceRequest(envelope, gw.services['test'], None)
+
+        self.assertEquals(gw.getPreprocessor(service_request), None)
+
+    def test_global(self):
+        gw = gateway.BaseGateway(preprocessor=self._preproc)
+
+        gw.addService(lambda x: x, 'test')
+
+        envelope = remoting.Envelope()
+        request = remoting.Request('test')
+        envelope['/1'] = request
+
+        service_request = gateway.ServiceRequest(envelope, gw.services['test'], None)
+
+        self.assertEquals(gw.getPreprocessor(service_request), self._preproc)
+
+    def test_service(self):
+        gw = gateway.BaseGateway()
+
+        gw.addService(lambda x: x, 'test', preprocessor=self._preproc)
+
+        envelope = remoting.Envelope()
+        request = remoting.Request('test')
+        envelope['/1'] = request
+
+        service_request = gateway.ServiceRequest(envelope, gw.services['test'], None)
+
+        self.assertEquals(gw.getPreprocessor(service_request), self._preproc)
+
+    def test_decorator(self):
+        def echo(x):
+            return x
+
+        gateway.preprocess(echo, self._preproc)
+
+        gw = gateway.BaseGateway()
+
+        gw.addService(echo, 'test')
+
+        envelope = remoting.Envelope()
+        request = remoting.Request('test')
+        envelope['/1'] = request
+
+        service_request = gateway.ServiceRequest(envelope, gw.services['test'], None)
+
+        self.assertEquals(gw.getPreprocessor(service_request), self._preproc)
+
+    def test_call(self):
+        def preproc(sr, *args):
+            self.called = True
+
+            self.assertEquals(args, tuple())
+            self.assertTrue(isinstance(sr, gateway.ServiceRequest))
+
+        gw = gateway.BaseGateway({'test': TestService}, preprocessor=preproc)
+        envelope = remoting.Envelope()
+
+        request = remoting.Request('test.spam', envelope=envelope)
+
+        processor = gw.getProcessor(request)
+        response = processor(request)
+
+        self.assertTrue(isinstance(response, remoting.Response))
+        self.assertEquals(response.status, remoting.STATUS_OK)
+        self.assertEquals(response.body, 'spam')
+        self.assertTrue(self.called)
+
+    def test_fail(self):
+        def preproc(sr, *args):
+            raise IndexError
+
+        gw = gateway.BaseGateway({'test': TestService}, preprocessor=preproc)
+        envelope = remoting.Envelope()
+
+        request = remoting.Request('test.spam', envelope=envelope)
+
+        processor = gw.getProcessor(request)
+        response = processor(request)
+
+        self.assertTrue(isinstance(response, remoting.Response))
+        self.assertEquals(response.status, remoting.STATUS_ERROR)
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -563,6 +708,7 @@ def suite():
     suite.addTest(unittest.makeSuite(QueryBrowserTestCase))
     suite.addTest(unittest.makeSuite(AuthenticatorTestCase))
     suite.addTest(unittest.makeSuite(ExposeRequestTestCase))
+    suite.addTest(unittest.makeSuite(PreProcessingTestCase))
 
     try:
         import wsgiref

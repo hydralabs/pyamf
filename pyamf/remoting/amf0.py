@@ -18,7 +18,7 @@ class RequestProcessor(object):
     def __init__(self, gateway):
         self.gateway = gateway
 
-    def authenticateRequest(self, request, service_request):
+    def authenticateRequest(self, request, service_request, *args, **kwargs):
         """
         Authenticates the request against the service.
 
@@ -33,7 +33,7 @@ class RequestProcessor(object):
             username = cred['userid']
             password = cred['password']
 
-        return self.gateway.authenticateRequest(service_request, username, password)
+        return self.gateway.authenticateRequest(service_request, username, password, *args, **kwargs)
 
     def buildErrorResponse(self, request, error=None):
         """
@@ -57,7 +57,7 @@ class RequestProcessor(object):
 
         return self.gateway.callServiceRequest(service_request, *request.body, **kwargs)
 
-    def __call__(self, request, **kwargs):
+    def __call__(self, request, *args, **kwargs):
         """
         Processes an AMF0 request.
 
@@ -76,7 +76,7 @@ class RequestProcessor(object):
 
         # we have a valid service, now attempt authentication
         try:
-            authd = self.authenticateRequest(request, service_request)
+            authd = self.authenticateRequest(request, service_request, *args, **kwargs)
         except (SystemExit, KeyboardInterrupt):
             raise
         except:
@@ -90,8 +90,16 @@ class RequestProcessor(object):
 
             return response
 
+        # authentication succeeded, now fire the preprocessor (if there is one)
         try:
-            response.body = self._getBody(request, response, service_request, **kwargs)
+            self.gateway.preprocessRequest(service_request, *args, **kwargs)
+        except (SystemExit, KeyboardInterrupt):
+            raise
+        except:
+            return self.buildErrorResponse(request)
+
+        try:
+            response.body = self._getBody(request, response, service_request, *args, **kwargs)
 
             return response
         except (SystemExit, KeyboardInterrupt):

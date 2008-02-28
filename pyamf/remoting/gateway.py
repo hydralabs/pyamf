@@ -56,12 +56,13 @@ class ServiceWrapper(object):
     @type description: C{str}
     """
 
-    def __init__(self, service, description=None,
-        authenticator=None, expose_request=None):
+    def __init__(self, service, description=None, authenticator=None,
+        expose_request=None, preprocessor=None):
         self.service = service
         self.description = description
         self.authenticator = authenticator
         self.expose_request = expose_request
+        self.preprocessor = preprocessor
 
     def __cmp__(self, other):
         if isinstance(other, ServiceWrapper):
@@ -173,6 +174,26 @@ class ServiceWrapper(object):
 
         return self.expose_request
 
+    def getPreprocessor(self, service_request=None):
+        if service_request == None:
+            return self.preprocessor
+
+        methods = self.getMethods()
+
+        if service_request.method is None:
+            if hasattr(self.service, '_pyamf_preprocessor'):
+                return self.service._pyamf_preprocessor
+
+        if service_request.method not in methods:
+            return self.preprocessor
+
+        method = methods[service_request.method]
+
+        if hasattr(method, '_pyamf_preprocessor'):
+            return method._pyamf_preprocessor
+
+        return self.preprocessor
+
 class ServiceRequest(object):
     """
     Remoting service request.
@@ -215,13 +236,17 @@ class BaseGateway(object):
         the request before allowing access to the service. Will return a
         C{bool} value.
     @type authenticator: C{Callable} or C{None}
+    @ivar preprocessor: Called before the actual service method is invoked.
+        Useful for setting up sessions etc.
     """
 
     _request_class = ServiceRequest
 
-    def __init__(self, services={}, authenticator=None, expose_request=False):
+    def __init__(self, services={}, authenticator=None, expose_request=False,
+        preprocessor=None):
         self.services = ServiceCollection()
         self.authenticator = authenticator
+        self.preprocessor = preprocessor
         self.expose_request = expose_request
 
         if not hasattr(services, 'iteritems'):
@@ -231,7 +256,7 @@ class BaseGateway(object):
             self.addService(service, name)
 
     def addService(self, service, name=None, description=None,
-        authenticator=None, expose_request=None):
+        authenticator=None, expose_request=None, preprocessor=None):
         """
         Adds a service to the gateway.
 
@@ -266,7 +291,7 @@ class BaseGateway(object):
             raise remoting.RemotingError, "Service %s already exists" % name
 
         self.services[name] = ServiceWrapper(service, description,
-            authenticator, expose_request)
+            authenticator, expose_request, preprocessor)
 
     def removeService(self, service):
         """
@@ -356,9 +381,9 @@ class BaseGateway(object):
     def mustExposeRequest(self, service_request):
         """
         Decides whether the underlying http request should be exposed as the
-        first argument to the method call. This is
-        granular, looking at the service method first, then at the service
-        level and finally checking the gateway.
+        first argument to the method call. This is granular, looking at the
+        service method first, then at the service level and finally checking
+        the gateway.
 
         @rtype: C{bool}
         """
@@ -386,12 +411,14 @@ class BaseGateway(object):
 
         return auth
 
-    def authenticateRequest(self, service_request, username, password):
+    def authenticateRequest(self, service_request, username, password, **kwargs):
         """
         Processes an authentication request. If no authenticator is supplied,
         then authentication succeeds.
 
-        @return: Returns a C{bool} based on the result of authorization.
+        @return: Returns a C{bool} based on the result of authorization. A
+            value of C{False} will stop processing the request and return an
+            error to the client.
         @rtype: C{bool}
         """
         authenticator = self.getAuthenticator(service_request)
@@ -399,7 +426,44 @@ class BaseGateway(object):
         if authenticator is None:
             return True
 
-        return authenticator(username, password) == True
+        args = (username, password)
+
+        if hasattr(authenticator, '_pyamf_expose_request'):
+            http_request = kwargs.get('http_request', None)
+            args = (http_request,) + args
+
+        return authenticator(*args) == True
+
+    def getPreprocessor(self, service_request):
+        """
+        Gets a preprocessor callable based on the service_request. This is
+        granular, looking at the service method first, then at the service
+        level and finally to see if there is a global preprocessor function
+        for the gateway. Returns C{None} if one could not be found.
+        """
+        preproc = service_request.service.getPreprocessor(service_request)
+
+        if preproc is None:
+            return self.preprocessor
+
+        return preproc
+
+    def preprocessRequest(self, service_request, *args, **kwargs):
+        """
+        Preprocesses a request.
+        """
+        processor = self.getPreprocessor(service_request)
+
+        if processor is None:
+            return
+
+        args = (service_request,) + args
+
+        if hasattr(processor, '_pyamf_expose_request'):
+            http_request = kwargs.get('http_request', None)
+            args = (http_request,) + args
+
+        return processor(*args)
 
     def callServiceRequest(self, service_request, *args, **kwargs):
         """
@@ -411,9 +475,13 @@ class BaseGateway(object):
 
         return service_request(*args)
 
-def authenticate(func, c):
+def authenticate(func, c, expose_request=False):
     """
-    A decorator that facilitates authentication per method.
+    A decorator that facilitates authentication per method. Setting
+    C{expose_request} to C{True} will set the underlying request object (if
+    there is one), usually HTTP and set it to the first argument of the
+    authenticating callable. If there is no request object, the default is
+    C{None}.
     """
     if not callable(func):
         raise TypeError, "func must be callable"
@@ -421,16 +489,21 @@ def authenticate(func, c):
     if not callable(c):
         raise TypeError, "authenticator must be callable"
 
+    attr = func
+
     if isinstance(func, types.UnboundMethodType):
-        setattr(func.im_func, '_pyamf_authenticator', c)
-    else:
-        setattr(func, '_pyamf_authenticator', c)
+        attr = func.im_func
+
+    if expose_request is True:
+        c = globals()['expose_request'](c)
+
+    setattr(attr, '_pyamf_authenticator', c)
 
     return func
 
 def expose_request(func):
     """
-    A decorator that adds an expose_request flag to the underlying callable
+    A decorator that adds an expose_request flag to the underlying callable.
     """
     if not callable(func):
         raise TypeError, "func must be callable"
@@ -439,6 +512,32 @@ def expose_request(func):
         setattr(func.im_func, '_pyamf_expose_request', True)
     else:
         setattr(func, '_pyamf_expose_request', True)
+
+    return func
+
+def preprocess(func, c, expose_request=False):
+    """
+    A decorator that facilitates preprocessing per method. Setting
+    C{expose_request} to C{True} will set the underlying request object (if
+    there is one), usually HTTP and set it to the first argument of the
+    preprocessing callable. If there is no request object, the default is
+    C{None}.
+    """
+    if not callable(func):
+        raise TypeError, "func must be callable"
+
+    if not callable(c):
+        raise TypeError, "preprocessor must be callable"
+
+    attr = func
+
+    if isinstance(func, types.UnboundMethodType):
+        attr = func.im_func
+
+    if expose_request is True:
+        c = globals()['expose_request'](c)
+
+    setattr(attr, '_pyamf_preprocessor', c)
 
     return func
 
