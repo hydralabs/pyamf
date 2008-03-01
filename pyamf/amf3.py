@@ -621,7 +621,9 @@ class ClassDefinition(object):
         """
         attrs = None
 
-        if hasattr(obj, 'keys'):
+        if hasattr(obj, '__getstate__'):
+            attrs = set([unicode(k) for k in obj.__getstate__()])
+        elif hasattr(obj, 'keys'):
             attrs = set([unicode(k) for k in obj.keys()])
         elif hasattr(obj, 'iteritems'):
             attrs = set([unicode(k) for k, v in obj.iteritems()])
@@ -1093,20 +1095,30 @@ class Decoder(pyamf.BaseDecoder):
         if class_def.alias and 'amf0' in class_def.alias.metadata:
             raise pyamf.EncodeError, "Decoding an object in amf3 tagged as amf0 only is not allowed"
 
-        klass = class_def.getClass()
+        if class_def.alias:
+            obj = class_def.alias()
+        else:
+            klass = class_def.getClass()
+            obj = klass()
 
-        obj = klass()
+        obj_attrs = pyamf.ASObject()
         self.context.addObject(obj)
 
         if class_def.encoding in (ObjectEncoding.EXTERNAL, ObjectEncoding.PROXY):
             obj.__readamf__(DataInput(self))
         elif class_def.encoding == ObjectEncoding.DYNAMIC:
-            readStatic(class_ref, class_def, obj, num_attrs)
-            readDynamic(class_ref, class_def, obj)
+            readStatic(class_ref, class_def, obj_attrs, num_attrs)
+            readDynamic(class_ref, class_def, obj_attrs)
         elif class_def.encoding == ObjectEncoding.STATIC:
-            readStatic(class_ref, class_def, obj, num_attrs)
+            readStatic(class_ref, class_def, obj_attrs, num_attrs)
         else:
             raise pyamf.DecodeError, "Unknown object encoding"
+
+        if hasattr(obj, '__setstate__'):
+            obj.__setstate__(obj_attrs)
+        else:
+            for k, v in obj_attrs.iteritems():
+                obj.__setattr__(k, v)
 
         return obj
 
@@ -1554,7 +1566,7 @@ class Encoder(pyamf.BaseEncoder):
             if not class_ref:
                 [self._writeString(attr) for attr in attrs]
 
-            [self.writeElement(util.get_attr(obj, attr)) for attr in attrs]
+            [self.writeElement(obj[attr]) for attr in attrs]
 
         self.writeType(ASTypes.OBJECT)
 
@@ -1590,27 +1602,30 @@ class Encoder(pyamf.BaseEncoder):
         else:
             class_def = self._getClassDefinition(obj)
 
+        if hasattr(obj, '__getstate__'):
+            obj_attrs = obj.__getstate__()
+        elif hasattr(obj, 'iteritems'):
+            obj_attrs = {}
+
+            for k, v in obj.iteritems():
+                obj_attrs[k] = v
+        elif hasattr(obj, '__dict__'):
+            obj_attrs = obj.__dict__
+
         if class_def.encoding in (ObjectEncoding.EXTERNAL, ObjectEncoding.PROXY):
             obj.__writeamf__(DataOutput(self))
-        elif class_def.encoding == ObjectEncoding.DYNAMIC:
+        else:
             static_attrs, dynamic_attrs = class_def.getAttrs(obj)
 
             if static_attrs is not None:
-                writeStatic(obj, static_attrs, class_ref)
+                writeStatic(obj_attrs, static_attrs, class_ref)
 
-            if dynamic_attrs is not None:
+            if class_def.encoding == ObjectEncoding.DYNAMIC and dynamic_attrs is not None:
                 for attr in dynamic_attrs:
                     self._writeString(attr)
-                    self.writeElement(util.get_attr(obj, attr))
+                    self.writeElement(obj_attrs[attr])
 
                 self._writeString("")
-        elif class_def.encoding == ObjectEncoding.STATIC:
-            static_attrs, dynamic_attrs = class_def.getAttrs(obj)
-
-            if static_attrs is not None:
-                writeStatic(obj, static_attrs, class_ref)
-        else:
-            raise pyamf.EncodeError, "Unknown object encoding"
 
     def writeByteArray(self, n, use_references=True):
         """

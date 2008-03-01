@@ -361,6 +361,14 @@ class ClassAlias(object):
         @rtype:
         @return: Instance of C{self.klass}.
         """
+        if hasattr(self.klass, '__setstate__') or hasattr(self.klass, '__getstate__'):
+            if type(self.klass) is types.TypeType:  # new-style class 
+                return self.klass.__new__(self.klass) 
+            elif type(self.klass) is types.ClassType: # classic class 
+                return util.make_classic_instance(self.klass) 
+
+ 	        raise TypeError, 'invalid class type %r' % self.klass 
+
         return self.klass(*args, **kwargs)
 
     def __str__(self):

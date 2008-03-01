@@ -524,6 +524,28 @@ class EncoderTestCase(unittest.TestCase):
 
         pyamf.unregister_class(Person)
 
+    def test_getstate(self):
+        self.executed = False
+
+        class Foo(object):
+            tc = self
+
+            def __getstate__(self):
+                self.tc.executed = True
+                return {'spam': 'hello', 'eggs': True}
+
+        pyamf.register_class(Foo, 'foo')
+
+        foo = Foo()
+        self.encoder.writeElement(foo)
+
+        self.assertEquals(self.buf.getvalue(), '\x0a\x0b\x07\x66\x6f\x6f\x09'
+            '\x65\x67\x67\x73\x03\x09\x73\x70\x61\x6d\x06\x0b\x68\x65\x6c\x6c'
+            '\x6f\x01')
+        self.assertTrue(self.executed)
+
+        pyamf.unregister_class(Foo)
+
 class DecoderTestCase(unittest.TestCase):
     """
     Tests the output from the AMF3 L{Decoder<pyamf.amf3.Decoder>} class.
@@ -766,6 +788,60 @@ class DecoderTestCase(unittest.TestCase):
         self.context.classes.remove(class_def)
 
         pyamf.unregister_class(Spam)
+
+    def test_setstate_newstyle(self):
+        self.executed = False
+
+        class Foo(object):
+            tc = self
+
+            def __init__(self, *args, **kwargs):
+                self.tc.fail("__init__ called")
+
+            def __setstate__(self, state):
+                self.tc.executed = True
+                self.__dict__.update(state)
+
+        pyamf.register_class(Foo, 'foo')
+
+        self.buf.write('\x0a\x0b\x07\x66\x6f\x6f\x09\x65\x67\x67\x73' + \
+            '\x03\x09\x73\x70\x61\x6d\x06\x0b\x68\x65\x6c\x6c\x6f\x01')
+        self.buf.seek(0)
+
+        foo = self.decoder.readElement()
+
+        self.assertEquals(foo.spam, 'hello')
+        self.assertEquals(foo.eggs, True)
+        self.assertTrue(self.executed)
+
+        pyamf.unregister_class(Foo)
+
+    def test_setstate_classic(self):
+        self.executed = False
+
+        class Foo:
+            tc = self
+
+            def __init__(self, *args, **kwargs):
+                self.tc.fail("__init__ called")
+
+            def __setstate__(self, state):
+                self.tc.executed = True
+                self.__dict__.update(state)
+
+        pyamf.register_class(Foo, 'foo')
+
+        self.buf.write('\x0a\x0b\x07\x66\x6f\x6f\x09\x65\x67\x67\x73' + \
+            '\x03\x09\x73\x70\x61\x6d\x06\x0b\x68\x65\x6c\x6c\x6f\x01')
+        self.buf.seek(0)
+
+        foo = self.decoder.readElement()
+
+        self.assertEquals(foo.spam, 'hello')
+        self.assertEquals(foo.eggs, True)
+        self.assertTrue(self.executed)
+
+        pyamf.unregister_class(Foo)
 
 class ObjectEncodingTestCase(unittest.TestCase):
     def setUp(self):

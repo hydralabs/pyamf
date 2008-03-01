@@ -50,20 +50,20 @@ class ASTypes:
     NULL        = 0x05
     #: 1 single byte, C{0×06} indicates null.
     UNDEFINED   = 0x06
-    #: When an ActionScript object refers to itself, such C{this.self = this}, or
-    #: when objects are repeated within the same scope (for example, as the two
-    #: parameters of the same function called), a code of C{0×07} and an C{int},
-    #: the reference number, are written.
+    #: When an ActionScript object refers to itself, such C{this.self = this},
+    #: or when objects are repeated within the same scope (for example, as the
+    #: two parameters of the same function called), a code of C{0×07} and an
+    #: C{int}, the reference number, are written.
     REFERENCE   = 0x07
     #: A MixedArray is indicated by code C{0×08}, then a Long representing the
-    #: highest numeric index in the array, or 0 if there are none or they are all
-    #: negative. After that follow the elements in key : value pairs.
+    #: highest numeric index in the array, or 0 if there are none or they are
+    #: all negative. After that follow the elements in key : value pairs.
     MIXEDARRAY  = 0x08
     #: @see: L{OBJECT}
     OBJECTTERM  = 0x09
     #: An array is indicated by C{0x0A}, then a Long for array length, then the
-    #: array elements themselves. Arrays are always sparse; values for inexistant
-    #: keys are set to null (C{0×06}) to maintain sparsity.
+    #: array elements themselves. Arrays are always sparse; values for
+    #: inexistant keys are set to null (C{0×06}) to maintain sparsity.
     ARRAY       = 0x0a
     #: Date is represented as C{00x0B}, then a double, then an C{int}. The double
     #: represents the number of milliseconds since 01/01/1970. The C{int} represents
@@ -347,34 +347,39 @@ class Decoder(pyamf.BaseDecoder):
         if alias is not None:
             attrs = alias.getAttrs(obj)
 
-            if attrs is None:
-                alias = None
-
         key = self.readString()
 
         ot = chr(ASTypes.OBJECTTERM)
+        obj_attrs = dict()
 
         while self.stream.peek() != ot:
-            if alias:
-                if key not in attrs:
-                    self.readElement()
-                    key = self.readString()
-                    continue
-
-            if isinstance(obj, (list, dict)):
-                obj[key] = self.readElement()
-            else:
-                value = self.readElement()
-
-                try:
-                    setattr(obj, key, value)
-                except AttributeError:
-                    obj.__dict__[key] = value
-
+            obj_attrs[key] = self.readElement()
             key = self.readString()
 
         # discard the end marker (ASTypes.OBJECTTERM)
         self.stream.read(len(ot))
+
+        if attrs is None:
+            attrs = obj_attrs.keys()
+
+        if alias:
+            if hasattr(obj, '__setstate__'):
+                obj.__setstate__(obj_attrs)
+
+                return
+
+            for key in filter(lambda x: x in attrs, obj_attrs.keys()):
+                obj.__setattr__(key, obj_attrs[key])
+        else:
+            f = obj.__setattr__
+
+            if isinstance(obj, (list, dict)):
+                f = obj.__setitem__
+
+            for key, value in obj_attrs.iteritems():
+                f(key, value)
+
+        return
 
     def readObject(self):
         """
@@ -706,7 +711,11 @@ class Encoder(pyamf.BaseEncoder):
                 self.writeType(ASTypes.TYPEDOBJECT)
                 self.writeString(alias.alias, False)
 
-        if alias is not None:
+        if hasattr(o, '__getstate__'):
+            for key, value in o.__getstate__().iteritems():
+                self.writeString(key, False)
+                self.writeElement(value)
+        elif alias is not None:
             it = alias.getAttrs(o)
 
             if it is None:
@@ -715,7 +724,7 @@ class Encoder(pyamf.BaseEncoder):
 
             for key in it:
                 self.writeString(key, False)
-                self.writeElement(util.get_attr(o, key))
+                self.writeElement(getattr(o, key))
         elif hasattr(o, 'iteritems'):
             for k, v in o.iteritems():
                 self.writeString(k, False)
