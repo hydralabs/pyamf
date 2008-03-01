@@ -162,6 +162,38 @@ class EncoderTestCase(unittest.TestCase):
 
         self._run(data)
 
+    def test_bytestring(self):
+        class UnicodeObject:
+            def __unicode__(self):
+                return u'MÃÂ¶tley CrÃÂ¼e'
+
+        class StrObject:
+            def __str__(self):
+                return u'MÃÂ¶tley CrÃÂ¼e'
+
+        class ReprObject:
+            def __repr__(self):
+                return u'MÃÂ¶tley CrÃÂ¼e'
+
+        self.encoder.writeString(UnicodeObject())
+        self.assertEquals(self.buf.getvalue(), '\x02\x00\x15M\xc3\x83\xc3\x82'
+            '\xc2\xb6tley Cr\xc3\x83\xc3\x82\xc2\xbce')
+        self.buf.truncate()
+
+        self.encoder.writeString(StrObject())
+        self.assertEquals(self.buf.getvalue(), '\x02\x00\x15M\xc3\x83\xc3\x82'
+            '\xc2\xb6tley Cr\xc3\x83\xc3\x82\xc2\xbce')
+        self.buf.truncate()
+
+        self.encoder.writeString(ReprObject())
+        self.assertEquals(self.buf.getvalue(), '\x02\x00\x15M\xc3\x83\xc3\x82'
+            '\xc2\xb6tley Cr\xc3\x83\xc3\x82\xc2\xbce')
+        self.buf.truncate()
+
+        self.encoder.writeString('M\xc3\x83\xc3\x82\xc2\xb6tley Cr\xc3\x83\xc3\x82\xc2\xbce')
+        self.assertEquals(self.buf.getvalue(), '\x02\x00\x15M\xc3\x83\xc3\x82'
+            '\xc2\xb6tley Cr\xc3\x83\xc3\x82\xc2\xbce')
+
     def test_null(self):
         self._run([(None, '\x05')])
 

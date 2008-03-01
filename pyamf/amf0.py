@@ -604,13 +604,10 @@ class Encoder(pyamf.BaseEncoder):
         @type   writeType: C{bool}
         @param  writeType: Write data type.
         """
-        if not isinstance(s, basestring):
-            s = str(s)
-
-        if not isinstance(s, unicode):
-            s = unicode(s)
-
-        s = s.encode('utf8')
+        if isinstance(s, unicode):
+            s = s.encode('utf8')
+        elif not isinstance(s, basestring):
+            s = unicode(s).encode('utf8')
 
         if len(s) > 0xffff:
             if writeType:

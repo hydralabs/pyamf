@@ -1336,15 +1336,14 @@ class Encoder(pyamf.BaseEncoder):
         @param  use_references:
         """
         if not isinstance(n, basestring):
-            raise TypeError, "str or unicode expected"
+            bytes = unicode(n).encode('utf8')
+            n = bytes
+        elif isinstance(n, unicode):
+            bytes = n.encode('utf8')
+        else:
+            bytes = n
 
-        if not isinstance(n, unicode):
-            try:
-                n = unicode(n)
-            except UnicodeError:
-                raise pyamf.EncodeError, "error converting str to unicode"
-
-        if len(n) == 0:
+        if len(bytes) == 0:
             self._writeInteger(REFERENCE_BIT)
 
             return
@@ -1358,9 +1357,7 @@ class Encoder(pyamf.BaseEncoder):
             except pyamf.ReferenceError:
                 self.context.addString(n)
 
-        bytes = n.encode('utf8')
         self._writeInteger((len(bytes) << 1) | REFERENCE_BIT)
-
         self.stream.write(bytes)
 
     def writeString(self, n, use_references=True):
