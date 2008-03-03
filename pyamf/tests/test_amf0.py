@@ -236,17 +236,14 @@ class EncoderTestCase(unittest.TestCase):
     def test_xml(self):
         self._run([
             (util.ET.fromstring('<a><b>hello world</b></a>'), '\x0f\x00\x00'
-                '\x00\x3f<?xml version=\'1.0\' encoding=\'utf8\'?>\n<a><b>'
-                'hello world</b></a>')])
+                '\x00\x19<a><b>hello world</b></a>')])
 
     def test_xml_references(self):
         x = util.ET.fromstring('<a><b>hello world</b></a>')
         self._run([
             ([x, x], '\n\x00\x00\x00\x02'
-                '\x0f\x00\x00\x00?<?xml version=\'1.0\' encoding=\'utf8\'?>\n'
-                '<a><b>hello world</b></a>'
-                '\x0f\x00\x00\x00?<?xml version=\'1.0\' encoding=\'utf8\'?>\n'
-                '<a><b>hello world</b></a>')])
+                '\x0f\x00\x00\x00\x19<a><b>hello world</b></a>'
+                '\x0f\x00\x00\x00\x19<a><b>hello world</b></a>')])
 
     def test_unsupported(self):
         self._run([(ord, '\x0d')])

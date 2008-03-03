@@ -758,7 +758,7 @@ class Encoder(pyamf.BaseEncoder):
         @type   e: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param  e: AMF data.
         """
-        data = util.ET.tostring(e, 'utf8')
+        data = util.ET.tostring(e, 'utf-8')
 
         self.writeType(ASTypes.XML)
         self.stream.write_ulong(len(data))

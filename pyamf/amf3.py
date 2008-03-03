@@ -1678,7 +1678,7 @@ class Encoder(pyamf.BaseEncoder):
             except pyamf.ReferenceError:
                 self.context.addObject(n)
 
-        self._writeString(util.ET.tostring(n), False)
+        self._writeString(util.ET.tostring(n, 'utf-8'), False)
 
 def decode(stream, context=None):
     """
