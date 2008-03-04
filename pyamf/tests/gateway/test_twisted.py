@@ -16,8 +16,9 @@ from twisted.trial import unittest
 
 import pyamf
 from pyamf import remoting
-from pyamf.remoting import twistedgateway, gateway
+from pyamf.remoting import gateway
 from pyamf.flex import messaging
+from pyamf.remoting.gateway import twisted as _twisted
 
 class TestService(object):
     def spam(self):
@@ -28,7 +29,7 @@ class TestService(object):
 
 class TwistedServerTestCase(unittest.TestCase):
     def setUp(self):
-        self.gw = twistedgateway.TwistedGateway(expose_request=False)
+        self.gw = _twisted.TwistedGateway(expose_request=False)
         root = resource.Resource()
         root.putChild('', self.gw)
 
@@ -160,7 +161,7 @@ class TwistedServerTestCase(unittest.TestCase):
             self.assertIdentical(sr, self.service_request)
             d.callback(None)
 
-        gw = twistedgateway.TwistedGateway({'echo': lambda x: x}, preprocessor=pp)
+        gw = _twisted.TwistedGateway({'echo': lambda x: x}, preprocessor=pp)
         self.service_request = gateway.ServiceRequest(None, gw.services['echo'], None)
 
         gw.preprocessRequest(self.service_request)
@@ -177,7 +178,7 @@ class TwistedServerTestCase(unittest.TestCase):
 
         pp = gateway.expose_request(pp)
 
-        gw = twistedgateway.TwistedGateway({'echo': lambda x: x}, preprocessor=pp)
+        gw = _twisted.TwistedGateway({'echo': lambda x: x}, preprocessor=pp)
         self.service_request = gateway.ServiceRequest(None, gw.services['echo'], None)
 
         gw.preprocessRequest(self.service_request, http_request='hello')
@@ -194,7 +195,7 @@ class TwistedServerTestCase(unittest.TestCase):
 
         pp = gateway.expose_request(pp)
 
-        gw = twistedgateway.TwistedGateway({'echo': lambda x: x}, preprocessor=pp)
+        gw = _twisted.TwistedGateway({'echo': lambda x: x}, preprocessor=pp)
         self.service_request = gateway.ServiceRequest(None, gw.services['echo'], None)
 
         gw.preprocessRequest(self.service_request)
@@ -213,7 +214,7 @@ class TwistedServerTestCase(unittest.TestCase):
             else:
                 d.callback(None)
 
-        gw = twistedgateway.TwistedGateway({'echo': lambda x: x}, authenticator=auth)
+        gw = _twisted.TwistedGateway({'echo': lambda x: x}, authenticator=auth)
         self.service_request = gateway.ServiceRequest(None, gw.services['echo'], None)
 
         gw.authenticateRequest(self.service_request, 'u', 'p')
@@ -235,7 +236,7 @@ class TwistedServerTestCase(unittest.TestCase):
 
         auth = gateway.expose_request(auth)
 
-        gw = twistedgateway.TwistedGateway({'echo': lambda x: x}, authenticator=auth)
+        gw = _twisted.TwistedGateway({'echo': lambda x: x}, authenticator=auth)
         self.service_request = gateway.ServiceRequest(None, gw.services['echo'], None)
 
         gw.authenticateRequest(self.service_request, 'u', 'p', http_request='foo')
@@ -243,7 +244,7 @@ class TwistedServerTestCase(unittest.TestCase):
         return d
 
     def test_encoding_error(self):
-        encode = twistedgateway.remoting.encode
+        encode = _twisted.remoting.encode
 
         def force_error(amf_request, context=None):
             raise pyamf.EncodeError
@@ -260,9 +261,9 @@ class TwistedServerTestCase(unittest.TestCase):
         d = client.getPage("http://127.0.0.1:%d/" % (self.port,),
                 method="POST", postdata=remoting.encode(env).getvalue())
 
-        twistedgateway.remoting.encode = force_error
+        _twisted.remoting.encode = force_error
         def switch(x):
-            twistedgateway.remoting.encode = encode
+            _twisted.remoting.encode = encode
 
         d = self.assertFailure(d, error.Error)
 
@@ -294,7 +295,7 @@ class DummyHTTPRequest:
 class TwistedGatewayTestCase(unittest.TestCase):
     def test_finalise_request(self):
         request = DummyHTTPRequest()
-        gw = twistedgateway.TwistedGateway()
+        gw = _twisted.TwistedGateway()
 
         gw._finaliseRequest(request, 200, 'xyz', 'text/plain')
 
@@ -312,15 +313,15 @@ class TwistedGatewayTestCase(unittest.TestCase):
         a3 = pyamf.ASObject({'target': 'null'})
         a0 = pyamf.ASObject({'target': 'foo.bar'})
 
-        gw = twistedgateway.TwistedGateway()
+        gw = _twisted.TwistedGateway()
 
-        self.assertTrue(isinstance(gw.getProcessor(a3), twistedgateway.AMF3RequestProcessor))
-        self.assertTrue(isinstance(gw.getProcessor(a0), twistedgateway.AMF0RequestProcessor))
+        self.assertTrue(isinstance(gw.getProcessor(a3), _twisted.AMF3RequestProcessor))
+        self.assertTrue(isinstance(gw.getProcessor(a0), _twisted.AMF0RequestProcessor))
 
 class AMF0RequestProcessorTestCase(unittest.TestCase):
     def test_unknown_service_request(self):
-        gw = twistedgateway.TwistedGateway({'echo': lambda x: x})
-        proc = twistedgateway.AMF0RequestProcessor(gw)
+        gw = _twisted.TwistedGateway({'echo': lambda x: x})
+        proc = _twisted.AMF0RequestProcessor(gw)
 
         request = remoting.Request('sdf')
 
@@ -336,8 +337,8 @@ class AMF0RequestProcessorTestCase(unittest.TestCase):
         def auth(u, p):
             raise IndexError
 
-        gw = twistedgateway.TwistedGateway({'echo': lambda x: x}, authenticator=auth)
-        proc = twistedgateway.AMF0RequestProcessor(gw)
+        gw = _twisted.TwistedGateway({'echo': lambda x: x}, authenticator=auth)
+        proc = _twisted.AMF0RequestProcessor(gw)
 
         request = remoting.Request('echo', envelope=remoting.Envelope())
 
@@ -354,8 +355,8 @@ class AMF0RequestProcessorTestCase(unittest.TestCase):
         def auth(u, p):
             return False
 
-        gw = twistedgateway.TwistedGateway({'echo': lambda x: x}, authenticator=auth)
-        proc = twistedgateway.AMF0RequestProcessor(gw)
+        gw = _twisted.TwistedGateway({'echo': lambda x: x}, authenticator=auth)
+        proc = _twisted.AMF0RequestProcessor(gw)
 
         request = remoting.Request('echo', envelope=remoting.Envelope())
 
@@ -374,8 +375,8 @@ class AMF0RequestProcessorTestCase(unittest.TestCase):
         def auth(u, p):
             return reactor.callLater(0, lambda: True)
 
-        gw = twistedgateway.TwistedGateway({'echo': lambda x: x}, authenticator=auth)
-        proc = twistedgateway.AMF0RequestProcessor(gw)
+        gw = _twisted.TwistedGateway({'echo': lambda x: x}, authenticator=auth)
+        proc = _twisted.AMF0RequestProcessor(gw)
 
         request = remoting.Request('echo', envelope=remoting.Envelope())
 
@@ -391,8 +392,8 @@ class AMF0RequestProcessorTestCase(unittest.TestCase):
         def preprocessor(service_request):
             raise IndexError
 
-        gw = twistedgateway.TwistedGateway({'echo': lambda x: x}, preprocessor=preprocessor)
-        proc = twistedgateway.AMF0RequestProcessor(gw)
+        gw = _twisted.TwistedGateway({'echo': lambda x: x}, preprocessor=preprocessor)
+        proc = _twisted.AMF0RequestProcessor(gw)
 
         request = remoting.Request('echo', envelope=remoting.Envelope())
 
@@ -411,8 +412,8 @@ class AMF0RequestProcessorTestCase(unittest.TestCase):
         def preprocessor(u, p):
             return reactor.callLater(0, lambda: True)
 
-        gw = twistedgateway.TwistedGateway({'echo': lambda x: x}, preprocessor=preprocessor)
-        proc = twistedgateway.AMF0RequestProcessor(gw)
+        gw = _twisted.TwistedGateway({'echo': lambda x: x}, preprocessor=preprocessor)
+        proc = _twisted.AMF0RequestProcessor(gw)
 
         request = remoting.Request('echo', envelope=remoting.Envelope())
 
@@ -430,8 +431,8 @@ class AMF0RequestProcessorTestCase(unittest.TestCase):
         def preprocessor(service_request):
             d.callback(None)
 
-        gw = twistedgateway.TwistedGateway({'echo': lambda x: x}, preprocessor=preprocessor)
-        proc = twistedgateway.AMF0RequestProcessor(gw)
+        gw = _twisted.TwistedGateway({'echo': lambda x: x}, preprocessor=preprocessor)
+        proc = _twisted.AMF0RequestProcessor(gw)
 
         request = remoting.Request('echo', envelope=remoting.Envelope())
 
@@ -446,8 +447,8 @@ class AMF0RequestProcessorTestCase(unittest.TestCase):
             return reactor.callLater(0, lambda: True)
 
         preprocessor = gateway.expose_request(preprocessor)
-        gw = twistedgateway.TwistedGateway({'echo': lambda x: x}, preprocessor=preprocessor)
-        proc = twistedgateway.AMF0RequestProcessor(gw)
+        gw = _twisted.TwistedGateway({'echo': lambda x: x}, preprocessor=preprocessor)
+        proc = _twisted.AMF0RequestProcessor(gw)
 
         request = remoting.Request('echo', envelope=remoting.Envelope())
 
@@ -463,8 +464,8 @@ class AMF0RequestProcessorTestCase(unittest.TestCase):
         def echo(x):
             raise KeyError
 
-        gw = twistedgateway.TwistedGateway({'echo': echo})
-        proc = twistedgateway.AMF0RequestProcessor(gw)
+        gw = _twisted.TwistedGateway({'echo': echo})
+        proc = _twisted.AMF0RequestProcessor(gw)
 
         request = remoting.Request('echo', envelope=remoting.Envelope())
 
@@ -491,8 +492,8 @@ class AMF0RequestProcessorTestCase(unittest.TestCase):
             d2.addCallback(cb)
             return d2
 
-        gw = twistedgateway.TwistedGateway({'echo': echo}, expose_request=False)
-        proc = twistedgateway.AMF0RequestProcessor(gw)
+        gw = _twisted.TwistedGateway({'echo': echo}, expose_request=False)
+        proc = _twisted.AMF0RequestProcessor(gw)
 
         request = remoting.Request('echo', envelope=remoting.Envelope())
         request.body = ['a']
@@ -514,8 +515,8 @@ class AMF0RequestProcessorTestCase(unittest.TestCase):
 
 class AMF3RequestProcessorTestCase(unittest.TestCase):
     def test_unknown_service_request(self):
-        gw = twistedgateway.TwistedGateway({'echo': lambda x: x}, expose_request=False)
-        proc = twistedgateway.AMF3RequestProcessor(gw)
+        gw = _twisted.TwistedGateway({'echo': lambda x: x}, expose_request=False)
+        proc = _twisted.AMF3RequestProcessor(gw)
 
         request = remoting.Request('null', body=[messaging.RemotingMessage(body=['spam.eggs'], operation='ss')])
 
@@ -532,9 +533,9 @@ class AMF3RequestProcessorTestCase(unittest.TestCase):
         def auth(u, p):
             raise IndexError
 
-        gw = twistedgateway.TwistedGateway({'echo': lambda x: x},
+        gw = _twisted.TwistedGateway({'echo': lambda x: x},
             expose_request=False, authenticator=auth)
-        proc = twistedgateway.AMF3RequestProcessor(gw)
+        proc = _twisted.AMF3RequestProcessor(gw)
 
         request = remoting.Request('null', body=[messaging.RemotingMessage(body=['spam.eggs'], operation='echo')])
 
@@ -551,8 +552,8 @@ class AMF3RequestProcessorTestCase(unittest.TestCase):
         def auth(u, p):
             return False
 
-        gw = twistedgateway.TwistedGateway({'echo': lambda x: x}, authenticator=auth)
-        proc = twistedgateway.AMF3RequestProcessor(gw)
+        gw = _twisted.TwistedGateway({'echo': lambda x: x}, authenticator=auth)
+        proc = _twisted.AMF3RequestProcessor(gw)
 
         request = remoting.Request('echo', envelope=remoting.Envelope())
 
@@ -571,8 +572,8 @@ class AMF3RequestProcessorTestCase(unittest.TestCase):
         def auth(u, p):
             return reactor.callLater(0, lambda: True)
 
-        gw = twistedgateway.TwistedGateway({'echo': lambda x: x}, authenticator=auth)
-        proc = twistedgateway.AMF3RequestProcessor(gw)
+        gw = _twisted.TwistedGateway({'echo': lambda x: x}, authenticator=auth)
+        proc = _twisted.AMF3RequestProcessor(gw)
 
         request = remoting.Request('echo', envelope=remoting.Envelope())
 
@@ -589,9 +590,9 @@ class AMF3RequestProcessorTestCase(unittest.TestCase):
         def preprocessor(service_request, *args):
             raise IndexError
 
-        gw = twistedgateway.TwistedGateway({'echo': lambda x: x},
+        gw = _twisted.TwistedGateway({'echo': lambda x: x},
             expose_request=False, preprocessor=preprocessor)
-        proc = twistedgateway.AMF3RequestProcessor(gw)
+        proc = _twisted.AMF3RequestProcessor(gw)
 
         request = remoting.Request('null', body=[messaging.RemotingMessage(body=['spam.eggs'], operation='echo')])
 
@@ -613,8 +614,8 @@ class AMF3RequestProcessorTestCase(unittest.TestCase):
             
             return d2
 
-        gw = twistedgateway.TwistedGateway({'echo': lambda x: x}, expose_request=False, preprocessor=preprocessor)
-        proc = twistedgateway.AMF3RequestProcessor(gw)
+        gw = _twisted.TwistedGateway({'echo': lambda x: x}, expose_request=False, preprocessor=preprocessor)
+        proc = _twisted.AMF3RequestProcessor(gw)
 
         request = remoting.Request('null', body=[messaging.RemotingMessage(body=['spam.eggs'], operation='echo')])
 
@@ -632,8 +633,8 @@ class AMF3RequestProcessorTestCase(unittest.TestCase):
         def preprocessor(service_request, *args):
             d.callback(None)
 
-        gw = twistedgateway.TwistedGateway({'echo': lambda x: x}, expose_request=False, preprocessor=preprocessor)
-        proc = twistedgateway.AMF3RequestProcessor(gw)
+        gw = _twisted.TwistedGateway({'echo': lambda x: x}, expose_request=False, preprocessor=preprocessor)
+        proc = _twisted.AMF3RequestProcessor(gw)
 
         request = remoting.Request('null', body=[messaging.RemotingMessage(body=['spam.eggs'], operation='echo')])
 
@@ -648,8 +649,8 @@ class AMF3RequestProcessorTestCase(unittest.TestCase):
             return reactor.callLater(0, lambda: True)
 
         preprocessor = gateway.expose_request(preprocessor)
-        gw = twistedgateway.TwistedGateway({'echo': lambda x: x}, expose_request=False, preprocessor=preprocessor)
-        proc = twistedgateway.AMF3RequestProcessor(gw)
+        gw = _twisted.TwistedGateway({'echo': lambda x: x}, expose_request=False, preprocessor=preprocessor)
+        proc = _twisted.AMF3RequestProcessor(gw)
 
         request = remoting.Request('null', body=[messaging.RemotingMessage(body=['spam.eggs'], operation='echo')])
 
@@ -669,8 +670,8 @@ class AMF3RequestProcessorTestCase(unittest.TestCase):
         def echo(x):
             raise KeyError
 
-        gw = twistedgateway.TwistedGateway({'echo': echo}, expose_request=False)
-        proc = twistedgateway.AMF3RequestProcessor(gw)
+        gw = _twisted.TwistedGateway({'echo': echo}, expose_request=False)
+        proc = _twisted.AMF3RequestProcessor(gw)
 
         request = remoting.Request('null', body=[messaging.RemotingMessage(body=['spam.eggs'], operation='echo')])
 
@@ -697,8 +698,8 @@ class AMF3RequestProcessorTestCase(unittest.TestCase):
             d2.addCallback(cb)
             return d2
 
-        gw = twistedgateway.TwistedGateway({'echo': echo}, expose_request=False)
-        proc = twistedgateway.AMF3RequestProcessor(gw)
+        gw = _twisted.TwistedGateway({'echo': echo}, expose_request=False)
+        proc = _twisted.AMF3RequestProcessor(gw)
 
         request = remoting.Request('null', body=[messaging.RemotingMessage(body=['spam.eggs'], operation='echo')])
 

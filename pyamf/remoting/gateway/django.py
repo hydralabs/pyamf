@@ -14,7 +14,8 @@ servers.
 @since: 0.1.0
 """
 
-from django import http
+django = __import__('django')
+http = django.http
 
 import pyamf
 from pyamf import remoting

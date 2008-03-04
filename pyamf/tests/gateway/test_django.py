@@ -18,7 +18,7 @@ from django.db import models, connection
 
 import pyamf
 from pyamf import remoting, util
-from pyamf.remoting.djangogateway import DjangoGateway
+from pyamf.remoting.gateway import django as _django
 
 class HttpRequest(http.HttpRequest):
     """
@@ -33,7 +33,7 @@ class HttpRequest(http.HttpRequest):
 
 class DjangoGatewayTestCase(unittest.TestCase):
     def test_request_method(self):
-        gw = DjangoGateway()
+        gw = _django.DjangoGateway()
 
         http_request = HttpRequest()
         http_request.method = 'GET'
@@ -46,7 +46,7 @@ class DjangoGatewayTestCase(unittest.TestCase):
         self.assertRaises(EOFError, gw, http_request)
 
     def test_bad_request(self):
-        gw = DjangoGateway()
+        gw = _django.DjangoGateway()
 
         request = util.BufferedByteStream()
         request.write('Bad request')
@@ -60,7 +60,7 @@ class DjangoGatewayTestCase(unittest.TestCase):
         self.assertEquals(http_response.status_code, 400)
 
     def test_unknown_request(self):
-        gw = DjangoGateway()
+        gw = _django.DjangoGateway()
 
         request = util.BufferedByteStream()
         request.write('\x00\x00\x00\x00\x00\x01\x00\x09test.test\x00'
@@ -89,7 +89,7 @@ class DjangoGatewayTestCase(unittest.TestCase):
         def test(request):
             self.assertEquals(http_request, request)
 
-        gw = DjangoGateway({'test.test': test}, expose_request=True)
+        gw = _django.DjangoGateway({'test.test': test}, expose_request=True)
 
         request = util.BufferedByteStream()
         request.write('\x00\x00\x00\x00\x00\x01\x00\x09test.test\x00'
