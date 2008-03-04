@@ -388,6 +388,9 @@ class ClassAlias(object):
         else:
             return False
 
+    def __hash__(self):
+        return id(self)
+
     def getAttrs(self, obj, attrs=None, traverse=True):
         if attrs is None:
             attrs = []
