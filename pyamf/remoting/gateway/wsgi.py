@@ -4,6 +4,18 @@
 """
 WSGI server implementation.
 
+The Python Web Server Gateway Interface (WSGI) is a simple and universal
+interface between web servers and web applications or frameworks.
+
+The WSGI interface has two sides: the "server" or "gateway" side, and the
+"application" or "framework" side. The server side invokes a callable
+object (usually a function or a method) that is provided by the application
+side. Additionally WSGI provides middlewares; a WSGI middleware implements
+both sides of the API, so that it can be inserted "between" a WSGI server
+and a WSGI application -- the middleware will act as an application from
+the server's point of view, and as a server from the application's point
+of view.
+
 @see: U{WSGI homepage (external)<http://wsgi.org>}
 @see: U{PEP-333 (external)<http://www.python.org/peps/pep-0333.html>}
 
