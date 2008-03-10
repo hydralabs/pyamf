@@ -35,13 +35,6 @@ def decode(stream, strict=True):
     Decodes a SOL stream. C{strict} mode ensures that the sol stream is as spec
     compatible as possible.
 
-    @raise DecodeError: One of:
-     - Unknown SOL version in header.
-     - Inconsistent stream header length.
-     - Invalid signature.
-     - Invalid padding read.
-     - Missing padding byte.
-
     @return: A C{tuple} containing the C{root_name} and a C{dict} of name,
         value pairs.
     @rtype: C{tuple}

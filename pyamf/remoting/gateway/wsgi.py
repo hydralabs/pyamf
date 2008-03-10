@@ -34,9 +34,6 @@ class WSGIGateway(gateway.BaseGateway):
     WSGI Remoting Gateway.
     """
 
-    def __init__(self, *args, **kwargs):
-        gateway.BaseGateway.__init__(self, *args, **kwargs)
-
     def getResponse(self, request, environ):
         """
         Processes the AMF request, returning an AMF response.
@@ -90,11 +87,13 @@ class WSGIGateway(gateway.BaseGateway):
         try:
             request = remoting.decode(body, context)
         except pyamf.DecodeError:
-            import sys, traceback
+            self.logger.debug(gateway.format_exception())
 
             response = "400 Bad Request\n\nThe request body was unable to " \
-                "be successfully decoded.\n\nTraceback:\n\n%s" % (
-                    traceback.format_exception(*sys.exc_info()))
+                "be successfully decoded."
+
+            if self.debug:
+                response += "\n\nTraceback:\n\n%s" % gateway.format_exception()
 
             start_response('400 Bad Request', [
                 ('Content-Type', 'text/plain'),
@@ -109,11 +108,13 @@ class WSGIGateway(gateway.BaseGateway):
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
-            import sys, traceback
+            self.logger.debug(gateway.format_exception())
 
             response = "500 Internal Server Error\n\nThe request was " \
-                "unable to be successfully processed.\n\nTraceback:\n\n%s" % (
-                    traceback.format_exception(*sys.exc_info()))
+                "unable to be successfully processed."
+
+            if self.debug:
+                response += "\n\nTraceback:\n\n%s" % gateway.format_exception()
 
             start_response('500 Internal Server Error', [
                 ('Content-Type', 'text/plain'),
@@ -126,11 +127,13 @@ class WSGIGateway(gateway.BaseGateway):
         try:
             stream = remoting.encode(response, context)
         except pyamf.EncodeError:
-            import sys, traceback
+            self.logger.debug(gateway.format_exception())
 
             response = "500 Internal Server Error\n\nThe request was " \
-                "unable to be encoded.\n\nTraceback:\n\n%s" % (
-                    traceback.format_exception(*sys.exc_info()))
+                "unable to be encoded."
+
+            if self.debug:
+                response += "\n\nTraceback:\n\n%s" % gateway.format_exception()
 
             start_response('500 Internal Server Error', [
                 ('Content-Type', 'text/plain'),

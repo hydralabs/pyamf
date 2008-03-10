@@ -46,10 +46,12 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
         deferred_response = defer.Deferred()
 
         def eb(failure):
+            self.gateway.logger.debug(failure.printTraceback())
             deferred_response.callback(self.buildErrorResponse(
                 request, (failure.type, failure.value, failure.tb)))
 
         def response_cb(result):
+            self.gateway.logger.debug("AMF Response: %r" % result)
             response.body = result
             deferred_response.callback(response)
 
@@ -94,10 +96,12 @@ class AMF3RequestProcessor(amf3.RequestProcessor):
         deferred_response = defer.Deferred()
 
         def eb(failure):
+            self.gateway.logger.debug(failure.printTraceback())
             ro_response = self.buildErrorResponse(ro_request, (failure.type, failure.value, failure.tb))
             deferred_response.callback(remoting.Response(ro_response, status=remoting.STATUS_ERROR))
 
         def response_cb(result):
+            self.gateway.logger.debug("AMF Response: %r" % result)
             ro_response.body = result
             deferred_response.callback(remoting.Response(ro_response))
 
@@ -124,6 +128,7 @@ class AMF3RequestProcessor(amf3.RequestProcessor):
             deferred_response.callback(amf_response)
 
         def eb(failure):
+            self.gateway.logger.debug(failure.printTraceback())
             deferred_response.callback(self.buildErrorResponse(ro_request,
                 (failure.type, failure.value, failure.tb)))
 
@@ -182,10 +187,13 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
             """
             Return HTTP 400 Bad Request.
             """
-            import traceback
+            self.logger.debug(failure.printDetailedTraceback())
+
             body = "400 Bad Request\n\nThe request body was unable to " \
-                "be successfully decoded.\n\nTraceback:\n\n%s" % (
-                    traceback.format_exception(failure.type, failure.value, failure.tb))
+                "be successfully decoded."
+
+            if self.debug:
+                body += "\n\nTraceback:\n\n%s" % failure.printTraceback()
 
             self._finaliseRequest(request, 400, body)
 
@@ -195,6 +203,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         d = threads.deferToThread(remoting.decode, request.content.read(), context)
 
         def cb(amf_request):
+            self.logger.debug("AMF Request: %r" % amf_request)
             x = self.getResponse(request, amf_request)
 
             x.addCallback(self.sendResponse, request, context)
@@ -213,10 +222,13 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
             """
             Return 500 Internal Server Error.
             """
-            import traceback
+            self.logger.debug(failure.printDetailedTraceback())
+
             body = "500 Internal Server Error\n\nThere was an error encoding" \
-                " the response.\n\nTraceback:\n\n%s" % traceback.format_exception(
-                    failure.type, failure.value, failure.tb)
+                " the response."
+
+            if self.debug:
+                body += "\n\nTraceback:\n\n%s" % failure.printTraceback()
 
             self._finaliseRequest(request, 500, body)
 
@@ -226,7 +238,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
 
     def getProcessor(self, request):
         """
-        Returns RequestProcessor.
+        Determines the request processor, based on the request.
 
         @param request: The AMF message.
         @type request: L{Request<pyamf.remoting.Request>}
@@ -275,6 +287,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         @rtype: C{twisted.internet.defer.Deferred}
         """
         authenticator = self.getAuthenticator(service_request)
+        self.logger.debug('Authenticator expands to: %r' % authenticator)
 
         if authenticator is None:
             return defer.succeed(True)
@@ -292,6 +305,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         Preprocesses a request.
         """
         processor = self.getPreprocessor(service_request)
+        self.logger.debug('Preprocessor expands to: %r' % processor)
 
         if processor is None:
             return

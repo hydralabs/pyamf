@@ -13,7 +13,7 @@ Remoting server implementations.
 import types
 
 import pyamf
-from pyamf import remoting
+from pyamf import remoting, logging, util
 
 fault_alias = pyamf.get_class_alias(remoting.ErrorFault)
 
@@ -241,13 +241,18 @@ class BaseGateway(object):
     """
 
     _request_class = ServiceRequest
+    debug = False
 
     def __init__(self, services={}, authenticator=None, expose_request=False,
-        preprocessor=None):
+        preprocessor=None, debug=None):
+        self.logger = logging.instance_logger(self)
         self.services = ServiceCollection()
         self.authenticator = authenticator
         self.preprocessor = preprocessor
         self.expose_request = expose_request
+
+        if debug is not None:
+            self.debug = debug
 
         if not hasattr(services, 'iteritems'):
             raise TypeError, "dict type required for services"
@@ -280,9 +285,9 @@ class BaseGateway(object):
             # TODO: include the module in the name
             if isinstance(service, (type, types.ClassType)):
                 name = service.__name__
-            elif isinstance(service, (types.FunctionType)):
+            elif isinstance(service, types.FunctionType):
                 name = service.func_name
-            elif isinstance(service, (types.ModuleType)):
+            elif isinstance(service, types.ModuleType):
                 name = service.__name__
             else:
                 name = str(service)
@@ -540,3 +545,12 @@ def preprocess(func, c, expose_request=False):
     setattr(attr, '_pyamf_preprocessor', c)
 
     return func
+
+def format_exception():
+    import traceback
+
+    f = util.StringIO()
+
+    traceback.print_exc(file=f)
+
+    return f.getvalue()

@@ -55,6 +55,10 @@ ERROR_CODES = {
     ERROR_CALL_FAILED: 'Server.Call.Failed'
 }
 
+APPEND_TO_GATEWAY_URL = 'AppendToGatewayUrl'
+REPLACE_GATEWAY_URL = 'ReplaceGatewayUrl'
+REQUEST_PERSISTENT_HEADER = 'RequestPersistentHeader'
+
 class RemotingError(pyamf.BaseError):
     """
     Generic remoting error class.

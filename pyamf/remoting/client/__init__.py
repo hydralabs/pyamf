@@ -12,7 +12,7 @@ Remoting client implementation.
 import httplib, urlparse
 
 import pyamf
-from pyamf import remoting
+from pyamf import remoting, util, logging
 
 #: Default AMF client type.
 #: @see: L{ClientTypes<pyamf.ClientTypes>}
@@ -185,6 +185,7 @@ class RemotingService(object):
     """
 
     def __init__(self, url, amf_version=pyamf.AMF0, client_type=DEFAULT_CLIENT_TYPE):
+        self.logger = logging.instance_logger(self)
         self.original_url = url
         self.requests = []
         self.request_number = 1
@@ -231,6 +232,8 @@ class RemotingService(object):
         else:
             raise ValueError, 'Unknown scheme'
 
+        self.logger.debug('creating connection to %s://%s:%s' % (self.url[0], hostname, port))
+
     def addHeader(self, name, value, must_understand=False):
         """
         Sets a persistent header to send with each request.
@@ -272,6 +275,7 @@ class RemotingService(object):
 
         self.request_number += 1
         self.requests.append(wrapper)
+        self.logger.debug('adding request %s%r' % (wrapper.service, args))
 
         return wrapper
 
@@ -324,8 +328,10 @@ class RemotingService(object):
         @type request:
         @rtype:
         """
+        self.logger.debug('executing single request')
         body = remoting.encode(self.getAMFRequest([request]))
 
+        self.logger.debug('sending POST request to %s' % self._root_url)
         self.connection.request('POST', self._root_url, body.getvalue())
 
         envelope = self._getResponse()
@@ -356,9 +362,14 @@ class RemotingService(object):
         """
         Gets and handles the HTTP response from the remote gateway.
         """
+        self.logger.debug('waiting for response ...')
         http_response = self.connection.getresponse()
+        self.logger.debug('got response status=%s' % http_response.status)
 
         if http_response.status != HTTP_OK:
+            self.logger.debug('content-type = %s' % http_response.getheader('Content-Type'))
+            self.logger.debug('body = %s' % http_response.read())
+
             if hasattr(httplib, 'responses'):
                 raise remoting.RemotingError, "HTTP Gateway reported status %d %s" % (
                     http_response.status, httplib.responses[http_response.status])
@@ -369,6 +380,9 @@ class RemotingService(object):
         content_type = http_response.getheader('Content-Type')
 
         if content_type != remoting.CONTENT_TYPE:
+            self.logger.debug('content-type = %s' % http_response.getheader('Content-Type'))
+            self.logger.debug('body = %s' % http_response.read())
+
             raise remoting.RemotingError, "Incorrect MIME type received. (got: %s)" % content_type
 
         content_length = http_response.getheader('Content-Length')
@@ -379,19 +393,22 @@ class RemotingService(object):
         else:
             bytes = http_response.read(content_length)
 
+        self.logger.debug('read %d bytes for the response' % len(bytes))
+
         response = remoting.decode(bytes)
+        self.logger.debug('response = %s' % response)
 
-        if 'AppendToGatewayUrl' in response.headers:
-            self.original_url += response.headers['AppendToGatewayUrl']
-
-            self._setUrl(self.original_url)
-        elif 'ReplaceGatewayUrl' in response.headers:
-            self.original_url = response.headers['ReplaceGatewayUrl']
+        if remoting.APPEND_TO_GATEWAY_URL in response.headers:
+            self.original_url += response.headers[remoting.APPEND_TO_GATEWAY_URL]
 
             self._setUrl(self.original_url)
+        elif remoting.REPLACE_GATEWAY_URL in response.headers:
+            self.original_url = response.headers[remoting.REPLACE_GATEWAY_URL]
 
-        if 'RequestPersistentHeader' in response.headers:
-            data = response.headers['RequestPersistentHeader']
+            self._setUrl(self.original_url)
+
+        if remoting.REQUEST_PERSISTENT_HEADER in response.headers:
+            data = response.headers[remoting.REQUEST_PERSISTENT_HEADER]
 
             for k, v in data.iteritems():
                 self.headers[k] = v
