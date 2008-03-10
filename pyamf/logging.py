@@ -1,3 +1,13 @@
+# Copyright (c) 2007-2008 The PyAMF Project.
+# See LICENSE for details.
+
+"""
+Logging utilities.
+
+@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
+@since: 0.2
+"""
+
 logging = __import__('logging')
 
 logging.basicConfig()
