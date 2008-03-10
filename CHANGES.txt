@@ -8,6 +8,7 @@ of PyAMF.
 0.2 (unreleased)
 ----------------
 
+ - Removed amfinfo console_script (Ticket:226)
  - Encoders/Decoders now check for __getstate__/__setstate__ respectively
    (Ticket:209)
  - Gateway import hack has now been removed - permanently (Ticket:224)
