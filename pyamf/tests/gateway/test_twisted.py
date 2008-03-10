@@ -350,7 +350,7 @@ class AMF0RequestProcessorTestCase(unittest.TestCase):
         self.assertTrue(response.status, remoting.STATUS_ERROR)
         self.assertTrue(isinstance(response.body, remoting.ErrorFault))
         self.assertEquals(response.body.code, 'IndexError')
-        
+
     def test_auth_fail(self):
         def auth(u, p):
             return False
@@ -611,7 +611,7 @@ class AMF3RequestProcessorTestCase(unittest.TestCase):
         def preprocessor(u, *args):
             d2 = defer.Deferred()
             reactor.callLater(0, lambda: d2.callback(None))
-            
+
             return d2
 
         gw = _twisted.TwistedGateway({'echo': lambda x: x}, expose_request=False, preprocessor=preprocessor)
@@ -658,7 +658,7 @@ class AMF3RequestProcessorTestCase(unittest.TestCase):
             try:
                 self.assertTrue(result)
             except:
-                d.errback()                
+                d.errback()
             else:
                 d.callback(None)
 

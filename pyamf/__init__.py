@@ -190,7 +190,7 @@ class BaseContext(object):
 class ASObject(dict):
     """
     This class represents a Flash Actionscript Object (typed or untyped).
-    
+
     I supply a C{__builtin__.dict} interface to support get/setattr calls.
     """
 
@@ -362,12 +362,12 @@ class ClassAlias(object):
         @return: Instance of C{self.klass}.
         """
         if hasattr(self.klass, '__setstate__') or hasattr(self.klass, '__getstate__'):
-            if type(self.klass) is types.TypeType:  # new-style class 
-                return self.klass.__new__(self.klass) 
-            elif type(self.klass) is types.ClassType: # classic class 
-                return util.make_classic_instance(self.klass) 
+            if type(self.klass) is types.TypeType:  # new-style class
+                return self.klass.__new__(self.klass)
+            elif type(self.klass) is types.ClassType: # classic class
+                return util.make_classic_instance(self.klass)
 
- 	        raise TypeError, 'invalid class type %r' % self.klass 
+ 	        raise TypeError, 'invalid class type %r' % self.klass
 
         return self.klass(*args, **kwargs)
 
