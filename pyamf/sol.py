@@ -157,8 +157,8 @@ def load(name_or_file):
     if isinstance(name_or_file, basestring):
         f = open(name_or_file, 'rb')
         opened = True
-    elif not isinstance(name_or_file, types.FileType):
-        raise ValueError, 'file name or file resource expected'
+    elif not hasattr(f, 'read'):
+        raise ValueError, 'readable stream expected'
 
     name, values = decode(f.read())
     s = SOL(name)
@@ -181,8 +181,8 @@ def save(sol, name_or_file, encoding=pyamf.AMF0):
     if isinstance(name_or_file, basestring):
         f = open(name_or_file, 'wb+')
         opened = True
-    elif not isinstance(name_or_file, types.FileType):
-        raise ValueError, 'file name or file resource expected'
+    elif not hasattr(f, 'write'):
+        raise ValueError, 'writable stream expected'
 
     f.write(encode(sol.name, sol, encoding=encoding).getvalue())
 
@@ -198,7 +198,11 @@ class SOL(dict):
     def __init__(self, name):
         self.name = name
 
-    def save(self, name_or_file):
-        save(self, name_or_file)
+    def save(self, name_or_file, encoding=pyamf.AMF0):
+        save(self, name_or_file, encoding)
+
+    def __repr__(self):
+        return '<%s %s %s at 0x%x>' % (self.__class__.__name__,
+            self.name, dict.__repr__(self), id(self))
 
 LSO = SOL
