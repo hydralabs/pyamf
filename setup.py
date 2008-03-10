@@ -70,11 +70,6 @@ setup(name = "PyAMF",
     zip_safe=True,
     license = "MIT License",
     cmdclass = {'test': TestCommand},
-    entry_points={
-        'console_scripts': [
-            'amfinfo = pyamf.scripts.parse_dump:main',
-        ],
-    },
     extras_require={
         'wsgi': ['wsgiref'],
         'twisted': ['Twisted>=2.5.0'],
