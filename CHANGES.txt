@@ -18,6 +18,7 @@ of PyAMF.
    invoking the service method (Ticket:196)
  - authenticator can now be decorated with expose_request (Ticket:195)
  - Python 2.3 support (Ticket:33)
+ - Python 2.6 support (Ticket:222)
  - Made PyAMF distributable as zip-based Python Egg (Ticket:193)
 
 0.1.1 (2008-02-18)
