@@ -8,6 +8,12 @@ of PyAMF.
 0.2 (unreleased)
 ----------------
 
+ - Encoders/Decoders now check for __getstate__/__setstate__ respectively
+   (Ticket:209)
+ - Gateway import hack has now been removed - permanently (Ticket:224)
+ - Encoding/decoding performance has been increased 2x for AMF0 and upto 10x(!)
+   for AMF3 (Ticket:198)
+ - Logging is now possible in all the supported gateways (Ticket:173)
  - A new preprocessor function that runs after authentication, but before
    invoking the service method (Ticket:196)
  - authenticator can now be decorated with expose_request (Ticket:195)
