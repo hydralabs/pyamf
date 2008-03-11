@@ -38,6 +38,11 @@ def decode(stream, strict=True):
     @return: A C{tuple} containing the C{root_name} and a C{dict} of name,
         value pairs.
     @rtype: C{tuple}
+
+    @raise DecodeError: Unknown SOL version in header.
+    @raise DecoderError: Inconsistent stream header length.
+    @raise DecodeError: Invalid padding read.
+    @raise DecodeError: Missing padding byte.
     """
     if not isinstance(stream, util.BufferedByteStream):
         stream = util.BufferedByteStream(stream)
@@ -95,6 +100,8 @@ def encode(name, values, strict=True, encoding=pyamf.AMF0):
     @type name: C{basestring}
     @param values: A C{dict} of name value pairs to be encoded in the stream.
     @type values: C{dict}
+    @param strict:
+    @type strict: C{bool}
     @return: A SharedObject encoded stream.
     @rtype: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     """
@@ -140,7 +147,12 @@ def encode(name, values, strict=True, encoding=pyamf.AMF0):
 
 def load(name_or_file):
     """
-    Loads a sol file and returns a L{SOL} object
+    Loads a sol file and returns a L{SOL} object.
+
+    @param name_or_file:
+    @type name_or_file:
+
+    @raise ValueError: Readable stream expected.
     """
     f = name_or_file
     opened = False
@@ -164,7 +176,14 @@ def load(name_or_file):
 
 def save(sol, name_or_file, encoding=pyamf.AMF0):
     """
-    Writes a L{SOL} object to C{name_or_file}
+    Writes a L{SOL} object to C{name_or_file}.
+
+    @param sol:
+    @type sol:
+    @param name_or_file:
+    @type name_or_file:
+
+    @raise ValueError: Writable stream expected.
     """
     f = name_or_file
     opened = False

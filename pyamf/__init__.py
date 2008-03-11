@@ -35,15 +35,15 @@ __all__ = [
 #: PyAMF version number.
 __version__ = (0, 2, 0, 'beta')
 
-#: Class mapping support for Flex.
+#: Class mapping support.
 CLASS_CACHE = {}
 #: Class loaders.
 CLASS_LOADERS = []
 
-#: Custom type map
+#: Custom type map.
 TYPE_MAP = {}
 
-#: Maps error classes to string codes
+#: Maps error classes to string codes.
 ERROR_CLASS_MAP = {}
 
 #: Specifies that objects are serialized using AMF for ActionScript 1.0 and 2.0.
@@ -77,6 +77,7 @@ for x in ClientTypes.__dict__:
         CLIENT_TYPES.append(ClientTypes.__dict__[x])
 del x
 
+#: Represents the C{undefined} value in a Flash client.
 Undefined = object()
 
 class BaseError(Exception):
@@ -250,7 +251,7 @@ class ClassMetaData(list):
         """
         Adds a tag to the metadata.
 
-        @param x:
+        @param x: Tag.
         @type x:
 
         @raise ValueError: Unknown tag.
@@ -358,7 +359,6 @@ class ClassAlias(object):
         """
         Creates an instance of the klass.
 
-        @rtype:
         @return: Instance of C{self.klass}.
         """
         if hasattr(self.klass, '__setstate__') or hasattr(self.klass, '__getstate__'):
@@ -477,8 +477,8 @@ class BaseDecoder(object):
         """
         Reads an AMF3 element from the data stream.
 
-        @raise DecodeError: The ActionScript type is unknown
-        @raise EOStream: No more data left to decode
+        @raise DecodeError: The ActionScript type is unknown.
+        @raise EOStream: No more data left to decode.
         """
         try:
             type = self.readType()
@@ -519,7 +519,7 @@ class BaseEncoder(object):
         determine the correct function to call to encode the data.
     @type type_map: C{list}
     @ivar context_class: Holds the class that will create context objects for
-        the implementing Encoder.
+        the implementing C{Encoder}.
     @type context_class: C{type} or C{types.ClassType}
     @ivar stream: The underlying data stream.
     @type stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
@@ -624,7 +624,7 @@ def register_class(klass, alias=None, attrs=None, attr_func=None, metadata=[]):
     @param metadata:
     @raise TypeError: The C{klass} is not callable.
     @raise ValueError: The C{klass} or C{alias} is already registered.
-    @return: The registered L{ClassAlias}
+    @return: The registered L{ClassAlias}.
     """
     if not callable(klass):
         raise TypeError, "klass must be callable"
@@ -709,7 +709,9 @@ def get_module(mod_name):
     @type mod_name: C{str}
     @param mod_name: The module name.
     @rtype:
-    @return: Module
+    @return: Module.
+
+    @raise ImportError: Unable to import empty module.
     """
     if mod_name is '':
         raise ImportError, "Unable to import empty module"
@@ -791,7 +793,7 @@ def get_class_alias(klass):
 
     @type klass: C{object} or class
     @raise UnknownClassAlias: Class not found.
-    @raise TypeError: Expecting string or class type.
+    @raise TypeError: Expecting C{string} or C{class} type.
 
     @rtype: L{ClassAlias}
     @return: The class alias linked to the C{klass}.
@@ -819,7 +821,7 @@ def get_class_alias(klass):
 def has_alias(obj):
     """
     @rtype: C{bool}
-    @return:
+    @return: Alias is available.
     """
     try:
         alias = get_class_alias(obj)
@@ -831,7 +833,7 @@ def decode(stream, encoding=AMF0, context=None):
     """
     A generator function to decode a datastream.
 
-    @type   stream: L{BufferedByteStream<util.BufferedByteStream>}
+    @type   stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     @param  stream: AMF data.
     @type   encoding: C{int}
     @param  encoding: AMF encoding type.
@@ -983,6 +985,9 @@ def add_type(type_, func=None):
     """
     Adds a custom type to L{TYPE_MAP}. A custom type allows fine grain control
     of what to encode to an AMF data stream.
+
+    @raise TypeError: Unable to add as a custom type (expected a class or callable).
+    @raise KeyError: Type already exists.
     """
     def _check_type(type_):
         if not (isinstance(type_, (type, types.ClassType)) or callable(type_)):
@@ -1020,6 +1025,11 @@ def get_type(type_):
 def remove_type(type_):
     """
     Removes the custom type declaration.
+
+    @param type_:
+    @type type_:
+    @rtype:
+    @return: Custom type declaration.
     """
     declaration = get_type(type_)
 
@@ -1029,7 +1039,7 @@ def remove_type(type_):
 
 def add_error_class(klass, code):
     """
-    Maps an exception class to a string code. Used to map remoting onStatus
+    Maps an exception class to a string code. Used to map remoting C{onStatus}
     objects to an exception class so that an exception can be built to
     represent that error::
 
@@ -1037,6 +1047,15 @@ def add_error_class(klass, code):
             pass
 
     An example: C{add_error_class(AuthenticationError, 'Auth.Failed')}
+
+    @param klass:
+    @type klass:
+    @param code:
+    @type code: C{str}
+
+    @raise TypeError: C{klass} must be a C{class} type.
+    @raise TypeError: Error classes must subclass the C{__builtin__.Exception} class.
+    @raise ValueError: Code is already registered.
     """
     if not isinstance(code, basestring):
         code = str(code)
@@ -1056,7 +1075,14 @@ def add_error_class(klass, code):
 
 def remove_error_class(klass):
     """
-    Removes a class from ERROR_CLASS_MAP
+    Removes a class from C{ERROR_CLASS_MAP}.
+
+    @param klass:
+    @type klass:
+
+    @raise ValueError: Code is not registered.
+    @raise ValueError: Class is not registered.
+    @raise TypeError: Invalid type, expected C{class} or C{string}.
     """
     if isinstance(klass, basestring):
         if not klass in ERROR_CLASS_MAP.keys():
