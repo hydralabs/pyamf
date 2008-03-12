@@ -57,7 +57,7 @@ objectproxy arraycollection recordset actionscript decoder encoder
 gateway"""
 
 setup(name = "PyAMF",
-    version = "0.2",
+    version = "0.3",
     description = "AMF support for Python",
     long_description = long_desc,
     url = "http://pyamf.org",
