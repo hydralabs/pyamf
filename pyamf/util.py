@@ -138,19 +138,23 @@ class StringIOProxy(object):
 
         return self._len
 
-class NetworkIOMixIn(object):
+class DataTypeMixIn(object):
     """
-    Provides mix-in methods for file-like objects to read and write basic
-    datatypes in big-endian byte-order.
+    Provides methods for reading and writing basic data types for file-like
+    objects.
     """
+
+    ENDIAN_NETWORK = "!"
+    ENDIAN_NATIVE = "@"
+    ENDIAN_LITTLE = "<"
+    ENDIAN_BIG = ">"
+
+    endian = ENDIAN_NETWORK
 
     def _read(self, length):
         """
-        @type length:
-        @param length:
-        @raise EOFError: Not in range.
-        @rtype:
-        @return: Bytes.
+        Reads C{length} bytes from the stream. If an attempt to read past the
+        end of the buffer is made, L{EOFError} is raised.
         """
         bytes = self.read(length)
 
@@ -162,97 +166,138 @@ class NetworkIOMixIn(object):
         return bytes
 
     def read_uchar(self):
-        return struct.unpack("!B", self._read(1))[0]
+        """
+        Reads an C{unsigned char} from the stream.
+        """
+        return struct.unpack("B", self._read(1))[0]
 
     def write_uchar(self, c):
         """
-        @raise ValueError: Not in range.
+        Writes an C{unsigned char} to the stream.
         """
-        if not 0 <= c <= 256:
-            raise ValueError("c not in range (%d)" % c)
+        if not 0 <= c <= 255:
+            raise ValueError("Not in range, %d" % c)
 
-        self.write(struct.pack("!B", c))
+        self.write(struct.pack("B", c))
 
     def read_char(self):
-        return struct.unpack("!b", self._read(1))[0]
+        """
+        Reads a C{char} from the stream.
+        """
+        return struct.unpack("b", self._read(1))[0]
 
     def write_char(self, c):
         """
-        @raise ValueError: Not in range.
+        Write a C{char} to the stream.
         """
         if not -128 <= c <= 127:
-            raise ValueError("c not in range (%d)" % c)
+            raise ValueError("Not in range, %d" % c)
 
-        self.write(struct.pack("!b", c))
+        self.write(struct.pack("b", c))
 
     def read_ushort(self):
-        return struct.unpack("!H", self._read(2))[0]
+        """
+        Reads a 2 byte unsigned integer from the stream.
+        """
+        return struct.unpack("%sH" % self.endian, self._read(2))[0]
 
     def write_ushort(self, s):
         """
-        @raise ValueError: Not in range.
+        Writes a 2 byte unsigned integer to the stream.
         """
-        if not 0 <= s <= 65536:
-            raise ValueError("Not in range (%d)" % s)
+        if not 0 <= s <= 65535:
+            raise ValueError("Not in range, %d" % s)
 
-        self.write(struct.pack("!H", s))
+        self.write(struct.pack("%sH" % self.endian, s))
 
     def read_short(self):
-        return struct.unpack("!h", self._read(2))[0]
+        """
+        Reads a 2 byte integer from the stream.
+        """
+        return struct.unpack("%sh" % self.endian, self._read(2))[0]
 
     def write_short(self, s):
         """
-        @raise ValueError: Not in range.
+        Writes a 2 byte integer to the stream.
         """
         if not -32768 <= s <= 32767:
-            raise ValueError("Not in range (%d)" % s)
+            raise ValueError("Not in range, %d" % s)
 
-        self.write(struct.pack("!h", s))
+        self.write(struct.pack("%sh" % self.endian, s))
 
     def read_ulong(self):
-        return struct.unpack("!L", self._read(4))[0]
+        """
+        Reads a 4 byte unsigned integer from the stream.
+        """
+        return struct.unpack("%sL" % self.endian, self._read(4))[0]
 
     def write_ulong(self, l):
         """
-        @raise ValueError: Not in range.
+        Writes a 4 byte unsigned integer to the stream.
         """
         if not 0 <= l <= 4294967295:
-            raise ValueError("Not in range (%d)" % l)
+            raise ValueError("Not in range, %d" % l)
 
-        self.write(struct.pack("!L", l))
+        self.write(struct.pack("%sL" % self.endian, l))
 
     def read_long(self):
-        return struct.unpack("!l", self._read(4))[0]
+        """
+        Reads a 4 byte integer from the stream.
+        """
+        return struct.unpack("%sl" % self.endian, self._read(4))[0]
 
     def write_long(self, l):
         """
-        @raise ValueError: Not in range.
+        Writes a 4 byte integer to the stream.
         """
         if not -2147483648 <= l <= 2147483647:
-            raise ValueError("Not in range (%d)" % l)
+            raise ValueError("Not in range, %d" % l)
 
-        self.write(struct.pack("!l", l))
+        self.write(struct.pack("%sl" % self.endian, l))
 
     def read_double(self):
-        return struct.unpack("!d", self._read(8))[0]
+        """
+        Reads an 8 byte float from the stream.
+        """
+        return struct.unpack("%sd" % self.endian, self._read(8))[0]
 
     def write_double(self, d):
-        self.write(struct.pack("!d", d))
-
-    def write_float(self, f):
-        self.write(struct.pack("!f", f))
+        """
+        Writes an 8 byte float to the stream.
+        """
+        self.write(struct.pack("%sd" % self.endian, d))
 
     def read_float(self):
-        return struct.unpack("!f", self._read(4))[0]
+        """
+        Reads a 4 byte float from the stream.
+        """
+        return struct.unpack("%sf" % self.endian, self._read(4))[0]
+
+    def write_float(self, f):
+        """
+        Writes a 4 byte float to the stream.
+        """
+        self.write(struct.pack("%sf" % self.endian, f))
 
     def read_utf8_string(self, length):
-        str = struct.unpack("%ds" % length, self.read(length))[0]
+        """
+        Reads a UTF-8 string from the stream.
+
+        @rtype: C{unicode}
+        """
+        str = struct.unpack("%s%ds" % (self.endian, length), self.read(length))[0]
+
         return unicode(str, "utf8")
 
     def write_utf8_string(self, u):
-        self.write(u.encode("utf8"))
+        """
+        Writes a unicode object to the stream in UTF-8
+        """
+        bytes = u.encode("utf8")
 
-class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
+        self.write(struct.pack("%s%ds" % (self.endian, len(bytes)), bytes))
+
+class BufferedByteStream(StringIOProxy, DataTypeMixIn):
     """
     An extension of C{StringIO}.
 
@@ -355,6 +400,13 @@ class BufferedByteStream(StringIOProxy, NetworkIOMixIn):
         new.seek(0)
 
         return new
+
+class NetworkIOMixIn(DataTypeMixIn):
+    def __init__(self, *args, **kwargs):
+        import warnings
+
+        warnings.warn('%s is deprecated and will be removed in 0.4' % \
+            type(self).__class__.__name__ , DeprecationWarning)
 
 def hexdump(data):
     """

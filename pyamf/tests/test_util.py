@@ -272,205 +272,164 @@ class cStringIOProxyTestCase(StringIOProxyTestCase):
         self.previous = util.StringIOProxy._wrapped_class
         util.StringIOProxy._wrapped_class = StringIO
 
-class NetworkStream(util.StringIOProxy, util.NetworkIOMixIn):
+class ByteStream(util.StringIOProxy, util.NetworkIOMixIn):
     pass
 
-class NetworkIOMixInTestCase(unittest.TestCase):
-    def test_create(self):
-        x = NetworkStream()
+class DataTypeMixInTestCase(unittest.TestCase):
+    endians = (util.DataTypeMixIn.ENDIAN_BIG, util.DataTypeMixIn.ENDIAN_LITTLE)
+
+    def _write_endian(self, obj, func, args, expected):
+        old_endian = obj.endian
+
+        for x in range(2):
+            obj.truncate()
+            obj.endian = self.endians[x]
+
+            func(*args)
+
+            self.assertEquals(obj.getvalue(), expected[x])
+
+        obj.endian = old_endian
+
+    def _read_endian(self, data, func, args, expected):
+        for x in range(2):
+            obj = ByteStream(data[x])
+            obj.endian = self.endians[x]
+
+            result = getattr(obj, func)(*args)
+
+            self.assertEquals(result, expected)
 
     def test_read_uchar(self):
-        x = NetworkStream('abc')
+        x = ByteStream('\x00\xff')
 
-        self.assertEquals(x.getvalue(), 'abc')
-        self.assertEquals(x.tell(), 0)
-        self.assertEquals(x.read_uchar(), ord('a'))
-        self.assertEquals(x.tell(), 1)
+        self.assertEquals(x.read_uchar(), 0)
+        self.assertEquals(x.read_uchar(), 255)
 
     def test_write_uchar(self):
-        x = NetworkStream()
+        x = ByteStream()
 
-        self.assertEquals(x.getvalue(), '')
-        self.assertEquals(x.tell(), 0)
+        x.write_uchar(0)
+        self.assertEquals(x.getvalue(), '\x00')
+        x.write_uchar(255)
+        self.assertEquals(x.getvalue(), '\x00\xff')
 
-        x.write_uchar(ord('a'))
-        self.assertEquals(x.getvalue(), 'a')
-
-        self.assertRaises(ValueError, x.write_uchar, 257)
+        self.assertRaises(ValueError, x.write_uchar, 256)
         self.assertRaises(ValueError, x.write_uchar, -1)
 
-    def test_read_uchar(self):
-        x = NetworkStream('abc')
+    def test_read_char(self):
+        x = ByteStream('\x00\x7f\xff\x80')
 
-        self.assertEquals(x.read_uchar(), ord('a'))
-        self.assertEquals(x.read_uchar(), ord('b'))
-        self.assertEquals(x.read_uchar(), ord('c'))
-        self.assertEquals(x.tell(), 3)
-
-        self.assertRaises(EOFError, x.read_uchar)
+        self.assertEquals(x.read_char(), 0)
+        self.assertEquals(x.read_char(), 127)
+        self.assertEquals(x.read_char(), -1)
+        self.assertEquals(x.read_char(), -128)
 
     def test_write_char(self):
-        x = NetworkStream()
+        x = ByteStream()
 
-        self.assertEquals(x.getvalue(), '')
-        self.assertEquals(x.tell(), 0)
+        x.write_char(0)
+        x.write_char(-128)
+        x.write_char(127)
 
-        x.write_char(ord('a'))
-        self.assertEquals(x.getvalue(), 'a')
+        self.assertEquals(x.getvalue(), '\x00\x80\x7f')
 
         self.assertRaises(ValueError, x.write_char, 128)
         self.assertRaises(ValueError, x.write_char, -129)
 
-    def test_read_char(self):
-        x = NetworkStream('abc')
-
-        self.assertEquals(x.read_char(), ord('a'))
-        self.assertEquals(x.read_char(), ord('b'))
-        self.assertEquals(x.read_char(), ord('c'))
-        self.assertEquals(x.tell(), 3)
-
-        self.assertRaises(EOFError, x.read_char)
-
     def test_write_ushort(self):
-        x = NetworkStream()
+        x = ByteStream()
 
-        self.assertEquals(x.getvalue(), '')
-        self.assertEquals(x.tell(), 0)
+        self._write_endian(x, x.write_ushort, (0,), ('\x00\x00', '\x00\x00'))
+        self._write_endian(x, x.write_ushort, (12345,), ('09', '90'))
+        self._write_endian(x, x.write_ushort, (65535,), ('\xff\xff', '\xff\xff'))
 
-        x.write_ushort(ord('a'))
-        self.assertEquals(x.getvalue(), '\x00a')
+        self.assertRaises(ValueError, x.write_ushort, 65536)
+        self.assertRaises(ValueError, x.write_ushort, -1)
+
+    def test_read_ushort(self):
+        self._read_endian(['\x00\x00', '\x00\x00'], 'read_ushort', (), 0)
+        self._read_endian(['09', '90'], 'read_ushort', (), 12345)
+        self._read_endian(['\xff\xff', '\xff\xff'], 'read_ushort', (), 65535)
+
+    def test_write_short(self):
+        x = ByteStream()
+
+        self._write_endian(x, x.write_short, (-5673,), ('\xe9\xd7', '\xd7\xe9'))
+        self._write_endian(x, x.write_short, (32767,), ('\x7f\xff', '\xff\x7f'))
 
         self.assertRaises(ValueError, x.write_ushort, 65537)
         self.assertRaises(ValueError, x.write_ushort, -1)
 
-    def test_read_ushort(self):
-        x = NetworkStream('abc')
-
-        self.assertEquals(x.read_ushort(), ord('a') << 8 | ord('b'))
-        self.assertEquals(x.tell(), 2)
-
-        self.assertRaises(EOFError, x.read_ushort)
-        self.assertEquals(x.tell(), 2)
-
-    def test_write_short(self):
-        x = NetworkStream()
-
-        self.assertEquals(x.getvalue(), '')
-        self.assertEquals(x.tell(), 0)
-
-        x.write_short(ord('a'))
-        self.assertEquals(x.getvalue(), '\x00a')
-
-        self.assertRaises(ValueError, x.write_short, 32768)
-        self.assertRaises(ValueError, x.write_short, -32769)
-
     def test_read_short(self):
-        x = NetworkStream('abc')
-
-        self.assertEquals(x.read_short(), ord('a') << 8 | ord('b'))
-
-        self.assertRaises(EOFError, x.read_short)
+        self._read_endian(['\xe9\xd7', '\xd7\xe9'], 'read_short', (), -5673)
+        self._read_endian(['\x7f\xff', '\xff\x7f'], 'read_short', (), 32767)
 
     def test_write_ulong(self):
-        x = NetworkStream()
+        x = ByteStream()
 
-        self.assertEquals(x.getvalue(), '')
-        self.assertEquals(x.tell(), 0)
-
-        x.write_ulong(ord('a'))
-        self.assertEquals(x.getvalue(), '\x00\x00\x00a')
+        self._write_endian(x, x.write_ulong, (0,), ('\x00\x00\x00\x00', '\x00\x00\x00\x00'))
+        self._write_endian(x, x.write_ulong, (16810049,), ('\x01\x00\x80A', 'A\x80\x00\x01'))
+        self._write_endian(x, x.write_ulong, (4294967295L,), ('\xff\xff\xff\xff', '\xff\xff\xff\xff'))
 
         self.assertRaises(ValueError, x.write_ulong, 4294967296L)
         self.assertRaises(ValueError, x.write_ulong, -1)
 
     def test_read_ulong(self):
-        x = NetworkStream('\xff\xff\xff\xff')
-
-        self.assertEquals(x.read_ulong(), 4294967295L)
-        self.assertEquals(x.tell(), 4)
-
-        self.assertRaises(EOFError, x.read_ulong)
-        self.assertEquals(x.tell(), 4)
+        self._read_endian(['\x00\x00\x00\x00', '\x00\x00\x00\x00'], 'read_ulong', (), 0)
+        self._read_endian(['\x01\x00\x80A', 'A\x80\x00\x01'], 'read_ulong', (), 16810049)
+        self._read_endian(['\xff\xff\xff\xff', '\xff\xff\xff\xff'], 'read_ulong', (), 4294967295L)
 
     def test_write_long(self):
-        x = NetworkStream()
+        x = ByteStream()
 
-        self.assertEquals(x.getvalue(), '')
-        self.assertEquals(x.tell(), 0)
-
-        x.write_long(ord('a'))
-        self.assertEquals(x.getvalue(), '\x00\x00\x00a')
+        self._write_endian(x, x.write_long, (0,), ('\x00\x00\x00\x00', '\x00\x00\x00\x00'))
+        self._write_endian(x, x.write_long, (16810049,), ('\x01\x00\x80A', 'A\x80\x00\x01'))
+        self._write_endian(x, x.write_long, (2147483647L,), ('\x7f\xff\xff\xff', '\xff\xff\xff\x7f'))
 
         self.assertRaises(ValueError, x.write_long, 2147483648)
         self.assertRaises(ValueError, x.write_long, -2147483649)
 
     def test_read_long(self):
-        x = NetworkStream('\xff\xff\xff\xff')
-
-        self.assertEquals(x.read_long(), -1)
-        self.assertEquals(x.tell(), 4)
-
-        self.assertRaises(EOFError, x.read_long)
+        self._read_endian(['\x00\x00\x00\x00', '\x00\x00\x00\x00'], 'read_long', (), 0)
+        self._read_endian(['\x01\x00\x80A', 'A\x80\x00\x01'], 'read_long', (), 16810049)
+        self._read_endian(['\x7f\xff\xff\xff', '\xff\xff\xff\x7f'], 'read_long', (), 2147483647L)
 
     def test_write_float(self):
-        x = NetworkStream()
+        x = ByteStream()
 
-        self.assertEquals(x.getvalue(), '')
-        self.assertEquals(x.tell(), 0)
-
-        x.write_float(0.2)
-        self.assertEquals(x.getvalue(), '>L\xcc\xcd')
+        self._write_endian(x, x.write_float, (0.2,), ('>L\xcc\xcd', '\xcd\xccL>'))
 
     def test_read_float(self):
-        x = NetworkStream('>L\xcc\xcd')
-
-        self.assertEquals(str(x.read_float())[:3], str(0.2))
-        self.assertEquals(x.tell(), 4)
-
-        self.assertRaises(EOFError, x.read_float)
+        self._read_endian(['?\x00\x00\x00', '\x00\x00\x00?'], 'read_float', (), 0.5)
 
     def test_write_double(self):
-        x = NetworkStream()
+        x = ByteStream()
 
-        self.assertEquals(x.getvalue(), '')
-        self.assertEquals(x.tell(), 0)
-
-        x.write_double(0.2)
-        self.assertEquals(x.getvalue(), '?\xc9\x99\x99\x99\x99\x99\x9a')
+        self._write_endian(x, x.write_double, (0.2,), ('?\xc9\x99\x99\x99\x99\x99\x9a', '\x9a\x99\x99\x99\x99\x99\xc9?'))
 
     def test_read_double(self):
-        x = NetworkStream('?\xc9\x99\x99\x99\x99\x99\x9a')
-
-        self.assertEquals(x.read_double(), 0.2)
-        self.assertEquals(x.tell(), 8)
-
-        self.assertRaises(EOFError, x.read_double)
+        self._read_endian(['?\xc9\x99\x99\x99\x99\x99\x9a', '\x9a\x99\x99\x99\x99\x99\xc9?'], 'read_double', (), 0.2)
 
     def test_write_utf8_string(self):
-        x = NetworkStream()
+        x = ByteStream()
 
-        self.assertEquals(x.getvalue(), '')
-        self.assertEquals(x.tell(), 0)
-
-        x.write_utf8_string(u'ᚠᛇᚻ')
-        self.assertEquals(x.getvalue(), '\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb')
-        self.assertEquals(x.tell(), 9)
+        self._write_endian(x, x.write_utf8_string, (u'ᚠᛇᚻ',), (
+            '\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb', '\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb'))
 
     def test_read_utf8_string(self):
-        x = NetworkStream('\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb')
-
-        self.assertEquals(x.read_utf8_string(9), u'ᚠᛇᚻ')
+        self._read_endian(['\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb'] * 2, 'read_utf8_string', (9,), u'ᚠᛇᚻ')
 
     def test_nan(self):
         import fpconst
 
-        x = NetworkStream('\xff\xf8\x00\x00\x00\x00\x00\x00')
+        x = ByteStream('\xff\xf8\x00\x00\x00\x00\x00\x00')
         self.assertTrue(fpconst.isNaN(x.read_double()))
 
-        x = NetworkStream('\xff\xf0\x00\x00\x00\x00\x00\x00')
+        x = ByteStream('\xff\xf0\x00\x00\x00\x00\x00\x00')
         self.assertTrue(fpconst.isNegInf(x.read_double()))
 
-        x = NetworkStream('\x7f\xf0\x00\x00\x00\x00\x00\x00')
+        x = ByteStream('\x7f\xf0\x00\x00\x00\x00\x00\x00')
         self.assertTrue(fpconst.isPosInf(x.read_double()))
 
 class BufferedByteStreamTestCase(unittest.TestCase):
@@ -567,7 +526,7 @@ def suite():
     except ImportError:
         pass
 
-    suite.addTest(unittest.makeSuite(NetworkIOMixInTestCase))
+    suite.addTest(unittest.makeSuite(DataTypeMixInTestCase))
     suite.addTest(unittest.makeSuite(BufferedByteStreamTestCase))
 
     return suite
