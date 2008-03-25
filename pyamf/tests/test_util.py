@@ -272,7 +272,7 @@ class cStringIOProxyTestCase(StringIOProxyTestCase):
         self.previous = util.StringIOProxy._wrapped_class
         util.StringIOProxy._wrapped_class = StringIO
 
-class ByteStream(util.StringIOProxy, util.NetworkIOMixIn):
+class ByteStream(util.StringIOProxy, util.DataTypeMixIn):
     pass
 
 class DataTypeMixInTestCase(unittest.TestCase):
@@ -414,8 +414,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
     def test_write_utf8_string(self):
         x = ByteStream()
 
-        self._write_endian(x, x.write_utf8_string, (u'ᚠᛇᚻ',), (
-            '\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb', '\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb'))
+        self._write_endian(x, x.write_utf8_string, (u'ᚠᛇᚻ',), ['\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb'] * 2)
 
     def test_read_utf8_string(self):
         self._read_endian(['\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb'] * 2, 'read_utf8_string', (9,), u'ᚠᛇᚻ')

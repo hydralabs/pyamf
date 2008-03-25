@@ -220,9 +220,7 @@ class Decoder(pyamf.BaseDecoder):
 
         @rtype: C{int} or C{float}
         """
-        x = self.stream.read_double()
-
-        return _check_for_int(x)
+        return _check_for_int(self.stream.read_double())
 
     def readBoolean(self):
         """

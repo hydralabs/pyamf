@@ -531,10 +531,8 @@ def get_mro(C):
 # see: http://blog.pyamf.org/archives/when-is-nan-not-a-number-with-python-24
 import fpconst
 
-fp = struct.unpack("!d", '\xff\xf8\x00\x00\x00\x00\x00\x00')[0]
-
-if not fpconst.isNaN(fp):
-    def read_float_workaround(self):
+if not fpconst.isNaN(struct.unpack("!d", '\xff\xf8\x00\x00\x00\x00\x00\x00')[0]):
+    def read_double_workaround(self):
         bytes = self._read(8)
 
         if bytes == '\xff\xf8\x00\x00\x00\x00\x00\x00':
@@ -546,11 +544,11 @@ if not fpconst.isNaN(fp):
         if bytes == '\x7f\xf0\x00\x00\x00\x00\x00\x00':
             return fpconst.PosInf
 
-        return struct.unpack("!d", bytes)[0]
+        return struct.unpack("%sd" % self.endian, bytes)[0]
 
-    NetworkIOMixIn.read_double = read_float_workaround
+    DataTypeMixIn.read_double = read_double_workaround
 
-    def write_float_workaround(self, d):
+    def write_double_workaround(self, d):
         if fpconst.isNaN(d):
             self.write('\xff\xf8\x00\x00\x00\x00\x00\x00')
         elif fpconst.isNegInf(d):
@@ -558,10 +556,8 @@ if not fpconst.isNaN(fp):
         elif fpconst.isPosInf(d):
             self.write('\x7f\xf0\x00\x00\x00\x00\x00\x00')
         else:
-            write_float_workaround.old_func(self, d)
+            write_double_workaround.old_func(self, d)
 
-    x = NetworkIOMixIn.write_double
-    NetworkIOMixIn.write_double = write_float_workaround
-    write_float_workaround.old_func = x
-
-del fp
+    x = DataTypeMixIn.write_double
+    DataTypeMixIn.write_double = write_double_workaround
+    write_double_workaround.old_func = x
