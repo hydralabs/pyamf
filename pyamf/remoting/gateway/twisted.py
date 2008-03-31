@@ -12,7 +12,24 @@ Twisted server implementation.
 @since: 0.1.0
 """
 
+import sys, os, os.path
+
+try:
+    sys.path.remove('')
+except ValueError:
+    pass
+
+try:
+    sys.path.remove(os.path.dirname(os.path.abspath(__file__)))
+except ValueError:
+    pass
+
 twisted = __import__('twisted')
+__import__('twisted.internet.defer')
+__import__('twisted.internet.threads')
+__import__('twisted.web.resource')
+__import__('twisted.web.server')
+
 defer = twisted.internet.defer
 threads = twisted.internet.threads
 resource = twisted.web.resource
