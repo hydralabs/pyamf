@@ -402,6 +402,9 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
         return new
 
 class NetworkIOMixIn(DataTypeMixIn):
+    """
+    @deprecated: Use L{DataTypeMixIn} instead.
+    """
     def __init__(self, *args, **kwargs):
         import warnings
 
