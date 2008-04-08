@@ -4,6 +4,9 @@
 """
 Twisted server implementation.
 
+This gateway allows you to expose functions in Twisted to AMF
+clients and servers.
+
 @see: U{Twisted homepage (external)<http://twistedmatrix.com>}
 
 @author: U{Thijs Triemstra<mailto:info@collab.nl>}
@@ -51,7 +54,7 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
         """
         Calls the underlying service method.
 
-        @return: A C{Deferred} that will contain the AMF Response.
+        @return: A C{Deferred} that will contain the AMF L{Response}.
         @rtype: C{twisted.internet.defer.Deferred}
         """
         try:
@@ -135,7 +138,7 @@ class AMF3RequestProcessor(amf3.RequestProcessor):
         """
         Calls the underlying service method.
 
-        @return: A deferred that will contain the AMF Response.
+        @return: A C{deferred} that will contain the AMF L{Response}.
         @rtype: C{Deferred<twisted.internet.defer.Deferred>}
         """
         deferred_response = defer.Deferred()
@@ -182,7 +185,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         @type status: C{int}
         @param content: The content of the response.
         @type content: C{str}
-        @param mimetype: The MIME Type of the request.
+        @param mimetype: The MIME type of the request.
         @type mimetype: C{str}
         """
         request.setResponseCode(status)
@@ -195,7 +198,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
 
     def render_POST(self, request):
         """
-        Read remoting request from client.
+        Read remoting request from the client.
 
         @type request: The HTTP Request.
         @param request: C{twisted.web.http.Request}
@@ -267,7 +270,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
 
     def getResponse(self, http_request, amf_request):
         """
-        Processes the AMF request, returning an AMF response.
+        Processes the AMF request, returning an AMF L{Response}.
 
         @param http_request: The underlying HTTP Request
         @type http_request: C{twisted.web.http.Request}
