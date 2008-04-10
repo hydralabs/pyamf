@@ -860,7 +860,7 @@ class Decoder(pyamf.BaseDecoder):
         ASTypes.NULL:       'readNull',
         ASTypes.BOOL_FALSE: 'readBoolFalse',
         ASTypes.BOOL_TRUE:  'readBoolTrue',
-        ASTypes.INTEGER:    'readInteger',
+        ASTypes.INTEGER:    'readSignedInteger',
         ASTypes.NUMBER:     'readNumber',
         ASTypes.STRING:     'readString',
         ASTypes.XML:        'readXML',
@@ -925,7 +925,19 @@ class Decoder(pyamf.BaseDecoder):
         """
         return self.stream.read_double()
 
-    def readInteger(self):
+    def readUnsignedInteger(self):
+        """
+        Reads and returns an unsigned integer from the stream.
+        """
+        return self.readInteger(False)
+
+    def readSignedInteger(self):
+        """
+        Reads and returns a signed integer from the stream.
+        """
+        return self.readInteger(True)
+
+    def readInteger(self, signed=False):
         """
         Reads and returns an integer from the stream.
 
@@ -950,8 +962,11 @@ class Decoder(pyamf.BaseDecoder):
             result |= b
 
             if result & 0x10000000 != 0:
-                result <<= 1
-                result += 1
+                if signed:
+                    result -= 0x20000000
+                else:
+                    result <<= 1
+                    result += 1
 
         return result
 
@@ -963,7 +978,7 @@ class Decoder(pyamf.BaseDecoder):
         @param use_references:
         """
         def readLength():
-            x = self.readInteger()
+            x = self.readUnsignedInteger()
 
             return (x >> 1, x & REFERENCE_BIT == 0)
 
@@ -986,7 +1001,7 @@ class Decoder(pyamf.BaseDecoder):
 
         The timezone is ignored as the date is always in UTC.
         """
-        ref = self.readInteger()
+        ref = self.readUnsignedInteger()
 
         if ref & REFERENCE_BIT == 0:
             return self.context.getObject(ref >> 1)
@@ -1009,7 +1024,7 @@ class Decoder(pyamf.BaseDecoder):
         @see: U{Docuverse blog
         <http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug>}
         """
-        size = self.readInteger()
+        size = self.readUnsignedInteger()
 
         if size & REFERENCE_BIT == 0:
             return self.context.getObject(size >> 1)
@@ -1083,7 +1098,7 @@ class Decoder(pyamf.BaseDecoder):
                 setattr(obj, attr, self.readElement())
                 attr = self.readString()
 
-        ref = self.readInteger()
+        ref = self.readUnsignedInteger()
 
         if ref & REFERENCE_BIT == 0:
             return self.context.getObject(ref >> 1)
@@ -1129,7 +1144,7 @@ class Decoder(pyamf.BaseDecoder):
         @type legacy: C{bool}
         @param legacy: The read XML is in 'legacy' format.
         """
-        ref = self.readInteger()
+        ref = self.readUnsignedInteger()
 
         if ref & REFERENCE_BIT == 0:
             return self.context.getObject(ref >> 1)
@@ -1171,7 +1186,7 @@ class Decoder(pyamf.BaseDecoder):
         @see: L{ByteArray}
         @note: This is not supported in ActionScript 1.0 and 2.0.
         """
-        ref = self.readInteger()
+        ref = self.readUnsignedInteger()
 
         if ref & REFERENCE_BIT == 0:
             return self.context.getObject(ref >> 1)
@@ -1306,7 +1321,7 @@ class Encoder(pyamf.BaseEncoder):
         @type   use_references: C{bool}
         @param  use_references:
         """
-        if n > 0x3fffffff:
+        if n & 0xf0000000 not in [0, 0xf0000000]:
             self.writeNumber(n)
 
             return
@@ -1716,11 +1731,14 @@ def encode(element, context=None):
     return buf
 
 def _encode_int(n):
-    if n > 0x40000000:
+    if n & 0xf0000000 not in [0, 0xf0000000]:
         raise ValueError, "Out of range"
 
     bytes = ''
     real_value = None
+
+    if n < 0:
+        n += 0x20000000
 
     if n > 0x1fffff:
         real_value = n

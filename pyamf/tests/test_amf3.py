@@ -298,13 +298,21 @@ class EncoderTestCase(unittest.TestCase):
 
     def test_integer(self):
         self._run([(0, '\x04\x00')])
+        self._run([(0x35, '\x04\x35')])
         self._run([(0x7f, '\x04\x7f')])
         self._run([(0x80, '\x04\x81\x00')])
+        self._run([(0xd4, '\x04\x81\x54')])
         self._run([(0x3fff, '\x04\xff\x7f')])
         self._run([(0x4000, '\x04\x81\x80\x00')])
+        self._run([(0x1a53f, '\x04\x86\xca\x3f')])
         self._run([(0x1fffff, '\x04\xff\xff\x7f')])
         self._run([(0x200000, '\x04\x80\xc0\x80\x00')])
-        self._run([(0x3fffffff, '\x04\xff\xff\xff\xff')])
+        self._run([(-0x01, '\x04\xff\xff\xff\xff')])
+        self._run([(-0x2a, '\x04\xff\xff\xff\xd6')])
+        self._run([(0xfffffff, '\x04\xbf\xff\xff\xff')])
+        self._run([(-0x10000000, '\x04\xc0\x80\x80\x00')])
+        self._run([(0x10000000, '\x05\x41\xb0\x00\x00\x00\x00\x00\x00')])
+        self._run([(-0x10000001, '\x05\xc1\xb0\x00\x00\x01\x00\x00\x00')])
 
     def test_number(self):
         self._run([
@@ -330,22 +338,27 @@ class EncoderTestCase(unittest.TestCase):
                 return u'MÃÂ¶tley CrÃÂ¼e'
 
         self.encoder.writeString(UnicodeObject())
-        self.assertEquals(self.buf.getvalue(), '\x06+M\xc3\x83\xc3\x82\xc2\xb6tley Cr\xc3\x83\xc3\x82\xc2\xbce')
+        self.assertEquals(self.buf.getvalue(), '\x06+M\xc3\x83\xc3\x82\xc2'
+            '\xb6tley Cr\xc3\x83\xc3\x82\xc2\xbce')
         self.buf.truncate()
         self.context.clear()
 
         self.encoder.writeString(StrObject())
-        self.assertEquals(self.buf.getvalue(), '\x06+M\xc3\x83\xc3\x82\xc2\xb6tley Cr\xc3\x83\xc3\x82\xc2\xbce')
+        self.assertEquals(self.buf.getvalue(), '\x06+M\xc3\x83\xc3\x82\xc2'
+            '\xb6tley Cr\xc3\x83\xc3\x82\xc2\xbce')
         self.buf.truncate()
         self.context.clear()
 
         self.encoder.writeString(ReprObject())
-        self.assertEquals(self.buf.getvalue(), '\x06+M\xc3\x83\xc3\x82\xc2\xb6tley Cr\xc3\x83\xc3\x82\xc2\xbce')
+        self.assertEquals(self.buf.getvalue(), '\x06+M\xc3\x83\xc3\x82\xc2'
+            '\xb6tley Cr\xc3\x83\xc3\x82\xc2\xbce')
         self.buf.truncate()
         self.context.clear()
 
-        self.encoder.writeString('M\xc3\x83\xc3\x82\xc2\xb6tley Cr\xc3\x83\xc3\x82\xc2\xbce')
-        self.assertEquals(self.buf.getvalue(), '\x06+M\xc3\x83\xc3\x82\xc2\xb6tley Cr\xc3\x83\xc3\x82\xc2\xbce')
+        self.encoder.writeString('M\xc3\x83\xc3\x82\xc2\xb6tley Cr\xc3\x83'
+            '\xc3\x82\xc2\xbce')
+        self.assertEquals(self.buf.getvalue(), '\x06+M\xc3\x83\xc3\x82\xc2'
+            '\xb6tley Cr\xc3\x83\xc3\x82\xc2\xbce')
 
 
     def test_string_references(self):
@@ -618,13 +631,37 @@ class DecoderTestCase(unittest.TestCase):
 
     def test_integer(self):
         self._run([(0, '\x04\x00')])
+        self._run([(0x35, '\x04\x35')])
         self._run([(0x7f, '\x04\x7f')])
         self._run([(0x80, '\x04\x81\x00')])
+        self._run([(0xd4, '\x04\x81\x54')])
         self._run([(0x3fff, '\x04\xff\x7f')])
         self._run([(0x4000, '\x04\x81\x80\x00')])
+        self._run([(0x1a53f, '\x04\x86\xca\x3f')])
         self._run([(0x1fffff, '\x04\xff\xff\x7f')])
         self._run([(0x200000, '\x04\x80\xc0\x80\x00')])
-        self._run([(0x3fffffff, '\x04\xff\xff\xff\xff')])
+        self._run([(-0x01, '\x04\xff\xff\xff\xff')])
+        self._run([(-0x2a, '\x04\xff\xff\xff\xd6')])
+        self._run([(0xfffffff, '\x04\xbf\xff\xff\xff')])
+        self._run([(-0x10000000, '\x04\xc0\x80\x80\x00')])
+
+    def test_unsignedInteger(self):
+        tests = [
+            (0, '\x00'),
+            (0x7f, '\x7f'),
+            (0x80, '\x81\x00'),
+            (0x3fff, '\xff\x7f'),
+            (0x4000, '\x81\x80\x00'),
+            (0x1fffff, '\xff\xff\x7f'),
+            (0x200000, '\x80\xc0\x80\x00'),
+            (0x3fffffff, '\xff\xff\xff\xff')
+        ]
+
+        for n, s in tests:
+            self.buf.truncate(0)
+            self.buf.write(s)
+            self.buf.seek(0)
+            self.assertEqual(self.decoder.readUnsignedInteger(), n)
 
     def test_infinites(self):
         import fpconst
@@ -994,9 +1031,6 @@ class ObjectDecodingTestCase(unittest.TestCase):
         obj2 = self.decoder.readElement()
 
         self.assertEquals(id(obj1), id(obj2))
-
-    def test_class_references(self):
-        pass
 
     def test_static(self):
         pyamf.register_class(Spam, 'abc.xyz')
