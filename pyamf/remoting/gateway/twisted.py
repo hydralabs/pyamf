@@ -15,7 +15,7 @@ clients and servers.
 @since: 0.1.0
 """
 
-import sys, os, os.path
+import sys, os.path
 
 try:
     sys.path.remove('')

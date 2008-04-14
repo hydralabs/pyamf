@@ -12,7 +12,7 @@ Remoting client implementation.
 import httplib, urlparse
 
 import pyamf
-from pyamf import remoting, util, logging
+from pyamf import remoting, logging
 
 #: Default AMF client type.
 #: @see: L{ClientTypes<pyamf.ClientTypes>}
