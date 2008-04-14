@@ -4,8 +4,15 @@ PyAMF Changelog
 This file contains information about the changes between the different versions
 of PyAMF.
 
-0.3 (unreleased)
+0.3 (2008-04-14)
 ----------------
+ - Added compatibility module for Google App Engine (Ticket:247)
+ - Fixed the signed interpretation of compressed integers in AMF3 (Ticket:241)
+ - Classic class decoding would throw an AttributeError (Ticket:248)
+ - Reloading adapter modules caused errors in Django, Pylons and Google App
+   Engine. Resolved by removing dependancy on Importing module and incorporating
+   into pyamf.util (Ticket:250)
+ - Adapter framework can now be fired when only loading submodules (Ticket:246)
  - Made util.BufferedByteStream endian aware (Ticket:231)
  - Fixed issue with Twisted threads (Ticket:233)
  - Fixed interpretation of integers in AMF3 (Ticket:241)
