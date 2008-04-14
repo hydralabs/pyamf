@@ -16,9 +16,6 @@ Django project.
 
 import pyamf
 
-import django
-print django
-
 try:
     from django.db.models.query import QuerySet
 except ImportError:
