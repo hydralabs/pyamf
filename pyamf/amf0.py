@@ -369,7 +369,7 @@ class Decoder(pyamf.BaseDecoder):
                 return
 
             for key in filter(lambda x: x in attrs, obj_attrs.keys()):
-                obj.__setattr__(key, obj_attrs[key])
+                setattr(obj, key, obj_attrs[key])
         else:
             f = obj.__setattr__
 

@@ -12,6 +12,7 @@ General tests.
 import unittest
 
 import pyamf
+from pyamf.tests.util import ClassCacheClearingTestCase
 
 class Spam(object):
     """
@@ -120,7 +121,7 @@ class ClassMetaDataTestCase(unittest.TestCase):
         x.append('dynamic')
         self.assertTrue('dynamic' in x)
 
-class ClassAliasTestCase(unittest.TestCase):
+class ClassAliasTestCase(ClassCacheClearingTestCase):
     """
     Test all functionality relating to the class L{ClassAlias}.
     """
@@ -212,8 +213,6 @@ class ClassAliasTestCase(unittest.TestCase):
         self.assertEquals(x.klass, Spam)
         self.assertEquals(x.alias, 'spam.eggs')
 
-        pyamf.unregister_class(Spam)
-
     def test_anonymous(self):
         pyamf.register_class(Spam)
 
@@ -222,8 +221,6 @@ class ClassAliasTestCase(unittest.TestCase):
         self.assertTrue(isinstance(x, pyamf.ClassAlias))
         self.assertEquals(x.klass, Spam)
         self.assertEquals(x.alias, '%s.%s' % (Spam.__module__, Spam.__name__,))
-
-        pyamf.unregister_class(Spam)
 
     def test_external(self):
         class A(object):
@@ -266,9 +263,6 @@ class ClassAliasTestCase(unittest.TestCase):
 
         pyamf.register_class(A, metadata=['external'])
         pyamf.register_class(B, metadata=['external'])
-
-        pyamf.unregister_class(A)
-        pyamf.unregister_class(B)
 
     def test_get_attrs(self):
         pyamf.register_class(Spam)
@@ -318,8 +312,6 @@ class ClassAliasTestCase(unittest.TestCase):
 
         self._obj = Spam()
         self.assertEquals(alias.getAttrs(self._obj), ['foo', 'bar'])
-
-        pyamf.unregister_class(Spam)
 
 class HelperTestCase(unittest.TestCase):
     """
@@ -380,17 +372,7 @@ class HelperTestCase(unittest.TestCase):
 
         self.assertEquals(expected, returned)
 
-class RegisterClassTestCase(unittest.TestCase):
-    def setUp(self):
-        import copy
-
-        self.copy = copy.copy(pyamf.CLASS_CACHE)
-        self.unregister = True
-
-    def tearDown(self):
-        if self.unregister:
-            pyamf.unregister_class(Spam)
-
+class RegisterClassTestCase(ClassCacheClearingTestCase):
     def test_simple(self):
         self.assertTrue('spam.eggs' not in pyamf.CLASS_CACHE.keys())
         alias = pyamf.register_class(Spam, 'spam.eggs')
@@ -424,8 +406,6 @@ class RegisterClassTestCase(unittest.TestCase):
         self.assertRaises(ValueError, pyamf.register_class, Spam, 'spam.eggs',
             metadata=['blah'])
 
-        self.unregister = False
-
     def test_anonymous(self):
         pyamf.register_class(Spam)
         alias = pyamf.CLASS_CACHE['%s.%s' % (Spam.__module__, Spam.__name__,)]
@@ -443,15 +423,13 @@ class RegisterClassTestCase(unittest.TestCase):
     def test_bad_attr_fun(self):
         self.assertRaises(TypeError, pyamf.register_class, Spam, attr_func='boo', metadata=['dynamic'])
 
-        self.unregister = False
-
     def test_has_alias(self):
         self.assertEquals(pyamf.has_alias(Spam), False)
         pyamf.register_class(Spam)
 
         self.assertEquals(pyamf.has_alias(Spam), True)
 
-class UnregisterClassTestCase(unittest.TestCase):
+class UnregisterClassTestCase(ClassCacheClearingTestCase):
     def test_klass(self):
         alias = pyamf.register_class(Spam, 'spam.eggs')
 
@@ -466,17 +444,7 @@ class UnregisterClassTestCase(unittest.TestCase):
         self.assertTrue('spam.eggs' not in pyamf.CLASS_CACHE.keys())
         self.assertTrue(alias not in pyamf.CLASS_CACHE)
 
-class ClassLoaderTestCase(unittest.TestCase):
-    def setUp(self):
-        import copy
-
-        self.cl = copy.copy(pyamf.CLASS_LOADERS)
-
-        pyamf.CLASS_LOADERS = []
-
-    def tearDown(self):
-        pyamf.CLASS_LOADERS = self.cl
-
+class ClassLoaderTestCase(ClassCacheClearingTestCase):
     def test_register(self):
         self.assertTrue(chr not in pyamf.CLASS_LOADERS)
         pyamf.register_class_loader(chr)
@@ -488,6 +456,7 @@ class ClassLoaderTestCase(unittest.TestCase):
         self.assertRaises(ValueError, pyamf.register_class_loader, ord)
 
     def test_unregister(self):
+        self.assertTrue(chr not in pyamf.CLASS_LOADERS)
         pyamf.register_class_loader(chr)
         self.assertTrue(chr in pyamf.CLASS_LOADERS)
 
@@ -508,8 +477,6 @@ class ClassLoaderTestCase(unittest.TestCase):
         pyamf.load_class('spam.eggs')
         self.assertTrue('spam.eggs' in pyamf.CLASS_CACHE.keys())
 
-        pyamf.unregister_class('spam.eggs')
-
     def test_load_unknown_class(self):
         def class_loader(x):
             return None
@@ -529,8 +496,6 @@ class ClassLoaderTestCase(unittest.TestCase):
         pyamf.load_class('spam.eggs')
         self.assertTrue('spam.eggs' in pyamf.CLASS_CACHE.keys())
 
-        pyamf.unregister_class('spam.eggs')
-
     def test_load_class_bad_return(self):
         def class_loader(x):
             return 'xyz'
@@ -541,8 +506,6 @@ class ClassLoaderTestCase(unittest.TestCase):
 
     def test_load_class_by_module(self):
         pyamf.load_class('__builtin__.tuple')
-
-        pyamf.unregister_class('__builtin__.tuple')
 
     def test_load_class_by_module_bad(self):
         self.assertRaises(pyamf.UnknownClassAlias, pyamf.load_class,

@@ -17,7 +17,7 @@ import unittest, datetime
 
 import pyamf
 from pyamf import amf0, util
-from pyamf.tests.util import EncoderTester, DecoderTester
+from pyamf.tests.util import EncoderTester, DecoderTester, ClassCacheClearingTestCase, Spam, ClassicSpam
 
 class TypesTestCase(unittest.TestCase):
     """
@@ -117,12 +117,14 @@ class ContextTestCase(unittest.TestCase):
         self.assertEquals(x.getObjectReference(z), ref2)
         self.assertRaises(pyamf.ReferenceError, x.getObjectReference, {})
 
-class EncoderTestCase(unittest.TestCase):
+class EncoderTestCase(ClassCacheClearingTestCase):
     """
     Tests the output from the AMF0 L{Encoder<pyamf.amf0.Encoder>} class.
     """
 
     def setUp(self):
+        ClassCacheClearingTestCase.setUp(self)
+
         self.buf = util.BufferedByteStream()
         self.encoder = amf0.Encoder(self.buf)
         self.context = self.encoder.context
@@ -253,9 +255,6 @@ class EncoderTestCase(unittest.TestCase):
             ({'a': 'b'}, '\x03\x00\x01a\x02\x00\x01b\x00\x00\x09')])
 
     def test_force_amf3(self):
-        class Spam(object):
-            pass
-
         pyamf.register_class(Spam, 'spam.eggs', metadata=['amf3'])
 
         x = Spam()
@@ -267,9 +266,6 @@ class EncoderTestCase(unittest.TestCase):
         pyamf.unregister_class(Spam)
 
     def test_typed_object(self):
-        class Spam(object):
-            pass
-
         pyamf.register_class(Spam, alias='org.pyamf.spam')
 
         x = Spam()
@@ -306,9 +302,6 @@ class EncoderTestCase(unittest.TestCase):
         self.assertEquals(self.buf.getvalue(), '\x11\x04\x01')
 
     def test_anonymous(self):
-        class Spam(object):
-            pass
-
         pyamf.register_class(Spam)
 
         x = Spam()
@@ -318,12 +311,7 @@ class EncoderTestCase(unittest.TestCase):
         self._run([
             (x, '\x03\x00\x05hello\x02\x00\x05world\x00\x04spam\x02\x00\x04eggs\x00\x00\t')])
 
-        pyamf.unregister_class(Spam)
-
     def test_dynamic(self):
-        class Spam(pyamf.ASObject):
-            pass
-
         def attr_func(obj):
             self.assertTrue(isinstance(obj, Spam))
 
@@ -367,7 +355,6 @@ class EncoderTestCase(unittest.TestCase):
             metadata=['dynamic'])
         self._run([(x, '\x10\x00\x01x\x00\x03foo\x02\x00\x03bar\x00\x05hello'
             '\x02\x00\x05world\x00\x00\t')])
-        pyamf.unregister_class(Spam)
 
     def test_custom_type(self):
         def write_as_list(list_interface_obj):
@@ -407,8 +394,6 @@ class EncoderTestCase(unittest.TestCase):
             '\x00\x0bfamily_name\x02\x00\x03Doe\x00\ngiven_name\x02\x00\x04'
             'Jane\x00\x00\t')
 
-        pyamf.unregister_class(Person)
-
     def test_getstate(self):
         tc = self
         tc.executed = False
@@ -428,13 +413,13 @@ class EncoderTestCase(unittest.TestCase):
             '\x68\x65\x6c\x6c\x6f\x00\x00\x09')
         self.assertTrue(self.executed)
 
-        pyamf.unregister_class(Foo)
-
-class DecoderTestCase(unittest.TestCase):
+class DecoderTestCase(ClassCacheClearingTestCase):
     """
     Tests the output from the AMF0 L{Decoder<pyamf.amf0.Decoder>} class.
     """
     def setUp(self):
+        ClassCacheClearingTestCase.setUp(self)
+
         self.buf = util.BufferedByteStream()
         self.decoder = amf0.Decoder(self.buf)
         self.context = self.decoder.context
@@ -571,14 +556,6 @@ class DecoderTestCase(unittest.TestCase):
             ({'a': 'b'}, '\x03\x00\x01a\x02\x00\x01b\x00\x00\x09')])
 
     def test_registered_class(self):
-        class Spam(object):
-            pass
-
-        try:
-            del pyamf.CLASS_CACHE['org.pyamf.spam']
-        except KeyError:
-            pass
-
         pyamf.register_class(Spam, alias='org.pyamf.spam')
 
         self.buf.write('\x10\x00\x0eorg.pyamf.spam\x00\x03'
@@ -591,8 +568,6 @@ class DecoderTestCase(unittest.TestCase):
 
         self.assertTrue(hasattr(obj, 'baz'))
         self.assertEquals(obj.baz, 'hello')
-
-        del pyamf.CLASS_CACHE['org.pyamf.spam']
 
     def test_complex_list(self):
         x = datetime.datetime(2007, 11, 3, 8, 7, 37, 437000)
@@ -658,7 +633,6 @@ class DecoderTestCase(unittest.TestCase):
             metadata=['dynamic'])
         self._run([(x, '\x10\x00\x01x\x00\x03foo\x02\x00\x03bar\x00\x05hello'
             '\x02\x00\x05world\x00\x00\t')])
-        pyamf.unregister_class(Foo)
 
     def test_setstate_newstyle(self):
         self.executed = False
@@ -684,8 +658,6 @@ class DecoderTestCase(unittest.TestCase):
         self.assertEquals(foo.spam, 'hello')
         self.assertEquals(foo.eggs, True)
         self.assertTrue(self.executed)
-
-        pyamf.unregister_class(Foo)
 
     def test_setstate_classic(self):
         self.executed = False
@@ -714,6 +686,16 @@ class DecoderTestCase(unittest.TestCase):
         self.assertEquals(foo.eggs, True)
 
         pyamf.unregister_class(Foo)
+
+    def test_classic_class(self):
+        pyamf.register_class(ClassicSpam, 'spam.eggs')
+
+        self.buf.write('\x10\x00\tspam.eggs\x00\x03foo\x02\x00\x03bar\x00\x00\t')
+        self.buf.seek(0)
+
+        foo = self.decoder.readElement()
+
+        self.assertEquals(foo.foo, 'bar')
 
 class HelperTestCase(unittest.TestCase):
     def test_encode(self):

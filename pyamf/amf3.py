@@ -1133,7 +1133,7 @@ class Decoder(pyamf.BaseDecoder):
             obj.__setstate__(obj_attrs)
         else:
             for k, v in obj_attrs.iteritems():
-                obj.__setattr__(k, v)
+                setattr(obj, k, v)
 
         return obj
 

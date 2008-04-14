@@ -750,7 +750,7 @@ def suite():
 
         from pyamf.tests.gateway import test_django
 
-        suite.addTest(test_django.suite())
+        #suite.addTest(test_django.suite())
 
     return suite
 

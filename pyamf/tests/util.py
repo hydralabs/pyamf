@@ -11,6 +11,42 @@ Test utilities.
 @since: 0.1.0
 """
 
+import unittest, copy
+import pyamf
+
+class ClassicSpam:
+    def __readamf__(self, input):
+        pass
+
+    def __writeamf__(self, output):
+        pass
+
+class Spam(object):
+    """
+    A generic object to use for object encoding
+    """
+    def __init__(self, d={}):
+        self.__dict__.update(d)
+
+    def __readamf__(self, input):
+        pass
+
+    def __writeamf__(self, output):
+        pass
+
+class ClassCacheClearingTestCase(unittest.TestCase):
+    def setUp(self):
+        unittest.TestCase.setUp(self)
+
+        self._class_cache = pyamf.CLASS_CACHE.copy()
+        self._class_loaders = copy.copy(pyamf.CLASS_LOADERS)
+
+    def tearDown(self):
+        unittest.TestCase.tearDown(self)
+
+        pyamf.CLASS_CACHE = self._class_cache
+        pyamf.CLASS_LOADERS = self._class_loaders
+
 class EncoderTester(object):
     """
     A helper object that takes some input, runs over the encoder
