@@ -41,14 +41,9 @@ def register_adapters():
     for f in glob.glob(os.path.join(packageDir, '*.py')):
         mod = os.path.basename(f).split(os.path.extsep, 1)[0]
 
-        if not mod.startswith('_') or mod == '__init__':
+        if mod == '__init__':
             continue
 
-        try:
-            imports.find_module(mod[1:])
-        except ImportError:
-            continue
-
-        module = imports.whenImported(mod[1:], PackageImporter(mod))
+        module = imports.whenImported(mod[1:].replace('_', '.'), PackageImporter(mod))
 
     adapters_registered = True
