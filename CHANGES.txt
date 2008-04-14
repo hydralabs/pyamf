@@ -15,7 +15,6 @@ of PyAMF.
  - Adapter framework can now be fired when only loading submodules (Ticket:246)
  - Made util.BufferedByteStream endian aware (Ticket:231)
  - Fixed issue with Twisted threads (Ticket:233)
- - Fixed interpretation of integers in AMF3 (Ticket:241)
 
 0.2 (2008-03-12)
 ----------------
