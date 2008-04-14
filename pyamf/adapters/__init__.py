@@ -10,9 +10,9 @@ packages. This includes registering classes, setting up type maps etc.
 @since: 0.1.0
 """
 
-import os.path, glob, imp
+import os.path, glob
 
-from peak.util import imports
+from pyamf.util import imports
 
 class PackageImporter(object):
     """
@@ -45,7 +45,7 @@ def register_adapters():
             continue
 
         try:
-            imp.find_module(mod[1:])
+            imports.find_module(mod[1:])
         except ImportError:
             continue
 

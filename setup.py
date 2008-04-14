@@ -28,7 +28,7 @@ class TestCommand(test.test):
 
 import sys
 
-install_requires = ["fpconst>=0.7.2", "Importing>=1.9.2"]
+install_requires = ["fpconst>=0.7.2"]
 if sys.version_info < (2, 5):
     install_requires.extend(["elementtree >= 1.2.6", "uuid>=1.30"])
 
