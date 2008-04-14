@@ -44,6 +44,9 @@ def register_adapters():
         if mod == '__init__' or not mod.startswith('_'):
             continue
 
-        module = imports.whenImported(mod[1:].replace('_', '.'), PackageImporter(mod))
+        try:
+            module = imports.whenImported(mod[1:].replace('_', '.'), PackageImporter(mod))
+        except ImportError:
+            pass
 
     adapters_registered = True

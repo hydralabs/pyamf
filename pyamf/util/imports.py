@@ -146,7 +146,12 @@ def lazyModule(modname, relativePath=None):
 
     if modname not in modules:
         getModuleHooks(modname) # force an empty hook list into existence
-        modules[modname] = LazyModule(modname, find_module(modname)[1])
+        file_name = find_module(modname)[1]
+
+        if file_name == '':
+            raise ImportError, 'Unknown module %s' % modname
+
+        modules[modname] = LazyModule(modname, find_module(file_name)[1])
 
         if '.' in modname:
             # ensure parent module/package is in sys.modules
