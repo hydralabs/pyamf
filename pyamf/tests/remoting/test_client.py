@@ -224,6 +224,9 @@ class RemotingServiceTestCase(unittest.TestCase):
 
         self.assertEquals(x.url, ('http', 'example.org', '', '', '', ''))
 
+        self.assertEquals(x.connection.host, 'example.org')
+        self.assertEquals(x.connection.port, 80)
+
         # amf version
         x = client.RemotingService('http://example.org', pyamf.AMF3)
         self.assertEquals(x.amf_version, pyamf.AMF3)
@@ -246,6 +249,7 @@ class RemotingServiceTestCase(unittest.TestCase):
 
     def test_port(self):
         x = client.RemotingService('http://example.org:8080')
+        self.assertEquals(x.connection.host, 'example.org')
         self.assertEquals(x.connection.port, 8080)
 
     def test_get_service(self):
