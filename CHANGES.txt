@@ -5,7 +5,8 @@ This file contains information about the changes between the different versions
 of PyAMF.
 
 0.3.1 (unreleased)
-----------------
+------------------
+ - Fixed issue with url parsing in AMF client (Ticket:256)
 
 0.3 (2008-04-14)
 ----------------
