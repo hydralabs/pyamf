@@ -114,7 +114,6 @@ class Context(pyamf.BaseContext):
 
     AMF0 object references start at index 1.
     """
-
     def clear(self):
         """
         Resets the context.
@@ -144,12 +143,7 @@ class Context(pyamf.BaseContext):
         """
         Gets a reference for an object.
 
-        @type obj:
-        @param obj:
         @raise ReferenceError: Object reference could not be found.
-
-        @rtype:
-        @return:
         """
         try:
             return self.rev_amf3_objs[id(obj)]
@@ -176,8 +170,8 @@ class Decoder(pyamf.BaseDecoder):
     """
     Decodes an AMF0 stream.
     """
-
     context_class = Context
+    
     # XXX nick: Do we need to support ASTypes.MOVIECLIP here?
     type_map = {
         ASTypes.NUMBER:     'readNumber',
@@ -297,9 +291,6 @@ class Decoder(pyamf.BaseDecoder):
         """
         Reads an ActionScript object from the stream and attempts to
         'cast' it.
-
-        @rtype:
-        @return:
 
         @see: L{load_class<pyamf.load_class>}
         """
@@ -445,8 +436,8 @@ class Encoder(pyamf.BaseEncoder):
     """
     Encodes an AMF0 stream.
     """
-
     context_class = Context
+    
     type_map = [
         ((types.BuiltinFunctionType, types.BuiltinMethodType,),
             "writeUnsupported"),
@@ -545,8 +536,8 @@ class Encoder(pyamf.BaseEncoder):
         """
         Write array to the stream.
 
-        @type   a: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
-        @param  a: AMF data.
+        @type a: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
+        @param a: AMF data.
         """
         try:
             self.writeReference(a)
@@ -675,7 +666,7 @@ class Encoder(pyamf.BaseEncoder):
 
     def _writeEndObject(self):
         # Write a null string, this is an optimisation so that we don't
-        # have to wasting precious cycles by encoding the string etc.
+        # have to waste precious cycles by encoding the string etc.
         self.stream.write('\x00\x00')
         self.writeType(ASTypes.OBJECTTERM)
 
@@ -883,8 +874,8 @@ pyamf.register_class(RecordSet, 'RecordSet', attrs=['serverInfo'], metadata=['am
 
 def _check_for_int(x):
     """
-    This is a compatibility function that takes a float and converts it to an
-    C{int} if the values are equal
+    This is a compatibility function that takes a C{float} and converts it to an
+    C{int} if the values are equal.
     """
     try:
         y = int(x)
@@ -897,7 +888,7 @@ def _check_for_int(x):
 
     return x
 
-# check for some python2.3 problems with floats
+# check for some Python 2.3 problems with floats
 try:
     float('nan')
 except ValueError:

@@ -5,11 +5,13 @@
 Google App Engine adapter module.
 
 Sets up basic type mapping and class mappings for using the Google App Engine
-db api.
+database API.
 
-@see: U{Google App Engine<http://code.google.com/appengine/>}
+@see: U{Google App Engine (external)<http://code.google.com/appengine/>}
+
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
-@since: 0.3
+
+@since: 0.3.0
 """
 
 from google.appengine.ext import db
@@ -24,7 +26,7 @@ def get_attrs_for_model(obj):
 
 def get_attrs_for_expando(obj):
     """
-    Returns a list of dynamic properties on a L{db.Expando} instance
+    Returns a list of dynamic properties on a C{db.Expando} instance
     """
     return obj.dynamic_properties()
 

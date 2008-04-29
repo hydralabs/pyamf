@@ -124,7 +124,6 @@ class BaseContext(object):
     """
     I hold the AMF context for en/decoding streams.
     """
-
     def __init__(self):
         self.clear()
 
@@ -194,7 +193,6 @@ class ASObject(dict):
 
     I supply a C{__builtin__.dict} interface to support get/setattr calls.
     """
-
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
 
@@ -212,7 +210,7 @@ class ASObject(dict):
 
 class MixedArray(dict):
     """
-    Used to be able to specify the mixedarray type.
+    Used to be able to specify the C{mixedarray} type.
     """
 
 class ClassMetaData(list):
@@ -221,7 +219,6 @@ class ClassMetaData(list):
     to emulate the metadata tags you can supply to ActionScript,
     e.g. static/dynamic.
     """
-
     _allowed_tags = (
         ('static', 'dynamic', 'external'),
         ('amf3', 'amf0'),
@@ -252,7 +249,6 @@ class ClassMetaData(list):
         Adds a tag to the metadata.
 
         @param x: Tag.
-        @type x:
 
         @raise ValueError: Unknown tag.
         """
@@ -456,7 +452,7 @@ class BaseDecoder(object):
         @raise TypeError: The C{context} parameter must be of
         type L{Context<pyamf.amf0.Context>}.
         """
-        # coersce data to BufferedByteStream
+        # coerce data to BufferedByteStream
         if isinstance(data, util.BufferedByteStream):
             self.stream = data
         else:
@@ -477,7 +473,7 @@ class BaseDecoder(object):
         """
         Reads an AMF3 element from the data stream.
 
-        @raise DecodeError: The ActionScript type is unknown.
+        @raise DecodeError: The ActionScript type is unsupported.
         @raise EOStream: No more data left to decode.
         """
         try:
@@ -538,7 +534,7 @@ class BaseEncoder(object):
         @raise TypeError: The C{context} parameter must be of type
             L{Context<pyamf.amf0.Context>}.
         """
-        # coersce data to BufferedByteStream
+        # coerce data to BufferedByteStream
         if isinstance(data, util.BufferedByteStream):
             self.stream = data
         else:
@@ -675,8 +671,6 @@ def register_class_loader(loader):
     class, otherwise it should return C{None}.
 
     @type loader: C{callable}
-    @param loader:
-
     @raise TypeError: The C{loader} is not callable.
     @raise ValueError: The C{loader} is already registered.
     """
@@ -708,7 +702,6 @@ def get_module(mod_name):
 
     @type mod_name: C{str}
     @param mod_name: The module name.
-    @rtype:
     @return: Module.
 
     @raise ImportError: Unable to import empty module.
@@ -738,7 +731,6 @@ def load_class(alias):
     @raise UnknownClassAlias: The C{alias} was not found.
     @raise TypeError: Expecting class type or L{ClassAlias} from loader.
     @return: Class registered to the alias.
-    @rtype:
     """
     alias = str(alias)
 
@@ -960,9 +952,7 @@ def flex_loader(alias):
     """
     Loader for L{Flex<pyamf.flex>} framework compatibility classes.
 
-    @type alias:
-    @param alias:
-    @raise UnknownClassAlias:
+    @raise UnknownClassAlias: Trying to load unknown Flex compatibility class.
     """
     if not alias.startswith('flex.'):
         return
@@ -1026,9 +1016,6 @@ def remove_type(type_):
     """
     Removes the custom type declaration.
 
-    @param type_:
-    @type type_:
-    @rtype:
     @return: Custom type declaration.
     """
     declaration = get_type(type_)
@@ -1048,9 +1035,6 @@ def add_error_class(klass, code):
 
     An example: C{add_error_class(AuthenticationError, 'Auth.Failed')}
 
-    @param klass:
-    @type klass:
-    @param code:
     @type code: C{str}
 
     @raise TypeError: C{klass} must be a C{class} type.
@@ -1076,9 +1060,6 @@ def add_error_class(klass, code):
 def remove_error_class(klass):
     """
     Removes a class from C{ERROR_CLASS_MAP}.
-
-    @param klass:
-    @type klass:
 
     @raise ValueError: Code is not registered.
     @raise ValueError: Class is not registered.

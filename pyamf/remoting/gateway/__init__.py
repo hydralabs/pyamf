@@ -29,21 +29,18 @@ class UnknownServiceError(BaseServiceError):
     """
     Client made a request for an unknown service.
     """
-
     _amf_code = 'Service.ResourceNotFound'
 
 class UnknownServiceMethodError(BaseServiceError):
     """
     Client made a request for an unknown method.
     """
-
     _amf_code = 'Service.MethodNotFound'
 
 class InvalidServiceMethodError(BaseServiceError):
     """
     Client made a request for an invalid methodname.
     """
-
     _amf_code = 'Service.MethodInvalid'
 
 class ServiceWrapper(object):
@@ -55,7 +52,6 @@ class ServiceWrapper(object):
     @ivar description: A description of the service.
     @type description: C{str}
     """
-
     def __init__(self, service, description=None, authenticator=None,
         expose_request=None, preprocessor=None):
         self.service = service
@@ -206,7 +202,6 @@ class ServiceRequest(object):
         means that the service will be called directly.
     @type method: C{None} or C{str}
     """
-
     def __init__(self, amf_request, service, method):
         self.request = amf_request
         self.service = service
@@ -219,7 +214,6 @@ class ServiceCollection(dict):
     """
     I hold a collection of services, mapping names to objects.
     """
-
     def __contains__(self, value):
         if isinstance(value, basestring):
             return value in self.keys()
@@ -239,7 +233,6 @@ class BaseGateway(object):
     @ivar preprocessor: Called before the actual service method is invoked.
         Useful for setting up sessions etc.
     """
-
     _request_class = ServiceRequest
     debug = False
 

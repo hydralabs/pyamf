@@ -111,7 +111,6 @@ class Envelope(dict):
 
     There can be more than one request in a single transaction.
     """
-
     def __init__(self, amfVersion=None, clientType=None):
         #: AMF encoding version
         self.amfVersion = amfVersion
@@ -164,7 +163,6 @@ class Message(object):
     @ivar headers: The message headers.
     @type headers: C{dict}
     """
-
     def __init__(self, envelope, body):
         self.envelope = envelope
         self.body = body
@@ -181,7 +179,6 @@ class Request(Message):
     @ivar target: The target of the request
     @type target: C{basestring}
     """
-
     status = STATUS_OK
 
     def __init__(self, target, body=[], envelope=None):
@@ -200,7 +197,6 @@ class Response(Message):
     @ivar status: The status of the message.
     @type status: Member of L{STATUS_CODES}
     """
-
     def __init__(self, body, status=STATUS_OK, envelope=None):
         Message.__init__(self, envelope, body)
 
@@ -227,7 +223,6 @@ class BaseFault(object):
     @see: U{mx.rpc.Fault on Livedocs (external)
     <http://livedocs.adobe.com/flex/201/langref/mx/rpc/Fault.html>}
     """
-
     level = None
 
     def __init__(self, code='', type='', details='', description=''):
@@ -287,7 +282,6 @@ def _read_header(stream, decoder, strict=False):
      required.
      - Value of the header.
     """
-
     name_len = stream.read_ushort()
     name = stream.read_utf8_string(name_len)
 
@@ -401,7 +395,7 @@ def _write_body(name, message, stream, encoder, strict=False):
 
     @param name: The name of the request.
     @type name: C{basestring}
-    @param message: The AMF Payload.
+    @param message: The AMF payload.
     @type message: L{Request} or L{Response}
     @type stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     @type encoder: L{amf0.Encoder<pyamf.amf0.Encoder>}
@@ -452,11 +446,8 @@ def _get_status(status):
     Get status code.
 
     @type status: C{str}
-    @param status:
     @raise ValueError: The status code is unknown.
-
-    @rtype:
-    @return: Status codes.
+    @return: Status code.
     """
     if status not in STATUS_CODES.keys():
         # TODO print that status code..

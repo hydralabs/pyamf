@@ -100,7 +100,6 @@ def encode(name, values, strict=True, encoding=pyamf.AMF0):
     @type name: C{basestring}
     @param values: A C{dict} of name value pairs to be encoded in the stream.
     @type values: C{dict}
-    @param strict:
     @type strict: C{bool}
     @return: A SharedObject encoded stream.
     @rtype: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
@@ -202,9 +201,8 @@ def save(sol, name_or_file, encoding=pyamf.AMF0):
 class SOL(dict):
     """
     Local Shared Object class, allows easy manipulation of the internals of a
-    sol file.
+    C{sol} file.
     """
-
     def __init__(self, name):
         self.name = name
 

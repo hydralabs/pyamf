@@ -185,7 +185,8 @@ class DataOutput(object):
 
         @type value: C{bool}
         @param value: A Boolean value determining which byte is written.
-        If the parameter is C{True}, 1 is written; if C{False}, 0 is written.
+        If the parameter is C{True}, C{1} is written; if C{False}, C{0} is
+        written.
 
         @raise ValueError: Non-boolean value is found.
         """
@@ -202,7 +203,6 @@ class DataOutput(object):
         Writes a byte.
 
         @type value: C{int}
-        @param value:
         """
         self.stream.write_char(value)
 
@@ -212,7 +212,6 @@ class DataOutput(object):
         point number.
 
         @type value: C{number}
-        @param value:
         """
         self.stream.write_double(value)
 
@@ -222,7 +221,6 @@ class DataOutput(object):
         point number.
 
         @type value: C{float}
-        @param value:
         """
         self.stream.write_float(value)
 
@@ -231,7 +229,6 @@ class DataOutput(object):
         Writes a 32-bit signed integer.
 
         @type value: C{int}
-        @param value:
         """
         self.stream.write_long(value)
 
@@ -255,7 +252,6 @@ class DataOutput(object):
         """
         Writes an object to data stream in AMF serialized format.
 
-        @type value:
         @param value: The object to be serialized.
         @type use_references: C{bool}
         @param use_references:
@@ -417,7 +413,6 @@ class DataInput(object):
         """
         Reads an object from the data stream.
 
-        @rtype:
         @return: The deserialized object.
         """
         return self.decoder.readElement()
@@ -479,9 +474,9 @@ class DataInput(object):
 
         @type length: C{int}
         @param length: The number of bytes from the data stream to read.
-        @rtype: str
-        @return: A UTF-8 string produced by the byte
-        representation of characters of specified length.
+        @rtype: C{str}
+        @return: A UTF-8 string produced by the byte representation of
+        characters of specified C{length}.
         """
         return self.readMultiByte(length, 'utf-8')
 
@@ -501,7 +496,6 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
     @see: U{ByteArray on Livedocs (external)
     <http://livedocs.adobe.com/flex/201/langref/flash/utils/ByteArray.html>}
     """
-
     def __init__(self, *args, **kwargs):
         self.context = kwargs.pop('context', Context())
 
@@ -529,7 +523,7 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
 
     def compress(self):
         """
-        Forces compression of the underlying stream
+        Forces compression of the underlying stream.
         """
         self.compressed = True
 
@@ -543,7 +537,6 @@ class ClassDefinition(object):
     @ivar encoding: The type of encoding to use when serializing the object.
     @type encoding: C{int}
     """
-
     def __init__(self, alias, encoding=ObjectEncoding.DYNAMIC):
         if alias in (None, ''):
             self.alias = None
@@ -616,8 +609,8 @@ class ClassDefinition(object):
 
     def getAttrs(self, obj):
         """
-        Returns a tuple containing a list of static attrs and a list of dynamic
-        attrs for C{obj}
+        Returns a C{tuple} containing a list of static C{attrs} and a list of dynamic
+        C{attrs} for C{obj}.
         """
         attrs = None
 
@@ -657,7 +650,6 @@ class Context(pyamf.BaseContext):
     @ivar legacy_xml: A list of legacy encoded XML documents.
     @type legacy_xml: C{list}
     """
-
     def clear(self):
         """
         Resets the context.
@@ -735,10 +727,8 @@ class Context(pyamf.BaseContext):
         """
         Return class reference.
 
-        @type ref:
-        @param ref:
         @raise ReferenceError: The class reference could not be found.
-        @return:
+        @return: Class reference.
         """
         try:
             return self.classes[ref]
@@ -853,8 +843,8 @@ class Decoder(pyamf.BaseDecoder):
     """
     Decodes an AMF3 data stream.
     """
-
     context_class = Context
+    
     type_map = {
         ASTypes.UNDEFINED:  'readUndefined',
         ASTypes.NULL:       'readNull',
@@ -975,7 +965,6 @@ class Decoder(pyamf.BaseDecoder):
         Reads and returns a string from the stream.
 
         @type use_references: C{bool}
-        @param use_references:
         """
         def readLength():
             x = self.readUnsignedInteger()
@@ -1021,7 +1010,7 @@ class Decoder(pyamf.BaseDecoder):
         three bytes of an encoded empty C{dict} will mirror that of an encoded
         C{{'': 1, '2': 2}}
 
-        @see: U{Docuverse blog
+        @see: U{Docuverse blog (external)
         <http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug>}
         """
         size = self.readUnsignedInteger()
@@ -1163,7 +1152,7 @@ class Decoder(pyamf.BaseDecoder):
         """
         Reads a string from the data stream and converts it into an XML Tree.
 
-        @return: The XML Document
+        @return: The XML Document.
         @rtype: L{ET<util.ET>}
         """
         return self._readXML()
@@ -1210,8 +1199,8 @@ class Encoder(pyamf.BaseEncoder):
     """
     Encodes an AMF3 data stream.
     """
-
     context_class = Context
+    
     type_map = [
         # Unsupported types go first
         ((types.BuiltinFunctionType, types.BuiltinMethodType,),
@@ -1259,7 +1248,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         Writes the data type to the stream.
 
-        @param  type: ActionScript type.
+        @param type: ActionScript type.
         @raise EncodeError: AMF3 type is not recognized.
         """
         if type not in ACTIONSCRIPT_TYPES:
@@ -1273,7 +1262,6 @@ class Encoder(pyamf.BaseEncoder):
         Writes an C{pyamf.Undefined} value to the stream.
 
         @type   use_references: C{bool}
-        @param  use_references:
         """
         self.writeType(ASTypes.UNDEFINED)
 
@@ -1552,10 +1540,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         Read class definition.
 
-        @type   obj:
-        @param  obj:
         @type   use_references: C{bool}
-        @param  use_references:
         """
         if obj.__class__ == pyamf.MixedArray:
             self.writeDict(obj, use_references)
@@ -1568,10 +1553,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         Writes an object to the stream.
 
-        @type   obj:
-        @param  obj:
         @type   use_references: C{bool}
-        @param  use_references:
         @raise EncodeError: Unknown object encoding.
         """
         def writeStatic(obj, attrs, class_ref):
@@ -1716,8 +1698,6 @@ def encode(element, context=None):
     """
     A helper function to encode an element into AMF3 format.
 
-    @type   element:
-    @param  element:
     @type   context: L{Context}
     @param  context: Context.
     @return: Object containing the encoded AMF3 data.

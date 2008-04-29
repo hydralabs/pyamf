@@ -7,11 +7,11 @@ Django adapter module.
 Sets up basic type mapping and class mappings for a
 Django project.
 
-@see: U{Django Project<http://www.djangoproject.com>}
+@see: U{Django Project (external)<http://www.djangoproject.com>}
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
-@since: 0.1b
+@since: 0.1.0
 """
 
 import pyamf
