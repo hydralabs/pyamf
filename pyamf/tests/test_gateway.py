@@ -752,6 +752,22 @@ def suite():
 
         #suite.addTest(test_django.suite())
 
+    try:
+        import dev_appserver, sys
+
+        sys.path = dev_appserver.EXTRA_PATHS + sys.path
+
+        from google.appengine.ext import webapp
+    except ImportError:
+        webapp = None
+
+    if webapp:
+        import sys
+
+        from pyamf.tests.gateway import test_google
+
+        suite.addTest(test_google.suite())
+
     return suite
 
 if __name__ == '__main__':
