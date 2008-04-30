@@ -1690,23 +1690,26 @@ def decode(stream, context=None):
 
     while 1:
         try:
-    	    yield decoder.readElement()
-    	except pyamf.EOStream:
-    	    break
+            yield decoder.readElement()
+        except pyamf.EOStream:
+            break
 
-def encode(element, context=None):
+def encode(*args, **kwargs):
     """
     A helper function to encode an element into AMF3 format.
 
-    @type   context: L{Context}
-    @param  context: Context.
-    @return: Object containing the encoded AMF3 data.
-    @rtype: C{StringIO}
+    @type args: List of args to encode.
+    @param context: Any initial context to use.
+    @type context: L{Context}
+    @return: C{StringIO} type object containing the encoded AMF3 data.
+    @rtype: L{util.BufferedByteStream}
     """
+    context = kwargs.get('context', None)
     buf = util.BufferedByteStream()
     encoder = Encoder(buf, context)
 
-    encoder.writeElement(element)
+    for element in args:
+        encoder.writeElement(element)
 
     return buf
 

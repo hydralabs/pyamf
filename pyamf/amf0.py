@@ -786,11 +786,11 @@ def decode(stream, context=None):
 
     while 1:
         try:
-    	    yield decoder.readElement()
-    	except pyamf.EOStream:
-    	    break
+            yield decoder.readElement()
+        except pyamf.EOStream:
+            break
 
-def encode(element, context=None):
+def encode(*args, **kwargs):
     """
     A helper function to encode an element into the AMF0 format.
 
@@ -802,10 +802,12 @@ def encode(element, context=None):
     @rtype: C{StringIO}
     @return: The encoded stream.
     """
+    context = kwargs.get('context', None)
     buf = util.BufferedByteStream()
     encoder = Encoder(buf, context)
 
-    encoder.writeElement(element)
+    for element in args:
+        encoder.writeElement(element)
 
     return buf
 

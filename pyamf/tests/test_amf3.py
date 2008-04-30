@@ -13,7 +13,7 @@ Tests for AMF3 Implementation.
 @since: 0.1.0
 """
 
-import unittest
+import unittest, types
 
 import pyamf
 from pyamf import amf3, util
@@ -1376,6 +1376,38 @@ class ClassInheritanceTestCase(_util.ClassCacheClearingTestCase):
         self.assertEquals(stream.getvalue(), '\n\x1b\x03C\x03c\x06\x07foo\x03a'
             '\x06\tspam\x03b\x06\teggs\x01')
 
+class HelperTestCase(unittest.TestCase):
+    def test_encode(self):
+        buf = amf3.encode(1)
+
+        self.assertTrue(isinstance(buf, util.BufferedByteStream))
+
+        self.assertEquals(amf3.encode(1).getvalue(), '\x04\x01')
+        self.assertEquals(amf3.encode('foo', 'bar').getvalue(), '\x06\x07foo\x06\x07bar')
+
+    def test_encode_with_context(self):
+        context = amf3.Context()
+
+        obj = object()
+        context.addObject(obj)
+        self.assertEquals(amf3.encode(obj, context=context).getvalue(), '\n\x00')
+
+    def test_decode(self):
+        gen = amf3.decode('\x04\x01')
+        self.assertTrue(isinstance(gen, types.GeneratorType))
+
+        self.assertEquals(gen.next(), 1)
+        self.assertRaises(StopIteration, gen.next)
+
+        self.assertEquals([x for x in amf3.decode('\x06\x07foo\x06\x07bar')], ['foo', 'bar'])
+
+    def test_decode_with_context(self):
+        context = amf3.Context()
+
+        obj = object()
+        context.addObject(obj)
+        self.assertEquals([x for x in amf3.decode('\n\x00', context=context)], [obj])
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -1389,6 +1421,7 @@ def suite():
     suite.addTest(unittest.makeSuite(DataOutputTestCase))
     suite.addTest(unittest.makeSuite(DataInputTestCase))
     suite.addTest(unittest.makeSuite(ClassInheritanceTestCase))
+    suite.addTest(unittest.makeSuite(HelperTestCase))
 
     return suite
 

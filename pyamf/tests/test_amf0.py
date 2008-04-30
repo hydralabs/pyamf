@@ -13,7 +13,7 @@ Tests for AMF0 Implementation.
 @since: 0.1.0
 """
 
-import unittest, datetime
+import unittest, datetime, types
 
 import pyamf
 from pyamf import amf0, util
@@ -719,7 +719,35 @@ class DecoderTestCase(ClassCacheClearingTestCase):
 
 class HelperTestCase(unittest.TestCase):
     def test_encode(self):
-        pass
+        buf = amf0.encode(1)
+
+        self.assertTrue(isinstance(buf, util.BufferedByteStream))
+
+        self.assertEquals(amf0.encode(1).getvalue(), '\x00?\xf0\x00\x00\x00\x00\x00\x00')
+        self.assertEquals(amf0.encode('foo', 'bar').getvalue(), '\x02\x00\x03foo\x02\x00\x03bar')
+
+    def test_encode_with_context(self):
+        context = amf0.Context()
+
+        obj = object()
+        context.addObject(obj)
+        self.assertEquals(amf0.encode(obj, context=context).getvalue(), '\x07\x00\x00')
+
+    def test_decode(self):
+        gen = amf0.decode('\x00?\xf0\x00\x00\x00\x00\x00\x00')
+        self.assertTrue(isinstance(gen, types.GeneratorType))
+
+        self.assertEquals(gen.next(), 1)
+        self.assertRaises(StopIteration, gen.next)
+
+        self.assertEquals([x for x in amf0.decode('\x02\x00\x03foo\x02\x00\x03bar')], ['foo', 'bar'])
+
+    def test_decode_with_context(self):
+        context = amf0.Context()
+
+        obj = object()
+        context.addObject(obj)
+        self.assertEquals([x for x in amf0.decode('\x07\x00\x00', context=context)], [obj])
 
 class RecordSetTestCase(unittest.TestCase):
     def test_create(self):
