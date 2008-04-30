@@ -11,7 +11,7 @@ Test utilities.
 @since: 0.1.0
 """
 
-import unittest, copy
+import unittest, copy, sys
 import pyamf
 
 class ClassicSpam:
@@ -96,3 +96,27 @@ class DecoderTester(object):
 
             # make sure that the entire buffer was consumed
             testcase.assertEqual(self.buf.remaining(), 0)
+
+def isNaN(val):
+    if sys.version_info < (2, 5):
+        import fpconst
+
+        return fpconst.isNaN(val)
+    else:
+        return str(float(val)) == 'nan'
+
+def isPosInf(val):
+    if sys.version_info < (2, 5):
+        import fpconst
+
+        return fpconst.isPosInf(val)
+    else:
+        return val == float('inf')
+
+def isNegInf(val):
+    if sys.version_info < (2, 5):
+        import fpconst
+
+        return fpconst.isNegInf(val)
+    else:
+        return val == float('-inf')

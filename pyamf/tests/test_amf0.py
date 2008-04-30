@@ -17,7 +17,8 @@ import unittest, datetime
 
 import pyamf
 from pyamf import amf0, util
-from pyamf.tests.util import EncoderTester, DecoderTester, ClassCacheClearingTestCase, Spam, ClassicSpam
+from pyamf.tests.util import EncoderTester, DecoderTester, \
+    ClassCacheClearingTestCase, Spam, ClassicSpam, isNaN, isPosInf, isNegInf
 
 class TypesTestCase(unittest.TestCase):
     """
@@ -474,17 +475,24 @@ class DecoderTestCase(ClassCacheClearingTestCase):
             self.assertEquals(type(self.decoder.readElement()), expected_type)
 
     def test_infinites(self):
-        import fpconst
-
-        self._run([(fpconst.NegInf, '\x00\xff\xf0\x00\x00\x00\x00\x00\x00')])
-        self._run([(fpconst.PosInf, '\x00\x7f\xf0\x00\x00\x00\x00\x00\x00')])
-
         self.buf.truncate()
         self.buf.write('\x00\xff\xf8\x00\x00\x00\x00\x00\x00')
         self.buf.seek(0)
         x = self.decoder.readElement()
-        self.assertTrue(fpconst.isNaN(x))
+        self.assertTrue(isNaN(x))
 
+        self.buf.truncate()
+        self.buf.write('\x00\xff\xf0\x00\x00\x00\x00\x00\x00')
+        self.buf.seek(0)
+        x = self.decoder.readElement()
+        self.assertTrue(isNegInf(x))
+
+        self.buf.truncate()
+        self.buf.write('\x00\x7f\xf0\x00\x00\x00\x00\x00\x00')
+        self.buf.seek(0)
+        x = self.decoder.readElement()
+        self.assertTrue(isPosInf(x))
+        
     def test_boolean(self):
         self._run([
             (True, '\x01\x01'),

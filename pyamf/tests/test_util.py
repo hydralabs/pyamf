@@ -17,6 +17,7 @@ from datetime import datetime
 from StringIO import StringIO
 
 from pyamf import util
+from pyamf.tests import util as _util
 
 class TimestampTestCase(unittest.TestCase):
     """
@@ -420,16 +421,14 @@ class DataTypeMixInTestCase(unittest.TestCase):
         self._read_endian(['\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb'] * 2, 'read_utf8_string', (9,), u'ᚠᛇᚻ')
 
     def test_nan(self):
-        import fpconst
-
         x = ByteStream('\xff\xf8\x00\x00\x00\x00\x00\x00')
-        self.assertTrue(fpconst.isNaN(x.read_double()))
+        self.assertTrue(_util.isNaN(x.read_double()))
 
         x = ByteStream('\xff\xf0\x00\x00\x00\x00\x00\x00')
-        self.assertTrue(fpconst.isNegInf(x.read_double()))
+        self.assertTrue(_util.isNegInf(x.read_double()))
 
         x = ByteStream('\x7f\xf0\x00\x00\x00\x00\x00\x00')
-        self.assertTrue(fpconst.isPosInf(x.read_double()))
+        self.assertTrue(_util.isPosInf(x.read_double()))
 
 class BufferedByteStreamTestCase(unittest.TestCase):
     """

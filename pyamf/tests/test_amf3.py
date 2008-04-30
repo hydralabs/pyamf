@@ -644,17 +644,23 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
             self.assertEqual(self.decoder.readUnsignedInteger(), n)
 
     def test_infinites(self):
-        import fpconst
-
-        self._run([(fpconst.NegInf, '\x05\xff\xf0\x00\x00\x00\x00\x00\x00')])
-        self._run([(fpconst.PosInf, '\x05\x7f\xf0\x00\x00\x00\x00\x00\x00')])
-
         self.buf.truncate()
         self.buf.write('\x05\xff\xf8\x00\x00\x00\x00\x00\x00')
         self.buf.seek(0)
         x = self.decoder.readElement()
+        self.assertTrue(_util.isNaN(x))
 
-        self.assertTrue(fpconst.isNaN(x))
+        self.buf.truncate()
+        self.buf.write('\x05\xff\xf0\x00\x00\x00\x00\x00\x00')
+        self.buf.seek(0)
+        x = self.decoder.readElement()
+        self.assertTrue(_util.isNegInf(x))
+
+        self.buf.truncate()
+        self.buf.write('\x05\x7f\xf0\x00\x00\x00\x00\x00\x00')
+        self.buf.seek(0)
+        x = self.decoder.readElement()
+        self.assertTrue(_util.isPosInf(x))
 
     def test_boolean(self):
         self._run([(True, '\x03'), (False, '\x02')])
