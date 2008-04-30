@@ -762,7 +762,13 @@ class Encoder(pyamf.BaseEncoder):
         @type data: C{mixed}
         @param data: The data to be encoded.
         """
-        encoder = pyamf._get_encoder_class(pyamf.AMF3)(self.stream)
+        if not hasattr(self.context, 'amf3_context'):
+            from pyamf import amf3
+
+            self.context.amf3_context = amf3.Context()
+
+        self.context.addAMF3Object(data)
+        encoder = pyamf._get_encoder_class(pyamf.AMF3)(self.stream, self.context.amf3_context)
 
         self.writeType(ASTypes.AMF3)
         encoder.writeElement(data)

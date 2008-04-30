@@ -296,11 +296,23 @@ class EncoderTestCase(ClassCacheClearingTestCase):
                 '\x00\x04spam\x00\x01b\x02\x00\x04eggs\x00\x00\t\x07\x00\x02')])
 
     def test_amf3(self):
-        x = 1
+        self.assertFalse(hasattr(self.context, 'amf3_context'))
 
-        self.context.addAMF3Object(x)
-        self.encoder.writeElement(x)
+        self.context.addAMF3Object(1)
+        self.encoder.writeElement(1)
         self.assertEquals(self.buf.getvalue(), '\x11\x04\x01')
+
+        self.assertTrue(hasattr(self.context, 'amf3_context'))
+
+        self.buf.seek(0)
+        self.buf.truncate()
+        obj = object()
+        self.context.addAMF3Object(obj)
+        self.context.amf3_context.addObject(obj)
+
+        self.encoder.writeElement(obj)
+
+        self.assertEquals(self.buf.getvalue(), '\x11\n\x00')
 
     def test_anonymous(self):
         pyamf.register_class(Spam)
