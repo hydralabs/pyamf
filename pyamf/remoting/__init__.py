@@ -179,8 +179,6 @@ class Request(Message):
     @ivar target: The target of the request
     @type target: C{basestring}
     """
-    status = STATUS_OK
-
     def __init__(self, target, body=[], envelope=None):
         Message.__init__(self, envelope, body)
 
@@ -225,11 +223,11 @@ class BaseFault(object):
     """
     level = None
 
-    def __init__(self, code='', type='', details='', description=''):
-        self.code = code
-        self.type = type
-        self.details = details
-        self.description = description
+    def __init__(self, *args, **kwargs):
+        self.code = kwargs.get('code', '')
+        self.type = kwargs.get('type', '')
+        self.details = kwargs.get('details', '')
+        self.description = kwargs.get('description', '')
 
     def __repr__(self):
         x = '<%s level=%s' % (self.__class__.__name__, self.level)
@@ -456,7 +454,8 @@ def _get_status(status):
     return STATUS_CODES[status]
 
 def get_fault_class(level, **kwargs):
-    code = kwargs.get('code', )
+    code = kwargs.get('code', '')
+
     if level == 'error':
         return ErrorFault
 

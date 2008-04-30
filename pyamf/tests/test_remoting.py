@@ -226,7 +226,6 @@ class EncoderTestCase(unittest.TestCase):
         self.assertEquals(x.envelope, msg)
         self.assertEquals(x.target, 'test.test')
         self.assertEquals(x.body, 'hello')
-        self.assertEquals(x.status, 0)
         self.assertEquals(x.headers, msg.headers)
 
         self.assertEquals(remoting.encode(msg).getvalue(),
@@ -295,6 +294,10 @@ class FaultTestCase(unittest.TestCase):
         x = remoting.get_fault({'level': 'error', 'code': 'Server.Call.Failed'})
 
         self.assertRaises(remoting.RemotingCallFailed, x.raiseException)
+
+    def test_kwargs(self):
+        x = remoting.get_fault({'foo': 'bar'})
+        # The fact that this doesn't throw an error means that this test passes
 
 def suite():
     """
