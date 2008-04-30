@@ -6,6 +6,7 @@ of PyAMF.
 
 0.3.1 (unreleased)
 ------------------
+ - Solved issue with AMFPHP exceptions in AMF client (Ticket:258) 
  - Fixed issue with url parsing in AMF client (Ticket:256)
 
 0.3 (2008-04-14)
