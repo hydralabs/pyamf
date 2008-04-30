@@ -185,6 +185,7 @@ class RequestWrapperTestCase(unittest.TestCase):
 
 class DummyResponse(object):
     tc = None
+    closed = False
 
     def __init__(self, status, body, headers=()):
         self.status = status
@@ -202,6 +203,9 @@ class DummyResponse(object):
             return self.body
 
         return self.body[:x]
+
+    def close(self):
+        self.closed = True
 
 class DummyConnection(object):
     tc = None
@@ -491,6 +495,17 @@ class RemotingServiceTestCase(unittest.TestCase):
 
         response = gw._getResponse()
         self.assertEquals(gw.original_url, 'http://spam.eggs')
+
+    def test_close_http_response(self):
+        gw = client.RemotingService('http://example.org/amf-gateway')
+        dc = DummyConnection()
+        gw.connection = dc
+        dc.response = DummyResponse(200, '\x00\x00\x00\x01\x00\x11ReplaceGatewayUrl'
+            '\x01\x00\x00\x00\x00\x02\x00\x10http://spam.eggs\x00\x00', {
+            'Content-Type': 'application/x-amf'})
+
+        gw._getResponse()
+        self.assertTrue(dc.response.closed, True)
 
 def suite():
     suite = unittest.TestSuite()

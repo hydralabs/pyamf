@@ -414,6 +414,8 @@ class RemotingService(object):
             for k, v in data.iteritems():
                 self.headers[k] = v
 
+        http_response.close()
+
         return response
 
     def setCredentials(self, username, password):

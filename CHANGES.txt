@@ -8,6 +8,8 @@ of PyAMF.
 ------------------
  - Solved issue with AMFPHP exceptions in AMF client (Ticket:258) 
  - Fixed issue with url parsing in AMF client (Ticket:256)
+ - Client no longer raises httplib.ResponseNotReady when making multpile
+   requests using the same RemotingService (Ticket:254)
 
 0.3 (2008-04-14)
 ----------------
