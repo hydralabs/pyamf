@@ -519,9 +519,9 @@ class TypeMapTestCase(unittest.TestCase):
         pyamf.TYPE_MAP = self.tm
 
     def test_add_invalid(self):
-        import imp
+        import new
 
-        mod = imp.new_module('spam')
+        mod = new.module('spam')
         self.assertRaises(TypeError, pyamf.add_type, mod)
         self.assertRaises(TypeError, pyamf.add_type, {})
         self.assertRaises(TypeError, pyamf.add_type, 'spam')
