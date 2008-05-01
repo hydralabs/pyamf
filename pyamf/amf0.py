@@ -9,8 +9,10 @@ AMF0 implementation.
 C{AMF0} supports the basic data types used for the NetConnection, NetStream,
 LocalConnection, SharedObjects and other classes in the Flash Player.
 
-@see: U{Official AMF0 Specification (external)
-<http://download.macromedia.com/pub/labs/amf/amf0_spec_121207.pdf>}
+@see: U{Official AMF0 Specification in English (external)
+<http://opensource.adobe.com/wiki/download/attachments/1114283/amf0_spec_121207.pdf>}
+@see: U{Official AMF0 Specification in Japanese (external)
+<http://opensource.adobe.com/wiki/download/attachments/1114283/JP_amf0_spec_121207.pdf>}
 @see: U{AMF documentation on OSFlash (external)
 <http://osflash.org/documentation/amf>}
 

@@ -13,8 +13,10 @@ and 2.0. It adds support for sending C{int} and C{uint} objects as integers and
 supports data types that are available only in ActionScript 3.0, such as
 L{ByteArray} and L{ArrayCollection}.
 
-@see: U{Official AMF3 Specification (external)
-<http://download.macromedia.com/pub/labs/amf/amf3_spec_121207.pdf>}
+@see: U{Official AMF3 Specification in English (external)
+<http://opensource.adobe.com/wiki/download/attachments/1114283/amf3_spec_121207.pdf>}
+@see: U{Official AMF3 Specification in Japanese (external)
+<http://opensource.adobe.com/wiki/download/attachments/1114283/JP_amf3_spec_121207.pdf>}
 @see: U{AMF3 documentation on OSFlash (external)
 <http://osflash.org/documentation/amf3>}
 
