@@ -32,6 +32,8 @@ install_requires = []
 if sys.version_info < (2, 5):
     install_requires.extend(
         ["elementtree >= 1.2.6", "uuid>=1.30", "fpconst>=0.7.2"])
+elif sys.platform.startswith('win'):
+    install_requires.append("fpconst>=0.7.2")
 
 keyw = """\
 amf amf0 amf3 flex flash remoting rpc http flashplayer air bytearray

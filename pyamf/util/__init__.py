@@ -527,7 +527,7 @@ def get_mro(C):
 
     return merge([[C]] + map(get_mro, C.__bases__) + [list(C.__bases__)])
 
-if sys.version_info < (2, 5):
+if sys.version_info < (2, 5) or sys.platform.startswith('win'):
     # workaround for python2.4's shortcomings with exceptional floats
     # see: http://blog.pyamf.org/archives/when-is-nan-not-a-number-with-python-24
     import fpconst

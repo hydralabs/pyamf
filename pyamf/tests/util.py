@@ -98,7 +98,7 @@ class DecoderTester(object):
             testcase.assertEqual(self.buf.remaining(), 0)
 
 def isNaN(val):
-    if sys.version_info < (2, 5):
+    if sys.version_info < (2, 5) or sys.platform.startswith('win'):
         import fpconst
 
         return fpconst.isNaN(val)
@@ -106,7 +106,7 @@ def isNaN(val):
         return str(float(val)) == 'nan'
 
 def isPosInf(val):
-    if sys.version_info < (2, 5):
+    if sys.version_info < (2, 5) or sys.platform.startswith('win'):
         import fpconst
 
         return fpconst.isPosInf(val)
@@ -114,7 +114,7 @@ def isPosInf(val):
         return val == float('inf')
 
 def isNegInf(val):
-    if sys.version_info < (2, 5):
+    if sys.version_info < (2, 5) or sys.platform.startswith('win'):
         import fpconst
 
         return fpconst.isNegInf(val)
