@@ -2,9 +2,16 @@
 # See LICENSE for details.
 
 """
-Google App Engine compatible AMF Gateway.
+Gateway for Google App Engine.
+
+This gateway allows you to expose functions in Google App Engine web
+applications to AMF clients and servers.
+
+@see: U{Google App Engine homepage (external)
+<http://code.google.com/appengine>}
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
+
 @since: 0.3.1
 """
 
@@ -27,6 +34,9 @@ from pyamf.remoting import gateway
 __all__ = ['WebAppGateway']
 
 class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
+    """
+    Google App Engine Remoting Gateway.
+    """
     __name__ = None
 
     def __init__(self, *args, **kwargs):

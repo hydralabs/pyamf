@@ -20,6 +20,7 @@ of view.
 @see: U{PEP-333 (external)<http://www.python.org/peps/pep-0333.html>}
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
+
 @since: 0.1.0
 """
 
@@ -67,11 +68,6 @@ class WSGIGateway(gateway.BaseGateway):
 
     def __call__(self, environ, start_response):
         """
-        @type environ:
-        @param environ:
-        @type start_response:
-        @param start_response:
-
         @rtype: C{StringIO}
         @return: File-like object.
         """

@@ -4,10 +4,11 @@
 """
 Google App Engine adapter module.
 
-Sets up basic type mapping and class mappings for using the Google App Engine
-database API.
+Sets up basic type mapping and class mappings for using the Datastore API
+in Google App Engine.
 
-@see: U{Google App Engine (external)<http://code.google.com/appengine/>}
+@see: U{Datastore API on Google App Engine (external)
+<http://code.google.com/appengine/docs/datastore>}
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
@@ -20,13 +21,13 @@ import pyamf
 
 def get_attrs_for_model(obj):
     """
-    Returns a list of properties on an C{db.Model} instance
+    Returns a list of properties on an C{db.Model} instance.
     """
     return list(obj.__class__._properties)
 
 def get_attrs_for_expando(obj):
     """
-    Returns a list of dynamic properties on a C{db.Expando} instance
+    Returns a list of dynamic properties on a C{db.Expando} instance.
     """
     return obj.dynamic_properties()
 
