@@ -17,6 +17,7 @@ from django import http
 import pyamf
 from pyamf import remoting, util
 from pyamf.remoting.gateway import django as _django
+from pyamf.tests import util as _util
 
 class HttpRequest(http.HttpRequest):
     """
@@ -30,18 +31,6 @@ class HttpRequest(http.HttpRequest):
         self.raw_post_data = ''
 
 class DjangoGatewayTestCase(unittest.TestCase):
-    def setUp(self):
-        self.old_env = os.environ.copy()
-        self.mods = sys.modules.copy()
-
-        os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
-        mod = pyamf.ASObject()
-        sys.modules['settings'] = mod
-
-    def tearDown(self):
-        os.environ = self.old_env
-        sys.modules = self.mods
-
     def test_request_method(self):
         gw = _django.DjangoGateway()
 

@@ -11,6 +11,7 @@ Tests pyamf.util.imports
 import unittest, sys, os.path
 
 from pyamf.util import imports
+from pyamf.tests import util as _util
 
 class JoinPathTestCase(unittest.TestCase):
     def test_empty(self):
@@ -154,14 +155,7 @@ class WhenImportedTestCase(PostLoadHookClearingTestCase):
 
         del sys.path[0]
 
-        for name in sys.modules.keys():
-            if name not in self.mods:
-                del sys.modules[name]
-
-                continue
-
-            if sys.modules[name] is not self.mods[name]:
-                sys.modules[name] = self.mods[name]
+        _util.replace_dict(self.mods, sys.modules)
 
     def _hook(self, module):
         self.executed = True
