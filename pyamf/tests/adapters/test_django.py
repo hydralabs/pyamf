@@ -46,11 +46,11 @@ class TypeMapTestCase(ModelsBaseTestCase):
     def test_objects_all(self):
         try:
             from django.db import models, connection
+
+            class Spam(models.Model):
+                pass
         except:
             return
-
-        class Spam(models.Model):
-            pass
 
         cursor = connection.cursor()
         cursor.execute('CREATE TABLE adapters_spam (id INTEGER PRIMARY KEY)')
