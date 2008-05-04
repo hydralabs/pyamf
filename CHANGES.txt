@@ -6,6 +6,10 @@ of PyAMF.
 
 0.3.1 (unreleased)
 ------------------
+ - Importing module now has tests (Ticket:266)
+ - Django model adapter now imported only when django.db.models is imported
+   (Ticket:261)
+ - Google Model/Expando encoding now works out of the box
  - Fixed issue with Remote Object destination (Ticket:270)
  - Added a new gateway for the Google App Engine - see
    pyamf.remoting.gateway.google.WebAppGateway (Ticket:253)
