@@ -10,8 +10,6 @@ PyAMF Django adapter tests.
 
 import unittest, sys, os, new
 
-from django.db import models, connection
-
 import pyamf
 
 class ModelsBaseTestCase(unittest.TestCase):
@@ -46,6 +44,11 @@ class ModelsBaseTestCase(unittest.TestCase):
 
 class TypeMapTestCase(ModelsBaseTestCase):
     def test_objects_all(self):
+        try:
+            from django.db import models, connection
+        except:
+            return
+
         class Spam(models.Model):
             pass
 

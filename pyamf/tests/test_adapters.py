@@ -23,7 +23,7 @@ def suite():
             mod = __import__('.'.join(['adapters', name]))
             mod = getattr(mod, name)
             suite.addTest(mod.suite())
-        except ImportError:
+        except:
             continue
 
     return suite
