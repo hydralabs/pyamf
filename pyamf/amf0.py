@@ -173,7 +173,7 @@ class Decoder(pyamf.BaseDecoder):
     Decodes an AMF0 stream.
     """
     context_class = Context
-    
+
     # XXX nick: Do we need to support ASTypes.MOVIECLIP here?
     type_map = {
         ASTypes.NUMBER:     'readNumber',
@@ -439,7 +439,7 @@ class Encoder(pyamf.BaseEncoder):
     Encodes an AMF0 stream.
     """
     context_class = Context
-    
+
     type_map = [
         ((types.BuiltinFunctionType, types.BuiltinMethodType,),
             "writeUnsupported"),

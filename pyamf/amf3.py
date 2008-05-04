@@ -846,7 +846,7 @@ class Decoder(pyamf.BaseDecoder):
     Decodes an AMF3 data stream.
     """
     context_class = Context
-    
+
     type_map = {
         ASTypes.UNDEFINED:  'readUndefined',
         ASTypes.NULL:       'readNull',
@@ -1202,7 +1202,7 @@ class Encoder(pyamf.BaseEncoder):
     Encodes an AMF3 data stream.
     """
     context_class = Context
-    
+
     type_map = [
         # Unsupported types go first
         ((types.BuiltinFunctionType, types.BuiltinMethodType,),

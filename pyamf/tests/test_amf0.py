@@ -504,7 +504,7 @@ class DecoderTestCase(ClassCacheClearingTestCase):
         self.buf.seek(0)
         x = self.decoder.readElement()
         self.assertTrue(isPosInf(x))
-        
+
     def test_boolean(self):
         self._run([
             (True, '\x01\x01'),
