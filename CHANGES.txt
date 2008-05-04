@@ -6,6 +6,7 @@ of PyAMF.
 
 0.3.1 (unreleased)
 ------------------
+ - Fixed issue with Remote Object destination (Ticket:270)
  - Added a new gateway for the Google App Engine - see
    pyamf.remoting.gateway.google.WebAppGateway (Ticket:253)
  - amf0 Encoder now takes amf3 contexts into account (Ticket:268)
