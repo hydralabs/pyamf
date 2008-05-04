@@ -11,10 +11,10 @@ Tests for Local Shared Object (LSO) Implementation.
 @since: 0.1.0
 """
 
-import unittest, os, os.path, warnings
+import unittest, os.path, warnings
 
 import pyamf
-from pyamf import amf0, util, sol
+from pyamf import sol
 
 warnings.simplefilter('ignore', RuntimeWarning)
 
