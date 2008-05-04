@@ -8,7 +8,7 @@ Tests pyamf.util.imports
 @since: 0.3.1
 """
 
-import unittest, sys, os.path, types
+import unittest, sys, os.path
 
 from pyamf.util import imports
 

@@ -178,7 +178,7 @@ def lazyModule(modname, relativePath=None):
                 if os.path.exists(full):
                     break
             else:
-                raise ImportError, 'No module name %d' % name
+                raise ImportError, 'No module name %d' % modname
 
             file_name = full
 

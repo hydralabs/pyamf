@@ -11,9 +11,8 @@ Tests for the adapters module.
 import unittest
 
 def suite():
-    import os.path, sys
+    import os.path
     from glob import glob
-    import logging
 
     suite = unittest.TestSuite()
 
