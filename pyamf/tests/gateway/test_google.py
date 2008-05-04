@@ -16,8 +16,7 @@ from StringIO import StringIO
 
 from google.appengine.ext import webapp
 
-import pyamf
-from pyamf import remoting, util
+from pyamf import remoting
 from pyamf.remoting.gateway import google as _google
 
 class WebAppGatewayTestCase(unittest.TestCase):

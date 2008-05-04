@@ -900,8 +900,10 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
 
         self.assertEquals(foo.foo, 'bar')
 
-class ObjectEncodingTestCase(unittest.TestCase):
+class ObjectEncodingTestCase(_util.ClassCacheClearingTestCase):
     def setUp(self):
+        _util.ClassCacheClearingTestCase.setUp(self)
+
         self.stream = util.BufferedByteStream()
         self.context = amf3.Context()
         self.encoder = amf3.Encoder(self.stream, self.context)
@@ -1345,7 +1347,7 @@ class ClassInheritanceTestCase(_util.ClassCacheClearingTestCase):
         encoder.writeElement(x)
 
         self.assertEquals(stream.getvalue(), '\n\x1b\x03B\x03b\x06\teggs\x03a'
-            '\x06\tspam\x01')
+            '\x06\tspam\x02\x06\x04\x01')
 
     def test_deep(self):
         class A(object):
@@ -1373,8 +1375,8 @@ class ClassInheritanceTestCase(_util.ClassCacheClearingTestCase):
 
         encoder.writeElement(x)
 
-        self.assertEquals(stream.getvalue(), '\n\x1b\x03C\x03c\x06\x07foo\x03a'
-            '\x06\tspam\x03b\x06\teggs\x01')
+        self.assertEquals(stream.getvalue(), '\n\x1b\x03C\x03c\x06\x07foo\x03'
+            'a\x06\tspam\x02\x06\x04\x03b\x06\teggs\x01')
 
 class HelperTestCase(unittest.TestCase):
     def test_encode(self):

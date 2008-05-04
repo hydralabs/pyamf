@@ -34,5 +34,8 @@ def suite():
 
     return suite
 
-if __name__ == '__main__':
+def main():
     unittest.main(defaultTest='suite')
+
+if __name__ == '__main__':
+    main()

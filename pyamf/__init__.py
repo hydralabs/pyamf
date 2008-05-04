@@ -363,7 +363,7 @@ class ClassAlias(object):
             elif type(self.klass) is types.ClassType: # classic class
                 return util.make_classic_instance(self.klass)
 
- 	        raise TypeError, 'invalid class type %r' % self.klass
+            raise TypeError, 'invalid class type %r' % self.klass
 
         return self.klass(*args, **kwargs)
 
@@ -401,9 +401,7 @@ class ClassAlias(object):
             did_something = True
             extra_attrs = self.attr_func(obj)
 
-            for key in extra_attrs:
-                if key not in attrs:
-                    attrs.append(key)
+            attrs += [key for key in extra_attrs if key not in attrs]
 
         if traverse is True:
             for base in util.get_mro(obj.__class__):
