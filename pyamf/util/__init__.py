@@ -527,6 +527,41 @@ def get_mro(C):
 
     return merge([[C]] + map(get_mro, C.__bases__) + [list(C.__bases__)])
 
+def get_attrs(obj):
+    """
+    Gets a dict of the attrs of an object in a predefined resolution order
+    """
+    if hasattr(obj, '__getstate__'):
+        return obj.__getstate__()
+    elif hasattr(obj, 'iteritems'):
+        attrs = {}
+
+        for k, v in obj.iteritems():
+            attrs[k] = v
+
+        return attrs
+    elif hasattr(obj, '__dict__'):
+        return obj.__dict__
+
+    return None
+
+def get_instance_attrs(obj, alias):
+    obj_attrs = None
+
+    if alias is not None:
+        attrs = alias.getAttrs(obj)
+
+        if attrs is not None:
+            obj_attrs = {}
+
+            for at in attrs:
+                obj_attrs[at] = getattr(obj, at)
+
+    if obj_attrs is None:
+        obj_attrs = get_attrs(obj)
+
+    return obj_attrs
+
 if sys.version_info < (2, 5) or sys.platform.startswith('win'):
     # workaround for python2.4's shortcomings with exceptional floats
     # see: http://blog.pyamf.org/archives/when-is-nan-not-a-number-with-python-24
@@ -559,6 +594,6 @@ if sys.version_info < (2, 5) or sys.platform.startswith('win'):
             else:
                 write_double_workaround.old_func(self, d)
 
-                x = DataTypeMixIn.write_double
-                DataTypeMixIn.write_double = write_double_workaround
-                write_double_workaround.old_func = x
+        x = DataTypeMixIn.write_double
+        DataTypeMixIn.write_double = write_double_workaround
+        write_double_workaround.old_func = x

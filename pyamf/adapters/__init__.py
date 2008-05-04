@@ -21,7 +21,7 @@ class PackageImporter(object):
     def __init__(self, name):
         self.name = name
 
-    def __call__(self, name):
+    def __call__(self, mod):
         __import__('%s.%s' % ('pyamf.adapters', self.name))
 
 adapters_registered = False

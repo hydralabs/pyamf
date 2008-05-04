@@ -672,6 +672,26 @@ class Encoder(pyamf.BaseEncoder):
         self.stream.write('\x00\x00')
         self.writeType(ASTypes.OBJECTTERM)
 
+    def _getObjectAttrs(self, o, alias):
+        obj_attrs = None
+
+        if alias is not None:
+            attrs = alias.getAttrs(o)
+
+            if attrs is not None:
+                obj_attrs = {}
+
+                for at in attrs:
+                    obj_attrs[at] = getattr(o, at)
+
+        if obj_attrs is None:
+            obj_attrs = util.get_attrs(o)
+
+        if obj_attrs is None:
+            raise pyamf.EncodeError('Unable to determine object attributes')
+
+        return obj_attrs
+
     def writeObject(self, o):
         """
         Write object to the stream.
@@ -701,30 +721,11 @@ class Encoder(pyamf.BaseEncoder):
                 self.writeType(ASTypes.TYPEDOBJECT)
                 self.writeString(alias.alias, False)
 
-        if hasattr(o, '__getstate__'):
-            for key, value in o.__getstate__().iteritems():
-                self.writeString(key, False)
-                self.writeElement(value)
-        elif alias is not None:
-            it = alias.getAttrs(o)
+        obj_attrs = self._getObjectAttrs(o, alias)
 
-            if it is None:
-                # no predefined attrs to use, do it dynamically
-                it = o.__dict__.keys()
-
-            for key in it:
-                self.writeString(key, False)
-                self.writeElement(getattr(o, key))
-        elif hasattr(o, 'iteritems'):
-            for k, v in o.iteritems():
-                self.writeString(k, False)
-                self.writeElement(v)
-        elif hasattr(o, '__dict__'):
-            for key in o.__dict__.keys():
-                self.writeString(key, False)
-                self.writeElement(getattr(o, key))
-        else:
-            raise pyamf.EncodeError, 'Unable to determine object attributes'
+        for key, value in obj_attrs.iteritems():
+            self.writeString(key, False)
+            self.writeElement(value)
 
         self._writeEndObject()
 

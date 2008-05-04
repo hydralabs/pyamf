@@ -11,8 +11,6 @@ Logging utilities.
 
 logging = __import__('logging')
 
-logging.basicConfig()
-
 def _get_instance_name(obj):
     return "%s.%s.0x%x" % (
         obj.__class__.__module__, obj.__class__.__name__, id(obj))

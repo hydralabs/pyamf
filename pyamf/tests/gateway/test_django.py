@@ -7,14 +7,12 @@
 Django gateway tests.
 
 @author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
-
 @since: 0.1.0
 """
 
-import unittest
+import unittest, sys, os
 
 from django import http
-from django.db import models, connection
 
 import pyamf
 from pyamf import remoting, util
@@ -32,6 +30,18 @@ class HttpRequest(http.HttpRequest):
         self.raw_post_data = ''
 
 class DjangoGatewayTestCase(unittest.TestCase):
+    def setUp(self):
+        self.old_env = os.environ.copy()
+        self.mods = sys.modules.copy()
+
+        os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+        mod = pyamf.ASObject()
+        sys.modules['settings'] = mod
+
+    def tearDown(self):
+        os.environ = self.old_env
+        sys.modules = self.mods
+
     def test_request_method(self):
         gw = _django.DjangoGateway()
 
@@ -101,29 +111,10 @@ class DjangoGatewayTestCase(unittest.TestCase):
 
         gw(http_request)
 
-class TypeMapTestCase(unittest.TestCase):
-    def test_objects_all(self):
-        class Spam(models.Model):
-            pass
-
-        cursor = connection.cursor()
-        cursor.execute('CREATE TABLE gateway_spam (id INTEGER PRIMARY KEY)')
-
-        encoder = pyamf.get_encoder(pyamf.AMF0)
-        encoder.writeElement(Spam.objects.all())
-        self.assertEquals(encoder.stream.getvalue(), '\n\x00\x00\x00\x00')
-
-        encoder = pyamf.get_encoder(pyamf.AMF3)
-        encoder.writeElement(Spam.objects.all())
-        self.assertEquals(encoder.stream.getvalue(), '\t\x01\x01')
-
-        cursor.execute('DROP TABLE gateway_spam')
-
 def suite():
     suite = unittest.TestSuite()
 
     suite.addTest(unittest.makeSuite(DjangoGatewayTestCase))
-    suite.addTest(unittest.makeSuite(TypeMapTestCase))
 
     return suite
 

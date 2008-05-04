@@ -611,29 +611,24 @@ class ClassDefinition(object):
 
     def getAttrs(self, obj):
         """
-        Returns a C{tuple} containing a list of static C{attrs} and a list of dynamic
-        C{attrs} for C{obj}.
+        Returns a C{tuple} containing a dict of static and dynamic attributes
+        for C{obj}.
         """
-        attrs = None
-
-        if hasattr(obj, '__getstate__'):
-            attrs = set([unicode(k) for k in obj.__getstate__()])
-        elif hasattr(obj, 'keys'):
-            attrs = set([unicode(k) for k in obj.keys()])
-        elif hasattr(obj, 'iteritems'):
-            attrs = set([unicode(k) for k, v in obj.iteritems()])
-        elif hasattr(obj, '__dict__'):
-            attrs = set([unicode(k) for k in obj.__dict__.keys()])
-
+        attrs = util.get_instance_attrs(obj, self.alias)
         static_attrs = dynamic_attrs = None
 
         if self.alias:
             if self.alias.attrs:
-                static_attrs = self.alias.attrs
-                [attrs.remove(x) for x in static_attrs]
+                static_attrs = {}
+
+                for attr in self.alias.attrs:
+                    static_attrs[attr] = getattr(obj, attr)
 
             if self.alias.attr_func:
-                dynamic_attrs = self.alias.attr_func(obj)
+                dynamic_attrs = {}
+
+                for attr in self.alias.attr_func(obj):
+                    dynamic_attrs[attr] = getattr(obj, attr)
             else:
                 dynamic_attrs = attrs
         else:
@@ -783,6 +778,11 @@ class Context(pyamf.BaseContext):
             self.rev_class_defs[id(class_def.__class__)] = idx
 
             return idx
+
+    def removeClassDefinition(self, class_def):
+        del self.rev_classes[id(class_def)]
+        del self.rev_class_defs[id(class_def.__class__)]
+        del self.class_defs[class_def.__class__]
 
     def getLegacyXML(self, ref):
         """
@@ -1558,12 +1558,6 @@ class Encoder(pyamf.BaseEncoder):
         @type   use_references: C{bool}
         @raise EncodeError: Unknown object encoding.
         """
-        def writeStatic(obj, attrs, class_ref):
-            if not class_ref:
-                [self._writeString(attr) for attr in attrs]
-
-            [self.writeElement(obj[attr]) for attr in attrs]
-
         self.writeType(ASTypes.OBJECT)
 
         if use_references is True:
@@ -1598,28 +1592,20 @@ class Encoder(pyamf.BaseEncoder):
         else:
             class_def = self._getClassDefinition(obj)
 
-        if hasattr(obj, '__getstate__'):
-            obj_attrs = obj.__getstate__()
-        elif hasattr(obj, 'iteritems'):
-            obj_attrs = {}
-
-            for k, v in obj.iteritems():
-                obj_attrs[k] = v
-        elif hasattr(obj, '__dict__'):
-            obj_attrs = obj.__dict__
-
         if class_def.encoding in (ObjectEncoding.EXTERNAL, ObjectEncoding.PROXY):
             obj.__writeamf__(DataOutput(self))
         else:
             static_attrs, dynamic_attrs = class_def.getAttrs(obj)
 
             if static_attrs is not None:
-                writeStatic(obj_attrs, static_attrs, class_ref)
+                if not class_ref:
+                    [self._writeString(attr) for attr in static_attrs.keys()]
+                    [self.writeElement(attr) for attr in static_attrs.values()]
 
             if class_def.encoding == ObjectEncoding.DYNAMIC and dynamic_attrs is not None:
-                for attr in dynamic_attrs:
+                for attr, value in dynamic_attrs.iteritems():
                     self._writeString(attr)
-                    self.writeElement(obj_attrs[attr])
+                    self.writeElement(value)
 
                 self._writeString("")
 
