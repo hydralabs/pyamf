@@ -4,7 +4,11 @@ PyAMF Changelog
 This file contains information about the changes between the different versions
 of PyAMF.
 
-0.3.1 (unreleased)
+0.4 (unreleased)
+----------------
+
+
+0.3.1 (2008-05-04)
 ------------------
  - Importing module now has tests (Ticket:266)
  - Django model adapter now imported only when django.db.models is imported
