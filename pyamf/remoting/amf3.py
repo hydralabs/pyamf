@@ -114,7 +114,13 @@ class RequestProcessor(object):
 
     def _processRemotingMessage(self, amf_request, ro_request, **kwargs):
         ro_response = generate_acknowledgement(ro_request)
-        service_request = self.gateway.getServiceRequest(amf_request, ro_request.operation)
+
+        service_name = ro_request.operation
+
+        if hasattr(ro_request, 'destination') and ro_request.destination:
+            service_name = '%s.%s' % (ro_request.destination, service_name)
+
+        service_request = self.gateway.getServiceRequest(amf_request, service_name)
 
         # fire the preprocessor (if there is one)
         self.gateway.preprocessRequest(service_request, *ro_request.body, **kwargs)

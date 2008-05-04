@@ -109,7 +109,12 @@ class AMF3RequestProcessor(amf3.RequestProcessor):
         amf_response = remoting.Response(ro_response, status=remoting.STATUS_OK)
 
         try:
-            service_request = self.gateway.getServiceRequest(amf_request, ro_request.operation)
+            service_name = ro_request.operation
+
+            if hasattr(ro_request, 'destination') and ro_request.destination:
+                service_name = '%s.%s' % (ro_request.destination, service_name)
+
+            service_request = self.gateway.getServiceRequest(amf_request, service_name)
         except gateway.UnknownServiceError, e:
             return defer.succeed(remoting.Response(self.buildErrorResponse(ro_request), status=remoting.STATUS_ERROR))
 

@@ -158,6 +158,23 @@ class RequestProcessorTestCase(unittest.TestCase):
         self.assertEquals(response.status, remoting.STATUS_ERROR)
         self.assertTrue(isinstance(ack, messaging.ErrorMessage))
 
+    def test_destination(self):
+        def echo(x):
+            return x
+
+        gw = gateway.BaseGateway({'spam.eggs': echo})
+        rp = amf3.RequestProcessor(gw)
+        message = messaging.RemotingMessage(body=[None], destination='spam', operation='eggs')
+        request = remoting.Request('null', body=[message])
+
+        response = rp(request)
+        ack = response.body
+
+        self.assertTrue(isinstance(response, remoting.Response))
+        self.assertEquals(response.status, remoting.STATUS_OK)
+        self.assertTrue(isinstance(ack, messaging.AcknowledgeMessage))
+        self.assertEquals(ack.body, None)
+
 
 def suite():
     suite = unittest.TestSuite()

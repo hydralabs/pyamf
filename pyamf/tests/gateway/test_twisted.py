@@ -718,6 +718,26 @@ class AMF3RequestProcessorTestCase(unittest.TestCase):
 
         return d
 
+    def test_destination(self):
+        d = defer.Deferred()
+
+        gw = _twisted.TwistedGateway({'spam.eggs': lambda x: x}, expose_request=False)
+        proc = _twisted.AMF3RequestProcessor(gw)
+
+        request = remoting.Request('null', body=[messaging.RemotingMessage(body=[None], destination='spam', operation='eggs')])
+
+        def cb(result):
+            try:
+                self.assertTrue(result)
+            except:
+                d.errback()
+            else:
+                d.callback(None)
+
+        proc(request).addCallback(cb).addErrback(lambda failure: d.errback())
+
+        return d
+
 def suite():
     import unittest
 
