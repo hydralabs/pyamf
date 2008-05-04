@@ -401,13 +401,6 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
 
         return new
 
-class NetworkIOMixIn(DataTypeMixIn):
-    def __init__(self, *args, **kwargs):
-        import warnings
-
-        warnings.warn('%s is deprecated and will be removed in 0.4' % \
-            type(self).__class__.__name__ , DeprecationWarning)
-
 def hexdump(data):
     """
     Get hexadecimal representation of C{StringIO} data.
