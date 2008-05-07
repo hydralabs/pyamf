@@ -6,7 +6,7 @@ of PyAMF.
 
 0.4 (unreleased)
 ----------------
-
+ - Deprecated the NetworkIOMixIn class (Ticket:232)
 
 0.3.1 (2008-05-04)
 ------------------
