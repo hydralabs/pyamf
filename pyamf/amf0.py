@@ -797,10 +797,10 @@ def encode(*args, **kwargs):
     """
     A helper function to encode an element into the AMF0 format.
 
-    @type   element: C{mixed}
-    @param  element: The element to encode
-    @type   context: L{Context<pyamf.amf0.Context>}
-    @param  context: AMF0 C{Context} to use for the encoding. This holds
+    @type element: C{mixed}
+    @keyword element: The element to encode
+    @type context: L{Context<pyamf.amf0.Context>}
+    @keyword context: AMF0 C{Context} to use for the encoding. This holds
         previously referenced objects etc.
     @rtype: C{StringIO}
     @return: The encoded stream.
@@ -821,12 +821,12 @@ class RecordSet(object):
 
     @ivar columns: The columns to send.
     @type columns: List of strings.
-    @ivar items: The recordset data.
+    @ivar items: The C{RecordSet} data.
     @type items: List of lists, the order of the data corresponds to the order
         of the columns.
-    @ivar service: Service linked to the recordset.
+    @ivar service: Service linked to the C{RecordSet}.
     @type service:
-    @ivar id: The id of the recordset.
+    @ivar id: The id of the C{RecordSet}.
     @type id: C{str}
 
     @see: U{RecordSet on OSFlash (external)

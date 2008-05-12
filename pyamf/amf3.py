@@ -1688,10 +1688,10 @@ def encode(*args, **kwargs):
     A helper function to encode an element into AMF3 format.
 
     @type args: List of args to encode.
-    @param context: Any initial context to use.
+    @keyword context: Any initial context to use.
     @type context: L{Context}
     @return: C{StringIO} type object containing the encoded AMF3 data.
-    @rtype: L{util.BufferedByteStream}
+    @rtype: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     """
     context = kwargs.get('context', None)
     buf = util.BufferedByteStream()

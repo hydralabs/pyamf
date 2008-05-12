@@ -217,7 +217,7 @@ class ClassMetaData(list):
     """
     I hold a list of tags relating to the class. The idea behind this is
     to emulate the metadata tags you can supply to ActionScript,
-    e.g. static/dynamic.
+    e.g. C{static}/C{dynamic}.
     """
     _allowed_tags = (
         ('static', 'dynamic', 'external'),
