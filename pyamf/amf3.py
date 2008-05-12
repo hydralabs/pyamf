@@ -818,9 +818,9 @@ class Context(pyamf.BaseContext):
 
     def addLegacyXML(self, doc):
         """
-        Creates a reference to U{doc}.
+        Creates a reference to C{doc}.
 
-        If U{doc} is already referenced that index will be returned. Otherwise
+        If C{doc} is already referenced that index will be returned. Otherwise
         a new index will be created.
 
         @type doc: L{ET<util.ET>}
@@ -867,8 +867,8 @@ class Decoder(pyamf.BaseDecoder):
         """
         Read and returns the next byte in the stream and determine its type.
 
-        @raise DecodeError: AMF3 type not recognized
-        @return: AMF3 type
+        @raise DecodeError: AMF3 type not recognized.
+        @return: AMF3 type.
         @rtype: C{int}
         """
         type = self.stream.read_uchar()
@@ -933,6 +933,7 @@ class Decoder(pyamf.BaseDecoder):
         """
         Reads and returns an integer from the stream.
 
+	@type signed: C{bool}
         @see: U{Parsing integers on OSFlash
         <http://osflash.org/amf3/parsing_integers>} for the AMF3 integer data
         format.
