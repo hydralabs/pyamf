@@ -169,7 +169,7 @@ class CommandMessage(AsyncMessage):
     UNKNOWN_OPERATION = 1000
     #: This is used to unsubscribe from a remote destination.
     UNSUBSCRIBE_OPERATION = 1
-
+    #: This operation is used to indicate that a channel has disconnected.
     DISCONNECT_OPERATION = 12
 
     def __init__(self, *args, **kwargs):
