@@ -20,7 +20,10 @@ class AbstractMessageTestCase(unittest.TestCase):
 
         a.body = u'é,è'
 
-        print repr(a)
+        try:
+            repr(a)
+        except:
+            self.fail()
 
 def suite():
     suite = unittest.TestSuite()

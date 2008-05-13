@@ -83,7 +83,7 @@ class AbstractMessage(object):
         m = '<%s ' % self.__class__.__name__
 
         for k, v in self.__dict__.iteritems():
-            m += ' %s=%s' % (k, v)
+            m += ' %s=%r' % (k, v)
 
         return m + " />"
 
