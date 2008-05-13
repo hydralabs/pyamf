@@ -14,7 +14,7 @@ servers.
 @since: 0.1.0
 """
 
-django = __import__('django')
+django = __import__('django.http')
 http = django.http
 
 import pyamf
