@@ -183,7 +183,6 @@ class RequestProcessorTestCase(unittest.TestCase):
         response = rp(request)
         ack = response.body
 
-        print ack
         self.assertTrue(isinstance(response, remoting.Response))
         self.assertEquals(response.status, remoting.STATUS_OK)
         self.assertTrue(isinstance(ack, messaging.AcknowledgeMessage))
