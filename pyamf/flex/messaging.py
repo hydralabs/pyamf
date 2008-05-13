@@ -170,6 +170,8 @@ class CommandMessage(AsyncMessage):
     #: This is used to unsubscribe from a remote destination.
     UNSUBSCRIBE_OPERATION = 1
 
+    DISCONNECT_OPERATION = 12
+
     def __init__(self, *args, **kwargs):
         AsyncMessage.__init__(self, *args, **kwargs)
 

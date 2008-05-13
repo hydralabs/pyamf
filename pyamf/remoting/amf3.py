@@ -109,6 +109,8 @@ class RequestProcessor(object):
             return remoting.Response(ro_response)
         elif ro_request.operation == CommandMessage.LOGIN_OPERATION:
             raise ServerCallFailed, "Authorisation is not supported in RemoteObject"
+        elif ro_request.operation == CommandMessage.DISCONNECT_OPERATION:
+            return remoting.Response(ro_response)
         else:
             raise ServerCallFailed, "Unknown command operation %s" % ro_request.operation
 
