@@ -280,5 +280,7 @@ def whenImported(moduleName, hook):
             whenImported(moduleName[:splitpos], sub_hook)
         elif sub_hook not in postLoadHooks[moduleName[:splitpos]]:
             whenImported(moduleName[:splitpos], sub_hook)
+        else:
+            postLoadHooks[moduleName[:splitpos]].append(sub_hook)
     else:
         return _setModuleHook(moduleName, hook)

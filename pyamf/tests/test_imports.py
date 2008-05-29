@@ -226,6 +226,21 @@ class WhenImportedTestCase(PostLoadHookClearingTestCase):
         self.assertEquals(imports.postLoadHooks['foo.bar.baz'], None)
         self.assertEquals(self.executed, True)
 
+    def test_multipleChildDeepParent(self):
+        self._clearModules('foo', 'foo.bar', 'foo.bar.baz', 'foo.bar.gak')
+        self._mods = []
+
+        imports.whenImported('foo.bar.baz', lambda m: self._mods.append(m))
+        imports.whenImported('foo.bar.gak', lambda m: self._mods.append(m))
+
+        import foo.bar.baz
+        import foo.bar.gak
+
+        imports._loadModule(foo.bar.baz)
+        imports._loadModule(foo.bar.gak)
+
+        self.assertEquals(self._mods, [foo.bar.baz, foo.bar.gak])
+
 class FindModuleTestCase(unittest.TestCase):
     def setUp(self):
         self.path = os.path.join(os.path.dirname(__file__), 'imports')

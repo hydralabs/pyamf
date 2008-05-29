@@ -11,6 +11,9 @@ PyAMF Django adapter tests.
 import unittest, sys, os, new
 
 import pyamf
+from pyamf.tests import util
+
+import django
 
 class ModelsBaseTestCase(unittest.TestCase):
     def setUp(self):
@@ -35,8 +38,8 @@ class ModelsBaseTestCase(unittest.TestCase):
         setattr(mod, 'DATABASE_NAME', ':memory:')
 
     def tearDown(self):
-        os.environ = self.old_env
-        sys.modules = self.mods
+        util.replace_dict(os.environ, self.old_env)
+        util.replace_dict(sys.modules, self.mods)
 
         if self.existing:
             from django import conf
@@ -65,6 +68,19 @@ class TypeMapTestCase(ModelsBaseTestCase):
         self.assertEquals(encoder.stream.getvalue(), '\t\x01\x01')
 
         cursor.execute('DROP TABLE adapters_spam')
+
+    def test_NOT_PROVIDED(self):
+        from django.db.models import fields
+
+        encoder = pyamf.get_encoder(pyamf.AMF0)
+
+        encoder.writeElement(fields.NOT_PROVIDED)
+        self.assertEquals(encoder.stream.getvalue(), '\x06')
+
+        encoder = pyamf.get_encoder(pyamf.AMF3)
+        encoder.writeElement(fields.NOT_PROVIDED)
+        self.assertEquals(encoder.stream.getvalue(), '\x00')
+        
 
 def suite():
     suite = unittest.TestSuite()
