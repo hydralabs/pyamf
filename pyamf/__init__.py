@@ -12,7 +12,6 @@ U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>}.
 @see: U{http://pyamf.org}
 
 @since: October 2007
-@status: Beta
 @version: 0.4
 """
 
