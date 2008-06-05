@@ -7,7 +7,6 @@ This module has been borrowed from the Importing package
 @see: http://peak.telecommunity.com/DevCenter/Importing
 
 Original author: Phillip J. Eby <peak@eby-sarna.com>
-@author: Nick Joyce<nick@boxdesign.co.uk>
 
 @since: 0.3.0
 """

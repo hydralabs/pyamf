@@ -10,7 +10,6 @@ in Google App Engine.
 @see: U{Datastore API on Google App Engine (external)
 <http://code.google.com/appengine/docs/datastore>}
 
-@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 @since: 0.3.1
 """
 

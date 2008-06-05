@@ -7,8 +7,6 @@ Flex Data Management Service implementation.
 This module contains the message classes used with Flex Data Management
 Service.
 
-@author: U{Thijs Triemstra<mailto:info@collab.nl>}
-
 @since: 0.1.0
 """
 

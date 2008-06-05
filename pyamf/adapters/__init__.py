@@ -5,8 +5,6 @@
 The adapter package provides additional functionality for other Python
 packages. This includes registering classes, setting up type maps etc.
 
-@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
-
 @since: 0.1.0
 """
 

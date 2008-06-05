@@ -23,8 +23,6 @@ the Flash Player to understand the response therefore.
 @see: U{Remoting Debug Headers on OSFlash (external)
 <http://osflash.org/documentation/amf/envelopes/remoting/debuginfo>}
 
-@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
-
 @since: 0.1.0
 """
 

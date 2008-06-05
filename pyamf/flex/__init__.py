@@ -8,8 +8,6 @@ Compatibility classes/functions for Flex.
 @see: U{Flex on Wikipedia (external)
 <http://en.wikipedia.org/wiki/Adobe_Flex>}
 
-@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
-
 @since: 0.1.0
 """
 

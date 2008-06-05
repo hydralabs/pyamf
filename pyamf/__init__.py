@@ -7,10 +7,6 @@ B{PyAMF} provides B{A}ction B{M}essage B{F}ormat
 Python that is compatible with the
 U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>}.
 
-@author: U{Arnar Birgisson<mailto:arnarbi@gmail.com>}
-@author: U{Thijs Triemstra<mailto:info@collab.nl>}
-@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
-
 @copyright: Copyright (c) 2007-2008 The PyAMF Project. All Rights Reserved.
 @contact: U{dev@pyamf.org<mailto:dev@pyamf.org>}
 @see: U{http://pyamf.org}

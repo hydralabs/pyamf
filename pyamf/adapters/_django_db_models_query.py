@@ -8,7 +8,6 @@ Sets up basic type mapping and class mappings for a
 Django models.
 
 @see: U{Django Project<http://www.djangoproject.com>}
-@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 @since: 0.1b
 """
 

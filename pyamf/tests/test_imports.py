@@ -4,7 +4,6 @@
 """
 Tests pyamf.util.imports
 
-@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 @since: 0.3.1
 """
 

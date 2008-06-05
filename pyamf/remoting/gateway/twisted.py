@@ -9,9 +9,6 @@ clients and servers.
 
 @see: U{Twisted homepage (external)<http://twistedmatrix.com>}
 
-@author: U{Thijs Triemstra<mailto:info@collab.nl>}
-@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
-
 @since: 0.1.0
 """
 

@@ -7,8 +7,6 @@ AMF3 RemoteObject support.
 @see: U{RemoteObject on LiveDocs
 <http://livedocs.adobe.com/flex/3/langref/mx/rpc/remoting/RemoteObject.html>}
 
-@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
-
 @since: 0.1.0
 """
 

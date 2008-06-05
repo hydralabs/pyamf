@@ -15,8 +15,6 @@ to read and write LSO data to the computer's local drive on a per-domain basis.
 @see: U{Local Shared Object envelope (external)
 <http://osflash.org/documentation/amf/envelopes/sharedobject>}
 
-@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
-
 @since: 0.1.0
 """
 

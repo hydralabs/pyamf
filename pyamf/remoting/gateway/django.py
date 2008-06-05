@@ -9,8 +9,6 @@ servers.
 
 @see: U{Django homepage (external)<http://djangoproject.com>}
 
-@author: U{Arnar Birgisson<mailto:arnarbi@gmail.com>}
-
 @since: 0.1.0
 """
 
