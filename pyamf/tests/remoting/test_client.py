@@ -209,12 +209,14 @@ class DummyConnection(object):
     tc = None
     expected_value = None
     expected_url = None
+    expected_headers = None
     response = None
 
-    def request(self, method, url, value):
+    def request(self, method, url, value, headers=None):
         self.tc.assertEquals(method, 'POST')
         self.tc.assertEquals(url, self.expected_url)
         self.tc.assertEquals(value, self.expected_value)
+        self.tc.assertEquals(headers, self.expected_headers)
 
     def getresponse(self):
         return self.response
@@ -368,6 +370,7 @@ class RemotingServiceTestCase(unittest.TestCase):
         gw.connection = dc
 
         dc.tc = self
+        dc.expected_headers = {'Content-Type': 'application/x-amf'}
 
         service = gw.getService('baz', auto_execute=False)
         wrapper = service.gak()
@@ -405,6 +408,7 @@ class RemotingServiceTestCase(unittest.TestCase):
         gw.connection = dc
 
         dc.tc = self
+        dc.expected_headers = {'Content-Type': 'application/x-amf'}
 
         baz = gw.getService('baz', auto_execute=False)
         spam = gw.getService('spam', auto_execute=False)

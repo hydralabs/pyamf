@@ -90,7 +90,6 @@ class ServiceProxy(object):
         underlying gateway. If C{_auto_execute} is set to C{True}, then the
         request is immediately called on the remote gateway.
         """
-
         request = self._gw.addRequest(method_proxy, *args)
 
         if self._auto_execute:
@@ -331,7 +330,8 @@ class RemotingService(object):
         body = remoting.encode(self.getAMFRequest([request]))
 
         self.logger.debug('sending POST request to %s' % self._root_url)
-        self.connection.request('POST', self._root_url, body.getvalue())
+        self.connection.request('POST', self._root_url, body.getvalue(),
+            {'Content-Type': remoting.CONTENT_TYPE})
 
         envelope = self._getResponse()
         self.removeRequest(request)
@@ -345,7 +345,8 @@ class RemotingService(object):
         """
         body = remoting.encode(self.getAMFRequest(self.requests))
 
-        self.connection.request('POST', self._root_url, body.getvalue())
+        self.connection.request('POST', self._root_url, body.getvalue(),
+            {'Content-Type': remoting.CONTENT_TYPE})
 
         envelope = self._getResponse()
 
