@@ -565,6 +565,23 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
             '\x6f\x01')
         self.assertTrue(self.executed)
 
+    def test_elementtree_tag(self):
+        class NotAnElement(object):
+            items = lambda self: []
+
+            def __iter__(self):
+                return iter([])
+
+        foo = NotAnElement()
+        foo.tag = 'foo'
+        foo.text = 'bar'
+        foo.tail = None
+
+        self.encoder.writeElement(foo)
+
+        self.assertEquals(self.buf.getvalue(),
+            '\n\x0b\x01\ttext\x06\x07bar\ttail\x01\x07tag\x06\x07foo\x01')
+
 class DecoderTestCase(_util.ClassCacheClearingTestCase):
     """
     Tests the output from the AMF3 L{Decoder<pyamf.amf3.Decoder>} class.

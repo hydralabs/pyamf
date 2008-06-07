@@ -422,6 +422,23 @@ class EncoderTestCase(ClassCacheClearingTestCase):
             '\x68\x65\x6c\x6c\x6f\x00\x00\x09')
         self.assertTrue(self.executed)
 
+    def test_elementtree_tag(self):
+        class NotAnElement(object):
+            items = lambda self: []
+
+            def __iter__(self):
+                return iter([])
+
+        foo = NotAnElement()
+        foo.tag = 'foo'
+        foo.text = 'bar'
+        foo.tail = None
+
+        self.encoder.writeElement(foo)
+
+        self.assertEquals(self.buf.getvalue(),
+            '\x03\x00\x04text\x02\x00\x03bar\x00\x04tail\x05\x00\x03tag\x02\x00\x03foo\x00\x00\t')
+
 class DecoderTestCase(ClassCacheClearingTestCase):
     """
     Tests the output from the AMF0 L{Decoder<pyamf.amf0.Decoder>} class.
