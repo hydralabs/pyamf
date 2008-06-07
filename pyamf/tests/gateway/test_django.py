@@ -30,6 +30,22 @@ class HttpRequest(http.HttpRequest):
         self.raw_post_data = ''
 
 class DjangoGatewayTestCase(unittest.TestCase):
+    def setUp(self):
+        import new
+
+        self.mod_name = '%s.%s' % (__name__, 'settings')
+        sys.modules[self.mod_name] = new.module(self.mod_name)
+
+        self.old_env = os.environ.get('DJANGO_SETTINGS_MODULE', None)
+
+        os.environ['DJANGO_SETTINGS_MODULE'] = self.mod_name
+
+    def tearDown(self):
+        if self.old_env is not None:
+            os.environ['DJANGO_SETTINGS_MODULE'] = self.old_env
+
+        del sys.modules[self.mod_name]
+
     def test_request_method(self):
         gw = _django.DjangoGateway()
 
