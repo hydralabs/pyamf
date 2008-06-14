@@ -654,7 +654,7 @@ class Encoder(pyamf.BaseEncoder):
 
             if max_index < 0:
                 max_index = 0
-        except ValueError, e:
+        except ValueError:
             max_index = 0
 
         self.stream.write_ulong(max_index)

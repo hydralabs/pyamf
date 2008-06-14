@@ -35,10 +35,10 @@ class ServiceMethodProxyTestCase(unittest.TestCase):
                 tc.assertTrue(self.args, args)
 
         x = client.ServiceMethodProxy(None, None)
-        ts = TestService(x, [1,2,3])
+        ts = TestService(x, [1, 2, 3])
         x.service = ts
 
-        x(1,2,3)
+        x(1, 2, 3)
 
     def test_str(self):
         x = client.ServiceMethodProxy('spam', 'eggs')

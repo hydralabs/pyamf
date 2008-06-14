@@ -123,6 +123,9 @@ class BaseContext(object):
         self.clear()
 
     def clear(self):
+        """
+        Clears the AMF context.
+        """
         self.objects = []
         self.rev_objects = {}
 
@@ -186,7 +189,8 @@ class ASObject(dict):
     """
     This class represents a Flash Actionscript Object (typed or untyped).
 
-    I supply a C{__builtin__.dict} interface to support get/setattr calls.
+    I supply a C{__builtin__.dict} interface to support C{get}/C{setattr}
+    calls.
     """
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
@@ -476,7 +480,7 @@ class BaseDecoder(object):
 
         try:
             func = getattr(self, self.type_map[type])
-        except KeyError, e:
+        except KeyError:
             raise DecodeError, "Unsupported ActionScript type 0x%02x" % type
 
         return func()
@@ -831,9 +835,9 @@ def decode(stream, encoding=AMF0, context=None):
 
     while 1:
         try:
-	    yield decoder.readElement()
-	except EOStream:
-	    break
+            yield decoder.readElement()
+        except EOStream:
+            break
 
 def encode(*args, **kwargs):
     """
@@ -879,11 +883,11 @@ def _get_decoder_class(encoding):
     @return: AMF0 or AMF3 decoder.
     """
     if encoding == AMF0:
-        import amf0
+        from pyamf import amf0
 
         return amf0.Decoder
     elif encoding == AMF3:
-        import amf3
+        from pyamf import amf3
 
         return amf3.Decoder
 
@@ -905,11 +909,11 @@ def _get_encoder_class(encoding):
     @return: AMF0 or AMF3 encoder.
     """
     if encoding == AMF0:
-        import amf0
+        from pyamf import amf0
 
         return amf0.Encoder
     elif encoding == AMF3:
-        import amf3
+        from pyamf import amf3
 
         return amf3.Encoder
 
@@ -931,11 +935,11 @@ def _get_context_class(encoding):
     @return: AMF0 or AMF3 context class.
     """
     if encoding == AMF0:
-        import amf0
+        from pyamf import amf0
 
         return amf0.Context
     elif encoding == AMF3:
-        import amf3
+        from pyamf import amf3
 
         return amf3.Context
 
@@ -984,7 +988,7 @@ def add_type(type_, func=None):
 
     if isinstance(type_, types.TupleType):
         for x in type_:
-           _check_type(x)
+            _check_type(x)
     else:
         _check_type(type_)
 
@@ -1042,7 +1046,7 @@ def add_error_class(klass, code):
 
     mro = util.get_mro(klass)
 
-    if not Exception in util.get_mro(klass):
+    if not Exception in mro:
         raise TypeError, 'error classes must subclass the __builtin__.Exception class'
 
     if code in ERROR_CLASS_MAP.keys():

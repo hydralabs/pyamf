@@ -681,9 +681,6 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
     def test_null(self):
         self._run([(None, '\x01')])
 
-    def test_undefined(self):
-        self._run([(pyamf.Undefined, '\x00')])
-
     def test_string(self):
         self._run([
             ('', '\x06\x01'),

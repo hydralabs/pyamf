@@ -1240,7 +1240,6 @@ class Encoder(pyamf.BaseEncoder):
             except (KeyboardInterrupt, SystemExit):
                 raise
             except:
-                raise
                 raise pyamf.EncodeError, "Unable to encode '%r'" % data
 
     def writeType(self, type):
@@ -1531,7 +1530,7 @@ class Encoder(pyamf.BaseEncoder):
                     for k in obj.__dict__.keys():
                         class_def.static_attrs.append(unicode(k))
                 else:
-                    raise pyamf.EncodingError, 'Unable to determine object attributes'
+                    raise pyamf.EncodeError, 'Unable to determine object attributes'
 
         return class_def
 
