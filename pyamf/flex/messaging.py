@@ -103,18 +103,6 @@ class AsyncMessage(AbstractMessage):
 
         self.correlationId = kwargs.get('correlationId', None)
 
-class AsyncMessageExt(AsyncMessage):
-    def __init__(self, message=None):
-        self._message = message
-
-    def __readamf__(self, input):
-        self._message = input.readObject()
-
-    def __writeamf__(self, output):
-        output.writeObject(self._message)
-
-pyamf.register_class(AsyncMessageExt, "DSA", metadata=['external'])
-
 class AcknowledgeMessage(AsyncMessage):
     """
     I acknowledge the receipt of a message that was sent previously.
@@ -129,18 +117,6 @@ class AcknowledgeMessage(AsyncMessage):
     #: Used to indicate that the acknowledgement is for a message that
     #: generated an error.
     ERROR_HINT_HEADER = "DSErrorHint"
-
-class AcknowledgeMessageExt(AcknowledgeMessage):
-    def __init__(self, message=None):
-        self._message = message
-
-    def __readamf__(self, input):
-        self._message = input.readObject()
-
-    def __writeamf__(self, output):
-        output.writeObject(self._message)
-
-pyamf.register_class(AcknowledgeMessageExt, "DSK", metadata=['external'])
 
 class CommandMessage(AsyncMessage):
     """
@@ -200,18 +176,6 @@ class CommandMessage(AsyncMessage):
         #: whether this message type matches the message type the service
         #: handles.
         self.messageRefType = kwargs.get('messageRefType', None)
-
-class CommandMessageExt(CommandMessage):
-    def __init__(self, message=None):
-        self._message = message
-
-    def __readamf__(self, input):
-        self._message = input.readObject()
-
-    def __writeamf__(self, output):
-        output.writeObject(self._message)
-
-pyamf.register_class(CommandMessageExt, "DSC", metadata=['external'])
 
 class ErrorMessage(AcknowledgeMessage):
     """
