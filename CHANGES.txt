@@ -4,9 +4,14 @@ PyAMF Changelog
 This file contains information about the changes between the different versions
 of PyAMF.
 
-0.4 (unreleased)
-----------------
- - Removed the NetworkIOMixIn class (Ticket:232)
+0.3.2 (unreleased)
+------------------
+ - Fixed issue where the AMF3 encoder assumed objects with a 'tag' attribute
+   needed XML encoding. Reported by cy-man (Ticket:303)
+ - Solved issue with repr for AbstractMessage. Reported by datafunk (Ticket:283)
+ - Content-type was missing in POST requests from the AMF client. Reported by
+   magog (Ticket:304)
+ - Fixed issue with the unit tests for Django (Ticket:281)
 
 0.3.1 (2008-05-04)
 ------------------
