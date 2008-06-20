@@ -44,6 +44,7 @@ class ServiceMethodProxy(object):
         """
         Inform the proxied service that this function has been called.
         """
+        
         return self.service._call(self, *args)
 
     def __str__(self):
@@ -230,7 +231,7 @@ class RemotingService(object):
         else:
             raise ValueError, 'Unknown scheme'
 
-        self.logger.debug('creating connection to %s://%s:%s' % (self.url[0], hostname, port))
+        self.logger.info('Creating connection to %s://%s:%s' % (self.url[0], hostname, port))
 
     def addHeader(self, name, value, must_understand=False):
         """
@@ -273,7 +274,7 @@ class RemotingService(object):
 
         self.request_number += 1
         self.requests.append(wrapper)
-        self.logger.debug('adding request %s%r' % (wrapper.service, args))
+        self.logger.debug('Adding request %s%r' % (wrapper.service, args))
 
         return wrapper
 
@@ -284,12 +285,14 @@ class RemotingService(object):
         @raise LookupError: Request not found.
         """
         if isinstance(service, RequestWrapper):
+            self.logger.debug('Removing request: %s' % (self.requests[self.requests.index(service)]))
             del self.requests[self.requests.index(service)]
 
             return
 
         for request in self.requests:
             if request.service == service and request.args == args:
+                self.logger.debug('Removing request: %s' % (self.requests[self.requests.index(request)]))
                 del self.requests[self.requests.index(request)]
 
                 return
@@ -306,7 +309,10 @@ class RemotingService(object):
         @rtype: L{Envelope<pyamf.remoting.Envelope>}
         """
         envelope = remoting.Envelope(self.amf_version, self.client_type)
-
+        
+        self.logger.debug('AMF version: %s' % self.amf_version)
+        self.logger.debug('Client type: %s' % self.client_type)
+        
         for request in requests:
             service = request.service
             args = list(request.args)
@@ -326,10 +332,10 @@ class RemotingService(object):
         @type request:
         @rtype:
         """
-        self.logger.debug('executing single request')
+        self.logger.debug('Executing single request: %s' % request)
         body = remoting.encode(self.getAMFRequest([request]))
 
-        self.logger.debug('sending POST request to %s' % self._root_url)
+        self.logger.debug('Sending POST request to %s' % self._root_url)
         self.connection.request('POST', self._root_url, body.getvalue(),
             {'Content-Type': remoting.CONTENT_TYPE})
 
@@ -345,6 +351,7 @@ class RemotingService(object):
         """
         body = remoting.encode(self.getAMFRequest(self.requests))
 
+        self.logger.debug('Sending POST request to %s' % self._root_url)
         self.connection.request('POST', self._root_url, body.getvalue(),
             {'Content-Type': remoting.CONTENT_TYPE})
 
@@ -362,13 +369,13 @@ class RemotingService(object):
         """
         Gets and handles the HTTP response from the remote gateway.
         """
-        self.logger.debug('waiting for response ...')
+        self.logger.debug('Waiting for response...')
         http_response = self.connection.getresponse()
-        self.logger.debug('got response status=%s' % http_response.status)
-
+        self.logger.debug('Got response status = %s' % http_response.status)
+        self.logger.debug('Content-Type = %s' % http_response.getheader('Content-Type'))
+        
         if http_response.status != HTTP_OK:
-            self.logger.debug('content-type = %s' % http_response.getheader('Content-Type'))
-            self.logger.debug('body = %s' % http_response.read())
+            self.logger.debug('Body = %s' % http_response.read())
 
             if hasattr(httplib, 'responses'):
                 raise remoting.RemotingError, "HTTP Gateway reported status %d %s" % (
@@ -380,23 +387,24 @@ class RemotingService(object):
         content_type = http_response.getheader('Content-Type')
 
         if content_type != remoting.CONTENT_TYPE:
-            self.logger.debug('content-type = %s' % http_response.getheader('Content-Type'))
-            self.logger.debug('body = %s' % http_response.read())
+            self.logger.debug('Body = %s' % http_response.read())
 
             raise remoting.RemotingError, "Incorrect MIME type received. (got: %s)" % content_type
 
         content_length = http_response.getheader('Content-Length')
         bytes = ''
 
+        self.logger.debug('Content-Length = %s' % content_length)
+
         if content_length is None:
             bytes = http_response.read()
         else:
             bytes = http_response.read(content_length)
 
-        self.logger.debug('read %d bytes for the response' % len(bytes))
+        self.logger.debug('Read %d bytes for the response' % len(bytes))
 
         response = remoting.decode(bytes)
-        self.logger.debug('response = %s' % response)
+        self.logger.debug('Response = %s' % response)
 
         if remoting.APPEND_TO_GATEWAY_URL in response.headers:
             self.original_url += response.headers[remoting.APPEND_TO_GATEWAY_URL]

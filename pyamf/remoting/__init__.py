@@ -201,7 +201,8 @@ class Response(Message):
     def __repr__(self):
         return "<%s status=%s>%s</%s>" % (
             type(self).__name__, _get_status(self.status), self.body,
-            type(self).__name__)
+            type(self).__name__
+        )
 
 class BaseFault(object):
     """
