@@ -86,7 +86,7 @@ class DjangoGateway(gateway.BaseGateway):
         try:
             request = remoting.decode(http_request.raw_post_data, context)
         except pyamf.DecodeError:
-            self.logger.debug(gateway.format_exception())
+            self.logger.error(gateway.format_exception())
             http_response.status_code = 400
 
             return http_response
@@ -99,7 +99,7 @@ class DjangoGateway(gateway.BaseGateway):
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
-            self.logger.debug(gateway.format_exception())
+            self.logger.error(gateway.format_exception())
 
             return http.HttpResponseServerError()
 
@@ -109,7 +109,7 @@ class DjangoGateway(gateway.BaseGateway):
         try:
             stream = remoting.encode(response, context)
         except pyamf.EncodeError:
-            self.logger.debug(gateway.format_exception())
+            self.logger.error(gateway.format_exception())
 
             return http.HttpResponseServerError('Unable to encode the response')
 

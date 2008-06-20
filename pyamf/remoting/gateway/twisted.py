@@ -63,7 +63,7 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
         deferred_response = defer.Deferred()
 
         def eb(failure):
-            self.gateway.logger.debug(failure.printTraceback())
+            self.gateway.logger.error(failure.printTraceback())
             deferred_response.callback(self.buildErrorResponse(
                 request, (failure.type, failure.value, failure.tb)))
 
@@ -118,7 +118,7 @@ class AMF3RequestProcessor(amf3.RequestProcessor):
         deferred_response = defer.Deferred()
 
         def eb(failure):
-            self.gateway.logger.debug(failure.printTraceback())
+            self.gateway.logger.error(failure.printTraceback())
             ro_response = self.buildErrorResponse(ro_request, (failure.type, failure.value, failure.tb))
             deferred_response.callback(remoting.Response(ro_response, status=remoting.STATUS_ERROR))
 
@@ -150,7 +150,7 @@ class AMF3RequestProcessor(amf3.RequestProcessor):
             deferred_response.callback(amf_response)
 
         def eb(failure):
-            self.gateway.logger.debug(failure.printTraceback())
+            self.gateway.logger.error(failure.printTraceback())
             deferred_response.callback(self.buildErrorResponse(ro_request,
                 (failure.type, failure.value, failure.tb)))
 
@@ -209,7 +209,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
             """
             Return HTTP 400 Bad Request.
             """
-            self.logger.debug(failure.printDetailedTraceback())
+            self.logger.error(failure.printDetailedTraceback())
 
             body = "400 Bad Request\n\nThe request body was unable to " \
                 "be successfully decoded."
@@ -244,7 +244,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
             """
             Return 500 Internal Server Error.
             """
-            self.logger.debug(failure.printDetailedTraceback())
+            self.logger.error(failure.printDetailedTraceback())
 
             body = "500 Internal Server Error\n\nThere was an error encoding" \
                 " the response."

@@ -284,7 +284,7 @@ class BaseGateway(object):
 
         if name in self.services:
             raise remoting.RemotingError, "Service %s already exists" % name
-
+        
         self.services[name] = ServiceWrapper(service, description,
             authenticator, expose_request, preprocessor)
 

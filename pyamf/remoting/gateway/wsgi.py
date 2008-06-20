@@ -47,7 +47,7 @@ class WSGIGateway(gateway.BaseGateway):
         for name, message in request:
             processor = self.getProcessor(message)
             response[name] = processor(message, http_request=environ)
-
+            
         return response
 
     def badRequestMethod(self, environ, start_response):
@@ -81,7 +81,7 @@ class WSGIGateway(gateway.BaseGateway):
         try:
             request = remoting.decode(body, context)
         except pyamf.DecodeError:
-            self.logger.debug(gateway.format_exception())
+            self.logger.error(gateway.format_exception())
 
             response = "400 Bad Request\n\nThe request body was unable to " \
                 "be successfully decoded."
@@ -96,13 +96,15 @@ class WSGIGateway(gateway.BaseGateway):
 
             return [response]
 
+        self.logger.debug("AMF Request: %r" % request)
+        
         # Process the request
         try:
             response = self.getResponse(request, environ)
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
-            self.logger.debug(gateway.format_exception())
+            self.logger.error(gateway.format_exception())
 
             response = "500 Internal Server Error\n\nThe request was " \
                 "unable to be successfully processed."
@@ -117,11 +119,13 @@ class WSGIGateway(gateway.BaseGateway):
 
             return [response]
 
+        self.logger.debug("AMF Response: %r" % response)
+        
         # Encode the response
         try:
             stream = remoting.encode(response, context)
         except pyamf.EncodeError:
-            self.logger.debug(gateway.format_exception())
+            self.logger.error(gateway.format_exception())
 
             response = "500 Internal Server Error\n\nThe request was " \
                 "unable to be encoded."
