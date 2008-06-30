@@ -175,6 +175,9 @@ class RemotingService(object):
     @ivar amf_version: The AMF version to use.
         See L{ENCODING_TYPES<pyamf.ENCODING_TYPES>}.
     @type amf_version: C{int}
+    @ivar referer: The referer, or HTTP referer, identifies the address of the
+        client. Ignored by default.
+    @type referer: C{str}
     @ivar client_type: The client type. See L{ClientTypes<pyamf.ClientTypes>}.
     @ivar connection: The underlying connection to the remoting server.
     @type connection: C{httplib.HTTPConnection} or C{httplib.HTTPSConnection}
@@ -182,12 +185,14 @@ class RemotingService(object):
     @type headers: L{HeaderCollection<pyamf.remoting.HeaderCollection>}
     """
 
-    def __init__(self, url, amf_version=pyamf.AMF0, client_type=DEFAULT_CLIENT_TYPE):
+    def __init__(self, url, amf_version=pyamf.AMF0, client_type=DEFAULT_CLIENT_TYPE,
+                 referer=None):
         self.logger = logging.instance_logger(self)
         self.original_url = url
         self.requests = []
         self.request_number = 1
 
+        self.referer = referer
         self.amf_version = amf_version
         self.client_type = client_type
         self.headers = remoting.HeaderCollection()
@@ -232,7 +237,8 @@ class RemotingService(object):
             raise ValueError, 'Unknown scheme'
 
         self.logger.info('Creating connection to %s://%s:%s' % (self.url[0], hostname, port))
-
+        self.logger.debug('Referer: %s' % self.referer)
+        
     def addHeader(self, name, value, must_understand=False):
         """
         Sets a persistent header to send with each request.
@@ -334,10 +340,14 @@ class RemotingService(object):
         """
         self.logger.debug('Executing single request: %s' % request)
         body = remoting.encode(self.getAMFRequest([request]))
+        headers = {'Content-Type': remoting.CONTENT_TYPE}
+
+        if self.referer is not None:
+            headers['Referer'] = self.referer
 
         self.logger.debug('Sending POST request to %s' % self._root_url)
         self.connection.request('POST', self._root_url, body.getvalue(),
-            {'Content-Type': remoting.CONTENT_TYPE})
+                                headers)
 
         envelope = self._getResponse()
         self.removeRequest(request)
@@ -350,10 +360,14 @@ class RemotingService(object):
         C{self.requests}.
         """
         body = remoting.encode(self.getAMFRequest(self.requests))
+        headers = {'Content-Type': remoting.CONTENT_TYPE}
+
+        if self.referer is not None:
+            headers['Referer'] = self.referer
 
         self.logger.debug('Sending POST request to %s' % self._root_url)
         self.connection.request('POST', self._root_url, body.getvalue(),
-            {'Content-Type': remoting.CONTENT_TYPE})
+                                headers)
 
         envelope = self._getResponse()
 
