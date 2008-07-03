@@ -68,8 +68,9 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
                 request, (failure.type, failure.value, failure.tb)))
 
         def response_cb(result):
-            self.gateway.logger.debug("AMF Response: %r" % result)
             response.body = result
+
+            self.gateway.logger.debug("AMF Response: %r" % response)
             deferred_response.callback(response)
 
         def preprocess_cb(result):
@@ -123,9 +124,12 @@ class AMF3RequestProcessor(amf3.RequestProcessor):
             deferred_response.callback(remoting.Response(ro_response, status=remoting.STATUS_ERROR))
 
         def response_cb(result):
-            self.gateway.logger.debug("AMF Response: %r" % result)
+            
             ro_response.body = result
-            deferred_response.callback(remoting.Response(ro_response))
+            res = remoting.Response(ro_response)
+            self.gateway.logger.debug("AMF Response: %r" % res)
+            
+            deferred_response.callback(res)
 
         def process_cb(result):
             d = defer.maybeDeferred(self.gateway.callServiceRequest, service_request, *ro_request.body, **kwargs)
@@ -194,6 +198,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
 
         request.setHeader("Content-Type", mimetype)
         request.setHeader("Content-Length", str(len(content)))
+        request.setHeader("Server", gateway.SERVER_NAME)
 
         request.write(content)
         request.finish()
@@ -209,7 +214,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
             """
             Return HTTP 400 Bad Request.
             """
-            self.logger.error(failure.printDetailedTraceback())
+            self.logger.exception(failure.printDetailedTraceback())
 
             body = "400 Bad Request\n\nThe request body was unable to " \
                 "be successfully decoded."

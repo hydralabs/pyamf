@@ -7,10 +7,16 @@ Remoting server implementations.
 @since: 0.1.0
 """
 
+import platform
 import types
 
 import pyamf
 from pyamf import remoting, logging, util
+
+SERVER_NAME = 'PyAMF/%s Python/%s' % (
+    '.'.join(map(lambda x: str(x), pyamf.__version__)),
+    platform.python_version()
+)
 
 fault_alias = pyamf.get_class_alias(remoting.ErrorFault)
 
