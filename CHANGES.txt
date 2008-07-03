@@ -14,7 +14,9 @@ of PyAMF.
  - Solved issue with repr for AbstractMessage. Reported by datafunk (Ticket:283)
  - Content-type was missing in POST requests from the AMF client. Reported by
    magog (Ticket:304)
+ - Added the disconnect Command operation (Ticket:325)
  - Fixed issue with the unit tests for Django (Ticket:281)
+ - Deprecated the NetworkIOMixIn class (Ticket:232)
 
 0.3.1 (2008-05-04)
 ------------------
