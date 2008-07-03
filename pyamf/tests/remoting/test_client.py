@@ -4,7 +4,7 @@
 # See LICENSE for details.
 
 """
-Test for Remoting client.
+Tests for Remoting client.
 
 @since: 0.1.0
 """
@@ -370,7 +370,8 @@ class RemotingServiceTestCase(unittest.TestCase):
         gw.connection = dc
 
         dc.tc = self
-        dc.expected_headers = {'Content-Type': 'application/x-amf'}
+        dc.expected_headers = {'Content-Type': remoting.CONTENT_TYPE,
+                               'User-Agent': client.DEFAULT_USER_AGENT}
 
         service = gw.getService('baz', auto_execute=False)
         wrapper = service.gak()
@@ -408,7 +409,8 @@ class RemotingServiceTestCase(unittest.TestCase):
         gw.connection = dc
 
         dc.tc = self
-        dc.expected_headers = {'Content-Type': 'application/x-amf'}
+        dc.expected_headers = {'Content-Type': 'application/x-amf',
+                               'User-Agent': client.DEFAULT_USER_AGENT}
 
         baz = gw.getService('baz', auto_execute=False)
         spam = gw.getService('spam', auto_execute=False)

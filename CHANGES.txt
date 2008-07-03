@@ -6,6 +6,7 @@ of PyAMF.
 
 0.4.0 (unreleased)
 ------------------
+ - The remoting client now sends a customizable User-Agent header (Ticket:306)
  - Added ability to set the HTTP referer in remoting client (Ticket:316)
  - Fixed issue where the AMF3 encoder assumed objects with a 'tag' attribute
    needed XML encoding. Reported by cy-man (Ticket:303)

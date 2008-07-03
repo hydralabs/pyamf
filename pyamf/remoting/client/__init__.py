@@ -16,6 +16,9 @@ from pyamf import remoting, logging
 #: @see: L{ClientTypes<pyamf.ClientTypes>}
 DEFAULT_CLIENT_TYPE = pyamf.ClientTypes.Flash6
 
+#: Default user agent is C{PyAMF/x.x.x}.
+DEFAULT_USER_AGENT = 'PyAMF/%s' % '.'.join(map(lambda x: str(x), pyamf.__version__))
+
 HTTP_OK = 200
 
 def convert_args(args):
@@ -186,12 +189,13 @@ class RemotingService(object):
     """
 
     def __init__(self, url, amf_version=pyamf.AMF0, client_type=DEFAULT_CLIENT_TYPE,
-                 referer=None):
+                 referer=None, user_agent=DEFAULT_USER_AGENT):
         self.logger = logging.instance_logger(self)
         self.original_url = url
         self.requests = []
         self.request_number = 1
 
+        self.user_agent = user_agent
         self.referer = referer
         self.amf_version = amf_version
         self.client_type = client_type
@@ -238,6 +242,7 @@ class RemotingService(object):
 
         self.logger.info('Creating connection to %s://%s:%s' % (self.url[0], hostname, port))
         self.logger.debug('Referer: %s' % self.referer)
+        self.logger.debug('User-Agent: %s' % self.user_agent)
         
     def addHeader(self, name, value, must_understand=False):
         """
@@ -340,7 +345,8 @@ class RemotingService(object):
         """
         self.logger.debug('Executing single request: %s' % request)
         body = remoting.encode(self.getAMFRequest([request]))
-        headers = {'Content-Type': remoting.CONTENT_TYPE}
+        headers = {'Content-Type': remoting.CONTENT_TYPE,
+                   'User-Agent': self.user_agent}
 
         if self.referer is not None:
             headers['Referer'] = self.referer
@@ -360,7 +366,8 @@ class RemotingService(object):
         C{self.requests}.
         """
         body = remoting.encode(self.getAMFRequest(self.requests))
-        headers = {'Content-Type': remoting.CONTENT_TYPE}
+        headers = {'Content-Type': remoting.CONTENT_TYPE,
+                   'User-Agent': self.user_agent}
 
         if self.referer is not None:
             headers['Referer'] = self.referer
