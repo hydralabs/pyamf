@@ -555,8 +555,6 @@ class DecoderTestCase(ClassCacheClearingTestCase):
                 '\x00\x00\t')])
 
     def test_date(self):
-        import datetime
-
         self._run([
             (datetime.datetime(2005, 3, 18, 1, 58, 31),
                 '\x0bBp+6!\x15\x80\x00\x00\x00')])
