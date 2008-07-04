@@ -515,8 +515,6 @@ class Encoder(pyamf.BaseEncoder):
                 func(data)
             except (KeyboardInterrupt, SystemExit):
                 raise
-            except pyamf.EncodeError:
-                raise
             except:
                 raise pyamf.EncodeError, "Unable to encode '%r'" % data
 
