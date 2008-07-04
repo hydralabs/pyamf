@@ -182,6 +182,10 @@ class RemotingService(object):
         client. Ignored by default.
     @type referer: C{str}
     @ivar client_type: The client type. See L{ClientTypes<pyamf.ClientTypes>}.
+    @type client_type: C{int}
+    @ivar user_agent: Contains information about the user agent (client)
+        originating the request. See L{DEFAULT_USER_AGENT}.
+    @type user_agent: C{str}
     @ivar connection: The underlying connection to the remoting server.
     @type connection: C{httplib.HTTPConnection} or C{httplib.HTTPSConnection}
     @ivar headers: A list of persistent headers to send with each request.

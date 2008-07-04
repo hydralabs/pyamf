@@ -13,6 +13,9 @@ import types
 import pyamf
 from pyamf import remoting, logging, util
 
+#: Value for the Server response-header that contains 
+#: information about the PyAMF and Python version used
+#: by the origin server to handle the request. 
 SERVER_NAME = 'PyAMF/%s Python/%s' % (
     '.'.join(map(lambda x: str(x), pyamf.__version__)),
     platform.python_version()
