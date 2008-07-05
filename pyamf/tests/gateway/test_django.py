@@ -13,7 +13,6 @@ import unittest, sys, os
 
 from django import http
 
-import pyamf
 from pyamf import remoting, util
 from pyamf.remoting.gateway import django as _django
 from pyamf.tests import util as _util
