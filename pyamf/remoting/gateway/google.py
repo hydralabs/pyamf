@@ -59,7 +59,6 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
 
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
-        self.response.headers['Server'] = gateway.SERVER_NAME
         self.error(405)
         self.response.out.write("405 Method Not Allowed\n\n" + \
             "To access this PyAMF gateway you must use POST requests " + \
@@ -75,7 +74,7 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
         try:
             request = remoting.decode(body, context)
         except pyamf.DecodeError:
-            self.logger.exception(gateway.format_exception())
+            self.logger.error(gateway.format_exception())
 
             response = "400 Bad Request\n\nThe request body was unable to " \
                 "be successfully decoded."
@@ -85,7 +84,6 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
 
             self.error(400)
             self.response.headers['Content-Type'] = 'text/plain'
-            self.response.headers['Server'] = gateway.SERVER_NAME
             self.response.out.write(response)
 
             return
@@ -98,7 +96,7 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
-            self.logger.exception(gateway.format_exception())
+            self.logger.error(gateway.format_exception())
 
             response = "500 Internal Server Error\n\nThe request was " \
                 "unable to be successfully processed."
@@ -108,7 +106,6 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
 
             self.error(500)
             self.response.headers['Content-Type'] = 'text/plain'
-            self.response.headers['Server'] = gateway.SERVER_NAME
             self.response.out.write(response)
 
             return
@@ -119,7 +116,7 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
         try:
             stream = remoting.encode(response, context)
         except pyamf.EncodeError:
-            self.logger.exception(gateway.format_exception())
+            self.logger.error(gateway.format_exception())
 
             response = "500 Internal Server Error\n\nThe request was " \
                 "unable to be encoded."
@@ -129,7 +126,6 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
 
             self.error(500)
             self.response.headers['Content-Type'] = 'text/plain'
-            self.response.headers['Server'] = gateway.SERVER_NAME
             self.response.out.write(response)
 
             return
@@ -138,8 +134,6 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
 
         self.response.headers['Content-Type'] = remoting.CONTENT_TYPE
         self.response.headers['Content-Length'] = str(len(response))
-        self.response.headers['Server'] = gateway.SERVER_NAME
-        
         self.response.out.write(response)
 
     def __call__(self, *args, **kwargs):
