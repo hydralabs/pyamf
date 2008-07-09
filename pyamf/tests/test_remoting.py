@@ -154,7 +154,7 @@ class DecoderTestCase(unittest.TestCase):
 
         self.assertRaises(StopIteration, it.next)
 
-    def test_string_reference_with_string_headers(self):
+    def test_multiple_request_header_references(self):
         msg = remoting.decode(
             '\x00\x03\x00\x01\x00\x0b\x43\x72\x65\x64\x65\x6e\x74\x69\x61\x6c'
             '\x73\x00\x00\x00\x00\x2c\x11\x0a\x0b\x01\x0d\x75\x73\x65\x72\x69'
@@ -300,6 +300,21 @@ class FaultTestCase(unittest.TestCase):
         x = remoting.get_fault({'foo': 'bar'})
         # The fact that this doesn't throw an error means that this test passes
 
+class ContextTextCase(unittest.TestCase):
+    def test_body_references(self):
+        msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash6)
+        f = ['a', 'b', 'c']
+
+        msg['/1'] = remoting.Request('foo', body=[f])
+        msg['/2'] = remoting.Request('bar', body=[f])
+
+        s = remoting.encode(msg).getvalue()
+        self.assertEquals(s, '\x00\x00\x00\x00\x00\x02\x00\x03bar\x00\x02/2'
+            '\x00\x00\x00\x00\n\x00\x00\x00\x01\n\x00\x00\x00\x03\x02\x00\x01'
+            'a\x02\x00\x01b\x02\x00\x01c\x00\x03foo\x00\x02/1\x00\x00\x00\x00'
+            '\n\x00\x00\x00\x01\n\x00\x00\x00\x03\x02\x00\x01a\x02\x00\x01b'
+            '\x02\x00\x01c')
+
 def suite():
     """
     Add tests.
@@ -310,6 +325,7 @@ def suite():
     suite.addTest(unittest.makeSuite(EncoderTestCase))
     suite.addTest(unittest.makeSuite(StrictEncodingTestCase))
     suite.addTest(unittest.makeSuite(FaultTestCase))
+    suite.addTest(unittest.makeSuite(ContextTextCase))
 
     from pyamf.tests.remoting import test_client, test_remoteobject
 
