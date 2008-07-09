@@ -20,7 +20,8 @@ class TestCommand(test.test):
 
     def run_tests(self):
         import logging
-        logging.basicConfig(level=logging.CRITICAL)
+        logging.basicConfig()
+        logging.getLogger().setLevel(logging.CRITICAL)
         try:
             import twisted
 
