@@ -60,6 +60,7 @@ class WSGIGateway(gateway.BaseGateway):
         start_response('400 Bad Request', [
             ('Content-Type', 'text/plain'),
             ('Content-Length', str(len(response))),
+            ('Server', gateway.SERVER_NAME),
         ])
 
         return [response]
@@ -81,7 +82,7 @@ class WSGIGateway(gateway.BaseGateway):
         try:
             request = remoting.decode(body, context)
         except pyamf.DecodeError:
-            self.logger.error(gateway.format_exception())
+            self.logger.exception(gateway.format_exception())
 
             response = "400 Bad Request\n\nThe request body was unable to " \
                 "be successfully decoded."
@@ -92,6 +93,7 @@ class WSGIGateway(gateway.BaseGateway):
             start_response('400 Bad Request', [
                 ('Content-Type', 'text/plain'),
                 ('Content-Length', str(len(response))),
+                ('Server', gateway.SERVER_NAME),
             ])
 
             return [response]
@@ -104,7 +106,7 @@ class WSGIGateway(gateway.BaseGateway):
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
-            self.logger.error(gateway.format_exception())
+            self.logger.exception(gateway.format_exception())
 
             response = "500 Internal Server Error\n\nThe request was " \
                 "unable to be successfully processed."
@@ -115,6 +117,7 @@ class WSGIGateway(gateway.BaseGateway):
             start_response('500 Internal Server Error', [
                 ('Content-Type', 'text/plain'),
                 ('Content-Length', str(len(response))),
+                ('Server', gateway.SERVER_NAME),
             ])
 
             return [response]
@@ -125,7 +128,7 @@ class WSGIGateway(gateway.BaseGateway):
         try:
             stream = remoting.encode(response, context)
         except pyamf.EncodeError:
-            self.logger.error(gateway.format_exception())
+            self.logger.exception(gateway.format_exception())
 
             response = "500 Internal Server Error\n\nThe request was " \
                 "unable to be encoded."
@@ -136,6 +139,7 @@ class WSGIGateway(gateway.BaseGateway):
             start_response('500 Internal Server Error', [
                 ('Content-Type', 'text/plain'),
                 ('Content-Length', str(len(response))),
+                ('Server', gateway.SERVER_NAME),
             ])
 
             return [response]
@@ -145,6 +149,7 @@ class WSGIGateway(gateway.BaseGateway):
         start_response('200 OK', [
             ('Content-Type', remoting.CONTENT_TYPE),
             ('Content-Length', str(len(response))),
+            ('Server', gateway.SERVER_NAME),
         ])
 
         return [response]

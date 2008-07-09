@@ -396,11 +396,11 @@ class RemotingService(object):
         """
         self.logger.debug('Waiting for response...')
         http_response = self.connection.getresponse()
-        self.logger.debug('Got response status = %s' % http_response.status)
-        self.logger.debug('Content-Type = %s' % http_response.getheader('Content-Type'))
+        self.logger.debug('Got response status: %s' % http_response.status)
+        self.logger.debug('Content-Type: %s' % http_response.getheader('Content-Type'))
         
         if http_response.status != HTTP_OK:
-            self.logger.debug('Body = %s' % http_response.read())
+            self.logger.debug('Body: %s' % http_response.read())
 
             if hasattr(httplib, 'responses'):
                 raise remoting.RemotingError, "HTTP Gateway reported status %d %s" % (
@@ -419,8 +419,9 @@ class RemotingService(object):
         content_length = http_response.getheader('Content-Length')
         bytes = ''
 
-        self.logger.debug('Content-Length = %s' % content_length)
-
+        self.logger.debug('Content-Length: %s' % content_length)
+        self.logger.debug('Server: %s' % http_response.getheader('Server'))
+        
         if content_length is None:
             bytes = http_response.read()
         else:
@@ -429,7 +430,7 @@ class RemotingService(object):
         self.logger.debug('Read %d bytes for the response' % len(bytes))
 
         response = remoting.decode(bytes)
-        self.logger.debug('Response = %s' % response)
+        self.logger.debug('Response: %s' % response)
 
         if remoting.APPEND_TO_GATEWAY_URL in response.headers:
             self.original_url += response.headers[remoting.APPEND_TO_GATEWAY_URL]

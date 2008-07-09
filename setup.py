@@ -19,6 +19,8 @@ class TestCommand(test.test):
         r.run(suite())
 
     def run_tests(self):
+        import logging
+        logging.basicConfig(level=logging.CRITICAL)
         try:
             import twisted
 
