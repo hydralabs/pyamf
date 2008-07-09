@@ -244,9 +244,6 @@ class EncoderTestCase(ClassCacheClearingTestCase):
                 '\x0f\x00\x00\x00\x19<a><b>hello world</b></a>'
                 '\x0f\x00\x00\x00\x19<a><b>hello world</b></a>')])
 
-    def test_unsupported(self):
-        self._run([(ord, '\x0d')])
-
     def test_object(self):
         self._run([
             ({'a': 'b'}, '\x03\x00\x01a\x02\x00\x01b\x00\x00\x09')])
@@ -438,6 +435,17 @@ class EncoderTestCase(ClassCacheClearingTestCase):
 
         self.assertEquals(self.buf.getvalue(),
             '\x03\x00\x04text\x02\x00\x03bar\x00\x04tail\x05\x00\x03tag\x02\x00\x03foo\x00\x00\t')
+
+    def test_funcs(self):
+        def x():
+            yield 2
+
+        self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, chr)
+        self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, self.assertRaises)
+        self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, lambda x: x)
+        self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, x())
+        self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, pyamf)
+        self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, ''.startswith)
 
 class DecoderTestCase(ClassCacheClearingTestCase):
     """

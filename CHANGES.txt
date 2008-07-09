@@ -6,6 +6,8 @@ of PyAMF.
 
 0.4.0 (unreleased)
 ------------------
+ - Both Encoders will now raise pyamf.EncodeError if a function is encoded
+   (Ticket:311)
  - Twisted Gateway would fall over when returning tuples (Ticket:313)
  - The remoting gateways now send a customizable Server header (Ticket:317)
  - The remoting client now sends a customizable User-Agent header (Ticket:306)

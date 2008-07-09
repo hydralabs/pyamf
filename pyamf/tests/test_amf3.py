@@ -266,7 +266,7 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
         def x():
             self._run([(ord, '\x00')])
 
-        self.assertRaises(AttributeError, x)
+        self.assertRaises(pyamf.EncodeError, x)
 
         self._run([(pyamf.Undefined, '\x00')])
 
@@ -581,6 +581,22 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
 
         self.assertEquals(self.buf.getvalue(),
             '\n\x0b\x01\ttext\x06\x07bar\ttail\x01\x07tag\x06\x07foo\x01')
+
+    def test_unknown_func(self):
+        self.encoder._writeElementFunc = lambda x: None
+
+        self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, None)
+
+    def test_funcs(self):
+        def x():
+            yield 2
+
+        self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, chr)
+        self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, self.assertRaises)
+        self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, lambda x: x)
+        self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, x())
+        self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, pyamf)
+        self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, ''.startswith)
 
 class DecoderTestCase(_util.ClassCacheClearingTestCase):
     """

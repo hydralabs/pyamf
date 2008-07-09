@@ -437,8 +437,9 @@ class Encoder(pyamf.BaseEncoder):
     context_class = Context
 
     type_map = [
-        ((types.BuiltinFunctionType, types.BuiltinMethodType,),
-            "writeUnsupported"),
+        ((types.BuiltinFunctionType, types.BuiltinMethodType,
+            types.FunctionType, types.GeneratorType, types.ModuleType,
+            types.LambdaType, types.MethodType), "writeFunc"),
         ((types.NoneType,), "writeNull"),
         ((bool,), "writeBoolean"),
         ((int,long,float), "writeNumber"),
@@ -508,8 +509,7 @@ class Encoder(pyamf.BaseEncoder):
         func = self._writeElementFunc(data)
 
         if func is None:
-            # XXX nick: Should we be generating a warning here?
-            self.writeUnsupported(data)
+            raise pyamf.EncodeError("Cannot find encoder func for %r" % (data,))
         else:
             try:
                 func(data)
@@ -518,7 +518,7 @@ class Encoder(pyamf.BaseEncoder):
             except pyamf.EncodeError:
                 raise
             except:
-                raise pyamf.EncodeError, "Unable to encode '%r'" % data
+                raise pyamf.EncodeError, "Unable to encode '%r'" % (data,)
 
     def writeNull(self, n):
         """
