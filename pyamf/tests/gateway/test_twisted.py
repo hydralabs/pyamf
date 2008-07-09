@@ -273,6 +273,28 @@ class TwistedServerTestCase(unittest.TestCase):
 
         return d.addBoth(switch)
 
+    def test_tuple(self):
+        def echo(data):
+            return data
+
+        self.gw.addService(echo)
+
+        env = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash9)
+        request = remoting.Request('echo', body=[('Hi', 'Mom')])
+        env['/1'] = request
+
+        d = client.getPage("http://127.0.0.1:%d/" % (self.port,),
+                method="POST", postdata=remoting.encode(env).getvalue())
+
+        def cb(result):
+            response = remoting.decode(result)
+            body_response = response['/1']
+
+            self.assertEquals(body_response.status, remoting.STATUS_OK)
+            self.assertEquals(body_response.body, ['Hi', 'Mom'])
+
+        return d.addCallback(cb)
+
 class DummyHTTPRequest:
     def __init__(self):
         self.headers = {}

@@ -68,9 +68,9 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
                 request, (failure.type, failure.value, failure.tb)))
 
         def response_cb(result):
+            self.gateway.logger.debug("AMF Response: %s" % (result,))
             response.body = result
 
-            self.gateway.logger.debug("AMF Response: %r" % response)
             deferred_response.callback(response)
 
         def preprocess_cb(result):
