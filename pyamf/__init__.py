@@ -551,7 +551,7 @@ class BaseEncoder(object):
         """
         Functions are unencodeable ..
         """
-        raise pyamf.EncodeError("Unable to encode function/methods")
+        raise EncodeError("Unable to encode function/methods")
 
     def _getWriteElementFunc(self, data):
         """
