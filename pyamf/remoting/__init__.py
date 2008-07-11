@@ -347,12 +347,12 @@ def _read_body(stream, decoder, strict=False):
         - L{Request} or L{Response}
     """
     def _read_args():
-        element = decoder.readElement()
-
-        if not isinstance(element, list):
+        if stream.read(1) != '\x0a':
             raise pyamf.DecodeError, "Array type required for request body"
 
-        return element
+        x = stream.read_ulong()
+
+        return [decoder.readElement() for i in xrange(x)]
 
     target = stream.read_utf8_string(stream.read_ushort())
     response = stream.read_utf8_string(stream.read_ushort())
@@ -510,9 +510,9 @@ def decode(stream, context=None, strict=False):
             msg.amfVersion)
 
     if context is None:
-        context = pyamf.get_context(msg.amfVersion)
+        context = pyamf.get_context(pyamf.AMF0)
 
-    decoder = pyamf._get_decoder_class(msg.amfVersion)(stream, context=context)
+    decoder = pyamf._get_decoder_class(pyamf.AMF0)(stream, context=context)
     msg.clientType = stream.read_uchar()
 
     header_count = stream.read_ushort()
@@ -531,14 +531,12 @@ def decode(stream, context=None, strict=False):
         target, payload = _read_body(stream, decoder, strict)
         msg[target] = payload
 
-        context.clear()
-
     if strict and stream.remaining() > 0:
         raise RuntimeError, "Unable to fully consume the buffer"
 
     return msg
 
-def encode(msg, strict=False):
+def encode(msg, old_context=None, strict=False):
     """
     Encodes AMF stream and returns file object.
 
@@ -554,6 +552,14 @@ def encode(msg, strict=False):
     @rtype: C{StringIO}
     @return: File object.
     """
+    def getNewContext():
+        if old_context:
+            import copy
+
+            return copy.copy(old_context)
+        else:
+            return pyamf.get_context(pyamf.AMF0)
+
     stream = util.BufferedByteStream()
 
     encoder = pyamf._get_encoder_class(msg.amfVersion)(stream)
@@ -570,8 +576,8 @@ def encode(msg, strict=False):
     stream.write_short(len(msg))
 
     for name, message in msg.iteritems():
-        encoder.context.clear()
-
+        # Each body requires a new context
+        encoder.context = getNewContext()
         _write_body(name, message, stream, encoder, strict)
 
     return stream

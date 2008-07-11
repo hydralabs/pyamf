@@ -127,6 +127,9 @@ class Context(pyamf.BaseContext):
         if hasattr(self, 'amf3_context'):
             self.amf3_context.clear()
 
+    def _getObject(self, ref):
+        return self.objects[ref + 1]
+
     def __copy__(self):
         copy = self.__class__()
         copy.amf3_objs = self.amf3_objs
