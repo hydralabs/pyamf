@@ -361,9 +361,8 @@ class ClassAlias(object):
                 return self.klass.__new__(self.klass)
             elif type(self.klass) is types.ClassType: # classic class
                 return util.make_classic_instance(self.klass)
-
             raise TypeError, 'invalid class type %r' % self.klass
-
+        
         return self.klass(*args, **kwargs)
 
     def __str__(self):
@@ -633,6 +632,14 @@ def register_class(klass, alias=None, attrs=None, attr_func=None, metadata=[]):
 
     if alias is not None and alias in CLASS_CACHE.keys():
         raise ValueError, "alias '%s' already registered" % alias
+
+    # Check that the constructor of the class doesn't require any additonal
+    # arguments.
+    if hasattr(klass, '__init__') and hasattr(klass.__init__, 'im_func'):
+        klass_func = klass.__init__.im_func
+        # Number of arguments - number of default values
+        if klass_func.func_code.co_argcount - len(klass_func.func_defaults or []) > 1:
+            raise TypeError("pyamf doesn't support required init arguments")
 
     x = ClassAlias(klass, alias, attr_func=attr_func, attrs=attrs,
         metadata=metadata)
