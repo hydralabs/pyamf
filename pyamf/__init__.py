@@ -637,8 +637,10 @@ def register_class(klass, alias=None, attrs=None, attr_func=None, metadata=[]):
     # arguments.
     if hasattr(klass, '__init__') and hasattr(klass.__init__, 'im_func'):
         klass_func = klass.__init__.im_func
-        # Number of arguments - number of default values
-        if klass_func.func_code.co_argcount - len(klass_func.func_defaults or []) > 1:
+        # built-in classes don't have func_code
+	# required arguments = Number of arguments - number of default values
+	if hasattr(klass_func, 'func_code') and (
+	   klass_func.func_code.co_argcount - len(klass_func.func_defaults or []) > 1):
             raise TypeError("pyamf doesn't support required init arguments")
 
     x = ClassAlias(klass, alias, attr_func=attr_func, attrs=attrs,
