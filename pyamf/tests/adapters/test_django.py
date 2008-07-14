@@ -79,7 +79,7 @@ class TypeMapTestCase(ModelsBaseTestCase):
         encoder = pyamf.get_encoder(pyamf.AMF3)
         encoder.writeElement(fields.NOT_PROVIDED)
         self.assertEquals(encoder.stream.getvalue(), '\x00')
-        
+
 
 def suite():
     suite = unittest.TestSuite()

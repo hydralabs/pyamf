@@ -127,7 +127,7 @@ class AMF3RequestProcessor(amf3.RequestProcessor):
             ro_response.body = result
             res = remoting.Response(ro_response)
             self.gateway.logger.debug("AMF Response: %r" % (res,))
-            
+
             deferred_response.callback(res)
 
         def process_cb(result):

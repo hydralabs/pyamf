@@ -91,7 +91,7 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
             return
 
         self.logger.debug("AMF Request: %r" % request)
-        
+
         # Process the request
         try:
             response = self.getResponse(request)
@@ -114,7 +114,7 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
             return
 
         self.logger.debug("AMF Response: %r" % response)
-        
+
         # Encode the response
         try:
             stream = remoting.encode(response, context)
@@ -139,7 +139,7 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
         self.response.headers['Content-Type'] = remoting.CONTENT_TYPE
         self.response.headers['Content-Length'] = str(len(response))
         self.response.headers['Server'] = gateway.SERVER_NAME
-        
+
         self.response.out.write(response)
 
     def __call__(self, *args, **kwargs):

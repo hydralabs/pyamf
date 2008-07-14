@@ -47,7 +47,7 @@ class ServiceMethodProxy(object):
         """
         Inform the proxied service that this function has been called.
         """
-        
+
         return self.service._call(self, *args)
 
     def __str__(self):
@@ -247,7 +247,7 @@ class RemotingService(object):
         self.logger.info('Creating connection to %s://%s:%s' % (self.url[0], hostname, port))
         self.logger.debug('Referer: %s' % self.referer)
         self.logger.debug('User-Agent: %s' % self.user_agent)
-        
+
     def addHeader(self, name, value, must_understand=False):
         """
         Sets a persistent header to send with each request.
@@ -324,10 +324,10 @@ class RemotingService(object):
         @rtype: L{Envelope<pyamf.remoting.Envelope>}
         """
         envelope = remoting.Envelope(self.amf_version, self.client_type)
-        
+
         self.logger.debug('AMF version: %s' % self.amf_version)
         self.logger.debug('Client type: %s' % self.client_type)
-        
+
         for request in requests:
             service = request.service
             args = list(request.args)
@@ -398,7 +398,7 @@ class RemotingService(object):
         http_response = self.connection.getresponse()
         self.logger.debug('Got response status: %s' % http_response.status)
         self.logger.debug('Content-Type: %s' % http_response.getheader('Content-Type'))
-        
+
         if http_response.status != HTTP_OK:
             self.logger.debug('Body: %s' % http_response.read())
 
@@ -421,7 +421,7 @@ class RemotingService(object):
 
         self.logger.debug('Content-Length: %s' % content_length)
         self.logger.debug('Server: %s' % http_response.getheader('Server'))
-        
+
         if content_length is None:
             bytes = http_response.read()
         else:

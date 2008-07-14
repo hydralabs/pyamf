@@ -66,7 +66,7 @@ def generate_error(request, cls, e, tb):
     for x in traceback.format_exception(cls, e, tb):
         detail.append(x.replace("\\n", ''))
 
-    return messaging.ErrorMessage(messageId=generate_random_id(), 
+    return messaging.ErrorMessage(messageId=generate_random_id(),
         clientId=generate_random_id(), timestamp=calendar.timegm(time.gmtime()),
         correlationId = request.messageId, faultCode=code, faultString=str(e),
         faultDetail=str(detail), extendedData=detail)
@@ -103,7 +103,7 @@ class RequestProcessor(object):
 
     def _processCommandMessage(self, amf_request, ro_request, **kwargs):
         ro_response = generate_acknowledgement(ro_request)
-        
+
         if ro_request.operation == messaging.CommandMessage.PING_OPERATION:
             ro_response.body = True
 
@@ -120,7 +120,7 @@ class RequestProcessor(object):
         ro_response.body = True
 
         return remoting.Response(ro_response)
-        
+
     def _processRemotingMessage(self, amf_request, ro_request, **kwargs):
         ro_response = generate_acknowledgement(ro_request)
 

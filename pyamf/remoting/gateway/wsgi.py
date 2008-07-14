@@ -47,7 +47,7 @@ class WSGIGateway(gateway.BaseGateway):
         for name, message in request:
             processor = self.getProcessor(message)
             response[name] = processor(message, http_request=environ)
-            
+
         return response
 
     def badRequestMethod(self, environ, start_response):
@@ -99,7 +99,7 @@ class WSGIGateway(gateway.BaseGateway):
             return [response]
 
         self.logger.debug("AMF Request: %r" % request)
-        
+
         # Process the request
         try:
             response = self.getResponse(request, environ)
@@ -123,7 +123,7 @@ class WSGIGateway(gateway.BaseGateway):
             return [response]
 
         self.logger.debug("AMF Response: %r" % response)
-        
+
         # Encode the response
         try:
             stream = remoting.encode(response, context)

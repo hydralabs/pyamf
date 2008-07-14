@@ -874,7 +874,7 @@ class RecordSetTestCase(unittest.TestCase):
             '@ \x00\x00\x00\x00\x00\x00\x00@"\x00\x00\x00\x00\x00\x00\x00\x07'
             'version\x00?\xf0\x00\x00\x00\x00\x00\x00\x00\ntotalCount\x00@'
             '\x08\x00\x00\x00\x00\x00\x00\x00\x00\t\x00\x00\t')
-        
+
     def test_decode(self):
         stream = util.BufferedByteStream()
         decoder = pyamf._get_decoder_class(pyamf.AMF0)(stream)
