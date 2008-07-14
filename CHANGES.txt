@@ -6,6 +6,8 @@ of PyAMF.
 
 0.4.0 (unreleased)
 ------------------
+ - pyamf.register_class now checks to ensure that __init__ args do not have
+   any arguments (Ticket:322)
  - Added RemoteObject support for AsyncMessage (Ticket:292)
  - Both Encoders will now raise pyamf.EncodeError if a function is encoded
    (Ticket:311)
