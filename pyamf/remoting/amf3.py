@@ -14,9 +14,9 @@ import calendar, time, uuid, sys
 
 import pyamf
 from pyamf import remoting
-from pyamf.flex.messaging import *
+from pyamf.flex import messaging
 
-error_alias = pyamf.get_class_alias(ErrorMessage)
+error_alias = pyamf.get_class_alias(messaging.ErrorMessage)
 
 class BaseServerError(pyamf.BaseError):
     """
@@ -38,7 +38,7 @@ def generate_random_id():
     return str(uuid.uuid4())
 
 def generate_acknowledgement(request=None):
-    ack = AcknowledgeMessage()
+    ack = messaging.AcknowledgeMessage()
 
     ack.messageId = generate_random_id()
     ack.clientId = generate_random_id()
@@ -66,9 +66,10 @@ def generate_error(request, cls, e, tb):
     for x in traceback.format_exception(cls, e, tb):
         detail.append(x.replace("\\n", ''))
 
-    return ErrorMessage(messageId=generate_random_id(), clientId=generate_random_id(),
-        timestamp=calendar.timegm(time.gmtime()), correlationId = request.messageId,
-        faultCode=code, faultString=str(e), faultDetail=str(detail), extendedData=detail)
+    return messaging.ErrorMessage(messageId=generate_random_id(), 
+        clientId=generate_random_id(), timestamp=calendar.timegm(time.gmtime()),
+        correlationId = request.messageId, faultCode=code, faultString=str(e),
+        faultDetail=str(detail), extendedData=detail)
 
 class RequestProcessor(object):
     def __init__(self, gateway):
@@ -91,27 +92,35 @@ class RequestProcessor(object):
         return generate_error(request, cls, e, tb)
 
     def _getBody(self, amf_request, ro_request, **kwargs):
-        if isinstance(ro_request, CommandMessage):
+        if isinstance(ro_request, messaging.CommandMessage):
             return self._processCommandMessage(amf_request, ro_request, **kwargs)
-        elif isinstance(ro_request, RemotingMessage):
+        elif isinstance(ro_request, messaging.RemotingMessage):
             return self._processRemotingMessage(amf_request, ro_request, **kwargs)
+        elif isinstance(ro_request, messaging.AsyncMessage):
+            return self._processAsyncMessage(amf_request, ro_request, **kwargs)
         else:
-            raise ServerCallFailed, "Unknown RemoteObject request"
+            raise ServerCallFailed, "Unknown request: %s" % ro_request
 
     def _processCommandMessage(self, amf_request, ro_request, **kwargs):
         ro_response = generate_acknowledgement(ro_request)
-
-        if ro_request.operation == CommandMessage.PING_OPERATION:
+        
+        if ro_request.operation == messaging.CommandMessage.PING_OPERATION:
             ro_response.body = True
 
             return remoting.Response(ro_response)
-        elif ro_request.operation == CommandMessage.LOGIN_OPERATION:
-            raise ServerCallFailed, "Authorisation is not supported in RemoteObject"
-        elif ro_request.operation == CommandMessage.DISCONNECT_OPERATION:
+        elif ro_request.operation == messaging.CommandMessage.LOGIN_OPERATION:
+            raise ServerCallFailed, "Authorization is not supported in RemoteObject"
+        elif ro_request.operation == messaging.CommandMessage.DISCONNECT_OPERATION:
             return remoting.Response(ro_response)
         else:
-            raise ServerCallFailed, "Unknown command operation %s" % ro_request.operation
+            raise ServerCallFailed, "Unknown Command operation %s" % ro_request.operation
 
+    def _processAsyncMessage(self, amf_request, ro_request, **kwargs):
+        ro_response = generate_acknowledgement(ro_request)
+        ro_response.body = True
+
+        return remoting.Response(ro_response)
+        
     def _processRemotingMessage(self, amf_request, ro_request, **kwargs):
         ro_response = generate_acknowledgement(ro_request)
 

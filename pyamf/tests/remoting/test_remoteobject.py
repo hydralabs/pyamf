@@ -186,6 +186,18 @@ class RequestProcessorTestCase(unittest.TestCase):
         self.assertEquals(response.status, remoting.STATUS_OK)
         self.assertTrue(isinstance(ack, messaging.AcknowledgeMessage))
 
+    def test_async(self):
+        message = messaging.AsyncMessage()
+        rp = amf3.RequestProcessor(None)
+        request = remoting.Request('null', body=[message])
+
+        response = rp(request)
+        ack = response.body
+
+        self.assertTrue(isinstance(response, remoting.Response))
+        self.assertEquals(response.status, remoting.STATUS_OK)
+        self.assertTrue(isinstance(ack, messaging.AcknowledgeMessage))
+
 def suite():
     suite = unittest.TestSuite()
 
