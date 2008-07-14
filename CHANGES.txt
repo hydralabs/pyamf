@@ -6,6 +6,7 @@ of PyAMF.
 
 0.4.0 (unreleased)
 ------------------
+ - Added RemoteObject support for AsyncMessage (Ticket:292)
  - Both Encoders will now raise pyamf.EncodeError if a function is encoded
    (Ticket:311)
  - Twisted Gateway would fall over when returning tuples (Ticket:313)
