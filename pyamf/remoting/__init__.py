@@ -110,9 +110,11 @@ class Envelope(dict):
     There can be more than one request in a single transaction.
     """
     def __init__(self, amfVersion=None, clientType=None):
-        #: AMF encoding version
+        #: AMF encoding version.
+        #: @see: L{AMF encoding types<pyamf.ENCODING_TYPES>}
         self.amfVersion = amfVersion
-        #: Client type
+        #: Client type.
+        #: @see: L{ClientTypes<pyamf.ClientTypes>}
         self.clientType = clientType
         #: Message headers
         self.headers = HeaderCollection()
@@ -132,6 +134,9 @@ class Envelope(dict):
         return r
 
     def __setitem__(self, idx, value):
+        """
+        @raise TypeError: L{Message} instance expected.
+        """
         if not isinstance(value, Message):
             raise TypeError, "Message instance expected"
 
@@ -139,6 +144,9 @@ class Envelope(dict):
         dict.__setitem__(self, idx, value)
 
     def __iter__(self):
+        """
+        @raise StopIteration:
+        """
         order = self.keys()
         order.sort()
 
@@ -190,8 +198,8 @@ class Response(Message):
     """
     An AMF Response.
 
-    @ivar status: The status of the message.
-    @type status: Member of L{STATUS_CODES}
+    @ivar status: The status of the message. Default is L{STATUS_OK}.
+    @type status: Member of L{STATUS_CODES}.
     """
     def __init__(self, body, status=STATUS_OK, envelope=None):
         Message.__init__(self, envelope, body)
@@ -206,7 +214,7 @@ class Response(Message):
 
 class BaseFault(object):
     """
-    I represent a Fault message (C{mx.rpc.Fault}).
+    I represent a C{Fault} message (C{mx.rpc.Fault}).
 
     @ivar level: The level of the fault.
     @type level: C{str}
@@ -254,7 +262,6 @@ class ErrorFault(BaseFault):
     """
     I represent an error level fault.
     """
-
     level = 'error'
 
 pyamf.register_class(ErrorFault)
@@ -268,7 +275,7 @@ def _read_header(stream, decoder, strict=False):
     @type   decoder: L{amf0.Decoder<pyamf.amf0.Decoder>}
     @param  decoder: AMF decoder instance
     @type strict: C{bool}
-    @param strict:
+    @param strict: Use strict decoding policy. Default is C{False}.
     @raise DecodeError: The data that was read from the stream
     does not match the header length.
 
@@ -311,7 +318,7 @@ def _write_header(name, header, required, stream, encoder, strict=False):
     or L{amf3.Encoder<pyamf.amf3.Encoder>}
     @param  encoder: AMF encoder instance.
     @type strict: C{bool}
-    @param strict:
+    @param strict: Use strict encoding policy. Default is C{False}.
     """
     stream.write_ushort(len(name))
     stream.write_utf8_string(name)
@@ -338,7 +345,7 @@ def _read_body(stream, decoder, strict=False):
     @type   decoder: L{amf0.Decoder<pyamf.amf0.Decoder>}
     @param  decoder: AMF decoder instance.
     @type strict: C{bool}
-    @param strict:
+    @param strict: Use strict decoding policy. Default is C{False}.
     @raise DecodeError: Data read from stream does not match body length.
 
     @rtype: C{tuple}
@@ -347,6 +354,9 @@ def _read_body(stream, decoder, strict=False):
         - L{Request} or L{Response}
     """
     def _read_args():
+        """
+        @raise pyamf.DecodeError: Array type required for request body.
+        """
         if stream.read(1) != '\x0a':
             raise pyamf.DecodeError, "Array type required for request body"
 
@@ -398,7 +408,9 @@ def _write_body(name, message, stream, encoder, strict=False):
     @type encoder: L{amf0.Encoder<pyamf.amf0.Encoder>}
     @param encoder: Encoder to use.
     @type strict: C{bool}
-    @param strict: Use strict encoding policy.
+    @param strict: Use strict encoding policy. Default is C{False}.
+
+    @raise TypeError: Unknown message type for C{message}.
     """
     if not isinstance(message, (Request, Response)):
         raise TypeError, "Unknown message type"
@@ -445,6 +457,7 @@ def _get_status(status):
     @type status: C{str}
     @raise ValueError: The status code is unknown.
     @return: Status code.
+    @see: L{STATUS_CODES}
     """
     if status not in STATUS_CODES.keys():
         # TODO print that status code..
@@ -487,7 +500,7 @@ def decode(stream, context=None, strict=False):
     L{amf3.Context<pyamf.amf3.Context>}
     @param  context: Context.
     @type strict: C{bool}
-    @param strict: Enforce strict encoding.
+    @param strict: Enforce strict encoding. Default is C{False}.
 
     @raise DecodeError: Malformed stream.
     @raise RuntimeError: Decoder is unable to fully consume the
@@ -548,6 +561,7 @@ def encode(msg, old_context=None, strict=False):
     @type strict: C{bool}
     @param strict: Determines whether encoding should be strict. Specifically
         header/body lengths will be written correctly, instead of the default 0.
+        Default is C{False}.
 
     @rtype: C{StringIO}
     @return: File object.

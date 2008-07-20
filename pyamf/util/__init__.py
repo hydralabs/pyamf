@@ -89,7 +89,7 @@ class StringIOProxy(object):
     def readlines(self, sizehint=0):
         """
         @type sizehint: C{int}
-        @param sizehint:
+        @param sizehint: Default is 0.
         @note: This function does not consume the buffer.
         """
         lines = self._buffer.readlines(sizehint)
@@ -341,7 +341,7 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
         Looks size bytes ahead in the stream, returning what it finds,
         returning the stream pointer to its initial position.
 
-        @param size:
+        @param size: Default is 1.
         @type size: C{int}
         @raise ValueError: Trying to peek backwards.
 
@@ -402,7 +402,7 @@ def hexdump(data):
     """
     Get hexadecimal representation of C{StringIO} data.
 
-    @type data:
+    @type data: 
     @param data:
     @rtype: C{str}
     @return: Hexadecimal string.
@@ -434,7 +434,7 @@ def get_timestamp(d):
     Returns a UTC timestamp for a C{datetime.datetime} object.
 
     @type d: C{datetime.datetime}
-    @param d:
+    @param d: The date object.
     @return: UTC timestamp.
     @rtype: C{str}
 
@@ -479,9 +479,14 @@ def make_classic_instance(klass):
 
 def get_mro(C):
     """
-    Compute the class precedence list (mro)
+    Compute the class precedence list (mro).
+
+    @raise TypeError: class type expected.
     """
     def merge(seqs):
+        """
+        @raise NameError: Inconsistent hierarchy.
+        """
         res = []
         i = 0
 

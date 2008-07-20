@@ -1,12 +1,12 @@
 """
 Tools for doing dynamic imports
 
-This module has been borrowed from the Importing package
+This module has been borrowed from the Importing package.
 
-@see: http://pypi.python.org/pypi/Importing
-@see: http://peak.telecommunity.com/DevCenter/Importing
+@see: U{http://pypi.python.org/pypi/Importing}
+@see: U{http://peak.telecommunity.com/DevCenter/Importing}
 
-Original author: Phillip J. Eby <peak@eby-sarna.com>
+Original author: U{Phillip J. Eby<peak@eby-sarna.com>}
 
 @since: 0.3.0
 """

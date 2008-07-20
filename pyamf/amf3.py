@@ -182,11 +182,11 @@ class DataOutput(object):
         Writes a Boolean value.
 
         @type value: C{bool}
-        @param value: A Boolean value determining which byte is written.
+        @param value: A C{Boolean} value determining which byte is written.
         If the parameter is C{True}, C{1} is written; if C{False}, C{0} is
         written.
 
-        @raise ValueError: Non-boolean value is found.
+        @raise ValueError: Non-boolean value found.
         """
         if isinstance(value, bool):
             if value is True:
@@ -334,7 +334,7 @@ class DataInput(object):
 
     def readBoolean(self):
         """
-        Read Boolean.
+        Read C{Boolean}.
 
         @raise ValueError: Error reading Boolean.
         @rtype: C{bool}
@@ -395,7 +395,6 @@ class DataInput(object):
 
         @type length: C{int}
         @param length: The number of bytes from the data stream to read.
-
         @type charset: C{str}
         @param charset: The string denoting the character set to use.
 
@@ -697,10 +696,11 @@ class Context(pyamf.BaseContext):
 
         @type s: C{str}
         @param s: The string to be referenced.
-        @raise ValueError: Trying to store a reference to an empty string.
-
         @rtype: C{int}
         @return: The reference index.
+
+        @raise TypeError: The parameter C{s} is not of C{basestring} type.
+        @raise ValueError: Trying to store a reference to an empty string.
         """
         if not isinstance(s, basestring):
             raise TypeError
@@ -735,6 +735,7 @@ class Context(pyamf.BaseContext):
         @type class_def: L{ClassDefinition} or C{instance} or C{class}
         @param class_def: The class definition reference to be found.
         @raise ReferenceError: The reference could not be found.
+        @raise TypeError: Unable to determine class.
         @return: The reference to C{class_def}.
         @rtype: C{int}
         """
@@ -1068,6 +1069,10 @@ class Decoder(pyamf.BaseDecoder):
     def readObject(self):
         """
         Reads an object from the stream.
+
+        @raise pyamf.EncodeError: Decoding an object in amf3 tagged as amf0
+            only is not allowed.
+        @raise pyamf.DecodeError: Unknown object encoding.
         """
         def readStatic(is_ref, class_def, obj, num_attrs):
             if not is_ref:
@@ -1149,7 +1154,8 @@ class Decoder(pyamf.BaseDecoder):
 
     def readXMLString(self):
         """
-        Reads a string from the data stream and converts it into an XML Tree.
+        Reads a string from the data stream and converts it into
+        an XML Tree.
 
         @return: The XML Document.
         @rtype: L{ET<util.ET>}
@@ -1223,7 +1229,8 @@ class Encoder(pyamf.BaseEncoder):
         @type   data: C{mixed}
         @param  data: The data to be encoded to the AMF3 data stream.
         @type   use_references: C{bool}
-        @param  use_references:
+        @param  use_references: Default is C{True}.
+        @raise EncodeError: Cannot find encoder func for C{data}.
         @raise EncodeError: Unable to encode data.
         """
         func = self._writeElementFunc(data)
@@ -1247,6 +1254,7 @@ class Encoder(pyamf.BaseEncoder):
 
         @param type: ActionScript type.
         @raise EncodeError: AMF3 type is not recognized.
+        @see: L{ACTIONSCRIPT_TYPES}
         """
         if type not in ACTIONSCRIPT_TYPES:
             raise pyamf.EncodeError("Unknown AMF3 type 0x%02x at %d" % (
@@ -1258,7 +1266,9 @@ class Encoder(pyamf.BaseEncoder):
         """
         Writes an C{pyamf.Undefined} value to the stream.
 
-        @type   use_references: C{bool}
+        @param d: The C{undefined} data to be encoded to the AMF3 data stream.
+        @type use_references: C{bool}
+        @param use_references: Default is C{True}.
         """
         self.writeType(ASTypes.UNDEFINED)
 
@@ -1266,10 +1276,10 @@ class Encoder(pyamf.BaseEncoder):
         """
         Writes a C{null} value to the stream.
 
-        @type   n:
-        @param  n: C{null} data.
-        @type   use_references: C{bool}
-        @param  use_references:
+        @param n: The C{null} data to be encoded to the AMF3 data stream. 
+        @type n: C{null} data.
+        @type use_references: C{bool}
+        @param use_references: Default is C{True}.
         """
         self.writeType(ASTypes.NULL)
 
@@ -1277,10 +1287,10 @@ class Encoder(pyamf.BaseEncoder):
         """
         Writes a Boolean to the stream.
 
-        @param n:
-        @type n: boolean data
+        @param n: The C{boolean} data to be encoded to the AMF3 data stream.
+        @type n: C{bool}
         @type   use_references: C{bool}
-        @param  use_references:
+        @param  use_references: Default is C{True}.
         """
         if n:
             self.writeType(ASTypes.BOOL_TRUE)
@@ -1291,6 +1301,9 @@ class Encoder(pyamf.BaseEncoder):
         """
         AMF3 integers are encoded.
 
+        @param n: The integer data to be encoded to the AMF3 data stream.
+        @type n: integer data
+        
         @see: U{Parsing Integers on OSFlash
         <http://osflash.org/documentation/amf3/parsing_integers>}
         for more info.
@@ -1301,10 +1314,10 @@ class Encoder(pyamf.BaseEncoder):
         """
         Writes an integer to the stream.
 
-        @type   n:
-        @param  n: integer data.
+        @type   n: integer data
+        @param  n: The integer data to be encoded to the AMF3 data stream.
         @type   use_references: C{bool}
-        @param  use_references:
+        @param  use_references: Default is C{True}.
         """
         if n & 0xf0000000 not in [0, 0xf0000000]:
             self.writeNumber(n)
@@ -1318,10 +1331,10 @@ class Encoder(pyamf.BaseEncoder):
         """
         Writes a non integer to the stream.
 
-        @type   n:
-        @param  n: number data.
+        @type   n: number data
+        @param  n: The number data to be encoded to the AMF3 data stream.
         @type   use_references: C{bool}
-        @param  use_references:
+        @param  use_references: Default is C{True}
         """
         self.writeType(ASTypes.NUMBER)
         self.stream.write_double(n)
@@ -1331,9 +1344,9 @@ class Encoder(pyamf.BaseEncoder):
         Writes a raw string to the stream.
 
         @type   n: C{str} or C{unicode}
-        @param  n: string data.
+        @param  n: The string data to be encoded to the AMF3 data stream.
         @type   use_references: C{bool}
-        @param  use_references:
+        @param  use_references: Default is C{True}.
         """
         if not isinstance(n, basestring):
             bytes = unicode(n).encode('utf8')
@@ -1366,9 +1379,9 @@ class Encoder(pyamf.BaseEncoder):
         attempt will be made to convert it.
 
         @type   n: C{basestring}
-        @param  n: string data.
+        @param  n: The string data to be encoded to the AMF3 data stream.
         @type   use_references: C{bool}
-        @param  use_references:
+        @param  use_references: Default is C{True}.
         """
         self.writeType(ASTypes.STRING)
         self._writeString(n, use_references)
@@ -1378,9 +1391,9 @@ class Encoder(pyamf.BaseEncoder):
         Writes a C{datetime} instance to the stream.
 
         @type n: L{datetime}
-        @param n: C{Date} data.
+        @param n: The C{Date} data to be encoded to the AMF3 data stream.
         @type   use_references: C{bool}
-        @param  use_references:
+        @param  use_references: Default is C{True}.
         """
         self.writeType(ASTypes.DATE)
 
@@ -1404,9 +1417,9 @@ class Encoder(pyamf.BaseEncoder):
 
         @type n: One of C{__builtin__.tuple}, C{__builtin__.set}
             or C{__builtin__.list}
-        @param n: C{list} data.
-        @type   use_references: C{bool}
-        @param  use_references:
+        @param n: The C{list} data to be encoded to the AMF3 data stream.
+        @type use_references: C{bool}
+        @param use_references: Default is C{True}.
         """
         self.writeType(ASTypes.ARRAY)
 
@@ -1431,9 +1444,9 @@ class Encoder(pyamf.BaseEncoder):
         Writes a C{dict} to the stream.
 
         @type n: C{__builtin__.dict}
-        @param n: C{dict} data.
+        @param n: The C{dict} data to be encoded to the AMF3 data stream.
         @type use_references: C{bool}
-        @param use_references:
+        @param use_references: Default is C{True}.
         @raise ValueError: Non C{int}/C{str} key value found in the C{dict}
         @raise EncodeError: C{dict} contains empty string keys.
         """
@@ -1498,6 +1511,8 @@ class Encoder(pyamf.BaseEncoder):
     def _getClassDefinition(self, obj):
         """
         Builds a class definition based on the C{obj}.
+
+        @raise pyamf.EncodeError: Unable to determine object attributes.
         """
         encoding = ObjectEncoding.DYNAMIC
 
@@ -1537,7 +1552,11 @@ class Encoder(pyamf.BaseEncoder):
         """
         Read class definition.
 
-        @type   use_references: C{bool}
+        @param obj: The class instance data to be encoded to the AMF3
+            data stream.
+        @type obj: instance data
+        @type use_references: C{bool}
+        @param use_references: Default is C{True}.
         """
         if obj.__class__ == pyamf.MixedArray:
             self.writeDict(obj, use_references)
@@ -1550,8 +1569,11 @@ class Encoder(pyamf.BaseEncoder):
         """
         Writes an object to the stream.
 
-        @type   use_references: C{bool}
-        @raise EncodeError: Unknown object encoding.
+        @param obj: The object data to be encoded to the AMF3 data stream.
+        @type obj: object data
+        @param use_references: Default is C{True}.
+        @type use_references: C{bool}
+        @raise EncodeError: Encoding an object in amf3 tagged as amf0 only.
         """
         self.writeType(ASTypes.OBJECT)
 
@@ -1609,9 +1631,9 @@ class Encoder(pyamf.BaseEncoder):
         Writes a L{ByteArray} to the data stream.
 
         @type   n: L{ByteArray}
-        @param  n: Data.
+        @param  n: The L{ByteArray} data to be encoded to the AMF3 data stream.
         @type   use_references: C{bool}
-        @param  use_references:
+        @param  use_references: Default is C{True}.
         """
         self.writeType(ASTypes.BYTEARRAY)
 
@@ -1634,9 +1656,9 @@ class Encoder(pyamf.BaseEncoder):
         Writes a XML string to the data stream.
 
         @type   n: L{ET<util.ET>}
-        @param  n: XML Document to encode.
+        @param  n: The XML Document to be encoded to the AMF3 data stream.
         @type   use_references: C{bool}
-        @param  use_references:
+        @param  use_references: Default is C{True}.
         """
         try:
             self.context.getLegacyXMLReference(n)
@@ -1697,6 +1719,9 @@ def encode(*args, **kwargs):
     return buf
 
 def _encode_int(n):
+    """
+    @raise ValueError: Out of range.
+    """
     if n & 0xf0000000 not in [0, 0xf0000000]:
         raise ValueError, "Out of range"
 

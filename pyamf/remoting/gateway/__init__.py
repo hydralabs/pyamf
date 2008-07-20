@@ -69,6 +69,12 @@ class ServiceWrapper(object):
         return cmp(self.service, other)
 
     def _get_service_func(self, method, params):
+        """
+        @raise InvalidServiceMethodError: Calls to private methods are not
+            allowed.
+        @raise UnknownServiceMethodError: Unknown method.
+        @raise InvalidServiceMethodError: Service method must be callable.
+        """
         service = None
 
         if isinstance(self.service, (type, types.ClassType)):
@@ -80,20 +86,24 @@ class ServiceWrapper(object):
             method = str(method)
 
             if method.startswith('_'):
-                raise InvalidServiceMethodError, "Calls to private methods are not allowed"
+                raise InvalidServiceMethodError, \
+                    "Calls to private methods are not allowed"
 
             try:
                 func = getattr(service, method)
             except AttributeError:
-                raise UnknownServiceMethodError, "Unknown method %s" % str(method)
+                raise UnknownServiceMethodError, \
+                    "Unknown method %s" % str(method)
 
             if not callable(func):
-                raise InvalidServiceMethodError, "Service method %s must be callable" % str(method)
+                raise InvalidServiceMethodError, \
+                    "Service method %s must be callable" % str(method)
 
             return func
 
         if not callable(service):
-            raise UnknownServiceMethodError, "Unknown method %s" % str(self.service)
+            raise UnknownServiceMethodError, \
+                "Unknown method %s" % str(self.service)
 
         return service
 
@@ -116,7 +126,8 @@ class ServiceWrapper(object):
 
     def getMethods(self):
         """
-        Gets a dict of valid method callables for the underlying service object
+        Gets a C{dict} of valid method callables for the underlying service
+        object.
         """
         callables = {}
 
@@ -240,6 +251,9 @@ class BaseGateway(object):
 
     def __init__(self, services={}, authenticator=None, expose_request=False,
         preprocessor=None, debug=None):
+        """
+        @raise TypeError: The C{dict} type is required for C{services}.
+        """
         self.logger = logging.instance_logger(self)
         self.services = ServiceCollection()
         self.authenticator = authenticator
@@ -264,7 +278,8 @@ class BaseGateway(object):
         @type service: C{callable}, class instance, or a module
         @param name: The name of the service.
         @type name: C{str}
-        @raise RemotingError: Service already exists.
+        @raise pyamf.remoting.RemotingError: Service already exists.
+        @raise TypeError: C{service} cannot be a scalar value.
         @raise TypeError: C{service} must be C{callable} or a module.
         """
         if isinstance(service, (int, long, float, basestring)):
@@ -326,7 +341,7 @@ class BaseGateway(object):
         """
         Returns a service based on the message.
 
-        @raise RemotingError: Unknown service.
+        @raise UnknownServiceError: Unknown service.
         @param request: The AMF request.
         @type request: L{Request<pyamf.remoting.Request>}
         @rtype: L{ServiceRequest}
@@ -482,6 +497,8 @@ def authenticate(func, c, expose_request=False):
     there is one), usually HTTP and set it to the first argument of the
     authenticating callable. If there is no request object, the default is
     C{None}.
+
+    @raise TypeError: C{func} and authenticator must be callable.
     """
     if not callable(func):
         raise TypeError, "func must be callable"
@@ -504,6 +521,8 @@ def authenticate(func, c, expose_request=False):
 def expose_request(func):
     """
     A decorator that adds an expose_request flag to the underlying callable.
+
+    @raise TypeError: C{func} must be callable.
     """
     if not callable(func):
         raise TypeError, "func must be callable"
@@ -522,6 +541,8 @@ def preprocess(func, c, expose_request=False):
     there is one), usually HTTP and set it to the first argument of the
     preprocessing callable. If there is no request object, the default is
     C{None}.
+
+    @raise TypeError: C{func} and preprocessor must be callable.
     """
     if not callable(func):
         raise TypeError, "func must be callable"

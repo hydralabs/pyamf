@@ -27,7 +27,6 @@ class ServerCallFailed(BaseServerError):
     """
     A catchall error.
     """
-
     _amf_code = 'Server.Call.Failed'
 
 pyamf.register_class(ServerCallFailed, attrs=error_alias.attrs)
@@ -51,8 +50,8 @@ def generate_acknowledgement(request=None):
 
 def generate_error(request, cls, e, tb):
     """
-    Builds an L{pyamf.flex.messaging.ErrorMessage} based on the last traceback
-    and the request that was sent
+    Builds an L{ErrorMessage<pyamf.flex.messaging.ErrorMessage>} based on the
+    last traceback and the request that was sent.
     """
     import traceback
 
@@ -92,6 +91,9 @@ class RequestProcessor(object):
         return generate_error(request, cls, e, tb)
 
     def _getBody(self, amf_request, ro_request, **kwargs):
+        """
+        @raise ServerCallFailed: Unknown request.
+        """
         if isinstance(ro_request, messaging.CommandMessage):
             return self._processCommandMessage(amf_request, ro_request, **kwargs)
         elif isinstance(ro_request, messaging.RemotingMessage):
@@ -102,6 +104,9 @@ class RequestProcessor(object):
             raise ServerCallFailed, "Unknown request: %s" % ro_request
 
     def _processCommandMessage(self, amf_request, ro_request, **kwargs):
+        """
+        @raise ServerCallFailed: Unknown Command operation.
+        """
         ro_response = generate_acknowledgement(ro_request)
 
         if ro_request.operation == messaging.CommandMessage.PING_OPERATION:
@@ -129,12 +134,15 @@ class RequestProcessor(object):
         if hasattr(ro_request, 'destination') and ro_request.destination:
             service_name = '%s.%s' % (ro_request.destination, service_name)
 
-        service_request = self.gateway.getServiceRequest(amf_request, service_name)
+        service_request = self.gateway.getServiceRequest(amf_request,
+                                                         service_name)
 
         # fire the preprocessor (if there is one)
-        self.gateway.preprocessRequest(service_request, *ro_request.body, **kwargs)
+        self.gateway.preprocessRequest(service_request, *ro_request.body,
+                                       **kwargs)
 
-        ro_response.body = self.gateway.callServiceRequest(service_request, *ro_request.body, **kwargs)
+        ro_response.body = self.gateway.callServiceRequest(service_request,
+                                                *ro_request.body, **kwargs)
 
         return remoting.Response(ro_response)
 
@@ -155,4 +163,5 @@ class RequestProcessor(object):
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
-            return remoting.Response(self.buildErrorResponse(ro_request), status=remoting.STATUS_ERROR)
+            return remoting.Response(self.buildErrorResponse(ro_request),
+                                     status=remoting.STATUS_ERROR)

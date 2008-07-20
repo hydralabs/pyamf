@@ -17,7 +17,8 @@ from pyamf import remoting, logging
 DEFAULT_CLIENT_TYPE = pyamf.ClientTypes.Flash6
 
 #: Default user agent is C{PyAMF/x.x.x}.
-DEFAULT_USER_AGENT = 'PyAMF/%s' % '.'.join(map(lambda x: str(x), pyamf.__version__))
+DEFAULT_USER_AGENT = 'PyAMF/%s' % '.'.join(map(lambda x: str(x),
+                                               pyamf.__version__))
 
 HTTP_OK = 200
 
@@ -154,6 +155,8 @@ class RequestWrapper(object):
         """
         Returns the result of the called remote request. If the request has not
         yet been called, an exception is raised.
+
+        @raise AttributeError: L{RequestWrapper} object has no attribute 'result'.
         """
         if not hasattr(self, '_result'):
             raise AttributeError, "'RequestWrapper' object has no attribute 'result'"
@@ -169,11 +172,12 @@ class RemotingService(object):
     """
     Acts as a client for AMF calls.
 
-    @ivar url: The url of the remote gateway. Accepts C{http} or C{https} as schemes.
+    @ivar url: The url of the remote gateway. Accepts C{http} or C{https}
+        as valid schemes.
     @type url: C{str}
     @ivar requests: The list of pending requests to process.
     @type requests: C{list}
-    @ivar request_number: A unique identifier for an tracking the number of
+    @ivar request_number: A unique identifier for tracking the number of
         requests.
     @ivar amf_version: The AMF version to use.
         See L{ENCODING_TYPES<pyamf.ENCODING_TYPES>}.
@@ -208,6 +212,11 @@ class RemotingService(object):
         self._setUrl(url)
 
     def _setUrl(self, url):
+        """
+        @param url: Gateway URL.
+        @type url: C{str}
+        @raise ValueError: Unknown scheme.
+        """
         self.url = urlparse.urlparse(url)
         self._root_url = urlparse.urlunparse(['', ''] + list(self.url[2:]))
 
@@ -244,13 +253,19 @@ class RemotingService(object):
         else:
             raise ValueError, 'Unknown scheme'
 
-        self.logger.info('Creating connection to %s://%s:%s' % (self.url[0], hostname, port))
+        self.logger.info('Creating connection to %s://%s:%s' % (self.url[0],
+                                                                hostname, port))
         self.logger.debug('Referer: %s' % self.referer)
         self.logger.debug('User-Agent: %s' % self.user_agent)
 
     def addHeader(self, name, value, must_understand=False):
         """
         Sets a persistent header to send with each request.
+
+        @param name: Header name.
+        @type name: C{str}
+        @param must_understand: Default is C{False}.
+        @type must_understand: C{bool}
         """
         self.headers[name] = value
         self.headers.set_required(name, must_understand)
@@ -260,6 +275,8 @@ class RemotingService(object):
         Returns a L{ServiceProxy} for the supplied name. Sets up an object that
         can have method calls made to it that build the AMF requests.
 
+        @param auto_execute: Default is C{False}.
+        @type auto_execute: C{bool}
         @raise TypeError: C{string} type required for C{name}.
         @rtype: L{ServiceProxy}
         """
@@ -300,14 +317,16 @@ class RemotingService(object):
         @raise LookupError: Request not found.
         """
         if isinstance(service, RequestWrapper):
-            self.logger.debug('Removing request: %s' % (self.requests[self.requests.index(service)]))
+            self.logger.debug('Removing request: %s' % (
+                self.requests[self.requests.index(service)]))
             del self.requests[self.requests.index(service)]
 
             return
 
         for request in self.requests:
             if request.service == service and request.args == args:
-                self.logger.debug('Removing request: %s' % (self.requests[self.requests.index(request)]))
+                self.logger.debug('Removing request: %s' % (
+                    self.requests[self.requests.index(request)]))
                 del self.requests[self.requests.index(request)]
 
                 return
@@ -316,7 +335,7 @@ class RemotingService(object):
 
     def getAMFRequest(self, requests):
         """
-        Builds an AMF request L{envelope<pyamf.remoting.Envelope>} from a
+        Builds an AMF request L{Envelope<pyamf.remoting.Envelope>} from a
         supplied list of requests.
 
         @param requests: List of requests

@@ -55,7 +55,8 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
         @rtype: C{twisted.internet.defer.Deferred}
         """
         try:
-            service_request = self.gateway.getServiceRequest(request, request.target)
+            service_request = self.gateway.getServiceRequest(request,
+                                                             request.target)
         except gateway.UnknownServiceError, e:
             return defer.succeed(self.buildErrorResponse(request))
 
@@ -74,7 +75,8 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
             deferred_response.callback(response)
 
         def preprocess_cb(result):
-            d = defer.maybeDeferred(self._getBody, request, response, service_request, **kwargs)
+            d = defer.maybeDeferred(self._getBody, request, response,
+                                    service_request, **kwargs)
             d.addCallback(response_cb).addErrback(eb)
 
         def auth_cb(result):
@@ -87,11 +89,13 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
 
                 return
 
-            d = defer.maybeDeferred(self.gateway.preprocessRequest, service_request, *args, **kwargs)
+            d = defer.maybeDeferred(self.gateway.preprocessRequest,
+                                    service_request, *args, **kwargs)
             d.addCallback(preprocess_cb).addErrback(eb)
 
         # we have a valid service, now attempt authentication
-        d = defer.maybeDeferred(self.authenticateRequest, request, service_request, **kwargs)
+        d = defer.maybeDeferred(self.authenticateRequest, request,
+                                service_request, **kwargs)
         d.addCallback(auth_cb).addErrback(eb)
 
         return deferred_response
@@ -112,16 +116,21 @@ class AMF3RequestProcessor(amf3.RequestProcessor):
             if hasattr(ro_request, 'destination') and ro_request.destination:
                 service_name = '%s.%s' % (ro_request.destination, service_name)
 
-            service_request = self.gateway.getServiceRequest(amf_request, service_name)
+            service_request = self.gateway.getServiceRequest(amf_request,
+                                                             service_name)
         except gateway.UnknownServiceError, e:
-            return defer.succeed(remoting.Response(self.buildErrorResponse(ro_request), status=remoting.STATUS_ERROR))
+            return defer.succeed(remoting.Response(
+                self.buildErrorResponse(ro_request),
+                status=remoting.STATUS_ERROR))
 
         deferred_response = defer.Deferred()
 
         def eb(failure):
             self.gateway.logger.error(failure.printTraceback())
-            ro_response = self.buildErrorResponse(ro_request, (failure.type, failure.value, failure.tb))
-            deferred_response.callback(remoting.Response(ro_response, status=remoting.STATUS_ERROR))
+            ro_response = self.buildErrorResponse(ro_request, (failure.type,
+                                                  failure.value, failure.tb))
+            deferred_response.callback(remoting.Response(ro_response,
+                                        status=remoting.STATUS_ERROR))
 
         def response_cb(result):
             ro_response.body = result
@@ -131,10 +140,12 @@ class AMF3RequestProcessor(amf3.RequestProcessor):
             deferred_response.callback(res)
 
         def process_cb(result):
-            d = defer.maybeDeferred(self.gateway.callServiceRequest, service_request, *ro_request.body, **kwargs)
+            d = defer.maybeDeferred(self.gateway.callServiceRequest,
+                                    service_request, *ro_request.body, **kwargs)
             d.addCallback(response_cb).addErrback(eb)
 
-        d = defer.maybeDeferred(self.gateway.preprocessRequest, service_request, *ro_request.body, **kwargs)
+        d = defer.maybeDeferred(self.gateway.preprocessRequest, service_request,
+                                *ro_request.body, **kwargs)
         d.addCallback(process_cb).addErrback(eb)
 
         return deferred_response
@@ -226,7 +237,8 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         request.content.seek(0, 0)
         context = pyamf.get_context(pyamf.AMF0)
 
-        d = threads.deferToThread(remoting.decode, request.content.read(), context)
+        d = threads.deferToThread(remoting.decode, request.content.read(),
+                                  context)
 
         def cb(amf_request):
             self.logger.debug("AMF Request: %r" % amf_request)
@@ -283,7 +295,8 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         @param amf_request: The AMF Request.
         @type amf_request: L{Envelope<pyamf.remoting.Envelope>}
         """
-        response = remoting.Envelope(amf_request.amfVersion, amf_request.clientType)
+        response = remoting.Envelope(amf_request.amfVersion,
+                                     amf_request.clientType)
         dl = []
 
         def cb(body, name):
@@ -292,7 +305,8 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         for name, message in amf_request:
             processor = self.getProcessor(message)
 
-            d = defer.maybeDeferred(processor, message, http_request=http_request)
+            d = defer.maybeDeferred(processor, message,
+                                    http_request=http_request)
             d.addCallback(cb, name)
 
             dl.append(d)

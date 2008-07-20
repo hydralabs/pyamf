@@ -33,12 +33,15 @@ def decode(stream, strict=True):
     Decodes a SOL stream. C{strict} mode ensures that the sol stream is as spec
     compatible as possible.
 
+    @param strict: Ensure that the SOL stream is as spec compatible as possible.
+    @type strict: C{bool}
     @return: A C{tuple} containing the C{root_name} and a C{dict} of name,
         value pairs.
     @rtype: C{tuple}
 
     @raise DecodeError: Unknown SOL version in header.
-    @raise DecoderError: Inconsistent stream header length.
+    @raise DecodeError: Inconsistent stream header length.
+    @raise DecodeError: Invalid signature.
     @raise DecodeError: Invalid padding read.
     @raise DecodeError: Missing padding byte.
     """
@@ -98,6 +101,7 @@ def encode(name, values, strict=True, encoding=pyamf.AMF0):
     @type name: C{basestring}
     @param values: A C{dict} of name value pairs to be encoded in the stream.
     @type values: C{dict}
+    @param strict: Ensure that the SOL stream is as spec compatible as possible.
     @type strict: C{bool}
     @return: A SharedObject encoded stream.
     @rtype: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
@@ -146,8 +150,8 @@ def load(name_or_file):
     """
     Loads a sol file and returns a L{SOL} object.
 
-    @param name_or_file:
-    @type name_or_file:
+    @param name_or_file: Name of file, or file-object.
+    @type name_or_file: C{str} or C{StringIO}
 
     @raise ValueError: Readable stream expected.
     """
@@ -177,8 +181,10 @@ def save(sol, name_or_file, encoding=pyamf.AMF0):
 
     @param sol:
     @type sol:
-    @param name_or_file:
-    @type name_or_file:
+    @param name_or_file: Name of file, or file-object.
+    @type name_or_file: C{str} or C{StringIO}
+    @param encoding: AMF encoding type.
+    @type encoding: C{int}
 
     @raise ValueError: Writable stream expected.
     """

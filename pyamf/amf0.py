@@ -470,13 +470,22 @@ class Encoder(pyamf.BaseEncoder):
 
     def writeUndefined(self, data):
         """
-        Writes the undefined data type to the stream.
+        Writes the L{undefined<ASTypes.UNDEFINED>} data type to the stream.
+
+        @param data: The C{undefined} data to be encoded to the AMF0 data
+            stream.
+        @type data: C{undefined} data
         """
         self.writeType(ASTypes.UNDEFINED)
 
     def writeUnsupported(self, data):
         """
-        Writes unsupported data type to the stream.
+        Writes L{unsupported<ASTypes.UNSUPPORTED>} data type to the
+        stream.
+
+        @param data: The C{unsupported} data to be encoded to the AMF0
+            data stream.
+        @type data: C{unsupported} data
         """
         self.writeType(ASTypes.UNSUPPORTED)
 
@@ -534,7 +543,7 @@ class Encoder(pyamf.BaseEncoder):
         Write array to the stream.
 
         @type a: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
-        @param a: AMF data.
+        @param a: The array data to be encoded to the AMF0 data stream.
         """
         try:
             self.writeReference(a)
@@ -553,7 +562,7 @@ class Encoder(pyamf.BaseEncoder):
         Write number to the data stream.
 
         @type   n: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
-        @param  n: AMF data.
+        @param  n: The number data to be encoded to the AMF0 data stream.
         """
         self.writeType(ASTypes.NUMBER)
         self.stream.write_double(float(n))
@@ -562,8 +571,8 @@ class Encoder(pyamf.BaseEncoder):
         """
         Write boolean to the data stream.
 
-        @type   b: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
-        @param  b: AMF data.
+        @type b: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
+        @param b: The boolean data to be encoded to the AMF0 data stream.
         """
         self.writeType(ASTypes.BOOL)
 
@@ -587,10 +596,10 @@ class Encoder(pyamf.BaseEncoder):
         """
         Write string to the data stream.
 
-        @type   s: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
-        @param  s: AMF data.
-        @type   writeType: C{bool}
-        @param  writeType: Write data type.
+        @type s: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
+        @param s: The string data to be encoded to the AMF0 data stream.
+        @type writeType: C{bool}
+        @param writeType: Write data type.
         """
         if isinstance(s, unicode):
             s = s.encode('utf8')
@@ -610,8 +619,9 @@ class Encoder(pyamf.BaseEncoder):
         """
         Write reference to the data stream.
 
-        @type   o: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
-        @param  o: AMF data.
+        @type o: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
+        @param o: The reference data to be encoded to the AMF0 data
+            stream.
         """
         idx = self.context.getObjectReference(o)
 
@@ -622,8 +632,9 @@ class Encoder(pyamf.BaseEncoder):
         """
         Write C{dict} to the data stream.
 
-        @type   o: C{iterable}
-        @param  o: AMF data.
+        @type o: C{iterable}
+        @param o: The C{dict} data to be encoded to the AMF0 data
+            stream.
         """
         for key, val in o.iteritems():
             self.writeString(key, False)
@@ -633,8 +644,9 @@ class Encoder(pyamf.BaseEncoder):
         """
         Write mixed array to the data stream.
 
-        @type   o: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
-        @param  o: AMF data.
+        @type o: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
+        @param o: The mixed array data to be encoded to the AMF0
+            data stream.
         """
         try:
             self.writeReference(o)
@@ -668,6 +680,9 @@ class Encoder(pyamf.BaseEncoder):
         self.writeType(ASTypes.OBJECTTERM)
 
     def _getObjectAttrs(self, o, alias):
+        """
+        @raise pyamf.EncodeError: Unable to determine object attributes.
+        """
         obj_attrs = None
 
         if alias is not None:
@@ -691,8 +706,8 @@ class Encoder(pyamf.BaseEncoder):
         """
         Write object to the stream.
 
-        @type   o: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
-        @param  o: AMF data.
+        @type o: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
+        @param o: The object data to be encoded to the AMF0 data stream.
         """
         try:
             self.writeReference(o)
@@ -728,11 +743,11 @@ class Encoder(pyamf.BaseEncoder):
         """
         Writes a date to the data stream.
 
-        @type   d: Instance of C{datetime.datetime}
-        @param  d: The date to be written.
+        @type d: Instance of C{datetime.datetime}
+        @param d: The date to be encoded to the AMF0 data stream.
         """
         # According to the Red5 implementation of AMF0, dates references are
-        # created, but not used
+        # created, but not used.
         secs = util.get_timestamp(d)
         tz = 0
 
@@ -744,8 +759,8 @@ class Encoder(pyamf.BaseEncoder):
         """
         Write XML to the data stream.
 
-        @type   e: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
-        @param  e: AMF data.
+        @type e: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
+        @param e: The XML data to be encoded to the AMF0 data stream.
         """
         data = util.ET.tostring(e, 'utf-8')
 
@@ -758,7 +773,7 @@ class Encoder(pyamf.BaseEncoder):
         Writes an element to the datastream in L{AMF3<pyamf.amf3>} format.
 
         @type data: C{mixed}
-        @param data: The data to be encoded.
+        @param data: The data to be encoded to the AMF0 data stream.
         """
         if not hasattr(self.context, 'amf3_context'):
             from pyamf import amf3
@@ -811,8 +826,8 @@ def encode(*args, **kwargs):
 
 class RecordSet(object):
     """
-    I represent the RecordSet class used in Flash Remoting to hold (amongst
-    other things) SQL records.
+    I represent the C{RecordSet} class used in Flash Remoting to hold 
+    (amongst other things) SQL records.
 
     @ivar columns: The columns to send.
     @type columns: List of strings.
