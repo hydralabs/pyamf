@@ -94,7 +94,7 @@ of PyAMF.
  - TwistedGateway now expects deferred from service functions (Ticket:164)
 
 0.1b (2008-01-13)
--------------------
+-----------------
 
  - IExternalizable now takes its methods from the class and fine grain control
    over attr encoding (Ticket:110)
