@@ -12,4 +12,4 @@ AMF3, the default serialization for ActionScript 3.0, provides various
 advantages over AMF0, which is used for ActionScript 1.0 and 2.0. AMF3 sends
 data over the network more efficiently than AMF0. AMF3 supports sending int
 and uint objects as integers and supports data types that are available only
-in ActionScript 3.0, such as ByteArray, ArrayCollection, and IExternalizable.
+in ActionScript 3.0, such as ByteArray, ArrayCollection, and ObjectProxy.
