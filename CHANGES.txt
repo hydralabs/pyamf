@@ -76,7 +76,7 @@ of PyAMF.
  - AMF3 encoder reported incorrect byte length header for non-ASCII string data.
    Patch supplied by akaihola. (Ticket:194)
  - Decoder context not cleared between reading the remoting header and body.
-   Reported by gerard. (Ticket:192)
+   Reported by gerard (Ticket:192)
 
 0.1 (2008-02-11)
 ----------------
