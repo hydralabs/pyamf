@@ -653,11 +653,24 @@ def register_class(klass, alias=None, attrs=None, attr_func=None, metadata=[]):
     # arguments.
     if hasattr(klass, '__init__') and hasattr(klass.__init__, 'im_func'):
         klass_func = klass.__init__.im_func
+
         # built-in classes don't have func_code
-	# required arguments = Number of arguments - number of default values
-	if hasattr(klass_func, 'func_code') and (
-	   klass_func.func_code.co_argcount - len(klass_func.func_defaults or []) > 1):
-            raise TypeError("PyAMF doesn't support required init arguments")
+        if hasattr(klass_func, 'func_code') and (
+           klass_func.func_code.co_argcount - len(klass_func.func_defaults or []) > 1):
+            args = list(klass_func.func_code.co_varnames)
+            values = list(klass_func.func_defaults or [])
+
+            if not values:
+                sign = "%s.__init__(%s)" % (klass.__name__, ", ".join(args))
+            else:
+                named_args = zip(args[len(args) - len(values):], values)
+                sign = "%s.__init__(%s, %s)" % (
+                    klass.__name__,
+                    ", ".join(args[:0-len(values)]),
+                    ", ".join(map(lambda x: "%s=%s" % x, named_args)))
+
+            raise TypeError("__init__ doesn't support additional arguments: %s"
+                % sign)
 
     x = ClassAlias(klass, alias, attr_func=attr_func, attrs=attrs,
         metadata=metadata)
