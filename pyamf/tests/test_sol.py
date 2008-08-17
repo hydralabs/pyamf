@@ -9,7 +9,7 @@ Tests for Local Shared Object (LSO) Implementation.
 @since: 0.1.0
 """
 
-import unittest, os.path, warnings
+import unittest, os.path, warnings, tempfile
 
 import pyamf
 from pyamf import sol
@@ -93,7 +93,7 @@ class HelperTestCase(unittest.TestCase):
         '\x02\x00\x04eggs\x00'
 
     def setUp(self):
-        self.file_name = os.tempnam()
+        self.fp, self.file_name = tempfile.mkstemp()
 
     def tearDown(self):
         if os.path.isfile(self.file_name):
@@ -166,10 +166,11 @@ class SOLTestCase(unittest.TestCase):
         s = sol.SOL('hello')
         s.update({'name': 'value', 'spam': 'eggs'})
 
-        x = os.tempnam()
-        s.save(x)
+        x = tempfile.mkstemp()[1]
 
         try:
+            s.save(x)
+
             self.assertEquals(open(x, 'rb').read(), HelperTestCase.contents)
         except:
             if os.path.isfile(x):
@@ -177,20 +178,21 @@ class SOLTestCase(unittest.TestCase):
 
             raise
 
-        x = os.tempnam()
-        fp = open(x, 'wb+')
-
-        self.assertEquals(fp.closed, False)
-
-        s.save(fp)
-        self.assertNotEquals(fp.tell(), 0)
-
-        fp.seek(0)
-
-        self.assertEquals(fp.read(), HelperTestCase.contents)
-        self.assertEquals(fp.closed, False)
+        x = tempfile.mkstemp()[1]
 
         try:
+            fp = open(x, 'wb+')
+
+            self.assertEquals(fp.closed, False)
+
+            s.save(fp)
+            self.assertNotEquals(fp.tell(), 0)
+
+            fp.seek(0)
+
+            self.assertEquals(fp.read(), HelperTestCase.contents)
+            self.assertEquals(fp.closed, False)
+
             self.assertEquals(open(x, 'rb').read(), HelperTestCase.contents)
         except:
             if os.path.isfile(x):
