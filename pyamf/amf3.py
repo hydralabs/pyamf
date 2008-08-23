@@ -642,21 +642,25 @@ class Context(pyamf.BaseContext):
     @ivar legacy_xml: A list of legacy encoded XML documents.
     @type legacy_xml: C{list}
     """
+
+    def __init__(self):
+        self.strings = util.IndexedCollection(use_hash=True)
+        self.classes = util.IndexedCollection()
+        self.class_defs = util.IndexedCollection()
+        self.legacy_xml = util.IndexedCollection()
+
+        pyamf.BaseContext.__init__(self)
+
     def clear(self):
         """
         Resets the context.
         """
         pyamf.BaseContext.clear(self)
 
-        self.strings = []
-
-        self.classes = []
-        self.rev_classes = {}
-        self.class_defs = {}
-        self.rev_class_defs = {}
-
-        self.legacy_xml = []
-        self.rev_legacy_xml = {}
+        self.strings.clear()
+        self.classes.clear()
+        self.class_defs.clear()
+        self.legacy_xml.clear()
 
     def getString(self, ref):
         """
@@ -670,9 +674,9 @@ class Context(pyamf.BaseContext):
         @return: The referenced string.
         """
         try:
-            return self.strings[ref]
-        except IndexError:
-            raise pyamf.ReferenceError, "String reference %d not found" % ref
+            return self.strings.getByReference(ref)
+        except pyamf.ReferenceError:
+            raise pyamf.ReferenceError("String reference %r not found" % (ref,))
 
     def getStringReference(self, s):
         """
@@ -685,9 +689,9 @@ class Context(pyamf.BaseContext):
         @rtype: C{int}
         """
         try:
-            return self.strings.index(s)
+            return self.strings.getReferenceTo(s)
         except ValueError:
-            raise pyamf.ReferenceError, "Reference for string %r not found" % s
+            raise pyamf.ReferenceError("Reference for string %r not found" % (s,))
 
     def addString(self, s):
         """
@@ -707,14 +711,9 @@ class Context(pyamf.BaseContext):
 
         if len(s) == 0:
             # do not store empty string references
-            raise ValueError, "Cannot store a reference to an empty string"
+            raise ValueError("Cannot store a reference to an empty string")
 
-        try:
-            return self.strings.index(s)
-        except ValueError:
-            self.strings.append(s)
-
-            return len(self.strings) - 1
+        return self.strings.append(s)
 
     def getClassDefinition(self, ref):
         """
@@ -724,9 +723,9 @@ class Context(pyamf.BaseContext):
         @return: Class reference.
         """
         try:
-            return self.classes[ref]
+            return self.class_defs.getByReference(ref)
         except IndexError:
-            raise pyamf.ReferenceError, "Class reference %d not found" % ref
+            raise pyamf.ReferenceError("Class reference %r not found" % (ref,))
 
     def getClassDefinitionReference(self, class_def):
         """
@@ -742,44 +741,46 @@ class Context(pyamf.BaseContext):
         if not isinstance(class_def, ClassDefinition):
             if isinstance(class_def, (type, types.ClassType)):
                 try:
-                    return self.rev_class_defs[class_def]
-                except KeyError:
-                    raise pyamf.ReferenceError("Reference for class definition for %s not found" %
-                        class_def)
+                    return self.classes.getReferenceTo(class_def)
+                except pyamf.ReferenceError:
+                    raise pyamf.ReferenceError("Reference for class definition for %s not found" % (class_def,))
             elif isinstance(class_def, (types.InstanceType, types.ObjectType)):
                 try:
-                    return self.class_defs[class_def.__class__]
-                except KeyError:
-                    raise pyamf.ReferenceError("Reference for class definition for %s not found" %
-                        class_def.__class__)
+                    return self.classes.getReferenceTo(class_def.__class__)
+                except pyamf.ReferenceError:
+                    raise pyamf.ReferenceError("Reference for class definition for %s not found" % (class_def.__class__,))
 
-            raise TypeError, 'unable to determine class for %r' % class_def
+            raise TypeError('unable to determine class for %r' % (class_def,))
         else:
             try:
-                return self.rev_class_defs[id(class_def)]
-            except ValueError:
-                raise pyamf.ReferenceError, "Reference for class %s not found" % class_def.klass
+                return self.class_defs.getReferenceTo(class_def)
+            except KeyError:
+                raise pyamf.ReferenceError("Reference for class %s not found" % (class_def.klass,))
 
     def addClassDefinition(self, class_def):
         """
         Creates a reference to C{class_def}.
+
+        @param class_def: C{ClassDefinition} instance.
         """
         try:
-            return self.rev_class_defs[id(class_def)]
-        except KeyError:
-            self.classes.append(class_def)
-            idx = len(self.classes) - 1
+            return self.class_defs.getReferenceTo(class_def)
+        except pyamf.ReferenceError:
+            try:
+                self.classes.append(class_def.klass)
+            except pyamf.UnknownClassAlias:
+                pass
 
-            self.rev_classes[id(class_def)] = idx
-            self.class_defs[class_def.__class__] = class_def
-            self.rev_class_defs[id(class_def.__class__)] = idx
-
-            return idx
+            return self.class_defs.append(class_def)
 
     def removeClassDefinition(self, class_def):
+        """
+        Removes a C{ClassDefinition} reference from this context.
+        """
+        idx = self.rev_classes[id(class_def)]
+
         del self.rev_classes[id(class_def)]
-        del self.rev_class_defs[id(class_def.__class__)]
-        del self.class_defs[class_def.__class__]
+        del self.classes[idx]
 
     def getLegacyXML(self, ref):
         """
@@ -793,10 +794,9 @@ class Context(pyamf.BaseContext):
         @return: Instance of L{ET<util.ET>}
         """
         try:
-            return self.legacy_xml[ref]
-        except IndexError:
-            raise pyamf.ReferenceError(
-                "Legacy XML reference %d not found" % ref)
+            return self.legacy_xml.getByReference(ref)
+        except pyamf.ReferenceError:
+            raise pyamf.ReferenceError("Legacy XML reference %r not found" % (ref,))
 
     def getLegacyXMLReference(self, doc):
         """
@@ -809,9 +809,9 @@ class Context(pyamf.BaseContext):
         @rtype: C{int}
         """
         try:
-            return self.rev_legacy_xml[id(doc)]
-        except KeyError:
-            raise pyamf.ReferenceError, "Reference for document %r not found" % doc
+            return self.legacy_xml.getReferenceTo(doc)
+        except pyamf.ReferenceError:
+            raise pyamf.ReferenceError("Reference for document %r not found" % (doc,))
 
     def addLegacyXML(self, doc):
         """
@@ -825,15 +825,7 @@ class Context(pyamf.BaseContext):
         @rtype: C{int}
         @return: The reference to C{doc}.
         """
-        try:
-            return self.rev_legacy_xml[id(doc)]
-        except KeyError:
-            self.legacy_xml.append(doc)
-
-            idx = len(self.legacy_xml) - 1
-            self.rev_legacy_xml[id(doc)] = idx
-
-            return idx
+        return self.legacy_xml.append(doc)
 
     def __copy__(self):
         return self.__class__()
@@ -1246,7 +1238,7 @@ class Encoder(pyamf.BaseEncoder):
             except (KeyboardInterrupt, SystemExit):
                 raise
             except:
-                raise pyamf.EncodeError, "Unable to encode '%r'" % data
+                raise pyamf.EncodeError("Unable to encode '%r'" % (data,))
 
     def writeType(self, type):
         """
@@ -1261,6 +1253,12 @@ class Encoder(pyamf.BaseEncoder):
                 type, self.stream.tell() - 1))
 
         self.stream.write_uchar(type)
+
+    def writeFunc(self, *args, **kwargs):
+        """
+        Functions cannot be serialised.
+        """
+        raise pyamf.EncodeError("Callables cannot be serialised")
 
     def writeUndefined(self, d, use_references=True):
         """

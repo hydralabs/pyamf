@@ -11,6 +11,8 @@ AMF Utilities.
 
 import struct, calendar, datetime, types, sys
 
+import pyamf
+
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -556,6 +558,86 @@ def get_instance_attrs(obj, alias):
         obj_attrs = get_attrs(obj)
 
     return obj_attrs
+
+class IndexedCollection(object):
+    """
+    """
+
+    def __init__(self, use_hash=False):
+        if use_hash is True:
+            self.func = hash
+        else:
+            self.func = id
+
+        self.clear()
+
+    def clear(self):
+        self.list = []
+        self.dict = {}
+
+    def getByReference(self, ref):
+        if not isinstance(ref, (int, long)):
+            raise TypeError("Bad reference type")
+
+        try:
+            return self.list[ref]
+        except IndexError:
+            raise pyamf.ReferenceError("Reference %r not found" % (ref,))
+
+    def getReferenceTo(self, obj):
+        try:
+            return self.dict[self.func(obj)]
+        except KeyError:
+            raise pyamf.ReferenceError("Value %r not found" % (obj,))
+
+    def append(self, obj):
+        h = self.func(obj)
+
+        try:
+            return self.dict[h]
+        except KeyError:
+            self.list.append(obj)
+            idx = len(self.list) - 1
+            self.dict[h] = idx
+
+            return idx
+
+    def remove(self, obj):
+        try:
+            idx = self.dict[id(obj)]
+        except KeyError:
+            raise pyamf.ReferenceError("%r is not a valid reference" % (obj,))
+
+        del self.list[idx]
+        del self.dict[id(obj)]
+
+    def __eq__(self, other):
+        if isinstance(other, list):
+            return self.list == other
+        elif isinstance(other, dict):
+            return self.dict == other
+
+        return False
+
+    def __len__(self):
+        return len(self.list)
+
+    def __getitem__(self, idx):
+        return self.getByReference(idx)
+
+    def __contains__(self, obj):
+        try:
+            r = self.getReferenceTo(obj)
+        except pyamf.ReferenceError:
+            r = None
+
+        return r is not None
+
+    def __repr__(self):
+        return '<%s list=%r dict=%r>' % (self.__class__.__name__, self.list, self.dict)
+
+    def __iter__(self):
+        return iter(self.list)
 
 if sys.version_info < (2, 5) or sys.platform.startswith('win'):
     # workaround for python2.4's shortcomings with exceptional floats

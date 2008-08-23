@@ -478,6 +478,12 @@ class Encoder(pyamf.BaseEncoder):
         """
         self.writeType(ASTypes.UNDEFINED)
 
+    def writeFunc(self, *args, **kwargs):
+        """
+        Functions cannot be serialised.
+        """
+        raise pyamf.EncodeError("Callables cannot be serialised")
+
     def writeUnsupported(self, data):
         """
         Writes L{unsupported<ASTypes.UNSUPPORTED>} data type to the

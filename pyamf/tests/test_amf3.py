@@ -35,7 +35,7 @@ class TypesTestCase(unittest.TestCase):
         self.assertEquals(amf3.ASTypes.XMLSTRING, 0x0b)
         self.assertEquals(amf3.ASTypes.BYTEARRAY, 0x0c)
 
-class ContextTestCase(unittest.TestCase):
+class ContextTestCase(_util.ClassCacheClearingTestCase):
     def test_create(self):
         c = amf3.Context()
 
@@ -67,7 +67,12 @@ class ContextTestCase(unittest.TestCase):
     def test_add_class(self):
         x = amf3.Context()
 
-        # TODO nick: fill this out ...
+        pyamf.register_class(Spam, 'spam.eggs')
+        y = amf3.ClassDefinition('spam.eggs')
+
+        self.assertEquals(x.addClassDefinition(y), 0)
+        self.assertTrue(y in x.class_defs)
+        self.assertEquals(len(x.class_defs), 1)
 
     def test_add_legacy_xml(self):
         x = amf3.Context()
@@ -104,12 +109,23 @@ class ContextTestCase(unittest.TestCase):
         y = [1, 2, 3]
         z = {'spam': 'eggs'}
 
+        pyamf.register_class(Spam, 'spam.eggs')
+
+        class Foo:
+            pass
+        pyamf.register_class(Foo, 'foo.bar')
+
+        a = amf3.ClassDefinition('spam.eggs')
+        b = amf3.ClassDefinition('foo.bar')
+
         x.addObject(y)
         x.addObject(z)
         x.addString('abc')
         x.addString('def')
         x.addLegacyXML('<a></a>')
         x.addLegacyXML('<b></b>')
+        x.addClassDefinition(a)
+        x.addClassDefinition(b)
 
         self.assertEquals(x.getObject(0), y)
         self.assertEquals(x.getObject(1), z)
@@ -127,6 +143,10 @@ class ContextTestCase(unittest.TestCase):
         self.assertEquals(x.getLegacyXML(1), '<b></b>')
         self.assertRaises(pyamf.ReferenceError, x.getLegacyXML, 2)
 
+        self.assertEquals(x.getClassDefinition(0), a)
+        self.assertEquals(x.getClassDefinition(1), b)
+        self.assertRaises(pyamf.ReferenceError, x.getClassDefinition, 2)
+
     def test_empty_string(self):
         x = amf3.Context()
 
@@ -137,12 +157,23 @@ class ContextTestCase(unittest.TestCase):
         y = [1, 2, 3]
         z = {'spam': 'eggs'}
 
+        pyamf.register_class(Spam, 'spam.eggs')
+
+        class Foo:
+            pass
+        pyamf.register_class(Foo, 'foo.bar')
+
+        a = amf3.ClassDefinition('spam.eggs')
+        b = amf3.ClassDefinition('foo.bar')
+
         ref1 = x.addObject(y)
         ref2 = x.addObject(z)
         x.addString('abc')
         x.addString('def')
         x.addLegacyXML('<a></a>')
         x.addLegacyXML('<b></b>')
+        x.addClassDefinition(a)
+        x.addClassDefinition(b)
 
         self.assertEquals(x.getObjectReference(y), ref1)
         self.assertEquals(x.getObjectReference(z), ref2)
@@ -155,6 +186,10 @@ class ContextTestCase(unittest.TestCase):
         self.assertEquals(x.getLegacyXMLReference('<a></a>'), 0)
         self.assertEquals(x.getLegacyXMLReference('<b></b>'), 1)
         self.assertRaises(pyamf.ReferenceError, x.getLegacyXMLReference, '<c/>')
+
+        self.assertEquals(x.getClassDefinitionReference(a), 0)
+        self.assertEquals(x.getClassDefinitionReference(b), 1)
+        self.assertRaises(pyamf.ReferenceError, x.getClassDefinitionReference, amf3.ClassDefinition(None))
 
     def test_copy(self):
         import copy
@@ -834,10 +869,10 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
         self.assertTrue(class_def.name, 'abc.xyz')
         self.assertEquals(class_def.encoding, amf3.ObjectEncoding.STATIC)
 
-        self.assertTrue(class_def in self.context.classes)
-        self.assertTrue(id(class_def) in self.context.rev_classes)
+        self.assertTrue(class_def in self.context.class_defs)
+        self.assertFalse(class_def.klass in self.context.classes)
 
-        self.context.classes.remove(class_def)
+        self.context.class_defs.remove(class_def)
         self.buf.write('\x0fabc.xyz')
         self.buf.seek(0, 0)
 
@@ -849,9 +884,9 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
         self.assertTrue(class_def.name, 'abc.xyz')
         self.assertEquals(class_def.encoding, amf3.ObjectEncoding.EXTERNAL)
 
-        self.assertTrue(class_def in self.context.classes)
+        self.assertTrue(class_def in self.context.class_defs)
 
-        self.context.classes.remove(class_def)
+        self.context.class_defs.remove(class_def)
         self.buf.write('\x0fabc.xyz')
         self.buf.seek(0, 0)
 
@@ -863,8 +898,8 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
         self.assertTrue(class_def.name, 'abc.xyz')
         self.assertEquals(class_def.encoding, amf3.ObjectEncoding.DYNAMIC)
 
-        self.assertTrue(class_def in self.context.classes)
-        self.context.classes.remove(class_def)
+        self.assertTrue(class_def in self.context.class_defs)
+        self.context.class_defs.remove(class_def)
 
     def test_setstate_newstyle(self):
         self.executed = False
@@ -1062,7 +1097,7 @@ class ObjectDecodingTestCase(_util.ClassCacheClearingTestCase):
 
         obj = self.decoder.readElement()
 
-        class_def = self.context.classes[0]
+        class_def = self.context.class_defs[0]
 
         self.assertEquals(class_def.static_attrs, ['spam'])
 
@@ -1081,7 +1116,7 @@ class ObjectDecodingTestCase(_util.ClassCacheClearingTestCase):
 
         obj = self.decoder.readElement()
 
-        class_def = self.context.classes[0]
+        class_def = self.context.class_defs[0]
 
         self.assertEquals(class_def.static_attrs, [])
 
@@ -1105,7 +1140,7 @@ class ObjectDecodingTestCase(_util.ClassCacheClearingTestCase):
 
         obj = self.decoder.readElement()
 
-        class_def = self.context.classes[0]
+        class_def = self.context.class_defs[0]
 
         self.assertEquals(class_def.static_attrs, ['spam'])
 

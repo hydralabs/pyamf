@@ -117,15 +117,14 @@ class BaseContext(object):
     I hold the AMF context for en/decoding streams.
     """
     def __init__(self):
+        self.objects = util.IndexedCollection()
         self.clear()
 
     def clear(self):
         """
-        Clears the AMF context.
+        Clears the context.
         """
-        self.objects = []
-        self.rev_objects = {}
-
+        self.objects.clear()
         self.class_aliases = {}
 
     def getObject(self, ref):
@@ -134,22 +133,19 @@ class BaseContext(object):
 
         @raise TypeError: Bad reference type.
         """
-        if not isinstance(ref, (int, long)):
-            raise TypeError, "Bad reference type"
-
         try:
-            return self.objects[ref]
-        except IndexError:
-            raise ReferenceError
+            return self.objects.getByReference(ref)
+        except ReferenceError:
+            raise ReferenceError("Unknown object reference %r" % (ref,))
 
     def getObjectReference(self, obj):
         """
         Gets a reference for an object.
         """
         try:
-            return self.rev_objects[id(obj)]
-        except KeyError:
-            raise ReferenceError
+            return self.objects.getReferenceTo(obj)
+        except ReferenceError:
+            raise ReferenceError("Object %r not a valid reference" % (obj,))
 
     def addObject(self, obj):
         """
@@ -157,15 +153,10 @@ class BaseContext(object):
 
         @type obj: C{mixed}
         @param obj: The object to add to the context.
-
         @rtype: C{int}
         @return: Reference to C{obj}.
         """
-        self.objects.append(obj)
-        idx = len(self.objects) - 1
-        self.rev_objects[id(obj)] = idx
-
-        return idx
+        return self.objects.append(obj)
 
     def getClassAlias(self, klass):
         """
@@ -198,7 +189,7 @@ class ASObject(dict):
         try:
             return self[k]
         except KeyError:
-            raise AttributeError, 'unknown attribute \'%s\'' % k
+            raise AttributeError('unknown attribute \'%s\'' % k)
 
     def __setattr__(self, k, v):
         self[k] = v
@@ -247,7 +238,6 @@ class ClassMetaData(list):
         Adds a tag to the metadata.
 
         @param x: Tag.
-
         @raise ValueError: Unknown tag.
         """
         x = str(x).lower()
