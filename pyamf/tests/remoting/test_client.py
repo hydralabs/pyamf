@@ -438,7 +438,8 @@ class RemotingServiceTestCase(unittest.TestCase):
         gw.connection = dc
 
         response = DummyResponse(200, '\x00\x00\x00\x00\x00\x00', {
-            'Content-Type': 'application/x-amf'})
+            'Content-Type': 'application/x-amf'
+        })
 
         dc.response = response
 
@@ -509,6 +510,52 @@ class RemotingServiceTestCase(unittest.TestCase):
             'Content-Type': 'application/x-amf'})
 
         gw._getResponse()
+        self.assertTrue(dc.response.closed, True)
+
+    def test_add_http_header(self):
+        gw = client.RemotingService('http://example.org/amf-gateway')
+
+        self.assertEquals(gw.http_headers, {})
+
+        gw.addHTTPHeader('ETag', '29083457239804752309485')
+
+        self.assertEquals(gw.http_headers, {
+            'ETag': '29083457239804752309485'
+        })
+
+    def test_remove_http_header(self):
+        gw = client.RemotingService('http://example.org/amf-gateway')
+
+        gw.http_headers = {
+            'Set-Cookie': 'foo-bar'
+        }
+
+        gw.removeHTTPHeader('Set-Cookie')
+
+        self.assertEquals(gw.http_headers, {})
+        self.assertRaises(KeyError, gw.removeHTTPHeader, 'foo-bar')
+
+    def test_http_request_headers(self):
+        gw = client.RemotingService('http://example.org/amf-gateway')
+        dc = DummyConnection()
+        gw.connection = dc
+        dc.tc = self
+        dc.expected_url = '/amf-gateway'
+        dc.expected_value = '\x00\x00\x00\x00\x00\x00'
+
+        gw.addHTTPHeader('ETag', '29083457239804752309485')
+        dc.expected_headers = {
+            'ETag': '29083457239804752309485',
+            'Content-Type': 'application/x-amf',
+            'User-Agent': gw.user_agent
+        }
+
+        dc.response = DummyResponse(200, '\x00\x00\x00\x01\x00\x11ReplaceGatewayUrl'
+            '\x01\x00\x00\x00\x00\x02\x00\x10http://spam.eggs\x00\x00', {
+            'Content-Type': 'application/x-amf'
+        })
+
+        gw.execute()
         self.assertTrue(dc.response.closed, True)
 
 def suite():

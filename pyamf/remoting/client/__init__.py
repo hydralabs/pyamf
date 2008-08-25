@@ -194,6 +194,9 @@ class RemotingService(object):
     @type connection: C{httplib.HTTPConnection} or C{httplib.HTTPSConnection}
     @ivar headers: A list of persistent headers to send with each request.
     @type headers: L{HeaderCollection<pyamf.remoting.HeaderCollection>}
+    @ivar http_headers: A dict of HTTP headers to apply to the underlying
+        HTTP connection.
+    @type http_headers: L{dict}
     """
 
     def __init__(self, url, amf_version=pyamf.AMF0, client_type=DEFAULT_CLIENT_TYPE,
@@ -208,6 +211,7 @@ class RemotingService(object):
         self.amf_version = amf_version
         self.client_type = client_type
         self.headers = remoting.HeaderCollection()
+        self.http_headers = {}
 
         self._setUrl(url)
 
@@ -269,6 +273,18 @@ class RemotingService(object):
         """
         self.headers[name] = value
         self.headers.set_required(name, must_understand)
+
+    def addHTTPHeader(self, name, value):
+        """
+        Adds a header to the underlying HTTP connection.
+        """
+        self.http_headers[name] = value
+
+    def removeHTTPHeader(self, name):
+        """
+        Deletes an HTTP header.
+        """
+        del self.http_headers[name]
 
     def getService(self, name, auto_execute=True):
         """
@@ -357,6 +373,19 @@ class RemotingService(object):
 
         return envelope
 
+    def _get_execute_headers(self):
+        headers = self.http_headers.copy()
+
+        headers.update({
+            'Content-Type': remoting.CONTENT_TYPE,
+            'User-Agent': self.user_agent
+        })
+
+        if self.referer is not None:
+            headers['Referer'] = self.referer
+
+        return headers
+
     def execute_single(self, request):
         """
         Builds, sends and handles the response to a single request, returning
@@ -368,15 +397,12 @@ class RemotingService(object):
         """
         self.logger.debug('Executing single request: %s' % request)
         body = remoting.encode(self.getAMFRequest([request]))
-        headers = {'Content-Type': remoting.CONTENT_TYPE,
-                   'User-Agent': self.user_agent}
-
-        if self.referer is not None:
-            headers['Referer'] = self.referer
 
         self.logger.debug('Sending POST request to %s' % self._root_url)
-        self.connection.request('POST', self._root_url, body.getvalue(),
-                                headers)
+        self.connection.request('POST', self._root_url,
+            body.getvalue(),
+            self._get_execute_headers()
+        )
 
         envelope = self._getResponse()
         self.removeRequest(request)
@@ -389,15 +415,12 @@ class RemotingService(object):
         C{self.requests}.
         """
         body = remoting.encode(self.getAMFRequest(self.requests))
-        headers = {'Content-Type': remoting.CONTENT_TYPE,
-                   'User-Agent': self.user_agent}
-
-        if self.referer is not None:
-            headers['Referer'] = self.referer
 
         self.logger.debug('Sending POST request to %s' % self._root_url)
-        self.connection.request('POST', self._root_url, body.getvalue(),
-                                headers)
+        self.connection.request('POST', self._root_url,
+            body.getvalue(),
+            self._get_execute_headers()
+        )
 
         envelope = self._getResponse()
 
