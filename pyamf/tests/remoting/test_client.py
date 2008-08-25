@@ -424,9 +424,9 @@ class RemotingServiceTestCase(unittest.TestCase):
         response.tc = self
 
         dc.expected_url = '/x/y/z'
-        dc.expected_value = '\x00\x00\x00\x00\x00\x02\x00\x09spam.eggs\x00' + \
-            '\x02/2\x00\x00\x00\x00\x0a\x00\x00\x00\x00' + \
-            '\x00\x07baz.gak\x00\x02/1\x00\x00\x00\x00\x0a\x00\x00\x00\x00'
+        dc.expected_value = '\x00\x00\x00\x00\x00\x02\x00\x07baz.gak\x00\x02' + \
+            '/1\x00\x00\x00\x00\n\x00\x00\x00\x00\x00\tspam.eggs\x00\x02/2' + \
+            '\x00\x00\x00\x00\n\x00\x00\x00\x00'
         dc.response = response
 
         gw.execute()

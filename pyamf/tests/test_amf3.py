@@ -789,6 +789,14 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
 
         self.assertEquals(x, y)
 
+    def test_xmlstring_references(self):
+        self.buf.write('\x0b\x33<a><b>hello world</b></a>\x0b\x00')
+        self.buf.seek(0, 0)
+        x = self.decoder.readElement()
+        y = self.decoder.readElement()
+
+        self.assertEquals(id(x), id(y))
+
     def test_list(self):
         self._run([
             ([], '\x09\x01\x01'),

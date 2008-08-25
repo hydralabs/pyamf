@@ -32,7 +32,7 @@ class RequestProcessor(object):
             password = cred['password']
 
         return self.gateway.authenticateRequest(service_request, username,
-                                                password, *args, **kwargs)
+            password, *args, **kwargs)
 
     def buildErrorResponse(self, request, error=None):
         """
@@ -49,14 +49,14 @@ class RequestProcessor(object):
             cls, e, tb = sys.exc_info()
 
         return remoting.Response(build_fault(cls, e, tb),
-                                 status=remoting.STATUS_ERROR)
+            status=remoting.STATUS_ERROR)
 
     def _getBody(self, request, response, service_request, **kwargs):
         if 'DescribeService' in request.headers:
             return service_request.service.description
 
         return self.gateway.callServiceRequest(service_request, *request.body,
-                                               **kwargs)
+            **kwargs)
 
     def __call__(self, request, *args, **kwargs):
         """
@@ -72,14 +72,14 @@ class RequestProcessor(object):
 
         try:
             service_request = self.gateway.getServiceRequest(request,
-                                                             request.target)
+                request.target)
         except gateway.UnknownServiceError, e:
             return self.buildErrorResponse(request)
 
         # we have a valid service, now attempt authentication
         try:
             authd = self.authenticateRequest(request, service_request, *args,
-                                             **kwargs)
+                **kwargs)
         except (SystemExit, KeyboardInterrupt):
             raise
         except:
@@ -103,7 +103,7 @@ class RequestProcessor(object):
 
         try:
             response.body = self._getBody(request, response, service_request,
-                                          *args, **kwargs)
+                *args, **kwargs)
 
             return response
         except (SystemExit, KeyboardInterrupt):

@@ -653,9 +653,22 @@ class Context(pyamf.BaseContext):
 
     def clear(self):
         """
-        Resets the context.
+        Clears the context.
         """
         pyamf.BaseContext.clear(self)
+
+        self.strings.clear()
+        self.classes.clear()
+        self.class_defs.clear()
+        self.legacy_xml.clear()
+
+    def reset(self):
+        """
+        Resets the context.
+
+        @see: L{pyamf.BaseContext.reset}
+        """
+        pyamf.BaseContext.reset(self)
 
         self.strings.clear()
         self.classes.clear()
@@ -773,7 +786,15 @@ class Context(pyamf.BaseContext):
 
             return self.class_defs.append(class_def)
 
+<<<<<<< .working
+=======
     def removeClassDefinition(self, class_def):
+        """
+        Removes a C{ClassDefinition} reference from this context.
+        """
+        idx = self.rev_classes[id(class_def)]
+
+>>>>>>> .merge-right.r1607
         """
         Removes a C{ClassDefinition} reference from this context.
         """
@@ -922,7 +943,7 @@ class Decoder(pyamf.BaseDecoder):
         """
         Reads and returns an integer from the stream.
 
-	@type signed: C{bool}
+        @type signed: C{bool}
         @see: U{Parsing integers on OSFlash
         <http://osflash.org/amf3/parsing_integers>} for the AMF3 integer data
         format.

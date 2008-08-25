@@ -20,6 +20,7 @@ LocalConnection, SharedObjects and other classes in the Flash Player.
 """
 
 import datetime, types
+import copy
 
 import pyamf
 from pyamf import util
@@ -111,31 +112,37 @@ class Context(pyamf.BaseContext):
     I hold the AMF0 context for en/decoding streams.
 
     AMF0 object references start at index 1.
+
+    @ivar amf3_objs: A list of objects that have been decoded in
+        L{AMF3<pyamf.amf3>}.
+    @type amf3_objs: L{util.IndexedCollection}
     """
+    def __init__(self):
+        self.amf3_objs = util.IndexedCollection()
+
+        pyamf.BaseContext.__init__(self)
+
     def clear(self):
         """
-        Resets the context.
-
-        The C{amf3_objs} var keeps a list of objects that were encoded
-        in L{AMF3<pyamf.amf3>}.
+        Clears the context.
         """
         pyamf.BaseContext.clear(self)
 
-        self.amf3_objs = []
-        self.rev_amf3_objs = {}
+        self.amf3_objs.clear()
 
         if hasattr(self, 'amf3_context'):
             self.amf3_context.clear()
 
-    def _getObject(self, ref):
-        return self.objects[ref + 1]
+    def reset(self):
+        """
+        Resets the context.
 
-    def __copy__(self):
-        copy = self.__class__()
-        copy.amf3_objs = self.amf3_objs
-        copy.rev_amf3_objs = self.rev_amf3_objs
+        @see: L{pyamf.BaseContext.reset}
+        """
+        pyamf.BaseContext.reset(self)
 
-        return copy
+        if hasattr(self, 'amf3_context'):
+            self.amf3_context.reset()
 
     def getAMF3ObjectReference(self, obj):
         """
@@ -144,7 +151,7 @@ class Context(pyamf.BaseContext):
         @raise ReferenceError: Object reference could not be found.
         """
         try:
-            return self.rev_amf3_objs[id(obj)]
+            return self.amf3_objs.getReferenceTo(obj)
         except KeyError:
             raise ReferenceError
 
@@ -154,15 +161,16 @@ class Context(pyamf.BaseContext):
 
         @type obj: C{mixed}
         @param obj: The object to add to the context.
-
         @rtype: C{int}
         @return: Reference to C{obj}.
         """
-        self.amf3_objs.append(obj)
-        idx = len(self.amf3_objs) - 1
-        self.rev_amf3_objs[id(obj)] = idx
+        return self.amf3_objs.append(obj)
 
-        return idx
+    def __copy__(self):
+        cpy = self.__class__()
+        cpy.amf3_objs = copy.copy(self.amf3_objs)
+
+        return cpy
 
 class Decoder(pyamf.BaseDecoder):
     """
@@ -507,7 +515,7 @@ class Encoder(pyamf.BaseEncoder):
         try:
             self.context.getAMF3ObjectReference(data)
             return self.writeAMF3
-        except ReferenceError:
+        except pyamf.ReferenceError:
             pass
 
         return pyamf.BaseEncoder._writeElementFunc(self, data)
@@ -768,9 +776,9 @@ class Encoder(pyamf.BaseEncoder):
         @type e: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param e: The XML data to be encoded to the AMF0 data stream.
         """
-        data = util.ET.tostring(e, 'utf-8')
-
         self.writeType(ASTypes.XML)
+
+        data = util.ET.tostring(e, 'utf-8')
         self.stream.write_ulong(len(data))
         self.stream.write(data)
 

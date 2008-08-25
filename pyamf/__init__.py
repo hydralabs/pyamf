@@ -122,7 +122,17 @@ class BaseContext(object):
 
     def clear(self):
         """
-        Clears the context.
+        Completely clears the context.
+        """
+        self.objects.clear()
+        self.class_aliases = {}
+
+    def reset(self):
+        """
+        Resets the context. This is subtly different to the
+        L{BaseContext.clear} method, which is a hard delete of the context.
+        This method is mainly used by the L{remoting api<pyamf.remoting>} to
+        handle context clearing between requests.
         """
         self.objects.clear()
         self.class_aliases = {}

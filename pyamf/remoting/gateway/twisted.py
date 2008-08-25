@@ -238,7 +238,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         context = pyamf.get_context(pyamf.AMF0)
 
         d = threads.deferToThread(remoting.decode, request.content.read(),
-                                  context)
+            context)
 
         def cb(amf_request):
             self.logger.debug("AMF Request: %r" % amf_request)

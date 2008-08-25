@@ -26,6 +26,8 @@ the Flash Player to understand the response therefore.
 @since: 0.1.0
 """
 
+import copy
+
 import pyamf
 from pyamf import util
 
@@ -103,21 +105,28 @@ class HeaderCollection(dict):
     def __len__(self):
         return len(self.keys())
 
-class Envelope(dict):
+class Envelope(object):
     """
     I wrap an entire request, encapsulating headers and bodies.
 
     There can be more than one request in a single transaction.
+
+    @ivar amfVersion: AMF encoding version. See L{pyamf.ENCODING_TYPES}
+    @type amfVersion: C{int} or C{None}
+    @ivar clientType: Client type. See L{ClientTypes<pyamf.ClientTypes>}
+    @type clientType: C{int} or C{None}
+    @ivar headers: AMF headers, a list of name, value pairs. Global to each
+        request.
+    @type headers: L{HeaderCollection}
+    @ivar bodies: A list of requests/response messages
+    @type bodies: L{list} containing tuples of the key of the request and
+        the instance of the L{Message}
     """
     def __init__(self, amfVersion=None, clientType=None):
-        #: AMF encoding version.
-        #: @see: L{AMF encoding types<pyamf.ENCODING_TYPES>}
         self.amfVersion = amfVersion
-        #: Client type.
-        #: @see: L{ClientTypes<pyamf.ClientTypes>}
         self.clientType = clientType
-        #: Message headers
         self.headers = HeaderCollection()
+        self.bodies = []
 
     def __repr__(self):
         r = "<Envelope amfVersion=%s clientType=%s>\n" % (
@@ -133,27 +142,84 @@ class Envelope(dict):
 
         return r
 
-    def __setitem__(self, idx, value):
-        """
-        @raise TypeError: L{Message} instance expected.
-        """
+    def __setitem__(self, name, value):
         if not isinstance(value, Message):
-            raise TypeError, "Message instance expected"
+            raise TypeError("Message instance expected")
+
+        idx = 0
+        found = False
+
+        for body in self.bodies:
+            if name == body[0]:
+                self.bodies[idx] = (name, value)
+                found = True
+
+            idx = idx + 1
+
+        if not found:
+            self.bodies.append((name, value))
 
         value.envelope = self
-        dict.__setitem__(self, idx, value)
+
+    def __getitem__(self, name):
+        for body in self.bodies:
+            if name == body[0]:
+                return body[1]
+
+        raise KeyError("'%r'" % (name,))
 
     def __iter__(self):
-        """
-        @raise StopIteration:
-        """
-        order = self.keys()
-        order.sort()
-
-        for x in order:
-            yield x, self[x]
+        for body in self.bodies:
+            yield body[0], body[1]
 
         raise StopIteration
+
+    def __len__(self):
+        return len(self.bodies)
+
+    def iteritems(self):
+        for body in self.bodies:
+            yield body
+
+        raise StopIteration
+
+    def keys(self):
+        return [body[0] for body in self.bodies]
+
+    def items(self):
+        return self.bodies
+
+    def __contains__(self, name):
+        for body in self.bodies:
+            if name == body[0]:
+                return True
+
+        return False
+
+    def __eq__(self, other):
+        if isinstance(other, Envelope):
+            return self.amfVersion == other.amfVersion and \
+                self.clientType == other.clientType and \
+                self.headers == other.headers and \
+                self.bodies == other.bodies
+
+        if hasattr(other, 'keys') and hasattr(other, 'items'):
+            keys, o_keys = self.keys(), other.keys()
+
+            if len(o_keys) != len(keys):
+                return False
+
+            for k in o_keys:
+                if k not in keys:
+                    return False
+
+                keys.remove(k)
+
+            for k, v in other.items():
+                if self[k] != v:
+                    return False
+
+            return True
 
 class Message(object):
     """
@@ -358,7 +424,7 @@ def _read_body(stream, decoder, strict=False):
         @raise pyamf.DecodeError: Array type required for request body.
         """
         if stream.read(1) != '\x0a':
-            raise pyamf.DecodeError, "Array type required for request body"
+            raise pyamf.DecodeError("Array type required for request body")
 
         x = stream.read_ulong()
 
@@ -461,7 +527,7 @@ def _get_status(status):
     """
     if status not in STATUS_CODES.keys():
         # TODO print that status code..
-        raise ValueError, "Unknown status code"
+        raise ValueError("Unknown status code")
 
     return STATUS_CODES[status]
 
@@ -492,7 +558,7 @@ def get_fault(data):
 
 def decode(stream, context=None, strict=False):
     """
-    Decodes the incoming stream. .
+    Decodes the incoming stream.
 
     @type   stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     @param  stream: AMF data.
@@ -513,7 +579,6 @@ def decode(stream, context=None, strict=False):
         stream = util.BufferedByteStream(stream)
 
     msg = Envelope()
-
     msg.amfVersion = stream.read_uchar()
 
     # see http://osflash.org/documentation/amf/envelopes/remoting#preamble
@@ -524,6 +589,8 @@ def decode(stream, context=None, strict=False):
 
     if context is None:
         context = pyamf.get_context(pyamf.AMF0)
+    else:
+        context = copy.copy(context)
 
     decoder = pyamf._get_decoder_class(pyamf.AMF0)(stream, context=context)
     msg.clientType = stream.read_uchar()
@@ -538,9 +605,10 @@ def decode(stream, context=None, strict=False):
             msg.headers.set_required(name)
 
     body_count = stream.read_short()
-    context.clear()
 
     for i in range(body_count):
+        context.reset()
+
         target, payload = _read_body(stream, decoder, strict)
         msg[target] = payload
 
@@ -549,34 +617,33 @@ def decode(stream, context=None, strict=False):
 
     return msg
 
-def encode(msg, old_context=None, strict=False):
+def encode(msg, context=None, strict=False):
     """
     Encodes AMF stream and returns file object.
 
     @type   msg: L{Envelope}
     @param  msg: The message to encode.
-    @type   old_context: L{amf0.Context<pyamf.amf0.Context>} or
-    L{amf3.Context<pyamf.amf3.Context>}
-    @param  old_context: Context.
+    @type   context: L{amf0.Context<pyamf.amf0.Context>} or
+        L{amf3.Context<pyamf.amf3.Context>}
+    @param  context: Context.
     @type strict: C{bool}
     @param strict: Determines whether encoding should be strict. Specifically
         header/body lengths will be written correctly, instead of the default 0.
         Default is C{False}.
-
     @rtype: C{StringIO}
     @return: File object.
     """
     def getNewContext():
-        if old_context:
-            import copy
+        if context:
+            new_context = copy.copy(context)
+            new_context.reset()
 
-            return copy.copy(old_context)
+            return new_context
         else:
             return pyamf.get_context(pyamf.AMF0)
 
     stream = util.BufferedByteStream()
-
-    encoder = pyamf._get_encoder_class(msg.amfVersion)(stream)
+    encoder = pyamf._get_encoder_class(pyamf.AMF0)(stream)
 
     stream.write_uchar(msg.amfVersion)
     stream.write_uchar(msg.clientType)
@@ -590,8 +657,8 @@ def encode(msg, old_context=None, strict=False):
     stream.write_short(len(msg))
 
     for name, message in msg.iteritems():
-        # Each body requires a new context
         encoder.context = getNewContext()
+
         _write_body(name, message, stream, encoder, strict)
 
     return stream
