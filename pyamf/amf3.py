@@ -786,15 +786,7 @@ class Context(pyamf.BaseContext):
 
             return self.class_defs.append(class_def)
 
-<<<<<<< .working
-=======
     def removeClassDefinition(self, class_def):
-        """
-        Removes a C{ClassDefinition} reference from this context.
-        """
-        idx = self.rev_classes[id(class_def)]
-
->>>>>>> .merge-right.r1607
         """
         Removes a C{ClassDefinition} reference from this context.
         """
