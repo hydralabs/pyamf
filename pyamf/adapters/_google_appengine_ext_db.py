@@ -32,6 +32,8 @@ def writeObjectAMF0(self, obj, *args, **kwargs):
         self.context.class_aliases[obj.__class__] = None
 
 def writeObjectAMF3(self, obj, *args, **kwargs):
+    remove = False
+
     try:
         self.context.getClassDefinitionReference(obj)
     except pyamf.ReferenceError:
