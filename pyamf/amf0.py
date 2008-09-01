@@ -914,7 +914,7 @@ def _check_for_int(x):
     """
     try:
         y = int(x)
-    except OverflowError:
+    except (OverflowError, ValueError):
         pass
     else:
         # There is no way in AMF0 to distinguish between integers and floats
