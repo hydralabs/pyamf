@@ -6,6 +6,10 @@ of PyAMF.
 
 0.4.0 (unreleased)
 ------------------
+ - New API to add headers such as cookies in pyamf.remoting.client (Ticket:337)
+ - Now clearing the context between remoting requests (Ticket:309)
+ - Fixed issue with AMF3 class definition references (Ticket:341)
+ - More helpful description for register_class args check (Ticket:334)
  - pyamf.register_class now checks to ensure that __init__ args do not have
    any arguments (Ticket:322)
  - Added RemoteObject support for AsyncMessage (Ticket:292)
