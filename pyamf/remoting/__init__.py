@@ -303,7 +303,7 @@ class BaseFault(object):
         self.description = kwargs.get('description', '')
 
     def __repr__(self):
-        x = '<%s level=%s' % (self.__class__.__name__, self.level)
+        x = '%s level=%s' % (self.__class__.__name__, self.level)
 
         if self.code not in ('', None):
             x += ' code=%s' % self.code
@@ -312,7 +312,10 @@ class BaseFault(object):
         if self.description not in ('', None):
             x += ' description=%s' % self.description
 
-        return x + '>'
+        if self.details not in ('', None):
+            x += '\nTraceback:\n%s' % (self.details,)
+
+        return x
 
     def raiseException(self):
         """
