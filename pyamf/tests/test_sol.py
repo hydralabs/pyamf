@@ -94,6 +94,7 @@ class HelperTestCase(unittest.TestCase):
 
     def setUp(self):
         self.fp, self.file_name = tempfile.mkstemp()
+        os.close(self.fp)
 
     def tearDown(self):
         if os.path.isfile(self.file_name):
