@@ -155,8 +155,6 @@ class RequestWrapper(object):
         """
         Returns the result of the called remote request. If the request has not
         yet been called, an exception is raised.
-
-        @raise AttributeError: L{RequestWrapper} object has no attribute 'result'.
         """
         if not hasattr(self, '_result'):
             raise AttributeError("'RequestWrapper' object has no attribute 'result'")
