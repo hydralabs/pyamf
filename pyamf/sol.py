@@ -52,26 +52,26 @@ def decode(stream, strict=True):
     version = stream.read(2)
 
     if version != HEADER_VERSION:
-        raise pyamf.DecodeError, 'Unknown SOL version in header'
+        raise pyamf.DecodeError('Unknown SOL version in header')
 
     # read the length
     length = stream.read_ulong()
 
     if strict and stream.remaining() != length:
-        raise pyamf.DecodeError, 'Inconsistent stream header length'
+        raise pyamf.DecodeError('Inconsistent stream header length')
 
     # read the signature
     signature = stream.read(10)
 
     if signature != HEADER_SIGNATURE:
-        raise pyamf.DecodeError, 'Invalid signature'
+        raise pyamf.DecodeError('Invalid signature')
 
     length = stream.read_ushort()
     root_name = stream.read_utf8_string(length)
 
     # read padding
     if stream.read(3) != PADDING_BYTE * 3:
-        raise pyamf.DecodeError, 'Invalid padding read'
+        raise pyamf.DecodeError('Invalid padding read')
 
     decoder = pyamf.get_decoder(stream.read_uchar())
     decoder.stream = stream
@@ -87,7 +87,7 @@ def decode(stream, strict=True):
 
         # read the padding
         if stream.read(1) != PADDING_BYTE:
-            raise pyamf.DecodeError, 'Missing padding byte'
+            raise pyamf.DecodeError('Missing padding byte')
 
         values[name] = value
 
@@ -162,7 +162,7 @@ def load(name_or_file):
         f = open(name_or_file, 'rb')
         opened = True
     elif not hasattr(f, 'read'):
-        raise ValueError, 'readable stream expected'
+        raise ValueError('Readable stream expected')
 
     name, values = decode(f.read())
     s = SOL(name)
@@ -195,7 +195,7 @@ def save(sol, name_or_file, encoding=pyamf.AMF0):
         f = open(name_or_file, 'wb+')
         opened = True
     elif not hasattr(f, 'write'):
-        raise ValueError, 'writable stream expected'
+        raise ValueError('Writable stream expected')
 
     f.write(encode(sol.name, sol, encoding=encoding).getvalue())
 

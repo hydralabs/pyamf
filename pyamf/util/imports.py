@@ -47,7 +47,7 @@ except ImportError:
                 if os.path.exists(full):
                     return None, os.path.join(p, subname), None
 
-        raise ImportError, 'No module named %s' % subname
+        raise ImportError('No module named %s' % subname)
 
 class SubModuleLoadHook(object):
     def __init__(self, parent, child, hook, *args, **kwargs):
@@ -177,7 +177,7 @@ def lazyModule(modname, relativePath=None):
                 if os.path.exists(full):
                     break
             else:
-                raise ImportError, 'No module name %d' % modname
+                raise ImportError('No module name %d' % modname)
 
             file_name = full
 

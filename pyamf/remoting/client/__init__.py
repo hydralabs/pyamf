@@ -159,7 +159,7 @@ class RequestWrapper(object):
         @raise AttributeError: L{RequestWrapper} object has no attribute 'result'.
         """
         if not hasattr(self, '_result'):
-            raise AttributeError, "'RequestWrapper' object has no attribute 'result'"
+            raise AttributeError("'RequestWrapper' object has no attribute 'result'")
 
         return self._result
 
@@ -255,7 +255,7 @@ class RemotingService(object):
 
             self.connection = httplib.HTTPSConnection(hostname, port)
         else:
-            raise ValueError, 'Unknown scheme'
+            raise ValueError('Unknown scheme')
 
         self.logger.info('Creating connection to %s://%s:%s' % (self.url[0],
                                                                 hostname, port))
@@ -297,7 +297,7 @@ class RemotingService(object):
         @rtype: L{ServiceProxy}
         """
         if not isinstance(name, basestring):
-            raise TypeError, 'string type required'
+            raise TypeError('string type required')
 
         return ServiceProxy(self, name, auto_execute)
 
@@ -311,7 +311,7 @@ class RemotingService(object):
             if request.id == id_:
                 return request
 
-        raise LookupError, "request %s not found" % id_
+        raise LookupError("Request %s not found" % id_)
 
     def addRequest(self, service, *args):
         """
@@ -347,7 +347,7 @@ class RemotingService(object):
 
                 return
 
-        raise LookupError, "request not found"
+        raise LookupError("Request not found")
 
     def getAMFRequest(self, requests):
         """
@@ -445,18 +445,18 @@ class RemotingService(object):
             self.logger.debug('Body: %s' % http_response.read())
 
             if hasattr(httplib, 'responses'):
-                raise remoting.RemotingError, "HTTP Gateway reported status %d %s" % (
-                    http_response.status, httplib.responses[http_response.status])
+                raise remoting.RemotingError("HTTP Gateway reported status %d %s" % (
+                    http_response.status, httplib.responses[http_response.status]))
 
-            raise remoting.RemotingError, "HTTP Gateway reported status %d" % (
-                http_response.status,)
+            raise remoting.RemotingError("HTTP Gateway reported status %d" % (
+                http_response.status,))
 
         content_type = http_response.getheader('Content-Type')
 
         if content_type != remoting.CONTENT_TYPE:
             self.logger.debug('Body = %s' % http_response.read())
 
-            raise remoting.RemotingError, "Incorrect MIME type received. (got: %s)" % content_type
+            raise remoting.RemotingError("Incorrect MIME type received. (got: %s)" % content_type)
 
         content_length = http_response.getheader('Content-Length')
         bytes = ''

@@ -527,6 +527,7 @@ class Encoder(pyamf.BaseEncoder):
         @type   data: C{mixed}
         @param  data: The data to be encoded to the AMF0 data stream.
 
+        @raise EncodeError: Cannot find encoder func.
         @raise EncodeError: Unable to encode the data.
         """
         func = self._writeElementFunc(data)
@@ -541,7 +542,7 @@ class Encoder(pyamf.BaseEncoder):
             except pyamf.EncodeError:
                 raise
             except:
-                raise pyamf.EncodeError, "Unable to encode '%r'" % (data,)
+                raise pyamf.EncodeError("Unable to encode '%r'" % (data,))
 
     def writeNull(self, n):
         """

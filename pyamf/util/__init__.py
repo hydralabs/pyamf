@@ -58,7 +58,7 @@ class StringIOProxy(object):
         elif buf is None:
             pass
         else:
-            raise TypeError, "Unable to coerce buf->StringIO"
+            raise TypeError("Unable to coerce buf->StringIO")
 
         self._get_len()
         self._len_changed = False
@@ -508,7 +508,7 @@ def get_mro(C):
                     break
 
             if not cand:
-                raise NameError, "Inconsistent hierarchy"
+                raise NameError("Inconsistent hierarchy")
 
             res.append(cand)
 
@@ -517,7 +517,7 @@ def get_mro(C):
                     del seq[0]
 
     if not isinstance(C, (types.ClassType, types.ObjectType)):
-        raise TypeError, 'class type expected'
+        raise TypeError('class type expected')
 
     if hasattr(C, '__mro__'):
         return C.__mro__

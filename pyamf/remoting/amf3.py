@@ -101,7 +101,7 @@ class RequestProcessor(object):
         elif isinstance(ro_request, messaging.AsyncMessage):
             return self._processAsyncMessage(amf_request, ro_request, **kwargs)
         else:
-            raise ServerCallFailed, "Unknown request: %s" % ro_request
+            raise ServerCallFailed("Unknown request: %s" % ro_request)
 
     def _processCommandMessage(self, amf_request, ro_request, **kwargs):
         """
@@ -114,11 +114,11 @@ class RequestProcessor(object):
 
             return remoting.Response(ro_response)
         elif ro_request.operation == messaging.CommandMessage.LOGIN_OPERATION:
-            raise ServerCallFailed, "Authorization is not supported in RemoteObject"
+            raise ServerCallFailed("Authorization is not supported in RemoteObject")
         elif ro_request.operation == messaging.CommandMessage.DISCONNECT_OPERATION:
             return remoting.Response(ro_response)
         else:
-            raise ServerCallFailed, "Unknown Command operation %s" % ro_request.operation
+            raise ServerCallFailed("Unknown Command operation %s" % ro_request.operation)
 
     def _processAsyncMessage(self, amf_request, ro_request, **kwargs):
         ro_response = generate_acknowledgement(ro_request)

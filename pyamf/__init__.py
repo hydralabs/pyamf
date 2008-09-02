@@ -199,7 +199,7 @@ class ASObject(dict):
         try:
             return self[k]
         except KeyError:
-            raise AttributeError('unknown attribute \'%s\'' % k)
+            raise AttributeError('Unknown attribute \'%s\'' % k)
 
     def __setattr__(self, k, v):
         self[k] = v
@@ -315,7 +315,7 @@ class ClassAlias(object):
             classes.
         """
         if not isinstance(klass, (type, types.ClassType)):
-            raise TypeError, "klass must be a class type"
+            raise TypeError("klass must be a class type")
 
         self.metadata = ClassMetaData(metadata)
 
@@ -341,20 +341,20 @@ class ClassAlias(object):
                         klass.__name__))
 
             if not isinstance(klass.__readamf__, types.UnboundMethodType):
-                raise TypeError, "%s.__readamf__ must be callable" % (
-                    klass.__name__)
+                raise TypeError("%s.__readamf__ must be callable" % (
+                    klass.__name__))
 
             if not isinstance(klass.__writeamf__, types.UnboundMethodType):
-                raise TypeError, "%s.__writeamf__ must be callable" % (
-                    klass.__name__)
+                raise TypeError("%s.__writeamf__ must be callable" % (
+                    klass.__name__))
 
         if 'dynamic' in self.metadata:
             if attr_func is not None and not callable(attr_func):
-                raise TypeError, "attr_func must be callable"
+                raise TypeError("attr_func must be callable")
 
         if 'static' in self.metadata:
             if attrs is None:
-                raise ValueError, "attrs keyword must be specified for static classes"
+                raise ValueError("attrs keyword must be specified for static classes")
 
     def __call__(self, *args, **kwargs):
         """
@@ -368,7 +368,7 @@ class ClassAlias(object):
                 return self.klass.__new__(self.klass)
             elif type(self.klass) is types.ClassType: # classic class
                 return util.make_classic_instance(self.klass)
-            raise TypeError, 'invalid class type %r' % self.klass
+            raise TypeError('Invalid class type %r' % self.klass)
         
         return self.klass(*args, **kwargs)
 
@@ -466,8 +466,8 @@ class BaseDecoder(object):
         elif isinstance(context, self.context_class):
             self.context = context
         else:
-            raise TypeError, "context must be of type %s.%s" % (
-                self.context_class.__module__, self.context_class.__name__)
+            raise TypeError("context must be of type %s.%s" % (
+                self.context_class.__module__, self.context_class.__name__))
 
     def readType(self):
         """
@@ -490,7 +490,7 @@ class BaseDecoder(object):
         try:
             func = getattr(self, self.type_map[type])
         except KeyError:
-            raise DecodeError, "Unsupported ActionScript type 0x%02x" % type
+            raise DecodeError("Unsupported ActionScript type 0x%02x" % type)
 
         return func()
 
@@ -554,8 +554,8 @@ class BaseEncoder(object):
         elif isinstance(context, self.context_class):
             self.context = context
         else:
-            raise TypeError, "context must be of type %s.%s" % (
-                self.context_class.__module__, self.context_class.__name__)
+            raise TypeError("context must be of type %s.%s" % (
+                self.context_class.__module__, self.context_class.__name__))
 
         self._write_elem_func_cache = {}
 
@@ -641,13 +641,13 @@ def register_class(klass, alias=None, attrs=None, attr_func=None, metadata=[]):
     @return: The registered L{ClassAlias}.
     """
     if not callable(klass):
-        raise TypeError, "klass must be callable"
+        raise TypeError("klass must be callable")
 
     if klass in CLASS_CACHE:
-        raise ValueError, "klass %s already registered" % klass
+        raise ValueError("klass %s already registered" % klass)
 
     if alias is not None and alias in CLASS_CACHE.keys():
-        raise ValueError, "alias '%s' already registered" % alias
+        raise ValueError("alias '%s' already registered" % alias)
 
     # Check that the constructor of the class doesn't require any additonal
     # arguments.
@@ -700,7 +700,7 @@ def unregister_class(alias):
     try:
         del CLASS_CACHE[alias]
     except KeyError:
-        raise UnknownClassAlias, "Unknown alias %s" % alias
+        raise UnknownClassAlias("Unknown alias %s" % alias)
 
 def register_class_loader(loader):
     """
@@ -716,10 +716,10 @@ def register_class_loader(loader):
     @raise ValueError: The C{loader} is already registered.
     """
     if not callable(loader):
-        raise TypeError, "loader must be callable"
+        raise TypeError("loader must be callable")
 
     if loader in CLASS_LOADERS:
-        raise ValueError, "loader has already been registered"
+        raise ValueError("loader has already been registered")
 
     CLASS_LOADERS.append(loader)
 
@@ -733,7 +733,7 @@ def unregister_class_loader(loader):
     @raise LookupError: The C{loader} was not registered.
     """
     if loader not in CLASS_LOADERS:
-        raise LookupError, "loader not found"
+        raise LookupError("loader not found")
 
     del CLASS_LOADERS[CLASS_LOADERS.index(loader)]
 
@@ -748,7 +748,7 @@ def get_module(mod_name):
     @raise ImportError: Unable to import an empty module.
     """
     if mod_name is '':
-        raise ImportError, "Unable to import empty module"
+        raise ImportError("Unable to import empty module")
 
     mod = __import__(mod_name)
     components = mod_name.split('.')
@@ -793,7 +793,7 @@ def load_class(alias):
         elif isinstance(klass, ClassAlias):
             CLASS_CACHE[str(alias)] = klass
         else:
-            raise TypeError, "Expecting class type or ClassAlias from loader"
+            raise TypeError("Expecting class type or ClassAlias from loader")
 
         return klass
 
@@ -818,7 +818,7 @@ def load_class(alias):
                 return klass
 
     # All available methods for finding the class have been exhausted
-    raise UnknownClassAlias, "Unknown alias %s" % alias
+    raise UnknownClassAlias("Unknown alias %s" % alias)
 
 def get_class_alias(klass):
     """
@@ -848,7 +848,7 @@ def get_class_alias(klass):
     if isinstance(klass, basestring):
         return load_class(klass)
 
-    raise UnknownClassAlias, "Unknown alias %s" % klass
+    raise UnknownClassAlias("Unknown alias %s" % klass)
 
 def has_alias(obj):
     """
@@ -934,7 +934,7 @@ def _get_decoder_class(encoding):
 
         return amf3.Decoder
 
-    raise ValueError, "Unknown encoding %s" % encoding
+    raise ValueError("Unknown encoding %s" % encoding)
 
 def get_encoder(encoding, data=None, context=None):
     return _get_encoder_class(encoding)(data=data, context=context)
@@ -960,7 +960,7 @@ def _get_encoder_class(encoding):
 
         return amf3.Encoder
 
-    raise ValueError, "Unknown encoding %s" % encoding
+    raise ValueError("Unknown encoding %s" % encoding)
 
 def get_context(encoding):
     return _get_context_class(encoding)()
@@ -986,7 +986,7 @@ def _get_context_class(encoding):
 
         return amf3.Context
 
-    raise ValueError, "Unknown encoding %s" % encoding
+    raise ValueError("Unknown encoding %s" % encoding)
 
 def flex_loader(alias):
     """
@@ -1007,7 +1007,7 @@ def flex_loader(alias):
 
         return CLASS_CACHE[alias]
     except KeyError:
-        raise UnknownClassAlias, alias
+        raise UnknownClassAlias(alias)
 
 register_class_loader(flex_loader)
 
@@ -1021,13 +1021,13 @@ def add_type(type_, func=None):
     """
     def _check_type(type_):
         if not (isinstance(type_, (type, types.ClassType)) or callable(type_)):
-            raise TypeError, "Unable to add '%r' as a custom type (expected a class or callable)" % type_
+            raise TypeError("Unable to add '%r' as a custom type (expected a class or callable)" % type_)
 
     if isinstance(type_, list):
         type_ = tuple(type_)
 
     if type_ in TYPE_MAP:
-        raise KeyError, 'Type %r already exists' % type_
+        raise KeyError('Type %r already exists' % type_)
 
     if isinstance(type_, types.TupleType):
         for x in type_:
@@ -1050,7 +1050,7 @@ def get_type(type_):
         if k == type_:
             return v
 
-    raise KeyError, "Unknown type %r" % type_
+    raise KeyError("Unknown type %r" % type_)
 
 def remove_type(type_):
     """
@@ -1085,15 +1085,15 @@ def add_error_class(klass, code):
         code = str(code)
 
     if not isinstance(klass, (type, types.ClassType)):
-        raise TypeError, "klass must be a class type"
+        raise TypeError("klass must be a class type")
 
     mro = util.get_mro(klass)
 
     if not Exception in mro:
-        raise TypeError, 'error classes must subclass the __builtin__.Exception class'
+        raise TypeError('Error classes must subclass the __builtin__.Exception class')
 
     if code in ERROR_CLASS_MAP.keys():
-        raise ValueError, 'Code %s is already registered' % code
+        raise ValueError('Code %s is already registered' % code)
 
     ERROR_CLASS_MAP[code] = klass
 
@@ -1107,15 +1107,15 @@ def remove_error_class(klass):
     """
     if isinstance(klass, basestring):
         if not klass in ERROR_CLASS_MAP.keys():
-            raise ValueError, 'Code %s is not registered' % klass
+            raise ValueError('Code %s is not registered' % klass)
     elif isinstance(klass, (type, types.ClassType)):
         classes = ERROR_CLASS_MAP.values()
         if not klass in classes:
-            raise ValueError, 'Class %s is not registered' % klass
+            raise ValueError('Class %s is not registered' % klass)
 
         klass = ERROR_CLASS_MAP.keys()[classes.index(klass)]
     else:
-        raise TypeError, "Invalid type, expected class or string"
+        raise TypeError("Invalid type, expected class or string")
 
     del ERROR_CLASS_MAP[klass]
 

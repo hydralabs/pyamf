@@ -482,7 +482,7 @@ def _write_body(name, message, stream, encoder, strict=False):
     @raise TypeError: Unknown message type for C{message}.
     """
     if not isinstance(message, (Request, Response)):
-        raise TypeError, "Unknown message type"
+        raise TypeError("Unknown message type")
 
     target = None
 
@@ -616,7 +616,7 @@ def decode(stream, context=None, strict=False):
         msg[target] = payload
 
     if strict and stream.remaining() > 0:
-        raise RuntimeError, "Unable to fully consume the buffer"
+        raise RuntimeError("Unable to fully consume the buffer")
 
     return msg
 

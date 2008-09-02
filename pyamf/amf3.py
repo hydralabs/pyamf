@@ -585,7 +585,7 @@ class ClassDefinition(object):
         """
         if not hasattr(self, '_alias'):
             if self.name == '':
-                raise pyamf.UnknownClassAlias, 'Anonymous class definitions do not have class aliases'
+                raise pyamf.UnknownClassAlias('Anonymous class definitions do not have class aliases')
 
             self._alias = pyamf.load_class(self.alias)
 
@@ -876,7 +876,7 @@ class Decoder(pyamf.BaseDecoder):
         type = self.stream.read_uchar()
 
         if type not in ACTIONSCRIPT_TYPES:
-            raise pyamf.DecodeError, "Unknown AMF3 type 0x%02x at %d" % (type, self.stream.tell() - 1)
+            raise pyamf.DecodeError("Unknown AMF3 type 0x%02x at %d" % (type, self.stream.tell() - 1))
 
         return type
 
@@ -1106,7 +1106,7 @@ class Decoder(pyamf.BaseDecoder):
         class_ref, class_def, num_attrs = self._getClassDefinition(ref)
 
         if class_def.alias and 'amf0' in class_def.alias.metadata:
-            raise pyamf.EncodeError, "Decoding an object in amf3 tagged as amf0 only is not allowed"
+            raise pyamf.EncodeError("Decoding an object in amf3 tagged as amf0 only is not allowed")
 
         if class_def.alias:
             obj = class_def.alias()
@@ -1125,7 +1125,7 @@ class Decoder(pyamf.BaseDecoder):
         elif class_def.encoding == ObjectEncoding.STATIC:
             readStatic(class_ref, class_def, obj_attrs, num_attrs)
         else:
-            raise pyamf.DecodeError, "Unknown object encoding"
+            raise pyamf.DecodeError("Unknown object encoding")
 
         if hasattr(obj, '__setstate__'):
             obj.__setstate__(obj_attrs)
@@ -1483,7 +1483,7 @@ class Encoder(pyamf.BaseEncoder):
             elif isinstance(x, (str, unicode)):
                 str_keys.append(x)
             else:
-                raise ValueError, "Non int/str key value found in dict"
+                raise ValueError("Non int/str key value found in dict")
 
         # Make sure the integer keys are within range
         l = len(int_keys)
@@ -1509,7 +1509,7 @@ class Encoder(pyamf.BaseEncoder):
             # http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug
             # for more info
             if x == '':
-                raise pyamf.EncodeError, "dicts cannot contain empty string keys"
+                raise pyamf.EncodeError("dicts cannot contain empty string keys")
 
             self._writeString(x)
             self.writeElement(n[x])
@@ -1555,7 +1555,7 @@ class Encoder(pyamf.BaseEncoder):
                     for k in obj.__dict__.keys():
                         class_def.static_attrs.append(unicode(k))
                 else:
-                    raise pyamf.EncodeError, 'Unable to determine object attributes'
+                    raise pyamf.EncodeError('Unable to determine object attributes')
 
         return class_def
 
@@ -1609,7 +1609,7 @@ class Encoder(pyamf.BaseEncoder):
             ref = 0
 
             if class_def.alias and 'amf0' in class_def.alias.metadata:
-                raise pyamf.EncodeError, "Encoding an object in amf3 tagged as amf0 only"
+                raise pyamf.EncodeError("Encoding an object in amf3 tagged as amf0 only")
 
             if class_def.encoding != ObjectEncoding.EXTERNAL:
                 if class_def.alias and class_def.alias.attrs is not None:
@@ -1734,7 +1734,7 @@ def _encode_int(n):
     @raise ValueError: Out of range.
     """
     if n & 0xf0000000 not in [0, 0xf0000000]:
-        raise ValueError, "Out of range"
+        raise OverflowError("Out of range")
 
     bytes = ''
     real_value = None

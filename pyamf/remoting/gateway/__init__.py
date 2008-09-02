@@ -86,24 +86,24 @@ class ServiceWrapper(object):
             method = str(method)
 
             if method.startswith('_'):
-                raise InvalidServiceMethodError, \
-                    "Calls to private methods are not allowed"
+                raise InvalidServiceMethodError(
+                    "Calls to private methods are not allowed")
 
             try:
                 func = getattr(service, method)
             except AttributeError:
-                raise UnknownServiceMethodError, \
-                    "Unknown method %s" % str(method)
+                raise UnknownServiceMethodError(
+                    "Unknown method %s" % str(method))
 
             if not callable(func):
-                raise InvalidServiceMethodError, \
-                    "Service method %s must be callable" % str(method)
+                raise InvalidServiceMethodError(
+                    "Service method %s must be callable" % str(method))
 
             return func
 
         if not callable(service):
-            raise UnknownServiceMethodError, \
-                "Unknown method %s" % str(self.service)
+            raise UnknownServiceMethodError(
+                "Unknown method %s" % str(self.service))
 
         return service
 
@@ -252,7 +252,7 @@ class BaseGateway(object):
     def __init__(self, services={}, authenticator=None, expose_request=False,
         preprocessor=None, debug=None):
         """
-        @raise TypeError: The C{dict} type is required for C{services}.
+        @raise TypeError: C{dict} type is required for C{services}.
         """
         self.logger = logging.instance_logger(self)
         self.services = ServiceCollection()
@@ -264,7 +264,7 @@ class BaseGateway(object):
             self.debug = debug
 
         if not hasattr(services, 'iteritems'):
-            raise TypeError, "dict type required for services"
+            raise TypeError("dict type required for services")
 
         for name, service in services.iteritems():
             self.addService(service, name)
@@ -283,13 +283,13 @@ class BaseGateway(object):
         @raise TypeError: C{service} must be C{callable} or a module.
         """
         if isinstance(service, (int, long, float, basestring)):
-            raise TypeError, "service cannot be a scalar value"
+            raise TypeError("Service cannot be a scalar value")
 
         allowed_types = (types.ModuleType, types.FunctionType, types.DictType,
             types.MethodType, types.InstanceType, types.ObjectType)
 
         if not callable(service) and not isinstance(service, allowed_types):
-            raise TypeError, "service must be callable, a module, or an object"
+            raise TypeError("Service must be a callable, module, or an object")
 
         if name is None:
             # TODO: include the module in the name
@@ -303,7 +303,7 @@ class BaseGateway(object):
                 name = str(service)
 
         if name in self.services:
-            raise remoting.RemotingError, "Service %s already exists" % name
+            raise remoting.RemotingError("Service %s already exists" % name)
 
         self.services[name] = ServiceWrapper(service, description,
             authenticator, expose_request, preprocessor)
@@ -317,7 +317,7 @@ class BaseGateway(object):
         @raise NameError: Service not found.
         """
         if service not in self.services:
-            raise NameError, "Service %s not found" % str(service)
+            raise NameError("Service %s not found" % str(service))
 
         for name, wrapper in self.services.iteritems():
             if isinstance(service, basestring) and service == name:
@@ -335,7 +335,7 @@ class BaseGateway(object):
                 return
 
         # shouldn't ever get here
-        raise RuntimeError, "Something went wrong ..."
+        raise RuntimeError("Something went wrong ...")
 
     def getServiceRequest(self, request, target):
         """
@@ -361,7 +361,7 @@ class BaseGateway(object):
         except (ValueError, KeyError):
             pass
 
-        raise UnknownServiceError, "Unknown service %s" % target
+        raise UnknownServiceError("Unknown service %s" % target)
 
     def getProcessor(self, request):
         """
@@ -501,10 +501,10 @@ def authenticate(func, c, expose_request=False):
     @raise TypeError: C{func} and authenticator must be callable.
     """
     if not callable(func):
-        raise TypeError, "func must be callable"
+        raise TypeError('func must be callable')
 
     if not callable(c):
-        raise TypeError, "authenticator must be callable"
+        raise TypeError('Authenticator must be callable')
 
     attr = func
 
@@ -525,7 +525,7 @@ def expose_request(func):
     @raise TypeError: C{func} must be callable.
     """
     if not callable(func):
-        raise TypeError, "func must be callable"
+        raise TypeError("func must be callable")
 
     if isinstance(func, types.UnboundMethodType):
         setattr(func.im_func, '_pyamf_expose_request', True)
@@ -545,10 +545,10 @@ def preprocess(func, c, expose_request=False):
     @raise TypeError: C{func} and preprocessor must be callable.
     """
     if not callable(func):
-        raise TypeError, "func must be callable"
+        raise TypeError('func must be callable')
 
     if not callable(c):
-        raise TypeError, "preprocessor must be callable"
+        raise TypeError('Preprocessor must be callable')
 
     attr = func
 

@@ -38,7 +38,7 @@ class FaultTestCase(unittest.TestCase):
         fault = None
 
         try:
-            raise TypeError, "unknown type"
+            raise TypeError("Unknown type")
         except TypeError, e:
             fault = amf0.build_fault(*sys.exc_info())
 
@@ -53,7 +53,7 @@ class FaultTestCase(unittest.TestCase):
         decoder.stream = encoder.stream
 
         try:
-            raise TypeError, "unknown type"
+            raise TypeError("Unknown type")
         except TypeError, e:
             encoder.writeElement(amf0.build_fault(*sys.exc_info()))
 
@@ -74,7 +74,7 @@ class FaultTestCase(unittest.TestCase):
             _amf_code = 'Server.UnknownResource'
 
         try:
-            raise X
+            raise X()
         except X, e:
             fault = amf0.build_fault(*sys.exc_info())
 
