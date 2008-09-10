@@ -841,7 +841,7 @@ def encode(*args, **kwargs):
 
 class RecordSet(object):
     """
-    I represent the C{RecordSet} class used in Flash Remoting to hold 
+    I represent the C{RecordSet} class used in Flash Remoting to hold
     (amongst other things) SQL records.
 
     @ivar columns: The columns to send.

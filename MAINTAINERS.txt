@@ -13,3 +13,4 @@ directly.
        feisley   Jacob Feisley <jacob.feisley@gmail.com>
  mvantellingen   Michael van Tellingen
                  <michael.vantellingen@auto-interactive.nl>
+        gerard   Gerard Escalante <gerard@saygo.ca>

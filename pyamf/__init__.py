@@ -369,7 +369,7 @@ class ClassAlias(object):
             elif type(self.klass) is types.ClassType: # classic class
                 return util.make_classic_instance(self.klass)
             raise TypeError('Invalid class type %r' % self.klass)
-        
+
         return self.klass(*args, **kwargs)
 
     def __str__(self):

@@ -442,7 +442,7 @@ class RegisterClassTestCase(ClassCacheClearingTestCase):
             pyamf.register_class(Foo)
         except TypeError, e:
             self.assertTrue('__init__(self, bar, valid=1)' in str(e))
-        
+
     def test_required_argumnets_invalid_2(self):
         class Foo(object):
             def __init__(self, bar, valid):
@@ -457,7 +457,7 @@ class RegisterClassTestCase(ClassCacheClearingTestCase):
             def __init__(self, *args, **kwargs):
                 pass
         pyamf.register_class(Foo)
-        
+
 class UnregisterClassTestCase(ClassCacheClearingTestCase):
     def test_klass(self):
         alias = pyamf.register_class(Spam, 'spam.eggs')

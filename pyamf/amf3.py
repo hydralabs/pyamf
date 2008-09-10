@@ -506,7 +506,7 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
         if isinstance(other, ByteArray):
             return cmp(self.getvalue(), other.getvalue())
 
-        return cmp(self._buffer, other)
+        return cmp(self.getvalue(), other)
 
     def __str__(self):
         buf = self.getvalue()
@@ -1287,7 +1287,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         Writes a C{null} value to the stream.
 
-        @param n: The C{null} data to be encoded to the AMF3 data stream. 
+        @param n: The C{null} data to be encoded to the AMF3 data stream.
         @type n: C{null} data.
         @type use_references: C{bool}
         @param use_references: Default is C{True}.
@@ -1314,7 +1314,7 @@ class Encoder(pyamf.BaseEncoder):
 
         @param n: The integer data to be encoded to the AMF3 data stream.
         @type n: integer data
-        
+
         @see: U{Parsing Integers on OSFlash
         <http://osflash.org/documentation/amf3/parsing_integers>}
         for more info.

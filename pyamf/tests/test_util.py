@@ -313,8 +313,8 @@ class DataTypeMixInTestCase(unittest.TestCase):
         x.write_uchar(255)
         self.assertEquals(x.getvalue(), '\x00\xff')
 
-        self.assertRaises(ValueError, x.write_uchar, 256)
-        self.assertRaises(ValueError, x.write_uchar, -1)
+        self.assertRaises(OverflowError, x.write_uchar, 256)
+        self.assertRaises(OverflowError, x.write_uchar, -1)
 
     def test_read_char(self):
         x = ByteStream('\x00\x7f\xff\x80')
@@ -333,8 +333,8 @@ class DataTypeMixInTestCase(unittest.TestCase):
 
         self.assertEquals(x.getvalue(), '\x00\x80\x7f')
 
-        self.assertRaises(ValueError, x.write_char, 128)
-        self.assertRaises(ValueError, x.write_char, -129)
+        self.assertRaises(OverflowError, x.write_char, 128)
+        self.assertRaises(OverflowError, x.write_char, -129)
 
     def test_write_ushort(self):
         x = ByteStream()
@@ -343,8 +343,8 @@ class DataTypeMixInTestCase(unittest.TestCase):
         self._write_endian(x, x.write_ushort, (12345,), ('09', '90'))
         self._write_endian(x, x.write_ushort, (65535,), ('\xff\xff', '\xff\xff'))
 
-        self.assertRaises(ValueError, x.write_ushort, 65536)
-        self.assertRaises(ValueError, x.write_ushort, -1)
+        self.assertRaises(OverflowError, x.write_ushort, 65536)
+        self.assertRaises(OverflowError, x.write_ushort, -1)
 
     def test_read_ushort(self):
         self._read_endian(['\x00\x00', '\x00\x00'], 'read_ushort', (), 0)
@@ -357,8 +357,8 @@ class DataTypeMixInTestCase(unittest.TestCase):
         self._write_endian(x, x.write_short, (-5673,), ('\xe9\xd7', '\xd7\xe9'))
         self._write_endian(x, x.write_short, (32767,), ('\x7f\xff', '\xff\x7f'))
 
-        self.assertRaises(ValueError, x.write_ushort, 65537)
-        self.assertRaises(ValueError, x.write_ushort, -1)
+        self.assertRaises(OverflowError, x.write_ushort, 65537)
+        self.assertRaises(OverflowError, x.write_ushort, -1)
 
     def test_read_short(self):
         self._read_endian(['\xe9\xd7', '\xd7\xe9'], 'read_short', (), -5673)
@@ -371,8 +371,8 @@ class DataTypeMixInTestCase(unittest.TestCase):
         self._write_endian(x, x.write_ulong, (16810049,), ('\x01\x00\x80A', 'A\x80\x00\x01'))
         self._write_endian(x, x.write_ulong, (4294967295L,), ('\xff\xff\xff\xff', '\xff\xff\xff\xff'))
 
-        self.assertRaises(ValueError, x.write_ulong, 4294967296L)
-        self.assertRaises(ValueError, x.write_ulong, -1)
+        self.assertRaises(OverflowError, x.write_ulong, 4294967296L)
+        self.assertRaises(OverflowError, x.write_ulong, -1)
 
     def test_read_ulong(self):
         self._read_endian(['\x00\x00\x00\x00', '\x00\x00\x00\x00'], 'read_ulong', (), 0)
@@ -386,8 +386,8 @@ class DataTypeMixInTestCase(unittest.TestCase):
         self._write_endian(x, x.write_long, (16810049,), ('\x01\x00\x80A', 'A\x80\x00\x01'))
         self._write_endian(x, x.write_long, (2147483647L,), ('\x7f\xff\xff\xff', '\xff\xff\xff\x7f'))
 
-        self.assertRaises(ValueError, x.write_long, 2147483648)
-        self.assertRaises(ValueError, x.write_long, -2147483649)
+        self.assertRaises(OverflowError, x.write_long, 2147483648)
+        self.assertRaises(OverflowError, x.write_long, -2147483649)
 
     def test_read_long(self):
         self._read_endian(['\x00\x00\x00\x00', '\x00\x00\x00\x00'], 'read_long', (), 0)

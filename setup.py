@@ -1,11 +1,13 @@
 # Copyright (c) 2007-2008 The PyAMF Project.
 # See LICENSE for details.
 
+USE_CPYAMF = True
+
 from ez_setup import use_setuptools
 
 use_setuptools()
 
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages, Extension
 from setuptools.command import test
 
 class TestCommand(test.test):
@@ -31,6 +33,11 @@ class TestCommand(test.test):
 
 import sys
 
+ext_modules = []
+
+if USE_CPYAMF and not sys.platform.startswith('java'):
+    ext_modules.append(Extension('cpyamf.util', ["cpyamf/util.c"], extra_compile_args=['-O3']))
+
 install_requires = []
 if sys.version_info < (2, 5):
     install_requires.extend(
@@ -52,6 +59,7 @@ setup(name = "PyAMF",
     author_email = "dev@pyamf.org",
     keywords = keyw,
     packages = find_packages(exclude=["*.tests"]),
+    ext_modules = ext_modules,
     install_requires = install_requires,
     test_suite = "pyamf.tests.suite",
     zip_safe=True,

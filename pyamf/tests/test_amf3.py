@@ -1278,7 +1278,7 @@ class DataOutputTestCase(unittest.TestCase):
         self.assertEquals(self.stream.getvalue(), '\x00\x00\x007')
         self.stream.truncate()
 
-        self.assertRaises(ValueError, x.writeUnsignedInt, -55)
+        self.assertRaises(OverflowError, x.writeUnsignedInt, -55)
 
     def test_utf(self):
         x = amf3.DataOutput(self.encoder)

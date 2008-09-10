@@ -175,7 +175,7 @@ class DataTypeMixIn(object):
         Writes an C{unsigned char} to the stream.
         """
         if not 0 <= c <= 255:
-            raise ValueError("Not in range, %d" % c)
+            raise OverflowError("Not in range, %d" % c)
 
         self.write(struct.pack("B", c))
 
@@ -190,7 +190,7 @@ class DataTypeMixIn(object):
         Write a C{char} to the stream.
         """
         if not -128 <= c <= 127:
-            raise ValueError("Not in range, %d" % c)
+            raise OverflowError("Not in range, %d" % c)
 
         self.write(struct.pack("b", c))
 
@@ -205,7 +205,7 @@ class DataTypeMixIn(object):
         Writes a 2 byte unsigned integer to the stream.
         """
         if not 0 <= s <= 65535:
-            raise ValueError("Not in range, %d" % s)
+            raise OverflowError("Not in range, %d" % s)
 
         self.write(struct.pack("%sH" % self.endian, s))
 
@@ -220,7 +220,7 @@ class DataTypeMixIn(object):
         Writes a 2 byte integer to the stream.
         """
         if not -32768 <= s <= 32767:
-            raise ValueError("Not in range, %d" % s)
+            raise OverflowError("Not in range, %d" % s)
 
         self.write(struct.pack("%sh" % self.endian, s))
 
@@ -235,7 +235,7 @@ class DataTypeMixIn(object):
         Writes a 4 byte unsigned integer to the stream.
         """
         if not 0 <= l <= 4294967295:
-            raise ValueError("Not in range, %d" % l)
+            raise OverflowError("Not in range, %d" % l)
 
         self.write(struct.pack("%sL" % self.endian, l))
 
@@ -250,7 +250,7 @@ class DataTypeMixIn(object):
         Writes a 4 byte integer to the stream.
         """
         if not -2147483648 <= l <= 2147483647:
-            raise ValueError("Not in range, %d" % l)
+            raise OverflowError("Not in range, %d" % l)
 
         self.write(struct.pack("%sl" % self.endian, l))
 
@@ -404,7 +404,7 @@ def hexdump(data):
     """
     Get hexadecimal representation of C{StringIO} data.
 
-    @type data: 
+    @type data:
     @param data:
     @rtype: C{str}
     @return: Hexadecimal string.
@@ -674,3 +674,19 @@ if sys.version_info < (2, 5) or sys.platform.startswith('win'):
         x = DataTypeMixIn.write_double
         DataTypeMixIn.write_double = write_double_workaround
         write_double_workaround.old_func = x
+
+try:
+    from cpyamf.util import BufferedByteStream
+    class StringIOProxy(BufferedByteStream):
+        def __init__(self, *args, **kwargs):
+            BufferedByteStream.__init__(self, *args, **kwargs)
+            self._buffer = self
+        _wrapped_class = None
+        pass
+    class DataTypeMixIn(BufferedByteStream):
+        ENDIAN_NETWORK = "!"
+        ENDIAN_NATIVE = "@"
+        ENDIAN_LITTLE = "<"
+        ENDIAN_BIG = ">"
+except ImportError:
+    pass
