@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2007-2008 The PyAMF Project.
+ * See LICENSE for details.
+**/
+
 #include <Python.h>
 
 #include "util.h"
@@ -1325,7 +1330,7 @@ initutil(void)
 
     PyObject *m;
     m = Py_InitModule3("cpyamf.util", module_methods, 
-                       "C Extension-based substitutes for module pyamf.util");
+                       "C Extension-based substitutes for module L{pyamf.util}");
 
     if (!m)
         return;

@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2007-2008 The PyAMF Project.
+ * See LICENSE for details.
+**/
+
 #ifndef CPYAMF_UTIL_H
 #define CPYAMF_UTIL_H
 
