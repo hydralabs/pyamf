@@ -6,6 +6,7 @@ of PyAMF.
 
 0.4.0 (unreleased)
 ------------------
+ - New helper function to make it easier to manually add adapters (Ticket:350)
  - Python C-extension for the pyamf.util.BufferedByteStream class. Contributed
    by Gerard Escalante (Ticket:225)
  - New API to add headers such as cookies in pyamf.remoting.client (Ticket:337)

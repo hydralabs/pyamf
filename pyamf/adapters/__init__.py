@@ -60,10 +60,10 @@ def register_adapter(mod, func):
     @param mod: The fully qualified module string, as used in the imports
         statement. E.g. 'foo.bar.baz'. The string must map to a module
         otherwise the callable will not fire.
-    @type mod: L{string}
+    @type mod: C{str}
     @param func: The function to call when C{mod} is imported. This function
         must take one arg, the newly imported C{module} object.
-    @param callable.
+    @type func: callable
     """
     if not callable(func):
         raise TypeError('func must be callable')
