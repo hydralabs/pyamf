@@ -48,3 +48,24 @@ def register_adapters():
             pass
 
     adapters_registered = True
+
+def register_adapter(mod, func):
+    """
+    Registers a callable to be executed when a module is imported. If the
+    module already exists then the callable will be executed immediately.
+    You can register the same module multiple times, the callables will be
+    executed in the order they were registered. The root module must exist
+    (i.e. be importable) otherwise an C{ImportError} will be thrown
+
+    @param mod: The fully qualified module string, as used in the imports
+        statement. E.g. 'foo.bar.baz'. The string must map to a module
+        otherwise the callable will not fire.
+    @type mod: L{string}
+    @param func: The function to call when C{mod} is imported. This function
+        must take one arg, the newly imported C{module} object.
+    @param callable.
+    """
+    if not callable(func):
+        raise TypeError('func must be callable')
+
+    imports.whenImported(str(mod), func)

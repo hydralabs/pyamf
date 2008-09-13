@@ -542,7 +542,8 @@ class Encoder(pyamf.BaseEncoder):
             except pyamf.EncodeError:
                 raise
             except:
-                raise pyamf.EncodeError("Unable to encode '%r'" % (data,))
+                #raise pyamf.EncodeError("Unable to encode '%r'" % (data,))
+                raise
 
     def writeNull(self, n):
         """

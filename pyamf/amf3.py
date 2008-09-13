@@ -1251,6 +1251,7 @@ class Encoder(pyamf.BaseEncoder):
             except (KeyboardInterrupt, SystemExit):
                 raise
             except:
+                raise
                 raise pyamf.EncodeError("Unable to encode '%r'" % (data,))
 
     def writeType(self, type):
