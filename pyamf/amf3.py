@@ -1222,7 +1222,7 @@ class Encoder(pyamf.BaseEncoder):
         ((types.StringTypes,), "writeString"),
         ((ByteArray,), "writeByteArray"),
         ((datetime.date, datetime.datetime), "writeDate"),
-        ((util.ET._ElementInterface,), "writeXML"),
+        ((util.is_ET_element,), "writeXML"),
         ((lambda x: x is pyamf.Undefined,), "writeUndefined"),
         ((types.InstanceType, types.ObjectType,), "writeInstance"),
     ]

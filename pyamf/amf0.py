@@ -456,7 +456,7 @@ class Encoder(pyamf.BaseEncoder):
         ((pyamf.MixedArray,), "writeMixedArray"),
         ((types.ListType, types.TupleType,), "writeArray"),
         ((datetime.date, datetime.datetime), "writeDate"),
-        ((util.ET._ElementInterface,), "writeXML"),
+        ((util.is_ET_element,), "writeXML"),
         ((lambda x: x is pyamf.Undefined,), "writeUndefined"),
         ((types.InstanceType,types.ObjectType,), "writeObject"),
     ]

@@ -28,6 +28,19 @@ except ImportError:
     except ImportError:
         import elementtree.ElementTree as ET
 
+try:
+    import xml.etree.cElementTree as cET
+except ImportError:
+    try:
+        import cElementTree as cET
+    except ImportError:
+        cET = None
+
+cET_Element_Type = None
+
+if cET:
+    cET_Element_Type = type(cET.Element('<e/>'))
+
 class StringIOProxy(object):
     """
     I am a C{StringIO} type object containing byte data from the AMF stream.
@@ -639,6 +652,19 @@ class IndexedCollection(object):
     def __iter__(self):
         return iter(self.list)
 
+def is_ET_element(obj):
+    """
+    Determines if the supplied C{obj} param is a valid ElementTree element.
+    """
+    # This works well for regular ElementTree, but NOT for cElementTree
+    if isinstance(obj, ET._ElementInterface):
+        return True
+
+    if cET_Element_Type and isinstance(obj, cET_Element_Type):
+        return True
+
+    return False
+
 if sys.version_info < (2, 5) or sys.platform.startswith('win'):
     # workaround for python2.4's shortcomings with exceptional floats
     # see: http://blog.pyamf.org/archives/when-is-nan-not-a-number-with-python-24
@@ -677,12 +703,14 @@ if sys.version_info < (2, 5) or sys.platform.startswith('win'):
 
 try:
     from cpyamf.util import BufferedByteStream
+
     class StringIOProxy(BufferedByteStream):
+        _wrapped_class = None
+
         def __init__(self, *args, **kwargs):
             BufferedByteStream.__init__(self, *args, **kwargs)
             self._buffer = self
-        _wrapped_class = None
-        pass
+
     class DataTypeMixIn(BufferedByteStream):
         ENDIAN_NETWORK = "!"
         ENDIAN_NATIVE = "@"
