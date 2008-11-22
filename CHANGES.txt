@@ -6,6 +6,9 @@ of PyAMF.
 
 0.4.0 (unreleased)
 ------------------
+ - A revamped google app engine adapter that checks for the _key attribute in
+   an aliased class and first loads the object from the datastore and then
+   applies that properties in the object stream. (Ticket:307)
  - New helper function to make it easier to manually add adapters (Ticket:350)
  - Python C-extension for the pyamf.util.BufferedByteStream class. Contributed
    by Gerard Escalante (Ticket:225)
