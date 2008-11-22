@@ -4,7 +4,7 @@
 """
 Adapter for the stdlib C{sets} module.
 
-@since 0.4.0
+@since: 0.4
 """
 
 import sets
