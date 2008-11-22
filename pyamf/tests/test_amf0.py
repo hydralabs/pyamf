@@ -257,8 +257,6 @@ class EncoderTestCase(ClassCacheClearingTestCase):
         self._run([
             (x, '\x11\n\x0b\x13spam.eggs\x03x\x06\x03y\x01')])
 
-        pyamf.unregister_class(Spam)
-
     def test_typed_object(self):
         pyamf.register_class(Spam, alias='org.pyamf.spam')
 
@@ -269,8 +267,6 @@ class EncoderTestCase(ClassCacheClearingTestCase):
 
         self.assertEquals(self.buf.getvalue(),
             '\x10\x00\x0eorg.pyamf.spam\x00\x03baz\x02\x00\x05hello\x00\x00\t')
-
-        pyamf.unregister_class(Spam)
 
     def test_complex_list(self):
         self._run([
@@ -854,9 +850,6 @@ class ClassInheritanceTestCase(ClassCacheClearingTestCase):
         self.assertEquals(stream.getvalue(), '\x10\x00\x01B\x00\x01a\x02\x00'
             '\x04spam\x00\x01b\x02\x00\x04eggs\x00\x00\t')
 
-        pyamf.unregister_class(A)
-        pyamf.unregister_class(B)
-
     def test_deep(self):
         class A(object):
             pass
@@ -886,10 +879,6 @@ class ClassInheritanceTestCase(ClassCacheClearingTestCase):
         self.assertEquals(stream.getvalue(), '\x10\x00\x01C\x00\x01a\x02\x00'
             '\x04spam\x00\x01c\x02\x00\x03foo\x00\x01b\x02\x00\x04eggs\x00'
             '\x00\t')
-
-        pyamf.unregister_class(A)
-        pyamf.unregister_class(B)
-        pyamf.unregister_class(C)
 
 def suite():
     suite = unittest.TestSuite()

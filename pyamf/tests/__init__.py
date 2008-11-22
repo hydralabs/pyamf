@@ -15,16 +15,22 @@ if not hasattr(unittest.TestCase, 'assertTrue'):
 if not hasattr(unittest.TestCase, 'assertFalse'):
     unittest.TestCase.assertFalse = unittest.TestCase.failIf
 
+mod_base = 'pyamf.tests'
+
 def suite():
     import os.path, sys
     from glob import glob
 
-    sys.path.append(os.path.dirname(__file__))
-
     suite = unittest.TestSuite()
 
     for testcase in glob(os.path.join(os.path.dirname(__file__), 'test_*.py')):
-        mod = __import__(os.path.basename(testcase).split('.')[0])
+        mod_name = os.path.basename(testcase).split('.')[0]
+        full_name = '%s.%s' % (mod_base, mod_name)
+
+        mod = __import__(full_name)
+
+        for part in full_name.split('.')[1:]:
+            mod = getattr(mod, part)
 
         suite.addTest(mod.suite())
 

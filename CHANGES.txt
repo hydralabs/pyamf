@@ -6,6 +6,8 @@ of PyAMF.
 
 0.4.0 (unreleased)
 ------------------
+ - A new adapter that converts sets.ImmutableSet and sets.Set to tuples before
+   encoding. (Ticket:280)
  - A revamped google app engine adapter that checks for the _key attribute in
    an aliased class and first loads the object from the datastore and then
    applies that properties in the object stream. (Ticket:307)
