@@ -25,6 +25,11 @@ PY_EXT = ('.pyo', '.pyc', '.py')
 
 try:
     from imp import find_module
+
+    # google app engine requires this because it checks to ensure that the
+    # find_module function is functioning at least basically
+    # most appengine patchers just stub the function
+    find_module('pyamf.util.imports')
 except ImportError:
     def find_module(subname, path=None):
         if path is None:

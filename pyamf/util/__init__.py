@@ -541,9 +541,7 @@ def get_attrs(obj):
     """
     Gets a dict of the attrs of an object in a predefined resolution order
     """
-    if hasattr(obj, '__getstate__'):
-        return obj.__getstate__()
-    elif hasattr(obj, 'iteritems'):
+    if hasattr(obj, 'iteritems'):
         attrs = {}
 
         for k, v in obj.iteritems():
@@ -559,18 +557,37 @@ def get_instance_attrs(obj, alias):
     obj_attrs = None
 
     if alias is not None:
-        attrs = alias.getAttrs(obj)
-
-        if attrs is not None:
-            obj_attrs = {}
-
-            for at in attrs:
-                obj_attrs[at] = getattr(obj, at)
+        obj_attrs = alias.getAttributes(obj)
 
     if obj_attrs is None:
         obj_attrs = get_attrs(obj)
 
     return obj_attrs
+
+def set_attrs(obj, attrs):
+    """
+    A generic function which applies a collection of attributes C{attrs} to
+    object C{obj}
+
+    @param obj: An instance implementing the __setattr__ function
+    @param attrs: A collection implementing the iteritems function
+    @type attrs: Usually a dict
+    """
+    f = lambda n, v: setattr(obj, n, v)
+
+    if isinstance(obj, (list, dict)):
+        f = obj.__setitem__
+
+    for k, v in attrs.iteritems():
+        f(k, v)
+
+def get_class_alias(klass):
+    for k, v in pyamf.ALIAS_TYPES.iteritems():
+        for kl in v:
+            if issubclass(klass, kl):
+                return k
+
+    return None
 
 class IndexedCollection(object):
     """

@@ -15,4 +15,4 @@ import pyamf
 def convert_NOT_PROVIDED(x):
     return pyamf.Undefined
 
-pyamf.add_type(lambda x: x == fields.NOT_PROVIDED, convert_NOT_PROVIDED)
+pyamf.add_type(lambda x: x is fields.NOT_PROVIDED, convert_NOT_PROVIDED)

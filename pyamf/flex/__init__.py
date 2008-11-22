@@ -31,12 +31,12 @@ class ArrayCollection(dict):
 
     def __init__(self, source=None):
         if source is not None:
-            if isinstance(source, (list, tuple)):
-                for i in range(len(source)):
-                    self[i] = source[i]
-            elif isinstance(source, (dict)):
+            if hasattr(source, 'iteritems'):
                 for k, v in source.iteritems():
                     self[k] = v
+            else:
+                for i in range(len(source)):
+                    self[i] = source[i]
 
     def __repr__(self):
         return "<flex.messaging.io.ArrayCollection %s>" % dict.__repr__(self)

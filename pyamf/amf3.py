@@ -631,6 +631,27 @@ class ClassDefinition(object):
 
         return (static_attrs, dynamic_attrs)
 
+    def createInstance(self):
+        """
+        Creates a new instance.
+        """
+        if self.alias:
+            obj = self.alias.createInstance()
+        else:
+            klass = self.getClass()
+            obj = klass()
+
+        return obj
+
+    def applyAttributes(self, obj, attrs):
+        """
+        Applies a collection of attributes C{attrs} to object C{obj}
+        """
+        if self.alias:
+            self.alias.applyAttributes(obj, attrs)
+        else:
+            util.set_attrs(obj, attrs)
+
 class Context(pyamf.BaseContext):
     """
     I hold the AMF3 context for en/decoding streams.
@@ -1087,13 +1108,13 @@ class Decoder(pyamf.BaseDecoder):
                     class_def.static_attrs.append(key)
 
             for attr in class_def.static_attrs:
-                setattr(obj, attr, self.readElement())
+                obj[attr] = self.readElement()
 
         def readDynamic(is_ref, class_def, obj):
             attr = self.readString()
 
             while attr != "":
-                setattr(obj, attr, self.readElement())
+                obj[attr] = self.readElement()
                 attr = self.readString()
 
         ref = self.readUnsignedInteger()
@@ -1108,13 +1129,9 @@ class Decoder(pyamf.BaseDecoder):
         if class_def.alias and 'amf0' in class_def.alias.metadata:
             raise pyamf.EncodeError("Decoding an object in amf3 tagged as amf0 only is not allowed")
 
-        if class_def.alias:
-            obj = class_def.alias()
-        else:
-            klass = class_def.getClass()
-            obj = klass()
+        obj = class_def.createInstance()
+        obj_attrs = dict()
 
-        obj_attrs = pyamf.ASObject()
         self.context.addObject(obj)
 
         if class_def.encoding in (ObjectEncoding.EXTERNAL, ObjectEncoding.PROXY):
@@ -1127,11 +1144,7 @@ class Decoder(pyamf.BaseDecoder):
         else:
             raise pyamf.DecodeError("Unknown object encoding")
 
-        if hasattr(obj, '__setstate__'):
-            obj.__setstate__(obj_attrs)
-        else:
-            for k, v in obj_attrs.iteritems():
-                setattr(obj, k, v)
+        class_def.applyAttributes(obj, obj_attrs)
 
         return obj
 

@@ -580,26 +580,6 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
 
         pyamf.unregister_class(Person)
 
-    def test_getstate(self):
-        self.executed = False
-
-        class Foo(object):
-            tc = self
-
-            def __getstate__(self):
-                self.tc.executed = True
-                return {'spam': 'hello', 'eggs': True}
-
-        pyamf.register_class(Foo, 'foo')
-
-        foo = Foo()
-        self.encoder.writeElement(foo)
-
-        self.assertEquals(self.buf.getvalue(), '\x0a\x0b\x07\x66\x6f\x6f\x09'
-            '\x65\x67\x67\x73\x03\x09\x73\x70\x61\x6d\x06\x0b\x68\x65\x6c\x6c'
-            '\x6f\x01')
-        self.assertTrue(self.executed)
-
     def test_elementtree_tag(self):
         class NotAnElement(object):
             items = lambda self: []
@@ -908,66 +888,6 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
 
         self.assertTrue(class_def in self.context.class_defs)
         self.context.class_defs.remove(class_def)
-
-    def test_setstate_newstyle(self):
-        self.executed = False
-
-        class Foo(object):
-            tc = self
-
-            def __init__(self, *args, **kwargs):
-                self.tc.fail("__init__ called")
-
-            def __setstate__(self, state):
-                self.tc.executed = True
-                self.__dict__.update(state)
-
-        pyamf.register_class(Foo, 'foo')
-
-        self.buf.write('\x0a\x0b\x07\x66\x6f\x6f\x09\x65\x67\x67\x73' + \
-            '\x03\x09\x73\x70\x61\x6d\x06\x0b\x68\x65\x6c\x6c\x6f\x01')
-        self.buf.seek(0)
-
-        foo = self.decoder.readElement()
-
-        self.assertEquals(foo.spam, 'hello')
-        self.assertEquals(foo.eggs, True)
-        self.assertTrue(self.executed)
-
-    def test_setstate_classic(self):
-        self.executed = False
-
-        class Foo:
-            tc = self
-
-            def __init__(self, *args, **kwargs):
-                self.tc.fail("__init__ called")
-
-            def __setstate__(self, state):
-                self.tc.executed = True
-                self.__dict__.update(state)
-
-        pyamf.register_class(Foo, 'foo')
-
-        self.buf.write('\x0a\x0b\x07\x66\x6f\x6f\x09\x65\x67\x67\x73' + \
-            '\x03\x09\x73\x70\x61\x6d\x06\x0b\x68\x65\x6c\x6c\x6f\x01')
-        self.buf.seek(0)
-
-        foo = self.decoder.readElement()
-
-        self.assertEquals(foo.spam, 'hello')
-        self.assertEquals(foo.eggs, True)
-        self.assertTrue(self.executed)
-
-    def test_classic_class(self):
-        pyamf.register_class(ClassicSpam, 'spam.eggs')
-
-        self.buf.write('\n\x0b\x13spam.eggs\x07foo\x06\x07bar\x01')
-        self.buf.seek(0)
-
-        foo = self.decoder.readElement()
-
-        self.assertEquals(foo.foo, 'bar')
 
 class ObjectEncodingTestCase(_util.ClassCacheClearingTestCase):
     def setUp(self):

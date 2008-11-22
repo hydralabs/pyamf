@@ -15,7 +15,6 @@ from django import http
 
 from pyamf import remoting, util
 from pyamf.remoting.gateway import django as _django
-from pyamf.tests import util as _util
 
 class HttpRequest(http.HttpRequest):
     """

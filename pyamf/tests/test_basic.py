@@ -10,7 +10,7 @@ General tests.
 import unittest
 
 import pyamf
-from pyamf.tests.util import ClassCacheClearingTestCase
+from pyamf.tests.util import ClassCacheClearingTestCase, replace_dict
 
 class Spam(object):
     """
@@ -162,10 +162,10 @@ class ClassAliasTestCase(ClassCacheClearingTestCase):
         self.assertRaises(TypeError, pyamf.ClassAlias, 'eggs', 'blah',
             write_func='asdfasdf')
 
-    def test_call(self):
+    def test_createInstance(self):
         x = pyamf.ClassAlias(Spam, 'org.example.spam.Spam')
 
-        y = x()
+        y = x.createInstance()
 
         self.assertTrue(isinstance(y, Spam))
 
@@ -677,6 +677,105 @@ class ErrorClassMapTestCase(unittest.TestCase):
         self.assertRaises(ValueError, pyamf.remove_error_class, B)
         self.assertRaises(ValueError, pyamf.remove_error_class, 'abc')
 
+class DummyAlias(pyamf.ClassAlias):
+    pass
+
+class RegisterAliasTypeTestCase(unittest.TestCase):
+    def setUp(self):
+        self.old_aliases = pyamf.ALIAS_TYPES.copy()
+
+    def tearDown(self):
+        replace_dict(self.old_aliases, pyamf.ALIAS_TYPES)
+
+    def test_bad_klass(self):
+        self.assertRaises(TypeError, pyamf.register_alias_type, 1)
+
+    def test_subclass(self):
+        self.assertFalse(issubclass(self.__class__, pyamf.ClassAlias))
+        self.assertRaises(ValueError, pyamf.register_alias_type, self.__class__)
+
+    def test_no_args(self):
+        self.assertTrue(issubclass(DummyAlias, pyamf.ClassAlias))
+        self.assertRaises(ValueError, pyamf.register_alias_type, DummyAlias)
+
+    def test_type_args(self):
+        self.assertTrue(issubclass(DummyAlias, pyamf.ClassAlias))
+        self.assertRaises(TypeError, pyamf.register_alias_type, DummyAlias, 1)
+
+    def test_single(self):
+        class A(object):
+            pass
+
+        pyamf.register_alias_type(DummyAlias, A)
+
+        self.assertTrue(DummyAlias in pyamf.ALIAS_TYPES.keys())
+        self.assertEquals(pyamf.ALIAS_TYPES[DummyAlias], (A,))
+
+    def test_multiple(self):
+        class A(object):
+            pass
+
+        class B(object):
+            pass
+
+        self.assertRaises(TypeError, pyamf.register_alias_type, DummyAlias, A, 'hello')
+
+        pyamf.register_alias_type(DummyAlias, A, B)
+        self.assertTrue(DummyAlias in pyamf.ALIAS_TYPES.keys())
+        self.assertEquals(pyamf.ALIAS_TYPES[DummyAlias], (A, B))
+
+    def test_duplicate(self):
+        class A(object):
+            pass
+
+        pyamf.register_alias_type(DummyAlias, A)
+
+        self.assertRaises(RuntimeError, pyamf.register_alias_type, DummyAlias, A)
+
+class BaseContextTestCase(unittest.TestCase):
+    def test_no_alias(self):
+        x = pyamf.BaseContext()
+
+        self.assertEquals(x.class_aliases, {})
+
+        class A:
+            pass
+
+        self.assertEquals(x.getClassAlias(A), None)
+
+    def test_registered_alias(self):
+        x = pyamf.BaseContext()
+
+        self.assertEquals(x.class_aliases, {})
+
+        class A:
+            pass
+
+        pyamf.register_class(A)
+        alias = x.getClassAlias(A)
+
+        self.assertTrue(isinstance(alias, pyamf.ClassAlias))
+        self.assertEquals(alias.__class__, pyamf.ClassAlias)
+        self.assertEquals(alias.klass, A)
+
+    def test_registered_deep(self):
+        x = pyamf.BaseContext()
+
+        self.assertEquals(x.class_aliases, {})
+
+        class A:
+            pass
+
+        class B(A):
+            pass
+
+        pyamf.register_alias_type(DummyAlias, A)
+        alias = x.getClassAlias(B)
+
+        self.assertTrue(isinstance(alias, pyamf.ClassAlias))
+        self.assertEquals(alias.__class__, DummyAlias)
+        self.assertEquals(alias.klass, B)
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -689,6 +788,8 @@ def suite():
     suite.addTest(unittest.makeSuite(ClassLoaderTestCase))
     suite.addTest(unittest.makeSuite(TypeMapTestCase))
     suite.addTest(unittest.makeSuite(ErrorClassMapTestCase))
+    suite.addTest(unittest.makeSuite(RegisterAliasTypeTestCase))
+    suite.addTest(unittest.makeSuite(BaseContextTestCase))
 
     return suite
 

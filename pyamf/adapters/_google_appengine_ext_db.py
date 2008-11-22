@@ -14,60 +14,81 @@ in Google App Engine.
 """
 
 from google.appengine.ext import db
+import datetime
 
 import pyamf
-from pyamf import amf0, amf3
 
-def writeObjectAMF0(self, obj, *args, **kwargs):
-    alias = self.context.getClassAlias(obj.__class__)
-    remove = False
+class ModelStub(object):
+    pass
 
-    if alias is None:
-        remove = True
-        self.context.class_aliases[obj.__class__] = pyamf.ClassAlias(obj.__class__, None)
+class DataStoreClassAlias(pyamf.ClassAlias):
+    # The name of the attribute used to represent the key
+    KEY_ATTR = '_key'
 
-    self.writeObject(obj, *args, **kwargs)
+    # A list of private attributes on a db.Model/db.Expando list that need to
+    # be synced with the datastore instance
+    INTERNAL_ATTRS = ['_entity', '_parent', '_key_name', '_app', '_parent_key']
 
-    if remove:
-        self.context.class_aliases[obj.__class__] = None
+    def getAttributes(self, obj):
+        """
+        """
+        p = obj.properties().keys() + obj.dynamic_properties()
 
-def writeObjectAMF3(self, obj, *args, **kwargs):
-    remove = False
+        attrs = {}
 
-    try:
-        self.context.getClassDefinitionReference(obj)
-    except pyamf.ReferenceError:
-        alias = self.context.getClassAlias(obj.__class__)
-        class_def = None
-        remove = False
+        for a in p:
+            attrs[a] = getattr(obj, a)
 
-        if alias is None:
-            remove = True
-            alias = pyamf.ClassAlias(obj.__class__, None)
-            self.context.class_aliases[obj.__class__] = alias
+        try:
+            attrs[DataStoreClassAlias.KEY_ATTR] = str(obj.key())
+        except:
+            pass
 
-    self.writeObject(obj, *args, **kwargs)
+        return attrs
 
-    if remove:
-        self.context.class_aliases[obj.__class__] = None
+    def createInstance(self):
+        return ModelStub()
 
-def get_attrs_for_model(obj):
-    """
-    Returns a list of properties on an C{db.Model} instance.
-    """
-    return list(obj.__class__._properties)
+    def applyAttributes(self, obj, attrs):
+        new_obj = None
 
-def get_attrs_for_expando(obj):
-    """
-    Returns a list of dynamic properties on a C{db.Expando} instance.
-    """
-    return obj.dynamic_properties()
+        if DataStoreClassAlias.KEY_ATTR in attrs.keys():
+            new_obj = self.klass.get(attrs[DataStoreClassAlias.KEY_ATTR])
+            del attrs[DataStoreClassAlias.KEY_ATTR]
 
-pyamf.register_class(db.Model, attr_func=get_attrs_for_model, metadata=['dynamic'])
-pyamf.register_class(db.Expando, attr_func=get_attrs_for_expando, metadata=['dynamic'])
+        properties = self.klass.properties()
+        p_keys = properties.keys()
 
-amf0.Encoder.writeGoogleModel = writeObjectAMF0
-amf0.Encoder.type_map.insert(len(amf0.Encoder.type_map) - 1, ((db.Model,db.Expando), "writeGoogleModel"))
+        if new_obj is not None:
+            for a in DataStoreClassAlias.INTERNAL_ATTRS:
+                if hasattr(new_obj, a):
+                    setattr(obj, a, getattr(new_obj, a))
 
-amf3.Encoder.writeGoogleModel = writeObjectAMF3
-amf3.Encoder.type_map.insert(len(amf3.Encoder.type_map) - 1, ((db.Model,db.Expando), "writeGoogleModel"))
+            for k in self.klass.properties().keys():
+                setattr(obj, k, getattr(new_obj, k))
+
+            for k in new_obj.dynamic_properties():
+                setattr(obj, k, getattr(new_obj, k))
+
+        obj.__class__ = self.klass
+
+        for k, v in attrs.iteritems():
+            if k in p_keys:
+                prop = properties[k]
+
+                if isinstance(v, datetime.datetime):
+                    if isinstance(prop, db.DateProperty):
+                        v = v.date()
+                    elif isinstance(prop, db.TimeProperty):
+                        v = v.time()
+
+            setattr(obj, k, v)
+
+def handleQuery(q):
+    if q.count() == 0:
+        return []
+
+    return [i for i in q]
+
+pyamf.add_type(db.Query, handleQuery)
+pyamf.register_alias_type(DataStoreClassAlias, db.Model, db.Expando)

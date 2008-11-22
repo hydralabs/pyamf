@@ -303,7 +303,7 @@ class Decoder(pyamf.BaseDecoder):
         classname = self.readString()
         alias = pyamf.load_class(classname)
 
-        ret = alias()
+        ret = alias.createInstance()
         self.context.addObject(ret)
         self._readObject(ret, alias)
 
@@ -339,15 +339,10 @@ class Decoder(pyamf.BaseDecoder):
         return self.stream.read_utf8_string(len)
 
     def _readObject(self, obj, alias=None):
-        attrs = []
-
-        if alias is not None:
-            attrs = alias.getAttrs(obj)
-
-        key = self.readString()
-
         ot = chr(ASTypes.OBJECTTERM)
         obj_attrs = dict()
+
+        key = self.readString()
 
         while self.stream.peek() != ot:
             obj_attrs[key] = self.readElement()
@@ -356,27 +351,10 @@ class Decoder(pyamf.BaseDecoder):
         # discard the end marker (ASTypes.OBJECTTERM)
         self.stream.read(len(ot))
 
-        if attrs is None:
-            attrs = obj_attrs.keys()
-
         if alias:
-            if hasattr(obj, '__setstate__'):
-                obj.__setstate__(obj_attrs)
-
-                return
-
-            for key in filter(lambda x: x in attrs, obj_attrs.keys()):
-                setattr(obj, key, obj_attrs[key])
+            alias.applyAttributes(obj, obj_attrs)
         else:
-            f = obj.__setattr__
-
-            if isinstance(obj, (list, dict)):
-                f = obj.__setitem__
-
-            for key, value in obj_attrs.iteritems():
-                f(key, value)
-
-        return
+            util.set_attrs(obj, obj_attrs)
 
     def readObject(self):
         """
@@ -452,7 +430,7 @@ class Encoder(pyamf.BaseEncoder):
         ((bool,), "writeBoolean"),
         ((int,long,float), "writeNumber"),
         ((types.StringTypes,), "writeString"),
-        ((pyamf.has_alias,pyamf.ASObject), "writeObject"),
+        ((pyamf.ASObject,), "writeObject"),
         ((pyamf.MixedArray,), "writeMixedArray"),
         ((types.ListType, types.TupleType,), "writeArray"),
         ((datetime.date, datetime.datetime), "writeDate"),
@@ -702,13 +680,7 @@ class Encoder(pyamf.BaseEncoder):
         obj_attrs = None
 
         if alias is not None:
-            attrs = alias.getAttrs(o)
-
-            if attrs is not None:
-                obj_attrs = {}
-
-                for at in attrs:
-                    obj_attrs[at] = getattr(o, at)
+            obj_attrs = alias.getAttributes(o)
 
         if obj_attrs is None:
             obj_attrs = util.get_attrs(o)

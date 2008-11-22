@@ -14,6 +14,7 @@ import unittest
 from datetime import datetime
 from StringIO import StringIO
 
+import pyamf
 from pyamf import util
 from pyamf.tests import util as _util
 
@@ -508,6 +509,76 @@ class BufferedByteStreamTestCase(unittest.TestCase):
         self.assertEquals(a.tell(), 1)
         self.assertEquals(b.tell(), 3)
 
+class DummyAlias(pyamf.ClassAlias):
+    pass
+
+class AnotherDummyAlias(pyamf.ClassAlias):
+    pass
+
+class YADummyAlias(pyamf.ClassAlias):
+    pass
+
+class ClassAliasTestCase(unittest.TestCase):
+    def setUp(self):
+        self.old_aliases = pyamf.ALIAS_TYPES.copy()
+
+    def tearDown(self):
+        _util.replace_dict(self.old_aliases, pyamf.ALIAS_TYPES)
+
+    def test_simple(self):
+        class A(object):
+            pass
+
+        pyamf.register_alias_type(DummyAlias, A)
+
+        self.assertEquals(util.get_class_alias(A), DummyAlias)
+
+    def test_nested(self):
+        class A(object):
+            pass
+
+        class B(object):
+            pass
+
+        class C(object):
+            pass
+
+        pyamf.register_alias_type(DummyAlias, A, B, C)
+
+        self.assertEquals(util.get_class_alias(B), DummyAlias)
+
+    def test_multiple(self):
+        class A(object):
+            pass
+
+        class B(object):
+            pass
+
+        class C(object):
+            pass
+
+        pyamf.register_alias_type(DummyAlias, A)
+        pyamf.register_alias_type(AnotherDummyAlias, B)
+        pyamf.register_alias_type(YADummyAlias, C)
+
+        self.assertEquals(util.get_class_alias(B), AnotherDummyAlias)
+        self.assertEquals(util.get_class_alias(C), YADummyAlias)
+        self.assertEquals(util.get_class_alias(A), DummyAlias)
+
+    def test_none_existant(self):
+        self.assertEquals(None, util.get_class_alias(self.__class__))
+
+    def test_subclass(self):
+        class A(object):
+            pass
+
+        class B(A):
+            pass
+
+        pyamf.register_alias_type(DummyAlias, A)
+
+        self.assertEquals(util.get_class_alias(B), DummyAlias)
+
 def suite():
     """
     Unit tests for AMF utilities.
@@ -524,6 +595,7 @@ def suite():
 
     suite.addTest(unittest.makeSuite(DataTypeMixInTestCase))
     suite.addTest(unittest.makeSuite(BufferedByteStreamTestCase))
+    suite.addTest(unittest.makeSuite(ClassAliasTestCase))
 
     return suite
 

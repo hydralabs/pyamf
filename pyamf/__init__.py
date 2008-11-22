@@ -38,6 +38,9 @@ CLASS_LOADERS = []
 TYPE_MAP = {}
 #: Maps error classes to string codes.
 ERROR_CLASS_MAP = {}
+#: Alias mapping support
+ALIAS_TYPES = {}
+
 #: Specifies that objects are serialized using AMF for ActionScript 1.0 and 2.0.
 AMF0 = 0
 #: Specifies that objects are serialized using AMF for ActionScript 3.0.
@@ -172,11 +175,17 @@ class BaseContext(object):
         """
         Gets a class alias based on the supplied C{klass}.
         """
-        if klass not in self.class_aliases:
+        if klass not in self.class_aliases.keys():
             try:
                 self.class_aliases[klass] = get_class_alias(klass)
             except UnknownClassAlias:
-                self.class_aliases[klass] = None
+                # no alias has been found yet .. check subclasses
+                alias = util.get_class_alias(klass)
+
+                if alias is not None:
+                    self.class_aliases[klass] = alias(klass, None)
+                else:
+                    self.class_aliases[klass] = None
 
         return self.class_aliases[klass]
 
@@ -261,16 +270,17 @@ class ClassMetaData(list):
             # check to see if a tag in the list is about to be clobbered if so,
             # raise a warning
             for y in tags:
-                if y in self:
-                    if x != y:
-                        import warnings
+                if y not in self:
+                    continue
 
-                        warnings.warn(
-                            "Previously defined tag %s superceded by %s" % (
-                                y, x))
+                if x != y:
+                    import warnings
 
-                    list.pop(self, self.index(y))
-                    break
+                    warnings.warn(
+                        "Previously defined tag %s superceded by %s" % (y, x))
+
+                list.pop(self, self.index(y))
+                break
 
         list.append(self, x)
 
@@ -356,22 +366,6 @@ class ClassAlias(object):
             if attrs is None:
                 raise ValueError("attrs keyword must be specified for static classes")
 
-    def __call__(self, *args, **kwargs):
-        """
-        Creates an instance of the klass.
-
-        @raise TypeError: Invalid class type.
-        @return: Instance of C{self.klass}.
-        """
-        if hasattr(self.klass, '__setstate__') or hasattr(self.klass, '__getstate__'):
-            if type(self.klass) is types.TypeType:  # new-style class
-                return self.klass.__new__(self.klass)
-            elif type(self.klass) is types.ClassType: # classic class
-                return util.make_classic_instance(self.klass)
-            raise TypeError('Invalid class type %r' % self.klass)
-
-        return self.klass(*args, **kwargs)
-
     def __str__(self):
         return self.alias
 
@@ -431,6 +425,47 @@ class ClassAlias(object):
                 a.append(x)
 
         return a
+
+    def getAttributes(self, obj):
+        """
+        Returns a collection of attributes for an object
+        """
+        attrs = self.getAttrs(obj)
+
+        if attrs is None:
+            return util.get_attrs(obj)
+
+        d = dict()
+
+        for a in attrs:
+            try:
+                d[a] = getattr(obj, a)
+            except AttributeError:
+                pass
+
+        return d
+
+    def applyAttributes(self, obj, attrs):
+        """
+        Applies the collection of attributes C{attrs} to aliased object C{obj}.
+        It is mainly used when reading aliased objects from an AMF byte stream.
+        """
+        allowed_attributes = self.getAttrs(obj)
+
+        if allowed_attributes is not None:
+            for k in attrs.keys():
+                if k not in allowed_attributes:
+                    del attrs[k]
+
+        util.set_attrs(obj, attrs)
+
+    def createInstance(self, *args, **kwargs):
+        """
+        Creates an instance of the klass.
+
+        @return: Instance of C{self.klass}.
+        """
+        return self.klass(*args, **kwargs)
 
 class BaseDecoder(object):
     """
@@ -672,8 +707,13 @@ def register_class(klass, alias=None, attrs=None, attr_func=None, metadata=[]):
             raise TypeError("__init__ doesn't support additional arguments: %s"
                 % sign)
 
-    x = ClassAlias(klass, alias, attr_func=attr_func, attrs=attrs,
-        metadata=metadata)
+    alias_klass = util.get_class_alias(klass)
+
+    if alias_klass is None:
+        alias_klass = ClassAlias
+
+    x = alias_klass(klass, alias, attr_func=attr_func,
+        attrs=attrs, metadata=metadata)
 
     if alias is None:
         alias = "%s.%s" % (klass.__module__, klass.__name__,)
@@ -1118,5 +1158,29 @@ def remove_error_class(klass):
         raise TypeError("Invalid type, expected class or string")
 
     del ERROR_CLASS_MAP[klass]
+
+def register_alias_type(klass, *args):
+    """
+    """
+    if not isinstance(klass, (type, types.ClassType)):
+        raise TypeError('klass must be class')
+
+    if not issubclass(klass, ClassAlias):
+        raise ValueError('New aliases must subclass pyamf.ClassAlias')
+
+    if len(args) == 0:
+        raise ValueError('At least one type must be supplied')
+
+    for arg in args:
+        if not isinstance(arg, (type, types.ClassType)):
+            raise TypeError('%r must be class' % (arg,))
+
+        # FIXME: Create a reverse index of registered types and do a quicker lookup
+        for k, v in ALIAS_TYPES.iteritems():
+            for kl in v:
+                if arg == kl:
+                    raise RuntimeError('%r is already registered under %r' % (arg, k))
+
+    ALIAS_TYPES[klass] = args
 
 register_adapters()

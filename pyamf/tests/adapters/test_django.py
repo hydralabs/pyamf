@@ -12,8 +12,6 @@ import unittest, sys, os, new
 import pyamf
 from pyamf.tests import util
 
-import django
-
 class ModelsBaseTestCase(unittest.TestCase):
     def setUp(self):
         self.old_env = os.environ.copy()
