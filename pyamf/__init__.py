@@ -1161,6 +1161,19 @@ def remove_error_class(klass):
 
 def register_alias_type(klass, *args):
     """
+    This function allows you to map subclasses of L{ClassAlias} to classes
+    listed in C{args}.
+
+    When an object is read/written from/to the AMF stream, a paired
+    C{ClassAlias} instance is created (or reused), based on the Python class
+    of that object. L{ClassAlias} provides important metadata for the class
+    and can also control how the equivalent Python object is created, how the
+    attributes are applied etc.
+
+    Use this function if you need to do something non-standard.
+
+    @see L{pyamf.adapters._google_appengine_ext_db.DataStoreClassAlias} for a
+        good example.
     """
     if not isinstance(klass, (type, types.ClassType)):
         raise TypeError('klass must be class')
