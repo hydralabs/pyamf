@@ -524,6 +524,8 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
         """
         self.compressed = True
 
+pyamf.register_class(ByteArray, metadata=['amf3'])
+
 class ClassDefinition(object):
     """
     I contain meta relating to the class definition.

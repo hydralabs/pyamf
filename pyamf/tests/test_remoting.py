@@ -315,6 +315,21 @@ class ContextTextCase(unittest.TestCase):
             '\n\x00\x00\x00\x01\n\x00\x00\x00\x03\x02\x00\x01a\x02\x00\x01b'
             '\x02\x00\x01c')
 
+class FunctionalTestCase(unittest.TestCase):
+    def test_encode_bytearray(self):
+        from pyamf.amf3 import ByteArray
+
+        stream = ByteArray()
+
+        stream.write('12345678')
+
+        msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash6)
+        msg['/1'] = remoting.Response([stream])
+
+        self.assertEquals(remoting.encode(msg).getvalue(),
+            '\x00\x00\x00\x00\x00\x01\x00\x0b/1/onResult\x00\x04null'
+            '\x00\x00\x00\x00\n\x00\x00\x00\x01\x11\x0c\x1112345678')
+
 def suite():
     """
     Add tests.
@@ -326,6 +341,7 @@ def suite():
     suite.addTest(unittest.makeSuite(StrictEncodingTestCase))
     suite.addTest(unittest.makeSuite(FaultTestCase))
     suite.addTest(unittest.makeSuite(ContextTextCase))
+    suite.addTest(unittest.makeSuite(FunctionalTestCase))
 
     from pyamf.tests.remoting import test_client, test_remoteobject
 

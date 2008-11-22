@@ -6,6 +6,8 @@ of PyAMF.
 
 0.4.0 (unreleased)
 ------------------
+ - ByteArray now does not throw an error when used in the Remoting framework
+   (Ticket:379)
  - A new adapter that converts sets.ImmutableSet and sets.Set to tuples before
    encoding. (Ticket:280)
  - A revamped google app engine adapter that checks for the _key attribute in
@@ -107,7 +109,6 @@ of PyAMF.
 
 0.1b (2008-01-13)
 -----------------
-
  - IExternalizable now takes its methods from the class and fine grain control
    over attr encoding (Ticket:110)
  - Added an adapter framework that gets imported when the related module is
