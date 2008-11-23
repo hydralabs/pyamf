@@ -6,6 +6,7 @@ of PyAMF.
 
 0.4.0 (unreleased)
 ------------------
+ - Added support for __slots__. (Ticket:347)
  - ByteArray now does not throw an error when used in the Remoting framework
    (Ticket:379)
  - A new adapter that converts sets.ImmutableSet and sets.Set to tuples before
