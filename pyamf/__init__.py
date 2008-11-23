@@ -473,10 +473,12 @@ class TypedObject(dict):
     registered class to apply it to.
 
     This object can only be used for 'simple' streams - i.e. not externalized
-    data. If encountered, a L{DecodeError} will be thrown.
+    data. If encountered, a L{DecodeError} will be raised.
 
     @ivar alias: The alias of the typed object.
     @ivar alias: C{unicode}
+
+    @since: 0.4
     """
 
     def __init__(self, alias):
@@ -501,6 +503,9 @@ class TypedObject(dict):
                 self.alias,))
 
 class TypedObjectClassAlias(ClassAlias):
+    """
+    @since: 0.4
+    """
     def createInstance(self):
         return TypedObject(self.alias)
 
