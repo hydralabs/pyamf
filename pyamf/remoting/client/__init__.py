@@ -195,10 +195,12 @@ class RemotingService(object):
     @ivar http_headers: A dict of HTTP headers to apply to the underlying
         HTTP connection.
     @type http_headers: L{dict}
+    @ivar strict: Whether to use strict en/decoding or not.
+    @type strict: C{bool}
     """
 
     def __init__(self, url, amf_version=pyamf.AMF0, client_type=DEFAULT_CLIENT_TYPE,
-                 referer=None, user_agent=DEFAULT_USER_AGENT):
+                 referer=None, user_agent=DEFAULT_USER_AGENT, strict=False):
         self.logger = logging.instance_logger(self)
         self.original_url = url
         self.requests = []
@@ -210,6 +212,7 @@ class RemotingService(object):
         self.client_type = client_type
         self.headers = remoting.HeaderCollection()
         self.http_headers = {}
+        self.strict = strict
 
         self._setUrl(url)
 
@@ -394,7 +397,7 @@ class RemotingService(object):
         @rtype:
         """
         self.logger.debug('Executing single request: %s' % request)
-        body = remoting.encode(self.getAMFRequest([request]))
+        body = remoting.encode(self.getAMFRequest([request]), strict=self.strict)
 
         self.logger.debug('Sending POST request to %s' % self._root_url)
         self.connection.request('POST', self._root_url,
@@ -412,7 +415,7 @@ class RemotingService(object):
         Builds, sends and handles the responses to all requests listed in
         C{self.requests}.
         """
-        body = remoting.encode(self.getAMFRequest(self.requests))
+        body = remoting.encode(self.getAMFRequest(self.requests), strict=self.strict)
 
         self.logger.debug('Sending POST request to %s' % self._root_url)
         self.connection.request('POST', self._root_url,
@@ -469,7 +472,7 @@ class RemotingService(object):
 
         self.logger.debug('Read %d bytes for the response' % len(bytes))
 
-        response = remoting.decode(bytes)
+        response = remoting.decode(bytes, strict=self.strict)
         self.logger.debug('Response: %s' % response)
 
         if remoting.APPEND_TO_GATEWAY_URL in response.headers:

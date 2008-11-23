@@ -245,12 +245,14 @@ class BaseGateway(object):
     @type authenticator: C{Callable} or C{None}
     @ivar preprocessor: Called before the actual service method is invoked.
         Useful for setting up sessions etc.
+    @ivar strict: Defines whether the gateway should use strict en/decoding.
+    @type strict: C{bool}
     """
     _request_class = ServiceRequest
     debug = False
 
     def __init__(self, services={}, authenticator=None, expose_request=False,
-        preprocessor=None, debug=None):
+        preprocessor=None, debug=None, strict=False):
         """
         @raise TypeError: C{dict} type is required for C{services}.
         """
@@ -259,6 +261,7 @@ class BaseGateway(object):
         self.authenticator = authenticator
         self.preprocessor = preprocessor
         self.expose_request = expose_request
+        self.strict=strict
 
         if debug is not None:
             self.debug = debug

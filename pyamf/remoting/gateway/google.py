@@ -73,7 +73,7 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
 
         # Decode the request
         try:
-            request = remoting.decode(body, context)
+            request = remoting.decode(body, context, strict=self.strict)
         except pyamf.DecodeError:
             self.logger.exception(gateway.format_exception())
 
@@ -117,7 +117,7 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
 
         # Encode the response
         try:
-            stream = remoting.encode(response, context)
+            stream = remoting.encode(response, context, strict=self.strict)
         except pyamf.EncodeError:
             self.logger.exception(gateway.format_exception())
 

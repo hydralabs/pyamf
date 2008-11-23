@@ -11,7 +11,7 @@ import sets
 
 import pyamf
 
-def to_tuple(x):
+def to_tuple(x, encoder):
     return tuple(x)
 
 if hasattr(sets, 'ImmutableSet'):

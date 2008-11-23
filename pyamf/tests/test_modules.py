@@ -20,7 +20,10 @@ def suite():
         mod_name = os.path.basename(testcase).split('.')[0]
         full_name = '%s.%s' % (mod_base, mod_name,)
 
-        mod = __import__(full_name)
+        try:
+            mod = __import__(full_name)
+        except ImportError:
+            continue
 
         for part in full_name.split('.')[1:]:
             mod = getattr(mod, part)

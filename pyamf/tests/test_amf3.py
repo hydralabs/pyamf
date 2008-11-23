@@ -542,8 +542,9 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
         self._run([(x, '\n\x0b\x01\x09spam\x06\x09eggs\x01')])
 
     def test_custom_type(self):
-        def write_as_list(list_interface_obj):
+        def write_as_list(list_interface_obj, encoder):
             list_interface_obj.ran = True
+            self.assertEquals(id(self.encoder), id(encoder))
 
             return list(list_interface_obj)
 

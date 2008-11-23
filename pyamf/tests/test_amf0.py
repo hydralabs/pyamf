@@ -359,8 +359,9 @@ class EncoderTestCase(ClassCacheClearingTestCase):
             '\x02\x00\x05world\x00\x00\t')])
 
     def test_custom_type(self):
-        def write_as_list(list_interface_obj):
+        def write_as_list(list_interface_obj, encoder):
             list_interface_obj.ran = True
+            self.assertEquals(id(encoder), id(self.encoder))
 
             return list(list_interface_obj)
 

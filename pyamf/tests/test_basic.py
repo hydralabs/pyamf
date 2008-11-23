@@ -354,11 +354,17 @@ class HelperTestCase(unittest.TestCase):
         encoder = pyamf.get_encoder(pyamf.AMF0, data='spam', context=context)
         self.assertEquals(encoder.stream.getvalue(), 'spam')
         self.assertEquals(encoder.context, context)
+        self.assertFalse(encoder.strict)
 
         context = amf3.Context()
         encoder = pyamf.get_encoder(pyamf.AMF3, data='eggs', context=context)
-        self.assertEquals(encoder.stream.getvalue(), 'eggs')
-        self.assertEquals(encoder.context, context)
+        self.assertFalse(encoder.strict)
+
+        encoder = pyamf.get_encoder(pyamf.AMF0, strict=True)
+        self.assertTrue(encoder.strict)
+
+        encoder = pyamf.get_encoder(pyamf.AMF3, strict=True)
+        self.assertTrue(encoder.strict)
 
     def test_encode(self):
         self.assertEquals('\x02\x00\x07connect\x00?\xf0\x00\x00\x00\x00\x00\x00',
@@ -439,25 +445,21 @@ class RegisterClassTestCase(ClassCacheClearingTestCase):
         class Foo(object):
             def __init__(self, bar, valid=1):
                 pass
+
         self.assertRaises(TypeError, pyamf.register_class, Foo)
-        try:
-            pyamf.register_class(Foo)
-        except TypeError, e:
-            self.assertTrue('__init__(self, bar, valid=1)' in str(e))
 
     def test_required_argumnets_invalid_2(self):
         class Foo(object):
             def __init__(self, bar, valid):
                 pass
-        try:
-            pyamf.register_class(Foo)
-        except TypeError, e:
-            self.assertTrue('__init__(self, bar, valid)' in str(e))
+
+        self.assertRaises(TypeError, pyamf.register_class, Foo)
 
     def test_required_argumnets_kwargs(self):
         class Foo(object):
             def __init__(self, *args, **kwargs):
                 pass
+
         pyamf.register_class(Foo)
 
 class UnregisterClassTestCase(ClassCacheClearingTestCase):

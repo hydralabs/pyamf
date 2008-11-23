@@ -25,7 +25,8 @@ __all__ = [
     'register_class_loader',
     'encode',
     'decode',
-    '__version__']
+    '__version__'
+]
 
 #: PyAMF version number.
 __version__ = (0, 4, 0)
@@ -119,6 +120,7 @@ class BaseContext(object):
     """
     I hold the AMF context for en/decoding streams.
     """
+
     def __init__(self):
         self.objects = util.IndexedCollection()
         self.clear()
@@ -208,7 +210,7 @@ class ASObject(dict):
         try:
             return self[k]
         except KeyError:
-            raise AttributeError('Unknown attribute \'%s\'' % k)
+            raise AttributeError('Unknown attribute \'%s\'' % (k,))
 
     def __setattr__(self, k, v):
         self[k] = v
@@ -264,7 +266,7 @@ class ClassMetaData(list):
         allowed, tags = self._is_tag_allowed(x)
 
         if not allowed:
-            raise ValueError("Unknown tag %s" % x)
+            raise ValueError("Unknown tag %s" % (x,))
 
         if tags is not None:
             # check to see if a tag in the list is about to be clobbered if so,
@@ -573,7 +575,7 @@ class BaseDecoder(object):
         try:
             func = getattr(self, self.type_map[type])
         except KeyError:
-            raise DecodeError("Unsupported ActionScript type 0x%02x" % type)
+            raise DecodeError("Unsupported ActionScript type 0x%02x" % (type,))
 
         return func()
 
@@ -596,7 +598,7 @@ class CustomTypeFunc(object):
         self.func = func
 
     def __call__(self, data):
-        self.encoder.writeElement(self.func(data))
+        self.encoder.writeElement(self.func(data, encoder=self.encoder))
 
 class BaseEncoder(object):
     """
@@ -613,11 +615,15 @@ class BaseEncoder(object):
     @type stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     @ivar context: The context for the encoding.
     @type context: An instance of C{BaseEncoder.context_class}
+    @ivar strict: Whether the encoder should operate in 'strict' mode. Nothing
+        is really affected by this for the time being - its just here for
+        flexibility.
+    @type strict: C{bool}, default is False.
     """
     context_class = BaseContext
     type_map = []
 
-    def __init__(self, data=None, context=None):
+    def __init__(self, data=None, context=None, strict=False):
         """
         @type   data: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param  data: Data stream.
@@ -641,6 +647,7 @@ class BaseEncoder(object):
                 self.context_class.__module__, self.context_class.__name__))
 
         self._write_elem_func_cache = {}
+        self.strict = strict
 
     def writeFunc(self, obj):
         """
@@ -693,13 +700,13 @@ class BaseEncoder(object):
             return self._getWriteElementFunc(data)
 
         if key not in self._write_elem_func_cache:
-            self._write_elem_func_cache[key] =  self._getWriteElementFunc(data)
+            self._write_elem_func_cache[key] = self._getWriteElementFunc(data)
 
         return self._write_elem_func_cache[key]
 
     def writeElement(self, data):
         """
-        Writes the data. Override in subclass.
+        Writes the data. Overridden in subclass.
 
         @type   data: C{mixed}
         @param  data: The data to be encoded to the data stream.
@@ -727,10 +734,10 @@ def register_class(klass, alias=None, attrs=None, attr_func=None, metadata=[]):
         raise TypeError("klass must be callable")
 
     if klass in CLASS_CACHE:
-        raise ValueError("klass %s already registered" % klass)
+        raise ValueError("klass %s already registered" % (klass,))
 
     if alias is not None and alias in CLASS_CACHE.keys():
-        raise ValueError("alias '%s' already registered" % alias)
+        raise ValueError("alias '%s' already registered" % (alias,))
 
     # Check that the constructor of the class doesn't require any additonal
     # arguments.
@@ -750,7 +757,7 @@ def register_class(klass, alias=None, attrs=None, attr_func=None, metadata=[]):
                 sign = "%s.__init__(%s, %s)" % (
                     klass.__name__,
                     ", ".join(args[:0-len(values)]),
-                    ", ".join(map(lambda x: "%s=%s" % x, named_args)))
+                    ", ".join(map(lambda x: "%s=%s" % (x,), named_args)))
 
             raise TypeError("__init__ doesn't support additional arguments: %s"
                 % sign)
@@ -788,7 +795,7 @@ def unregister_class(alias):
     try:
         del CLASS_CACHE[alias]
     except KeyError:
-        raise UnknownClassAlias("Unknown alias %s" % alias)
+        raise UnknownClassAlias("Unknown alias %s" % (alias,))
 
 def register_class_loader(loader):
     """
@@ -906,7 +913,7 @@ def load_class(alias):
                 return klass
 
     # All available methods for finding the class have been exhausted
-    raise UnknownClassAlias("Unknown alias %s" % alias)
+    raise UnknownClassAlias("Unknown alias %s" % (alias,))
 
 def get_class_alias(klass):
     """
@@ -936,7 +943,7 @@ def get_class_alias(klass):
     if isinstance(klass, basestring):
         return load_class(klass)
 
-    raise UnknownClassAlias("Unknown alias %s" % klass)
+    raise UnknownClassAlias("Unknown alias %s" % (klass,))
 
 def has_alias(obj):
     """
@@ -987,9 +994,10 @@ def encode(*args, **kwargs):
     """
     encoding = kwargs.get('encoding', AMF0)
     context = kwargs.get('context', None)
+    strict = kwargs.get('strict', False)
 
     stream = util.BufferedByteStream()
-    encoder = _get_encoder_class(encoding)(stream, context)
+    encoder = _get_encoder_class(encoding)(stream, context, strict)
 
     for el in args:
         encoder.writeElement(el)
@@ -1022,10 +1030,14 @@ def _get_decoder_class(encoding):
 
         return amf3.Decoder
 
-    raise ValueError("Unknown encoding %s" % encoding)
+    raise ValueError("Unknown encoding %s" % (encoding,))
 
-def get_encoder(encoding, data=None, context=None):
-    return _get_encoder_class(encoding)(data=data, context=context)
+def get_encoder(encoding, data=None, context=None, strict=False):
+    """
+    Returns a subclassed instance of L{pyamf.BaseEncoder}, based on C{encoding}
+    """
+    return _get_encoder_class(encoding)(data=data, context=context,
+        strict=strict)
 
 def _get_encoder_class(encoding):
     """
@@ -1048,7 +1060,7 @@ def _get_encoder_class(encoding):
 
         return amf3.Encoder
 
-    raise ValueError("Unknown encoding %s" % encoding)
+    raise ValueError("Unknown encoding %s" % (encoding,))
 
 def get_context(encoding):
     return _get_context_class(encoding)()
@@ -1074,7 +1086,7 @@ def _get_context_class(encoding):
 
         return amf3.Context
 
-    raise ValueError("Unknown encoding %s" % encoding)
+    raise ValueError("Unknown encoding %s" % (encoding,))
 
 def flex_loader(alias):
     """
@@ -1097,8 +1109,6 @@ def flex_loader(alias):
     except KeyError:
         raise UnknownClassAlias(alias)
 
-register_class_loader(flex_loader)
-
 def add_type(type_, func=None):
     """
     Adds a custom type to L{TYPE_MAP}. A custom type allows fine grain control
@@ -1109,13 +1119,13 @@ def add_type(type_, func=None):
     """
     def _check_type(type_):
         if not (isinstance(type_, (type, types.ClassType)) or callable(type_)):
-            raise TypeError("Unable to add '%r' as a custom type (expected a class or callable)" % type_)
+            raise TypeError('Unable to add \'%r\' as a custom type (expected a class or callable)' % (type_,))
 
     if isinstance(type_, list):
         type_ = tuple(type_)
 
     if type_ in TYPE_MAP:
-        raise KeyError('Type %r already exists' % type_)
+        raise KeyError('Type %r already exists' % (type_,))
 
     if isinstance(type_, types.TupleType):
         for x in type_:
@@ -1138,7 +1148,7 @@ def get_type(type_):
         if k == type_:
             return v
 
-    raise KeyError("Unknown type %r" % type_)
+    raise KeyError("Unknown type %r" % (type_,))
 
 def remove_type(type_):
     """
@@ -1181,7 +1191,7 @@ def add_error_class(klass, code):
         raise TypeError('Error classes must subclass the __builtin__.Exception class')
 
     if code in ERROR_CLASS_MAP.keys():
-        raise ValueError('Code %s is already registered' % code)
+        raise ValueError('Code %s is already registered' % (code,))
 
     ERROR_CLASS_MAP[code] = klass
 
@@ -1195,11 +1205,11 @@ def remove_error_class(klass):
     """
     if isinstance(klass, basestring):
         if not klass in ERROR_CLASS_MAP.keys():
-            raise ValueError('Code %s is not registered' % klass)
+            raise ValueError('Code %s is not registered' % (klass,))
     elif isinstance(klass, (type, types.ClassType)):
         classes = ERROR_CLASS_MAP.values()
         if not klass in classes:
-            raise ValueError('Class %s is not registered' % klass)
+            raise ValueError('Class %s is not registered' % (klass,))
 
         klass = ERROR_CLASS_MAP.keys()[classes.index(klass)]
     else:
@@ -1240,10 +1250,12 @@ def register_alias_type(klass, *args):
         for k, v in ALIAS_TYPES.iteritems():
             for kl in v:
                 if arg == kl:
-                    raise RuntimeError('%r is already registered under %r' % (arg, k))
+                    raise RuntimeError('%r is already registered '
+                        'under %r' % (arg, k))
 
     ALIAS_TYPES[klass] = args
 
+register_class_loader(flex_loader)
 register_adapters()
 
 register_alias_type(TypedObjectClassAlias, TypedObject)

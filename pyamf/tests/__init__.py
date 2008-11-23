@@ -18,7 +18,7 @@ if not hasattr(unittest.TestCase, 'assertFalse'):
 mod_base = 'pyamf.tests'
 
 def suite():
-    import os.path, sys
+    import os.path
     from glob import glob
 
     suite = unittest.TestSuite()

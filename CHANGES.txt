@@ -6,6 +6,9 @@ of PyAMF.
 
 0.4.0 (unreleased)
 ------------------
+ - Encoders how have a 'strict' mode. Not generally useful for the time being
+   but will help with developments in the future. Type mapped functions now
+   require a second 'encoder' attribute. (Ticket:376)
  - Added support for __slots__. (Ticket:347)
  - ByteArray now does not throw an error when used in the Remoting framework
    (Ticket:379)

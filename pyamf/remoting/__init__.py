@@ -646,7 +646,7 @@ def encode(msg, context=None, strict=False):
             return pyamf.get_context(pyamf.AMF0)
 
     stream = util.BufferedByteStream()
-    encoder = pyamf._get_encoder_class(pyamf.AMF0)(stream)
+    encoder = pyamf._get_encoder_class(pyamf.AMF0)(stream, strict=strict)
 
     stream.write_uchar(msg.amfVersion)
     stream.write_uchar(msg.clientType)
