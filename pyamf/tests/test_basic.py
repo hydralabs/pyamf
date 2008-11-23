@@ -328,14 +328,16 @@ class HelperTestCase(unittest.TestCase):
         self.assertRaises(ValueError, pyamf.get_decoder, 'spam')
 
         context = amf0.Context()
-        decoder = pyamf.get_decoder(pyamf.AMF0, data='123', context=context)
+        decoder = pyamf.get_decoder(pyamf.AMF0, data='123', context=context, strict=True)
         self.assertEquals(decoder.stream.getvalue(), '123')
         self.assertEquals(decoder.context, context)
+        self.assertTrue(decoder.strict)
 
         context = amf3.Context()
-        decoder = pyamf.get_decoder(pyamf.AMF3, data='456', context=context)
+        decoder = pyamf.get_decoder(pyamf.AMF3, data='456', context=context, strict=True)
         self.assertEquals(decoder.stream.getvalue(), '456')
         self.assertEquals(decoder.context, context)
+        self.assertTrue(decoder.strict)
 
     def test_get_encoder(self):
         from pyamf import amf0, amf3
@@ -776,6 +778,13 @@ class BaseContextTestCase(unittest.TestCase):
         self.assertEquals(alias.__class__, DummyAlias)
         self.assertEquals(alias.klass, B)
 
+class TypedObjectTestCase(unittest.TestCase):
+    def test_externalised(self):
+        o = pyamf.TypedObject(None)
+
+        self.assertRaises(pyamf.DecodeError, o.__readamf__, None)
+        self.assertRaises(pyamf.EncodeError, o.__writeamf__, None)
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -790,6 +799,7 @@ def suite():
     suite.addTest(unittest.makeSuite(ErrorClassMapTestCase))
     suite.addTest(unittest.makeSuite(RegisterAliasTypeTestCase))
     suite.addTest(unittest.makeSuite(BaseContextTestCase))
+    suite.addTest(unittest.makeSuite(TypedObjectTestCase))
 
     return suite
 

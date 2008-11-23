@@ -1097,7 +1097,20 @@ class Decoder(pyamf.BaseDecoder):
         if class_ref:
             class_def = self.context.getClassDefinition(ref)
         else:
-            class_def = ClassDefinition(self.readString(), encoding=ref & 0x03)
+            class_name = self.readString()
+
+            if class_name == '':
+                class_name = None
+            else:
+                try:
+                    class_name = pyamf.get_class_alias(class_name)
+                except pyamf.UnknownClassAlias:
+                    if self.strict:
+                        raise
+
+                    class_name = pyamf.TypedObjectClassAlias(pyamf.TypedObject, class_name)
+
+            class_def = ClassDefinition(class_name, encoding=ref & 0x03)
             self.context.addClassDefinition(class_def)
 
         return class_ref, class_def, ref >> 2
@@ -1717,7 +1730,7 @@ class Encoder(pyamf.BaseEncoder):
 
         self._writeString(util.ET.tostring(n, 'utf-8'), False)
 
-def decode(stream, context=None):
+def decode(stream, context=None, strict=False):
     """
     A helper function to decode an AMF3 datastream.
 
@@ -1726,7 +1739,7 @@ def decode(stream, context=None):
     @type   context: L{Context}
     @param  context: Context.
     """
-    decoder = Decoder(stream, context)
+    decoder = Decoder(stream, context, strict)
 
     while 1:
         try:

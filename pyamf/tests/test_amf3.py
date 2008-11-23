@@ -913,6 +913,34 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
         self.assertTrue(class_def in self.context.class_defs)
         self.context.class_defs.remove(class_def)
 
+    def test_not_strict(self):
+        self.assertFalse(self.decoder.strict)
+
+        # write a typed object to the stream
+        self.buf.write('\n\x0b\x13spam.eggs\x07foo\x06\x07bar\x01')
+        self.buf.seek(0)
+
+        self.assertFalse('spam.eggs' in pyamf.CLASS_CACHE)
+
+        obj = self.decoder.readElement()
+
+        self.assertTrue(isinstance(obj, pyamf.TypedObject))
+        self.assertEquals(obj.alias, 'spam.eggs')
+        self.assertEquals(obj, {'foo': 'bar'})
+
+    def test_strict(self):
+        self.decoder.strict = True
+
+        self.assertTrue(self.decoder.strict)
+
+        # write a typed object to the stream
+        self.buf.write('\n\x0b\x13spam.eggs\x07foo\x06\x07bar\x01')
+        self.buf.seek(0)
+
+        self.assertFalse('spam.eggs' in pyamf.CLASS_CACHE)
+
+        self.assertRaises(pyamf.UnknownClassAlias, self.decoder.readElement)
+
     def test_slots(self):
         class Person(object):
             __slots__ = ('family_name', 'given_name')

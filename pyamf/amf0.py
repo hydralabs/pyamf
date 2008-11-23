@@ -301,9 +301,18 @@ class Decoder(pyamf.BaseDecoder):
         @see: L{load_class<pyamf.load_class>}
         """
         classname = self.readString()
-        alias = pyamf.load_class(classname)
+        alias = None
 
-        ret = alias.createInstance()
+        try:
+            alias = pyamf.load_class(classname)
+
+            ret = alias.createInstance()
+        except pyamf.UnknownClassAlias:
+            if self.strict:
+                raise
+
+            ret = pyamf.TypedObject(classname)
+
         self.context.addObject(ret)
         self._readObject(ret, alias)
 
@@ -321,7 +330,7 @@ class Decoder(pyamf.BaseDecoder):
 
             self.context.amf3_context = amf3.Context()
 
-        decoder = pyamf._get_decoder_class(pyamf.AMF3)(self.stream, self.context.amf3_context)
+        decoder = pyamf._get_decoder_class(pyamf.AMF3)(self.stream, self.context.amf3_context, strict=self.strict)
 
         element = decoder.readElement()
         self.context.addAMF3Object(element)
@@ -774,7 +783,7 @@ class Encoder(pyamf.BaseEncoder):
         self.writeType(ASTypes.AMF3)
         encoder.writeElement(data)
 
-def decode(stream, context=None):
+def decode(stream, context=None, strict=False):
     """
     A helper function to decode an AMF0 datastream.
 
@@ -783,7 +792,7 @@ def decode(stream, context=None):
     @type   context: L{Context<pyamf.amf0.Context>}
     @param  context: AMF0 Context.
     """
-    decoder = Decoder(stream, context)
+    decoder = Decoder(stream, context, strict=strict)
 
     while 1:
         try:

@@ -595,7 +595,7 @@ def decode(stream, context=None, strict=False):
     else:
         context = copy.copy(context)
 
-    decoder = pyamf._get_decoder_class(pyamf.AMF0)(stream, context=context)
+    decoder = pyamf._get_decoder_class(pyamf.AMF0)(stream, context=context, strict=strict)
     msg.clientType = stream.read_uchar()
 
     header_count = stream.read_ushort()
@@ -632,7 +632,7 @@ def encode(msg, context=None, strict=False):
     @type strict: C{bool}
     @param strict: Determines whether encoding should be strict. Specifically
         header/body lengths will be written correctly, instead of the default 0.
-        Default is C{False}.
+        Default is C{False}. Introduced in 0.4.
     @rtype: C{StringIO}
     @return: File object.
     """

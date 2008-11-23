@@ -467,6 +467,43 @@ class ClassAlias(object):
         """
         return self.klass(*args, **kwargs)
 
+class TypedObject(dict):
+    """
+    This class is used when a strongly typed object is decoded but there is no
+    registered class to apply it to.
+
+    This object can only be used for 'simple' streams - i.e. not externalized
+    data. If encountered, a L{DecodeError} will be thrown.
+
+    @ivar alias: The alias of the typed object.
+    @ivar alias: C{unicode}
+    """
+
+    def __init__(self, alias):
+        dict.__init__(self)
+
+        self.alias = alias
+
+    def __readamf__(self, o):
+        raise DecodeError('Unable to decode an externalised stream.\n\nThe '
+            'class alias \'%s\' was found and because strict mode is False an'
+            ' attempt was made to decode the object automatically. To decode '
+            'this stream, a registered class with the alias and a '
+            'corresponding __readamf__ method will be required.' % (
+                self.alias,))
+
+    def __writeamf__(self, o):
+        raise EncodeError('Unable to encode an externalised stream.\n\nThe '
+            'class alias \'%s\' was found and because strict mode is False an'
+            'attempt was made to encode the object automatically. To encode '
+            'this stream, a registered class with the alias and a '
+            'corresponding __readamf__ method will be required.' % (
+                self.alias,))
+
+class TypedObjectClassAlias(ClassAlias):
+    def createInstance(self):
+        return TypedObject(self.alias)
+
 class BaseDecoder(object):
     """
     Base AMF decoder.
@@ -477,11 +514,15 @@ class BaseDecoder(object):
     @type type_map: C{list}
     @ivar stream: The underlying data stream.
     @type stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
+    @ivar strict: Defines how strict the decoding should be. For the time
+        being this relates to typed objects in the stream that do not have a
+        registered alias. Introduced in 0.4.
+    @type strict: C{bool}
     """
     context_class = BaseContext
     type_map = {}
 
-    def __init__(self, data=None, context=None):
+    def __init__(self, data=None, context=None, strict=False):
         """
         @type   data: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param  data: Data stream.
@@ -503,6 +544,8 @@ class BaseDecoder(object):
         else:
             raise TypeError("context must be of type %s.%s" % (
                 self.context_class.__module__, self.context_class.__name__))
+
+        self.strict = strict
 
     def readType(self):
         """
@@ -901,7 +944,7 @@ def has_alias(obj):
     except UnknownClassAlias:
         return False
 
-def decode(stream, encoding=AMF0, context=None):
+def decode(stream, encoding=AMF0, context=None, strict=False):
     """
     A generator function to decode a datastream.
 
@@ -914,7 +957,7 @@ def decode(stream, encoding=AMF0, context=None):
     @param  context: Context.
     @return: Each element in the stream.
     """
-    decoder = _get_decoder_class(encoding)(stream, context)
+    decoder = _get_decoder_class(encoding)(stream, context, strict)
 
     while 1:
         try:
@@ -950,8 +993,8 @@ def encode(*args, **kwargs):
 
     return stream
 
-def get_decoder(encoding, data=None, context=None):
-    return _get_decoder_class(encoding)(data=data, context=context)
+def get_decoder(encoding, data=None, context=None, strict=False):
+    return _get_decoder_class(encoding)(data=data, context=context, strict=strict)
 
 def _get_decoder_class(encoding):
     """
@@ -1197,3 +1240,5 @@ def register_alias_type(klass, *args):
     ALIAS_TYPES[klass] = args
 
 register_adapters()
+
+register_alias_type(TypedObjectClassAlias, TypedObject)
