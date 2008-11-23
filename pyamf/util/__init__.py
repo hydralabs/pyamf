@@ -550,6 +550,13 @@ def get_attrs(obj):
         return attrs
     elif hasattr(obj, '__dict__'):
         return obj.__dict__
+    elif hasattr(obj, '__slots__'):
+        attrs = {}
+
+        for k in obj.__slots__:
+            attrs[k] = getattr(obj, k)
+
+        return attrs
 
     return None
 

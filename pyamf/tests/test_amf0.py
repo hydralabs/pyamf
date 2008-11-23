@@ -396,6 +396,34 @@ class EncoderTestCase(ClassCacheClearingTestCase):
             '\x00\x0bfamily_name\x02\x00\x03Doe\x00\ngiven_name\x02\x00\x04'
             'Jane\x00\x00\t')
 
+    def test_slots(self):
+        class Person(object):
+            __slots__ = ('family_name', 'given_name')
+
+        u = Person()
+        u.family_name = 'Doe'
+        u.given_name = 'Jane'
+
+        self.encoder.writeElement(u)
+
+        self.assertEquals(self.buf.getvalue(), '\x03\x00\x0bfamily_name\x02'
+            '\x00\x03Doe\x00\ngiven_name\x02\x00\x04Jane\x00\x00\t')
+
+    def test_slots_registered(self):
+        class Person(object):
+            __slots__ = ('family_name', 'given_name')
+
+        u = Person()
+        u.family_name = 'Doe'
+        u.given_name = 'Jane'
+
+        pyamf.register_class(Person, 'spam.eggs.Person')
+        self.encoder.writeElement(u)
+
+        self.assertEquals(self.buf.getvalue(), '\x10\x00\x10spam.eggs.Person'
+            '\x00\x0bfamily_name\x02\x00\x03Doe\x00\ngiven_name\x02\x00\x04'
+            'Jane\x00\x00\t')
+
     def test_elementtree_tag(self):
         class NotAnElement(object):
             items = lambda self: []
@@ -411,7 +439,8 @@ class EncoderTestCase(ClassCacheClearingTestCase):
         self.encoder.writeElement(foo)
 
         self.assertEquals(self.buf.getvalue(),
-            '\x03\x00\x04text\x02\x00\x03bar\x00\x04tail\x05\x00\x03tag\x02\x00\x03foo\x00\x00\t')
+            '\x03\x00\x04text\x02\x00\x03bar\x00\x04tail\x05\x00\x03tag\x02'
+            '\x00\x03foo\x00\x00\t')
 
     def test_funcs(self):
         def x():
@@ -660,6 +689,35 @@ class DecoderTestCase(ClassCacheClearingTestCase):
         foo = self.decoder.readElement()
 
         self.assertEquals(foo.foo, 'bar')
+
+    def test_slots(self):
+        class Person(object):
+            __slots__ = ('family_name', 'given_name')
+
+        self.buf.write('\x03\x00\x0bfamily_name\x02\x00\x03Doe\x00\n'
+            'given_name\x02\x00\x04Jane\x00\x00\t')
+        self.buf.seek(0)
+
+        foo = self.decoder.readElement()
+
+        self.assertEquals(foo.family_name, 'Doe')
+        self.assertEquals(foo.given_name, 'Jane')
+
+    def test_slots_registered(self):
+        class Person(object):
+            __slots__ = ('family_name', 'given_name')
+
+        pyamf.register_class(Person, 'spam.eggs.Person')
+
+        self.buf.write('\x10\x00\x10spam.eggs.Person\x00\x0bfamily_name\x02'
+            '\x00\x03Doe\x00\ngiven_name\x02\x00\x04Jane\x00\x00\t')
+        self.buf.seek(0)
+
+        foo = self.decoder.readElement()
+
+        self.assertTrue(isinstance(foo, Person))
+        self.assertEquals(foo.family_name, 'Doe')
+        self.assertEquals(foo.given_name, 'Jane')
 
 class HelperTestCase(unittest.TestCase):
     def test_encode(self):

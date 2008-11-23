@@ -631,6 +631,14 @@ class ClassDefinition(object):
         else:
             dynamic_attrs = attrs
 
+        if hasattr(obj, '__slots__'):
+            if static_attrs is None:
+                static_attrs = {}
+
+            for k in obj.__slots__:
+                static_attrs[k] = getattr(obj, k)
+                del dynamic_attrs[k]
+
         return (static_attrs, dynamic_attrs)
 
     def createInstance(self):

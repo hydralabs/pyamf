@@ -473,8 +473,6 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
         self.assertEqual(self.buf.getvalue(), '\n\x0b\x1dorg.pyamf.spam\x07baz'
             '\x06\x0bhello\x01')
 
-        pyamf.unregister_class(Spam)
-
     def test_byte_array(self):
         self._run([(amf3.ByteArray('hello'), '\x0c\x0bhello')])
 
@@ -578,7 +576,33 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
         self.assertEquals(self.buf.getvalue(), '\n\x0b!spam.eggs.Person\x17'
             'family_name\x06\x07Doe\x15given_name\x06\tJane\x01')
 
-        pyamf.unregister_class(Person)
+    def test_slots(self):
+        class Person(object):
+            __slots__ = ('family_name', 'given_name')
+
+        u = Person()
+        u.family_name = 'Doe'
+        u.given_name = 'Jane'
+
+        self.encoder.writeElement(u)
+
+        self.assertEquals(self.buf.getvalue(), '\n\x0b\x01\x17family_name\x15'
+            'given_name\x06\x07Doe\x06\tJane\x01')
+
+    def test_slots_registered(self):
+        class Person(object):
+            __slots__ = ('family_name', 'given_name')
+
+        pyamf.register_class(Person, 'spam.eggs.Person')
+
+        u = Person()
+        u.family_name = 'Doe'
+        u.given_name = 'Jane'
+
+        self.encoder.writeElement(u)
+
+        self.assertEquals(self.buf.getvalue(), '\n\x0b!spam.eggs.Person\x17'
+            'family_name\x15given_name\x06\x07Doe\x06\tJane\x01')
 
     def test_elementtree_tag(self):
         class NotAnElement(object):
@@ -888,6 +912,23 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
 
         self.assertTrue(class_def in self.context.class_defs)
         self.context.class_defs.remove(class_def)
+
+    def test_slots(self):
+        class Person(object):
+            __slots__ = ('family_name', 'given_name')
+
+        pyamf.register_class(Person, 'spam.eggs.Person')
+
+        self.buf.write('\n+!spam.eggs.Person\x17family_name\x15given_name\x06'
+            '\x07Doe\x06\tJane\x02\x06\x06\x04\x06\x08\x01')
+        self.buf.seek(0)
+
+        foo = self.decoder.readElement()
+
+        self.assertTrue(isinstance(foo, Person))
+        self.assertEquals(foo.family_name, 'Doe')
+        self.assertEquals(foo.given_name, 'Jane')
+        self.assertEquals(self.buf.remaining(), 0)
 
 class ObjectEncodingTestCase(_util.ClassCacheClearingTestCase):
     def setUp(self):
