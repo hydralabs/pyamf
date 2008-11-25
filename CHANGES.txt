@@ -6,6 +6,10 @@ of PyAMF.
 
 0.4.0 (unreleased)
 ------------------
+ - flex.ArrayCollection now subclasses list instead of dict as non-int keys are
+   not allowed. IList interface has been implemented. (Ticket:359)
+ - Encoding registered subclass of list that define the 'externalised' metadata
+   will be encoded as an object. 
  - Encoders how have a 'strict' mode. Not generally useful for the time being
    but will help with developments in the future. Type mapped functions now
    require a second 'encoder' attribute. (Ticket:376)

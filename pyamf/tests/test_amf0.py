@@ -454,6 +454,41 @@ class EncoderTestCase(ClassCacheClearingTestCase):
         self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, pyamf)
         self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, ''.startswith)
 
+    def test_external_subclassed_list(self):
+        class L(list):
+            def __readamf__(self, o):
+                pass
+
+            def __writeamf__(self, o):
+                pass
+
+        pyamf.register_class(L, 'a', metadata=['external'])
+
+        a = L()
+
+        a.append('foo')
+        a.append('bar')
+
+        self.encoder.writeElement(a)
+
+        self.assertEquals(self.buf.getvalue(), '\x10\x00\x01a\x00\x00\t')
+
+    def test_nonexternal_subclassed_list(self):
+        class L(list):
+            pass
+
+        pyamf.register_class(L, 'a')
+
+        a = L()
+
+        a.append('foo')
+        a.append('bar')
+
+        self.encoder.writeElement(a)
+
+        self.assertEquals(self.buf.getvalue(),
+            '\n\x00\x00\x00\x02\x02\x00\x03foo\x02\x00\x03bar')
+
 class DecoderTestCase(ClassCacheClearingTestCase):
     """
     Tests the output from the AMF0 L{Decoder<pyamf.amf0.Decoder>} class.

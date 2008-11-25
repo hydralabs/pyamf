@@ -548,6 +548,15 @@ class Encoder(pyamf.BaseEncoder):
         @type a: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param a: The array data to be encoded to the AMF0 data stream.
         """
+        alias = self.context.getClassAlias(a.__class__)
+
+        if alias is not None and 'external' in alias.metadata:
+            # a is a subclassed list with a registered alias - push to the
+            # correct method
+            self.writeObject(a)
+
+            return
+
         try:
             self.writeReference(a)
             return
