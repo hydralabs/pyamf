@@ -12,7 +12,7 @@ from django.db.models import fields
 
 import pyamf
 
-def convert_NOT_PROVIDED(x):
+def convert_NOT_PROVIDED(x, encoder):
     return pyamf.Undefined
 
 pyamf.add_type(lambda x: x is fields.NOT_PROVIDED, convert_NOT_PROVIDED)
