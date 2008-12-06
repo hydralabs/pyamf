@@ -27,6 +27,11 @@ import types, datetime, zlib
 
 import pyamf
 from pyamf import util
+from pyamf.flex import ObjectProxy, ArrayCollection
+
+# If True encode/decode lists/tuples to ArrayCollections
+# and dicts to ObjectProxy
+use_proxies_default = False
 
 try:
     set()
@@ -679,6 +684,7 @@ class Context(pyamf.BaseContext):
         self.classes = util.IndexedCollection()
         self.class_defs = util.IndexedCollection()
         self.legacy_xml = util.IndexedCollection()
+        self.object_aliases = util.IndexedMap() # Maps one object to another
 
         pyamf.BaseContext.__init__(self)
 
@@ -692,6 +698,7 @@ class Context(pyamf.BaseContext):
         self.classes.clear()
         self.class_defs.clear()
         self.legacy_xml.clear()
+        self.object_aliases.clear()
 
     def reset(self):
         """
@@ -705,6 +712,20 @@ class Context(pyamf.BaseContext):
         self.classes.clear()
         self.class_defs.clear()
         self.legacy_xml.clear()
+        self.object_aliases.clear()
+
+    def setObjectAlias(self, obj, alias):
+        """
+        Maps an object to an aliased object.
+        """
+        self.object_aliases.map(obj, alias) 
+
+    def getObjectAlias(self, obj):
+        """
+        Get an alias of an object.
+        """
+        ref = self.object_aliases.getReferenceTo(obj)
+        return self.object_aliases.getMappedByReference(ref)
 
     def getString(self, ref):
         """
@@ -895,6 +916,14 @@ class Decoder(pyamf.BaseDecoder):
         ASTypes.XMLSTRING:  'readXMLString',
         ASTypes.BYTEARRAY:  'readByteArray',
     }
+
+    def __init__(self, data=None, context=None, strict=False, use_proxies=None):
+        pyamf.BaseDecoder.__init__(self, data, context, strict)
+
+        if use_proxies is None:
+            self.use_proxies = use_proxies_default
+        else:
+            self.use_proxies = use_proxies
 
     def readType(self):
         """
@@ -1115,7 +1144,7 @@ class Decoder(pyamf.BaseDecoder):
 
         return class_ref, class_def, ref >> 2
 
-    def readObject(self):
+    def readObject(self, _use_proxies=None):
         """
         Reads an object from the stream.
 
@@ -1123,6 +1152,9 @@ class Decoder(pyamf.BaseDecoder):
             only is not allowed.
         @raise pyamf.DecodeError: Unknown object encoding.
         """
+        if _use_proxies is None:
+            _use_proxies = self.use_proxies
+
         def readStatic(is_ref, class_def, obj, num_attrs):
             if not is_ref:
                 for i in range(num_attrs):
@@ -1143,7 +1175,10 @@ class Decoder(pyamf.BaseDecoder):
         ref = self.readUnsignedInteger()
 
         if ref & REFERENCE_BIT == 0:
-            return self.context.getObject(ref >> 1)
+            obj = self.context.getObject(ref >> 1)
+            if _use_proxies is True:
+                obj = self.readProxyObject(obj)
+            return obj
 
         ref >>= 1
 
@@ -1169,7 +1204,20 @@ class Decoder(pyamf.BaseDecoder):
 
         class_def.applyAttributes(obj, obj_attrs)
 
+        if _use_proxies is True:
+            obj = self.readProxyObject(obj)
         return obj
+
+    def readProxyObject(self, proxy):
+        """
+        Return the source object of a proxied object.
+        """
+        if isinstance(proxy, ArrayCollection):
+            return list(proxy)
+        elif isinstance(proxy, ObjectProxy):
+            return proxy._amf_object
+        else:
+            return proxy
 
     def _readXML(self, legacy=False):
         """
@@ -1262,6 +1310,14 @@ class Encoder(pyamf.BaseEncoder):
         ((lambda x: x is pyamf.Undefined,), "writeUndefined"),
         ((types.InstanceType, types.ObjectType,), "writeInstance"),
     ]
+
+    def __init__(self, data=None, context=None, strict=False, use_proxies=None):
+        pyamf.BaseEncoder.__init__(self, data, context, strict)
+
+        if use_proxies is None:
+            self.use_proxies = use_proxies_default
+        else:
+            self.use_proxies = use_proxies
 
     def writeElement(self, data, use_references=True):
         """
@@ -1459,7 +1515,7 @@ class Encoder(pyamf.BaseEncoder):
         ms = util.get_timestamp(n)
         self.stream.write_double(ms * 1000.0)
 
-    def writeList(self, n, use_references=True):
+    def writeList(self, n, use_references=True, _use_proxies=None):
         """
         Writes a C{tuple}, C{set} or C{list} to the stream.
 
@@ -1469,6 +1525,20 @@ class Encoder(pyamf.BaseEncoder):
         @type use_references: C{bool}
         @param use_references: Default is C{True}.
         """
+        # Encode lists as ArrayCollections
+        if _use_proxies is None:
+            _use_proxies = self.use_proxies
+
+        if _use_proxies is True:
+            try:
+                ref_obj = self.context.getObjectAlias(n)
+            except pyamf.ReferenceError:
+                proxy = ArrayCollection(n)
+                self.context.setObjectAlias(n, proxy)
+                ref_obj = proxy
+            self.writeObject(ref_obj, use_references)
+            return
+
         self.writeType(ASTypes.ARRAY)
 
         if use_references is True:
@@ -1487,7 +1557,7 @@ class Encoder(pyamf.BaseEncoder):
         for x in n:
             self.writeElement(x)
 
-    def writeDict(self, n, use_references=True):
+    def writeDict(self, n, use_references=True, _use_proxies=None):
         """
         Writes a C{dict} to the stream.
 
@@ -1498,6 +1568,28 @@ class Encoder(pyamf.BaseEncoder):
         @raise ValueError: Non C{int}/C{str} key value found in the C{dict}
         @raise EncodeError: C{dict} contains empty string keys.
         """
+
+        # Design bug in AMF3 that cannot read/write empty key strings
+        # http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug
+        # for more info
+        if n.has_key(''):
+            raise pyamf.EncodeError("dicts cannot contain empty string keys")
+
+        if _use_proxies is None:
+            _use_proxies = self.use_proxies
+
+        if _use_proxies is True:
+            try:
+                ref_obj = self.context.getObjectAlias(n)
+            except pyamf.ReferenceError:
+                dictObj = pyamf.ASObject()
+                dictObj.update(n)
+                proxy = ObjectProxy(dictObj)
+                self.context.setObjectAlias(n, proxy)
+                ref_obj = proxy
+            self.writeObject(ref_obj, use_references)
+            return
+
         self.writeType(ASTypes.ARRAY)
 
         if use_references:
@@ -1542,12 +1634,6 @@ class Encoder(pyamf.BaseEncoder):
         self._writeInteger(len(int_keys) << 1 | REFERENCE_BIT)
 
         for x in str_keys:
-            # Design bug in AMF3 that cannot read/write empty key strings
-            # http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug
-            # for more info
-            if x == '':
-                raise pyamf.EncodeError("dicts cannot contain empty string keys")
-
             self._writeString(x)
             self.writeElement(n[x])
 

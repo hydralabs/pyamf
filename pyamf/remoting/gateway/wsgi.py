@@ -105,7 +105,7 @@ class WSGIGateway(gateway.BaseGateway):
             response = self.getResponse(request, environ)
         except (KeyboardInterrupt, SystemExit):
             raise
-        except:
+        except pyamf.EncodeError:
             self.logger.exception(gateway.format_exception())
 
             response = "500 Internal Server Error\n\nThe request was " \
@@ -127,7 +127,7 @@ class WSGIGateway(gateway.BaseGateway):
         # Encode the response
         try:
             stream = remoting.encode(response, context, strict=self.strict)
-        except pyamf.EncodeError:
+        except:
             self.logger.exception(gateway.format_exception())
 
             response = "500 Internal Server Error\n\nThe request was " \

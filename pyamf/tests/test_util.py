@@ -579,6 +579,79 @@ class ClassAliasTestCase(unittest.TestCase):
 
         self.assertEquals(util.get_class_alias(B), DummyAlias)
 
+class IndexedCollectionTestCase(unittest.TestCase):
+    class TestObject(object):
+        def __init__(self):
+            self.name = 'test'
+
+    def setUp(self):
+        self.collection = util.IndexedCollection()
+
+    def test_append(self):
+        max = 5
+        for i in range(0, max):
+            test_obj = self.TestObject()
+            test_obj.name = i
+            self.collection.append(test_obj)
+
+        self.assertEquals(max, len(self.collection.list))
+        for i in range(0, max):
+            self.assertEquals(i, self.collection.list[i].name)
+
+    def test_get_reference_to(self):
+        test_obj = self.TestObject
+        self.collection.append(test_obj)
+        idx = self.collection.getReferenceTo(test_obj)
+        self.assertEquals(0, idx)
+        self.assertRaises(pyamf.ReferenceError, self.collection.getReferenceTo, self.TestObject())
+
+    def test_get_by_reference(self):
+        test_obj = self.TestObject
+        idx = self.collection.append(test_obj)
+        self.assertEquals(id(test_obj), id(self.collection.getByReference(idx)))
+        idx = self.collection.getReferenceTo(test_obj)
+        self.assertEquals(id(test_obj), id(self.collection.getByReference(idx)))
+        self.assertRaises(TypeError, self.collection.getByReference, 'bad ref')
+
+    def test_remove(self):
+        test_obj = self.TestObject()
+        ref = self.collection.append(test_obj)
+        self.collection.remove(test_obj)
+        self.assertEquals(0, len(self.collection.list))
+        self.assertFalse(self.collection.dict.has_key(ref))
+        self.assertRaises(pyamf.ReferenceError, self.collection.getReferenceTo, test_obj)
+
+    def test_array(self):
+        test_obj = []
+        idx = self.collection.append(test_obj)
+        self.assertEquals(id(test_obj), id(self.collection.getByReference(idx)))
+
+class IndexedMapTestCase(unittest.TestCase):
+    class TestObject(object):
+        def __init__(self):
+            self.name = 'test'
+
+    def setUp(self):
+        self.collection = util.MappedCollection()
+
+    def test_map(self):
+        test_obj = TestObject()
+        test_map = TestObject()
+        ref = self.collection.map(test_obj, test_map)
+        self.assertEquals(test_obj, self.collection.getByReference(ref))
+        self.assertEquals(test_map, self.collection.getMappedByReference(ref))
+        ref = self.collection.getReferenceTo(test_obj)
+        self.assertEquals(test_obj, self.collection.getByReference(ref))
+        self.assertEquals(test_map, self.collection.getMappedByReference(ref))
+
+    def test_remove(self):
+        test_obj = TestObject()
+        test_map = TestObject()
+        self.collection.map(test_obj, test_map)
+        self.collection.remove(test_obj)
+        self.assertEquals(0, len(self.collection.list))
+        self.assertEquals(0, len(self.collection.mapped))
+
 def suite():
     """
     Unit tests for AMF utilities.
@@ -596,6 +669,7 @@ def suite():
     suite.addTest(unittest.makeSuite(DataTypeMixInTestCase))
     suite.addTest(unittest.makeSuite(BufferedByteStreamTestCase))
     suite.addTest(unittest.makeSuite(ClassAliasTestCase))
+    suite.addTest(unittest.makeSuite(IndexedCollectionTestCase))
 
     return suite
 

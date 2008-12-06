@@ -60,6 +60,18 @@ class ArrayCollectionTestCase(unittest.TestCase):
         self.assertEquals(x.__class__, flex.ArrayCollection)
         self.assertEquals(x, ['eggs'])
 
+    def test_decode_proxy(self):
+        stream = util.BufferedByteStream(
+            '\x0a\x07;flex.messaging.io.ObjectProxy\x09\x01\x03a\x06\x09spam'
+            '\x03b\x04\x05\x01')
+        decoder = amf3.Decoder(stream)
+        decoder.use_proxies = True
+
+        x = decoder.readElement()
+
+        self.assertEquals(x.__class__, pyamf.MixedArray)
+        self.assertEquals(x, {'a': 'spam', 'b': 5})
+
     def test_decode_amf0(self):
         stream = util.BufferedByteStream(
             '\x11\n\x07Cflex.messaging.io.ArrayCollection\t\x03\x01\x06\teggs')
@@ -165,6 +177,18 @@ class ObjectProxyTestCase(unittest.TestCase):
 
         self.assertEquals(x.__class__, flex.ObjectProxy)
         self.assertEquals(x._amf_object, {'a': 'spam', 'b': 5})
+
+    def test_decode_proxy(self):
+        stream = util.BufferedByteStream(
+            '\x0a\x07;flex.messaging.io.ObjectProxy\x09\x01\x03a\x06\x09spam'
+            '\x03b\x04\x05\x01')
+        decoder = amf3.Decoder(stream)
+        decoder.use_proxies = True
+
+        x = decoder.readElement()
+
+        self.assertEquals(x.__class__, pyamf.MixedArray)
+        self.assertEquals(x, {'a': 'spam', 'b': 5})
 
     def test_get_attrs(self):
         x = flex.ObjectProxy()

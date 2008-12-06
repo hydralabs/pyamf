@@ -42,7 +42,7 @@ class ArrayCollection(list):
                 raise TypeError('Cannot convert dicts to ArrayCollection')
 
             if hasattr(source, '__iter__'):
-                [self.append(i) for i in iter(source)]
+                self.extend(source)
 
     def __repr__(self):
         return "<flex.messaging.io.ArrayCollection %s>" % list.__repr__(self)
@@ -50,13 +50,13 @@ class ArrayCollection(list):
     def __readamf__(self, input):
         data = input.readObject()
 
-        if not isinstance(data, list):
+        if not hasattr(data, '__iter__'):
             raise pyamf.DecodeError('Unable to read a list when decoding ArrayCollection')
 
-        [self.append(i) for i in data]
+        self.extend(data)
 
     def __writeamf__(self, output):
-        output.writeObject(list(self), use_references=False)
+        output.encoder.writeList(list(self), use_references=True, _use_proxies=False)
 
     def _get_length(self):
         return len(self)

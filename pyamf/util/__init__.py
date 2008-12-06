@@ -636,17 +636,19 @@ class IndexedCollection(object):
             self.list.append(obj)
             idx = len(self.list) - 1
             self.dict[h] = idx
-
             return idx
 
     def remove(self, obj):
+        h = self.func(obj)
+
         try:
-            idx = self.dict[id(obj)]
+            idx = self.dict[h]
         except KeyError:
             raise pyamf.ReferenceError("%r is not a valid reference" % (obj,))
 
         del self.list[idx]
-        del self.dict[id(obj)]
+        del self.dict[h]
+        return idx
 
     def __eq__(self, other):
         if isinstance(other, list):
@@ -675,6 +677,45 @@ class IndexedCollection(object):
 
     def __iter__(self):
         return iter(self.list)
+
+class IndexedMap(IndexedCollection):
+    """
+    Like IndexedCollection, but also maps to another object.
+    """
+
+    def __init__(self, use_hash=False):
+        IndexedCollection.__init__(self, use_hash)
+        self.mapped = []
+  
+    def clear(self):
+        IndexedCollection.clear(self)
+        self.mapped = []
+    
+    def getMappedByReference(self, ref):
+        if not isinstance(ref, (int, long)):
+            raise TypeError("Bad reference type.")
+
+        try:
+            return self.mapped[ref]
+        except IndexError:
+            raise pyamf.ReferenceError("Reference %r not found" % ref)
+
+    def append(self, obj):
+        idx = IndexedCollection.append(self, obj)
+        diff = (idx + 1) - len(self.mapped) 
+        for i in range(0, diff):
+            self.mapped.append(None)
+        return idx
+
+    def map(self, obj, mapped_obj):
+        idx = self.append(obj)
+        self.mapped[idx] = mapped_obj
+        return idx
+
+    def remove(self, obj):
+        idx = IndexedCollection.remove(self, obj)
+        del self.mapped[idx]
+        return idx
 
 def is_ET_element(obj):
     """

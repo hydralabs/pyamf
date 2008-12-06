@@ -6,6 +6,9 @@ of PyAMF.
 
 0.4.0 (unreleased)
 ------------------
+ - Added use_proxy option to amf3 which will automagically convert ObjectProxy
+   to dict and ArrayCollection to list on decoding and vice versa on encode.
+   Thanks to dthompso for the excellent patch (Ticket: 355)
  - flex.ArrayCollection now subclasses list instead of dict as non-int keys are
    not allowed. IList interface has been implemented. (Ticket:359)
  - Encoding registered subclass of list that define the 'externalised' metadata
