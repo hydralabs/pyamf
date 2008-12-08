@@ -20,7 +20,7 @@ class ArrayCollection(list):
     I represent the ActionScript 3 based class
     C{flex.messaging.io.ArrayCollection} used in the Flex framework.
 
-    The ArrayCollection class is a wrapper class that exposes an Array
+    The C{ArrayCollection} class is a wrapper class that exposes an Array
     as a collection that can be accessed and manipulated using the
     methods and properties of the C{ICollectionView} or C{IList}
     interfaces in the Flex framework.
@@ -28,7 +28,7 @@ class ArrayCollection(list):
     @see: U{ArrayCollection on Livedocs (external)
     <http://livedocs.adobe.com/flex/201/langref/mx/collections/ArrayCollection.html>}
 
-    @note: This class does not implement the remote object part of the
+    @note: This class does not implement the RemoteObject part of the
         documentation.
 
     @ivar length: [read-only] The number of items in this collection.
@@ -103,7 +103,7 @@ class ArrayCollection(list):
         @type index: C{int}
         @param prefetch: This param is ignored and is only here as part of the
             interface.
-        @raise IndexError: if index < 0 or index >= length
+        @raise IndexError: if C{index < 0} or C{index >= length}
         @return: The item at index C{index}.
         @rtype: C{mixed}.
         @since: 0.4
@@ -119,7 +119,7 @@ class ArrayCollection(list):
     def getItemIndex(self, item):
         """
         Returns the index of the item if it is in the list such that
-        getItemAt(index) == item.
+        C{getItemAt(index) == item}.
 
         @param item: The item to find.
         @type item: C{mixed}.
@@ -149,7 +149,7 @@ class ArrayCollection(list):
         @param index: The index from which to remove the item.
         @return: The item that was removed.
         @rtype: C{mixed}.
-        @raise IndexError: is index is less than 0 or greater than length.
+        @raise IndexError: If index is less than 0 or greater than length.
         @since: 0.4
         """
         if index < 0:
@@ -175,7 +175,7 @@ class ArrayCollection(list):
         @type index: C{int}
         @return: The item that was replaced, or C{None}.
         @rtype: C{mixed} or C{None}.
-        @raise IndexError: is index is less than 0 or greater than length.
+        @raise IndexError: If index is less than 0 or greater than length.
         @since: 0.4
         """
         if index < 0:
@@ -191,7 +191,7 @@ class ArrayCollection(list):
 
     def toArray(self):
         """
-        Returns an Array that is populated in the same order as the IList
+        Returns an Array that is populated in the same order as the C{IList}
         implementation.
 
         @return: The array.
@@ -205,7 +205,7 @@ pyamf.register_class(ArrayCollection, 'flex.messaging.io.ArrayCollection',
 class ObjectProxy(object):
     """
     I represent the ActionScript 3 based class C{flex.messaging.io.ObjectProxy}
-    used in the Flex framework. Flex's ObjectProxy class allows an anonymous,
+    used in the Flex framework. Flex's C{ObjectProxy} class allows an anonymous,
     dynamic ActionScript Object to be bindable and report change events.
 
     @see: U{ObjectProxy on Livedocs (external)
