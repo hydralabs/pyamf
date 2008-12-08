@@ -29,8 +29,8 @@ import pyamf
 from pyamf import util
 from pyamf.flex import ObjectProxy, ArrayCollection
 
-# If True encode/decode lists/tuples to ArrayCollections
-# and dicts to ObjectProxy
+#: If True encode/decode lists/tuples to ArrayCollections
+#: and dicts to ObjectProxy
 use_proxies_default = False
 
 try:
@@ -717,12 +717,16 @@ class Context(pyamf.BaseContext):
     def setObjectAlias(self, obj, alias):
         """
         Maps an object to an aliased object.
+
+        @since: 0.4
         """
         self.object_aliases.map(obj, alias) 
 
     def getObjectAlias(self, obj):
         """
         Get an alias of an object.
+
+        @since: 0.4
         """
         ref = self.object_aliases.getReferenceTo(obj)
         return self.object_aliases.getMappedByReference(ref)
@@ -1211,6 +1215,8 @@ class Decoder(pyamf.BaseDecoder):
     def readProxyObject(self, proxy):
         """
         Return the source object of a proxied object.
+
+        @since: 0.4
         """
         if isinstance(proxy, ArrayCollection):
             return list(proxy)

@@ -478,7 +478,7 @@ class TypedObject(dict):
     data. If encountered, a L{DecodeError} will be raised.
 
     @ivar alias: The alias of the typed object.
-    @ivar alias: C{unicode}
+    @type alias: C{unicode}
 
     @since: 0.4
     """

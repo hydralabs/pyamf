@@ -4,7 +4,7 @@
 """
 Adapter for the C{decimal} module.
 
-@since 0.4.0
+@since: 0.4.0
 """
 
 import decimal

@@ -680,7 +680,9 @@ class IndexedCollection(object):
 
 class IndexedMap(IndexedCollection):
     """
-    Like IndexedCollection, but also maps to another object.
+    Like L{IndexedCollection}, but also maps to another object.
+
+    @since: 0.4
     """
 
     def __init__(self, use_hash=False):
