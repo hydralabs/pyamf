@@ -1,12 +1,11 @@
 # Copyright (c) 2007-2008 The PyAMF Project.
 # See LICENSE for details.
 
-USE_CPYAMF = True
-
 from ez_setup import use_setuptools
 
 use_setuptools()
 
+import sys
 from setuptools import setup, find_packages, Extension
 from setuptools.command import test
 
@@ -31,19 +30,49 @@ class TestCommand(test.test):
         except ImportError:
             test.test.run_tests(self)
 
-import sys
+def get_cpyamf_extensions():
+    """
+    Returns a list of all extensions for the cpyamf module. If for some reason
+    cpyamf is not to be built an empty list is returned.
+    """
+    if '--disable-cpyamf' in sys.argv:
+        sys.argv.remove('--disable-cpyamf')
 
-ext_modules = []
+        return []
 
-if USE_CPYAMF and not sys.platform.startswith('java'):
-    ext_modules.append(Extension('cpyamf.util', ["cpyamf/util.c"], extra_compile_args=['-O3']))
+    if sys.platform.startswith('java'):
+        return []
 
-install_requires = []
-if sys.version_info < (2, 5):
-    install_requires.extend(
-        ["elementtree >= 1.2.6", "uuid>=1.30", "fpconst>=0.7.2"])
-elif sys.platform.startswith('win'):
-    install_requires.append("fpconst>=0.7.2")
+    return [Extension(
+        'cpyamf.util',
+        ["cpyamf/util.c"],
+        extra_compile_args=['-O3']
+    )]
+
+def get_extensions():
+    """
+    Returns a list of extensions to be built for PyAMF.
+    """
+    ext_modules = []
+
+    ext_modules.extend(get_cpyamf_extensions())
+
+    return ext_modules
+
+def get_install_requirements():
+    """
+    Returns a list of dependancies for PyAMF to function correctly on the
+    target platform
+    """
+    install_requires = []
+
+    if sys.version_info < (2, 5):
+        install_requires.extend(
+            ["elementtree >= 1.2.6", "uuid>=1.30", "fpconst>=0.7.2"])
+    elif sys.platform.startswith('win'):
+        install_requires.append("fpconst>=0.7.2")
+
+    return install_requires
 
 keyw = """\
 amf amf0 amf3 flex flash remoting rpc http flashplayer air bytearray
@@ -59,14 +88,16 @@ setup(name = "PyAMF",
     author_email = "dev@pyamf.org",
     keywords = keyw,
     packages = find_packages(exclude=["*.tests"]),
-    ext_modules = ext_modules,
-    install_requires = install_requires,
+    ext_modules = get_extensions(),
+    install_requires = get_install_requirements(),
     test_suite = "pyamf.tests.suite",
     zip_safe=True,
     license = "MIT License",
     platforms = ["any"],
-    cmdclass = {'test': TestCommand},
-    extras_require={
+    cmdclass = {
+        'test': TestCommand
+    },
+    extras_require = {
         'wsgi': ['wsgiref'],
         'twisted': ['Twisted>=2.5.0'],
         'django': ['Django>=0.96']
@@ -78,7 +109,7 @@ setup(name = "PyAMF",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
-	"Framework :: Django",
-	"Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+        "Framework :: Django",
+        "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ])
