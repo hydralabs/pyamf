@@ -1032,21 +1032,22 @@ class ObjectEncodingTestCase(_util.ClassCacheClearingTestCase):
 
     def test_class_references(self):
         pyamf.register_class(Spam, 'abc.xyz')
+        class_defs = self.context.class_defs.list
 
         x = Spam({'spam': 'eggs'})
-        y = Spam({'spam': 'baz'})
+        y = Spam({'foo': 'bar'})
 
         self.encoder.writeElement(x)
+        self.assertEquals(len(class_defs), 1)
+        cd = class_defs[0]
 
-        pyamf.unregister_class(Spam)
+        self.assertEquals(cd.klass, Spam)
 
-        #self.assertEquals(self.stream.getvalue(), '\x0a\x03')
-        #from pyamf.util import hexdump
-        #print hexdump(self.stream.getvalue())
-
-        #pos = self.stream.tell()
-        #self.encoder.writeElement(y)
-        #self.assertEquals(self.stream.getvalue()[pos:], '\x0a\x00')
+        self.assertEquals(self.stream.getvalue(), '\n\x0b\x0fabc.xyz\tspam\x06\teggs\x01')
+    
+        pos = self.stream.tell()
+        self.encoder.writeElement(y)
+        self.assertEquals(self.stream.getvalue()[pos:], '\n\x01\x07foo\x06\x07bar\x01')
 
     def test_static(self):
         pyamf.register_class(Spam, 'abc.xyz', metadata='static', attrs=[])
@@ -1063,7 +1064,6 @@ class ObjectEncodingTestCase(_util.ClassCacheClearingTestCase):
         x = Spam({'spam': 'eggs'})
         self.encoder.writeElement(x)
         self.assertEquals(self.stream.getvalue(), '\n\x13\x0fabc.xyz\tspam\x06\teggs')
-        pyamf.unregister_class(Spam)
 
     def test_dynamic(self):
         pyamf.register_class(Spam, 'abc.xyz', metadata='dynamic')
@@ -1072,8 +1072,6 @@ class ObjectEncodingTestCase(_util.ClassCacheClearingTestCase):
         self.encoder.writeElement(x)
 
         self.assertEquals(self.stream.getvalue(), '\n\x0b\x0fabc.xyz\tspam\x06\teggs\x01')
-
-        pyamf.unregister_class(Spam)
 
     def test_combined(self):
         def wf(obj):
@@ -1087,8 +1085,6 @@ class ObjectEncodingTestCase(_util.ClassCacheClearingTestCase):
         buf = self.stream.getvalue()
 
         self.assertEquals(buf, '\n\x1b\x0fabc.xyz\tspam\x06\x07foo\teggs\x06\x07bar\x01')
-
-        pyamf.unregister_class(Spam)
 
     def test_external(self):
         pyamf.register_class(Spam, 'abc.xyz', metadata=['external'])
@@ -1105,8 +1101,6 @@ class ObjectEncodingTestCase(_util.ClassCacheClearingTestCase):
         self.assertEquals(buf[2:10], '\x0fabc.xyz')
 
         self.assertEquals(len(buf), 10)
-
-        pyamf.unregister_class(Spam)
 
 class ObjectDecodingTestCase(_util.ClassCacheClearingTestCase):
     def setUp(self):
@@ -1531,6 +1525,64 @@ class HelperTestCase(unittest.TestCase):
         context.addObject(obj)
         self.assertEquals([x for x in amf3.decode('\n\x00', context=context)], [obj])
 
+class ComplexEncodingTestCase(unittest.TestCase, _util.BaseEncoderMixIn):
+    amf_version = pyamf.AMF3
+
+    class TestObject(object):
+        def __init__(self):
+            self.number = None
+            self.test_list = ['test']
+            self.sub_obj = None
+            self.test_dict = {'test': 'ignore'}
+
+    class TestSubObject(object):
+        def __init__(self):
+            self.number = None
+
+    def setUp(self):
+        _util.BaseEncoderMixIn.setUp(self)
+
+        pyamf.register_class(self.TestObject, 'test_complex.test')
+        pyamf.register_class(self.TestSubObject, 'test_complex.sub')
+
+    def tearDown(self):
+        pyamf.unregister_class(self.TestObject)
+        pyamf.unregister_class(self.TestSubObject)
+
+    def build_complex(self, max=5):
+        test_objects = []
+
+        for i in range(0, max):
+            test_obj = self.TestObject()
+            test_obj.number = i
+            test_obj.sub_obj = self.TestSubObject()
+            test_obj.sub_obj.number = i
+            test_objects.append(test_obj)
+
+        return test_objects
+
+    def complex_test(self):
+        class_defs = self.context.class_defs
+        classes = self.context.classes
+
+        self.assertEquals(len(classes.list), 2)
+        self.assertEquals(self.TestObject, classes.list[0])
+        self.assertEquals(self.TestSubObject, classes.list[1])
+
+        self.assertEquals(len(class_defs.list), 2)
+        self.assertEquals(self.TestObject, class_defs[0].klass)
+        self.assertEquals(self.TestSubObject, class_defs[1].klass)
+
+    def test_complex(self):
+        self.encoder.writeElement(self.build_complex())
+        self.complex_test()
+
+    def test_complex_dict(self):
+        complex = {'element': 'ignore', 'objects': self.build_complex()}
+
+        self.encoder.writeElement(complex)
+        self.complex_test()
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -1545,6 +1597,7 @@ def suite():
     suite.addTest(unittest.makeSuite(DataInputTestCase))
     suite.addTest(unittest.makeSuite(ClassInheritanceTestCase))
     suite.addTest(unittest.makeSuite(HelperTestCase))
+    suite.addTest(unittest.makeSuite(ComplexEncodingTestCase))
 
     return suite
 

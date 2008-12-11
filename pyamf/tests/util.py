@@ -9,6 +9,7 @@ Test utilities.
 
 import unittest, copy, sys
 import pyamf
+from pyamf.util import BufferedByteStream
 
 class ClassicSpam:
     def __readamf__(self, input):
@@ -127,3 +128,24 @@ def replace_dict(src, dest):
 
         if dest[name] is not src[name]:
             dest[name] = src[name]
+
+class BaseCodecMixIn(object):
+    amf_version = pyamf.AMF0
+
+    def setUp(self):
+        self.context = pyamf.get_context(self.amf_version)
+        self.stream = BufferedByteStream()
+
+class BaseDecoderMixIn(BaseCodecMixIn):
+    def setUp(self):
+        BaseCodecMixIn.setUp(self)
+
+        self.decoder = pyamf.get_decoder(
+            self.amf_version, data=self.stream, context=self.context)
+
+class BaseEncoderMixIn(BaseCodecMixIn):
+    def setUp(self):
+        BaseCodecMixIn.setUp(self)
+
+        self.encoder = pyamf.get_encoder(
+            self.amf_version, data=self.stream, context=self.context)

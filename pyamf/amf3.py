@@ -1130,20 +1130,21 @@ class Decoder(pyamf.BaseDecoder):
         if class_ref:
             class_def = self.context.getClassDefinition(ref)
         else:
+
             class_name = self.readString()
 
             if class_name == '':
-                class_name = None
+                class_alias = None
             else:
                 try:
-                    class_name = pyamf.get_class_alias(class_name)
+                    class_alias = pyamf.get_class_alias(class_name)
                 except pyamf.UnknownClassAlias:
                     if self.strict:
                         raise
 
-                    class_name = pyamf.TypedObjectClassAlias(pyamf.TypedObject, class_name)
+                    class_alias = pyamf.TypedObjectClassAlias(pyamf.TypedObject, class_name)
 
-            class_def = ClassDefinition(class_name, encoding=ref & 0x03)
+            class_def = ClassDefinition(class_alias, encoding=ref & 0x03)
             self.context.addClassDefinition(class_def)
 
         return class_ref, class_def, ref >> 2
@@ -1698,7 +1699,7 @@ class Encoder(pyamf.BaseEncoder):
         @type use_references: C{bool}
         @param use_references: Default is C{True}.
         """
-        if obj.__class__ == pyamf.MixedArray:
+        if obj.__class__ in (pyamf.MixedArray,):
             self.writeDict(obj, use_references)
         elif obj.__class__ in (list, set, tuple):
             self.writeList(obj, use_references)
@@ -1733,7 +1734,9 @@ class Encoder(pyamf.BaseEncoder):
             self._writeInteger(ref << 2 | REFERENCE_BIT)
         except pyamf.ReferenceError:
             class_def = self._getClassDefinition(obj)
-            self.context.addClassDefinition(class_def)
+
+            if obj.__class__ is not dict:
+                self.context.addClassDefinition(class_def)
             class_ref = False
             ref = 0
 
