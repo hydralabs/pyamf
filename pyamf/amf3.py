@@ -551,11 +551,6 @@ class ClassDefinition(object):
 
         self.encoding = encoding
 
-        if self.alias and self.alias.attrs is not None:
-            self.static_attrs = self.alias.attrs
-        else:
-            self.static_attrs = []
-
     def _get_name(self):
         if self.alias is None:
             # anonymous class
@@ -611,38 +606,44 @@ class ClassDefinition(object):
 
     klass = property(getClass)
 
+    def getStaticAttrs(self, obj):
+        """
+        Returns a list of static attributes based on C{obj}. Once built,
+        this list is immutable.
+
+        @param obj: The object to determine the static attributes from.
+        @type obj: C{mixed}.
+        @since: 0.4
+        """
+        if hasattr(self, 'static_attrs'):
+            return self.static_attrs
+
+        if not self.alias:
+            if hasattr(obj, '__slots__'):
+                return obj.__slots__
+
+            return []
+
+        static_attrs, dynamic_attrs = self.alias.getAttrs(obj)
+
+        if static_attrs is None:
+            self.static_attrs = []
+        else:
+            self.static_attrs = static_attrs
+
+        return self.static_attrs
+
     def getAttrs(self, obj):
         """
         Returns a C{tuple} containing a dict of static and dynamic attributes
         for C{obj}.
         """
-        attrs = util.get_instance_attrs(obj, self.alias)
-        static_attrs = dynamic_attrs = None
+        dynamic_attrs = util.get_instance_attrs(obj, self.alias)
+        static_attrs = {}
 
-        if self.alias:
-            if self.alias.attrs:
-                static_attrs = {}
-
-                for attr in self.alias.attrs:
-                    static_attrs[attr] = getattr(obj, attr)
-
-            if self.alias.attr_func:
-                dynamic_attrs = {}
-
-                for attr in self.alias.attr_func(obj):
-                    dynamic_attrs[attr] = getattr(obj, attr)
-            else:
-                dynamic_attrs = attrs
-        else:
-            dynamic_attrs = attrs
-
-        if hasattr(obj, '__slots__'):
-            if static_attrs is None:
-                static_attrs = {}
-
-            for k in obj.__slots__:
-                static_attrs[k] = getattr(obj, k)
-                del dynamic_attrs[k]
+        for a in self.getStaticAttrs(obj):
+            static_attrs[a] = dynamic_attrs[a]
+            del dynamic_attrs[a]
 
         return (static_attrs, dynamic_attrs)
 
@@ -1162,6 +1163,8 @@ class Decoder(pyamf.BaseDecoder):
 
         def readStatic(is_ref, class_def, obj, num_attrs):
             if not is_ref:
+                class_def.static_attrs = []
+
                 for i in range(num_attrs):
                     key = self.readString()
 
@@ -1669,24 +1672,6 @@ class Encoder(pyamf.BaseEncoder):
 
         class_def = ClassDefinition(alias, encoding)
 
-        if alias and encoding == ObjectEncoding.STATIC:
-            if alias.attrs is not None:
-                import copy
-
-                class_def.static_attrs = copy.copy(alias.attrs)
-            else:
-                if hasattr(obj, 'keys'):
-                    for k in obj.keys():
-                        class_def.static_attrs.append(unicode(k))
-                elif hasattr(obj, 'iteritems'):
-                    for k, v in obj.iteritems():
-                        class_def.static_attrs.append(unicode(k))
-                elif hasattr(obj, '__dict__'):
-                    for k in obj.__dict__.keys():
-                        class_def.static_attrs.append(unicode(k))
-                else:
-                    raise pyamf.EncodeError('Unable to determine object attributes')
-
         return class_def
 
     def writeInstance(self, obj, use_references=True):
@@ -1744,8 +1729,7 @@ class Encoder(pyamf.BaseEncoder):
                 raise pyamf.EncodeError("Encoding an object in amf3 tagged as amf0 only")
 
             if class_def.encoding != ObjectEncoding.EXTERNAL:
-                if class_def.alias and class_def.alias.attrs is not None:
-                    ref += len(class_def.alias.attrs) << 4
+                ref += len(class_def.getStaticAttrs(obj)) << 4
 
             self._writeInteger(ref | class_def.encoding << 2 | REFERENCE_BIT << 1 | REFERENCE_BIT)
             self._writeString(class_def.name)
@@ -1758,9 +1742,12 @@ class Encoder(pyamf.BaseEncoder):
             static_attrs, dynamic_attrs = class_def.getAttrs(obj)
 
             if static_attrs is not None:
+                attrs = class_def.getStaticAttrs(obj)
+
                 if not class_ref:
-                    [self._writeString(attr) for attr in static_attrs.keys()]
-                    [self.writeElement(attr) for attr in static_attrs.values()]
+                    [self._writeString(attr) for attr in attrs]
+
+                [self.writeElement(static_attrs[attr]) for attr in attrs]
 
             if class_def.encoding == ObjectEncoding.DYNAMIC and dynamic_attrs is not None:
                 for attr, value in dynamic_attrs.iteritems():

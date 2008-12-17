@@ -10,12 +10,7 @@ General tests.
 import unittest
 
 import pyamf
-from pyamf.tests.util import ClassCacheClearingTestCase, replace_dict
-
-class Spam(object):
-    """
-    A generic class used in class registering etc.
-    """
+from pyamf.tests.util import ClassCacheClearingTestCase, replace_dict, Spam
 
 class ASObjectTestCase(unittest.TestCase):
     """
@@ -267,7 +262,7 @@ class ClassAliasTestCase(ClassCacheClearingTestCase):
         alias = pyamf.get_class_alias(Spam)
 
         x = Spam()
-        self.assertEquals(alias.getAttrs(x), None)
+        self.assertEquals(alias.getAttrs(x), (None, None))
 
         pyamf.unregister_class(Spam)
 
@@ -275,7 +270,7 @@ class ClassAliasTestCase(ClassCacheClearingTestCase):
         alias = pyamf.get_class_alias(Spam)
 
         x = Spam()
-        self.assertEquals(alias.getAttrs(x), ['foo'])
+        self.assertEquals(alias.getAttrs(x), (['foo'], []))
 
         pyamf.unregister_class(Spam)
 
@@ -283,7 +278,7 @@ class ClassAliasTestCase(ClassCacheClearingTestCase):
         alias = pyamf.get_class_alias(Spam)
 
         x = Spam()
-        self.assertEquals(alias.getAttrs(x), None)
+        self.assertEquals(alias.getAttrs(x), (None, None))
 
         pyamf.unregister_class(Spam)
 
@@ -296,7 +291,7 @@ class ClassAliasTestCase(ClassCacheClearingTestCase):
         alias = pyamf.get_class_alias(Spam)
 
         self._obj = Spam()
-        self.assertEquals(alias.getAttrs(self._obj), ['bar'])
+        self.assertEquals(alias.getAttrs(self._obj), ([], ['bar']))
 
         pyamf.unregister_class(Spam)
 
@@ -309,7 +304,7 @@ class ClassAliasTestCase(ClassCacheClearingTestCase):
         alias = pyamf.get_class_alias(Spam)
 
         self._obj = Spam()
-        self.assertEquals(alias.getAttrs(self._obj), ['foo', 'bar'])
+        self.assertEquals(alias.getAttrs(self._obj), (['foo', 'bar'], []))
 
 class HelperTestCase(unittest.TestCase):
     """

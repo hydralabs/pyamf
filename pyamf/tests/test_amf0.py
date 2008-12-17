@@ -701,13 +701,13 @@ class DecoderTestCase(ClassCacheClearingTestCase):
         pyamf.register_class(Foo, 'x', attr_func=attr_func,
             metadata=['dynamic'])
 
-        self._run([(y, '\x10\x00\x01x\x00\x03foo\x02\x00\x03bar\x00\x05hello'
+        self._run([(x, '\x10\x00\x01x\x00\x03foo\x02\x00\x03bar\x00\x05hello'
             '\x02\x00\x05world\x00\x00\t')])
         pyamf.unregister_class(Foo)
 
         pyamf.register_class(Foo, 'x', attrs=['hello'], attr_func=attr_func,
             metadata=['dynamic'])
-        self._run([(y, '\x10\x00\x01x\x00\x03foo\x02\x00\x03bar\x00\x05hello'
+        self._run([(x, '\x10\x00\x01x\x00\x03foo\x02\x00\x03bar\x00\x05hello'
             '\x02\x00\x05world\x00\x00\t')])
         pyamf.unregister_class(Foo)
 

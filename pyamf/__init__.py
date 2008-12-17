@@ -388,21 +388,27 @@ class ClassAlias(object):
     def __hash__(self):
         return id(self)
 
-    def getAttrs(self, obj, attrs=None, traverse=True):
-        if attrs is None:
-            attrs = []
+    def _getAttrs(self, obj, static_attrs=None, dynamic_attrs=None, traverse=True):
+        if static_attrs is None:
+            static_attrs = []
 
-        did_something = False
+        if dynamic_attrs is None:
+            dynamic_attrs = []
+
+        modified_attrs = False
 
         if self.attrs is not None:
-            did_something = True
-            attrs += self.attrs
+            modified_attrs = True
+            static_attrs.extend(self.attrs)
+        elif traverse is True and hasattr(obj, '__slots__'):
+            modified_attrs = True
+            static_attrs.extend(obj.__slots__)
 
-        if 'dynamic' in self.metadata and self.attr_func is not None:
-            did_something = True
+        if self.attr_func is not None:
+            modified_attrs = True
             extra_attrs = self.attr_func(obj)
 
-            attrs += [key for key in extra_attrs if key not in attrs]
+            dynamic_attrs.extend([key for key in extra_attrs if key not in static_attrs])
 
         if traverse is True:
             for base in util.get_mro(obj.__class__):
@@ -411,39 +417,55 @@ class ClassAlias(object):
                 except UnknownClassAlias:
                     continue
 
-                x = alias.getAttrs(obj, attrs, False)
+                x, y = alias._getAttrs(obj, static_attrs, dynamic_attrs, False)
 
                 if x is not None:
-                    attrs += x
-                    did_something = True
+                    static_attrs.extend(x)
+                    modified_attrs = True
 
-        if did_something is False:
-            return None
+                if y is not None:
+                    dynamic_attrs.extend(y)
+                    modified_attrs = True
 
-        a = []
+        if modified_attrs is False:
+            return None, None
 
-        for x in attrs:
-            if x not in a:
-                a.append(x)
+        sa = []
+        da = []
 
-        return a
+        for x in static_attrs:
+            if x not in sa:
+                sa.append(x)
+
+        for x in dynamic_attrs:
+            if x not in da:
+                da.append(x)
+
+        return (sa, da)
+
+    def getAttrs(self, obj):
+        """
+        Returns a tuple of lists, static and dynamic attrs to encode.
+        """
+        return self._getAttrs(obj)
 
     def getAttributes(self, obj):
         """
         Returns a collection of attributes for an object
         """
-        attrs = self.getAttrs(obj)
+        static_attrs, dynamic_attrs = self.getAttrs(obj)
 
-        if attrs is None:
+        if static_attrs is None and dynamic_attrs is None:
             return util.get_attrs(obj)
 
         d = dict()
 
-        for a in attrs:
-            try:
-                d[a] = getattr(obj, a)
-            except AttributeError:
-                pass
+        for attrs in (static_attrs, dynamic_attrs):
+            for a in attrs:
+                try:
+                    d[a] = getattr(obj, a)
+                except AttributeError:
+                    pass
 
         return d
 
@@ -452,12 +474,13 @@ class ClassAlias(object):
         Applies the collection of attributes C{attrs} to aliased object C{obj}.
         It is mainly used when reading aliased objects from an AMF byte stream.
         """
-        allowed_attributes = self.getAttrs(obj)
+        if 'static' in self.metadata:
+            s, d = self.getAttrs(obj)
 
-        if allowed_attributes is not None:
-            for k in attrs.keys():
-                if k not in allowed_attributes:
-                    del attrs[k]
+            if s is not None:
+                for k in attrs.keys():
+                    if k not in s:
+                        del attrs[k]
 
         util.set_attrs(obj, attrs)
 

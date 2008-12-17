@@ -21,6 +21,8 @@ __all__ = [
     'ErrorMessage'
 ]
 
+NAMESPACE = 'flex.messaging.messages'
+
 class AbstractMessage(object):
     """
     Abstract base class for all Flex messages.
@@ -83,6 +85,14 @@ class AbstractMessage(object):
 
         return m + " />"
 
+# This class shouldn't be encoded directly but is registered to allow
+# inheritable static attrs to work
+pyamf.register_class(AbstractMessage, '.'.join([NAMESPACE, 'AbstractMessage']),
+    attrs=[
+        'body', 'clientId', 'destination', 'headers', 'messageId',
+        'timeToLive', 'timestamp'
+    ], metadata=['amf3', 'static'])
+
 class AsyncMessage(AbstractMessage):
     """
     I am the base class for all asynchronous Flex messages.
@@ -103,6 +113,9 @@ class AsyncMessage(AbstractMessage):
 
         self.correlationId = kwargs.get('correlationId', None)
 
+pyamf.register_class(AsyncMessage, '.'.join([NAMESPACE, 'AsyncMessage']),
+    attrs=['correlationId'], metadata=['amf3', 'static'])
+
 class AcknowledgeMessage(AsyncMessage):
     """
     I acknowledge the receipt of a message that was sent previously.
@@ -117,6 +130,9 @@ class AcknowledgeMessage(AsyncMessage):
     #: Used to indicate that the acknowledgement is for a message that
     #: generated an error.
     ERROR_HINT_HEADER = "DSErrorHint"
+
+pyamf.register_class(AcknowledgeMessage, '.'.join([NAMESPACE, 'AcknowledgeMessage']),
+    attrs=[], metadata=['amf3', 'static'])
 
 class CommandMessage(AsyncMessage):
     """
@@ -177,6 +193,9 @@ class CommandMessage(AsyncMessage):
         #: handles.
         self.messageRefType = kwargs.get('messageRefType', None)
 
+pyamf.register_class(CommandMessage, '.'.join([NAMESPACE, 'CommandMessage']),
+    attrs=['operation', 'messageRefType'], metadata=['amf3', 'static'])
+
 class ErrorMessage(AcknowledgeMessage):
     """
     I am the Flex error message to be returned to the client.
@@ -211,6 +230,10 @@ class ErrorMessage(AcknowledgeMessage):
         #: message.
         self.rootCause = kwargs.get('rootCause', {})
 
+pyamf.register_class(ErrorMessage, '.'.join([NAMESPACE, 'ErrorMessage']),
+    attrs=['extendedData', 'faultCode', 'faultDetail', 'faultString', 'rootCause'],
+    metadata=['amf3', 'static'])
+
 class RemotingMessage(AbstractMessage):
     """
     I am used to send RPC requests to a remote endpoint.
@@ -227,6 +250,5 @@ class RemotingMessage(AbstractMessage):
         #: This property is provided for backwards compatibility.
         self.source = kwargs.get('source', None)
 
-for x in (RemotingMessage, ErrorMessage, CommandMessage, AcknowledgeMessage, AsyncMessage):
-    pyamf.register_class(x, 'flex.messaging.messages.%s' % x.__name__, metadata=['amf3'])
-del x
+pyamf.register_class(RemotingMessage, '.'.join([NAMESPACE, 'RemotingMessage']),
+    attrs=['operation', 'source'], metadata=['amf3', 'static'])

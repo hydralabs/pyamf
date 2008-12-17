@@ -549,7 +549,7 @@ def get_attrs(obj):
 
         return attrs
     elif hasattr(obj, '__dict__'):
-        return obj.__dict__
+        return obj.__dict__.copy()
     elif hasattr(obj, '__slots__'):
         attrs = {}
 

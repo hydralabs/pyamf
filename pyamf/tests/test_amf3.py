@@ -239,15 +239,13 @@ class ClassDefinitionTestCase(_util.ClassCacheClearingTestCase):
 
         self.assertEquals(x.alias, None)
         self.assertEquals(x.encoding, 2)
-        self.assertEquals(x.static_attrs, [])
-        self.assertEquals(len(x.static_attrs), 0)
+        self.assertFalse(hasattr(x, 'static_attrs'))
 
         x = amf3.ClassDefinition(None)
 
         self.assertEquals(x.alias, None)
         self.assertEquals(x.encoding, 2)
-        self.assertEquals(x.static_attrs, [])
-        self.assertEquals(len(x.static_attrs), 0)
+        self.assertFalse(hasattr(x, 'static_attrs'))
 
         pyamf.register_class(Spam, 'spam.eggs')
 
@@ -255,8 +253,7 @@ class ClassDefinitionTestCase(_util.ClassCacheClearingTestCase):
         self.assertTrue(isinstance(x.alias, pyamf.ClassAlias))
         self.assertEquals(x.alias, pyamf.get_class_alias('spam.eggs'))
         self.assertEquals(x.encoding, 2)
-        self.assertEquals(x.static_attrs, [])
-        self.assertEquals(len(x.static_attrs), 0)
+        self.assertFalse(hasattr(x, 'static_attrs'))
 
     def test_name(self):
         x = amf3.ClassDefinition('')
@@ -547,7 +544,7 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
 
         self.assertEquals(class_def.name, 'abc.xyz')
         self.assertEquals(class_def.klass, Spam)
-        self.assertEquals(class_def.static_attrs, [])
+        self.assertFalse(hasattr(x, 'static_attrs'))
 
         pyamf.unregister_class(Spam)
 
@@ -558,7 +555,7 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
 
         self.assertEquals(class_def.name, '')
         self.assertEquals(class_def.klass, pyamf.ASObject)
-        self.assertEquals(class_def.static_attrs, [])
+        self.assertFalse(hasattr(x, 'static_attrs'))
 
     def test_get_class_definition_attrs(self):
         # test supplied attributes
@@ -571,7 +568,7 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
 
         self.assertEquals(class_def.name, 'abc.xyz')
         self.assertEquals(class_def.klass, Spam)
-        self.assertEquals(class_def.static_attrs, attrs)
+        self.assertFalse(hasattr(x, 'static_attrs'))
 
     def test_anonymous(self):
         pyamf.register_class(Spam)
@@ -626,7 +623,7 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
 
         self.encoder.writeElement(u)
 
-        self.assertEquals(self.buf.getvalue(), '\n\x0b\x01\x17family_name\x15'
+        self.assertEquals(self.buf.getvalue(), '\n+\x01\x17family_name\x15'
             'given_name\x06\x07Doe\x06\tJane\x01')
 
     def test_slots_registered(self):
@@ -641,7 +638,7 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
 
         self.encoder.writeElement(u)
 
-        self.assertEquals(self.buf.getvalue(), '\n\x0b!spam.eggs.Person\x17'
+        self.assertEquals(self.buf.getvalue(), '\n+!spam.eggs.Person\x17'
             'family_name\x15given_name\x06\x07Doe\x06\tJane\x01')
 
     def test_elementtree_tag(self):
@@ -1130,6 +1127,7 @@ class ObjectDecodingTestCase(_util.ClassCacheClearingTestCase):
         self.assertEquals(self.context.objects, [])
         self.assertEquals(self.context.strings, [])
         self.assertEquals(self.context.classes, [])
+        self.assertEquals(self.context.class_defs, [])
 
         self.stream.write('\x0a\x13\x0fabc.xyz\x09spam\x06\x09eggs')
         self.stream.seek(0, 0)
@@ -1461,8 +1459,8 @@ class ClassInheritanceTestCase(_util.ClassCacheClearingTestCase):
 
         encoder.writeElement(x)
 
-        self.assertEquals(stream.getvalue(), '\n\x1b\x03B\x03b\x06\teggs\x03a'
-            '\x06\tspam\x02\x06\x04\x01')
+        self.assertEquals(stream.getvalue(),
+            '\n+\x03B\x03b\x03a\x06\teggs\x06\tspam\x01')
 
     def test_deep(self):
         class A(object):
@@ -1490,8 +1488,8 @@ class ClassInheritanceTestCase(_util.ClassCacheClearingTestCase):
 
         encoder.writeElement(x)
 
-        self.assertEquals(stream.getvalue(), '\n\x1b\x03C\x03c\x06\x07foo\x03'
-            'a\x06\tspam\x02\x06\x04\x03b\x06\teggs\x01')
+        self.assertEquals(stream.getvalue(),
+            '\n;\x03C\x03c\x03b\x03a\x06\x07foo\x06\teggs\x06\tspam\x01')
 
 class HelperTestCase(unittest.TestCase):
     def test_encode(self):
