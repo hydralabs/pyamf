@@ -26,7 +26,10 @@ Installing
     $ cd PyAMF-<version>
     $ python setup.py install
 
+If you don't want to install the C-extension run install like this:
+
+    $ python setup.py install --disable-ext
+
 If you have installed setuptools you can also optionally run tests like this:
 
     $ python setup.py test
-

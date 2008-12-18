@@ -33,10 +33,10 @@ class TestCommand(test.test):
 def get_cpyamf_extensions():
     """
     Returns a list of all extensions for the cpyamf module. If for some reason
-    cpyamf is not to be built an empty list is returned.
+    cpyamf can't be built an empty list is returned.
     """
-    if '--disable-cpyamf' in sys.argv:
-        sys.argv.remove('--disable-cpyamf')
+    if '--disable-ext' in sys.argv:
+        sys.argv.remove('--disable-ext')
 
         return []
 
@@ -106,10 +106,16 @@ setup(name = "PyAMF",
         "Development Status :: 4 - Beta",
         "Natural Language :: English",
         "Intended Audience :: Developers",
+        "Intended Audience :: Information Technology",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
+        "Programming Language :: Python :: 2.3",
+        "Programming Language :: Python :: 2.4",
+        "Programming Language :: Python :: 2.5",
+        "Programming Language :: Python :: 2.6",
         "Framework :: Django",
+        "Framework :: Twisted",
         "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ])
