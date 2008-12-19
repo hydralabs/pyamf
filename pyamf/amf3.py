@@ -1184,8 +1184,10 @@ class Decoder(pyamf.BaseDecoder):
 
         if ref & REFERENCE_BIT == 0:
             obj = self.context.getObject(ref >> 1)
+
             if _use_proxies is True:
                 obj = self.readProxyObject(obj)
+
             return obj
 
         ref >>= 1
@@ -1214,6 +1216,7 @@ class Decoder(pyamf.BaseDecoder):
 
         if _use_proxies is True:
             obj = self.readProxyObject(obj)
+
         return obj
 
     def readProxyObject(self, proxy):
@@ -1546,7 +1549,9 @@ class Encoder(pyamf.BaseEncoder):
                 proxy = ArrayCollection(n)
                 self.context.setObjectAlias(n, proxy)
                 ref_obj = proxy
+
             self.writeObject(ref_obj, use_references)
+
             return
 
         self.writeType(ASTypes.ARRAY)
@@ -1592,12 +1597,13 @@ class Encoder(pyamf.BaseEncoder):
             try:
                 ref_obj = self.context.getObjectAlias(n)
             except pyamf.ReferenceError:
-                dictObj = pyamf.ASObject()
-                dictObj.update(n)
+                dictObj = pyamf.ASObject(n)
                 proxy = ObjectProxy(dictObj)
                 self.context.setObjectAlias(n, proxy)
                 ref_obj = proxy
+
             self.writeObject(ref_obj, use_references)
+
             return
 
         self.writeType(ASTypes.ARRAY)
@@ -1691,7 +1697,7 @@ class Encoder(pyamf.BaseEncoder):
         else:
             self.writeObject(obj, use_references)
 
-    def writeObject(self, obj, use_references=True):
+    def writeObject(self, obj, use_references=True, _use_proxies=None):
         """
         Writes an object to the stream.
 
@@ -1701,6 +1707,23 @@ class Encoder(pyamf.BaseEncoder):
         @type use_references: C{bool}
         @raise EncodeError: Encoding an object in amf3 tagged as amf0 only.
         """
+        if _use_proxies is None:
+            _use_proxies = self.use_proxies
+
+        if _use_proxies is True and obj.__class__ is dict:
+            try:
+                ref_obj = self.context.getObjectAlias(obj)
+            except pyamf.ReferenceError:
+                dictObj = pyamf.ASObject(obj)
+                proxy = ObjectProxy(dictObj)
+
+                self.context.setObjectAlias(obj, proxy)
+                ref_obj = proxy
+
+            self.writeObject(ref_obj, use_references)
+
+            return
+
         self.writeType(ASTypes.OBJECT)
 
         if use_references is True:

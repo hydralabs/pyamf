@@ -1293,6 +1293,21 @@ class DataOutputTestCase(unittest.TestCase):
     def test_object_proxy(self):
         self.encoder.use_proxies = True
         x = amf3.DataOutput(self.encoder)
+        obj = {'spam': 'eggs'}
+
+        x.writeObject(obj)
+        self.assertEquals(self.stream.getvalue(),
+            '\n\x07;flex.messaging.io.ObjectProxy\n\x0b\x01\tspam\x06\teggs\x01')
+        self.stream.truncate()
+
+        # check references
+        x.writeObject(obj)
+        self.assertEquals(self.stream.getvalue(), '\n\x00')
+        self.stream.truncate()
+
+    def test_object_proxy_mixed_array(self):
+        self.encoder.use_proxies = True
+        x = amf3.DataOutput(self.encoder)
         obj = pyamf.MixedArray(spam='eggs')
 
         x.writeObject(obj)
@@ -1304,6 +1319,17 @@ class DataOutputTestCase(unittest.TestCase):
         x.writeObject(obj)
         self.assertEquals(self.stream.getvalue(), '\n\x00')
         self.stream.truncate()
+
+    def test_object_proxy_inside_list(self):
+        self.encoder.use_proxies = True
+        x = amf3.DataOutput(self.encoder)
+        obj = [{'spam': 'eggs'}]
+
+        x.writeObject(obj)
+        self.assertEquals(self.stream.getvalue(),
+            '\n\x07Cflex.messaging.io.ArrayCollection\t\x03\x01\n\x07;flex.messaging.io.ObjectProxy\n\x0b\x01\tspam\x06\teggs\x01')
+
+
 
     def test_short(self):
         x = amf3.DataOutput(self.encoder)
