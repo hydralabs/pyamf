@@ -9,16 +9,23 @@ of PyAMF.
  - Flex messaging now uses correct static attributes for encoding. Determining
    static/dynamic attributes on objects is now easier (Ticket:357)
  - Added use_proxy option to amf3 which will automagically convert ObjectProxy
-   to dict and ArrayCollection to list on decoding and vice versa on encode.
-   Thanks to dthompso for the excellent patch (Ticket: 355)
+   to dict and ArrayCollection to list on decoding, and vice versa on encode.
+   Thanks to dthompso for the excellent patch (Ticket:355)
  - flex.ArrayCollection now subclasses list instead of dict as non-int keys are
-   not allowed. IList interface has been implemented. (Ticket:359)
+   not allowed. IList interface has been implemented. (Ticket:349)
  - Encoding registered subclass of list that define the 'externalised' metadata
-   will be encoded as an object. 
+   will be encoded as an object.
  - Encoders how have a 'strict' mode. Not generally useful for the time being
    but will help with developments in the future. Type mapped functions now
-   require a second 'encoder' attribute. (Ticket:376)
+   require a second 'encoder' attribute. (Ticket:378)
+-  Added adapter to handle the decimal module and, if strict is set to False,
+   silently converts a Decimal instance to a float (Ticket:376)
+ - ClassAlias can now be subclassed and three new methods have been added:
+   applyAttributes, createInstance, getAttributes all which help to provide fine
+   control for object/instance manipulation (Ticket:348)
  - Added support for __slots__. (Ticket:347)
+ - Fixed problem when decoding objects that map to GAE db.Model objects with
+   required properties (Ticket:342)
  - ByteArray now does not throw an error when used in the Remoting framework
    (Ticket:379)
  - A new adapter that converts sets.ImmutableSet and sets.Set to tuples before
@@ -36,6 +43,8 @@ of PyAMF.
  - pyamf.register_class now checks to ensure that __init__ args do not have
    any arguments (Ticket:322)
  - Added RemoteObject support for AsyncMessage (Ticket:292)
+ - pyamf.remoting.ErrorFault.__repr__ now displays the traceback info (if it
+   exists). (Ticket:331)
  - Both Encoders will now raise pyamf.EncodeError if a function is encoded
    (Ticket:311)
  - Twisted Gateway would fall over when returning tuples (Ticket:313)
