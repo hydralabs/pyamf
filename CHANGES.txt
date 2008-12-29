@@ -6,6 +6,8 @@ of PyAMF.
 
 0.4.0 (unreleased)
 ------------------
+ - All gateways now log exceptions when exceptions are raised during
+   en/decoding. (Ticket:394)
  - Flex messaging now uses correct static attributes for encoding. Determining
    static/dynamic attributes on objects is now easier (Ticket:357)
  - Added use_proxy option to amf3 which will automagically convert ObjectProxy
