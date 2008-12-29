@@ -14,3 +14,4 @@ directly.
  mvantellingen   Michael van Tellingen
                  <michael.vantellingen@auto-interactive.nl>
         gerard   Gerard Escalante <gerard@saygo.ca>
+      dthompso   Dave Thompson <dthompso@email.arizona.edu>
