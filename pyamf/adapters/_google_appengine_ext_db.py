@@ -19,7 +19,9 @@ import datetime
 import pyamf
 
 class ModelStub(object):
-    pass
+    def __init__(self):
+        for attr in DataStoreClassAlias.INTERNAL_ATTRS:
+            setattr(self, attr, None)
 
 class DataStoreClassAlias(pyamf.ClassAlias):
     # The name of the attribute used to represent the key
@@ -52,7 +54,7 @@ class DataStoreClassAlias(pyamf.ClassAlias):
     def applyAttributes(self, obj, attrs):
         new_obj = None
 
-        if DataStoreClassAlias.KEY_ATTR in attrs.keys():
+        if DataStoreClassAlias.KEY_ATTR in attrs.keys() and attrs[DataStoreClassAlias.KEY_ATTR] is not None:
             new_obj = self.klass.get(attrs[DataStoreClassAlias.KEY_ATTR])
             del attrs[DataStoreClassAlias.KEY_ATTR]
 

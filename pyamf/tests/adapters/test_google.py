@@ -36,7 +36,7 @@ class EncodingModelTestCase(ClassCacheClearingTestCase):
     def setUp(self):
         ClassCacheClearingTestCase.setUp(self)
 
-        self.jessica = PetModel (name='Jessica', type='cat')
+        self.jessica = PetModel(name='Jessica', type='cat')
         self.jessica.birthdate = datetime.date(1986, 10, 2)
         self.jessica.weight_in_pounds = 5
         self.jessica.spayed_or_neutered = False
@@ -554,6 +554,31 @@ class DecodingExpandoTestCase(ClassCacheClearingTestCase):
         self.assertEquals(x.parent_key(), self.jessica.parent_key())
         self.assertTrue(x.is_saved())
 
+class ClassAliasTestCase(unittest.TestCase):
+    def setUp(self):
+        self.alias = adapter_db.DataStoreClassAlias(PetModel, 'foo.bar')
+
+        self.jessica = PetModel(name='Jessica', type='cat')
+
+    def tearDown(self):
+        try:
+            self.jessica.delete()
+        except:
+            pass
+
+    def test_create_instance(self):
+        x = self.alias.createInstance()
+
+        for y in adapter_db.DataStoreClassAlias.INTERNAL_ATTRS:
+            self.assertEquals(None, getattr(x, y))
+
+    def test_apply(self):
+        x = self.alias.createInstance()
+
+        self.alias.applyAttributes(x, {
+            adapter_db.DataStoreClassAliasKEY_ATTR: None
+        })
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -563,6 +588,7 @@ def suite():
     suite.addTest(unittest.makeSuite(ListPropertyTestCase))
     suite.addTest(unittest.makeSuite(DecodingModelTestCase))
     suite.addTest(unittest.makeSuite(DecodingExpandoTestCase))
+    suite.addTest(unittest.makeSuite(ClassAliasTestCase))
 
     return suite
 
