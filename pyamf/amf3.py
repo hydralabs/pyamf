@@ -1745,13 +1745,13 @@ class Encoder(pyamf.BaseEncoder):
         except pyamf.ReferenceError:
             class_def = self._getClassDefinition(obj)
 
-            if obj.__class__ is not dict:
-                self.context.addClassDefinition(class_def)
-            class_ref = False
-            ref = 0
-
             if class_def.alias and 'amf0' in class_def.alias.metadata:
                 raise pyamf.EncodeError("Encoding an object in amf3 tagged as amf0 only")
+
+            self.context.addClassDefinition(class_def)
+
+            class_ref = False
+            ref = 0
 
             if class_def.encoding != ObjectEncoding.EXTERNAL:
                 ref += len(class_def.getStaticAttrs(obj)) << 4

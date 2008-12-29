@@ -1589,23 +1589,32 @@ class ComplexEncodingTestCase(unittest.TestCase, _util.BaseEncoderMixIn):
         class_defs = self.context.class_defs
         classes = self.context.classes
 
-        self.assertEquals(len(classes.list), 2)
-        self.assertEquals(self.TestObject, classes.list[0])
-        self.assertEquals(self.TestSubObject, classes.list[1])
+        self.assertEquals(len(classes.list), 3)
+        self.assertEquals(self.TestObject, classes.list[1])
+        self.assertEquals(self.TestSubObject, classes.list[2])
 
-        self.assertEquals(len(class_defs.list), 2)
-        self.assertEquals(self.TestObject, class_defs[0].klass)
-        self.assertEquals(self.TestSubObject, class_defs[1].klass)
-
-    def test_complex(self):
-        self.encoder.writeElement(self.build_complex())
-        self.complex_test()
+        self.assertEquals(len(class_defs.list), 8)
+        self.assertEquals(self.TestObject, class_defs[1].klass)
+        self.assertEquals(self.TestSubObject, class_defs[2].klass)
+    
+    def complex_encode_decode_test(self, decoded):
+        for obj in decoded:
+            self.assertEquals(self.TestObject, obj.__class__)
+            self.assertEquals(self.TestSubObject, obj.sub_obj.__class__)
 
     def test_complex_dict(self):
         complex = {'element': 'ignore', 'objects': self.build_complex()}
 
         self.encoder.writeElement(complex)
         self.complex_test()
+
+    def test_complex_encode_decode_dict(self):
+        complex = {'element': 'ignore', 'objects': self.build_complex()}
+        self.encoder.writeElement(complex)
+        encoded = self.encoder.stream.getvalue()
+        context = amf3.Context()
+        decoded = amf3.Decoder(self.encoder.stream.getvalue(), context).readElement()
+        self.complex_encode_decode_test(decoded['objects'])
 
 def suite():
     suite = unittest.TestSuite()
