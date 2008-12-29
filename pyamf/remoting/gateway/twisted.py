@@ -322,9 +322,26 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         def cb2(result):
             return response
 
+        def eb(failure):
+            """
+            Return 500 Internal Server Error.
+            """
+            errMesg = "%s: %s" % (failure.type, failure.getErrorMessage())
+
+            self.logger.error(errMesg)
+            self.logger.info(failure.getTraceback())
+
+            body = "500 Internal Server Error\n\nThe request was unable to " \
+                "be successfully processed."
+
+            if self.debug:
+                body += "\n\nTraceback:\n\n%s" % failure.getTraceback()
+
+            self._finaliseRequest(request, 500, body)
+
         d = defer.DeferredList(dl)
 
-        return d.addCallback(cb2)
+        return d.addCallback(cb2).addErrback(eb)
 
     def authenticateRequest(self, service_request, username, password, **kwargs):
         """

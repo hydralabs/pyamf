@@ -74,14 +74,15 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
         # Decode the request
         try:
             request = remoting.decode(body, context, strict=self.strict)
-        except pyamf.DecodeError:
-            self.logger.exception(gateway.format_exception())
+        except:
+            fe = gateway.format_exception()
+            self.logger.exception(fe)
 
             response = "400 Bad Request\n\nThe request body was unable to " \
                 "be successfully decoded."
 
             if self.debug:
-                response += "\n\nTraceback:\n\n%s" % gateway.format_exception()
+                response += "\n\nTraceback:\n\n%s" % fe
 
             self.error(400)
             self.response.headers['Content-Type'] = 'text/plain'
@@ -98,13 +99,14 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
-            self.logger.exception(gateway.format_exception())
+            fe = gateway.format_exception()
+            self.logger.exception(fe)
 
             response = "500 Internal Server Error\n\nThe request was " \
                 "unable to be successfully processed."
 
             if self.debug:
-                response += "\n\nTraceback:\n\n%s" % gateway.format_exception()
+                response += "\n\nTraceback:\n\n%s" % fe
 
             self.error(500)
             self.response.headers['Content-Type'] = 'text/plain'
@@ -118,14 +120,15 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
         # Encode the response
         try:
             stream = remoting.encode(response, context, strict=self.strict)
-        except pyamf.EncodeError:
-            self.logger.exception(gateway.format_exception())
+        except:
+            fe = gateway.format_exception()
+            self.logger.exception(fe)
 
             response = "500 Internal Server Error\n\nThe request was " \
                 "unable to be encoded."
 
             if self.debug:
-                response += "\n\nTraceback:\n\n%s" % gateway.format_exception()
+                response += "\n\nTraceback:\n\n%s" % fe
 
             self.error(500)
             self.response.headers['Content-Type'] = 'text/plain'

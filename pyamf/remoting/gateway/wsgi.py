@@ -81,7 +81,7 @@ class WSGIGateway(gateway.BaseGateway):
         # Decode the request
         try:
             request = remoting.decode(body, context, strict=self.strict)
-        except pyamf.DecodeError:
+        except (pyamf.DecodeError, EOFError):
             self.logger.exception(gateway.format_exception())
 
             response = "400 Bad Request\n\nThe request body was unable to " \
@@ -97,6 +97,23 @@ class WSGIGateway(gateway.BaseGateway):
             ])
 
             return [response]
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except:
+            self.logger.exception(gateway.format_exception())
+
+            response = "500 Internal Server Error\n\nAn unexpected error occurred whilst decoding."
+
+            if self.debug:
+                response += "\n\nTraceback:\n\n%s" % gateway.format_exception()
+
+            start_response('500 Internal Server Error', [
+                ('Content-Type', 'text/plain'),
+                ('Content-Length', str(len(response))),
+                ('Server', gateway.SERVER_NAME),
+            ])
+
+            return [response]
 
         self.logger.debug("AMF Request: %r" % request)
 
@@ -105,7 +122,7 @@ class WSGIGateway(gateway.BaseGateway):
             response = self.getResponse(request, environ)
         except (KeyboardInterrupt, SystemExit):
             raise
-        except pyamf.EncodeError:
+        except:
             self.logger.exception(gateway.format_exception())
 
             response = "500 Internal Server Error\n\nThe request was " \

@@ -80,16 +80,33 @@ class DjangoGateway(gateway.BaseGateway):
 
         context = pyamf.get_context(pyamf.AMF0)
         stream = None
-        http_response = http.HttpResponse()
 
         # Decode the request
         try:
             request = remoting.decode(http_request.raw_post_data, context, strict=self.strict)
-        except pyamf.DecodeError:
-            self.logger.exception(gateway.format_exception())
-            http_response.status_code = 400
+        except (pyamf.DecodeError, EOFError):
+            fe = gateway.format_exception()
+            self.logger.exception(fe)
 
-            return http_response
+            response = "400 Bad Request\n\nThe request body was unable to " \
+                "be successfully decoded."
+
+            if self.debug:
+                response += "\n\nTraceback:\n\n%s" % fe
+
+            return http.HttpResponseBadRequest(mimetype='text/plain', content=response)
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except:
+            fe = gateway.format_exception()
+            self.logger.exception(fe)
+
+            response = "500 Internal Server Error\n\nAn unexpected error occurred."
+
+            if self.debug:
+                response += "\n\nTraceback:\n\n%s" % fe
+
+            return http.HttpResponseServerError(mimetype='text/plain', content=response)
 
         self.logger.debug("AMF Request: %r" % request)
 
@@ -99,24 +116,40 @@ class DjangoGateway(gateway.BaseGateway):
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
-            self.logger.exception(gateway.format_exception())
+            fe = gateway.format_exception()
+            self.logger.exception(fe)
 
-            return http.HttpResponseServerError()
+            response = "500 Internal Server Error\n\nThe request was " \
+                "unable to be successfully processed."
+
+            if self.debug:
+                response += "\n\nTraceback:\n\n%s" % fe
+
+            return http.HttpResponseServerError(mimetype='text/plain', content=response)
 
         self.logger.debug("AMF Response: %r" % response)
 
         # Encode the response
         try:
             stream = remoting.encode(response, context, strict=self.strict)
-        except pyamf.EncodeError:
-            self.logger.exception(gateway.format_exception())
+        except:
+            fe = gateway.format_exception()
+            self.logger.exception(fe)
 
-            return http.HttpResponseServerError('Unable to encode the response')
+            response = "500 Internal Server Error\n\nThe request was " \
+                "unable to be encoded."
+
+            if self.debug:
+                response += "\n\nTraceback:\n\n%s" % fe
+
+            return http.HttpResponseServerError(mimetype='text/plain', content=response)
 
         buf = stream.getvalue()
-        http_response['Content-Type'] = remoting.CONTENT_TYPE
-        http_response['Content-Length'] = str(len(buf))
+
+        http_response = http.HttpResponse(mimetype=remoting.CONTENT_TYPE)
         http_response['Server'] = gateway.SERVER_NAME
+        http_response['Content-Length'] = str(len(buf))
+
         http_response.write(buf)
 
         return http_response
