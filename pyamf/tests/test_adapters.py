@@ -71,12 +71,15 @@ def suite():
 
     for testcase in glob(os.path.join(os.path.dirname(__file__), 'adapters', 'test_*.py')):
         name = os.path.basename(testcase).split('.')[0]
+        base_mod = ['pyamf', 'tests', 'adapters', name]
 
         try:
-            mod = __import__('.'.join(['adapters', name]))
-            mod = getattr(mod, name)
+            mod = __import__('.'.join(base_mod))
+            for x in base_mod[1:]:
+                mod = getattr(mod, x)
+
             suite.addTest(mod.suite())
-        except:
+        except ImportError:
             continue
 
     return suite

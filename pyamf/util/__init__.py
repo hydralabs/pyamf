@@ -560,17 +560,6 @@ def get_attrs(obj):
 
     return None
 
-def get_instance_attrs(obj, alias):
-    obj_attrs = None
-
-    if alias is not None:
-        obj_attrs = alias.getAttributes(obj)
-
-    if obj_attrs is None:
-        obj_attrs = get_attrs(obj)
-
-    return obj_attrs
-
 def set_attrs(obj, attrs):
     """
     A generic function which applies a collection of attributes C{attrs} to
@@ -591,8 +580,12 @@ def set_attrs(obj, attrs):
 def get_class_alias(klass):
     for k, v in pyamf.ALIAS_TYPES.iteritems():
         for kl in v:
-            if issubclass(klass, kl):
-                return k
+            if isinstance(kl, types.FunctionType):
+                if kl(klass) is True:
+                    return k
+            elif isinstance(kl, (type, (types.ClassType, types.ObjectType))):
+                if issubclass(klass, kl):
+                    return k
 
     return None
 
@@ -688,11 +681,11 @@ class IndexedMap(IndexedCollection):
     def __init__(self, use_hash=False):
         IndexedCollection.__init__(self, use_hash)
         self.mapped = []
-  
+
     def clear(self):
         IndexedCollection.clear(self)
         self.mapped = []
-    
+
     def getMappedByReference(self, ref):
         if not isinstance(ref, (int, long)):
             raise TypeError("Bad reference type.")

@@ -638,14 +638,17 @@ class ClassDefinition(object):
         Returns a C{tuple} containing a dict of static and dynamic attributes
         for C{obj}.
         """
-        dynamic_attrs = util.get_instance_attrs(obj, self.alias)
+        if self.alias is not None:
+            return self.alias.getAttributes(obj)
+
+        dynamic_attrs = util.get_attrs(obj)
         static_attrs = {}
 
         for a in self.getStaticAttrs(obj):
             static_attrs[a] = dynamic_attrs[a]
             del dynamic_attrs[a]
 
-        return (static_attrs, dynamic_attrs)
+        return static_attrs, dynamic_attrs
 
     def createInstance(self):
         """
@@ -1357,7 +1360,6 @@ class Encoder(pyamf.BaseEncoder):
                 raise
             except:
                 raise
-                raise pyamf.EncodeError("Unable to encode '%r'" % (data,))
 
     def writeType(self, type):
         """

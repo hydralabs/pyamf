@@ -6,6 +6,9 @@ of PyAMF.
 
 0.4.0 (unreleased)
 ------------------
+ - Support for encoding/decoding SQLAlchemy ORM objects with a new adapter.
+   Lots of people involved in this one, but special thanks to Dave Thompson
+   and Michael Van Tellingen for making this happen. (Ticket:277)
  - All gateways now log exceptions when exceptions are raised during
    en/decoding. (Ticket:394)
  - Flex messaging now uses correct static attributes for encoding. Determining

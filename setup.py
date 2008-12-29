@@ -77,7 +77,7 @@ def get_install_requirements():
 keyw = """\
 amf amf0 amf3 flex flash remoting rpc http flashplayer air bytearray
 objectproxy arraycollection recordset actionscript decoder encoder
-gateway"""
+gateway remoteobject twisted pylons django sharedobject lso sol"""
 
 setup(name = "PyAMF",
     version = "0.4",
@@ -100,7 +100,8 @@ setup(name = "PyAMF",
     extras_require = {
         'wsgi': ['wsgiref'],
         'twisted': ['Twisted>=2.5.0'],
-        'django': ['Django>=0.96']
+        'django': ['Django>=0.96'],
+        'sqlalchemy': ['SQLAlchemy>=0.4'],
     },
     classifiers = [
         "Development Status :: 4 - Beta",

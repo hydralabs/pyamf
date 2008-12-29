@@ -5,7 +5,7 @@
 C{django.db.models.fields} adapter module.
 
 @see: U{Django Project<http://www.djangoproject.com>}
-@since: 0.3.2
+@since: 0.4
 """
 
 from django.db.models import fields

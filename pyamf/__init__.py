@@ -329,6 +329,8 @@ class ClassAlias(object):
         if not isinstance(klass, (type, types.ClassType)):
             raise TypeError("klass must be a class type")
 
+        self.checkClass(klass)
+
         self.metadata = ClassMetaData(metadata)
 
         if alias is None:
@@ -387,6 +389,41 @@ class ClassAlias(object):
 
     def __hash__(self):
         return id(self)
+
+    def checkClass(kls, klass):
+        """
+        This function is used to check the class being aliased to fits certain
+        criteria. The default is to check that the __init__ constructor does 
+        not pass in arguments.
+
+        @since: 0.4
+        """
+        # Check that the constructor of the class doesn't require any additonal
+        # arguments.
+        if not (hasattr(klass, '__init__') and hasattr(klass.__init__, 'im_func')):
+            return
+
+        klass_func = klass.__init__.im_func
+
+        # built-in classes don't have func_code
+        if hasattr(klass_func, 'func_code') and (
+           klass_func.func_code.co_argcount - len(klass_func.func_defaults or []) > 1):
+            args = list(klass_func.func_code.co_varnames)
+            values = list(klass_func.func_defaults or [])
+
+            if not values:
+                sign = "%s.__init__(%s)" % (klass.__name__, ", ".join(args))
+            else:
+                named_args = zip(args[len(args) - len(values):], values)
+                sign = "%s.__init__(%s, %s)" % (
+                    klass.__name__,
+                    ", ".join(args[:0-len(values)]),
+                    ", ".join(map(lambda x: "%s=%s" % (x,), named_args)))
+
+            raise TypeError("__init__ doesn't support additional arguments: %s"
+                % sign)
+
+    checkClass = classmethod(checkClass)
 
     def _getAttrs(self, obj, static_attrs=None, dynamic_attrs=None, traverse=True):
         if static_attrs is None:
@@ -452,22 +489,32 @@ class ClassAlias(object):
     def getAttributes(self, obj):
         """
         Returns a collection of attributes for an object
+        Returns a C{tuple} containing a dict of static and dynamic attributes
+        for C{obj}
         """
-        static_attrs, dynamic_attrs = self.getAttrs(obj)
+        dynamic_attrs = {}
+        static_attrs = {}
+        static_attr_names, dynamic_attr_names = self.getAttrs(obj)
 
-        if static_attrs is None and dynamic_attrs is None:
-            return util.get_attrs(obj)
+        if static_attr_names is None and dynamic_attr_names is None:
+            dynamic_attrs = util.get_attrs(obj)
 
-        d = dict()
+        if static_attr_names is not None:
+            for attr in static_attr_names:
+                if hasattr(obj, attr):
+                    static_attrs[attr] = getattr(obj, attr)
+                else:
+                    static_attrs[attr] = Undefined
 
-        for attrs in (static_attrs, dynamic_attrs):
-            for a in attrs:
-                try:
-                    d[a] = getattr(obj, a)
-                except AttributeError:
-                    pass
+        if dynamic_attr_names is not None:
+            for attr in dynamic_attr_names:
+                if attr in static_attrs:
+                    continue
 
-        return d
+                if hasattr(obj, attr):
+                    dynamic_attrs[attr] = getattr(obj, attr)
+
+        return (static_attrs, dynamic_attrs)
 
     def applyAttributes(self, obj, attrs):
         """
@@ -531,8 +578,12 @@ class TypedObjectClassAlias(ClassAlias):
     """
     @since: 0.4
     """
+
     def createInstance(self):
         return TypedObject(self.alias)
+
+    def checkClass(kls, klass):
+        pass
 
 class BaseDecoder(object):
     """
@@ -761,29 +812,6 @@ def register_class(klass, alias=None, attrs=None, attr_func=None, metadata=[]):
 
     if alias is not None and alias in CLASS_CACHE.keys():
         raise ValueError("alias '%s' already registered" % (alias,))
-
-    # Check that the constructor of the class doesn't require any additonal
-    # arguments.
-    if hasattr(klass, '__init__') and hasattr(klass.__init__, 'im_func'):
-        klass_func = klass.__init__.im_func
-
-        # built-in classes don't have func_code
-        if hasattr(klass_func, 'func_code') and (
-           klass_func.func_code.co_argcount - len(klass_func.func_defaults or []) > 1):
-            args = list(klass_func.func_code.co_varnames)
-            values = list(klass_func.func_defaults or [])
-
-            if not values:
-                sign = "%s.__init__(%s)" % (klass.__name__, ", ".join(args))
-            else:
-                named_args = zip(args[len(args) - len(values):], values)
-                sign = "%s.__init__(%s, %s)" % (
-                    klass.__name__,
-                    ", ".join(args[:0-len(values)]),
-                    ", ".join(map(lambda x: "%s=%s" % (x,), named_args)))
-
-            raise TypeError("__init__ doesn't support additional arguments: %s"
-                % sign)
 
     alias_klass = util.get_class_alias(klass)
 
@@ -1255,7 +1283,15 @@ def register_alias_type(klass, *args):
 
     @see: L{pyamf.adapters._google_appengine_ext_db.DataStoreClassAlias} for a
         good example.
+    @since: 0.4
     """
+    def check_type_registered(arg):
+        # FIXME: Create a reverse index of registered types and do a quicker lookup
+        for k, v in ALIAS_TYPES.iteritems():
+            for kl in v:
+                if arg is kl:
+                    raise RuntimeError('%r is already registered under %r' % (arg, k))
+
     if not isinstance(klass, (type, types.ClassType)):
         raise TypeError('klass must be class')
 
@@ -1265,16 +1301,16 @@ def register_alias_type(klass, *args):
     if len(args) == 0:
         raise ValueError('At least one type must be supplied')
 
-    for arg in args:
-        if not isinstance(arg, (type, types.ClassType)):
-            raise TypeError('%r must be class' % (arg,))
+    if len(args) == 1 and callable(args[0]):
+        c = args[0]
 
-        # FIXME: Create a reverse index of registered types and do a quicker lookup
-        for k, v in ALIAS_TYPES.iteritems():
-            for kl in v:
-                if arg == kl:
-                    raise RuntimeError('%r is already registered '
-                        'under %r' % (arg, k))
+        check_type_registered(c)
+    else:
+        for arg in args:
+            if not isinstance(arg, (type, types.ClassType)):
+                raise TypeError('%r must be class' % (arg,))
+
+            check_type_registered(arg)
 
     ALIAS_TYPES[klass] = args
 

@@ -698,7 +698,10 @@ class Encoder(pyamf.BaseEncoder):
         obj_attrs = None
 
         if alias is not None:
-            obj_attrs = alias.getAttributes(o)
+            obj_attrs = {}
+
+            for attrs in alias.getAttributes(o):
+                obj_attrs.update(attrs)
 
         if obj_attrs is None:
             obj_attrs = util.get_attrs(o)

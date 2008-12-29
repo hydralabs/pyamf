@@ -10,12 +10,10 @@ Adapter for the stdlib C{sets} module.
 import sets
 
 import pyamf
-
-def to_tuple(x, encoder):
-    return tuple(x)
+from pyamf.adapters import util
 
 if hasattr(sets, 'ImmutableSet'):
-    pyamf.add_type(sets.ImmutableSet, to_tuple)
+    pyamf.add_type(sets.ImmutableSet, util.to_tuple)
 
 if hasattr(sets, 'Set'):
-    pyamf.add_type(sets.Set, to_tuple)
+    pyamf.add_type(sets.Set, util.to_tuple)
