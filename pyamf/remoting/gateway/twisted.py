@@ -64,7 +64,9 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
         deferred_response = defer.Deferred()
 
         def eb(failure):
-            self.gateway.logger.error(failure.printTraceback())
+            errMesg = "%s: %s" % (failure.type, failure.getErrorMessage())
+            self.gateway.logger.error(errMesg)
+            self.gateway.logger.info(failure.getTraceback())
             deferred_response.callback(self.buildErrorResponse(
                 request, (failure.type, failure.value, failure.tb)))
 
@@ -126,7 +128,9 @@ class AMF3RequestProcessor(amf3.RequestProcessor):
         deferred_response = defer.Deferred()
 
         def eb(failure):
-            self.gateway.logger.error(failure.printTraceback())
+            errMesg = "%s: %s" % (failure.type, failure.getErrorMessage())
+            self.gateway.logger.error(errMesg)
+            self.gateway.logger.info(failure.getTraceback())
             ro_response = self.buildErrorResponse(ro_request, (failure.type,
                                                   failure.value, failure.tb))
             deferred_response.callback(remoting.Response(ro_response,
@@ -164,7 +168,9 @@ class AMF3RequestProcessor(amf3.RequestProcessor):
             deferred_response.callback(amf_response)
 
         def eb(failure):
-            self.gateway.logger.error(failure.printTraceback())
+            errMesg = "%s: %s" % (failure.type, failure.getErrorMessage())
+            self.gateway.logger.error(errMesg)
+            self.gateway.logger.info(failure.getTraceback())
             deferred_response.callback(self.buildErrorResponse(ro_request,
                 (failure.type, failure.value, failure.tb)))
 
@@ -260,7 +266,9 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
             """
             Return 500 Internal Server Error.
             """
-            self.logger.error(failure.printDetailedTraceback())
+            errMesg = "%s: %s" % (failure.type, failure.getErrorMessage())
+            self.logger.error(errMesg)
+            self.logger.info(failure.getTraceback())
 
             body = "500 Internal Server Error\n\nThere was an error encoding" \
                 " the response."
