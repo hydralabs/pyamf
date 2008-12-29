@@ -58,18 +58,18 @@ class EncodingModelTestCase(ClassCacheClearingTestCase):
 
         encoder.writeElement(self.jessica)
         self.assertEquals(encoder.stream.getvalue(),
-            '\x03\x00\x04type\x02\x00\x03cat\x00\x10weight_in_pounds\x00@'
-            '\x14\x00\x00\x00\x00\x00\x00\x00\x04name\x02\x00\x07Jessica'
-            '\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00\x00\x12'
+            '\x03\x00\x10weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00'
+            '\x00\x04type\x02\x00\x03cat\x00\x04name\x02\x00\x07Jessica\x00\t'
+            'birthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00\x00\x12'
             'spayed_or_neutered\x01\x00\x00\x00\t')
 
     def test_amf3(self):
         encoder = pyamf.get_encoder(pyamf.AMF3)
         encoder.writeElement(self.jessica)
         self.assertEquals(encoder.stream.getvalue(),
-            '\n\x0b\x01\ttype\x06\x07cat!weight_in_pounds\x04\x05\tname\x06'
-            '\x0fJessica\x13birthdate\x08\x01B^\xc4\xae\xaa\x00\x00\x00%'
-            'spayed_or_neutered\x02\x01')
+            '\n[\x01!weight_in_pounds\ttype\tname\x13birthdate%'
+            'spayed_or_neutered\x04\x05\x06\x07cat\x06\x0fJessica\x08\x01B^'
+            '\xc4\xae\xaa\x00\x00\x00\x02\x01')
 
     def test_save_amf0(self):
         self.jessica.put()
@@ -79,11 +79,11 @@ class EncodingModelTestCase(ClassCacheClearingTestCase):
         encoder.writeElement(self.jessica)
 
         self.assertEquals(encoder.stream.getvalue(),
-            '\x03\x00\x04name\x02\x00\x07Jessica\x00\x04_key\x02%s%s\x00'
-            '\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00\x00\x10'
-            'weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00\x00\x04'
-            'type\x02\x00\x03cat\x00\x12spayed_or_neutered\x01\x00\x00'
-            '\x00\t' % (struct.pack('>H' ,len(k)), k))
+            '\x03\x00\x10weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00\x00'
+            '\x04name\x02\x00\x07Jessica\x00\x04_key\x02%s%s\x00\x04type\x02'
+            '\x00\x03cat\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00'
+            '\x00\x12spayed_or_neutered\x01\x00\x00\x00\t' % (
+            struct.pack('>H' ,len(k)), k))
 
     def test_save_amf3(self):
         self.jessica.put()
@@ -93,9 +93,9 @@ class EncodingModelTestCase(ClassCacheClearingTestCase):
         encoder.writeElement(self.jessica)
 
         self.assertEquals(encoder.stream.getvalue(),
-            '\n\x0b\x01\tname\x06\x0fJessica\t_key\x06%s%s\x13birthdate'
-            '\x08\x01B^\xc4\xae\xaa\x00\x00\x00!weight_in_pounds'
-            '\x04\x05\ttype\x06\x07cat%%spayed_or_neutered\x02\x01' % (
+            '\nk\x01\t_key!weight_in_pounds\ttype\tname\x13birthdate%%'
+            'spayed_or_neutered\x06%s%s\x04\x05\x06\x07cat\x06\x0fJessica'
+            '\x08\x01B^\xc4\xae\xaa\x00\x00\x00\x02\x01' % (
                 amf3._encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k
             ))
 
@@ -105,10 +105,10 @@ class EncodingModelTestCase(ClassCacheClearingTestCase):
 
         encoder.writeElement(self.jessica)
         self.assertEquals(encoder.stream.getvalue(),
-            '\x10\x00\x03Pet\x00\x04type\x02\x00\x03cat\x00\x10'
-            'weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00\x00\x04name'
-            '\x02\x00\x07Jessica\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00'
-            '\x00\x00\x00\x00\x12spayed_or_neutered\x01\x00\x00\x00\t')
+            '\x10\x00\x03Pet\x00\x10weight_in_pounds\x00@\x14\x00\x00\x00\x00'
+            '\x00\x00\x00\x04type\x02\x00\x03cat\x00\x04name\x02\x00\x07'
+            'Jessica\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00\x00'
+            '\x12spayed_or_neutered\x01\x00\x00\x00\t')
 
     def test_alias_amf3(self):
         pyamf.register_class(PetModel, 'Pet')
@@ -116,9 +116,9 @@ class EncodingModelTestCase(ClassCacheClearingTestCase):
         encoder.writeElement(self.jessica)
 
         self.assertEquals(encoder.stream.getvalue(),
-            '\n\x0b\x07Pet\ttype\x06\x07cat!weight_in_pounds\x04\x05\tname'
-            '\x06\x0fJessica\x13birthdate\x08\x01B^\xc4\xae\xaa\x00\x00\x00%'
-            'spayed_or_neutered\x02\x01')
+            '\n[\x07Pet!weight_in_pounds\ttype\tname\x13birthdate%'
+            'spayed_or_neutered\x04\x05\x06\x07cat\x06\x0fJessica\x08\x01B^'
+            '\xc4\xae\xaa\x00\x00\x00\x02\x01')
 
 class EncodingExpandoTestCase(ClassCacheClearingTestCase):
     def setUp(self):
@@ -143,20 +143,19 @@ class EncodingExpandoTestCase(ClassCacheClearingTestCase):
         encoder.writeElement(self.jessica)
 
         self.assertEquals(encoder.stream.getvalue(),
-            '\x03\x00\x04name\x02\x00\x07Jessica\x00\tbirthdate'
-            '\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00\x00\x10weight_in_pounds'
-            '\x00@\x14\x00\x00\x00\x00\x00\x00\x00\x03foo\x02\x00\x03bar'
-            '\x00\x04type\x02\x00\x03cat\x00\x12spayed_or_neutered'
-            '\x01\x00\x00\x00\t')
+            '\x03\x00\x10weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00'
+            '\x00\x04name\x02\x00\x07Jessica\x00\x03foo\x02\x00\x03bar\x00'
+            '\x04type\x02\x00\x03cat\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00'
+            '\x00\x00\x00\x00\x12spayed_or_neutered\x01\x00\x00\x00\t')
 
     def test_amf3(self):
         encoder = pyamf.get_encoder(pyamf.AMF3)
         encoder.writeElement(self.jessica)
 
         self.assertEquals(encoder.stream.getvalue(),
-            '\n\x0b\x01\tname\x06\x0fJessica\x13birthdate'
-            '\x08\x01B^\xc4\xae\xaa\x00\x00\x00!weight_in_pounds\x04\x05\x07'
-            'foo\x06\x07bar\ttype\x06\x07cat%spayed_or_neutered\x02\x01')
+            '\n[\x01!weight_in_pounds\ttype\tname\x13birthdate%'
+            'spayed_or_neutered\x04\x05\x06\x07cat\x06\x0fJessica\x08\x01B^'
+            '\xc4\xae\xaa\x00\x00\x00\x02\x07foo\x06\x07bar\x01')
 
     def test_save_amf0(self):
         self.jessica.put()
@@ -166,11 +165,11 @@ class EncodingExpandoTestCase(ClassCacheClearingTestCase):
         encoder.writeElement(self.jessica)
 
         self.assertEquals(encoder.stream.getvalue(),
-            '\x03\x00\x04name\x02\x00\x07Jessica\x00\x04_key\x02%s%s\x00'
-            '\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00\x00\x10'
-            'weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00\x00\x03'
-            'foo\x02\x00\x03bar\x00\x04type\x02\x00\x03cat\x00\x12'
-            'spayed_or_neutered\x01\x00\x00\x00\t' % (struct.pack('>H', len(k)), k))
+            '\x03\x00\x10weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00\x00'
+            '\x04name\x02\x00\x07Jessica\x00\x04_key\x02%s%s\x00\x03foo\x02'
+            '\x00\x03bar\x00\x04type\x02\x00\x03cat\x00\tbirthdate\x0bB^'
+            '\xc4\xae\xaa\x00\x00\x00\x00\x00\x00\x12spayed_or_neutered\x01'
+            '\x00\x00\x00\t' % (struct.pack('>H', len(k)), k))
 
     def test_save_amf3(self):
         self.jessica.put()
@@ -180,9 +179,9 @@ class EncodingExpandoTestCase(ClassCacheClearingTestCase):
         encoder.writeElement(self.jessica)
 
         self.assertEquals(encoder.stream.getvalue(),
-            '\n\x0b\x01\tname\x06\x0fJessica\t_key\x06%s%s\x13birthdate'
-            '\x08\x01B^\xc4\xae\xaa\x00\x00\x00!weight_in_pounds\x04\x05'
-            '\x07foo\x06\x07bar\ttype\x06\x07cat%%spayed_or_neutered\x02\x01' % (
+            '\nk\x01\t_key!weight_in_pounds\ttype\tname\x13birthdate%%'
+            'spayed_or_neutered\x06%s%s\x04\x05\x06\x07cat\x06\x0fJessica\x08'
+            '\x01B^\xc4\xae\xaa\x00\x00\x00\x02\x07foo\x06\x07bar\x01' % (
                 amf3._encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k
             ))
 
@@ -192,11 +191,10 @@ class EncodingExpandoTestCase(ClassCacheClearingTestCase):
 
         encoder.writeElement(self.jessica)
         self.assertEquals(encoder.stream.getvalue(),
-            '\x10\x00\x03Pet\x00\x04name\x02\x00\x07Jessica\x00\tbirthdate'
-            '\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00\x00\x10weight_in_pounds'
-            '\x00@\x14\x00\x00\x00\x00\x00\x00\x00\x03foo\x02\x00\x03bar'
-            '\x00\x04type\x02\x00\x03cat\x00\x12spayed_or_neutered\x01'
-            '\x00\x00\x00\t')
+            '\x10\x00\x03Pet\x00\x10weight_in_pounds\x00@\x14\x00\x00\x00\x00'
+            '\x00\x00\x00\x04name\x02\x00\x07Jessica\x00\x03foo\x02\x00\x03bar'
+            '\x00\x04type\x02\x00\x03cat\x00\tbirthdate\x0bB^\xc4\xae\xaa'
+            '\x00\x00\x00\x00\x00\x00\x12spayed_or_neutered\x01\x00\x00\x00\t')
 
     def test_alias_amf3(self):
         pyamf.register_class(PetExpando, 'Pet')
@@ -204,9 +202,9 @@ class EncodingExpandoTestCase(ClassCacheClearingTestCase):
         encoder.writeElement(self.jessica)
 
         self.assertEquals(encoder.stream.getvalue(),
-            '\n\x0b\x07Pet\tname\x06\x0fJessica\x13birthdate\x08\x01'
-            'B^\xc4\xae\xaa\x00\x00\x00!weight_in_pounds\x04\x05\x07foo'
-            '\x06\x07bar\ttype\x06\x07cat%spayed_or_neutered\x02\x01')
+            '\n[\x07Pet!weight_in_pounds\ttype\tname\x13birthdate%'
+            'spayed_or_neutered\x04\x05\x06\x07cat\x06\x0fJessica\x08\x01B^'
+            '\xc4\xae\xaa\x00\x00\x00\x02\x07foo\x06\x07bar\x01')
 
 class EncodingReferencesTestCase(ClassCacheClearingTestCase):
     """
@@ -235,17 +233,16 @@ class EncodingReferencesTestCase(ClassCacheClearingTestCase):
 
             encoder.writeElement(b)
             self.assertEquals(encoder.stream.getvalue(),
-                '\x03\x00\x05title\x02\x00\x15Sense and Sensibility\x00\x06'
-                'author\x03\x00\x04_key\x02%s%s\x00\x04name\x02\x00\x0b'
-                'Jane Austen\x00\x00\t\x00\x00\t' % (
-                    struct.pack('>H', len(k)), k))
+                '\x03\x00\x06author\x03\x00\x04_key\x02%s%s\x00\x04name\x02'
+                '\x00\x0bJane Austen\x00\x00\t\x00\x05title\x02\x00\x15'
+                'Sense and Sensibility\x00\x00\t' % (struct.pack('>H', len(k)), k))
 
             encoder = pyamf.get_encoder(pyamf.AMF3)
 
             encoder.writeElement(b)
             self.assertEquals(encoder.stream.getvalue(),
-                '\n\x0b\x01\x0btitle\x06+Sense and Sensibility\rauthor\n\x0b'
-                '\x01\t_key\x06%s%s\tname\x06\x17Jane Austen\x01\x01' % (
+                '\n+\x01\rauthor\x0btitle\n+\x01\t_key\tname\x06%s%s\x06\x17'
+                'Jane Austen\x01\x06+Sense and Sensibility\x01' % (
                     amf3._encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k))
 
             # now test with aliases ..
@@ -256,17 +253,16 @@ class EncodingReferencesTestCase(ClassCacheClearingTestCase):
 
             encoder.writeElement(b)
             self.assertEquals(encoder.stream.getvalue(), '\x10\x00\x05Novel'
-                '\x00\x05title\x02\x00\x15Sense and Sensibility\x00\x06author'
-                '\x10\x00\x06Author\x00\x04_key\x02%s%s\x00\x04name\x02'
-                '\x00\x0bJane Austen\x00\x00\t\x00\x00\t' % (
-                    struct.pack('>H', len(k)), k))
+            '\x00\x06author\x10\x00\x06Author\x00\x04_key\x02%s%s\x00\x04name'
+            '\x02\x00\x0bJane Austen\x00\x00\t\x00\x05title\x02\x00\x15'
+            'Sense and Sensibility\x00\x00\t' % (struct.pack('>H', len(k)), k))
 
             encoder = pyamf.get_encoder(pyamf.AMF3)
 
             encoder.writeElement(b)
-            self.assertEquals(encoder.stream.getvalue(),
-                '\n\x0b\x0bNovel\x0btitle\x06+Sense and Sensibility\rauthor'
-                '\n\x0b\rAuthor\t_key\x06%s%s\tname\x06\x17Jane Austen\x01\x01' % (
+            self.assertEquals(encoder.stream.getvalue(), '\n+\x0bNovel\rauthor'
+                '\x0btitle\n+\rAuthor\t_key\tname\x06%s%s\x06\x17Jane Austen'
+                '\x01\x06+Sense and Sensibility\x01' % (
                     amf3._encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k))
         except:
             a.delete()
@@ -295,17 +291,17 @@ class EncodingReferencesTestCase(ClassCacheClearingTestCase):
 
             encoder.writeElement(b)
             self.assertEquals(encoder.stream.getvalue(),
-                '\x03\x00\x05title\x02\x00\x15Sense and Sensibility\x00\x06'
-                'author\x03\x00\x04_key\x02%s%s\x00\x04name\x02\x00\x0b'
-                'Jane Austen\x00\x00\t\x00\x00\t' % (
+                '\x03\x00\x06author\x03\x00\x04_key\x02%s%s\x00\x04name\x02'
+                '\x00\x0bJane Austen\x00\x00\t\x00\x05title\x02\x00\x15'
+                'Sense and Sensibility\x00\x00\t' % (
                     struct.pack('>H', len(k)), k))
 
             encoder = pyamf.get_encoder(pyamf.AMF3)
 
             encoder.writeElement(b)
             self.assertEquals(encoder.stream.getvalue(),
-                '\n\x0b\x01\x0btitle\x06+Sense and Sensibility\rauthor\n\x0b'
-                '\x01\t_key\x06%s%s\tname\x06\x17Jane Austen\x01\x01' % (
+                '\n+\x01\rauthor\x0btitle\n+\x01\t_key\tname\x06%s%s\x06\x17'
+                'Jane Austen\x01\x06+Sense and Sensibility\x01' % (
                     amf3._encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k))
 
             # now test with aliases ..
@@ -316,17 +312,16 @@ class EncodingReferencesTestCase(ClassCacheClearingTestCase):
 
             encoder.writeElement(b)
             self.assertEquals(encoder.stream.getvalue(), '\x10\x00\x05Novel'
-                '\x00\x05title\x02\x00\x15Sense and Sensibility\x00\x06author'
-                '\x10\x00\x06Author\x00\x04_key\x02%s%s\x00\x04name\x02'
-                '\x00\x0bJane Austen\x00\x00\t\x00\x00\t' % (
-                    struct.pack('>H', len(k)), k))
+            '\x00\x06author\x10\x00\x06Author\x00\x04_key\x02%s%s\x00\x04name'
+            '\x02\x00\x0bJane Austen\x00\x00\t\x00\x05title\x02\x00\x15'
+            'Sense and Sensibility\x00\x00\t' % (struct.pack('>H', len(k)), k))
 
             encoder = pyamf.get_encoder(pyamf.AMF3)
 
             encoder.writeElement(b)
             self.assertEquals(encoder.stream.getvalue(),
-                '\n\x0b\x0bNovel\x0btitle\x06+Sense and Sensibility\rauthor'
-                '\n\x0b\rAuthor\t_key\x06%s%s\tname\x06\x17Jane Austen\x01\x01' % (
+                '\n+\x0bNovel\rauthor\x0btitle\n+\rAuthor\t_key\tname\x06%s%s'
+                '\x06\x17Jane Austen\x01\x06+Sense and Sensibility\x01' % (
                     amf3._encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k))
         except:
             a.delete()
@@ -355,7 +350,7 @@ class ListPropertyTestCase(ClassCacheClearingTestCase):
 
         encoder.writeElement(obj)
         self.assertEquals(encoder.stream.getvalue(),
-            '\n\x0b\x01\x0fnumbers\t\x0b\x01\x04\x02\x04\x04\x04\x06\x04\x08'
+            '\n\x1b\x01\x0fnumbers\t\x0b\x01\x04\x02\x04\x04\x04\x06\x04\x08'
             '\x04\n\x01')
 
         pyamf.register_class(ListModel, 'list-model')
@@ -373,7 +368,7 @@ class ListPropertyTestCase(ClassCacheClearingTestCase):
 
         encoder.writeElement(obj)
         self.assertEquals(encoder.stream.getvalue(),
-            '\n\x0b\x15list-model\x0fnumbers\t\x0b\x01\x04\x02\x04\x04\x04'
+            '\n\x1b\x15list-model\x0fnumbers\t\x0b\x01\x04\x02\x04\x04\x04'
             '\x06\x04\x08\x04\n\x01')
 
     def test_decode(self):
@@ -576,7 +571,7 @@ class ClassAliasTestCase(unittest.TestCase):
         x = self.alias.createInstance()
 
         self.alias.applyAttributes(x, {
-            adapter_db.DataStoreClassAliasKEY_ATTR: None
+            adapter_db.DataStoreClassAlias.KEY_ATTR: None
         })
 
 def suite():

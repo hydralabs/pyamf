@@ -31,21 +31,35 @@ class DataStoreClassAlias(pyamf.ClassAlias):
     # be synced with the datastore instance
     INTERNAL_ATTRS = ['_entity', '_parent', '_key_name', '_app', '_parent_key']
 
+    def getAttrs(self, obj):
+        static_attrs, dynamic_attrs = pyamf.ClassAlias.getAttrs(self, obj)
+
+        if static_attrs is None:
+            static_attrs = obj.properties().keys()
+
+        if obj.is_saved():
+            static_attrs.insert(0, self.KEY_ATTR)
+
+        if dynamic_attrs is None:
+            dynamic_attrs = obj.dynamic_properties()
+
+        return static_attrs, dynamic_attrs
+
     def getAttributes(self, obj):
-        """
-        """
         static_attrs = {}
         dynamic_attrs = {}
+        static_attrs_names, dynamic_attrs_names = self.getAttrs(obj)
 
-        for a in obj.properties().keys():
+        if self.KEY_ATTR in static_attrs_names:
+            static_attrs_names.remove(self.KEY_ATTR)
+
+        for a in static_attrs_names:
             static_attrs[a] = getattr(obj, a)
 
-        try:
-            static_attrs[DataStoreClassAlias.KEY_ATTR] = str(obj.key())
-        except:
-            pass
+        if obj.is_saved():
+            static_attrs[self.KEY_ATTR] = str(obj.key())
 
-        for a in obj.dynamic_properties():
+        for a in dynamic_attrs_names:
             dynamic_attrs[a] = getattr(obj, a)
 
         return static_attrs, dynamic_attrs
