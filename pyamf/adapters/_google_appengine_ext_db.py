@@ -34,19 +34,21 @@ class DataStoreClassAlias(pyamf.ClassAlias):
     def getAttributes(self, obj):
         """
         """
-        p = obj.properties().keys() + obj.dynamic_properties()
+        static_attrs = {}
+        dynamic_attrs = {}
 
-        attrs = {}
-
-        for a in p:
-            attrs[a] = getattr(obj, a)
+        for a in obj.properties().keys():
+            static_attrs[a] = getattr(obj, a)
 
         try:
-            attrs[DataStoreClassAlias.KEY_ATTR] = str(obj.key())
+            static_attrs[DataStoreClassAlias.KEY_ATTR] = str(obj.key())
         except:
             pass
 
-        return attrs
+        for a in obj.dynamic_properties():
+            dynamic_attrs[a] = getattr(obj, a)
+
+        return static_attrs, dynamic_attrs
 
     def createInstance(self):
         return ModelStub()
