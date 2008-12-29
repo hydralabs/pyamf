@@ -4,8 +4,9 @@
 """
 PyAMF SQLAlchemy adapter tests.
 
-@since 0.4.0
+@since 0.4
 """
+
 import datetime
 import sys
 import unittest

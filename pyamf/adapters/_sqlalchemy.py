@@ -1,3 +1,14 @@
+# Copyright (c) 2007-2008 The PyAMF Project.
+# See LICENSE for details.
+
+"""
+SQLAlchemy adapter module.
+
+@see: U{SQLAlchemy homepage (external)<http://www.sqlalchemy.org>}
+
+@since: 0.4
+"""
+
 import sqlalchemy
 from sqlalchemy.orm import collections
 from sqlalchemy.orm.util import class_mapper

@@ -32,6 +32,9 @@ class DataStoreClassAlias(pyamf.ClassAlias):
     INTERNAL_ATTRS = ['_entity', '_parent', '_key_name', '_app', '_parent_key']
 
     def getAttrs(self, obj):
+        """
+        @since: 0.4
+        """
         static_attrs, dynamic_attrs = pyamf.ClassAlias.getAttrs(self, obj)
 
         if static_attrs is None:

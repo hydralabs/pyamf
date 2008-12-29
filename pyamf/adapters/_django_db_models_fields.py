@@ -5,6 +5,7 @@
 C{django.db.models.fields} adapter module.
 
 @see: U{Django Project<http://www.djangoproject.com>}
+
 @since: 0.4
 """
 
