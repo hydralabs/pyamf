@@ -7,15 +7,11 @@ PyAMF SQLAlchemy adapter tests.
 @since 0.4
 """
 
-import datetime
-import sys
 import unittest
 
-import sqlalchemy
 from sqlalchemy import MetaData, Table, Column, Integer, String, ForeignKey, \
                        create_engine
 from sqlalchemy.orm import mapper, relation, sessionmaker, clear_mappers
-from sqlalchemy.orm import collections
 
 import pyamf
 import pyamf.flex
