@@ -74,6 +74,7 @@ def suite():
         base_mod = ['pyamf', 'tests', 'adapters', name]
 
         try:
+            __import__(name)
             mod = __import__('.'.join(base_mod))
             for x in base_mod[1:]:
                 mod = getattr(mod, x)

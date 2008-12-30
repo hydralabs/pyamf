@@ -9,6 +9,11 @@ import sys
 from setuptools import setup, find_packages, Extension
 from setuptools.command import test
 
+try:
+    from Cython.Distutils import build_ext
+except ImportError:
+    from setuptools.command.build_ext import build_ext
+
 class TestCommand(test.test):
     def run_twisted(self):
         from twisted.trial import runner
@@ -23,6 +28,7 @@ class TestCommand(test.test):
         import logging
         logging.basicConfig()
         logging.getLogger().setLevel(logging.CRITICAL)
+
         try:
             import twisted
 
@@ -43,11 +49,22 @@ def get_cpyamf_extensions():
     if sys.platform.startswith('java'):
         return []
 
-    return [Extension(
-        'cpyamf.util',
-        ["cpyamf/util.c"],
-        extra_compile_args=['-O3']
-    )]
+    ext_modules = []
+
+    try:
+        import Cython
+
+        ext_modules.extend([
+            Extension('cpyamf.util', ['cpyamf/util.pyx']),
+            Extension('cpyamf.amf3', ['cpyamf/amf3.pyx'])
+        ])
+    except ImportError:
+        ext_modules.extend([
+            Extension('cpyamf.util', ['cpyamf/util.c']),
+            Extension('cpyamf.amf3', ['cpyamf/amf3.c'])
+        ])
+
+    return ext_modules
 
 def get_extensions():
     """
@@ -95,7 +112,8 @@ setup(name = "PyAMF",
     license = "MIT License",
     platforms = ["any"],
     cmdclass = {
-        'test': TestCommand
+        'test': TestCommand,
+        'build_ext': build_ext,
     },
     extras_require = {
         'wsgi': ['wsgiref'],
@@ -120,3 +138,4 @@ setup(name = "PyAMF",
         "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ])
+

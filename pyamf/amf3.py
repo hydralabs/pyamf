@@ -1008,30 +1008,7 @@ class Decoder(pyamf.BaseDecoder):
         <http://osflash.org/amf3/parsing_integers>} for the AMF3 integer data
         format.
         """
-        n = result = 0
-        b = self.stream.read_uchar()
-
-        while b & 0x80 != 0 and n < 3:
-            result <<= 7
-            result |= b & 0x7f
-            b = self.stream.read_uchar()
-            n += 1
-
-        if n < 3:
-            result <<= 7
-            result |= b
-        else:
-            result <<= 8
-            result |= b
-
-            if result & 0x10000000 != 0:
-                if signed:
-                    result -= 0x20000000
-                else:
-                    result <<= 1
-                    result += 1
-
-        return result
+        return decode_int(self.stream, signed)
 
     def readString(self, use_references=True):
         """
@@ -1427,7 +1404,7 @@ class Encoder(pyamf.BaseEncoder):
         <http://osflash.org/documentation/amf3/parsing_integers>}
         for more info.
         """
-        self.stream.write(_encode_int(n))
+        self.stream.write(encode_int(n))
 
     def writeInteger(self, n, use_references=True):
         """
@@ -1444,7 +1421,7 @@ class Encoder(pyamf.BaseEncoder):
             return
 
         self.writeType(ASTypes.INTEGER)
-        self.stream.write(_encode_int(n))
+        self.stream.write(encode_int(n))
 
     def writeNumber(self, n, use_references=True):
         """
@@ -1875,7 +1852,7 @@ def encode(*args, **kwargs):
 
 def _encode_int(n):
     """
-    @raise ValueError: Out of range.
+    @raise OverflowError: Out of range.
     """
     if n & 0xf0000000 not in [0, 0xf0000000]:
         raise OverflowError("Out of range")
@@ -1906,3 +1883,38 @@ def _encode_int(n):
         bytes += chr(n & 0x7f)
 
     return bytes
+
+def _decode_int(stream, signed=False):
+    n = result = 0
+    b = stream.read_uchar()
+
+    while b & 0x80 != 0 and n < 3:
+        result <<= 7
+        result |= b & 0x7f
+        b = stream.read_uchar()
+        n += 1
+
+    if n < 3:
+        result <<= 7
+        result |= b
+    else:
+        result <<= 8
+        result |= b
+
+        if result & 0x10000000 != 0:
+            if signed:
+                result -= 0x20000000
+            else:
+                result <<= 1
+                result += 1
+
+    return result
+
+try:
+    from cpyamf.amf3 import encode_int
+except ImportError:
+    encode_int = _encode_int
+try:
+    from cpyamf.amf3 import decode_int
+except ImportError:
+    decode_int = _decode_int

@@ -629,6 +629,7 @@ class IndexedCollection(object):
             self.list.append(obj)
             idx = len(self.list) - 1
             self.dict[h] = idx
+
             return idx
 
     def remove(self, obj):
@@ -641,6 +642,7 @@ class IndexedCollection(object):
 
         del self.list[idx]
         del self.dict[h]
+
         return idx
 
     def __eq__(self, other):
@@ -732,7 +734,7 @@ if sys.version_info < (2, 5) or sys.platform.startswith('win'):
 
     if not fpconst.isNaN(struct.unpack("!d", '\xff\xf8\x00\x00\x00\x00\x00\x00')[0]):
         def read_double_workaround(self):
-            bytes = self._read(8)
+            bytes = self.read(8)
 
             if bytes == '\xff\xf8\x00\x00\x00\x00\x00\x00':
                 return fpconst.NaN

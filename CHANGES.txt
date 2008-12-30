@@ -4,7 +4,7 @@ PyAMF Changelog
 This file contains information about the changes between the different versions
 of PyAMF.
 
-0.4.0 (unreleased)
+0.4 (unreleased)
 ------------------
  - Support for encoding/decoding SQLAlchemy ORM objects with a new adapter.
    Lots of people involved in this one, but special thanks to Dave Thompson
@@ -39,8 +39,8 @@ of PyAMF.
    an aliased class and first loads the object from the datastore and then
    applies that properties in the object stream. (Ticket:307)
  - New helper function to make it easier to manually add adapters (Ticket:350)
- - Python C-extension for the pyamf.util.BufferedByteStream class. Contributed
-   by Gerard Escalante (Ticket:225)
+ - Python C-extension for the pyamf.util.BufferedByteStream class. Originally
+   contributed by Gerard Escalante (Ticket:225, 405)
  - New API to add headers such as cookies in pyamf.remoting.client (Ticket:337)
  - Now clearing the context between remoting requests (Ticket:309)
  - Fixed issue with AMF3 class definition references (Ticket:341)
@@ -77,7 +77,7 @@ of PyAMF.
  - amf0 Encoder now takes amf3 contexts into account (Ticket:268)
  - amf*.encode helpers can now accept multiple arguments (Ticket:267)
  - Removed the dependancy of fpconst for Python 2.5 or newer (Ticket:243)
- - Solved issue with AMFPHP exceptions in AMF client (Ticket:258) 
+ - Solved issue with AMFPHP exceptions in AMF client (Ticket:258)
  - Fixed issue with url parsing in AMF client (Ticket:256)
  - Client no longer raises httplib.ResponseNotReady when making multiple
    requests using the same RemotingService (Ticket:254)
@@ -156,7 +156,7 @@ of PyAMF.
    (Ticket:145)
  - ElementTree requirement is now ignored when using Python >= 2.5 (Ticket:144)
  - Added tests for TwistedGateway (Ticket:132)
- - Workaround for Python 2.4 float shortcomings (Ticket:78) 
+ - Workaround for Python 2.4 float shortcomings (Ticket:78)
  - Service Browser ('DescribeService' header) requests supported. (Ticket:138)
  - Remoting client now supports authentication. (Ticket:137)
  - Proper encoding for aliased subclassed builtin types, specifically

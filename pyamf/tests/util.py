@@ -118,7 +118,6 @@ def isNegInf(val):
     else:
         return val == float('-inf')
 
-
 def replace_dict(src, dest):
     for name in dest.keys():
         if name not in src:
