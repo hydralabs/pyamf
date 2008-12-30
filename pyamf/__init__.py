@@ -393,7 +393,7 @@ class ClassAlias(object):
     def checkClass(kls, klass):
         """
         This function is used to check the class being aliased to fits certain
-        criteria. The default is to check that the __init__ constructor does 
+        criteria. The default is to check that the __init__ constructor does
         not pass in arguments.
 
         @since: 0.4

@@ -724,7 +724,7 @@ class Context(pyamf.BaseContext):
 
         @since: 0.4
         """
-        self.object_aliases.map(obj, alias) 
+        self.object_aliases.map(obj, alias)
 
     def getObjectAlias(self, obj):
         """

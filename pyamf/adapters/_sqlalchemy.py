@@ -107,7 +107,7 @@ class SaMappedClassAlias(pyamf.ClassAlias):
         # Don't set lazy-loaded attrs
         if attrs.has_key(self.LAZY_ATTR) and attrs[self.LAZY_ATTR] is not None:
             static_attrs, dynamic_attrs = self.getAttrs(obj)
-            
+
             for attr in static_attrs:
                 if attrs.has_key(attr) and \
                     (attrs[attr] is None or attrs[attr] is pyamf.Undefined) and \

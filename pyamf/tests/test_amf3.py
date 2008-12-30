@@ -88,7 +88,7 @@ class ContextTestCase(_util.ClassCacheClearingTestCase):
         x = amf3.Context()
         obj = {'label': 'original'}
         alias = {'label': 'aliased'}
-        
+
         x.setObjectAlias(obj, alias)
         self.assertEquals(len(x.object_aliases), 1)
 
@@ -1041,7 +1041,7 @@ class ObjectEncodingTestCase(_util.ClassCacheClearingTestCase):
         self.assertEquals(cd.klass, Spam)
 
         self.assertEquals(self.stream.getvalue(), '\n\x0b\x0fabc.xyz\tspam\x06\teggs\x01')
-    
+
         pos = self.stream.tell()
         self.encoder.writeElement(y)
         self.assertEquals(self.stream.getvalue()[pos:], '\n\x01\x07foo\x06\x07bar\x01')
@@ -1596,7 +1596,7 @@ class ComplexEncodingTestCase(unittest.TestCase, _util.BaseEncoderMixIn):
         self.assertEquals(len(class_defs.list), 8)
         self.assertEquals(self.TestObject, class_defs[1].klass)
         self.assertEquals(self.TestSubObject, class_defs[2].klass)
-    
+
     def complex_encode_decode_test(self, decoded):
         for obj in decoded:
             self.assertEquals(self.TestObject, obj.__class__)

@@ -697,7 +697,7 @@ class IndexedMap(IndexedCollection):
 
     def append(self, obj):
         idx = IndexedCollection.append(self, obj)
-        diff = (idx + 1) - len(self.mapped) 
+        diff = (idx + 1) - len(self.mapped)
         for i in range(0, diff):
             self.mapped.append(None)
         return idx

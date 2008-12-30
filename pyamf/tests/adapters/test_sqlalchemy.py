@@ -13,7 +13,7 @@ import unittest
 
 import sqlalchemy
 from sqlalchemy import MetaData, Table, Column, Integer, String, ForeignKey, \
-                       create_engine 
+                       create_engine
 from sqlalchemy.orm import mapper, relation, sessionmaker, clear_mappers
 from sqlalchemy.orm import collections
 
