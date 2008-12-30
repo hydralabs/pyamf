@@ -230,13 +230,15 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
             """
             Return HTTP 400 Bad Request.
             """
-            self.logger.exception(failure.printDetailedTraceback())
-
+            errMesg = "%s: %s" % (failure.type, failure.getErrorMessage())
+            self.logger.error(errMesg)
+            self.logger.info(failure.getTraceback())
+    
             body = "400 Bad Request\n\nThe request body was unable to " \
                 "be successfully decoded."
 
             if self.debug:
-                body += "\n\nTraceback:\n\n%s" % failure.printTraceback()
+                body += "\n\nTraceback:\n\n%s" % failure.getTraceback()
 
             self._finaliseRequest(request, 400, body)
 
@@ -274,7 +276,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
                 " the response."
 
             if self.debug:
-                body += "\n\nTraceback:\n\n%s" % failure.printTraceback()
+                body += "\n\nTraceback:\n\n%s" % failure.getTraceback()
 
             self._finaliseRequest(request, 500, body)
 
