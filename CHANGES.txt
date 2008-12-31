@@ -39,6 +39,8 @@ of PyAMF.
    an aliased class and first loads the object from the datastore and then
    applies that properties in the object stream. (Ticket:307)
  - New helper function to make it easier to manually add adapters (Ticket:350)
+ - Ability to disable the c extension with passing --disable-ext to setup.py
+   (Ticket:381, 391)
  - Python C-extension for the pyamf.util.BufferedByteStream class. Originally
    contributed by Gerard Escalante (Ticket:225, 405)
  - New API to add headers such as cookies in pyamf.remoting.client (Ticket:337)
@@ -63,7 +65,7 @@ of PyAMF.
    magog (Ticket:304)
  - Added the disconnect Command operation (Ticket:325)
  - Fixed issue with the unit tests for Django (Ticket:281)
- - Deprecated the NetworkIOMixIn class (Ticket:232)
+ - Removed the NetworkIOMixIn class (Ticket:232)
 
 0.3.1 (2008-05-04)
 ------------------
