@@ -4,7 +4,7 @@ PyAMF Changelog
 This file contains information about the changes between the different versions
 of PyAMF.
 
-0.4 (unreleased)
+0.4rc1 (2008-12-31)
 ------------------
  - Support for encoding/decoding SQLAlchemy ORM objects with a new adapter.
    Lots of people involved in this one, but special thanks to Dave Thompson
