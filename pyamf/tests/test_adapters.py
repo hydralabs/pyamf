@@ -74,13 +74,14 @@ def suite():
         base_mod = ['pyamf', 'tests', 'adapters', name]
 
         try:
-            __import__(name)
+            __import__(name[5:])
             mod = __import__('.'.join(base_mod))
             for x in base_mod[1:]:
                 mod = getattr(mod, x)
 
             suite.addTest(mod.suite())
-        except ImportError:
+        except ImportError, e:
+            print e
             continue
 
     return suite
