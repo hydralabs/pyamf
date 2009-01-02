@@ -4,7 +4,7 @@ MIT license is included below.
 MIT License
 ===========
 
-Copyright (c) 2007-2008 The PyAMF Project. All rights reserved.
+Copyright (c) 2007-2009 The PyAMF Project. All rights reserved.
 
 Arnar Birgisson
 Thijs Triemstra
