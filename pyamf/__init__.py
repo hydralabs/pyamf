@@ -1,4 +1,4 @@
-# Copyright (c) 2007-2008 The PyAMF Project.
+# Copyright (c) 2007-2009 The PyAMF Project.
 # See LICENSE for details.
 
 """
@@ -7,7 +7,7 @@ B{PyAMF} provides B{A}ction B{M}essage B{F}ormat
 Python that is compatible with the
 U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>}.
 
-@copyright: Copyright (c) 2007-2008 The PyAMF Project. All Rights Reserved.
+@copyright: Copyright (c) 2007-2009 The PyAMF Project. All Rights Reserved.
 @contact: U{dev@pyamf.org<mailto:dev@pyamf.org>}
 @see: U{http://pyamf.org}
 

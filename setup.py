@@ -1,4 +1,4 @@
-# Copyright (c) 2007-2008 The PyAMF Project.
+# Copyright (c) 2007-2009 The PyAMF Project.
 # See LICENSE for details.
 
 from ez_setup import use_setuptools
