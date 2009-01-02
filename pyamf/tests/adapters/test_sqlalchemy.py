@@ -15,7 +15,6 @@ from sqlalchemy.orm import mapper, relation, sessionmaker, clear_mappers
 
 import pyamf
 import pyamf.flex
-from pyamf.adapters import _sqlalchemy
 
 class BaseObject(object):
     def __init__(self, **kwargs):

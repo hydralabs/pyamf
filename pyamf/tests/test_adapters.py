@@ -81,7 +81,6 @@ def suite():
 
             suite.addTest(mod.suite())
         except ImportError, e:
-            print e
             continue
 
     return suite
