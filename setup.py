@@ -97,7 +97,7 @@ objectproxy arraycollection recordset actionscript decoder encoder
 gateway remoteobject twisted pylons django sharedobject lso sol"""
 
 setup(name = "PyAMF",
-    version = "0.5",
+    version = "0.4rc2",
     description = "AMF support for Python",
     long_description = open('README.txt', 'rt').read(),
     url = "http://pyamf.org",
