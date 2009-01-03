@@ -12,7 +12,7 @@ U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>}.
 @see: U{http://pyamf.org}
 
 @since: October 2007
-@version: 0.4rc2
+@version: 0.5
 """
 
 import types
@@ -29,7 +29,7 @@ __all__ = [
 ]
 
 #: PyAMF version number.
-__version__ = (0, 4, 0, 'rc2')
+__version__ = (0, 5, 0)
 
 #: Class mapping support.
 CLASS_CACHE = {}
