@@ -10,7 +10,7 @@ of PyAMF.
 0.4 (unreleased)
 ----------------
 
-0.4rc2 (2008-01-05)
+0.4rc2 (2009-01-05)
 -------------------
  - Support for SQLAlchemy 0.4.x (Ticket:410)
 
