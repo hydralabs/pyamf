@@ -505,15 +505,6 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
         DataInput.__init__(self, Decoder(self, self.context))
         DataOutput.__init__(self, Encoder(self, self.context))
 
-        try:
-            buffer = zlib.decompress(self.getvalue())
-
-            self.seek(0)
-            self.write(buffer)
-            self.seek(0)
-        except zlib.error:
-            pass
-
         self.compressed = False
 
     def __cmp__(self, other):
@@ -1278,7 +1269,14 @@ class Decoder(pyamf.BaseDecoder):
 
         buffer = self.stream.read(ref >> 1)
 
+        try:
+            buffer = zlib.decompress(buffer)
+            compressed = True
+        except zlib.error:
+            compressed = False
+
         obj = ByteArray(buffer, context=self.context)
+        obj.compressed = compressed
 
         self.context.addObject(obj)
 
