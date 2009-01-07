@@ -4,11 +4,10 @@ PyAMF Changelog
 This file contains information about the changes between the different versions
 of PyAMF.
 
-0.5 (unreleased)
-----------------
-
 0.4 (unreleased)
 ----------------
+ - Now checking for all types of supported xml lib types for encoding, but will
+   only use the first implementation for decoding (Ticket:426)
 
 0.4rc2 (2009-01-05)
 -------------------
@@ -108,7 +107,6 @@ of PyAMF.
 
 0.2 (2008-03-12)
 ----------------
-
  - Removed amfinfo console_script (Ticket:226)
  - Encoders/Decoders now check for __getstate__/__setstate__ respectively
    (Ticket:209)
@@ -125,7 +123,6 @@ of PyAMF.
 
 0.1.1 (2008-02-18)
 ------------------
-
  - AMF3 encoder reported incorrect byte length header for non-ASCII string data.
    Patch supplied by akaihola. (Ticket:194)
  - Decoder context not cleared between reading the remoting header and body.
@@ -133,7 +130,6 @@ of PyAMF.
 
 0.1 (2008-02-11)
 ----------------
-
  - New error handling api useful for registering custom exception classes
    (Ticket:185)
  - When a client receives a remoting error, an exception is generated (Ticket:167)
@@ -183,7 +179,6 @@ of PyAMF.
 
 0.1.0a (2007-12-12)
 -------------------
-
  - AMF0 and AMF3 encoders/decoders
  - Additional support for IExternalizable, ArrayCollection, ObjectProxy,
    ByteArray, RecordSet and RemoteObject
@@ -194,6 +189,5 @@ of PyAMF.
 
 2007-10-19
 ----------
-
  - Started project based on previous work done in the RTMPy (http://rtmpy.org)
    project.
