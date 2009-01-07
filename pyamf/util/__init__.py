@@ -763,41 +763,51 @@ def is_ET_element(obj):
 # init the module from here ..
 find_xml_lib()
 
-if sys.version_info < (2, 5) or sys.platform.startswith('win'):
-    # workaround for python2.4's shortcomings with exceptional floats
-    # see: http://blog.pyamf.org/archives/when-is-nan-not-a-number-with-python-24
+def is_float_broken():
+    """
+    Older versions of python (<=2.5) and the Windows platform are renowned for
+    mixing up 'special' floats. This function determines whether this is the
+    case.
+
+    @since: 0.4
+    """
+    # we do this instead of float('nan') because windows throws a wobbler.
+    nan = 1e300000/1e300000
+
+    return nan == struct.unpack("!d", '\xff\xf8\x00\x00\x00\x00\x00\x00')[0]
+
+if is_float_broken():
     import fpconst
 
-    if not fpconst.isNaN(struct.unpack("!d", '\xff\xf8\x00\x00\x00\x00\x00\x00')[0]):
-        def read_double_workaround(self):
-            bytes = self.read(8)
+    def read_double_workaround(self):
+        bytes = self.read(8)
 
-            if bytes == '\xff\xf8\x00\x00\x00\x00\x00\x00':
-                return fpconst.NaN
+        if bytes == '\xff\xf8\x00\x00\x00\x00\x00\x00':
+            return fpconst.NaN
 
-            if bytes == '\xff\xf0\x00\x00\x00\x00\x00\x00':
-                return fpconst.NegInf
+        if bytes == '\xff\xf0\x00\x00\x00\x00\x00\x00':
+            return fpconst.NegInf
 
-            if bytes == '\x7f\xf0\x00\x00\x00\x00\x00\x00':
-                return fpconst.PosInf
+        if bytes == '\x7f\xf0\x00\x00\x00\x00\x00\x00':
+            return fpconst.PosInf
 
-            return struct.unpack("%sd" % self.endian, bytes)[0]
+        return struct.unpack("%sd" % self.endian, bytes)[0]
 
-        DataTypeMixIn.read_double = read_double_workaround
+    DataTypeMixIn.read_double = read_double_workaround
 
-        def write_double_workaround(self, d):
-            if fpconst.isNaN(d):
-                self.write('\xff\xf8\x00\x00\x00\x00\x00\x00')
-            elif fpconst.isNegInf(d):
-                self.write('\xff\xf0\x00\x00\x00\x00\x00\x00')
-            elif fpconst.isPosInf(d):
-                self.write('\x7f\xf0\x00\x00\x00\x00\x00\x00')
-            else:
-                write_double_workaround.old_func(self, d)
+    def write_double_workaround(self, d):
+        if fpconst.isNaN(d):
+            self.write('\xff\xf8\x00\x00\x00\x00\x00\x00')
+        elif fpconst.isNegInf(d):
+            self.write('\xff\xf0\x00\x00\x00\x00\x00\x00')
+        elif fpconst.isPosInf(d):
+            self.write('\x7f\xf0\x00\x00\x00\x00\x00\x00')
+        else:
+            write_double_workaround.old_func(self, d)
 
-        x = DataTypeMixIn.write_double
-        DataTypeMixIn.write_double = write_double_workaround
-        write_double_workaround.old_func = x
+    x = DataTypeMixIn.write_double
+    DataTypeMixIn.write_double = write_double_workaround
+    write_double_workaround.old_func = x
 
 try:
     from cpyamf.util import BufferedByteStream
