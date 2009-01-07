@@ -765,7 +765,7 @@ find_xml_lib()
 
 def is_float_broken():
     """
-    Older versions of python (<2.4) and the Windows platform are renowned for
+    Older versions of python (<=2.5) and the Windows platform are renowned for
     mixing up 'special' floats. This function determines whether this is the
     case.
 

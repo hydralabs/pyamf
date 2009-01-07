@@ -9,8 +9,6 @@ import sys
 from setuptools import setup, find_packages, Extension
 from setuptools.command import test
 
-from pyamf.util import is_float_broken
-
 try:
     from Cython.Distutils import build_ext
 except ImportError:
@@ -37,6 +35,21 @@ class TestCommand(test.test):
             self.run_twisted()
         except ImportError:
             test.test.run_tests(self)
+
+def is_float_broken():
+    """
+    Older versions of python (<=2.5) and the Windows platform are renowned for
+    mixing up 'special' floats. This function determines whether this is the
+    case.
+
+    @since: 0.4
+    """
+    import struct
+
+    # we do this instead of float('nan') because windows throws a wobbler.
+    nan = 1e300000/1e300000
+
+    return nan != struct.unpack("!d", '\xff\xf8\x00\x00\x00\x00\x00\x00')[0]
 
 def get_cpyamf_extensions():
     """
