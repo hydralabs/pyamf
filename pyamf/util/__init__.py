@@ -18,28 +18,68 @@ try:
 except ImportError:
     from StringIO import StringIO
 
-try:
-    import xml.etree.ElementTree as ET
-except ImportError:
+xml_types = None
+ET = None
+
+def find_xml_lib():
+    """
+    Run through a predefined order looking through the various ElementTree
+    implementations so that any type can be encoded but PyAMF will return
+    elements as the first implementation found.
+
+    We work through the C implementations first - then the pure python
+    versions. The downside to this is that a possible of three libraries will
+    be loaded into memory that are not used but the libs are small
+    (relatively) and the flexibility that this gives seems to outweigh the
+    cost. Time will tell.
+
+    @since: 0.4
+    """
+    global xml_types, ET
+
+    xml_types = []
+
     try:
-        import cElementTree as ET
+        import xml.etree.cElementTree as cET
 
-        ET._ElementInterface = ET.ElementTree
+        ET = cET
+        xml_types.append(type(cET.Element('foo')))
     except ImportError:
-        import elementtree.ElementTree as ET
+        pass
 
-try:
-    import xml.etree.cElementTree as cET
-except ImportError:
     try:
         import cElementTree as cET
+
+        if ET is None:
+            ET = cET
+
+        xml_types.append(type(cET.Element('foo')))
     except ImportError:
-        cET = None
+        pass
 
-cET_Element_Type = None
+    try:
+        import xml.etree.ElementTree as pET
 
-if cET:
-    cET_Element_Type = type(cET.Element('<e/>'))
+        if ET is None:
+            ET = pET
+
+        xml_types.append(pET._ElementInterface)
+    except ImportError:
+        pass
+
+    try:
+        import elementtree.ElementTree as pET
+
+        if ET is None:
+            ET = pET
+
+        xml_types.append(pET._ElementInterface)
+    except ImportError:
+        pass
+
+    xml_types = tuple(xml_types)
+
+    return xml_types
 
 class StringIOProxy(object):
     """
@@ -718,14 +758,10 @@ def is_ET_element(obj):
     """
     Determines if the supplied C{obj} param is a valid ElementTree element.
     """
-    # This works well for regular ElementTree, but NOT for cElementTree
-    if isinstance(obj, ET._ElementInterface):
-        return True
+    return isinstance(obj, xml_types)
 
-    if cET_Element_Type and isinstance(obj, cET_Element_Type):
-        return True
-
-    return False
+# init the module from here ..
+find_xml_lib()
 
 if sys.version_info < (2, 5) or sys.platform.startswith('win'):
     # workaround for python2.4's shortcomings with exceptional floats
