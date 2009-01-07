@@ -9,6 +9,8 @@ import sys
 from setuptools import setup, find_packages, Extension
 from setuptools.command import test
 
+from pyamf.util import is_float_broken
+
 try:
     from Cython.Distutils import build_ext
 except ImportError:
@@ -84,9 +86,9 @@ def get_install_requirements():
     install_requires = []
 
     if sys.version_info < (2, 5):
-        install_requires.extend(
-            ["elementtree >= 1.2.6", "uuid>=1.30", "fpconst>=0.7.2"])
-    elif sys.platform.startswith('win'):
+        install_requires.extend(["elementtree >= 1.2.6", "uuid>=1.30"])
+
+    if is_float_broken():
         install_requires.append("fpconst>=0.7.2")
 
     return install_requires
