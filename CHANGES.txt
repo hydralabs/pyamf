@@ -9,6 +9,8 @@ of PyAMF.
 
 0.4 (unreleased)
 ----------------
+ - Now checking for all types of supported xml lib types for encoding, but will 
+   only use the first implementation for decoding (Ticket:426)
 
 0.4rc2 (2009-01-05)
 -------------------
