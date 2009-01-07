@@ -9,7 +9,7 @@ Test utilities.
 
 import unittest, copy, sys
 import pyamf
-from pyamf.util import BufferedByteStream
+from pyamf.util import BufferedByteStream, is_float_broken
 
 class ClassicSpam:
     def __readamf__(self, input):
@@ -95,28 +95,28 @@ class DecoderTester(object):
             testcase.assertEqual(self.buf.remaining(), 0)
 
 def isNaN(val):
-    if sys.version_info < (2, 5) or sys.platform.startswith('win'):
+    if is_float_broken():
         import fpconst
 
         return fpconst.isNaN(val)
     else:
-        return str(float(val)) == 'nan'
+        return str(float(val)) == str(1e300000/1e300000)
 
 def isPosInf(val):
-    if sys.version_info < (2, 5) or sys.platform.startswith('win'):
+    if is_float_broken():
         import fpconst
 
         return fpconst.isPosInf(val)
     else:
-        return val == float('inf')
+        return val == 1e300000
 
 def isNegInf(val):
-    if sys.version_info < (2, 5) or sys.platform.startswith('win'):
+    if is_float_broken():
         import fpconst
 
         return fpconst.isNegInf(val)
     else:
-        return val == float('-inf')
+        return val == -1e300000
 
 def replace_dict(src, dest):
     for name in dest.keys():
