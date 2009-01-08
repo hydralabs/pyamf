@@ -774,7 +774,7 @@ def is_float_broken():
     # we do this instead of float('nan') because windows throws a wobbler.
     nan = 1e300000/1e300000
 
-    return nan != struct.unpack("!d", '\xff\xf8\x00\x00\x00\x00\x00\x00')[0]
+    return str(nan) != str(struct.unpack("!d", '\xff\xf8\x00\x00\x00\x00\x00\x00')[0])
 
 if is_float_broken():
     import fpconst
