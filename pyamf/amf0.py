@@ -402,7 +402,7 @@ class Decoder(pyamf.BaseDecoder):
         tz = self.stream.read_short()
 
         # Timezones are ignored
-        d = datetime.datetime.utcfromtimestamp(ms)
+        d = util.get_datetime(ms)
         self.context.addObject(d)
 
         return d
