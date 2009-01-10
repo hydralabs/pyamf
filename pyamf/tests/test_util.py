@@ -28,6 +28,9 @@ class TimestampTestCase(unittest.TestCase):
     def test_get_datetime(self):
         self.assertEqual(util.get_datetime(1194825600), datetime(2007, 11, 12))
 
+    def test_get_negative_datetime(self):
+        self.assertEqual(util.get_datetime(-31536000), datetime(1969, 1, 1))
+
 class StringIOProxyTestCase(unittest.TestCase):
     """
     """

@@ -20,6 +20,7 @@ except ImportError:
 
 xml_types = None
 ET = None
+negative_timestamp_broken = False
 
 def find_xml_lib():
     """
@@ -510,6 +511,9 @@ def get_datetime(secs):
     @return: UTC timestamp.
     @rtype: C{datetime.datetime}
     """
+    if secs < 0 and negative_timestamp_broken:
+        return datetime.datetime(1970, 1, 1) + datetime.timedelta(seconds=secs)
+
     return datetime.datetime.utcfromtimestamp(secs)
 
 def make_classic_instance(klass):
@@ -760,9 +764,6 @@ def is_ET_element(obj):
     """
     return isinstance(obj, xml_types)
 
-# init the module from here ..
-find_xml_lib()
-
 def is_float_broken():
     """
     Older versions of python (<=2.5) and the Windows platform are renowned for
@@ -775,6 +776,14 @@ def is_float_broken():
     nan = 1e300000/1e300000
 
     return str(nan) != str(struct.unpack("!d", '\xff\xf8\x00\x00\x00\x00\x00\x00')[0])
+
+# init the module from here ..
+find_xml_lib()
+
+try:
+    datetime.datetime.utcfromtimestamp(-31536000.0)
+except ValueError:
+    negative_timestamp_broken = True
 
 if is_float_broken():
     import fpconst
