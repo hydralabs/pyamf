@@ -13,6 +13,7 @@ import unittest
 
 import pyamf
 from pyamf import flex, util, amf3, amf0
+from pyamf.tests.util import check_buffer
 
 class ArrayCollectionTestCase(unittest.TestCase):
     def test_create(self):
@@ -163,9 +164,9 @@ class ObjectProxyTestCase(unittest.TestCase):
 
         encoder.writeElement(x)
 
-        self.assertEquals(stream.getvalue(),
-            '\x0a\x07;flex.messaging.io.ObjectProxy\x09\x01\x03a\x06\x09spam'
-            '\x03b\x04\x05\x01')
+        self.assertTrue(check_buffer(stream.getvalue(), (
+            '\n\x07;flex.messaging.io.ObjectProxy\t\x01',
+            ('\x03a\x06\x09spam', '\x03b\x04\x05'), '\x01')))
 
     def test_decode(self):
         stream = util.BufferedByteStream(

@@ -14,7 +14,7 @@ import unittest, types
 import pyamf
 from pyamf import amf3, util
 from pyamf.tests import util as _util
-from pyamf.tests.util import Spam, ClassicSpam
+from pyamf.tests.util import Spam, ClassicSpam, check_buffer
 
 class TypesTestCase(unittest.TestCase):
     """
@@ -453,8 +453,13 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
             ({'spam': 'eggs'}, '\n\x0b\x01\tspam\x06\teggs\x01')])
 
         self._run([
-            ({'a': u'a', 'b': u'b', 'c': u'c', 'd': u'd'},
-                '\n\x0b\x01\x03a\x06\x00\x03c\x06\x02\x03b\x06\x04\x03d\x06\x06\x01')])
+            ({'a': u'e', 'b': u'f', 'c': u'g', 'd': u'h'},  '\n\x0b\x01', (
+                '\x03c\x06\x03g',
+                '\x03b\x06\x03f', 
+                '\x03a\x06\x03e',
+                '\x03d\x06\x03h',
+            ), '\x01')
+        ])
 
         x = amf3.Decoder('\n\x0b\x01\x03a\x06\x00\x03c\x06\x02\x03b\x06\x04\x03d\x06\x06\x01')
         self.assertEqual(x.readElement(), {'a': u'a', 'b': u'b', 'c': u'c', 'd': u'd'})
@@ -610,8 +615,15 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
 
         self.encoder.writeElement(u)
 
-        self.assertEquals(self.buf.getvalue(), '\n\x0b!spam.eggs.Person\x17'
-            'family_name\x06\x07Doe\x15given_name\x06\tJane\x01')
+        self.assertTrue(check_buffer(
+            self.buf.getvalue(), (
+                '\n\x0b!spam.eggs.Person', (
+                    '\x17family_name\x06\x07Doe',
+                    '\x15given_name\x06\tJane'
+                ),
+                '\x01'
+            )
+        ))
 
     def test_slots(self):
         class Person(object):
@@ -655,8 +667,11 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
 
         self.encoder.writeElement(foo)
 
-        self.assertEquals(self.buf.getvalue(),
-            '\n\x0b\x01\ttext\x06\x07bar\ttail\x01\x07tag\x06\x07foo\x01')
+        self.assertTrue(check_buffer(self.buf.getvalue(), ('\n\x0b\x01', (
+            '\ttext\x06\x07bar',
+            '\ttail\x01',
+            '\x07tag\x06\x07foo'
+        ), '\x01')))
 
     def test_unknown_func(self):
         self.encoder._writeElementFunc = lambda x: None

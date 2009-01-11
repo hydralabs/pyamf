@@ -13,7 +13,7 @@ import unittest, datetime, types
 
 import pyamf
 from pyamf import amf0, util
-from pyamf.tests.util import EncoderTester, DecoderTester, \
+from pyamf.tests.util import check_buffer, EncoderTester, DecoderTester, \
     ClassCacheClearingTestCase, Spam, ClassicSpam, isNaN, isPosInf, isNegInf
 
 class TypesTestCase(unittest.TestCase):
@@ -220,10 +220,11 @@ class EncoderTestCase(ClassCacheClearingTestCase):
 
     def test_mixed_array(self):
         self._run([
-            (pyamf.MixedArray(a=1, b=2, c=3), '\x08\x00\x00\x00\x00\x00\x01a'
-                '\x00?\xf0\x00\x00\x00\x00\x00\x00\x00\x01c\x00@\x08\x00\x00'
-                '\x00\x00\x00\x00\x00\x01b\x00@\x00\x00\x00\x00\x00\x00\x00'
-                '\x00\x00\t')])
+            (pyamf.MixedArray(a=1, b=2, c=3), '\x08\x00\x00\x00\x00', (
+                '\x00\x01a\x00?\xf0\x00\x00\x00\x00\x00\x00',
+                '\x00\x01c\x00@\x08\x00\x00\x00\x00\x00\x00',
+                '\x00\x01b\x00@\x00\x00\x00\x00\x00\x00\x00'
+            ), '\x00\x00\t')])
 
     def test_date(self):
         import datetime
@@ -311,7 +312,10 @@ class EncoderTestCase(ClassCacheClearingTestCase):
         x.hello = 'world'
 
         self._run([
-            (x, '\x03\x00\x05hello\x02\x00\x05world\x00\x04spam\x02\x00\x04eggs\x00\x00\t')])
+            (x, ('\x03', (
+                '\x00\x05hello\x02\x00\x05world',
+                '\x00\x04spam\x02\x00\x04eggs'
+            ), '\x00\x00\t'))])
 
     def test_dynamic(self):
         def attr_func(obj):
@@ -393,9 +397,15 @@ class EncoderTestCase(ClassCacheClearingTestCase):
 
         self.encoder.writeElement(u)
 
-        self.assertEquals(self.buf.getvalue(), '\x10\x00\x10spam.eggs.Person'
-            '\x00\x0bfamily_name\x02\x00\x03Doe\x00\ngiven_name\x02\x00\x04'
-            'Jane\x00\x00\t')
+        self.assertTrue(check_buffer(
+            self.buf.getvalue(), (
+                '\x10\x00\x10spam.eggs.Person', (
+                    '\x00\x0bfamily_name\x02\x00\x03Doe',
+                    '\x00\ngiven_name\x02\x00\x04Jane'
+                ),
+                '\x00\x00\t'
+            )
+        ))
 
     def test_slots(self):
         class Person(object):
@@ -439,9 +449,11 @@ class EncoderTestCase(ClassCacheClearingTestCase):
 
         self.encoder.writeElement(foo)
 
-        self.assertEquals(self.buf.getvalue(),
-            '\x03\x00\x04text\x02\x00\x03bar\x00\x04tail\x05\x00\x03tag\x02'
-            '\x00\x03foo\x00\x00\t')
+        self.assertTrue(check_buffer(self.buf.getvalue(), ('\x03', (
+            '\x00\x04text\x02\x00\x03bar',
+            '\x00\x04tail\x05',
+            '\x00\x03tag\x02\x00\x03foo',
+        ), '\x00\x00\t')))
 
     def test_funcs(self):
         def x():
@@ -970,8 +982,10 @@ class ClassInheritanceTestCase(ClassCacheClearingTestCase):
 
         encoder.writeElement(x)
 
-        self.assertEquals(stream.getvalue(), '\x10\x00\x01B\x00\x01a\x02\x00'
-            '\x04spam\x00\x01b\x02\x00\x04eggs\x00\x00\t')
+        self.assertTrue(check_buffer(stream.getvalue(), ('\x10\x00\x01B', (
+            '\x00\x01a\x02\x00\x04spam',
+            '\x00\x01b\x02\x00\x04eggs'
+        ), '\x00\x00\t')))
 
     def test_deep(self):
         class A(object):
@@ -999,9 +1013,11 @@ class ClassInheritanceTestCase(ClassCacheClearingTestCase):
 
         encoder.writeElement(x)
 
-        self.assertEquals(stream.getvalue(), '\x10\x00\x01C\x00\x01a\x02\x00'
-            '\x04spam\x00\x01c\x02\x00\x03foo\x00\x01b\x02\x00\x04eggs\x00'
-            '\x00\t')
+        self.assertTrue(check_buffer(stream.getvalue(), ('\x10\x00\x01C', (
+            '\x00\x01a\x02\x00\x04spam',
+            '\x00\x01c\x02\x00\x03foo',
+            '\x00\x01b\x02\x00\x04eggs'
+        ), '\x00\x00\t')))
 
 def suite():
     suite = unittest.TestSuite()

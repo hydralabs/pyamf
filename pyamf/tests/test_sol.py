@@ -13,6 +13,7 @@ import unittest, os.path, warnings, tempfile
 
 import pyamf
 from pyamf import sol
+from pyamf.tests.util import check_buffer
 
 warnings.simplefilter('ignore', RuntimeWarning)
 
@@ -75,7 +76,7 @@ class EncoderTestCase(unittest.TestCase):
     def test_multiple_values(self):
         stream = sol.encode('hello', {'name': 'value', 'spam': 'eggs'})
 
-        self.assertEquals(stream.getvalue(), HelperTestCase.contents)
+        self.assertTrue(check_buffer(stream.getvalue(), HelperTestCase.contents))
 
     def test_amf3(self):
         bytes = '\x00\xbf\x00\x00\x00aTCSO\x00\x04\x00\x00\x00\x00\x00\x08' + \
@@ -88,9 +89,16 @@ class EncoderTestCase(unittest.TestCase):
         self.assertEquals(stream.getvalue(), bytes)
 
 class HelperTestCase(unittest.TestCase):
-    contents = '\x00\xbf\x00\x00\x002TCSO\x00\x04\x00\x00\x00\x00\x00\x05h' + \
-        'ello\x00\x00\x00\x00\x00\x04name\x02\x00\x05value\x00\x00\x04spam' + \
-        '\x02\x00\x04eggs\x00'
+    contents = (
+        '\x00\xbf\x00\x00\x002TCSO\x00\x04\x00\x00\x00\x00\x00\x05hello\x00\x00\x00\x00', (
+            '\x00\x04name\x02\x00\x05value\x00',
+            '\x00\x04spam\x02\x00\x04eggs\x00'
+        )
+    )
+
+    contents_str = '\x00\xbf\x00\x00\x002TCSO\x00\x04\x00\x00\x00\x00\x00' + \
+        '\x05hello\x00\x00\x00\x00\x00\x04name\x02\x00\x05value\x00\x00' + \
+        '\x04spam\x02\x00\x04eggs\x00'
 
     def setUp(self):
         self.fp, self.file_name = tempfile.mkstemp()
@@ -103,7 +111,7 @@ class HelperTestCase(unittest.TestCase):
     def _load(self):
         fp = open(self.file_name, 'wb+')
 
-        fp.write(self.contents)
+        fp.write(self.contents_str)
         fp.flush()
 
         return fp
@@ -137,7 +145,7 @@ class HelperTestCase(unittest.TestCase):
         fp = open(self.file_name, 'rb')
 
         try:
-            self.assertEquals(fp.read(), self.contents)
+            self.assertTrue(check_buffer(fp.read(), self.contents))
         except:
             fp.close()
 
@@ -152,7 +160,7 @@ class HelperTestCase(unittest.TestCase):
         fp.seek(0)
 
         self.assertFalse(fp.closed)
-        self.assertEquals(fp.read(), self.contents)
+        self.assertTrue(check_buffer(fp.read(), self.contents))
 
         fp.close()
 
@@ -172,7 +180,7 @@ class SOLTestCase(unittest.TestCase):
         try:
             s.save(x)
 
-            self.assertEquals(open(x, 'rb').read(), HelperTestCase.contents)
+            self.assertTrue(check_buffer(open(x, 'rb').read(), HelperTestCase.contents))
         except:
             if os.path.isfile(x):
                 os.unlink(x)
@@ -191,10 +199,10 @@ class SOLTestCase(unittest.TestCase):
 
             fp.seek(0)
 
-            self.assertEquals(fp.read(), HelperTestCase.contents)
+            self.assertTrue(check_buffer(fp.read(), HelperTestCase.contents))
             self.assertEquals(fp.closed, False)
 
-            self.assertEquals(open(x, 'rb').read(), HelperTestCase.contents)
+            self.assertTrue(check_buffer(open(x, 'rb').read(), HelperTestCase.contents))
         except:
             if os.path.isfile(x):
                 os.unlink(x)

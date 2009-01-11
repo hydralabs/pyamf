@@ -185,6 +185,11 @@ class SATestCase(unittest.TestCase):
 def suite():
     suite = unittest.TestSuite()
 
+    try:
+        import pysqlite2
+    except ImportError:
+        return suite
+
     suite.addTest(unittest.makeSuite(SATestCase))
 
     return suite
