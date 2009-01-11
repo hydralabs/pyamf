@@ -78,6 +78,11 @@ def find_xml_lib():
     except ImportError:
         pass
 
+    for x in xml_types[:]:
+        # hack for jython
+        if x.__name__ == 'instance':
+            xml_types.remove(x)
+
     xml_types = tuple(xml_types)
 
     return xml_types
@@ -778,6 +783,7 @@ def is_float_broken():
     return str(nan) != str(struct.unpack("!d", '\xff\xf8\x00\x00\x00\x00\x00\x00')[0])
 
 # init the module from here ..
+
 find_xml_lib()
 
 try:
