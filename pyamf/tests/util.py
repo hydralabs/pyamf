@@ -62,10 +62,16 @@ class EncoderTester(object):
         return t
 
     def run(self, testcase):
-        for n, s in self.data:
+        for n in self.data:
+            s = n[1:]
+            n = n[0]
+
             self.encoder.writeElement(n)
 
-            testcase.assertEqual(self.getval(), s)
+            if isinstance(s, basestring):
+                testcase.assertEqual(self.getval(), s)
+            elif isinstance(s, (tuple, list)):
+                testcase.assertTrue(check_buffer(self.getval(), s))
 
 class DecoderTester(object):
     """
@@ -117,6 +123,34 @@ def isNegInf(val):
         return fpconst.isNegInf(val)
     else:
         return val == -1e300000
+
+def check_buffer(buf, parts, inner=False):
+    assert isinstance(parts, (tuple, list))
+
+    parts = [p for p in parts]
+
+    for part in parts:
+        if inner is False:
+            if isinstance(part, (tuple, list)):
+                buf = check_buffer(buf, part, inner=True)
+            else:
+                if not buf.startswith(part):
+                    return False
+
+                buf = buf[len(part):]
+        else:
+            for k in parts[:]:
+                for p in parts[:]:
+                    if isinstance(p, (tuple, list)):
+                        buf = check_buffer(buf, p, inner=True)
+                    else:
+                        if buf.startswith(p):
+                            parts.remove(p)
+                            buf = buf[len(p):]
+
+            return buf
+
+    return len(buf) == 0
 
 def replace_dict(src, dest):
     for name in dest.keys():
