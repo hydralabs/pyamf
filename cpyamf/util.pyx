@@ -190,16 +190,22 @@ cdef class BufferedByteStream:
         cdef unsigned char *bytes = <unsigned char *>buf
 
         if is_big_endian(self._endian):
+            if num_bytes == 3:
+                print bytes[0], bytes[1], bytes[2], self._endian
+
             while bytes_left > 0:
                 x = (x << 8) | bytes[0]
                 bytes += 1
                 bytes_left -= 1
+
+                if num_bytes == 3:
+                    print 'end = ', x, bytes_left
         else:
             while bytes_left > 0:
                 x = (x << 8) | bytes[bytes_left - 1]
                 bytes_left -= 1
 
-        if (SIZEOF_LONG > num_bytes):
+        if SIZEOF_LONG > num_bytes:
             x |= -(x & (1L << ((8 * num_bytes) - 1)))
 
         return x
@@ -427,6 +433,38 @@ cdef class BufferedByteStream:
 
         return PyInt_FromLong(self.unpack_int(buf, 4))
 
+    def read_24bit_uint(self):
+        """
+        Reads a 24 bit unsigned integer from the stream.
+
+        @since: 0.4
+        """
+        if not self.buffer:
+            raise ValueError('buffer is closed')
+
+        cdef char *buf = NULL
+
+        if StringIO_cread(self.buffer, &buf, 3) != 3:
+            raise EOFError
+
+        return PyInt_FromLong(self.unpack_uint(buf, 3))
+
+    def read_24bit_int(self):
+        """
+        Reads a 24 bit integer from the stream.
+
+        @since: 0.4
+        """
+        if not self.buffer:
+            raise ValueError('buffer is closed')
+
+        cdef char *buf = NULL
+
+        if StringIO_cread(self.buffer, &buf, 3) != 3:
+            raise EOFError
+
+        return PyInt_FromLong(self.unpack_int(buf, 3))
+
     def write(self, object obj):
         if not self.buffer:
             raise ValueError('buffer is closed')
@@ -498,6 +536,32 @@ cdef class BufferedByteStream:
             raise OverflowError
 
         self.pack_int(<long>val, 4)
+        self.len_changed = 1
+
+    def write_24bit_uint(self, unsigned long n):
+        """
+        Writes a 24 bit unsigned integer to the stream.
+        """
+        if not self.buffer:
+            raise ValueError('buffer is closed')
+
+        if not 0 <= n <= 0xffffff:
+            raise OverflowError("n is out of range")
+
+        self.pack_uint(n, 3)
+        self.len_changed = 1
+
+    def write_24bit_int(self, long n):
+        """
+        Writes a 24 bit integer to the stream.
+        """
+        if not self.buffer:
+            raise ValueError('buffer is closed')
+
+        if not -8388608 <= n <= 8388607:
+            raise OverflowError("n is out of range")
+
+        self.pack_int(n, 3)
         self.len_changed = 1
 
     def read_utf8_string(self, unsigned int l):
