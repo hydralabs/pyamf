@@ -268,6 +268,30 @@ class StringIOProxyTestCase(unittest.TestCase):
 
         self.assertEquals(len(sp), 6)
 
+    def test_consume(self):
+        sp = util.StringIOProxy()
+
+        self.assertEquals(sp.getvalue(), '')
+        self.assertEquals(sp.tell(), 0)
+
+        sp.consume()
+
+        self.assertEquals(sp.getvalue(), '')
+        self.assertEquals(sp.tell(), 0)
+
+        sp = util.StringIOProxy('foobar')
+
+        self.assertEquals(sp.getvalue(), 'foobar')
+        self.assertEquals(sp.tell(), 0)
+
+        sp.seek(3)
+
+        self.assertEquals(sp.tell(), 3)
+        sp.consume()
+
+        self.assertEquals(sp.getvalue(), 'bar')
+        self.assertEquals(sp.tell(), 0)
+
 class cStringIOProxyTestCase(StringIOProxyTestCase):
     def setUp(self):
         from cStringIO import StringIO

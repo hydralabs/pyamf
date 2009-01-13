@@ -196,6 +196,20 @@ class StringIOProxy(object):
 
         return self._len
 
+    def consume(self):
+        """
+        Chops the tail off the stream starting at 0 and ending at C{tell()}.
+        The stream pointer is set to 0 at the end of this function.
+
+        @since: 0.4
+        """
+        bytes = self.read()
+        self.truncate()
+
+        if len(bytes) > 0:
+            self.write(bytes)
+            self.seek(0)
+
 class DataTypeMixIn(object):
     """
     Provides methods for reading and writing basic data types for file-like

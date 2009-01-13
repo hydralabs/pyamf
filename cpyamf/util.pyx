@@ -779,6 +779,28 @@ cdef class BufferedByteStream:
         self.buffer.writelines(iterable)
         self.len_changed = 1
 
+    def consume(self):
+        """
+        Chops the tail off the stream starting at 0 and ending at C{tell()}.
+        The stream pointer is set to 0 at the end of this function.
+
+        @since: 0.4
+        """
+        if not self.buffer:
+            raise ValueError('buffer is closed')
+
+        # read the entire buffer
+        cdef char *buf = NULL
+        cdef int chars_read = StringIO_cread(self.buffer, &buf, -1)
+
+        # quick truncate
+        self.buffer = None
+        self.__init__(self)
+
+        if chars_read > 0:
+            StringIO_cwrite(self.buffer, buf, chars_read)
+            self.buffer.seek(0, 0)
+
 # init module here:
 PycString_IMPORT
 
