@@ -190,16 +190,10 @@ cdef class BufferedByteStream:
         cdef unsigned char *bytes = <unsigned char *>buf
 
         if is_big_endian(self._endian):
-            if num_bytes == 3:
-                print bytes[0], bytes[1], bytes[2], self._endian
-
             while bytes_left > 0:
                 x = (x << 8) | bytes[0]
                 bytes += 1
                 bytes_left -= 1
-
-                if num_bytes == 3:
-                    print 'end = ', x, bytes_left
         else:
             while bytes_left > 0:
                 x = (x << 8) | bytes[bytes_left - 1]
