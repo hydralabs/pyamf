@@ -5,7 +5,7 @@ This file contains information about the changes between the different versions
 of PyAMF.
 
 0.4rc3 (unreleased)
-------------------
+-------------------
  - util.DataTypeMixIn can now encode/decode 24bit signed/unsigned integers.
    (Ticket:422)
  - pyamf.util.StringIOProxy/cpyamf.util.BufferedByteString both have new
@@ -41,7 +41,7 @@ of PyAMF.
  - Encoders how have a 'strict' mode. Not generally useful for the time being
    but will help with developments in the future. Type mapped functions now
    require a second 'encoder' attribute. (Ticket:378)
--  Added adapter to handle the decimal module and, if strict is set to False,
+ - Added adapter to handle the decimal module and, if strict is set to False,
    silently converts a Decimal instance to a float (Ticket:376)
  - ClassAlias can now be subclassed and three new methods have been added:
    applyAttributes, createInstance, getAttributes all which help to provide fine
