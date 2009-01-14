@@ -339,7 +339,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
             if self.debug:
                 body += "\n\nTraceback:\n\n%s" % failure.getTraceback()
 
-            self._finaliseRequest(request, 500, body)
+            self._finaliseRequest(http_request, 500, body)
 
         d = defer.DeferredList(dl)
 

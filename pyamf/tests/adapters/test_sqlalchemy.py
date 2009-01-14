@@ -11,9 +11,8 @@ import unittest
 
 from sqlalchemy import MetaData, Table, Column, Integer, String, ForeignKey, \
                        create_engine
-from sqlalchemy.orm import mapper, relation, sessionmaker, clear_mappers
+from sqlalchemy.orm import mapper, relation, sessionmaker, clear_mappers, attributes
 
-import pyamf
 import pyamf.flex
 
 class BaseObject(object):
@@ -21,7 +20,10 @@ class BaseObject(object):
         self.__dict__.update(kwargs)
 
 class User(BaseObject):
-    pass
+    def __init__(self, **kwargs):
+        BaseObject.__init__(self, **kwargs)
+        self.lazy_loaded = [] 
+        self.lazy_loaded.append(LazyLoaded())
 
 class Address(BaseObject):
     pass
@@ -116,8 +118,10 @@ class SATestCase(unittest.TestCase):
         users = self.session.query(User).all()
 
         encoder = pyamf.get_encoder(pyamf.AMF3)
+
         encoder.writeElement(users)
         encoded = encoder.stream.getvalue()
+        print repr(encoded)
         decoded = pyamf.get_decoder(pyamf.AMF3, encoded).readElement()
         self.assertEquals([].__class__, decoded.__class__)
 
@@ -148,7 +152,6 @@ class SATestCase(unittest.TestCase):
 
     def test_lazy_load_attributes(self):
         user = self._build_obj()
-        user.lazy_loaded.append(LazyLoaded())
 
         self.session.save(user)
         self.session.commit()
@@ -161,6 +164,31 @@ class SATestCase(unittest.TestCase):
 
         decoded = pyamf.get_decoder(pyamf.AMF3, encoded).readElement()
         self.assertFalse(decoded.__dict__.has_key('lazy_loaded'))
+
+        if hasattr(attributes, 'instance_state'):
+            obj_state = attributes.instance_state(decoded)
+            self.assertFalse(obj_state.committed_state.has_key('lazy_loaded'))
+            self.assertFalse(obj_state.dict.has_key('lazy_loaded'))
+
+    def test_merge_with_lazy_loaded_attrs(self):
+        user = self._build_obj()
+
+        self.session.save(user)
+        self.session.commit()
+        self.session.clear()
+        user = self.session.query(User).first()
+
+        encoder = pyamf.get_encoder(pyamf.AMF3)
+        encoder.writeElement(user)
+        encoded = encoder.stream.getvalue()
+
+        decoded = pyamf.get_decoder(pyamf.AMF3, encoded).readElement()
+        self.assertFalse(decoded.__dict__.has_key('lazy_loaded'))
+        self.session.merge(user)
+        self.session.commit()
+
+        user = self.session.query(User).first()
+        self.assertTrue(len(user.lazy_loaded) == 1)
 
     def test_encode_decode_with_references(self):
         user = self._build_obj()

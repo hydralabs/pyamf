@@ -268,6 +268,30 @@ class StringIOProxyTestCase(unittest.TestCase):
 
         self.assertEquals(len(sp), 6)
 
+    def test_consume(self):
+        sp = util.StringIOProxy()
+
+        self.assertEquals(sp.getvalue(), '')
+        self.assertEquals(sp.tell(), 0)
+
+        sp.consume()
+
+        self.assertEquals(sp.getvalue(), '')
+        self.assertEquals(sp.tell(), 0)
+
+        sp = util.StringIOProxy('foobar')
+
+        self.assertEquals(sp.getvalue(), 'foobar')
+        self.assertEquals(sp.tell(), 0)
+
+        sp.seek(3)
+
+        self.assertEquals(sp.tell(), 3)
+        sp.consume()
+
+        self.assertEquals(sp.getvalue(), 'bar')
+        self.assertEquals(sp.tell(), 0)
+
 class cStringIOProxyTestCase(StringIOProxyTestCase):
     def setUp(self):
         from cStringIO import StringIO
@@ -389,6 +413,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
         self._write_endian(x, x.write_long, (0,), ('\x00\x00\x00\x00', '\x00\x00\x00\x00'))
         self._write_endian(x, x.write_long, (16810049,), ('\x01\x00\x80A', 'A\x80\x00\x01'))
         self._write_endian(x, x.write_long, (2147483647L,), ('\x7f\xff\xff\xff', '\xff\xff\xff\x7f'))
+        self._write_endian(x, x.write_long, (-2147483648,), ('\x80\x00\x00\x00', '\x00\x00\x00\x80'))
 
         self.assertRaises(OverflowError, x.write_long, 2147483648)
         self.assertRaises(OverflowError, x.write_long, -2147483649)
@@ -397,6 +422,42 @@ class DataTypeMixInTestCase(unittest.TestCase):
         self._read_endian(['\x00\x00\x00\x00', '\x00\x00\x00\x00'], 'read_long', (), 0)
         self._read_endian(['\x01\x00\x80A', 'A\x80\x00\x01'], 'read_long', (), 16810049)
         self._read_endian(['\x7f\xff\xff\xff', '\xff\xff\xff\x7f'], 'read_long', (), 2147483647L)
+
+    def test_write_u24bit(self):
+        x = ByteStream()
+
+        self._write_endian(x, x.write_24bit_uint, (0,), ('\x00\x00\x00', '\x00\x00\x00'))
+        self._write_endian(x, x.write_24bit_uint, (4292609,), ('A\x80\x01', '\x01\x80A'))
+        self._write_endian(x, x.write_24bit_uint, (16777215,), ('\xff\xff\xff', '\xff\xff\xff'))
+
+        self.assertRaises(OverflowError, x.write_24bit_uint, 16777216)
+        self.assertRaises(OverflowError, x.write_24bit_uint, -1)
+
+    def test_read_u24bit(self):
+        self._read_endian(['\x00\x00\x00', '\x00\x00\x00'], 'read_24bit_uint', (), 0)
+        self._read_endian(['\x00\x00\x80', '\x80\x00\x00'], 'read_24bit_uint', (), 128)
+        self._read_endian(['\x80\x00\x00', '\x00\x00\x80'], 'read_24bit_uint', (), 8388608)
+        self._read_endian(['\xff\xff\x7f', '\x7f\xff\xff'], 'read_24bit_uint', (), 16777087)
+        self._read_endian(['\x7f\xff\xff', '\xff\xff\x7f'], 'read_24bit_uint', (), 8388607)
+
+    def test_write_24bit(self):
+        x = ByteStream()
+
+        self._write_endian(x, x.write_24bit_int, (0,), ('\x00\x00\x00', '\x00\x00\x00'))
+        self._write_endian(x, x.write_24bit_int, (128,), ('\x00\x00\x80', '\x80\x00\x00'))
+        self._write_endian(x, x.write_24bit_int, (8388607,), ('\x7f\xff\xff', '\xff\xff\x7f'))
+        self._write_endian(x, x.write_24bit_int, (-1,), ('\xff\xff\xff', '\xff\xff\xff'))
+        self._write_endian(x, x.write_24bit_int, (-8388608,), ('\x80\x00\x00', '\x00\x00\x80'))
+
+        self.assertRaises(OverflowError, x.write_24bit_int, 8388608)
+        self.assertRaises(OverflowError, x.write_24bit_int, -8388609)
+
+    def test_read_24bit(self):
+        self._read_endian(['\x00\x00\x00', '\x00\x00\x00'], 'read_24bit_int', (), 0)
+        self._read_endian(['\x00\x00\x80', '\x80\x00\x00'], 'read_24bit_int', (), 128)
+        self._read_endian(['\x80\x00\x00', '\x00\x00\x80'], 'read_24bit_int', (), -8388608)
+        self._read_endian(['\xff\xff\x7f', '\x7f\xff\xff'], 'read_24bit_int', (), -129)
+        self._read_endian(['\x7f\xff\xff', '\xff\xff\x7f'], 'read_24bit_int', (), 8388607)
 
     def test_write_float(self):
         x = ByteStream()
@@ -582,18 +643,19 @@ class ClassAliasTestCase(unittest.TestCase):
 
         self.assertEquals(util.get_class_alias(B), DummyAlias)
 
-class IndexedCollectionTestCase(unittest.TestCase):
-    class TestObject(object):
-        def __init__(self):
-            self.name = 'test'
 
+class TestObject(object):
+    def __init__(self):
+        self.name = 'test'
+
+class IndexedCollectionTestCase(unittest.TestCase):
     def setUp(self):
         self.collection = util.IndexedCollection()
 
     def test_append(self):
         max = 5
         for i in range(0, max):
-            test_obj = self.TestObject()
+            test_obj = TestObject()
             test_obj.name = i
             self.collection.append(test_obj)
 
@@ -602,14 +664,14 @@ class IndexedCollectionTestCase(unittest.TestCase):
             self.assertEquals(i, self.collection.list[i].name)
 
     def test_get_reference_to(self):
-        test_obj = self.TestObject
+        test_obj = TestObject
         self.collection.append(test_obj)
         idx = self.collection.getReferenceTo(test_obj)
         self.assertEquals(0, idx)
-        self.assertRaises(pyamf.ReferenceError, self.collection.getReferenceTo, self.TestObject())
+        self.assertRaises(pyamf.ReferenceError, self.collection.getReferenceTo, TestObject())
 
     def test_get_by_reference(self):
-        test_obj = self.TestObject
+        test_obj = TestObject
         idx = self.collection.append(test_obj)
         self.assertEquals(id(test_obj), id(self.collection.getByReference(idx)))
         idx = self.collection.getReferenceTo(test_obj)
@@ -617,7 +679,7 @@ class IndexedCollectionTestCase(unittest.TestCase):
         self.assertRaises(TypeError, self.collection.getByReference, 'bad ref')
 
     def test_remove(self):
-        test_obj = self.TestObject()
+        test_obj = TestObject()
         ref = self.collection.append(test_obj)
         self.collection.remove(test_obj)
         self.assertEquals(0, len(self.collection.list))

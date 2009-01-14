@@ -295,11 +295,6 @@ class ClassAliasTestCase(ClassCacheClearingTestCase):
 
         pyamf.unregister_class(Spam)
 
-        def af(x):
-            self.assertEquals(self._obj, x)
-
-            return ['bar']
-
         pyamf.register_class(Spam, attrs=['foo', 'bar'], attr_func=af, metadata=['dynamic'])
         alias = pyamf.get_class_alias(Spam)
 
