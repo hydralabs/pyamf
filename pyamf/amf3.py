@@ -578,27 +578,21 @@ class ClassDefinition(object):
         """
         Gets the class alias that is held by this definition.
 
-        @see: L{load_class<pyamf.load_class>}.
-        @raise UnknownClassAlias: Anonymous class definitions do not have
-        class aliases.
-
+        @see: L{get_class_alias<pyamf.get_class_alias>}.
         @rtype: L{ClassAlias<pyamf.ClassAlias>}
-        @return: Class definition.
+        @return: Class alias.
         """
-        if not hasattr(self, '_alias'):
-            if self.name == '':
-                raise pyamf.UnknownClassAlias('Anonymous class definitions do not have class aliases')
+        if not isinstance(self.alias, pyamf.ClassAlias):
+            self.alias = pyamf.get_class_alias(self.alias)
 
-            self._alias = pyamf.load_class(self.alias)
-
-        return self._alias
+        return self.alias
 
     def getClass(self):
         """
         Gets the referenced class that is held by this definition.
         """
-        if hasattr(self, '_alias'):
-            return self._alias
+        if hasattr(self, '_klass'):
+            return self._klass
 
         self._klass = self._getClass()
 
@@ -811,24 +805,24 @@ class Context(pyamf.BaseContext):
         @return: The reference to C{class_def}.
         @rtype: C{int}
         """
-        if not isinstance(class_def, ClassDefinition):
-            if isinstance(class_def, (type, types.ClassType)):
-                try:
-                    return self.classes.getReferenceTo(class_def)
-                except pyamf.ReferenceError:
-                    raise pyamf.ReferenceError("Reference for class definition for %s not found" % (class_def,))
-            elif isinstance(class_def, (types.InstanceType, types.ObjectType)):
-                try:
-                    return self.classes.getReferenceTo(class_def.__class__)
-                except pyamf.ReferenceError:
-                    raise pyamf.ReferenceError("Reference for class definition for %s not found" % (class_def.__class__,))
-
-            raise TypeError('unable to determine class for %r' % (class_def,))
-        else:
+        if isinstance(class_def, ClassDefinition):
             try:
                 return self.class_defs.getReferenceTo(class_def)
             except KeyError:
                 raise pyamf.ReferenceError("Reference for class %s not found" % (class_def.klass,))
+
+        if isinstance(class_def, (type, types.ClassType)):
+            try:
+                return self.classes.getReferenceTo(class_def)
+            except pyamf.ReferenceError:
+                raise pyamf.ReferenceError("Reference for class definition for %s not found" % (class_def,))
+        elif isinstance(class_def, (types.InstanceType, types.ObjectType)):
+            try:
+                return self.classes.getReferenceTo(class_def.__class__)
+            except pyamf.ReferenceError:
+                raise pyamf.ReferenceError("Reference for class definition for %s not found" % (class_def.__class__,))
+
+        raise TypeError('unable to determine class for %r' % (class_def,))
 
     def addClassDefinition(self, class_def):
         """
@@ -1111,7 +1105,6 @@ class Decoder(pyamf.BaseDecoder):
         if class_ref:
             class_def = self.context.getClassDefinition(ref)
         else:
-
             class_name = self.readString()
 
             if class_name == '':
@@ -1156,7 +1149,7 @@ class Decoder(pyamf.BaseDecoder):
         def readDynamic(is_ref, class_def, obj):
             attr = self.readString()
 
-            while attr != "":
+            while attr != '':
                 obj[attr] = self.readElement()
                 attr = self.readString()
 
@@ -1751,12 +1744,12 @@ class Encoder(pyamf.BaseEncoder):
 
                 [self.writeElement(static_attrs[attr]) for attr in attrs]
 
-            if class_def.encoding == ObjectEncoding.DYNAMIC and dynamic_attrs is not None:
+            if class_def.encoding is ObjectEncoding.DYNAMIC and dynamic_attrs is not None:
                 for attr, value in dynamic_attrs.iteritems():
                     self._writeString(attr)
                     self.writeElement(value)
 
-                self._writeString("")
+                self._writeString('')
 
     def writeByteArray(self, n, use_references=True):
         """

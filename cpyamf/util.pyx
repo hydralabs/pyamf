@@ -199,7 +199,7 @@ cdef class BufferedByteStream:
                 x = (x << 8) | bytes[bytes_left - 1]
                 bytes_left -= 1
 
-        if (SIZEOF_LONG > num_bytes):
+        if SIZEOF_LONG > num_bytes:
             x |= -(x & (1L << ((8 * num_bytes) - 1)))
 
         return x
@@ -335,7 +335,6 @@ cdef class BufferedByteStream:
             raise ValueError('buffer is closed')
 
         return self.buffer.getvalue()
-        return StringIO_cgetvalue(self.buffer)
 
     def read(self, int n=-1):
         if not self.buffer:
@@ -427,6 +426,38 @@ cdef class BufferedByteStream:
 
         return PyInt_FromLong(self.unpack_int(buf, 4))
 
+    def read_24bit_uint(self):
+        """
+        Reads a 24 bit unsigned integer from the stream.
+
+        @since: 0.4
+        """
+        if not self.buffer:
+            raise ValueError('buffer is closed')
+
+        cdef char *buf = NULL
+
+        if StringIO_cread(self.buffer, &buf, 3) != 3:
+            raise EOFError
+
+        return PyInt_FromLong(self.unpack_uint(buf, 3))
+
+    def read_24bit_int(self):
+        """
+        Reads a 24 bit integer from the stream.
+
+        @since: 0.4
+        """
+        if not self.buffer:
+            raise ValueError('buffer is closed')
+
+        cdef char *buf = NULL
+
+        if StringIO_cread(self.buffer, &buf, 3) != 3:
+            raise EOFError
+
+        return PyInt_FromLong(self.unpack_int(buf, 3))
+
     def write(self, object obj):
         if not self.buffer:
             raise ValueError('buffer is closed')
@@ -498,6 +529,32 @@ cdef class BufferedByteStream:
             raise OverflowError
 
         self.pack_int(<long>val, 4)
+        self.len_changed = 1
+
+    def write_24bit_uint(self, unsigned long n):
+        """
+        Writes a 24 bit unsigned integer to the stream.
+        """
+        if not self.buffer:
+            raise ValueError('buffer is closed')
+
+        if not 0 <= n <= 0xffffff:
+            raise OverflowError("n is out of range")
+
+        self.pack_uint(n, 3)
+        self.len_changed = 1
+
+    def write_24bit_int(self, long n):
+        """
+        Writes a 24 bit integer to the stream.
+        """
+        if not self.buffer:
+            raise ValueError('buffer is closed')
+
+        if not -8388608 <= n <= 8388607:
+            raise OverflowError("n is out of range")
+
+        self.pack_int(n, 3)
         self.len_changed = 1
 
     def read_utf8_string(self, unsigned int l):
@@ -714,6 +771,32 @@ cdef class BufferedByteStream:
 
         self.buffer.writelines(iterable)
         self.len_changed = 1
+
+    def consume(self):
+        """
+        Chops the tail off the stream starting at 0 and ending at C{tell()}.
+        The stream pointer is set to 0 at the end of this function.
+
+        @since: 0.4
+        """
+        if not self.buffer:
+            raise ValueError('buffer is closed')
+
+        # read the entire buffer
+        cdef char *buf = NULL
+        cdef unsigned int chars_read = StringIO_cread(self.buffer, &buf, -1)
+
+        if chars_read == 0:
+            return
+
+        # quick truncate
+        new_buffer = StringIO_NewOutput(128)
+
+        StringIO_cwrite(new_buffer, buf, chars_read)
+        self.buffer = new_buffer
+        self.buffer.seek(0)
+
+        self.length = chars_read
 
 # init module here:
 PycString_IMPORT

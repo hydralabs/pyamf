@@ -7,7 +7,7 @@ Test utilities.
 @since: 0.1.0
 """
 
-import unittest, copy, sys
+import unittest, copy
 import pyamf
 from pyamf.util import BufferedByteStream, is_float_broken
 

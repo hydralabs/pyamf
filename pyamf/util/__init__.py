@@ -9,7 +9,7 @@ AMF Utilities.
 @since: 0.1.0
 """
 
-import struct, calendar, datetime, types, sys
+import struct, calendar, datetime, types
 
 import pyamf
 
@@ -21,6 +21,22 @@ except ImportError:
 xml_types = None
 ET = None
 negative_timestamp_broken = False
+
+using_c_extension = False
+
+try:
+    import cpyamf.util
+    using_c_extension = True
+except ImportError:
+    pass
+
+using_c_extension = False
+
+try:
+    import cpyamf.util
+    using_c_extension = True
+except ImportError:
+    pass
 
 def find_xml_lib():
     """
@@ -196,6 +212,20 @@ class StringIOProxy(object):
 
         return self._len
 
+    def consume(self):
+        """
+        Chops the tail off the stream starting at 0 and ending at C{tell()}.
+        The stream pointer is set to 0 at the end of this function.
+
+        @since: 0.4
+        """
+        bytes = self.read()
+        self.truncate()
+
+        if len(bytes) > 0:
+            self.write(bytes)
+            self.seek(0)
+
 class DataTypeMixIn(object):
     """
     Provides methods for reading and writing basic data types for file-like
@@ -222,6 +252,15 @@ class DataTypeMixIn(object):
             raise EOFError("Tried to read %d byte(s) from the stream" % length)
 
         return bytes
+
+    def _is_big_endian(self):
+        """
+        Whether this system is big endian or not.
+        """
+        if self.endian == DataTypeMixIn.ENDIAN_NATIVE:
+            return DataTypeMixIn._system_endian == DataTypeMixIn.ENDIAN_BIG
+
+        return self.endian in (DataTypeMixIn.ENDIAN_BIG, DataTypeMixIn.ENDIAN_NETWORK)
 
     def read_uchar(self):
         """
@@ -313,6 +352,81 @@ class DataTypeMixIn(object):
 
         self.write(struct.pack("%sl" % self.endian, l))
 
+    def read_24bit_uint(self):
+        """
+        Reads a 24 bit unsigned integer from the stream.
+
+        @since: 0.4
+        """
+        order = None
+
+        if not self._is_big_endian():
+            order = [0, 8, 16]
+        else:
+            order = [16, 8, 0]
+
+        n = 0
+
+        for x in order:
+            n += (self.read_uchar() << x)
+
+        return n
+
+    def write_24bit_uint(self, n):
+        """
+        Writes a 24 bit unsigned integer to the stream.
+
+        @since: 0.4
+        """
+        if not 0 <= n <= 0xffffff:
+            raise OverflowError("n is out of range")
+
+        order = None
+
+        if not self._is_big_endian():
+            order = [0, 8, 16]
+        else:
+            order = [16, 8, 0]
+
+        for x in order:
+            self.write_uchar((n >> x) & 0xff)
+
+    def read_24bit_int(self):
+        """
+        Reads a 24 bit integer from the stream.
+
+        @since: 0.4
+        """
+        n = self.read_24bit_uint()
+
+        if n & 0x800000 != 0:
+            # the int is signed
+            n -= 0x1000000
+
+        return n
+
+    def write_24bit_int(self, n):
+        """
+        Writes a 24 bit integer to the stream.
+
+        @since: 0.4
+        """
+        if not -8388608 <= n <= 8388607:
+            raise OverflowError("n is out of range")
+
+        order = None
+
+        if not self._is_big_endian():
+            order = [0, 8, 16]
+        else:
+            order = [16, 8, 0]
+
+        if n < 0:
+            n += 0x1000000
+
+        for x in order:
+            self.write_uchar((n >> x) & 0xff)
+
     def read_double(self):
         """
         Reads an 8 byte float from the stream.
@@ -354,6 +468,11 @@ class DataTypeMixIn(object):
         bytes = u.encode("utf8")
 
         self.write(struct.pack("%s%ds" % (self.endian, len(bytes)), bytes))
+
+if struct.pack('@H', 1)[0] == '\x01':
+    DataTypeMixIn._system_endian = DataTypeMixIn.ENDIAN_LITTLE
+else:
+    DataTypeMixIn._system_endian = DataTypeMixIn.ENDIAN_BIG
 
 class BufferedByteStream(StringIOProxy, DataTypeMixIn):
     """
@@ -777,6 +896,9 @@ def is_float_broken():
 
     @since: 0.4
     """
+    if using_c_extension:
+        return False
+
     # we do this instead of float('nan') because windows throws a wobbler.
     nan = 1e300000/1e300000
 

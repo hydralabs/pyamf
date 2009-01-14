@@ -14,7 +14,7 @@ import unittest, types
 import pyamf
 from pyamf import amf3, util
 from pyamf.tests import util as _util
-from pyamf.tests.util import Spam, ClassicSpam, check_buffer
+from pyamf.tests.util import Spam, check_buffer
 
 class TypesTestCase(unittest.TestCase):
     """
@@ -934,7 +934,7 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
         self.assertEquals(class_def.encoding, amf3.ObjectEncoding.STATIC)
 
         self.assertTrue(class_def in self.context.class_defs)
-        self.assertFalse(class_def.klass in self.context.classes)
+        self.assertTrue(class_def.klass in self.context.classes)
 
         self.context.class_defs.remove(class_def)
         self.buf.write('\x0fabc.xyz')

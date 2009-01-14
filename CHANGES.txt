@@ -1,25 +1,35 @@
 PyAMF Changelog
 ===============
 
-This file contains information about the changes between the different versions
-of PyAMF.
+This file contains information about the changes between the different
+versions of PyAMF.
+
+.. contents::
 
 0.5 (unreleased)
 ----------------
 
-0.4rc3 (unreleased)
-------------------
- - Now checking for all types of supported xml lib types for encoding, but will
-   only use the first implementation for decoding (Ticket:426)
+0.4 (unreleased)
+----------------
+
+0.4rc3 (2008-01-14)
+-------------------
+ - Support for SQLAlchemy 0.5.0 (Ticket:436)
+ - pyamf.util.DataTypeMixIn/cpyamf.util.BufferedByteStream can now
+   encode/decode 24bit un/signed integers. (Ticket:422)
+ - pyamf.util.StringIOProxy/cpyamf.util.BufferedByteStream both have new
+   consume methods that will chop of the tail of the stream (already read
+   stream). (Ticket:423)
+ - Now checking for all types of supported xml lib types for encoding, but
+   will only use the first implementation for decoding (Ticket:426)
  - fpconst dependancy is now only required if the platform requires it
    (Ticket:356)
- - Creating negative timestamps on certain platforms (namely Windows) are now
+ - Decoding negative timestamps on certain platforms (namely Windows) are now
    supported (Ticket:390)
->>>>>>> .merge-right.r2017
 
 0.4rc2 (2009-01-05)
 -------------------
- - Support for SQLAlchemy 0.4.x (Ticket:410)
+ - Support for SQLAlchemy 0.4.0 (Ticket:410)
 
 0.4rc1 (2008-12-31)
 -------------------
@@ -33,18 +43,18 @@ of PyAMF.
  - Added use_proxy option to amf3 which will automagically convert ObjectProxy
    to dict and ArrayCollection to list on decoding, and vice versa on encode.
    Thanks to dthompso for the excellent patch (Ticket:355)
- - flex.ArrayCollection now subclasses list instead of dict as non-int keys are
-   not allowed. IList interface has been implemented. (Ticket:349)
- - Encoding registered subclass of list that define the 'externalised' metadata
-   will be encoded as an object.
+ - flex.ArrayCollection now subclasses list instead of dict as non-int keys
+   are not allowed. IList interface has been implemented. (Ticket:349)
+ - Encoding registered subclass of list that define the 'externalised'
+   metadata will be encoded as an object.
  - Encoders how have a 'strict' mode. Not generally useful for the time being
    but will help with developments in the future. Type mapped functions now
    require a second 'encoder' attribute. (Ticket:378)
--  Added adapter to handle the decimal module and, if strict is set to False,
+ - Added adapter to handle the decimal module and, if strict is set to False,
    silently converts a Decimal instance to a float (Ticket:376)
  - ClassAlias can now be subclassed and three new methods have been added:
-   applyAttributes, createInstance, getAttributes all which help to provide fine
-   control for object/instance manipulation (Ticket:348)
+   applyAttributes, createInstance, getAttributes all which help to provide
+   fine control for object/instance manipulation (Ticket:348)
  - Added support for __slots__. (Ticket:347)
  - Fixed problem when decoding objects that map to GAE db.Model objects with
    required properties (Ticket:342)
@@ -60,7 +70,8 @@ of PyAMF.
    (Ticket:381, 391)
  - Python C-extension for the pyamf.util.BufferedByteStream class. Originally
    contributed by Gerard Escalante (Ticket:225, 405)
- - New API to add headers such as cookies in pyamf.remoting.client (Ticket:337)
+ - New API to add headers such as cookies in pyamf.remoting.client
+   (Ticket:337)
  - Now clearing the context between remoting requests (Ticket:309)
  - Fixed issue with AMF3 class definition references (Ticket:341)
  - More helpful description for register_class args check (Ticket:334)
@@ -77,7 +88,8 @@ of PyAMF.
  - Added ability to set the HTTP referer in remoting client (Ticket:316)
  - Fixed issue where the AMF3 encoder assumed objects with a 'tag' attribute
    needed XML encoding. Reported by cy-man (Ticket:303)
- - Solved issue with repr for AbstractMessage. Reported by datafunk (Ticket:283)
+ - Solved issue with repr for AbstractMessage. Reported by datafunk
+   (Ticket:283)
  - Content-type was missing in POST requests from the AMF client. Reported by
    magog (Ticket:304)
  - Added the disconnect Command operation (Ticket:325)
@@ -107,9 +119,10 @@ of PyAMF.
  - Fixed the signed interpretation of compressed integers in AMF3 (Ticket:241)
  - Classic class decoding would throw an AttributeError (Ticket:248)
  - Reloading adapter modules caused errors in Django, Pylons and Google App
-   Engine. Resolved by removing dependancy on Importing module and incorporating
-   into pyamf.util (Ticket:250)
- - Adapter framework can now be fired when only loading submodules (Ticket:246)
+   Engine. Resolved by removing dependancy on Importing module and
+   incorporating into pyamf.util (Ticket:250)
+ - Adapter framework can now be fired when only loading submodules
+   (Ticket:246)
  - Made util.BufferedByteStream endian aware (Ticket:231)
  - Fixed issue with Twisted threads (Ticket:233)
 
@@ -119,8 +132,8 @@ of PyAMF.
  - Encoders/Decoders now check for __getstate__/__setstate__ respectively
    (Ticket:209)
  - Gateway import hack has now been removed - permanently (Ticket:224)
- - Encoding/decoding performance has been increased 2x for AMF0 and upto 10x(!)
-   for AMF3 (Ticket:198)
+ - Encoding/decoding performance has been increased 2x for AMF0 and up-to
+   10x(!) for AMF3 (Ticket:198)
  - Logging is now possible in all the supported gateways (Ticket:173)
  - A new preprocessor function that runs after authentication, but before
    invoking the service method (Ticket:196)
@@ -131,8 +144,8 @@ of PyAMF.
 
 0.1.1 (2008-02-18)
 ------------------
- - AMF3 encoder reported incorrect byte length header for non-ASCII string data.
-   Patch supplied by akaihola. (Ticket:194)
+ - AMF3 encoder reported incorrect byte length header for non-ASCII string
+   data. Patch supplied by akaihola. (Ticket:194)
  - Decoder context not cleared between reading the remoting header and body.
    Reported by gerard (Ticket:192)
 
@@ -140,7 +153,8 @@ of PyAMF.
 ----------------
  - New error handling api useful for registering custom exception classes
    (Ticket:185)
- - When a client receives a remoting error, an exception is generated (Ticket:167)
+ - When a client receives a remoting error, an exception is generated
+   (Ticket:167)
  - expose_request per service control vastly improved (Ticket:169)
  - Authentication per service control vastly improved (Ticket:166)
  - uuid is no longer installed when using Python 2.5 or newer (Ticket:182)
@@ -170,14 +184,16 @@ of PyAMF.
    (Ticket:147)
  - Fixed argument positioning for RemoteObject processing. Thanks akaihola!
    (Ticket:145)
- - ElementTree requirement is now ignored when using Python >= 2.5 (Ticket:144)
+ - ElementTree requirement is now ignored when using Python >= 2.5
+   (Ticket:144)
  - Added tests for TwistedGateway (Ticket:132)
  - Workaround for Python 2.4 float shortcomings (Ticket:78)
  - Service Browser ('DescribeService' header) requests supported. (Ticket:138)
  - Remoting client now supports authentication. (Ticket:137)
  - Proper encoding for aliased subclassed builtin types, specifically
    flex.ArrayCollection.
- - Added support for easy encoding of Django object queries (Foo.objects.all())
+ - Added support for easy encoding of Django object queries
+   (Foo.objects.all())
  - Added 'add_type' allowing finer grain control of how a class is encoded in
    an AMF stream. (Ticket:130)
  - 'authenticator' keyword added to all gateways (moved from ServiceRequest)
