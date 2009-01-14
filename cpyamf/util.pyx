@@ -335,7 +335,6 @@ cdef class BufferedByteStream:
             raise ValueError('buffer is closed')
 
         return self.buffer.getvalue()
-        return StringIO_cgetvalue(self.buffer)
 
     def read(self, int n=-1):
         if not self.buffer:
@@ -785,15 +784,19 @@ cdef class BufferedByteStream:
 
         # read the entire buffer
         cdef char *buf = NULL
-        cdef int chars_read = StringIO_cread(self.buffer, &buf, -1)
+        cdef unsigned int chars_read = StringIO_cread(self.buffer, &buf, -1)
+
+        if chars_read == 0:
+            return
 
         # quick truncate
-        self.buffer = None
-        self.__init__(self)
+        new_buffer = StringIO_NewOutput(128)
 
-        if chars_read > 0:
-            StringIO_cwrite(self.buffer, buf, chars_read)
-            self.buffer.seek(0, 0)
+        StringIO_cwrite(new_buffer, buf, chars_read)
+        self.buffer = new_buffer
+        self.buffer.seek(0)
+
+        self.length = chars_read
 
 # init module here:
 PycString_IMPORT

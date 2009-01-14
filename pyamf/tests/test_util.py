@@ -655,7 +655,7 @@ class IndexedCollectionTestCase(unittest.TestCase):
     def test_append(self):
         max = 5
         for i in range(0, max):
-            test_obj = self.TestObject()
+            test_obj = TestObject()
             test_obj.name = i
             self.collection.append(test_obj)
 
@@ -664,14 +664,14 @@ class IndexedCollectionTestCase(unittest.TestCase):
             self.assertEquals(i, self.collection.list[i].name)
 
     def test_get_reference_to(self):
-        test_obj = self.TestObject
+        test_obj = TestObject
         self.collection.append(test_obj)
         idx = self.collection.getReferenceTo(test_obj)
         self.assertEquals(0, idx)
-        self.assertRaises(pyamf.ReferenceError, self.collection.getReferenceTo, self.TestObject())
+        self.assertRaises(pyamf.ReferenceError, self.collection.getReferenceTo, TestObject())
 
     def test_get_by_reference(self):
-        test_obj = self.TestObject
+        test_obj = TestObject
         idx = self.collection.append(test_obj)
         self.assertEquals(id(test_obj), id(self.collection.getByReference(idx)))
         idx = self.collection.getReferenceTo(test_obj)
@@ -679,7 +679,7 @@ class IndexedCollectionTestCase(unittest.TestCase):
         self.assertRaises(TypeError, self.collection.getByReference, 'bad ref')
 
     def test_remove(self):
-        test_obj = self.TestObject()
+        test_obj = TestObject()
         ref = self.collection.append(test_obj)
         self.collection.remove(test_obj)
         self.assertEquals(0, len(self.collection.list))
