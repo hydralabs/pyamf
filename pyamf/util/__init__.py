@@ -9,7 +9,7 @@ AMF Utilities.
 @since: 0.1.0
 """
 
-import struct, calendar, datetime, types, sys
+import struct, calendar, datetime, types
 
 import pyamf
 

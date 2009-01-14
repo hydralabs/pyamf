@@ -14,7 +14,7 @@ import unittest, types
 import pyamf
 from pyamf import amf3, util
 from pyamf.tests import util as _util
-from pyamf.tests.util import Spam, ClassicSpam, check_buffer
+from pyamf.tests.util import Spam, check_buffer
 
 class TypesTestCase(unittest.TestCase):
     """
