@@ -121,7 +121,6 @@ class SATestCase(unittest.TestCase):
 
         encoder.writeElement(users)
         encoded = encoder.stream.getvalue()
-        print repr(encoded)
         decoded = pyamf.get_decoder(pyamf.AMF3, encoded).readElement()
         self.assertEquals([].__class__, decoded.__class__)
 
