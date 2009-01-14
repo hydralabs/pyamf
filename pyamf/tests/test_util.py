@@ -643,11 +643,12 @@ class ClassAliasTestCase(unittest.TestCase):
 
         self.assertEquals(util.get_class_alias(B), DummyAlias)
 
-class IndexedCollectionTestCase(unittest.TestCase):
-    class TestObject(object):
-        def __init__(self):
-            self.name = 'test'
 
+class TestObject(object):
+    def __init__(self):
+        self.name = 'test'
+
+class IndexedCollectionTestCase(unittest.TestCase):
     def setUp(self):
         self.collection = util.IndexedCollection()
 
