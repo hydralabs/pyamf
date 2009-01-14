@@ -22,7 +22,7 @@ class TestCommand(test.test):
         from pyamf.tests import suite
 
         r = runner.TrialRunner(reporter.VerboseTextReporter)
-        r.run(suite())
+        return r.run(suite())
 
     def run_tests(self):
         import logging
@@ -32,9 +32,9 @@ class TestCommand(test.test):
         try:
             import twisted
 
-            self.run_twisted()
+            return self.run_twisted()
         except ImportError:
-            test.test.run_tests(self)
+            return test.test.run_tests(self)
 
 def is_float_broken():
     """
