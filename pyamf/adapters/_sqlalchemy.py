@@ -79,25 +79,6 @@ class SaMappedClassAlias(pyamf.ClassAlias):
 
         return self.static_attrs, dynamic_attrs
 
-    def getLazyAttrs(self, obj):
-        """
-        Returns a list of lazy attributes for this class
-        """
-        if hasattr(self, 'lazy_attrs'):
-            return self.lazy_attrs
-
-        self.lazy_attrs = []
-        mapper = self._getMapper(obj)
-
-        for prop in mapper.iterate_properties:
-            if not hasattr(prop, 'lazy'):
-                continue
-
-            if prop.lazy:
-                self.lazy_attrs.append(prop.key)
-
-        return self.lazy_attrs
-
     def getAttributes(self, obj, *args, **kwargs):
         """
         Returns a C{tuple} containing a dict of static and dynamic attributes
@@ -110,27 +91,32 @@ class SaMappedClassAlias(pyamf.ClassAlias):
 
         static_attrs = {}
         dynamic_attrs = {}
+        lazy_attrs = []
 
         static_attr_names, dynamic_attr_names = self.getAttrs(obj)
 
+        # primary_key_from_instance actually changes obj.__dict__ if
+        # primary key properties do not already exist in obj.__dict__
+        static_attrs[self.KEY_ATTR] = mapper.primary_key_from_instance(obj)
+
         for attr in static_attr_names:
-             if attr in obj.__dict__:
-                 static_attrs[attr] = getattr(obj, attr)
+            if attr in obj.__dict__:
+                static_attrs[attr] = getattr(obj, attr)
 
-                 continue
+                continue
 
-             if attr in [self.KEY_ATTR, self.LAZY_ATTR]:
-                 continue
+            if attr in [self.KEY_ATTR, self.LAZY_ATTR]:
+                continue
 
-             # attrs here are lazy but have not been loaded from the db yet ..
-             static_attrs[attr] = pyamf.Undefined
+            # attrs here are lazy but have not been loaded from the db yet ..
+            lazy_attrs.append(attr)
+            static_attrs[attr] = pyamf.Undefined
 
         for attr in dynamic_attr_names:
             if attr in obj.__dict__:
                  dynamic_attrs[attr] = getattr(obj, attr)
 
-        static_attrs[self.KEY_ATTR] = mapper.primary_key_from_instance(obj)
-        static_attrs[self.LAZY_ATTR] = self.getLazyAttrs(obj)
+        static_attrs[self.LAZY_ATTR] = lazy_attrs
 
         return static_attrs, dynamic_attrs
 
@@ -160,7 +146,7 @@ class SaMappedClassAlias(pyamf.ClassAlias):
             if hasattr(sqlalchemy.orm.attributes, 'instance_state'):
                 obj_state = sqlalchemy.orm.attributes.instance_state(obj)
 
-            for lazy_attr in self.getLazyAttrs(obj):
+            for lazy_attr in attrs[self.LAZY_ATTR]:
                 if lazy_attr in obj.__dict__:
                     # Delete directly from the dict, so
                     # SA callbacks are not triggered.

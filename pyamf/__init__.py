@@ -73,8 +73,12 @@ for x in ClientTypes.__dict__:
         CLIENT_TYPES.append(ClientTypes.__dict__[x])
 del x
 
+class UndefinedType(object):
+    def __repr__(self):
+        return 'pyamf.Undefined'
+
 #: Represents the C{undefined} value in a Flash client.
-Undefined = object()
+Undefined = UndefinedType()
 
 class BaseError(Exception):
     """
@@ -203,6 +207,7 @@ class ASObject(dict):
 
     @raise AttributeError: Unknown attribute.
     """
+
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
 
@@ -218,6 +223,9 @@ class ASObject(dict):
     def __repr__(self):
         return dict.__repr__(self)
 
+    def __hash__(self):
+        return id(self)
+
 class MixedArray(dict):
     """
     Used to be able to specify the C{mixedarray} type.
@@ -229,6 +237,7 @@ class ClassMetaData(list):
     to emulate the metadata tags you can supply to ActionScript,
     e.g. C{static}/C{dynamic}.
     """
+
     _allowed_tags = (
         ('static', 'dynamic', 'external'),
         ('amf3', 'amf0'),
@@ -302,6 +311,7 @@ class ClassAlias(object):
     @ivar metadata: A list of metadata tags similar to ActionScript tags.
     @type metadata: C{list}
     """
+
     def __init__(self, klass, alias, attrs=None, attr_func=None, metadata=[]):
         """
         @type klass: C{class}
@@ -600,6 +610,7 @@ class BaseDecoder(object):
         registered alias. Introduced in 0.4.
     @type strict: C{bool}
     """
+
     context_class = BaseContext
     type_map = {}
 
