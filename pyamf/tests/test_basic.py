@@ -72,7 +72,7 @@ class ASObjectTestCase(unittest.TestCase):
     def test_hash(self):
         bag = pyamf.ASObject({'spam': 'eggs'})
 
-        self.assertEquals(id(bag), hash(bag))
+        self.assertNotEquals(None, hash(bag))
 
 class ClassMetaDataTestCase(unittest.TestCase):
     def test_create(self):
