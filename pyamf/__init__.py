@@ -13,6 +13,7 @@ U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>}.
 
 @since: October 2007
 @version: 0.4
+@status: Production/Stable
 """
 
 import types
