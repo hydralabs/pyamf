@@ -8,6 +8,8 @@ versions of PyAMF.
 
 0.4 (unreleased)
 ----------------
+ - setup.py now gets the version number from pyamf/__init__.py source
+   (Ticket:429)
 
 0.4rc3 (2008-01-14)
 -------------------

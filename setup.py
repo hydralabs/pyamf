@@ -36,6 +36,35 @@ class TestCommand(test.test):
         except ImportError:
             return test.test.run_tests(self)
 
+def get_version():
+    """
+    Gets the version number. Pulls it from the source files rather than
+    duplicating it.
+
+    @since: 0.4
+    """
+    import os.path
+    # we read the file instead of importing it as root sometimes does not
+    # have the cwd as part of the PYTHONPATH
+
+    fn = os.path.join(os.path.dirname(__file__), 'pyamf', '__init__.py')
+    lines = open(fn, 'rt').readlines()
+
+    version = None
+
+    for l in lines:
+        # include the ' =' as __version__ is a part of __all__
+        if l.startswith('__version__ =', ):
+            x = compile(l, fn, 'single')
+            eval(x)
+            version = locals()['__version__']
+            break
+
+    if version is None:
+        raise RuntimeError('Couldn\'t determine version number')
+
+    return '.'.join([str(x) for x in version])
+
 def is_float_broken():
     """
     Older versions of python (<=2.5) and the Windows platform are renowned for
@@ -112,7 +141,7 @@ objectproxy arraycollection recordset actionscript decoder encoder
 gateway remoteobject twisted pylons django sharedobject lso sol"""
 
 setup(name = "PyAMF",
-    version = "0.4",
+    version = get_version(),
     description = "AMF support for Python",
     long_description = open('README.txt', 'rt').read(),
     url = "http://pyamf.org",
