@@ -79,14 +79,17 @@ class EncoderTestCase(unittest.TestCase):
         self.assertTrue(check_buffer(stream.getvalue(), HelperTestCase.contents))
 
     def test_amf3(self):
-        bytes = '\x00\xbf\x00\x00\x00aTCSO\x00\x04\x00\x00\x00\x00\x00\x08' + \
-            'EchoTest\x00\x00\x00\x03\x0fhttpUri\x06=http://localhost:8000' + \
-            '/gateway/\x00\x0frtmpUri\x06+rtmp://localhost/echo\x00'
+        bytes = ('\x00\xbf\x00\x00\x00aTCSO\x00\x04\x00\x00\x00\x00\x00\x08' + \
+            'EchoTest\x00\x00\x00\x03', (
+                '\x0fhttpUri\x06=http://localhost:8000/gateway/\x00',
+                '\x0frtmpUri\x06+rtmp://localhost/echo\x00'
+            )
+        )
 
         stream = sol.encode(u'EchoTest',
             {u'httpUri': u'http://localhost:8000/gateway/', u'rtmpUri': u'rtmp://localhost/echo'}, encoding=pyamf.AMF3)
 
-        self.assertEquals(stream.getvalue(), bytes)
+        self.assertTrue(check_buffer(stream.getvalue(), bytes))
 
 class HelperTestCase(unittest.TestCase):
     contents = (
