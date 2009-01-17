@@ -164,7 +164,19 @@ class StringIOProxy(object):
         return self._buffer.tell()
 
     def truncate(self, size=0):
+        if size == 0:
+            self._buffer = StringIOProxy._wrapped_class()
+            self._len_changed = True
+
+            return
+
+        cur_pos = self.tell()
+        self.seek(0)
+        buf = self.read(size)
         self._buffer = StringIOProxy._wrapped_class()
+
+        self._buffer.write(buf)
+        self.seek(cur_pos)
         self._len_changed = True
 
     def write(self, s):

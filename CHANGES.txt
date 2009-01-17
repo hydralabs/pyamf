@@ -8,6 +8,8 @@ versions of PyAMF.
 
 0.4 (unreleased)
 ----------------
+ - BufferedByteString.truncate(value) now actuals does something useful
+   (Ticket:444)
  - setup.py now gets the version number from pyamf/__init__.py source
    (Ticket:429)
 

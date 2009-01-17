@@ -718,8 +718,30 @@ cdef class BufferedByteStream:
         if not self.buffer:
             raise ValueError('buffer is closed')
 
-        self.buffer = None
-        self.__init__(self)
+        if size == 0:
+            self.buffer = None
+            self.__init__(self)
+            self.len_changed = 1
+
+            return
+
+        if size > self.c_length():
+            return
+
+        cdef char *buffer = NULL
+        cdef unsigned long cur_pos = <unsigned long>self.tell()
+
+        self.seek(0)
+
+        if StringIO_cread(self.buffer, &buffer, size) != size:
+            raise RuntimeError
+
+        buf = StringIO_NewOutput(128)
+        StringIO_cwrite(buf, buffer, size)
+
+        buf.seek(cur_pos)
+
+        self.buffer = buf
         self.len_changed = 1
 
     def __add__(self, other):

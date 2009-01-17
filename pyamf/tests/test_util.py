@@ -22,6 +22,7 @@ class TimestampTestCase(unittest.TestCase):
     """
     Test UTC timestamps.
     """
+
     def test_get_timestamp(self):
         self.assertEqual(util.get_timestamp(datetime(2007, 11, 12)), 1194825600)
 
@@ -34,6 +35,7 @@ class TimestampTestCase(unittest.TestCase):
 class StringIOProxyTestCase(unittest.TestCase):
     """
     """
+
     def setUp(self):
         from StringIO import StringIO
 
@@ -210,6 +212,16 @@ class StringIOProxyTestCase(unittest.TestCase):
         sp.truncate()
         self.assertEquals(sp.getvalue(), '')
         self.assertEquals(len(sp), 0)
+
+        sp = util.StringIOProxy('hello')
+
+        self.assertEquals(sp.getvalue(), 'hello')
+        self.assertEquals(len(sp), 5)
+
+        sp.truncate(3)
+
+        self.assertEquals(sp.getvalue(), 'hel')
+        self.assertEquals(len(sp), 3)
 
     def test_write(self):
         sp = util.StringIOProxy()
