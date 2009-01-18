@@ -9,7 +9,7 @@ versions of PyAMF.
 0.5 (unreleased)
 ----------------
 
-0.4 (unreleased)
+0.4 (2009-01-18)
 ----------------
  - cpyamf now deals with exceptional floats the same way as pure python -
    especially on windows (Ticket:448)
