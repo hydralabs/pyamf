@@ -56,7 +56,7 @@ versions of PyAMF.
  - ClassAlias can now be subclassed and three new methods have been added:
    applyAttributes, createInstance, getAttributes all which help to provide
    fine control for object/instance manipulation (Ticket:348)
- - Added support for __slots__. (Ticket:347)
+ - Added support for __slots__ (Ticket:347)
  - Fixed problem when decoding objects that map to GAE db.Model objects with
    required properties (Ticket:342)
  - ByteArray now does not throw an error when used in the Remoting framework
@@ -212,7 +212,7 @@ versions of PyAMF.
  - zlib compression support for ByteArray
  - Remoting client with httplib
 
-2007-10-19
-----------
+0.0.1 (2007-10-19)
+------------------
  - Started project based on previous work done in the RTMPy (http://rtmpy.org)
    project.
