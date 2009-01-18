@@ -84,6 +84,8 @@ def get_cpyamf_extensions():
     """
     Returns a list of all extensions for the cpyamf module. If for some reason
     cpyamf can't be built an empty list is returned.
+
+    @since: 0.4
     """
     if '--disable-ext' in sys.argv:
         sys.argv.remove('--disable-ext')
@@ -113,6 +115,8 @@ def get_cpyamf_extensions():
 def get_extensions():
     """
     Returns a list of extensions to be built for PyAMF.
+
+    @since: 0.4
     """
     ext_modules = []
 
@@ -152,7 +156,7 @@ setup(name = "PyAMF",
     ext_modules = get_extensions(),
     install_requires = get_install_requirements(),
     test_suite = "pyamf.tests.suite",
-    zip_safe=True,
+    zip_safe = True,
     license = "MIT License",
     platforms = ["any"],
     cmdclass = {
@@ -164,6 +168,7 @@ setup(name = "PyAMF",
         'twisted': ['Twisted>=2.5.0'],
         'django': ['Django>=0.96'],
         'sqlalchemy': ['SQLAlchemy>=0.4'],
+        'cython': ['Cython>=0.10'],
     },
     classifiers = [
         "Development Status :: 5 - Production/Stable",
