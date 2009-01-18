@@ -11,6 +11,8 @@ versions of PyAMF.
  - cpyamf now deals with exceptional floats the same way as pure python -
    especially on windows (Ticket:448)
  - Support for SQLAlchemy 0.5.1 (Ticket:449)
+ - amf0.Encoder now has a use_amf3 flag which determines which XML type to
+   return to the client (Ticket:435)
  - BufferedByteString.truncate(length) now actually does something useful
    (Ticket:444)
  - setup.py now gets the version number from pyamf/__init__.py source

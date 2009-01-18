@@ -508,6 +508,16 @@ class EncoderTestCase(ClassCacheClearingTestCase):
         self.assertEquals(self.buf.getvalue(),
             '\n\x00\x00\x00\x02\x02\x00\x03foo\x02\x00\x03bar')
 
+    def test_amf3_xml(self):
+        self.encoder.use_amf3 = True
+
+        x = util.ET.fromstring('<root><sections><section /><section /></sections></root>')
+
+        self.encoder.writeElement(x)
+
+        self.assertEquals(self.buf.getvalue(),
+            '\x11\x0bq<root><sections><section /><section /></sections></root>')
+
 class DecoderTestCase(ClassCacheClearingTestCase):
     """
     Tests the output from the AMF0 L{Decoder<pyamf.amf0.Decoder>} class.
