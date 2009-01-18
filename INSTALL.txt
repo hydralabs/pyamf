@@ -17,6 +17,23 @@ The following software packages are pre-requisites:
 - **ElementTree 1.2.6 or newer** (included in Python 2.5 and newer)
 - **uuid 1.30 or newer** (included in Python 2.5 and newer)
 
+Optional Extras
+-----------------
+
+PyAMF integrates with the following optional third-party Python libraries:
+
+ - **wsgiref 0.1.2 or newer** (included in Python 2.5 and newer)
+ - **SQLAlchemy 0.4 or newer**
+ - **Twisted 2.5 or newer**
+ - **Django 0.97 or newer**
+
+C-Extension
+--------------
+
+To modify the cPyAMF extension you need:
+
+ - **Cython 0.10 or newer**
+
 Installing
 -------------------------------------------------
 
