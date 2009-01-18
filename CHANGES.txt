@@ -8,8 +8,10 @@ versions of PyAMF.
 
 0.4 (unreleased)
 ----------------
+ - cpyamf now deals with exceptional floats the same way as pure python -
+   especially on windows (Ticket:448)
  - Support for SQLAlchemy 0.5.1 (Ticket:449)
- - BufferedByteString.truncate(value) now actuals does something useful
+ - BufferedByteString.truncate(length) now actually does something useful
    (Ticket:444)
  - setup.py now gets the version number from pyamf/__init__.py source
    (Ticket:429)
