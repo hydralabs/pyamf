@@ -103,6 +103,24 @@ class BaseTestCase(unittest.TestCase):
 
         return user
 
+    def _save(self, obj):
+        # this covers deprecation warnings etc.
+        if hasattr(self.session, 'add'):
+            self.session.add(obj)
+        elif hasattr(self.session, 'save'):
+            self.session.save(user)
+        else:
+            raise AttributeError('Don\'t know how to save an object')
+
+    def _clear(self):
+        # this covers deprecation warnings etc.
+        if hasattr(self.session, 'expunge_all'):
+            self.session.expunge_all()
+        elif hasattr(self.session, 'clear'):
+            self.session.clear()
+        else:
+            raise AttributeError('Don\'t know how to clear session')
+
 class SATestCase(BaseTestCase):
     def _test_obj(self, encoded, decoded):
         self.assertEquals(User, decoded.__class__)
@@ -121,7 +139,7 @@ class SATestCase(BaseTestCase):
 
     def test_encode_decode_persistent(self):
         user = self._build_obj()
-        self.session.save(user)
+        self._save(user)
         self.session.commit()
         self.session.refresh(user)
 
@@ -137,7 +155,7 @@ class SATestCase(BaseTestCase):
         for i in range(0, max):
             user = self._build_obj()
             user.name = "%s" % i
-            self.session.save(user)
+            self._save(user)
 
         self.session.commit()
         users = self.session.query(User).all()
@@ -159,7 +177,7 @@ class SATestCase(BaseTestCase):
             addr = Address(email_address="%s@example.org" % string)
             user.addresses.append(addr)
 
-        self.session.save(user)
+        self._save(user)
         self.session.commit()
         self.session.refresh(user)
 
@@ -177,9 +195,9 @@ class SATestCase(BaseTestCase):
     def test_lazy_load_attributes(self):
         user = self._build_obj()
 
-        self.session.save(user)
+        self._save(user)
         self.session.commit()
-        self.session.clear()
+        self._clear()
         user = self.session.query(User).first()
 
         encoder = pyamf.get_encoder(pyamf.AMF3)
@@ -197,9 +215,9 @@ class SATestCase(BaseTestCase):
     def test_merge_with_lazy_loaded_attrs(self):
         user = self._build_obj()
 
-        self.session.save(user)
+        self._save(user)
         self.session.commit()
-        self.session.clear()
+        self._clear()
         user = self.session.query(User).first()
 
         encoder = pyamf.get_encoder(pyamf.AMF3)
@@ -216,7 +234,7 @@ class SATestCase(BaseTestCase):
 
     def test_encode_decode_with_references(self):
         user = self._build_obj()
-        self.session.save(user)
+        self._save(user)
         self.session.commit()
         self.session.refresh(user)
 
