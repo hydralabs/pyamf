@@ -78,9 +78,13 @@ class TypeMapTestCase(ModelsBaseTestCase):
         encoder.writeElement(fields.NOT_PROVIDED)
         self.assertEquals(encoder.stream.getvalue(), '\x00')
 
-
 def suite():
     suite = unittest.TestSuite()
+
+    try:
+        import django.db
+    except ImportError:
+        return suite
 
     suite.addTest(unittest.makeSuite(TypeMapTestCase))
 

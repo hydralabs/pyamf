@@ -36,6 +36,35 @@ class TestCommand(test.test):
         except ImportError:
             return test.test.run_tests(self)
 
+def get_version():
+    """
+    Gets the version number. Pulls it from the source files rather than
+    duplicating it.
+
+    @since: 0.4
+    """
+    import os.path
+    # we read the file instead of importing it as root sometimes does not
+    # have the cwd as part of the PYTHONPATH
+
+    fn = os.path.join(os.path.dirname(__file__), 'pyamf', '__init__.py')
+    lines = open(fn, 'rt').readlines()
+
+    version = None
+
+    for l in lines:
+        # include the ' =' as __version__ is a part of __all__
+        if l.startswith('__version__ =', ):
+            x = compile(l, fn, 'single')
+            eval(x)
+            version = locals()['__version__']
+            break
+
+    if version is None:
+        raise RuntimeError('Couldn\'t determine version number')
+
+    return '.'.join([str(x) for x in version])
+
 def is_float_broken():
     """
     Older versions of python (<=2.5) and the Windows platform are renowned for
@@ -55,6 +84,8 @@ def get_cpyamf_extensions():
     """
     Returns a list of all extensions for the cpyamf module. If for some reason
     cpyamf can't be built an empty list is returned.
+
+    @since: 0.4
     """
     if '--disable-ext' in sys.argv:
         sys.argv.remove('--disable-ext')
@@ -84,6 +115,8 @@ def get_cpyamf_extensions():
 def get_extensions():
     """
     Returns a list of extensions to be built for PyAMF.
+
+    @since: 0.4
     """
     ext_modules = []
 
@@ -112,7 +145,7 @@ objectproxy arraycollection recordset actionscript decoder encoder
 gateway remoteobject twisted pylons django sharedobject lso sol"""
 
 setup(name = "PyAMF",
-    version = "0.5",
+    version = get_version(),
     description = "AMF support for Python",
     long_description = open('README.txt', 'rt').read(),
     url = "http://pyamf.org",
@@ -123,7 +156,7 @@ setup(name = "PyAMF",
     ext_modules = get_extensions(),
     install_requires = get_install_requirements(),
     test_suite = "pyamf.tests.suite",
-    zip_safe=True,
+    zip_safe = True,
     license = "MIT License",
     platforms = ["any"],
     cmdclass = {
@@ -135,21 +168,25 @@ setup(name = "PyAMF",
         'twisted': ['Twisted>=2.5.0'],
         'django': ['Django>=0.96'],
         'sqlalchemy': ['SQLAlchemy>=0.4'],
+        'cython': ['Cython>=0.10'],
     },
     classifiers = [
-        "Development Status :: 4 - Beta",
-        "Natural Language :: English",
+        "Development Status :: 5 - Production/Stable",
+        "Framework :: Django",
+        "Framework :: Pylons",
+        "Framework :: Turbogears",
+        "Framework :: Twisted",
         "Intended Audience :: Developers",
         "Intended Audience :: Information Technology",
         "License :: OSI Approved :: MIT License",
+        "Natural Language :: English",
         "Operating System :: OS Independent",
+        "Programming Language :: C",
         "Programming Language :: Python",
         "Programming Language :: Python :: 2.3",
         "Programming Language :: Python :: 2.4",
         "Programming Language :: Python :: 2.5",
         "Programming Language :: Python :: 2.6",
-        "Framework :: Django",
-        "Framework :: Twisted",
         "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ])

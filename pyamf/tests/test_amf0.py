@@ -340,8 +340,12 @@ class EncoderTestCase(ClassCacheClearingTestCase):
 
         pyamf.register_class(Spam, attrs=['foo'], attr_func=attr_func,
             metadata=['dynamic'])
-        self._run([(x, '\x03\x00\x03foo\x02\x00\x03bar\x00\x05hello\x02\x00'
-            '\x05world\x00\x00\t')])
+        self._run([
+            (x, ('\x03', (
+                '\x00\x03foo\x02\x00\x03bar',
+                '\x00\x05hello\x02\x00\x05world'
+            ), '\x00\x00\t'))])
+
         pyamf.unregister_class(Spam)
 
         # and now typedobject
@@ -359,8 +363,11 @@ class EncoderTestCase(ClassCacheClearingTestCase):
 
         pyamf.register_class(Spam, 'x', attrs=['foo'], attr_func=attr_func,
             metadata=['dynamic'])
-        self._run([(x, '\x10\x00\x01x\x00\x03foo\x02\x00\x03bar\x00\x05hello'
-            '\x02\x00\x05world\x00\x00\t')])
+        self._run([
+            (x, ('\x10\x00\x01x', (
+                '\x00\x03foo\x02\x00\x03bar',
+                '\x00\x05hello\x02\x00\x05world'
+            ), '\x00\x00\t'))])
 
     def test_custom_type(self):
         def write_as_list(list_interface_obj, encoder):
@@ -500,6 +507,16 @@ class EncoderTestCase(ClassCacheClearingTestCase):
 
         self.assertEquals(self.buf.getvalue(),
             '\n\x00\x00\x00\x02\x02\x00\x03foo\x02\x00\x03bar')
+
+    def test_amf3_xml(self):
+        self.encoder.use_amf3 = True
+
+        x = util.ET.fromstring('<root><sections><section /><section /></sections></root>')
+
+        self.encoder.writeElement(x)
+
+        self.assertEquals(self.buf.getvalue(),
+            '\x11\x0bq<root><sections><section /><section /></sections></root>')
 
 class DecoderTestCase(ClassCacheClearingTestCase):
     """

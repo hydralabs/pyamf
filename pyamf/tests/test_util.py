@@ -22,6 +22,7 @@ class TimestampTestCase(unittest.TestCase):
     """
     Test UTC timestamps.
     """
+
     def test_get_timestamp(self):
         self.assertEqual(util.get_timestamp(datetime(2007, 11, 12)), 1194825600)
 
@@ -34,6 +35,7 @@ class TimestampTestCase(unittest.TestCase):
 class StringIOProxyTestCase(unittest.TestCase):
     """
     """
+
     def setUp(self):
         from StringIO import StringIO
 
@@ -210,6 +212,16 @@ class StringIOProxyTestCase(unittest.TestCase):
         sp.truncate()
         self.assertEquals(sp.getvalue(), '')
         self.assertEquals(len(sp), 0)
+
+        sp = util.StringIOProxy('hello')
+
+        self.assertEquals(sp.getvalue(), 'hello')
+        self.assertEquals(len(sp), 5)
+
+        sp.truncate(3)
+
+        self.assertEquals(sp.getvalue(), 'hel')
+        self.assertEquals(len(sp), 3)
 
     def test_write(self):
         sp = util.StringIOProxy()
@@ -493,6 +505,41 @@ class DataTypeMixInTestCase(unittest.TestCase):
         x = ByteStream('\x7f\xf0\x00\x00\x00\x00\x00\x00')
         self.assertTrue(_util.isPosInf(x.read_double()))
 
+        # now test little endian
+        x = ByteStream('\x00\x00\x00\x00\x00\x00\xf8\xff')
+        x.endian = ByteStream.ENDIAN_LITTLE
+        self.assertTrue(_util.isNaN(x.read_double()))
+
+        x = ByteStream('\x00\x00\x00\x00\x00\x00\xf0\xff')
+        x.endian = ByteStream.ENDIAN_LITTLE
+        self.assertTrue(_util.isNegInf(x.read_double()))
+
+        x = ByteStream('\x00\x00\x00\x00\x00\x00\xf0\x7f')
+        x.endian = ByteStream.ENDIAN_LITTLE
+        self.assertTrue(_util.isPosInf(x.read_double()))
+
+    def test_write_infinites(self):
+        nan = 1e3000000 / 1e3000000
+        pos_inf = 1e3000000
+        neg_inf = -1e3000000
+
+        x = ByteStream()
+
+        self._write_endian(x, x.write_double, (nan,), (
+            '\xff\xf8\x00\x00\x00\x00\x00\x00',
+            '\x00\x00\x00\x00\x00\x00\xf8\xff'
+        ))
+
+        self._write_endian(x, x.write_double, (pos_inf,), (
+            '\x7f\xf0\x00\x00\x00\x00\x00\x00',
+            '\x00\x00\x00\x00\x00\x00\xf0\x7f'
+        ))
+
+        self._write_endian(x, x.write_double, (neg_inf,), (
+            '\xff\xf0\x00\x00\x00\x00\x00\x00',
+            '\x00\x00\x00\x00\x00\x00\xf0\xff'
+        ))
+
 class BufferedByteStreamTestCase(unittest.TestCase):
     """
     Tests for L{BufferedByteStream<util.BufferedByteStream>}
@@ -642,7 +689,6 @@ class ClassAliasTestCase(unittest.TestCase):
         pyamf.register_alias_type(DummyAlias, A)
 
         self.assertEquals(util.get_class_alias(B), DummyAlias)
-
 
 class TestObject(object):
     def __init__(self):
