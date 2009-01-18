@@ -11,6 +11,15 @@ versions of PyAMF.
 
 0.4 (unreleased)
 ----------------
+ - cpyamf now deals with exceptional floats the same way as pure python -
+   especially on windows (Ticket:448)
+ - Support for SQLAlchemy 0.5.1 (Ticket:449)
+ - amf0.Encoder now has a use_amf3 flag which determines which XML type to
+   return to the client (Ticket:435)
+ - BufferedByteString.truncate(length) now actually does something useful
+   (Ticket:444)
+ - setup.py now gets the version number from pyamf/__init__.py source
+   (Ticket:429)
 
 0.4rc3 (2008-01-14)
 -------------------
@@ -55,7 +64,7 @@ versions of PyAMF.
  - ClassAlias can now be subclassed and three new methods have been added:
    applyAttributes, createInstance, getAttributes all which help to provide
    fine control for object/instance manipulation (Ticket:348)
- - Added support for __slots__. (Ticket:347)
+ - Added support for __slots__ (Ticket:347)
  - Fixed problem when decoding objects that map to GAE db.Model objects with
    required properties (Ticket:342)
  - ByteArray now does not throw an error when used in the Remoting framework
@@ -211,7 +220,7 @@ versions of PyAMF.
  - zlib compression support for ByteArray
  - Remoting client with httplib
 
-2007-10-19
-----------
+0.0.1 (2007-10-19)
+------------------
  - Started project based on previous work done in the RTMPy (http://rtmpy.org)
    project.

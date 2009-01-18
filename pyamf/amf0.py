@@ -176,6 +176,7 @@ class Decoder(pyamf.BaseDecoder):
     """
     Decodes an AMF0 stream.
     """
+
     context_class = Context
 
     # XXX nick: Do we need to support ASTypes.MOVIECLIP here?
@@ -428,7 +429,11 @@ class Decoder(pyamf.BaseDecoder):
 class Encoder(pyamf.BaseEncoder):
     """
     Encodes an AMF0 stream.
+
+    @ivar use_amf3: A flag to determine whether this encoder knows about AMF3.
+    @type use_amf3: C{bool}
     """
+
     context_class = Context
 
     type_map = [
@@ -447,6 +452,11 @@ class Encoder(pyamf.BaseEncoder):
         ((lambda x: x is pyamf.Undefined,), "writeUndefined"),
         ((types.InstanceType,types.ObjectType,), "writeObject"),
     ]
+
+    def __init__(self, *args, **kwargs):
+        self.use_amf3 = kwargs.pop('use_amf3', False)
+
+        pyamf.BaseEncoder.__init__(self, *args, **kwargs)
 
     def writeType(self, type):
         """
@@ -771,6 +781,11 @@ class Encoder(pyamf.BaseEncoder):
         @type e: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param e: The XML data to be encoded to the AMF0 data stream.
         """
+        if self.use_amf3 is True:
+            self.writeAMF3(e)
+
+            return
+
         self.writeType(ASTypes.XML)
 
         data = util.ET.tostring(e, 'utf-8')

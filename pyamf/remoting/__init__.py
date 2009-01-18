@@ -648,6 +648,9 @@ def encode(msg, context=None, strict=False):
     stream = util.BufferedByteStream()
     encoder = pyamf._get_encoder_class(pyamf.AMF0)(stream, strict=strict)
 
+    if msg.clientType == pyamf.ClientTypes.Flash9:
+        encoder.use_amf3 = True
+
     stream.write_uchar(msg.amfVersion)
     stream.write_uchar(msg.clientType)
     stream.write_short(len(msg.headers))

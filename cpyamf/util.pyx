@@ -35,6 +35,7 @@ cdef extern from "Python.h":
     double _PyFloat_Unpack4(unsigned char *, int)
     double _PyFloat_Unpack8(unsigned char *, int)
     object PyFloat_FromDouble(double)
+    double PyFloat_AsDouble(object)
 
 cdef extern from "stdio.h":
     int SIZEOF_LONG
@@ -48,6 +49,8 @@ cdef extern from "cStringIO.h":
     int StringIO_creadline "PycStringIO->creadline" (object, char **)
     int StringIO_cwrite "PycStringIO->cwrite" (object, char *, Py_ssize_t)
     object StringIO_cgetvalue "PycStringIO->cgetvalue" (obj)
+
+import fpconst
 
 # module constant declarations
 DEF ENDIAN_NETWORK = "!"
@@ -85,27 +88,34 @@ cdef inline int is_big_endian(char endian):
 
     return endian == ENDIAN_NETWORK or endian == ENDIAN_BIG
 
+cdef inline int is_native_endian(char endian):
+    if endian == ENDIAN_NATIVE:
+        return 1
+
+    return endian == SYSTEM_ENDIAN
+
 cdef inline void swap_bytes(unsigned char *buffer, Py_ssize_t size):
     cdef unsigned char *buf = <unsigned char *>PyMem_Malloc(size)
+    cdef Py_ssize_t i
 
     for i from 0 <= i < size:
         buf[i] = buffer[size - i - 1]
 
-    memcpy(buf, buffer, size)
+    memcpy(buffer, buf, size)
 
     PyMem_Free(buf)
 
 cdef int is_broken_float():
     cdef double test = _PyFloat_Unpack8(NaN, 0)
 
-    if is_big_endian(SYSTEM_ENDIAN):
-        return memcmp(NaN, &test, 8) != 0
-
-    cdef unsigned char *buf = <unsigned char *>&test
     cdef int result
+    cdef unsigned char *buf = <unsigned char *>&test
 
-    swap_bytes(buf, 8)
-    result = memcmp(NaN, buf, 8)
+    if is_big_endian(SYSTEM_ENDIAN):
+        result = memcmp(NaN, &test, 8) != 0
+    else:
+        swap_bytes(buf, 8)
+        result = memcmp(NaN, buf, 8)
 
     return result != 0
 
@@ -607,46 +617,50 @@ cdef class BufferedByteStream:
             raise EOFError
 
         if float_broken:
+            le = 0
+            if not is_big_endian(self._endian):
+                swap_bytes(<unsigned char *>buf, 8)
+
             if memcmp(NaN, buf, 8) == 0:
-                if SYSTEM_ENDIAN == ENDIAN_BIG:
-                    memcpy(&x, '\x7f\xf8\x00\x00\x00\x00\x00\x00', 8)
-                else:
-                    memcpy(&x, '\x00\x00\x00\x00\x00\x00\xf8\x7f', 8)
-
-                return PyFloat_FromDouble(x)
+                return fpconst.NaN
             elif memcmp(NegInf, buf, 8) == 0:
-                if SYSTEM_ENDIAN == ENDIAN_BIG:
-                    memcpy(&x, '\x7f\xf0\x00\x00\x00\x00\x00\x00', 8)
-                else:
-                    memcpy(&x, '\x00\x00\x00\x00\x00\x00\xf0\x7f', 8)
-
-                return PyFloat_FromDouble(-x)
+                return fpconst.NegInf
             elif memcmp(PosInf, buf, 8) == 0:
-                if SYSTEM_ENDIAN == ENDIAN_BIG:
-                    memcpy(&x, '\x7f\xf0\x00\x00\x00\x00\x00\x00', 8)
-                else:
-                    memcpy(&x, '\x00\x00\x00\x00\x00\x00\xf0\x7f', 8)
-
-                return PyFloat_FromDouble(x)
-
-        if is_big_endian(self._endian):
+                return fpconst.PosInf
+        elif is_big_endian(self._endian):
             le = 0
 
         x = _PyFloat_Unpack8(<unsigned char *>buf, le)
 
         return PyFloat_FromDouble(x)
 
-    def write_double(self, double val):
+    def write_double(self, val):
         if not self.buffer:
             raise ValueError('buffer is closed')
 
         cdef char *buf = <char *>PyMem_Malloc(8)
         cdef int le = 0
+        cdef int done = 0
 
-        if not is_big_endian(self._endian):
-            le = 1
+        if float_broken:
+            if fpconst.isNaN(val):
+                memcpy(buf, NaN, 8)
+                done = 1
+            elif fpconst.isNegInf(val):
+                memcpy(buf, NegInf, 8)
+                done = 1
+            elif fpconst.isPosInf(val):
+                memcpy(buf, PosInf, 8)
+                done = 1
 
-        _PyFloat_Pack8(val, <unsigned char *>buf, le)
+            if done == 1 and not is_big_endian(self._endian):
+                swap_bytes(<unsigned char *>buf, 8)
+
+        if done == 0:
+            if not is_big_endian(self._endian):
+                le = 1
+
+            _PyFloat_Pack8(val, <unsigned char *>buf, le)
 
         StringIO_cwrite(self.buffer, buf, 8)
         PyMem_Free(buf)
@@ -718,8 +732,30 @@ cdef class BufferedByteStream:
         if not self.buffer:
             raise ValueError('buffer is closed')
 
-        self.buffer = None
-        self.__init__(self)
+        if size == 0:
+            self.buffer = None
+            self.__init__(self)
+            self.len_changed = 1
+
+            return
+
+        if size > self.c_length():
+            return
+
+        cdef char *buffer = NULL
+        cdef unsigned long cur_pos = <unsigned long>self.tell()
+
+        self.seek(0)
+
+        if StringIO_cread(self.buffer, &buffer, size) != size:
+            raise RuntimeError
+
+        buf = StringIO_NewOutput(128)
+        StringIO_cwrite(buf, buffer, size)
+
+        buf.seek(cur_pos)
+
+        self.buffer = buf
         self.len_changed = 1
 
     def __add__(self, other):

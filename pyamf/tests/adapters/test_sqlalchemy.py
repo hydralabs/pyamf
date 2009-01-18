@@ -9,11 +9,14 @@ PyAMF SQLAlchemy adapter tests.
 
 import unittest
 
+import sqlalchemy
 from sqlalchemy import MetaData, Table, Column, Integer, String, ForeignKey, \
                        create_engine
 from sqlalchemy.orm import mapper, relation, sessionmaker, clear_mappers, attributes
 
 import pyamf.flex
+from pyamf.tests.util import Spam
+from pyamf.adapters import _sqlalchemy as adapter
 
 class BaseObject(object):
     def __init__(self, **kwargs):
@@ -22,8 +25,8 @@ class BaseObject(object):
 class User(BaseObject):
     def __init__(self, **kwargs):
         BaseObject.__init__(self, **kwargs)
-        self.lazy_loaded = [] 
-        self.lazy_loaded.append(LazyLoaded())
+
+        self.lazy_loaded = [LazyLoaded()]
 
 class Address(BaseObject):
     pass
@@ -31,46 +34,67 @@ class Address(BaseObject):
 class LazyLoaded(BaseObject):
     pass
 
-class SATestCase(unittest.TestCase):
+class AnotherLazyLoaded(BaseObject):
+    pass
+
+class BaseTestCase(unittest.TestCase):
+    """
+    Initialise up all table/mappers.
+    """
+
     def setUp(self):
         # Create DB and map objects
-        metadata = MetaData()
-        engine = create_engine('sqlite:///:memory:', echo=False)
+        self.metadata = MetaData()
+        self.engine = create_engine('sqlite:///:memory:', echo=False)
 
-        Session = sessionmaker(bind=engine)
+        Session = sessionmaker(bind=self.engine)
 
         self.session = Session()
+        self.tables = {}
 
-        users_table = Table('users_table', metadata,
+        self.tables['users'] = Table('users', self.metadata,
             Column('id', Integer, primary_key=True),
             Column('name', String(64)))
 
-        addresses_table = Table('addresses_table', metadata,
+        self.tables['addresses'] = Table('addresses', self.metadata,
             Column('id', Integer, primary_key=True),
-            Column('user_id', Integer, ForeignKey('users_table.id')),
+            Column('user_id', Integer, ForeignKey('users.id')),
             Column('email_address', String(128)))
 
-        lazy_loaded_table = Table('lazy_loaded', metadata,
+        self.tables['lazy_loaded'] = Table('lazy_loaded', self.metadata,
             Column('id', Integer, primary_key=True),
-            Column('user_id', Integer, ForeignKey('users_table.id')))
+            Column('user_id', Integer, ForeignKey('users.id')))
 
-        mapper(User, users_table, properties={
-               'addresses': relation(Address, backref='user', lazy=False),
-               'lazy_loaded': relation(LazyLoaded, lazy=True)})
+        self.tables['another_lazy_loaded'] = Table('another_lazy_loaded', self.metadata,
+            Column('id', Integer, primary_key=True),
+            Column('user_id', Integer, ForeignKey('users.id')))
 
-        mapper(Address, addresses_table)
-        mapper(LazyLoaded, lazy_loaded_table)
-        metadata.create_all(engine)
+        self.mappers = {}
 
-        try:
-            pyamf.register_class(User, 'server.User')
-            pyamf.register_class(Address, 'server.Address')
-        except:
-            # Classes are already registered
-            pass
+        self.mappers['user'] = mapper(User, self.tables['users'], properties={
+            'addresses': relation(Address, backref='user', lazy=False),
+            'lazy_loaded': relation(LazyLoaded, lazy=True),
+            'another_lazy_loaded': relation(AnotherLazyLoaded, lazy=True)
+        })
+
+        self.mappers['addresses'] = mapper(Address, self.tables['addresses'])
+        self.mappers['lazy_loaded'] = mapper(LazyLoaded,
+            self.tables['lazy_loaded'])
+        self.mappers['another_lazy_loaded'] = mapper(AnotherLazyLoaded,
+            self.tables['another_lazy_loaded'])
+
+        self.metadata.create_all(self.engine)
+
+        pyamf.register_class(User, 'server.User')
+        pyamf.register_class(Address, 'server.Address')
+        pyamf.register_class(LazyLoaded, 'server.LazyLoaded')
 
     def tearDown(self):
         clear_mappers()
+
+        pyamf.unregister_class(User)
+        pyamf.unregister_class(Address)
+        pyamf.unregister_class(LazyLoaded)
 
     def _build_obj(self):
         user = User()
@@ -79,6 +103,25 @@ class SATestCase(unittest.TestCase):
 
         return user
 
+    def _save(self, obj):
+        # this covers deprecation warnings etc.
+        if hasattr(self.session, 'add'):
+            self.session.add(obj)
+        elif hasattr(self.session, 'save'):
+            self.session.save(user)
+        else:
+            raise AttributeError('Don\'t know how to save an object')
+
+    def _clear(self):
+        # this covers deprecation warnings etc.
+        if hasattr(self.session, 'expunge_all'):
+            self.session.expunge_all()
+        elif hasattr(self.session, 'clear'):
+            self.session.clear()
+        else:
+            raise AttributeError('Don\'t know how to clear session')
+
+class SATestCase(BaseTestCase):
     def _test_obj(self, encoded, decoded):
         self.assertEquals(User, decoded.__class__)
         self.assertEquals(encoded.name, decoded.name)
@@ -96,7 +139,7 @@ class SATestCase(unittest.TestCase):
 
     def test_encode_decode_persistent(self):
         user = self._build_obj()
-        self.session.save(user)
+        self._save(user)
         self.session.commit()
         self.session.refresh(user)
 
@@ -112,7 +155,7 @@ class SATestCase(unittest.TestCase):
         for i in range(0, max):
             user = self._build_obj()
             user.name = "%s" % i
-            self.session.save(user)
+            self._save(user)
 
         self.session.commit()
         users = self.session.query(User).all()
@@ -134,7 +177,7 @@ class SATestCase(unittest.TestCase):
             addr = Address(email_address="%s@example.org" % string)
             user.addresses.append(addr)
 
-        self.session.save(user)
+        self._save(user)
         self.session.commit()
         self.session.refresh(user)
 
@@ -152,9 +195,9 @@ class SATestCase(unittest.TestCase):
     def test_lazy_load_attributes(self):
         user = self._build_obj()
 
-        self.session.save(user)
+        self._save(user)
         self.session.commit()
-        self.session.clear()
+        self._clear()
         user = self.session.query(User).first()
 
         encoder = pyamf.get_encoder(pyamf.AMF3)
@@ -172,9 +215,9 @@ class SATestCase(unittest.TestCase):
     def test_merge_with_lazy_loaded_attrs(self):
         user = self._build_obj()
 
-        self.session.save(user)
+        self._save(user)
         self.session.commit()
-        self.session.clear()
+        self._clear()
         user = self.session.query(User).first()
 
         encoder = pyamf.get_encoder(pyamf.AMF3)
@@ -191,7 +234,7 @@ class SATestCase(unittest.TestCase):
 
     def test_encode_decode_with_references(self):
         user = self._build_obj()
-        self.session.save(user)
+        self._save(user)
         self.session.commit()
         self.session.refresh(user)
 
@@ -209,6 +252,126 @@ class SATestCase(unittest.TestCase):
         for i in range(0, max):
             self.assertEquals(id(decoded[0]), id(decoded[i]))
 
+class ClassAliasTestCase(BaseTestCase):
+    def setUp(self):
+        BaseTestCase.setUp(self)
+
+        self.alias = pyamf.get_class_alias(User)
+
+    def test_type(self):
+        self.assertEquals(self.alias.__class__, adapter.SaMappedClassAlias)
+
+    def test_get_mapper(self):
+        self.assertFalse(hasattr(self.alias, 'primary_mapper'))
+
+        mapper = self.alias._getMapper(User())
+
+        self.assertTrue(hasattr(self.alias, 'primary_mapper'))
+        self.assertEquals(id(mapper), id(self.alias.primary_mapper))
+
+    def test_get_attrs(self):
+        u = self._build_obj()
+        static, dynamic = self.alias.getAttrs(u)
+
+        self.assertEquals(static, [
+            'sa_key',
+            'sa_lazy',
+            'lazy_loaded',
+            'addresses',
+            'another_lazy_loaded',
+            'id',
+            'name'
+        ])
+
+        self.assertEquals(dynamic, [])
+
+    def test_get_attributes(self):
+        u = self._build_obj()
+
+        self.assertFalse(u in self.session)
+        self.assertEquals([None], self.mappers['user'].primary_key_from_instance(u))
+        static, dynamic = self.alias.getAttributes(u)
+
+        self.assertEquals(static, {
+            'sa_lazy': ['another_lazy_loaded'],
+            'sa_key': [None],
+            'addresses': u.addresses,
+            'lazy_loaded': u.lazy_loaded,
+            'another_lazy_loaded': pyamf.Undefined,
+            'id': None,
+            'name': 'test_user'
+        })
+        self.assertEquals(dynamic, {})
+
+class ApplyAttributesTestCase(ClassAliasTestCase):
+    def test_undefined(self):
+        u = self.alias.createInstance()
+
+        attrs = {
+            'sa_lazy': ['another_lazy_loaded'],
+            'sa_key': [None],
+            'addresses': [],
+            'lazy_loaded': [],
+            'another_lazy_loaded': pyamf.Undefined, # <-- the important bit
+            'id': None,
+            'name': 'test_user'
+        }
+
+        self.alias.applyAttributes(u, attrs)
+
+        d = u.__dict__.copy()
+
+        if sqlalchemy.__version__.startswith('0.4'):
+            self.assertTrue('_state' in d)
+            del d['_state']
+        elif sqlalchemy.__version__.startswith('0.5'):
+            self.assertTrue('_sa_instance_state' in d)
+            del d['_sa_instance_state']
+
+        self.assertEquals(d, {
+            'lazy_loaded': [],
+            'addresses': [],
+            'name': 'test_user',
+            'id': None
+        })
+
+    def test_decode_unaliased(self):
+        u = self.alias.createInstance()
+
+        attrs = {
+            'sa_lazy': [],
+            'sa_key': [None],
+            'addresses': [],
+            'lazy_loaded': [],
+            # this is important because we haven't registered AnotherLazyLoaded
+            # as an alias and the decoded object for an untyped object is an
+            # instance of pyamf.ASObject
+            'another_lazy_loaded': [pyamf.ASObject({'id': 1, 'user_id': None})],
+            'id': None,
+            'name': 'test_user'
+        }
+
+        # sqlalchemy can't find any state to work with
+        self.assertRaises(AttributeError, self.alias.applyAttributes, u, attrs)
+
+class AdapterTestCase(BaseTestCase):
+    """
+    Checks to see if the adapter will actually intercept a class correctly
+    """
+
+    def test_mapped(self):
+        self.assertNotEquals(None, adapter.class_mapper(User))
+        self.assertTrue(adapter.is_class_sa_mapped(User))
+
+    def test_instance(self):
+        u = User()
+
+        self.assertTrue(adapter.is_class_sa_mapped(u))
+
+    def test_not_mapped(self):
+        self.assertRaises(adapter.UnmappedInstanceError, adapter.class_mapper, Spam)
+        self.assertFalse(adapter.is_class_sa_mapped(Spam))
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -217,7 +380,15 @@ def suite():
     except ImportError:
         return suite
 
-    suite.addTest(unittest.makeSuite(SATestCase))
+    classes = [
+        SATestCase,
+        AdapterTestCase,
+        ClassAliasTestCase,
+        ApplyAttributesTestCase
+    ]
+
+    for x in classes:
+        suite.addTest(unittest.makeSuite(x))
 
     return suite
 

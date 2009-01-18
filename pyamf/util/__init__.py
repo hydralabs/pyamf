@@ -22,22 +22,6 @@ xml_types = None
 ET = None
 negative_timestamp_broken = False
 
-using_c_extension = False
-
-try:
-    import cpyamf.util
-    using_c_extension = True
-except ImportError:
-    pass
-
-using_c_extension = False
-
-try:
-    import cpyamf.util
-    using_c_extension = True
-except ImportError:
-    pass
-
 def find_xml_lib():
     """
     Run through a predefined order looking through the various ElementTree
@@ -180,7 +164,19 @@ class StringIOProxy(object):
         return self._buffer.tell()
 
     def truncate(self, size=0):
+        if size == 0:
+            self._buffer = StringIOProxy._wrapped_class()
+            self._len_changed = True
+
+            return
+
+        cur_pos = self.tell()
+        self.seek(0)
+        buf = self.read(size)
         self._buffer = StringIOProxy._wrapped_class()
+
+        self._buffer.write(buf)
+        self.seek(cur_pos)
         self._len_changed = True
 
     def write(self, s):
@@ -896,9 +892,6 @@ def is_float_broken():
 
     @since: 0.4
     """
-    if using_c_extension:
-        return False
-
     # we do this instead of float('nan') because windows throws a wobbler.
     nan = 1e300000/1e300000
 
@@ -919,14 +912,24 @@ if is_float_broken():
     def read_double_workaround(self):
         bytes = self.read(8)
 
-        if bytes == '\xff\xf8\x00\x00\x00\x00\x00\x00':
-            return fpconst.NaN
+        if self._is_big_endian():
+            if bytes == '\xff\xf8\x00\x00\x00\x00\x00\x00':
+                return fpconst.NaN
 
-        if bytes == '\xff\xf0\x00\x00\x00\x00\x00\x00':
-            return fpconst.NegInf
+            if bytes == '\xff\xf0\x00\x00\x00\x00\x00\x00':
+                return fpconst.NegInf
 
-        if bytes == '\x7f\xf0\x00\x00\x00\x00\x00\x00':
-            return fpconst.PosInf
+            if bytes == '\x7f\xf0\x00\x00\x00\x00\x00\x00':
+                return fpconst.PosInf
+        else:
+            if bytes == '\x00\x00\x00\x00\x00\x00\xf8\xff':
+                return fpconst.NaN
+
+            if bytes == '\x00\x00\x00\x00\x00\x00\xf0\xff':
+                return fpconst.NegInf
+
+            if bytes == '\x00\x00\x00\x00\x00\x00\xf0\x7f':
+                return fpconst.PosInf
 
         return struct.unpack("%sd" % self.endian, bytes)[0]
 
@@ -934,11 +937,20 @@ if is_float_broken():
 
     def write_double_workaround(self, d):
         if fpconst.isNaN(d):
-            self.write('\xff\xf8\x00\x00\x00\x00\x00\x00')
+            if self._is_big_endian():
+                self.write('\xff\xf8\x00\x00\x00\x00\x00\x00')
+            else:
+                self.write('\x00\x00\x00\x00\x00\x00\xf8\xff')
         elif fpconst.isNegInf(d):
-            self.write('\xff\xf0\x00\x00\x00\x00\x00\x00')
+            if self._is_big_endian():
+                self.write('\xff\xf0\x00\x00\x00\x00\x00\x00')
+            else:
+                self.write('\x00\x00\x00\x00\x00\x00\xf0\xff')
         elif fpconst.isPosInf(d):
-            self.write('\x7f\xf0\x00\x00\x00\x00\x00\x00')
+            if self._is_big_endian():
+                self.write('\x7f\xf0\x00\x00\x00\x00\x00\x00')
+            else:
+                self.write('\x00\x00\x00\x00\x00\x00\xf0\x7f')
         else:
             write_double_workaround.old_func(self, d)
 
