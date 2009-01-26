@@ -14,6 +14,9 @@ from django.db.models import fields
 import pyamf
 
 def convert_NOT_PROVIDED(x, encoder):
+    """
+    @rtype: L{Undefined<pyamf.Undefined>}
+    """
     return pyamf.Undefined
 
 pyamf.add_type(lambda x: x is fields.NOT_PROVIDED, convert_NOT_PROVIDED)

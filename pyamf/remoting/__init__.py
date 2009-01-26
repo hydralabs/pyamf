@@ -66,7 +66,7 @@ class RemotingError(pyamf.BaseError):
 
 class RemotingCallFailed(RemotingError):
     """
-    Raised if Server.Call.Failed received
+    Raised if C{Server.Call.Failed} received.
     """
 
 pyamf.add_error_class(RemotingCallFailed, ERROR_CODES[ERROR_CALL_FAILED])
@@ -670,6 +670,9 @@ def encode(msg, context=None, strict=False):
     return stream
 
 def get_exception_from_fault(fault):
+    """
+    @raise RemotingError: Default exception from fault.
+    """
     # XXX nick: threading problems here?
     try:
         return pyamf.ERROR_CLASS_MAP[fault.code]

@@ -20,7 +20,7 @@ error_alias = pyamf.get_class_alias(messaging.ErrorMessage)
 
 class BaseServerError(pyamf.BaseError):
     """
-    Base server errror
+    Base server error.
     """
 
 class ServerCallFailed(BaseServerError):
@@ -106,6 +106,7 @@ class RequestProcessor(object):
     def _processCommandMessage(self, amf_request, ro_request, **kwargs):
         """
         @raise ServerCallFailed: Unknown Command operation.
+        @raise ServerCallFailed: Authorization is not supported in RemoteObject.
         """
         ro_response = generate_acknowledgement(ro_request)
 

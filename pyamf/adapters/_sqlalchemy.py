@@ -39,7 +39,7 @@ class SaMappedClassAlias(pyamf.ClassAlias):
 
     def _getMapper(self, obj):
         """
-        Returns sqlalchemy.orm.mapper.Mapper object.
+        Returns C{sqlalchemy.orm.mapper.Mapper} object.
         """
         if hasattr(self, 'primary_mapper'):
             return self.primary_mapper
@@ -175,6 +175,9 @@ class SaMappedClassAlias(pyamf.ClassAlias):
         pyamf.util.set_attrs(obj, attrs)
 
 def is_class_sa_mapped(klass):
+    """
+    @rtype: C{bool}
+    """
     if not isinstance(klass, type):
         klass = type(klass)
 
