@@ -822,7 +822,7 @@ class Context(pyamf.BaseContext):
             except pyamf.ReferenceError:
                 raise pyamf.ReferenceError("Reference for class definition for %s not found" % (class_def.__class__,))
 
-        raise TypeError('unable to determine class for %r' % (class_def,))
+        raise TypeError('Unable to determine class for %r' % (class_def,))
 
     def addClassDefinition(self, class_def):
         """
@@ -857,7 +857,7 @@ class Context(pyamf.BaseContext):
 
         @type ref: C{int}
         @param ref: The reference index.
-        @raise ReferenceError: The reference could not be found.
+        @raise ReferenceError: The legacy XML reference could not be found.
         @return: Instance of L{ET<util.ET>}
         """
         try:
@@ -1314,7 +1314,6 @@ class Encoder(pyamf.BaseEncoder):
         @type   use_references: C{bool}
         @param  use_references: Default is C{True}.
         @raise EncodeError: Cannot find encoder func for C{data}.
-        @raise EncodeError: Unable to encode data.
         """
         func = self._writeElementFunc(data)
 
@@ -1633,8 +1632,6 @@ class Encoder(pyamf.BaseEncoder):
     def _getClassDefinition(self, obj):
         """
         Builds a class definition based on the C{obj}.
-
-        @raise pyamf.EncodeError: Unable to determine object attributes.
         """
         encoding = ObjectEncoding.DYNAMIC
 

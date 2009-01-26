@@ -154,7 +154,7 @@ class RequestWrapper(object):
     def _get_result(self):
         """
         Returns the result of the called remote request. If the request has not
-        yet been called, an exception is raised.
+        yet been called, an C{AttributeError} exception is raised.
         """
         if not hasattr(self, '_result'):
             raise AttributeError("'RequestWrapper' object has no attribute 'result'")
@@ -436,6 +436,9 @@ class RemotingService(object):
     def _getResponse(self):
         """
         Gets and handles the HTTP response from the remote gateway.
+        
+        @raise RemotingError: HTTP Gateway reported error status.
+        @raise RemotingError: Incorrect MIME type received.
         """
         self.logger.debug('Waiting for response...')
         http_response = self.connection.getresponse()

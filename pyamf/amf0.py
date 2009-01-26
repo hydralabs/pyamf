@@ -525,7 +525,6 @@ class Encoder(pyamf.BaseEncoder):
         @param  data: The data to be encoded to the AMF0 data stream.
 
         @raise EncodeError: Cannot find encoder func.
-        @raise EncodeError: Unable to encode the data.
         """
         func = self._writeElementFunc(data)
 

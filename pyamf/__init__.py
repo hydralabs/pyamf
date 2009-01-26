@@ -151,7 +151,7 @@ class BaseContext(object):
         """
         Gets an object based on a reference.
 
-        @raise TypeError: Bad reference type.
+        @raise ReferenceError: Unknown object reference.
         """
         try:
             return self.objects.getByReference(ref)
@@ -161,6 +161,8 @@ class BaseContext(object):
     def getObjectReference(self, obj):
         """
         Gets a reference for an object.
+        
+        @raise ReferenceError: Object not a valid reference,
         """
         try:
             return self.objects.getReferenceTo(obj)
@@ -408,6 +410,7 @@ class ClassAlias(object):
         not pass in arguments.
 
         @since: 0.4
+        @raise TypeError: C{__init__} doesn't support additional arguments
         """
         # Check that the constructor of the class doesn't require any additonal
         # arguments.
@@ -499,9 +502,9 @@ class ClassAlias(object):
 
     def getAttributes(self, obj):
         """
-        Returns a collection of attributes for an object
+        Returns a collection of attributes for an object.
         Returns a C{tuple} containing a dict of static and dynamic attributes
-        for C{obj}
+        for C{obj}.
         """
         dynamic_attrs = {}
         static_attrs = {}
@@ -642,7 +645,7 @@ class BaseDecoder(object):
 
     def readType(self):
         """
-        Override in a subclass.
+        @raise NotImplementedError: Override in a subclass.
         """
         raise NotImplementedError
 
@@ -1296,6 +1299,10 @@ def register_alias_type(klass, *args):
     @see: L{pyamf.adapters._google_appengine_ext_db.DataStoreClassAlias} for a
         good example.
     @since: 0.4
+    @raise RuntimeError: Type is already registered.
+    @raise TypeError: C{klass} must be a class.
+    @raise ValueError: New aliases must subclass L{pyamf.ClassAlias}.
+    @raise ValueError: At least one type must be supplied.
     """
     def check_type_registered(arg):
         # FIXME: Create a reverse index of registered types and do a quicker lookup

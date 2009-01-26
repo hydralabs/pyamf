@@ -24,11 +24,11 @@ negative_timestamp_broken = False
 
 def find_xml_lib():
     """
-    Run through a predefined order looking through the various ElementTree
+    Run through a predefined order looking through the various C{ElementTree}
     implementations so that any type can be encoded but PyAMF will return
     elements as the first implementation found.
 
-    We work through the C implementations first - then the pure python
+    We work through the C implementations first - then the pure Python
     versions. The downside to this is that a possible of three libraries will
     be loaded into memory that are not used but the libs are small
     (relatively) and the flexibility that this gives seems to outweigh the
@@ -252,6 +252,8 @@ class DataTypeMixIn(object):
     def _is_big_endian(self):
         """
         Whether this system is big endian or not.
+        
+        @rtype: C{bool}
         """
         if self.endian == DataTypeMixIn.ENDIAN_NATIVE:
             return DataTypeMixIn._system_endian == DataTypeMixIn.ENDIAN_BIG
@@ -267,6 +269,8 @@ class DataTypeMixIn(object):
     def write_uchar(self, c):
         """
         Writes an C{unsigned char} to the stream.
+        
+        @raise OverflowError: Not in range.
         """
         if not 0 <= c <= 255:
             raise OverflowError("Not in range, %d" % c)
@@ -282,6 +286,8 @@ class DataTypeMixIn(object):
     def write_char(self, c):
         """
         Write a C{char} to the stream.
+        
+        @raise OverflowError: Not in range.
         """
         if not -128 <= c <= 127:
             raise OverflowError("Not in range, %d" % c)
@@ -297,6 +303,8 @@ class DataTypeMixIn(object):
     def write_ushort(self, s):
         """
         Writes a 2 byte unsigned integer to the stream.
+        
+        @raise OverflowError: Not in range.
         """
         if not 0 <= s <= 65535:
             raise OverflowError("Not in range, %d" % s)
@@ -312,6 +320,8 @@ class DataTypeMixIn(object):
     def write_short(self, s):
         """
         Writes a 2 byte integer to the stream.
+        
+        @raise OverflowError: Not in range.
         """
         if not -32768 <= s <= 32767:
             raise OverflowError("Not in range, %d" % s)
@@ -327,6 +337,8 @@ class DataTypeMixIn(object):
     def write_ulong(self, l):
         """
         Writes a 4 byte unsigned integer to the stream.
+        
+        @raise OverflowError: Not in range.
         """
         if not 0 <= l <= 4294967295:
             raise OverflowError("Not in range, %d" % l)
@@ -342,6 +354,8 @@ class DataTypeMixIn(object):
     def write_long(self, l):
         """
         Writes a 4 byte integer to the stream.
+        
+        @raise OverflowError: Not in range.
         """
         if not -2147483648 <= l <= 2147483647:
             raise OverflowError("Not in range, %d" % l)
@@ -475,7 +489,7 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
     An extension of C{StringIO}.
 
     Features:
-     - Raises C{EOFError} if reading past end.
+     - Raises L{EOFError} if reading past end.
      - Allows you to C{peek()} at the next byte.
     """
 
@@ -665,6 +679,7 @@ def get_mro(C):
     def merge(seqs):
         """
         @raise NameError: Inconsistent hierarchy.
+        @raise TypeError: Class type expected.
         """
         res = []
         i = 0
@@ -703,7 +718,7 @@ def get_mro(C):
 
 def get_attrs(obj):
     """
-    Gets a dict of the attrs of an object in a predefined resolution order
+    Gets a dict of the attrs of an object in a predefined resolution order.
     """
     if hasattr(obj, 'iteritems'):
         attrs = {}
@@ -754,8 +769,6 @@ def get_class_alias(klass):
     return None
 
 class IndexedCollection(object):
-    """
-    """
 
     def __init__(self, use_hash=False):
         if use_hash is True:
@@ -770,6 +783,10 @@ class IndexedCollection(object):
         self.dict = {}
 
     def getByReference(self, ref):
+        """
+        @raise TypeError: Bad reference type.
+        @raise pyamf.ReferenceError: Reference not found.
+        """
         if not isinstance(ref, (int, long)):
             raise TypeError("Bad reference type")
 
@@ -779,6 +796,9 @@ class IndexedCollection(object):
             raise pyamf.ReferenceError("Reference %r not found" % (ref,))
 
     def getReferenceTo(self, obj):
+        """
+        @raise pyamf.ReferenceError: Value not found.
+        """
         try:
             return self.dict[self.func(obj)]
         except KeyError:
@@ -797,6 +817,9 @@ class IndexedCollection(object):
             return idx
 
     def remove(self, obj):
+        """
+        @raise pyamf.ReferenceError: Trying to remove an invalid reference.
+        """
         h = self.func(obj)
 
         try:
@@ -853,6 +876,10 @@ class IndexedMap(IndexedCollection):
         self.mapped = []
 
     def getMappedByReference(self, ref):
+        """
+        @raise TypeError: Bad reference type.
+        @raise pyamf.ReferenceError: Reference not found.
+        """
         if not isinstance(ref, (int, long)):
             raise TypeError("Bad reference type.")
 
@@ -886,11 +913,12 @@ def is_ET_element(obj):
 
 def is_float_broken():
     """
-    Older versions of python (<=2.5) and the Windows platform are renowned for
+    Older versions of Python (<=2.5) and the Windows platform are renowned for
     mixing up 'special' floats. This function determines whether this is the
     case.
 
     @since: 0.4
+    @rtype: C{bool}
     """
     # we do this instead of float('nan') because windows throws a wobbler.
     nan = 1e300000/1e300000

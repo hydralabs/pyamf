@@ -16,6 +16,9 @@ from django.db.models import query
 import pyamf
 
 def write_queryset(qs, encoder):
+    """
+    @rtype: C{list}
+    """
     return list(qs)
 
 pyamf.add_type(query.QuerySet, write_queryset)
