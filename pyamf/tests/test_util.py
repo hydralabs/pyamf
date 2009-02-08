@@ -304,6 +304,15 @@ class StringIOProxyTestCase(unittest.TestCase):
         self.assertEquals(sp.getvalue(), 'bar')
         self.assertEquals(sp.tell(), 0)
 
+        # from ticket 451 - http://pyamf.org/ticket/451
+        sp = util.StringIOProxy('abcdef')
+        # move the stream pos to the end
+        sp.read()
+
+        self.assertEquals(len(sp), 6)
+        sp.consume()
+        self.assertEquals(len(sp), 0)
+
 class cStringIOProxyTestCase(StringIOProxyTestCase):
     def setUp(self):
         from cStringIO import StringIO

@@ -822,9 +822,6 @@ cdef class BufferedByteStream:
         cdef char *buf = NULL
         cdef unsigned int chars_read = StringIO_cread(self.buffer, &buf, -1)
 
-        if chars_read == 0:
-            return
-
         # quick truncate
         new_buffer = StringIO_NewOutput(128)
 
@@ -832,7 +829,7 @@ cdef class BufferedByteStream:
         self.buffer = new_buffer
         self.buffer.seek(0)
 
-        self.length = chars_read
+        self.len_changed = 1
 
 # init module here:
 PycString_IMPORT
