@@ -1,5 +1,6 @@
 PyAMF provides Action Message Format (AMF) support for Python that is
-compatible with the Flash Player.
+compatible with the Flash Player. It includes integration with Python web
+frameworks like Django, Pylons, Twisted, SQLAlchemy and more.
 
 The Adobe Integrated Runtime and Flash Player use AMF to communicate between
 an application and a remote server. AMF encodes remote procedure calls (RPC)
