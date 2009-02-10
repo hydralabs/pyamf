@@ -352,11 +352,11 @@ class Decoder(pyamf.BaseDecoder):
         ot = chr(ASTypes.OBJECTTERM)
         obj_attrs = dict()
 
-        key = self.readString()
+        key = self.readString().encode('utf8')
 
         while self.stream.peek() != ot:
             obj_attrs[key] = self.readElement()
-            key = self.readString()
+            key = self.readString().encode('utf8')
 
         # discard the end marker (ASTypes.OBJECTTERM)
         self.stream.read(len(ot))
