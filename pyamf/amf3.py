@@ -1064,7 +1064,7 @@ class Decoder(pyamf.BaseDecoder):
 
         size >>= 1
 
-        key = self.readString()
+        key = self.readString().encode('utf8')
 
         if key == "":
             # integer indexes only -> python list
@@ -1086,7 +1086,7 @@ class Decoder(pyamf.BaseDecoder):
                 except UnicodeError:
                     result[key] = el
 
-                key = self.readString()
+                key = self.readString().encode('utf8')
 
             for i in xrange(size):
                 el = self.readElement()
@@ -1139,7 +1139,7 @@ class Decoder(pyamf.BaseDecoder):
                 class_def.static_attrs = []
 
                 for i in range(num_attrs):
-                    key = self.readString()
+                    key = self.readString().encode('utf8')
 
                     class_def.static_attrs.append(key)
 
@@ -1147,11 +1147,11 @@ class Decoder(pyamf.BaseDecoder):
                 obj[attr] = self.readElement()
 
         def readDynamic(is_ref, class_def, obj):
-            attr = self.readString()
+            attr = self.readString().encode('utf8')
 
             while attr != '':
                 obj[attr] = self.readElement()
-                attr = self.readString()
+                attr = self.readString().encode('utf8')
 
         ref = self.readUnsignedInteger()
 

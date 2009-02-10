@@ -6,8 +6,10 @@ versions of PyAMF.
 
 .. contents::
 
-0.5 (unreleased)
-----------------
+0.4.1 (unreleased)
+------------------
+ - object attributes and dict keys are now utf8 encoded bytestrings. Python
+   **kwargs doesn't accept unicode key objects. (Ticket:463)
 
 0.4 (2009-01-18)
 ----------------

@@ -894,6 +894,14 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
             ({'baz': u'hello'}, '\x0a\x13\x01\x07\x62\x61\x7a\x06\x0b\x68\x65'
                 '\x6c\x6c\x6f')])
 
+        bytes = '\x0a\x0b\x01\x07\x62\x61\x7a\x06\x0b\x68\x65\x6c\x6c\x6f\x01'
+
+        self.buf.write(bytes)
+        self.buf.seek(0)
+        d = self.decoder.readElement()
+
+        self.assertEquals(type(d.keys()[0]), str)
+
     def test_object(self):
         pyamf.register_class(Spam, 'org.pyamf.spam')
 

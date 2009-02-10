@@ -622,16 +622,30 @@ class DecoderTestCase(ClassCacheClearingTestCase):
                 '\x00\x00\x00\x00')])
 
     def test_dict(self):
+        bytes = '\x08\x00\x00\x00\x00\x00\x01\x61\x02\x00\x01\x61\x00\x00\x09'
+
         self._run([
-            ({'a': 'a'}, '\x08\x00\x00\x00\x00\x00\x01\x61\x02\x00\x01\x61\x00'
-                '\x00\x09')])
+            ({'a': 'a'}, bytes)])
+
+        self.buf.write(bytes)
+        self.buf.seek(0)
+        d = self.decoder.readElement()
+
+        self.assertEquals(type(d.keys()[0]), str)
 
     def test_mixed_array(self):
+        bytes = '\x08\x00\x00\x00\x00\x00\x01a\x00?\xf0\x00\x00\x00\x00' + \
+            '\x00\x00\x00\x01c\x00@\x08\x00\x00\x00\x00\x00\x00\x00\x01' + \
+            'b\x00@\x00\x00\x00\x00\x00\x00\x00\x00\x00\t'
+
         self._run([
-            (pyamf.MixedArray(a=1, b=2, c=3), '\x08\x00\x00\x00\x00\x00\x01a'
-                '\x00?\xf0\x00\x00\x00\x00\x00\x00\x00\x01c\x00@\x08\x00\x00'
-                '\x00\x00\x00\x00\x00\x01b\x00@\x00\x00\x00\x00\x00\x00\x00'
-                '\x00\x00\t')])
+            (pyamf.MixedArray(a=1, b=2, c=3), bytes)])
+
+        self.buf.write(bytes)
+        self.buf.seek(0)
+        d = self.decoder.readElement()
+
+        self.assertEquals(type(d.keys()[0]), str)
 
     def test_date(self):
         self._run([
@@ -662,8 +676,15 @@ class DecoderTestCase(ClassCacheClearingTestCase):
             util.ET.tostring(self.decoder.readElement()))
 
     def test_object(self):
-        self._run([
-            ({'a': 'b'}, '\x03\x00\x01a\x02\x00\x01b\x00\x00\x09')])
+        bytes = '\x03\x00\x01a\x02\x00\x01b\x00\x00\x09'
+
+        self._run([({'a': 'b'}, bytes)])
+
+        self.buf.write(bytes)
+        self.buf.seek(0)
+        d = self.decoder.readElement()
+
+        self.assertEquals(type(d.keys()[0]), str)
 
     def test_registered_class(self):
         pyamf.register_class(Spam, alias='org.pyamf.spam')
