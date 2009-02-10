@@ -93,6 +93,12 @@ def get_cpyamf_extensions():
         return []
 
     if sys.platform.startswith('java'):
+        print 80 * '*'
+        print 'WARNING:'
+        print '\tAn optional code optimization (C extension) could not be compiled.\n\n'
+        print '\tOptimizations for this package will not be available!\n\n'
+        print 'Compiling extensions is not supported on Jython'
+        print 80 * '*'
         return []
 
     ext_modules = []
@@ -147,7 +153,7 @@ gateway remoteobject twisted pylons django sharedobject lso sol"""
 setup(name = "PyAMF",
     version = get_version(),
     description = "AMF support for Python",
-    long_description = open('README.txt', 'rt').read(),
+    long_description = '',#open('README.txt', 'rt').read(),
     url = "http://pyamf.org",
     author = "The PyAMF Project",
     author_email = "dev@pyamf.org",
