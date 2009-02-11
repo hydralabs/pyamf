@@ -44,13 +44,10 @@ class ModelsBaseTestCase(unittest.TestCase):
 
 class TypeMapTestCase(ModelsBaseTestCase):
     def test_objects_all(self):
-        try:
-            from django.db import models, connection
+        from django.db import connection, models
 
-            class Spam(models.Model):
-                pass
-        except:
-            return
+        class Spam(models.Model):
+            pass
 
         cursor = connection.cursor()
         cursor.execute('CREATE TABLE adapters_spam (id INTEGER PRIMARY KEY)')
@@ -78,15 +75,91 @@ class TypeMapTestCase(ModelsBaseTestCase):
         encoder.writeElement(fields.NOT_PROVIDED)
         self.assertEquals(encoder.stream.getvalue(), '\x00')
 
+class ClassAliasTestCase(ModelsBaseTestCase):
+    def setUp(self):
+        ModelsBaseTestCase.setUp(self)
+
+        from pyamf.adapters import _django_db_models_base as models_adapter
+
+        self.adapter = models_adapter
+
+    def test_time(self):
+        from django.db import models
+        import datetime
+
+        class TestClass(models.Model):
+            t = models.TimeField()
+            d = models.DateField()
+            dt = models.DateTimeField()
+
+        x = TestClass()
+
+        x.t = datetime.time(12, 12, 12)
+        x.d = datetime.date(2008, 3, 12)
+        x.dt = datetime.datetime(2008, 3, 12, 12, 12, 12)
+
+        alias = self.adapter.DjangoClassAlias(TestClass, None)
+
+        sa, da = alias.getAttributes(x)
+
+        self.assertEquals(sa, {
+            'id': None,
+            'd': datetime.datetime(2008, 3, 12, 0, 0),
+            'dt': datetime.datetime(2008, 3, 12, 12, 12, 12),
+            't': datetime.datetime(1970, 1, 1, 12, 12, 12)
+        })
+
+        self.assertEquals(da, {})
+
+        y = TestClass()
+
+
+        alias.applyAttributes(y, {
+            'id': None,
+            'd': datetime.datetime(2008, 3, 12, 0, 0),
+            'dt': datetime.datetime(2008, 3, 12, 12, 12, 12),
+            't': datetime.datetime(1970, 1, 1, 12, 12, 12)
+        })
+
+        self.assertEquals(y.id, None)
+        self.assertEquals(y.d, datetime.date(2008, 3, 12))
+        self.assertEquals(y.dt, datetime.datetime(2008, 3, 12, 12, 12, 12))
+        self.assertEquals(y.t, datetime.time(12, 12, 12))
+
+    def test_undefined(self):
+        from django.db import models
+        from django.db.models import fields
+
+        class UndefinedClass(models.Model):
+            pass
+
+        alias = self.adapter.DjangoClassAlias(UndefinedClass, None)
+
+        x = UndefinedClass()
+
+        alias.applyAttributes(x, {
+            'id': pyamf.Undefined
+        })
+
+        self.assertEquals(x.id, fields.NOT_PROVIDED)
+    
+        x.id = fields.NOT_PROVIDED
+
+        sa, da = alias.getAttributes(x)
+
+        self.assertEquals(da, {})
+        self.assertEquals(sa, {'id': pyamf.Undefined})
+
 def suite():
     suite = unittest.TestSuite()
 
     try:
-        import django.db
-    except ImportError:
+        import django
+    except ImportError, e:
         return suite
 
     suite.addTest(unittest.makeSuite(TypeMapTestCase))
+    suite.addTest(unittest.makeSuite(ClassAliasTestCase))
 
     return suite
 

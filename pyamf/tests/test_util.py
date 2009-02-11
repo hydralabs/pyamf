@@ -16,6 +16,7 @@ from StringIO import StringIO
 
 import pyamf
 from pyamf import util
+
 from pyamf.tests import util as _util
 
 class TimestampTestCase(unittest.TestCase):

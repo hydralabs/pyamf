@@ -30,7 +30,7 @@ __all__ = [
 ]
 
 #: PyAMF version number.
-__version__ = (0, 5)
+__version__ = (0, 4, 1)
 
 #: Class mapping support.
 CLASS_CACHE = {}

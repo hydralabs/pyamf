@@ -43,7 +43,7 @@ def register_adapters():
             continue
 
         try:
-            module = imports.whenImported(mod[1:].replace('_', '.'), PackageImporter(mod))
+            register_adapter(mod[1:].replace('_', '.'), PackageImporter(mod))
         except ImportError:
             pass
 
