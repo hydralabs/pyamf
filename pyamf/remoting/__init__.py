@@ -506,13 +506,13 @@ def _write_body(name, message, stream, encoder, strict=False):
 
     if not strict:
         stream.write_ulong(0)
-        encoder.writeElement(message.body)
+        encoder.writeElement(message.body, force_amf0=True)
     else:
         write_pos = stream.tell()
         stream.write_ulong(0)
         old_pos = stream.tell()
 
-        encoder.writeElement(message.body)
+        encoder.writeElement(message.body, force_amf0=True)
         new_pos = stream.tell()
 
         stream.seek(write_pos)

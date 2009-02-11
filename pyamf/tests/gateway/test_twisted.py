@@ -136,7 +136,16 @@ class TwistedServerTestCase(unittest.TestCase):
         return d.addCallback(cb)
 
     def test_expose_request(self):
+        import logging
         self.gw.expose_request = True
+
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)
+        # create formatter
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        # add formatter to ch
+        ch.setFormatter(formatter)
+        self.gw.logger.addHandler(ch)
 
         def echo(request, data):
             self.assertTrue(isinstance(request, http.Request))

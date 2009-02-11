@@ -518,6 +518,18 @@ class EncoderTestCase(ClassCacheClearingTestCase):
         self.assertEquals(self.buf.getvalue(),
             '\x11\x0bq<root><sections><section /><section /></sections></root>')
 
+    def test_use_amf3(self):
+        self.encoder.use_amf3 = True
+
+        x = {'foo': 'bar', 'baz': 'gak'}
+
+        self.encoder.writeElement(x)
+
+        self.assertTrue(check_buffer(self.buf.getvalue(), ('\x11\n\x0b', (
+            '\x01\x07foo\x06\x07bar',
+            '\x07baz\x06\x07gak\x01'
+        ))))
+
 class DecoderTestCase(ClassCacheClearingTestCase):
     """
     Tests the output from the AMF0 L{Decoder<pyamf.amf0.Decoder>} class.
@@ -1060,13 +1072,18 @@ class ClassInheritanceTestCase(ClassCacheClearingTestCase):
 def suite():
     suite = unittest.TestSuite()
 
-    suite.addTest(unittest.makeSuite(TypesTestCase))
-    suite.addTest(unittest.makeSuite(ContextTestCase))
-    suite.addTest(unittest.makeSuite(EncoderTestCase))
-    suite.addTest(unittest.makeSuite(DecoderTestCase))
-    suite.addTest(unittest.makeSuite(RecordSetTestCase))
-    suite.addTest(unittest.makeSuite(HelperTestCase))
-    suite.addTest(unittest.makeSuite(ClassInheritanceTestCase))
+    test_cases = [
+        TypesTestCase,
+        ContextTestCase,
+        EncoderTestCase,
+        DecoderTestCase,
+        RecordSetTestCase,
+        HelperTestCase,
+        ClassInheritanceTestCase
+    ]
+
+    for tc in test_cases:
+        suite.addTest(unittest.makeSuite(tc))
 
     return suite
 
