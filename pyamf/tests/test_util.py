@@ -752,7 +752,7 @@ class IndexedMapTestCase(unittest.TestCase):
             self.name = 'test'
 
     def setUp(self):
-        self.collection = util.MappedCollection()
+        self.collection = util.IndexedMap()
 
     def test_map(self):
         test_obj = TestObject()
@@ -778,18 +778,24 @@ def suite():
     """
     suite = unittest.TestSuite()
 
-    suite.addTest(unittest.makeSuite(TimestampTestCase))
-    suite.addTest(unittest.makeSuite(StringIOProxyTestCase))
+    test_cases = [
+        TimestampTestCase,
+        StringIOProxyTestCase,
+        DataTypeMixInTestCase,
+        BufferedByteStreamTestCase,
+        ClassAliasTestCase,
+        IndexedCollectionTestCase,
+        IndexedMapTestCase
+    ]
 
     try:
-        suite.addTest(unittest.makeSuite(cStringIOProxyTestCase))
+        import cStringIO
+        test_cases.append(cStringIOProxyTestCase)
     except ImportError:
         pass
 
-    suite.addTest(unittest.makeSuite(DataTypeMixInTestCase))
-    suite.addTest(unittest.makeSuite(BufferedByteStreamTestCase))
-    suite.addTest(unittest.makeSuite(ClassAliasTestCase))
-    suite.addTest(unittest.makeSuite(IndexedCollectionTestCase))
+    for tc in test_cases:
+        suite.addTest(unittest.makeSuite(tc))
 
     return suite
 
