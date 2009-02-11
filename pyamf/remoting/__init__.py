@@ -258,7 +258,7 @@ class Request(Message):
 
     def __repr__(self):
         return "<%s target=%s>%s</%s>" % (
-            type(self).__name__, self.target, self.body, type(self).__name__)
+            type(self).__name__, repr(self.target), repr(self.body), type(self).__name__)
 
 class Response(Message):
     """
@@ -274,7 +274,7 @@ class Response(Message):
 
     def __repr__(self):
         return "<%s status=%s>%s</%s>" % (
-            type(self).__name__, _get_status(self.status), self.body,
+            type(self).__name__, _get_status(self.status), repr(self.body),
             type(self).__name__
         )
 
@@ -306,14 +306,14 @@ class BaseFault(object):
         x = '%s level=%s' % (self.__class__.__name__, self.level)
 
         if self.code not in ('', None):
-            x += ' code=%s' % self.code
+            x += ' code=%s' % repr(self.code)
         if self.type not in ('', None):
-            x += ' type=%s' % self.type
+            x += ' type=%s' % repr(self.type)
         if self.description not in ('', None):
-            x += ' description=%s' % self.description
+            x += ' description=%s' % repr(self.description)
 
         if self.details not in ('', None):
-            x += '\nTraceback:\n%s' % (self.details,)
+            x += '\nTraceback:\n%s' % (repr(self.details),)
 
         return x
 

@@ -344,18 +344,44 @@ class FunctionalTestCase(unittest.TestCase):
             '\x00\x00\x00\x00\x00\x01\x00\x0b/1/onResult\x00\x04null'
             '\x00\x00\x00\x00\n\x00\x00\x00\x01\x11\x0c\x1112345678')
 
+
+class ReprTestCase(unittest.TestCase):
+    def test_response(self):
+        r = remoting.Response(u'€±')
+
+        self.assertEquals(repr(r),
+            "<Response status=/onResult>u'\\u20ac\\xb1'</Response>")
+
+    def test_request(self):
+        r = remoting.Request(u'€±', [u'å∫ç'])
+
+        self.assertEquals(repr(r),
+            "<Request target=u'\\u20ac\\xb1'>[u'\\xe5\\u222b\\xe7']</Request>")
+
+    def test_base_fault(self):
+        r = remoting.BaseFault(code=u'å', type=u'å', description=u'å', details=u'å')
+
+        self.assertEquals(repr(r),
+            "BaseFault level=None code=u'\\xe5' type=u'\\xe5' description=u'\\xe5'\nTraceback:\nu'\\xe5'")
+
 def suite():
     """
     Add tests.
     """
     suite = unittest.TestSuite()
 
-    suite.addTest(unittest.makeSuite(DecoderTestCase))
-    suite.addTest(unittest.makeSuite(EncoderTestCase))
-    suite.addTest(unittest.makeSuite(StrictEncodingTestCase))
-    suite.addTest(unittest.makeSuite(FaultTestCase))
-    suite.addTest(unittest.makeSuite(ContextTextCase))
-    suite.addTest(unittest.makeSuite(FunctionalTestCase))
+    test_cases = [
+        DecoderTestCase,
+        EncoderTestCase,
+        StrictEncodingTestCase,
+        FaultTestCase,
+        ContextTextCase,
+        FunctionalTestCase,
+        ReprTestCase
+    ]
+
+    for tc in test_cases:
+        suite.addTest(unittest.makeSuite(tc))
 
     from pyamf.tests.remoting import test_client, test_remoteobject
 

@@ -8,8 +8,13 @@ versions of PyAMF.
 
 0.4.1 (unreleased)
 ------------------
+ - Unicode handling in __repr__ functions has been improved (Ticket:455)
  - object attributes and dict keys are now utf8 encoded bytestrings. Python
    **kwargs doesn't accept unicode key objects. (Ticket:463)
+ - Django models.TimeField, models.DateField will now be converted to the
+   correct type (datetime.time and datetime.date respectively).
+   fields.NOT_PROVIDED is also checked for by converting to pyamf.Undefined
+   and back again. (Ticket:457)
 
 0.4 (2009-01-18)
 ----------------
