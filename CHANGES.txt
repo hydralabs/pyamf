@@ -8,6 +8,8 @@ versions of PyAMF.
 
 0.4.1 (unreleased)
 ------------------
+ - amf0.Encoder will encode all elements as AMF3 if use_amf3 option is set to
+   True (Ticket:453)
  - Unicode handling in __repr__ functions has been improved (Ticket:455)
  - object attributes and dict keys are now utf8 encoded bytestrings. Python
    **kwargs doesn't accept unicode key objects. (Ticket:463)
