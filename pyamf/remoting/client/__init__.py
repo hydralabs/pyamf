@@ -195,7 +195,7 @@ class RemotingService(object):
     @ivar http_headers: A dict of HTTP headers to apply to the underlying
         HTTP connection.
     @type http_headers: L{dict}
-    @ivar strict: Whether to use strict en/decoding or not.
+    @ivar strict: Whether to use strict AMF en/decoding or not.
     @type strict: C{bool}
     """
 
@@ -257,9 +257,10 @@ class RemotingService(object):
             self.connection = httplib.HTTPSConnection(hostname, port)
         else:
             raise ValueError('Unknown scheme')
-
-        self.logger.info('Creating connection to %s://%s:%s' % (self.url[0],
-                                                                hostname, port))
+        
+        location = '%s://%s:%s%s' % (self.url[0], hostname, port, self.url[2])
+        
+        self.logger.info('Connecting to %s' % location)
         self.logger.debug('Referer: %s' % self.referer)
         self.logger.debug('User-Agent: %s' % self.user_agent)
 
