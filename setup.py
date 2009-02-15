@@ -153,7 +153,7 @@ gateway remoteobject twisted pylons django sharedobject lso sol"""
 setup(name = "PyAMF",
     version = get_version(),
     description = "AMF support for Python",
-    long_description = '',#open('README.txt', 'rt').read(),
+    long_description = open('README.txt', 'rt').read(),
     url = "http://pyamf.org",
     author = "The PyAMF Project",
     author_email = "dev@pyamf.org",
