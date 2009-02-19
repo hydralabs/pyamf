@@ -8,6 +8,8 @@ versions of PyAMF.
 
 0.4.1 (unreleased)
 ------------------
+ - Encoding {0:0, '0':1} will now raise an AttributeError - duplicate keys
+   as all keys are converted to string. (Ticket:458)
  - Google AppEngine adapter improvements - see ticket for details (Ticket:479)
  - amf0.Encoder will encode all elements as AMF3 if use_amf3 option is set to
    True (Ticket:453)
