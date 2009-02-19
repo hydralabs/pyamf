@@ -13,6 +13,7 @@ import sys
 
 from django.db.models.base import Model
 from django.db.models import fields
+from django.db.models.fields import related
 
 import datetime
 
@@ -26,34 +27,71 @@ class DjangoClassAlias(pyamf.ClassAlias):
             static_attrs = self.static_attrs
         else:
             static_attrs = self.static_attrs = []
-            self.foreign_keys = []
+            self.fields = {}
 
             for x in obj._meta.fields:
-                static_attrs.append(x.name)
+                if x.name not in static_attrs:
+                    self.fields[x.name] = x
+                    static_attrs.append(x.name)
+
+            for k, v in self.klass.__dict__.iteritems():
+                if isinstance(v, related.ReverseManyRelatedObjectsDescriptor):
+                    if k not in static_attrs:
+                        self.fields[k] = v.field
+                        static_attrs.append(k)
 
         dynamic_attrs = []
 
         return static_attrs, dynamic_attrs
 
+    def _encodeValue(self, field, value):
+        if value is fields.NOT_PROVIDED:
+            return pyamf.Undefined
+
+        # deal with dates ..
+        if isinstance(field, fields.DateTimeField):
+            return value
+        elif isinstance(field, fields.DateField):
+            return datetime.datetime(value.year, value.month, value.day, 0, 0, 0)
+        elif isinstance(field, fields.TimeField):
+            return datetime.datetime(1970, 1, 1,
+                value.hour, value.minute, value.second, value.microsecond)
+
+        return value
+
+    def _decodeValue(self, field, value):
+        if value is pyamf.Undefined:
+            return fields.NOT_PROVIDED
+
+        # deal with dates
+        if isinstance(field, fields.DateTimeField):
+            return value
+        elif isinstance(field, fields.DateField):
+            return datetime.date(value.year, value.month, value.day)
+        elif isinstance(field, fields.TimeField):
+            return datetime.time(value.hour, value.minute, value.second, value.microsecond)
+
+        return value
+
     def getAttributes(self, obj, codec=None):
-        static_attrs, dynamic_attrs = pyamf.ClassAlias.getAttributes(self, obj)
+        from django.db import models
 
-        for f in obj._meta.fields:
-            name = f.attname
+        san, dan = self.getAttrs(obj)
+        static_attrs, dynamic_attrs = {}, {}
 
-            if name not in static_attrs:
-                continue
+        for name in san:
+            if name in self.fields.keys():
+                prop = self.fields[name]
 
-            v = static_attrs[name]
-
-            if v is fields.NOT_PROVIDED:
-                static_attrs[name] = pyamf.Undefined
-            elif isinstance(f, fields.DateTimeField):
-                pass
-            elif isinstance(f, fields.DateField):
-                static_attrs[name] = datetime.datetime(v.year, v.month, v.day, 0, 0, 0)
-            elif isinstance(f, fields.TimeField):
-                static_attrs[name] = datetime.datetime(1970, 1, 1, v.hour, v.minute, v.second, v.microsecond)
+                if isinstance(prop, related.ManyToManyField):
+                    static_attrs[name] = [x for x in getattr(obj, name).all()]
+                elif isinstance(prop, models.ForeignKey):
+                    if '_%s_cache' % name in obj.__dict__:
+                        static_attrs[name] = getattr(obj, name)
+                    else:
+                        static_attrs[name] = None
+                else:
+                    static_attrs[name] = self._encodeValue(prop, getattr(obj, name))
 
         return static_attrs, dynamic_attrs
 
@@ -61,17 +99,8 @@ class DjangoClassAlias(pyamf.ClassAlias):
         if not hasattr(self, 'static_attrs'):
             self.getAttrs(obj)
 
-        for f in obj._meta.fields:
-            v = attrs[f.attname]
-
-            if v is pyamf.Undefined:
-                attrs[f.attname] = fields.NOT_PROVIDED
-            elif isinstance(f, fields.DateTimeField):
-                pass
-            elif isinstance(f, fields.DateField):
-                attrs[f.attname] = datetime.date(v.year, v.month, v.day)
-            elif isinstance(f, fields.TimeField):
-                attrs[f.attname] = datetime.time(v.hour, v.minute, v.second, v.microsecond)
+        for n, f in self.fields.iteritems():
+            attrs[f.attname] = self._decodeValue(f, attrs[n])
 
         return pyamf.ClassAlias.applyAttributes(self, obj, attrs)
 
