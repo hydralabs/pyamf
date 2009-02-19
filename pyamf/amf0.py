@@ -517,21 +517,14 @@ class Encoder(pyamf.BaseEncoder):
 
         return pyamf.BaseEncoder._writeElementFunc(self, data)
 
-    def writeElement(self, data, force_amf0=False):
+    def writeElement(self, data):
         """
         Writes the data.
 
         @type data: C{mixed}
         @param data: The data to be encoded to the AMF0 data stream.
-        @param force_amf0: Forces AMF0 encoding even if C{use_amf3} is C{True}
-
         @raise EncodeError: Cannot find encoder func.
         """
-        if self.use_amf3 is True and force_amf0 is False:
-            self.writeAMF3(data)
-
-            return
-
         func = self._writeElementFunc(data)
 
         if func is None:
