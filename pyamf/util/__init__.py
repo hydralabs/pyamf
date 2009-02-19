@@ -252,7 +252,7 @@ class DataTypeMixIn(object):
     def _is_big_endian(self):
         """
         Whether this system is big endian or not.
-        
+
         @rtype: C{bool}
         """
         if self.endian == DataTypeMixIn.ENDIAN_NATIVE:

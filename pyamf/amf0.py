@@ -307,7 +307,7 @@ class Decoder(pyamf.BaseDecoder):
         try:
             alias = pyamf.load_class(classname)
 
-            ret = alias.createInstance()
+            ret = alias.createInstance(codec=self)
         except pyamf.UnknownClassAlias:
             if self.strict:
                 raise
@@ -362,7 +362,7 @@ class Decoder(pyamf.BaseDecoder):
         self.stream.read(len(ot))
 
         if alias:
-            alias.applyAttributes(obj, obj_attrs)
+            alias.applyAttributes(obj, obj_attrs, codec=self)
         else:
             util.set_attrs(obj, obj_attrs)
 
@@ -715,7 +715,7 @@ class Encoder(pyamf.BaseEncoder):
         if alias is not None:
             obj_attrs = {}
 
-            for attrs in alias.getAttributes(o):
+            for attrs in alias.getAttributes(o, codec=self):
                 obj_attrs.update(attrs)
 
         if obj_attrs is None:
@@ -733,6 +733,11 @@ class Encoder(pyamf.BaseEncoder):
         @type o: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param o: The object data to be encoded to the AMF0 data stream.
         """
+        if self.use_amf3 is True:
+            self.writeAMF3(o)
+
+            return
+
         try:
             self.writeReference(o)
             return

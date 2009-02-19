@@ -19,7 +19,7 @@ import datetime
 import pyamf
 
 class DjangoClassAlias(pyamf.ClassAlias):
-    def getAttrs(self, obj):
+    def getAttrs(self, obj, codec=None):
         static_attrs = None
 
         if hasattr(self, 'static_attrs'):
@@ -35,7 +35,7 @@ class DjangoClassAlias(pyamf.ClassAlias):
 
         return static_attrs, dynamic_attrs
 
-    def getAttributes(self, obj):
+    def getAttributes(self, obj, codec=None):
         static_attrs, dynamic_attrs = pyamf.ClassAlias.getAttributes(self, obj)
 
         for f in obj._meta.fields:
@@ -57,7 +57,7 @@ class DjangoClassAlias(pyamf.ClassAlias):
 
         return static_attrs, dynamic_attrs
 
-    def applyAttributes(self, obj, attrs):
+    def applyAttributes(self, obj, attrs, codec=None):
         if not hasattr(self, 'static_attrs'):
             self.getAttrs(obj)
 

@@ -2,7 +2,7 @@
 # See LICENSE for details.
 
 """
-Django model adapter module.
+Django query adapter module.
 
 Sets up basic type mapping and class mappings for a
 Django models.
@@ -14,11 +14,6 @@ Django models.
 from django.db.models import query
 
 import pyamf
+from pyamf.adapters import util
 
-def write_queryset(qs, encoder):
-    """
-    @rtype: C{list}
-    """
-    return list(qs)
-
-pyamf.add_type(query.QuerySet, write_queryset)
+pyamf.add_type(query.QuerySet, util.to_list)
