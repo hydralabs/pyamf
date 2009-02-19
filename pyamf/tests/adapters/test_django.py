@@ -169,6 +169,36 @@ class ClassAliasTestCase(ModelsBaseTestCase):
         self.assertEquals(da, {})
         self.assertEquals(sa, {'id': pyamf.Undefined})
 
+    def test_non_field_prop(self):
+        from django.db import models
+
+        class Book(models.Model):
+            def _get_number_of_odd_pages(self):
+                return 234
+
+            # note the lack of a setter callable ..
+            numberOfOddPages = property(_get_number_of_odd_pages)
+
+        alias = self.adapter.DjangoClassAlias(Book, 'Book')
+
+        x = Book()
+
+        self.assertEquals(alias.getAttrs(x), (
+            ['id', 'numberOfOddPages'],
+            []
+        ))
+
+        self.assertEquals(alias.getAttributes(x), (
+            {'numberOfOddPages': 234, 'id': None},
+            {}
+        ))
+
+        # now we test sending the numberOfOddPages attribute
+        alias.applyAttributes(x, {'numberOfOddPages': 24, 'id': None})
+
+        # test it hasn't been set
+        self.assertEquals(x.numberOfOddPages, 234)
+
 class ForeignKeyTestCase(ModelsBaseTestCase):
     def test_one_to_many(self):
         from django.db import models

@@ -8,6 +8,7 @@ versions of PyAMF.
 
 0.4.1 (unreleased)
 ------------------
+ - property types on Django models will now encode as expected. (Ticket:480)
  - Django models.ForeignKey properties will be followed only if previously
    accessed outside of PyAMF. `_[attr]_cache` is no longer encoded.
    (Ticket:456)
