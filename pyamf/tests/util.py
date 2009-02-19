@@ -22,6 +22,7 @@ class Spam(object):
     """
     A generic object to use for object encoding
     """
+
     def __init__(self, d={}):
         self.__dict__.update(d)
 

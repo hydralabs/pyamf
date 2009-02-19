@@ -1,3 +1,6 @@
+# Copyright (c) 2007-2009 The PyAMF Project.
+# See LICENSE for details.
+
 """
 Tools for doing dynamic imports
 
@@ -21,8 +24,6 @@ from types import ModuleType
 postLoadHooks = {}
 loadedModules = []
 
-PY_EXT = ('.pyo', '.pyc', '.py')
-
 try:
     from imp import find_module
 
@@ -32,6 +33,12 @@ try:
     find_module('pyamf.util.imports')
 except ImportError:
     def find_module(subname, path=None):
+        # the dev_appserver freaks out if you have pyc, pyo in here as 
+        # we're hooking pyamf.amf0 and pyamf.amf3 in the gae adapter and
+        # monkey-patching it. It rightly complains as the byte-compiled module
+        # is different to the 'final' module.
+        PY_EXT = ('.py',)
+
         if path is None:
             path = sys.path
 

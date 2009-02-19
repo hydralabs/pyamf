@@ -14,6 +14,7 @@ U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>}.
 @since: October 2007
 @version: 0.4.1
 @status: Production/Stable
+@status: Production/Stable
 """
 
 import types
@@ -494,21 +495,26 @@ class ClassAlias(object):
 
         return (sa, da)
 
-    def getAttrs(self, obj):
+    def getAttrs(self, obj, codec=None):
         """
         Returns a tuple of lists, static and dynamic attrs to encode.
+
+        @param encoder: An optional argument that will contain the en/decoder
+            instance calling this function.
         """
         return self._getAttrs(obj)
 
-    def getAttributes(self, obj):
+    def getAttributes(self, obj, codec=None):
         """
         Returns a collection of attributes for an object.
         Returns a C{tuple} containing a dict of static and dynamic attributes
-        for C{obj}.
+
+        @param codec: An optional argument that will contain the en/decoder
+            instance calling this function.
         """
         dynamic_attrs = {}
         static_attrs = {}
-        static_attr_names, dynamic_attr_names = self.getAttrs(obj)
+        static_attr_names, dynamic_attr_names = self.getAttrs(obj, codec=codec)
 
         if static_attr_names is None and dynamic_attr_names is None:
             dynamic_attrs = util.get_attrs(obj)
@@ -530,13 +536,16 @@ class ClassAlias(object):
 
         return (static_attrs, dynamic_attrs)
 
-    def applyAttributes(self, obj, attrs):
+    def applyAttributes(self, obj, attrs, codec=None):
         """
         Applies the collection of attributes C{attrs} to aliased object C{obj}.
         It is mainly used when reading aliased objects from an AMF byte stream.
+
+        @param codec: An optional argument that will contain the en/decoder
+            instance calling this function.
         """
         if 'static' in self.metadata:
-            s, d = self.getAttrs(obj)
+            s, d = self.getAttrs(obj, codec=codec)
 
             if s is not None:
                 for k in attrs.keys():
@@ -545,7 +554,7 @@ class ClassAlias(object):
 
         util.set_attrs(obj, attrs)
 
-    def createInstance(self, *args, **kwargs):
+    def createInstance(self, codec=None, *args, **kwargs):
         """
         Creates an instance of the klass.
 
@@ -593,7 +602,7 @@ class TypedObjectClassAlias(ClassAlias):
     @since: 0.4
     """
 
-    def createInstance(self):
+    def createInstance(self, codec=None):
         return TypedObject(self.alias)
 
     def checkClass(kls, klass):

@@ -8,6 +8,7 @@ versions of PyAMF.
 
 0.4.1 (unreleased)
 ------------------
+ - Google AppEngine adapter improvements - see ticket for details (Ticket:479)
  - amf0.Encoder will encode all elements as AMF3 if use_amf3 option is set to
    True (Ticket:453)
  - Unicode handling in __repr__ functions has been improved (Ticket:455)

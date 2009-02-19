@@ -600,7 +600,7 @@ class ClassDefinition(object):
 
     klass = property(getClass)
 
-    def getStaticAttrs(self, obj):
+    def getStaticAttrs(self, obj, codec=None):
         """
         Returns a list of static attributes based on C{obj}. Once built,
         this list is immutable.
@@ -618,7 +618,7 @@ class ClassDefinition(object):
 
             return []
 
-        static_attrs, dynamic_attrs = self.alias.getAttrs(obj)
+        static_attrs, dynamic_attrs = self.alias.getAttrs(obj, codec=self)
 
         if static_attrs is None:
             self.static_attrs = []
@@ -627,41 +627,41 @@ class ClassDefinition(object):
 
         return self.static_attrs
 
-    def getAttrs(self, obj):
+    def getAttrs(self, obj, codec=None):
         """
         Returns a C{tuple} containing a dict of static and dynamic attributes
         for C{obj}.
         """
         if self.alias is not None:
-            return self.alias.getAttributes(obj)
+            return self.alias.getAttributes(obj, codec=codec)
 
         dynamic_attrs = util.get_attrs(obj)
         static_attrs = {}
 
-        for a in self.getStaticAttrs(obj):
+        for a in self.getStaticAttrs(obj, codec=codec):
             static_attrs[a] = dynamic_attrs[a]
             del dynamic_attrs[a]
 
         return static_attrs, dynamic_attrs
 
-    def createInstance(self):
+    def createInstance(self, codec=None):
         """
         Creates a new instance.
         """
         if self.alias:
-            obj = self.alias.createInstance()
+            obj = self.alias.createInstance(codec=codec)
         else:
             klass = self.getClass()
             obj = klass()
 
         return obj
 
-    def applyAttributes(self, obj, attrs):
+    def applyAttributes(self, obj, attrs, codec=None):
         """
         Applies a collection of attributes C{attrs} to object C{obj}
         """
         if self.alias:
-            self.alias.applyAttributes(obj, attrs)
+            self.alias.applyAttributes(obj, attrs, codec=codec)
         else:
             util.set_attrs(obj, attrs)
 
@@ -1170,7 +1170,7 @@ class Decoder(pyamf.BaseDecoder):
         if class_def.alias and 'amf0' in class_def.alias.metadata:
             raise pyamf.EncodeError("Decoding an object in amf3 tagged as amf0 only is not allowed")
 
-        obj = class_def.createInstance()
+        obj = class_def.createInstance(codec=self)
         obj_attrs = dict()
 
         self.context.addObject(obj)
@@ -1185,7 +1185,7 @@ class Decoder(pyamf.BaseDecoder):
         else:
             raise pyamf.DecodeError("Unknown object encoding")
 
-        class_def.applyAttributes(obj, obj_attrs)
+        class_def.applyAttributes(obj, obj_attrs, codec=self)
 
         if _use_proxies is True:
             obj = self.readProxyObject(obj)
@@ -1731,7 +1731,7 @@ class Encoder(pyamf.BaseEncoder):
         if class_def.encoding in (ObjectEncoding.EXTERNAL, ObjectEncoding.PROXY):
             obj.__writeamf__(DataOutput(self))
         else:
-            static_attrs, dynamic_attrs = class_def.getAttrs(obj)
+            static_attrs, dynamic_attrs = class_def.getAttrs(obj, codec=self)
 
             if static_attrs is not None:
                 attrs = class_def.getStaticAttrs(obj)
