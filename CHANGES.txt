@@ -8,6 +8,9 @@ versions of PyAMF.
 
 0.4.1 (unreleased)
 ------------------
+ - Django models.ForeignKey properties will be followed only if previously
+   accessed outside of PyAMF. `_[attr]_cache` is no longer encoded.
+   (Ticket:456)
  - Encoding {0:0, '0':1} will now raise an AttributeError. (Ticket:458)
  - Google AppEngine adapter improvements - see ticket for details (Ticket:479)
  - amf0.Encoder will encode all elements as AMF3 if use_amf3 option is set to
