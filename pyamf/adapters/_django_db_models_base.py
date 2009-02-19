@@ -21,7 +21,7 @@ import pyamf
 
 class DjangoClassAlias(pyamf.ClassAlias):
     def getAttrs(self, obj, codec=None):
-        static_attrs = None
+        static_attrs, dynamic_attrs = [], []
 
         if hasattr(self, 'static_attrs'):
             static_attrs = self.static_attrs
@@ -35,12 +35,12 @@ class DjangoClassAlias(pyamf.ClassAlias):
                     static_attrs.append(x.name)
 
             for k, v in self.klass.__dict__.iteritems():
-                if isinstance(v, related.ReverseManyRelatedObjectsDescriptor):
+                if isinstance(v, property):
+                    static_attrs.append(k)
+                elif isinstance(v, related.ReverseManyRelatedObjectsDescriptor):
                     if k not in static_attrs:
                         self.fields[k] = v.field
                         static_attrs.append(k)
-
-        dynamic_attrs = []
 
         return static_attrs, dynamic_attrs
 
@@ -80,7 +80,9 @@ class DjangoClassAlias(pyamf.ClassAlias):
         static_attrs, dynamic_attrs = {}, {}
 
         for name in san:
-            if name in self.fields.keys():
+            if name not in self.fields.keys():
+                static_attrs[name] = getattr(obj, name)
+            else:
                 prop = self.fields[name]
 
                 if isinstance(prop, related.ManyToManyField):
@@ -101,6 +103,13 @@ class DjangoClassAlias(pyamf.ClassAlias):
 
         for n, f in self.fields.iteritems():
             attrs[f.attname] = self._decodeValue(f, attrs[n])
+
+        for f in self.klass.__dict__:
+            prop = self.klass.__dict__[f]
+
+            if isinstance(prop, property) and f in attrs.keys():
+                if prop.fset is None:
+                    del attrs[f]
 
         return pyamf.ClassAlias.applyAttributes(self, obj, attrs)
 
