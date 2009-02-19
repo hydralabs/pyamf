@@ -8,6 +8,8 @@ versions of PyAMF.
 
 0.4.1 (unreleased)
 ------------------
+ - amf0.Encoder.use_amf3 has been extended to cover all object types
+   (Ticket:453,467)
  - property types on Django models will now encode as expected. (Ticket:480)
  - Django models.ForeignKey properties will be followed only if previously
    accessed outside of PyAMF. `_[attr]_cache` is no longer encoded.
