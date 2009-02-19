@@ -718,13 +718,23 @@ def get_mro(C):
 
 def get_attrs(obj):
     """
-    Gets a dict of the attrs of an object in a predefined resolution order.
+    Gets a C{dict} of the attrs of an object in a predefined resolution order.
+    
+    @raise AttributeError: A duplicate attribute was already found in this
+        collection, are you mixing different key types?
     """
     if hasattr(obj, 'iteritems'):
         attrs = {}
 
         for k, v in obj.iteritems():
-            attrs[k] = v
+            sk = str(k)
+
+            if sk in attrs.keys():
+                raise AttributeError('A duplicate attribute (%s) was '
+                    'already found in this collection, are you mixing '
+                    'different key types?' % (sk,))
+
+            attrs[sk] = v
 
         return attrs
     elif hasattr(obj, '__dict__'):

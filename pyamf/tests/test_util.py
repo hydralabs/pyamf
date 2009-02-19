@@ -773,6 +773,10 @@ class IndexedMapTestCase(unittest.TestCase):
         self.assertEquals(0, len(self.collection.list))
         self.assertEquals(0, len(self.collection.mapped))
 
+class GetAttrsTestCase(unittest.TestCase):
+    def test_duplicate_keys(self):
+        self.assertRaises(AttributeError, util.get_attrs, {0:0, '0':1})
+
 def suite():
     """
     Unit tests for AMF utilities.
@@ -786,7 +790,8 @@ def suite():
         BufferedByteStreamTestCase,
         ClassAliasTestCase,
         IndexedCollectionTestCase,
-        IndexedMapTestCase
+        IndexedMapTestCase,
+        GetAttrsTestCase
     ]
 
     try:
