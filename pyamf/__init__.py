@@ -12,7 +12,7 @@ U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>}.
 @see: U{http://pyamf.org}
 
 @since: October 2007
-@version: 0.4.1
+@version: 0.5
 @status: Production/Stable
 """
 
@@ -30,7 +30,7 @@ __all__ = [
 ]
 
 #: PyAMF version number.
-__version__ = (0, 4, 1)
+__version__ = (0, 5)
 
 #: Class mapping support.
 CLASS_CACHE = {}
