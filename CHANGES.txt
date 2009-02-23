@@ -6,7 +6,10 @@ versions of PyAMF.
 
 .. contents::
 
-0.4.1 (unreleased)
+0.5 (unreleased)
+----------------
+
+0.4.1 (2009-02-23)
 ------------------
  - amf0.Encoder.use_amf3 has been extended to cover all object types
    (Ticket:453,467)
