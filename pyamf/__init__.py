@@ -14,7 +14,6 @@ U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>}.
 @since: October 2007
 @version: 0.4.1
 @status: Production/Stable
-@status: Production/Stable
 """
 
 import types
@@ -499,7 +498,7 @@ class ClassAlias(object):
         """
         Returns a tuple of lists, static and dynamic attrs to encode.
 
-        @param encoder: An optional argument that will contain the en/decoder
+        @param codec: An optional argument that will contain the en/decoder
             instance calling this function.
         """
         return self._getAttrs(obj)
