@@ -84,7 +84,7 @@ class GAEReferenceCollection(dict):
 
         @param klass: The class of the object.
         @param key: The datastore key of the object.
-        @param object: The loaded instance from the datastore.
+        @param obj: The loaded instance from the datastore.
         """
         if not isinstance(key, basestring):
             raise TypeError('basestring type expected for test, got %s' % (repr(key),))
