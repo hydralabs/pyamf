@@ -13,7 +13,7 @@ versions of PyAMF.
 ------------------
  - amf0.Encoder.use_amf3 has been extended to cover all object types
    (Ticket:453,467)
- - property types on Django models will now encode as expected. (Ticket:480)
+ - Property types on Django models will now encode as expected. (Ticket:480)
  - Django models.ForeignKey properties will be followed only if previously
    accessed outside of PyAMF. `_[attr]_cache` is no longer encoded.
    (Ticket:456)
@@ -23,7 +23,7 @@ versions of PyAMF.
    True (Ticket:453)
  - Unicode handling in __repr__ functions has been improved (Ticket:455)
  - object attributes and dict keys are now utf8 encoded bytestrings. Python
-   **kwargs doesn't accept unicode key objects. (Ticket:463)
+   \**kwargs doesn't accept unicode key objects. (Ticket:463)
  - Django models.TimeField, models.DateField will now be converted to the
    correct type (datetime.time and datetime.date respectively).
    fields.NOT_PROVIDED is also checked for by converting to pyamf.Undefined
