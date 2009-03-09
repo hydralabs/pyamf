@@ -561,15 +561,10 @@ class RemotingServiceTestCase(unittest.TestCase):
 def suite():
     suite = unittest.TestSuite()
 
-    test_cases = [
-        ServiceMethodProxyTestCase,
-        ServiceProxyTestCase,
-        RequestWrapperTestCase,
-        RemotingServiceTestCase
-    ]
-
-    for tc in test_cases:
-        suite.addTest(unittest.makeSuite(tc))
+    suite.addTest(unittest.makeSuite(ServiceMethodProxyTestCase))
+    suite.addTest(unittest.makeSuite(ServiceProxyTestCase))
+    suite.addTest(unittest.makeSuite(RequestWrapperTestCase))
+    suite.addTest(unittest.makeSuite(RemotingServiceTestCase))
 
     return suite
 
