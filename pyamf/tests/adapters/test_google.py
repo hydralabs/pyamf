@@ -694,64 +694,6 @@ class ClassAliasTestCase(unittest.TestCase):
             'foo': 'bar'
         })
 
-    def test_arbitrary_properties(self):
-        self.jessica.foo = 'bar'
-
-        sa, da = self.alias.getAttributes(self.jessica)
-
-        self.assertEquals(sa, {
-            'name': 'Jessica',
-            '_key': None,
-            'birthdate': None,
-            'weight_in_pounds': None,
-            'type': 'cat',
-            'spayed_or_neutered': None
-        })
-
-        self.assertEquals(da, {
-            'foo': 'bar'
-        })
-
-    def test_property_type(self):
-        class PropertyTypeModel(db.Model):
-            @property
-            def readonly(self):
-                return True
-
-            def _get_prop(self):
-                return False
-
-            def _set_prop(self, v):
-                self.prop = v
-
-            read_write = property(_get_prop, _set_prop)
-
-        alias = adapter_db.DataStoreClassAlias(PropertyTypeModel, 'foo.bar')
-
-        obj = PropertyTypeModel()
-
-        sa, da = alias.getAttrs(obj)
-        self.assertEquals(sa, ['_key', 'readonly', 'read_write'])
-        self.assertEquals(da, [])
-
-        sa, da = alias.getAttributes(obj)
-        self.assertEquals(sa, {
-            '_key': None,
-            'readonly': True,
-            'read_write': False
-        })
-        self.assertEquals(da, {})
-
-        self.assertFalse(hasattr(obj, 'prop'))
-
-        alias.applyAttributes(obj, {
-            '_key': None,
-            'readonly': True,
-            'read_write': 'foo'
-        })
-
-        self.assertEquals(obj.prop, 'foo')
-
 class ReferencesTestCase(ClassCacheClearingTestCase):
     def setUp(self):
         ClassCacheClearingTestCase.setUp(self)

@@ -116,18 +116,7 @@ class DataStoreClassAlias(pyamf.ClassAlias):
             self.static_attrs = obj.properties().keys() if sa is None else sa
             self.static_attrs.insert(0, DataStoreClassAlias.KEY_ATTR)
 
-            for k, v in self.klass.__dict__.iteritems():
-                if isinstance(v, property):
-                    self.static_attrs.append(k)
-
         dynamic_attrs = obj.dynamic_properties() if da is None else da
-
-        for k, v in obj.__dict__.iteritems():
-            if k.startswith('_'):
-                continue
-
-            if k not in self.static_attrs:
-                dynamic_attrs.append(k)
 
         return self.static_attrs, dynamic_attrs
 
@@ -238,9 +227,6 @@ class DataStoreClassAlias(pyamf.ClassAlias):
                 # attribute entirely ..
                 if isinstance(kp, db._ReverseReferenceProperty):
                     del attrs[k]
-                elif isinstance(kp, property):
-                    if kp.fset is None:
-                        del attrs[k]
 
         # If the object does not exist in the datastore, we must fire the
         # class constructor. This sets internal attributes that pyamf has

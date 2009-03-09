@@ -9,8 +9,6 @@ versions of PyAMF.
 0.5 (unreleased)
 ----------------
  - Added support for property types on SQLAlchemy mapped classes. (Ticket:491)
- - Added support for property types for Google AppEnging db.Model and
-   db.Expando. (Ticket:487)
 
 0.4.1 (2009-02-23)
 ------------------
