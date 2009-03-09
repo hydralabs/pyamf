@@ -252,12 +252,13 @@ class SATestCase(BaseTestCase):
         for i in range(0, max):
             self.assertEquals(id(decoded[0]), id(decoded[i]))
 
-class ClassAliasTestCase(BaseTestCase):
+class BaseClassAliasTestCase(BaseTestCase):
     def setUp(self):
         BaseTestCase.setUp(self)
 
         self.alias = pyamf.get_class_alias(User)
 
+class ClassAliasTestCase(BaseClassAliasTestCase):
     def test_type(self):
         self.assertEquals(self.alias.__class__, adapter.SaMappedClassAlias)
 
@@ -303,7 +304,49 @@ class ClassAliasTestCase(BaseTestCase):
         })
         self.assertEquals(dynamic, {})
 
-class ApplyAttributesTestCase(ClassAliasTestCase):
+    def test_property(self):
+        class Person(object):
+            foo = 'bar'
+            baz = 'gak'
+
+            def _get_rw_property(self):
+                return self.foo
+
+            def _set_rw_property(self, val):
+                self.foo = val
+
+            def _get_ro_property(self):
+                return self.baz
+
+            rw = property(_get_rw_property, _set_rw_property)
+            ro = property(_get_ro_property)
+
+        self.mappers['person'] = mapper(Person, self.tables['users'])
+
+        alias = adapter.SaMappedClassAlias(Person, 'person')
+
+        obj = Person()
+
+        sa, da = alias.getAttrs(obj)
+        self.assertEquals(sa, ['sa_key', 'sa_lazy', 'id', 'name', 'rw', 'ro'])
+        self.assertEquals(da, [])
+
+        sa, da = alias.getAttributes(obj)
+        self.assertEquals(sa, {
+            'sa_lazy': ['name'],
+            'rw': 'bar',
+            'name': pyamf.Undefined,
+            'sa_key': [None],
+            'ro': 'gak',
+            'id': None
+        })
+        self.assertEquals(da, {})
+
+        self.assertEquals(obj.ro, 'gak')
+        alias.applyAttributes(obj, {'ro': 'baz'})
+        self.assertEquals(obj.ro, 'gak')
+
+class ApplyAttributesTestCase(BaseClassAliasTestCase):
     def test_undefined(self):
         u = self.alias.createInstance()
 
