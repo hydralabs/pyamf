@@ -64,9 +64,15 @@ class SaMappedClassAlias(pyamf.ClassAlias):
 
         if not hasattr(self, 'static_attrs'):
             self.static_attrs = [self.KEY_ATTR, self.LAZY_ATTR]
+            self.properties = []
 
             for prop in mapper.iterate_properties:
                 self.static_attrs.append(prop.key)
+
+            for key, prop in self.klass.__dict__.iteritems():
+                if isinstance(prop, property):
+                    self.properties.append(key)
+                    self.static_attrs.append(key)
 
         dynamic_attrs = []
 
@@ -100,7 +106,7 @@ class SaMappedClassAlias(pyamf.ClassAlias):
         static_attrs[self.KEY_ATTR] = mapper.primary_key_from_instance(obj)
 
         for attr in static_attr_names:
-            if attr in obj.__dict__:
+            if attr in obj.__dict__ or attr in self.properties:
                 static_attrs[attr] = getattr(obj, attr)
 
                 continue
@@ -171,6 +177,11 @@ class SaMappedClassAlias(pyamf.ClassAlias):
 
         if self.KEY_ATTR in attrs:
             del attrs[self.KEY_ATTR]
+
+        for key, prop in self.klass.__dict__.iteritems():
+            if isinstance(prop, property) and key in attrs.keys():
+                if prop.fset is None:
+                    del attrs[key]
 
         pyamf.util.set_attrs(obj, attrs)
 
