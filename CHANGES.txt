@@ -8,6 +8,8 @@ versions of PyAMF.
 
 0.5 (unreleased)
 ----------------
+ - Added support for microseconds for datetime objects. Thanks to Derek Payton
+   for the patch. (Ticket:490)
  - Added support for property types on SQLAlchemy mapped classes. (Ticket:491)
  - Added support for property types for Google AppEngine db.Model and
    db.Expando. (Ticket:487)

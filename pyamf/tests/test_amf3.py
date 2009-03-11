@@ -405,7 +405,9 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
 
         self._run([
             (x, '\x08\x01Bp+6!\x15\x80\x00'),
-            (datetime.date(2003, 12, 1), '\x08\x01Bo%\xe2\xb2\x80\x00\x00')])
+            (datetime.date(2003, 12, 1), '\x08\x01Bo%\xe2\xb2\x80\x00\x00'),
+            (datetime.datetime(2009, 3, 8, 23, 30, 47, 770122),
+                '\x08\x01Bq\xfe\x86\xca5\xa1\xf4')])
 
     def test_date_references(self):
         import datetime
