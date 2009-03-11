@@ -634,7 +634,8 @@ def get_timestamp(d):
     if isinstance(d, datetime.date) and not isinstance(d, datetime.datetime):
         d = datetime.datetime.combine(d, datetime.time(0, 0, 0, 0))
 
-    return calendar.timegm(d.utctimetuple())
+    msec = str(d.microsecond).rjust(6, '0')
+    return float('%s.%s' % (calendar.timegm(d.utctimetuple()), msec))
 
 def get_datetime(secs):
     """

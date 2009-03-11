@@ -33,6 +33,11 @@ class TimestampTestCase(unittest.TestCase):
     def test_get_negative_datetime(self):
         self.assertEqual(util.get_datetime(-31536000), datetime(1969, 1, 1))
 
+    def test_preserved_microseconds(self):
+        dt = datetime(2009, 3, 8, 23, 30, 47, 770122)
+        ts = util.get_timestamp(dt)
+        self.assertEqual(util.get_datetime(ts), dt)
+
 class StringIOProxyTestCase(unittest.TestCase):
     """
     """

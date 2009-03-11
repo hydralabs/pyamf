@@ -230,8 +230,12 @@ class EncoderTestCase(ClassCacheClearingTestCase):
         import datetime
 
         self._run([
-            (datetime.datetime(2005, 3, 18, 1, 58, 31), '\x0bBp+6!\x15\x80\x00\x00\x00'),
-            (datetime.date(2003, 12, 1), '\x0bBo%\xe2\xb2\x80\x00\x00\x00\x00')])
+            (datetime.datetime(2005, 3, 18, 1, 58, 31),
+                '\x0bBp+6!\x15\x80\x00\x00\x00'),
+            (datetime.date(2003, 12, 1),
+                '\x0bBo%\xe2\xb2\x80\x00\x00\x00\x00'),
+            (datetime.datetime(2009, 3, 8, 23, 30, 47, 770122),
+                '\x0bBq\xfe\x86\xca5\xa1\xf4\x00\x00')])
 
     def test_xml(self):
         self._run([
@@ -662,7 +666,9 @@ class DecoderTestCase(ClassCacheClearingTestCase):
     def test_date(self):
         self._run([
             (datetime.datetime(2005, 3, 18, 1, 58, 31),
-                '\x0bBp+6!\x15\x80\x00\x00\x00')])
+                '\x0bBp+6!\x15\x80\x00\x00\x00'),
+            (datetime.datetime(2009, 3, 8, 23, 30, 47, 770122),
+                '\x0bBq\xfe\x86\xca5\xa1\xf4\x00\x00')])
 
     def test_xml(self):
         self.buf.truncate(0)
