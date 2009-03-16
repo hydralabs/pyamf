@@ -26,6 +26,7 @@ PyAMF integrates with the following optional third-party Python libraries:
  - **SQLAlchemy 0.4 or newer**
  - **Twisted 2.5 or newer**
  - **Django 0.97 or newer**
+ - **Google App Engine 1.0 or newer**
 
 C-Extension
 --------------
