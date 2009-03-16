@@ -1219,7 +1219,7 @@ class Decoder(pyamf.BaseDecoder):
 
         xmlstring = self.stream.read(ref >> 1)
 
-        x = util.ET.XML(xmlstring)
+        x = util.ET.fromstring(xmlstring)
         self.context.addObject(x)
 
         if legacy is True:
