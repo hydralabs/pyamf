@@ -389,6 +389,13 @@ class ForeignKeyTestCase(ModelsBaseTestCase):
         self.assertEquals(len(p), 1)
         self.assertEquals(p[0], p1)
 
+class I18NTestCase(ModelsBaseTestCase):
+    def test_encode(self):
+        from django.utils.translation import ugettext_lazy
+
+        self.assertEquals(pyamf.encode(ugettext_lazy('Hello')).getvalue(),
+            '\x02\x00\x05Hello')
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -400,7 +407,8 @@ def suite():
     test_cases = [
         TypeMapTestCase,
         ClassAliasTestCase,
-        ForeignKeyTestCase
+        ForeignKeyTestCase,
+        I18NTestCase
     ]
 
     for tc in test_cases:

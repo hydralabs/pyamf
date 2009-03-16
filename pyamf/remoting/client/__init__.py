@@ -18,7 +18,7 @@ DEFAULT_CLIENT_TYPE = pyamf.ClientTypes.Flash6
 
 #: Default user agent is C{PyAMF/x.x.x}.
 DEFAULT_USER_AGENT = 'PyAMF/%s' % '.'.join(map(lambda x: str(x),
-                                               pyamf.__version__))
+    pyamf.__version__))
 
 HTTP_OK = 200
 
