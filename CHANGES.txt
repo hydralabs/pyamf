@@ -47,7 +47,7 @@ versions of PyAMF.
  - setup.py now gets the version number from pyamf/__init__.py source
    (Ticket:429)
 
-0.4rc3 (2008-01-14)
+0.4rc3 (2009-01-14)
 -------------------
  - Support for SQLAlchemy 0.5.0 (Ticket:436)
  - pyamf.util.DataTypeMixIn/cpyamf.util.BufferedByteStream can now
