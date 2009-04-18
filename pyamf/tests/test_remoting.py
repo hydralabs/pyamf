@@ -217,7 +217,7 @@ class EncoderTestCase(unittest.TestCase):
         """
         msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash6)
 
-        msg['/1'] = remoting.Request('test.test', body='hello')
+        msg['/1'] = remoting.Request('test.test', body=['hello'])
 
         self.assertEquals(len(msg), 1)
 
@@ -226,12 +226,12 @@ class EncoderTestCase(unittest.TestCase):
         self.assertTrue(isinstance(x, remoting.Request))
         self.assertEquals(x.envelope, msg)
         self.assertEquals(x.target, 'test.test')
-        self.assertEquals(x.body, 'hello')
+        self.assertEquals(x.body, ['hello'])
         self.assertEquals(x.headers, msg.headers)
 
         self.assertEquals(remoting.encode(msg).getvalue(),
-            '\x00\x00\x00\x00\x00\x01\x00\ttest.test\x00\x02/1\x00\x00\x00\x00'
-            '\x02\x00\x05hello')
+            '\x00\x00\x00\x00\x00\x01\x00\ttest.test\x00\x02/1\x00\x00\x00'
+            '\x00\n\x00\x00\x00\x01\x02\x00\x05hello')
 
     def test_response(self):
         """
@@ -289,11 +289,11 @@ class StrictEncodingTestCase(unittest.TestCase):
     def test_request(self):
         msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash6)
 
-        msg['/1'] = remoting.Request('test.test', body='hello')
+        msg['/1'] = remoting.Request('test.test', body=['hello'])
 
         self.assertEquals(remoting.encode(msg, strict=True).getvalue(),
-            '\x00\x00\x00\x00\x00\x01\x00\ttest.test\x00\x02/1\x00\x00\x00\x08'
-            '\x02\x00\x05hello')
+            '\x00\x00\x00\x00\x00\x01\x00\ttest.test\x00\x02/1\x00\x00\x00'
+            '\r\n\x00\x00\x00\x01\x02\x00\x05hello')
 
     def test_response(self):
         msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash6)

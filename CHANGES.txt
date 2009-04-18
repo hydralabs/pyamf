@@ -8,6 +8,8 @@ versions of PyAMF.
 
 0.4.2 (unreleased)
 ----------------
+ - Fixed a critical issue with AMF0 reference counting when encoding remoting
+   responses. (Ticket:510)
  - Strengthened http header handling in the client (Ticket:492)
  - Support for Django i18n ugettext_lazy (Ticket:496)
  - Added support for microseconds for datetime objects. Thanks to Derek Payton
