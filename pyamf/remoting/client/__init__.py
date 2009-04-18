@@ -469,10 +469,10 @@ class RemotingService(object):
         self.logger.debug('Content-Length: %s' % content_length)
         self.logger.debug('Server: %s' % http_response.getheader('Server'))
 
-        if content_length is None:
+        if content_length in (None, ''):
             bytes = http_response.read()
         else:
-            bytes = http_response.read(content_length)
+            bytes = http_response.read(int(content_length))
 
         self.logger.debug('Read %d bytes for the response' % len(bytes))
 
