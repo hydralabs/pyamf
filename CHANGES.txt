@@ -6,8 +6,9 @@ versions of PyAMF.
 
 .. contents::
 
-0.5 (unreleased)
+0.4.2 (unreleased)
 ----------------
+ - Strengthened http header handling in the client (Ticket:492)
  - Support for Django i18n ugettext_lazy (Ticket:496)
  - Added support for microseconds for datetime objects. Thanks to Derek Payton
    for the patch. (Ticket:490)

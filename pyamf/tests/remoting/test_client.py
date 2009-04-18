@@ -558,6 +558,38 @@ class RemotingServiceTestCase(unittest.TestCase):
         gw.execute()
         self.assertTrue(dc.response.closed, True)
 
+    def test_empty_content_length(self):
+        gw = client.RemotingService('http://example.org/amf-gateway')
+        dc = DummyConnection()
+        gw.connection = dc
+
+        http_response = DummyResponse(200, '\x00\x00\x00\x01\x00\x11ReplaceGatewayUrl'
+            '\x01\x00\x00\x00\x00\x02\x00\x10http://spam.eggs\x00\x00', {
+            'Content-Type': 'application/x-amf',
+            'Content-Length': ''
+        })
+
+        dc.response = http_response
+        gw._getResponse()
+
+        self.assertTrue(http_response.closed)
+
+    def test_bad_content_length(self):
+        gw = client.RemotingService('http://example.org/amf-gateway')
+        dc = DummyConnection()
+        gw.connection = dc
+
+        # test a really borked content-length header
+        http_response = DummyResponse(200, '\x00\x00\x00\x01\x00\x11ReplaceGatewayUrl'
+            '\x01\x00\x00\x00\x00\x02\x00\x10http://spam.eggs\x00\x00', {
+            'Content-Type': 'application/x-amf',
+            'Content-Length': 'asdfasdf'
+        })
+
+        dc.response = http_response
+        self.assertRaises(ValueError, gw._getResponse)
+
+
 def suite():
     suite = unittest.TestSuite()
 
