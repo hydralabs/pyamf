@@ -7,7 +7,9 @@ versions of PyAMF.
 .. contents::
 
 0.4.2 (unreleased)
-----------------
+------------------
+ - Fixed an issue in the GAE adapter where dynamic properties would be missing
+   on referenced objects. (Ticket:511)
  - Fixed a critical issue with AMF0 reference counting when encoding remoting
    responses. (Ticket:510)
  - Strengthened http header handling in the client (Ticket:492)

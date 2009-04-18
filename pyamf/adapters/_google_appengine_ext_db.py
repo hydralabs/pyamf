@@ -110,17 +110,15 @@ class DataStoreClassAlias(pyamf.ClassAlias):
         """
         @since: 0.4
         """
-        sa, da = pyamf.ClassAlias.getAttrs(self, obj)
-
         if not hasattr(self, 'static_attrs'):
-            self.static_attrs = obj.properties().keys() if sa is None else sa
+            self.static_attrs = obj.properties().keys()
             self.static_attrs.insert(0, DataStoreClassAlias.KEY_ATTR)
 
             for k, v in self.klass.__dict__.iteritems():
                 if isinstance(v, property):
                     self.static_attrs.append(k)
 
-        dynamic_attrs = obj.dynamic_properties() if da is None else da
+        dynamic_attrs = obj.dynamic_properties()
 
         for k, v in obj.__dict__.iteritems():
             if k.startswith('_'):
@@ -165,7 +163,7 @@ class DataStoreClassAlias(pyamf.ClassAlias):
                         try:
                             static_attrs[a] = gae_objects.getClassKey(klass, key)
                         except KeyError:
-                            ref_obj = loadInstanceFromDatastore(klass, key, codec)
+                            ref_obj = getattr(obj, a)
                             gae_objects.addClassKey(klass, key, ref_obj)
                             static_attrs[a] = ref_obj
 

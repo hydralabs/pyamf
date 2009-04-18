@@ -335,6 +335,46 @@ class EncodingReferencesTestCase(ClassCacheClearingTestCase):
 
         a.delete()
 
+    def test_dynamic_property_referenced_object(self):
+        class Author(db.Model):
+            name = db.StringProperty()
+
+        class Novel(db.Model):
+            title = db.StringProperty()
+            author = db.ReferenceProperty(Author)
+
+        try:
+            a = Author(name='Jane Austen')
+            a.put()
+
+            b = Novel(title='Sense and Sensibility', author=a)
+            b.put()
+
+            x = Novel.all().filter('title = ', 'Sense and Sensibility').get()
+            foo = [1, 2, 3]
+
+            x.author.bar = foo
+            k = str(x.key())
+            l = str(x.author.key())
+
+            stream = pyamf.encode(x)
+
+            self.assertEquals(stream.getvalue(), '\x03\x00\x04_key\x02%s%s'
+                '\x00\x06author\x03\x00\x04_key\x02%s%s\x00\x03bar\n\x00'
+                '\x00\x00\x03\x00?\xf0\x00\x00\x00\x00\x00\x00\x00@\x00\x00'
+                '\x00\x00\x00\x00\x00\x00@\x08\x00\x00\x00\x00\x00\x00\x00'
+                '\x04name\x02\x00\x0bJane Austen\x00\x00\t\x00\x05title'
+                '\x02\x00\x15Sense and Sensibility\x00\x00\t' % (
+                    struct.pack('>H', len(k)), k,
+                    struct.pack('>H', len(l)), l))
+        except:
+            a.delete()
+            b.delete()
+            raise
+
+        a.delete()
+        b.delete()
+
 class ListModel(db.Model):
     numbers = db.ListProperty(long)
 
@@ -864,26 +904,12 @@ class ReferencesTestCase(ClassCacheClearingTestCase):
         self.assertEquals(context.gae_objects, {PetModel: {k: j}})
 
     def test_cached_reference_properties(self):
-        gets = []
-
         class Author(db.Model):
             name = db.StringProperty()
-
-            @staticmethod
-            def get(*args, **kwargs):
-                gets.append([Author, args, kwargs])
-
-                return db.Model.get(*args, **kwargs)
 
         class Novel(db.Model):
             title = db.StringProperty()
             author = db.ReferenceProperty(Author)
-
-            @staticmethod
-            def get(*args, **kwargs):
-                gets.append([Novel, args, kwargs])
-
-                return db.Model.get(*args, **kwargs)
 
         a = Author(name='Jane Austen')
         a.put()
@@ -903,19 +929,13 @@ class ReferencesTestCase(ClassCacheClearingTestCase):
             context = encoder.context
 
             self.assertFalse(hasattr(context, 'gae_objects'))
-            self.assertEquals(gets, [])
-
             encoder.writeElement(s)
 
             self.assertTrue(hasattr(context, 'gae_objects'))
             self.assertEquals(context.gae_objects, {
                 Novel: {str(s.key()): s},
-                Author: {str(a.key()): a}
+                Author: {k: a}
             })
-
-            self.assertEquals(gets, [
-                [Author, (k,), {}]
-            ])
 
             encoder.writeElement(p)
 
@@ -924,13 +944,8 @@ class ReferencesTestCase(ClassCacheClearingTestCase):
                     str(s.key()): s,
                     str(p.key()): p,
                 },
-                Author: {str(a.key()): a}
+                Author: {k: a}
             })
-
-            self.assertEquals(gets, [
-                [Author, (k,), {}]
-            ])
-
         finally:
             a.delete()
             b.delete()
