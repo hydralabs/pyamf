@@ -293,7 +293,7 @@ class RemotingService(object):
         Returns a L{ServiceProxy} for the supplied name. Sets up an object that
         can have method calls made to it that build the AMF requests.
 
-        @param auto_execute: Default is C{False}.
+        @param auto_execute: Default is C{True}.
         @type auto_execute: C{bool}
         @raise TypeError: C{string} type required for C{name}.
         @rtype: L{ServiceProxy}
