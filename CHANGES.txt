@@ -8,6 +8,7 @@ versions of PyAMF.
 
 0.4.2 (unreleased)
 ------------------
+ - Support for decoding the 'source' property on ArrayCollections (Ticket:488)
  - Fixed an issue in the GAE adapter where dynamic properties would be missing
    on referenced objects. (Ticket:511)
  - Fixed a critical issue with AMF0 reference counting when encoding remoting
