@@ -481,6 +481,17 @@ def _write_body(name, message, stream, encoder, strict=False):
 
     @raise TypeError: Unknown message type for C{message}.
     """
+    def _encode_body(message):
+        if isinstance(message, Response):
+            encoder.writeElement(message.body)
+
+            return
+
+        stream.write('\x0a')
+        stream.write_ulong(len(message.body))
+        for x in message.body:
+            encoder.writeElement(x)
+
     if not isinstance(message, (Request, Response)):
         raise TypeError("Unknown message type")
 
@@ -506,13 +517,13 @@ def _write_body(name, message, stream, encoder, strict=False):
 
     if not strict:
         stream.write_ulong(0)
-        encoder.writeElement(message.body)
+        _encode_body(message)
     else:
         write_pos = stream.tell()
         stream.write_ulong(0)
         old_pos = stream.tell()
 
-        encoder.writeElement(message.body)
+        _encode_body(message)
         new_pos = stream.tell()
 
         stream.seek(write_pos)
