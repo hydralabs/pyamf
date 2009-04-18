@@ -82,6 +82,17 @@ class ArrayCollectionTestCase(unittest.TestCase):
         self.assertEquals(x.__class__, flex.ArrayCollection)
         self.assertEquals(x, ['eggs'])
 
+    def test_source_attr(self):
+        d = {'source': ['foo', 'bar']}
+
+        s = '\n\x07Cflex.messaging.io.ArrayCollection\n\x0b\x01\rsource' \
+            '\t\x05\x01\x06\x07foo\x06\x07bar\x01'
+
+        x = pyamf.decode(s, encoding=pyamf.AMF3).next()
+
+        self.assertTrue(isinstance(x, flex.ArrayCollection))
+        self.assertEquals(x, ['foo', 'bar'])
+
 class ArrayCollectionAPITestCase(unittest.TestCase):
     def test_addItem(self):
         a = flex.ArrayCollection()

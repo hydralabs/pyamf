@@ -50,8 +50,12 @@ class ArrayCollection(list):
     def __readamf__(self, input):
         data = input.readObject()
 
-        if not hasattr(data, '__iter__'):
-            raise pyamf.DecodeError('Unable to read a list when decoding ArrayCollection')
+        if hasattr(data, 'source'):
+            data = data.source
+        else:
+            if not hasattr(data, '__iter__'):
+                raise pyamf.DecodeError('Unable to read a list when decoding '
+                    'ArrayCollection')
 
         self.extend(data)
 

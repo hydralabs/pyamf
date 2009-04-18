@@ -108,7 +108,7 @@ class BaseTestCase(unittest.TestCase):
         if hasattr(self.session, 'add'):
             self.session.add(obj)
         elif hasattr(self.session, 'save'):
-            self.session.save(user)
+            self.session.save(obj)
         else:
             raise AttributeError('Don\'t know how to save an object')
 
