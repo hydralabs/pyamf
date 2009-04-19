@@ -18,7 +18,6 @@ import datetime
 
 import pyamf
 from pyamf.util import imports
-from pyamf import adapters
 from pyamf.adapters import util
 
 class ModelStub(object):

@@ -8,8 +8,7 @@ C{django.utils.translation} adapter module.
 @since: 0.5
 """
 
-from django.utils.translation import \
-    ngettext_lazy, gettext_lazy, ungettext_lazy, ugettext_lazy, string_concat
+from django.utils.translation import ugettext_lazy
 
 import pyamf
 
