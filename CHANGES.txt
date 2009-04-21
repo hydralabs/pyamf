@@ -6,7 +6,10 @@ versions of PyAMF.
 
 .. contents::
 
-0.4.2 (unreleased)
+0.5 (unreleased)
+----------------
+
+0.4.2 (2009-04-21)
 ------------------
  - Support for decoding the 'source' property on ArrayCollections (Ticket:488)
  - Fixed an issue in the GAE adapter where dynamic properties would be missing
