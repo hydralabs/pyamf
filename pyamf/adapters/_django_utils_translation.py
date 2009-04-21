@@ -5,7 +5,7 @@
 C{django.utils.translation} adapter module.
 
 @see: U{Django Project<http://www.djangoproject.com>}
-@since: 0.5
+@since: 0.4.2
 """
 
 from django.utils.translation import ugettext_lazy
