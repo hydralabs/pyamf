@@ -946,7 +946,8 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
         self.assertTrue(class_def in self.context.class_defs)
         self.assertTrue(class_def.klass in self.context.classes)
 
-        self.context.class_defs.remove(class_def)
+        self.context.classes.clear()
+
         self.buf.write('\x0fabc.xyz')
         self.buf.seek(0, 0)
 
@@ -960,7 +961,7 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
 
         self.assertTrue(class_def in self.context.class_defs)
 
-        self.context.class_defs.remove(class_def)
+        self.context.classes.clear()
         self.buf.write('\x0fabc.xyz')
         self.buf.seek(0, 0)
 
@@ -973,7 +974,7 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
         self.assertEquals(class_def.encoding, amf3.ObjectEncoding.DYNAMIC)
 
         self.assertTrue(class_def in self.context.class_defs)
-        self.context.class_defs.remove(class_def)
+        self.context.classes.clear()
 
     def test_not_strict(self):
         self.assertFalse(self.decoder.strict)
