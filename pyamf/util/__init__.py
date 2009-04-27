@@ -652,26 +652,6 @@ def get_datetime(secs):
 
     return datetime.datetime.utcfromtimestamp(secs)
 
-def make_classic_instance(klass):
-    """
-    Create an instance of a classic class (not inherited from ``object``)
-    without calling __init__().
-
-    @type klass: C{class}
-    @param klass: The classic class to create an instance for.
-    @rtype:
-    @return: instance created
-    """
-    assert isinstance(klass, types.ClassType), "not an old style class"
-
-    class _TemporaryClass:
-        pass
-
-    inst = _TemporaryClass()
-    inst.__class__ = klass
-
-    return inst
-
 
 def get_attrs(obj):
     """
