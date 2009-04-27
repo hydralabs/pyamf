@@ -739,20 +739,16 @@ class IndexedCollectionTestCase(unittest.TestCase):
         self.assertEquals(id(test_obj), id(self.collection.getByReference(idx)))
         self.assertRaises(TypeError, self.collection.getByReference, 'bad ref')
 
-    def test_remove(self):
-        test_obj = TestObject()
-        ref = self.collection.append(test_obj)
-        self.collection.remove(test_obj)
-        self.assertEquals(0, len(self.collection.list))
-        self.assertFalse(self.collection.dict.has_key(ref))
-        self.assertRaises(pyamf.ReferenceError, self.collection.getReferenceTo, test_obj)
-
     def test_array(self):
         test_obj = []
         idx = self.collection.append(test_obj)
         self.assertEquals(id(test_obj), id(self.collection.getByReference(idx)))
 
 class IndexedMapTestCase(unittest.TestCase):
+    """
+    Tests for L{util.IndexedMap}
+    """
+
     class TestObject(object):
         def __init__(self):
             self.name = 'test'
@@ -770,13 +766,6 @@ class IndexedMapTestCase(unittest.TestCase):
         self.assertEquals(test_obj, self.collection.getByReference(ref))
         self.assertEquals(test_map, self.collection.getMappedByReference(ref))
 
-    def test_remove(self):
-        test_obj = TestObject()
-        test_map = TestObject()
-        self.collection.map(test_obj, test_map)
-        self.collection.remove(test_obj)
-        self.assertEquals(0, len(self.collection.list))
-        self.assertEquals(0, len(self.collection.mapped))
 
 class GetAttrsTestCase(unittest.TestCase):
     def test_duplicate_keys(self):

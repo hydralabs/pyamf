@@ -780,7 +780,14 @@ def get_class_alias(klass):
 
     return None
 
+
 class IndexedCollection(object):
+    """
+    A class that provides a quick and clean way to store references and
+    referenced objects.
+
+    @note: All attributes on the instance are private.
+    """
 
     def __init__(self, use_hash=False):
         if use_hash is True:
@@ -791,11 +798,16 @@ class IndexedCollection(object):
         self.clear()
 
     def clear(self):
+        """
+        Clears the index.
+        """
         self.list = []
         self.dict = {}
 
     def getByReference(self, ref):
         """
+        Returns an object based on the reference.
+
         @raise TypeError: Bad reference type.
         @raise pyamf.ReferenceError: Reference not found.
         """
@@ -809,6 +821,8 @@ class IndexedCollection(object):
 
     def getReferenceTo(self, obj):
         """
+        Returns a reference to C{obj} if it is contained within this index.
+
         @raise pyamf.ReferenceError: Value not found.
         """
         try:
@@ -817,6 +831,11 @@ class IndexedCollection(object):
             raise pyamf.ReferenceError("Value %r not found" % (obj,))
 
     def append(self, obj):
+        """
+        Appends C{obj} to this index.
+
+        @return: The reference to C{obj} in this index.
+        """
         h = self.func(obj)
 
         try:
@@ -827,22 +846,6 @@ class IndexedCollection(object):
             self.dict[h] = idx
 
             return idx
-
-    def remove(self, obj):
-        """
-        @raise pyamf.ReferenceError: Trying to remove an invalid reference.
-        """
-        h = self.func(obj)
-
-        try:
-            idx = self.dict[h]
-        except KeyError:
-            raise pyamf.ReferenceError("%r is not a valid reference" % (obj,))
-
-        del self.list[idx]
-        del self.dict[h]
-
-        return idx
 
     def __eq__(self, other):
         if isinstance(other, list):
@@ -872,6 +875,7 @@ class IndexedCollection(object):
     def __iter__(self):
         return iter(self.list)
 
+
 class IndexedMap(IndexedCollection):
     """
     Like L{IndexedCollection}, but also maps to another object.
@@ -881,14 +885,16 @@ class IndexedMap(IndexedCollection):
 
     def __init__(self, use_hash=False):
         IndexedCollection.__init__(self, use_hash)
-        self.mapped = []
 
     def clear(self):
         IndexedCollection.clear(self)
+
         self.mapped = []
 
     def getMappedByReference(self, ref):
         """
+        Returns the mapped object by reference.
+
         @raise TypeError: Bad reference type.
         @raise pyamf.ReferenceError: Reference not found.
         """
@@ -903,25 +909,25 @@ class IndexedMap(IndexedCollection):
     def append(self, obj):
         idx = IndexedCollection.append(self, obj)
         diff = (idx + 1) - len(self.mapped)
+
         for i in range(0, diff):
             self.mapped.append(None)
+
         return idx
 
     def map(self, obj, mapped_obj):
         idx = self.append(obj)
         self.mapped[idx] = mapped_obj
+
         return idx
 
-    def remove(self, obj):
-        idx = IndexedCollection.remove(self, obj)
-        del self.mapped[idx]
-        return idx
 
 def is_ET_element(obj):
     """
     Determines if the supplied C{obj} param is a valid ElementTree element.
     """
     return isinstance(obj, xml_types)
+
 
 def is_float_broken():
     """
@@ -936,6 +942,7 @@ def is_float_broken():
     nan = 1e300000/1e300000
 
     return str(nan) != str(struct.unpack("!d", '\xff\xf8\x00\x00\x00\x00\x00\x00')[0])
+
 
 # init the module from here ..
 
