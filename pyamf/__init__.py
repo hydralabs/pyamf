@@ -16,7 +16,7 @@ U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>}.
 @status: Production/Stable
 """
 
-import types
+import types, inspect
 
 from pyamf import util
 from pyamf.adapters import register_adapters
@@ -462,7 +462,7 @@ class ClassAlias(object):
             dynamic_attrs.extend([key for key in extra_attrs if key not in static_attrs])
 
         if traverse is True:
-            for base in util.get_mro(obj.__class__):
+            for base in inspect.getmro(obj.__class__):
                 try:
                     alias = get_class_alias(base)
                 except UnknownClassAlias:
@@ -1259,7 +1259,7 @@ def add_error_class(klass, code):
     if not isinstance(klass, (type, types.ClassType)):
         raise TypeError("klass must be a class type")
 
-    mro = util.get_mro(klass)
+    mro = inspect.getmro(klass)
 
     if not Exception in mro:
         raise TypeError('Error classes must subclass the __builtin__.Exception class')

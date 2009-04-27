@@ -8,6 +8,7 @@ versions of PyAMF.
 
 0.5 (unreleased)
 ----------------
+ - Removed pyamf.util.get_mro, in favour of inspect.getmro (Ticket:526)
  - Removed pyamf.util.Indexed[Collection|Map].remove (Ticket:518)
 
 0.4.2 (2009-04-20)

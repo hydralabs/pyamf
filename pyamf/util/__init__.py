@@ -672,51 +672,6 @@ def make_classic_instance(klass):
 
     return inst
 
-def get_mro(C):
-    """
-    Compute the class precedence list (mro).
-
-    @raise TypeError: class type expected.
-    """
-    def merge(seqs):
-        """
-        @raise NameError: Inconsistent hierarchy.
-        @raise TypeError: Class type expected.
-        """
-        res = []
-        i = 0
-
-        while 1:
-            nonemptyseqs = [seq for seq in seqs if seq]
-            if not nonemptyseqs:
-                return res
-
-            i += 1
-            for seq in nonemptyseqs:
-                cand = seq[0]
-                nothead = [s for s in nonemptyseqs if cand in s[1:]]
-
-                if nothead:
-                    cand = None
-                else:
-                    break
-
-            if not cand:
-                raise NameError("Inconsistent hierarchy")
-
-            res.append(cand)
-
-            for seq in nonemptyseqs:
-                if seq[0] == cand:
-                    del seq[0]
-
-    if not isinstance(C, (types.ClassType, types.ObjectType)):
-        raise TypeError('class type expected')
-
-    if hasattr(C, '__mro__'):
-        return C.__mro__
-
-    return merge([[C]] + map(get_mro, C.__bases__) + [list(C.__bases__)])
 
 def get_attrs(obj):
     """
