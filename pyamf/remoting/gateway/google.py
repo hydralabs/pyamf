@@ -76,7 +76,9 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
             request = remoting.decode(body, context, strict=self.strict)
         except:
             fe = gateway.format_exception()
-            self.logger.exception(fe)
+
+            if self.logger is not None:
+                self.logger.exception(fe)
 
             response = "400 Bad Request\n\nThe request body was unable to " \
                 "be successfully decoded."
@@ -91,7 +93,8 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
 
             return
 
-        self.logger.debug("AMF Request: %r" % request)
+        if self.logger is not None:
+            self.logger.debug("AMF Request: %r" % request)
 
         # Process the request
         try:
@@ -100,7 +103,9 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
             raise
         except:
             fe = gateway.format_exception()
-            self.logger.exception(fe)
+
+            if self.logger is not None:
+                self.logger.exception(fe)
 
             response = "500 Internal Server Error\n\nThe request was " \
                 "unable to be successfully processed."
@@ -115,14 +120,17 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
 
             return
 
-        self.logger.debug("AMF Response: %r" % response)
+        if self.logger is not None:
+            self.logger.debug("AMF Response: %r" % response)
 
         # Encode the response
         try:
             stream = remoting.encode(response, context, strict=self.strict)
         except:
             fe = gateway.format_exception()
-            self.logger.exception(fe)
+
+            if self.logger is not None:
+                self.logger.exception(fe)
 
             response = "500 Internal Server Error\n\nThe request was " \
                 "unable to be encoded."

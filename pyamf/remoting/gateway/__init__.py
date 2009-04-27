@@ -24,8 +24,10 @@ class BaseServiceError(pyamf.BaseError):
     Base service error.
     """
 
+
 pyamf.register_class(BaseServiceError, attrs=fault_alias.attrs)
 del fault_alias
+
 
 class UnknownServiceError(BaseServiceError):
     """
@@ -33,17 +35,20 @@ class UnknownServiceError(BaseServiceError):
     """
     _amf_code = 'Service.ResourceNotFound'
 
+
 class UnknownServiceMethodError(BaseServiceError):
     """
     Client made a request for an unknown method.
     """
     _amf_code = 'Service.MethodNotFound'
 
+
 class InvalidServiceMethodError(BaseServiceError):
     """
     Client made a request for an invalid methodname.
     """
     _amf_code = 'Service.MethodInvalid'
+
 
 class ServiceWrapper(object):
     """
@@ -203,6 +208,7 @@ class ServiceWrapper(object):
 
         return self.preprocessor
 
+
 class ServiceRequest(object):
     """
     Remoting service request.
@@ -223,6 +229,7 @@ class ServiceRequest(object):
     def __call__(self, *args):
         return self.service(self.method, args)
 
+
 class ServiceCollection(dict):
     """
     I hold a collection of services, mapping names to objects.
@@ -232,6 +239,7 @@ class ServiceCollection(dict):
             return value in self.keys()
 
         return value in self.values()
+
 
 class BaseGateway(object):
     """
@@ -245,6 +253,8 @@ class BaseGateway(object):
     @type authenticator: C{Callable} or C{None}
     @ivar preprocessor: Called before the actual service method is invoked.
         Useful for setting up sessions etc.
+    @type preprocessor: C{Callable} or C{None}
+    @ivar logger: A logging instance.
     @ivar strict: Defines whether the gateway should use strict en/decoding.
     @type strict: C{bool}
     """
@@ -252,11 +262,11 @@ class BaseGateway(object):
     debug = False
 
     def __init__(self, services={}, authenticator=None, expose_request=False,
-        preprocessor=None, debug=None, strict=False):
+        preprocessor=None, debug=None, strict=False, logger=None):
         """
         @raise TypeError: C{dict} type is required for C{services}.
         """
-        self.logger = logging.instance_logger(self)
+        self.logger = logger
         self.services = ServiceCollection()
         self.authenticator = authenticator
         self.preprocessor = preprocessor

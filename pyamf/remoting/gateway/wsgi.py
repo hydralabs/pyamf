@@ -82,7 +82,8 @@ class WSGIGateway(gateway.BaseGateway):
         try:
             request = remoting.decode(body, context, strict=self.strict)
         except (pyamf.DecodeError, EOFError):
-            self.logger.exception(gateway.format_exception())
+            if self.logger is not None:
+                self.logger.exception(gateway.format_exception())
 
             response = "400 Bad Request\n\nThe request body was unable to " \
                 "be successfully decoded."
@@ -100,7 +101,8 @@ class WSGIGateway(gateway.BaseGateway):
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
-            self.logger.exception(gateway.format_exception())
+            if self.logger is not None:
+                self.logger.exception(gateway.format_exception())
 
             response = "500 Internal Server Error\n\nAn unexpected error occurred whilst decoding."
 
@@ -115,7 +117,8 @@ class WSGIGateway(gateway.BaseGateway):
 
             return [response]
 
-        self.logger.debug("AMF Request: %r" % request)
+        if self.logger is not None:
+            self.logger.debug("AMF Request: %r" % request)
 
         # Process the request
         try:
@@ -123,7 +126,8 @@ class WSGIGateway(gateway.BaseGateway):
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
-            self.logger.exception(gateway.format_exception())
+            if self.logger is not None:
+                self.logger.exception(gateway.format_exception())
 
             response = "500 Internal Server Error\n\nThe request was " \
                 "unable to be successfully processed."
@@ -139,13 +143,15 @@ class WSGIGateway(gateway.BaseGateway):
 
             return [response]
 
-        self.logger.debug("AMF Response: %r" % response)
+        if self.logger is not None:
+            self.logger.debug("AMF Response: %r" % response)
 
         # Encode the response
         try:
             stream = remoting.encode(response, context, strict=self.strict)
         except:
-            self.logger.exception(gateway.format_exception())
+            if self.logger is not None:
+                self.logger.exception(gateway.format_exception())
 
             response = "500 Internal Server Error\n\nThe request was " \
                 "unable to be encoded."
