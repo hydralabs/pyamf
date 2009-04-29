@@ -4,7 +4,7 @@
 """
 B{PyAMF} provides B{A}ction B{M}essage B{F}ormat
 (U{AMF<http://en.wikipedia.org/wiki/Action_Message_Format>}) support for
-Python that is compatible with the
+Python that is compatible with the Adobe
 U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>}.
 
 @copyright: Copyright (c) 2007-2009 The PyAMF Project. All Rights Reserved.
@@ -54,16 +54,16 @@ class ClientTypes:
     """
     Typecodes used to identify AMF clients and servers.
 
-    @see: U{Flash Player on WikiPedia (external)
+    @see: U{Adobe Flash Player on WikiPedia (external)
     <http://en.wikipedia.org/wiki/Flash_Player>}
-    @see: U{Flash Media Server on WikiPedia (external)
+    @see: U{Adobe Flash Media Server on WikiPedia (external)
     <http://en.wikipedia.org/wiki/Adobe_Flash_Media_Server>}
     """
-    #: Specifies a Flash Player 6.0 - 8.0 client.
+    #: Specifies a Adobe Flash Player 6.0 - 8.0 client.
     Flash6   = 0
-    #: Specifies a FlashCom / Flash Media Server client.
+    #: Specifies a Adobe FlashCom / Flash Media Server client.
     FlashCom = 1
-    #: Specifies a Flash Player 9.0 client.
+    #: Specifies a Adobe Flash Player 9.0 client or newer.
     Flash9   = 3
 
 #: List of AMF client typecodes.
@@ -78,7 +78,7 @@ class UndefinedType(object):
     def __repr__(self):
         return 'pyamf.Undefined'
 
-#: Represents the C{undefined} value in a Flash client.
+#: Represents the C{undefined} value in a Adobe Flash Player client.
 Undefined = UndefinedType()
 
 class BaseError(Exception):

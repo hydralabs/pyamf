@@ -14,7 +14,7 @@ requests; Remoting supports batching out of the box.
 Client headers and bodies need not be responded to in a one-to-one manner. That
 is, a body or header may not require a response. Debug information is requested
 by a header but sent back as a body object. The response index is essential for
-the Flash Player to understand the response therefore.
+the Adobe Flash Player to understand the response therefore.
 
 @see: U{Remoting Envelope on OSFlash (external)
 <http://osflash.org/documentation/amf/envelopes/remoting>}

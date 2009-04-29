@@ -6,9 +6,10 @@
 """
 Local Shared Object implementation.
 
-Local Shared Object (LSO), sometimes known as flash cookies, is a cookie-like
-data entity used by the Flash Player and Gnash. The players allow web content
-to read and write LSO data to the computer's local drive on a per-domain basis.
+Local Shared Object (LSO), sometimes known as Adobe Flash cookies, is a
+cookie-like data entity used by the Adobe Flash Player and Gnash. The players
+allow web content to read and write LSO data to the computer's local drive on
+a per-domain basis.
 
 @see: U{Local Shared Object on WikiPedia (external)
 <http://en.wikipedia.org/wiki/Local_Shared_Object>}
