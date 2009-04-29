@@ -8,6 +8,7 @@ versions of PyAMF.
 
 0.5 (unreleased)
 ----------------
+ - Strict type checking now on pyamf.util.BufferedByteStream (Ticket:512)
  - Removed the default loggers from p.r.gateway.*. To re-enable supply a
    logger instance as a keyword arg to the gateway constructor (Ticket:525)
  - Removed pyamf.util.make_classic_instance (as it is not used) (Ticket:521)

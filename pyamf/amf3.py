@@ -1408,7 +1408,7 @@ class Encoder(pyamf.BaseEncoder):
         @param  use_references: Default is C{True}.
         """
         if n & 0xf0000000 not in [0, 0xf0000000]:
-            self.writeNumber(n)
+            self.writeNumber(float(n))
 
             return
 

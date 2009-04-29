@@ -370,6 +370,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
 
         self.assertRaises(OverflowError, x.write_uchar, 256)
         self.assertRaises(OverflowError, x.write_uchar, -1)
+        self.assertRaises(TypeError, x.write_uchar, 'f')
 
     def test_read_char(self):
         x = ByteStream('\x00\x7f\xff\x80')
@@ -390,6 +391,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
 
         self.assertRaises(OverflowError, x.write_char, 128)
         self.assertRaises(OverflowError, x.write_char, -129)
+        self.assertRaises(TypeError, x.write_char, 'f')
 
     def test_write_ushort(self):
         x = ByteStream()
@@ -400,6 +402,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
 
         self.assertRaises(OverflowError, x.write_ushort, 65536)
         self.assertRaises(OverflowError, x.write_ushort, -1)
+        self.assertRaises(TypeError, x.write_ushort, 'aa')
 
     def test_read_ushort(self):
         self._read_endian(['\x00\x00', '\x00\x00'], 'read_ushort', (), 0)
@@ -414,6 +417,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
 
         self.assertRaises(OverflowError, x.write_ushort, 65537)
         self.assertRaises(OverflowError, x.write_ushort, -1)
+        self.assertRaises(TypeError, x.write_short, '\x00\x00')
 
     def test_read_short(self):
         self._read_endian(['\xe9\xd7', '\xd7\xe9'], 'read_short', (), -5673)
@@ -428,6 +432,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
 
         self.assertRaises(OverflowError, x.write_ulong, 4294967296L)
         self.assertRaises(OverflowError, x.write_ulong, -1)
+        self.assertRaises(TypeError, x.write_ulong, '\x00\x00\x00\x00')
 
     def test_read_ulong(self):
         self._read_endian(['\x00\x00\x00\x00', '\x00\x00\x00\x00'], 'read_ulong', (), 0)
@@ -444,6 +449,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
 
         self.assertRaises(OverflowError, x.write_long, 2147483648)
         self.assertRaises(OverflowError, x.write_long, -2147483649)
+        self.assertRaises(TypeError, x.write_long, '\x00\x00\x00\x00')
 
     def test_read_long(self):
         self._read_endian(['\x00\x00\x00\x00', '\x00\x00\x00\x00'], 'read_long', (), 0)
@@ -459,6 +465,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
 
         self.assertRaises(OverflowError, x.write_24bit_uint, 16777216)
         self.assertRaises(OverflowError, x.write_24bit_uint, -1)
+        self.assertRaises(TypeError, x.write_24bit_uint, '\x00\x00\x00')
 
     def test_read_u24bit(self):
         self._read_endian(['\x00\x00\x00', '\x00\x00\x00'], 'read_24bit_uint', (), 0)
@@ -478,6 +485,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
 
         self.assertRaises(OverflowError, x.write_24bit_int, 8388608)
         self.assertRaises(OverflowError, x.write_24bit_int, -8388609)
+        self.assertRaises(TypeError, x.write_24bit_int, '\x00\x00\x00')
 
     def test_read_24bit(self):
         self._read_endian(['\x00\x00\x00', '\x00\x00\x00'], 'read_24bit_int', (), 0)
@@ -490,6 +498,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
         x = ByteStream()
 
         self._write_endian(x, x.write_float, (0.2,), ('>L\xcc\xcd', '\xcd\xccL>'))
+        self.assertRaises(TypeError, x.write_float, 'foo')
 
     def test_read_float(self):
         self._read_endian(['?\x00\x00\x00', '\x00\x00\x00?'], 'read_float', (), 0.5)
@@ -498,6 +507,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
         x = ByteStream()
 
         self._write_endian(x, x.write_double, (0.2,), ('?\xc9\x99\x99\x99\x99\x99\x9a', '\x9a\x99\x99\x99\x99\x99\xc9?'))
+        self.assertRaises(TypeError, x.write_double, 'foo')
 
     def test_read_double(self):
         self._read_endian(['?\xc9\x99\x99\x99\x99\x99\x9a', '\x9a\x99\x99\x99\x99\x99\xc9?'], 'read_double', (), 0.2)
@@ -506,6 +516,9 @@ class DataTypeMixInTestCase(unittest.TestCase):
         x = ByteStream()
 
         self._write_endian(x, x.write_utf8_string, (u'ᚠᛇᚻ',), ['\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb'] * 2)
+        self.assertRaises(TypeError, x.write_utf8_string, 1)
+        self.assertRaises(TypeError, x.write_utf8_string, 1.0)
+        self.assertRaises(TypeError, x.write_utf8_string, object())
 
     def test_read_utf8_string(self):
         self._read_endian(['\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb'] * 2, 'read_utf8_string', (9,), u'ᚠᛇᚻ')
