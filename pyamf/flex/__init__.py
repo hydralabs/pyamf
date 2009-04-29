@@ -60,7 +60,8 @@ class ArrayCollection(list):
         self.extend(data)
 
     def __writeamf__(self, output):
-        output.encoder.writeList(list(self), use_references=True, _use_proxies=False)
+        output.encoder.writeList(
+            list(self), use_references=True, use_proxies=False)
 
     def _get_length(self):
         return len(self)
@@ -241,7 +242,7 @@ class ObjectProxy(object):
         self._amf_object = input.readObject()
 
     def __writeamf__(self, output):
-        output.writeObject(self._amf_object)
+        output.writeObject(self._amf_object, use_proxies=False)
 
 pyamf.register_class(ObjectProxy, 'flex.messaging.io.ObjectProxy',
     metadata=['external', 'amf3'])

@@ -602,11 +602,9 @@ def decode(stream, context=None, strict=False):
             msg.amfVersion)
 
     if context is None:
-        context = pyamf.get_context(pyamf.AMF0)
-    else:
-        context = copy.copy(context)
+        context = pyamf.get_context(pyamf.AMF0, exceptions=False)
 
-    decoder = pyamf._get_decoder_class(pyamf.AMF0)(stream, context=context, strict=strict)
+    decoder = pyamf.get_decoder(pyamf.AMF0, stream, context=context, strict=strict)
     msg.clientType = stream.read_uchar()
 
     header_count = stream.read_ushort()
@@ -637,9 +635,6 @@ def encode(msg, context=None, strict=False):
 
     @type   msg: L{Envelope}
     @param  msg: The message to encode.
-    @type   context: L{amf0.Context<pyamf.amf0.Context>} or
-        L{amf3.Context<pyamf.amf3.Context>}
-    @param  context: Context.
     @type strict: C{bool}
     @param strict: Determines whether encoding should be strict. Specifically
         header/body lengths will be written correctly, instead of the default 0.
@@ -647,17 +642,12 @@ def encode(msg, context=None, strict=False):
     @rtype: C{StringIO}
     @return: File object.
     """
-    def getNewContext():
-        if context:
-            new_context = copy.copy(context)
-            new_context.reset()
-
-            return new_context
-        else:
-            return pyamf.get_context(pyamf.AMF0)
-
     stream = util.BufferedByteStream()
-    encoder = pyamf._get_encoder_class(pyamf.AMF0)(stream, strict=strict)
+
+    if context is None:
+        context = pyamf.get_context(pyamf.AMF0, exceptions=False)
+
+    encoder = pyamf.get_encoder(pyamf.AMF0, stream, context=context, strict=strict)
 
     if msg.clientType == pyamf.ClientTypes.Flash9:
         encoder.use_amf3 = True
@@ -674,7 +664,7 @@ def encode(msg, context=None, strict=False):
     stream.write_short(len(msg))
 
     for name, message in msg.iteritems():
-        encoder.context = getNewContext()
+        encoder.context.reset()
 
         _write_body(name, message, stream, encoder, strict)
 
