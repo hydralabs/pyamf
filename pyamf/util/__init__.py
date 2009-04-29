@@ -22,6 +22,24 @@ xml_types = None
 ET = None
 negative_timestamp_broken = False
 
+int_types = [int]
+str_types = [str]
+
+# py3k support
+try:
+    int_types.append(long)
+except NameError:
+    pass
+
+try:
+    str_types.append(unicode)
+except NameError:
+    pass
+
+int_types = tuple(int_types)
+str_types = tuple(str_types)
+
+
 def find_xml_lib():
     """
     Run through a predefined order looking through the various C{ElementTree}
@@ -222,6 +240,7 @@ class StringIOProxy(object):
             self.write(bytes)
             self.seek(0)
 
+
 class DataTypeMixIn(object):
     """
     Provides methods for reading and writing basic data types for file-like
@@ -269,9 +288,12 @@ class DataTypeMixIn(object):
     def write_uchar(self, c):
         """
         Writes an C{unsigned char} to the stream.
-        
+
         @raise OverflowError: Not in range.
         """
+        if type(c) not in int_types:
+            raise TypeError('expected an int (got:%r)' % (type(c),))
+
         if not 0 <= c <= 255:
             raise OverflowError("Not in range, %d" % c)
 
@@ -289,6 +311,9 @@ class DataTypeMixIn(object):
         
         @raise OverflowError: Not in range.
         """
+        if type(c) not in int_types:
+            raise TypeError('expected an int (got:%r)' % (type(c),))
+
         if not -128 <= c <= 127:
             raise OverflowError("Not in range, %d" % c)
 
@@ -303,9 +328,12 @@ class DataTypeMixIn(object):
     def write_ushort(self, s):
         """
         Writes a 2 byte unsigned integer to the stream.
-        
+
         @raise OverflowError: Not in range.
         """
+        if type(s) not in int_types:
+            raise TypeError('expected an int (got:%r)' % (type(s),))
+
         if not 0 <= s <= 65535:
             raise OverflowError("Not in range, %d" % s)
 
@@ -320,9 +348,12 @@ class DataTypeMixIn(object):
     def write_short(self, s):
         """
         Writes a 2 byte integer to the stream.
-        
+
         @raise OverflowError: Not in range.
         """
+        if type(s) not in int_types:
+            raise TypeError('expected an int (got:%r)' % (type(s),))
+
         if not -32768 <= s <= 32767:
             raise OverflowError("Not in range, %d" % s)
 
@@ -340,6 +371,9 @@ class DataTypeMixIn(object):
         
         @raise OverflowError: Not in range.
         """
+        if type(l) not in int_types:
+            raise TypeError('expected an int (got:%r)' % (type(l),))
+
         if not 0 <= l <= 4294967295:
             raise OverflowError("Not in range, %d" % l)
 
@@ -357,6 +391,9 @@ class DataTypeMixIn(object):
         
         @raise OverflowError: Not in range.
         """
+        if type(l) not in int_types:
+            raise TypeError('expected an int (got:%r)' % (type(l),))
+
         if not -2147483648 <= l <= 2147483647:
             raise OverflowError("Not in range, %d" % l)
 
@@ -388,6 +425,9 @@ class DataTypeMixIn(object):
 
         @since: 0.4
         """
+        if type(n) not in int_types:
+            raise TypeError('expected an int (got:%r)' % (type(n),))
+
         if not 0 <= n <= 0xffffff:
             raise OverflowError("n is out of range")
 
@@ -421,6 +461,9 @@ class DataTypeMixIn(object):
 
         @since: 0.4
         """
+        if type(n) not in int_types:
+            raise TypeError('expected an int (got:%r)' % (type(n),))
+
         if not -8388608 <= n <= 8388607:
             raise OverflowError("n is out of range")
 
@@ -447,6 +490,9 @@ class DataTypeMixIn(object):
         """
         Writes an 8 byte float to the stream.
         """
+        if not type(d) is float:
+            raise TypeError('expected a float (got:%r)' % (type(d),))
+
         self.write(struct.pack("%sd" % self.endian, d))
 
     def read_float(self):
@@ -459,6 +505,9 @@ class DataTypeMixIn(object):
         """
         Writes a 4 byte float to the stream.
         """
+        if type(f) is not float:
+            raise TypeError('expected a float (got:%r)' % (type(f),))
+
         self.write(struct.pack("%sf" % self.endian, f))
 
     def read_utf8_string(self, length):
@@ -475,9 +524,13 @@ class DataTypeMixIn(object):
         """
         Writes a unicode object to the stream in UTF-8
         """
+        if type(u) not in str_types:
+            raise TypeError('expected a str (got:%r)' % (type(u),))
+
         bytes = u.encode("utf8")
 
         self.write(struct.pack("%s%ds" % (self.endian, len(bytes)), bytes))
+
 
 if struct.pack('@H', 1)[0] == '\x01':
     DataTypeMixIn._system_endian = DataTypeMixIn.ENDIAN_LITTLE
@@ -918,6 +971,9 @@ if is_float_broken():
     DataTypeMixIn.read_double = read_double_workaround
 
     def write_double_workaround(self, d):
+        if type(d) is not float:
+            raise TypeError('expected a float (got:%r)' % (type(d),))
+
         if fpconst.isNaN(d):
             if self._is_big_endian():
                 self.write('\xff\xf8\x00\x00\x00\x00\x00\x00')

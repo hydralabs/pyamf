@@ -525,6 +525,9 @@ cdef class BufferedByteStream:
         if not self.buffer:
             raise ValueError('buffer is closed')
 
+        if not isinstance(val, (int, long)):
+            raise TypeError
+
         if val < 0 or val > 4294967295L:
             raise OverflowError
 
@@ -534,6 +537,9 @@ cdef class BufferedByteStream:
     def write_long(self, val):
         if not self.buffer:
             raise ValueError('buffer is closed')
+
+        if not isinstance(val, (int, long)):
+            raise TypeError
 
         if not -2147483648 <= val <= 2147483647:
             raise OverflowError
@@ -637,6 +643,9 @@ cdef class BufferedByteStream:
     def write_double(self, val):
         if not self.buffer:
             raise ValueError('buffer is closed')
+
+        if not isinstance(val, float):
+            raise TypeError('expected a float')
 
         cdef char *buf = <char *>PyMem_Malloc(8)
         cdef int le = 0

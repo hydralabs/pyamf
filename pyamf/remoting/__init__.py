@@ -668,7 +668,7 @@ def encode(msg, context=None, strict=False):
 
     for name, header in msg.headers.iteritems():
         _write_header(
-            name, header, msg.headers.is_required(name),
+            name, header, int(msg.headers.is_required(name)),
             stream, encoder, strict)
 
     stream.write_short(len(msg))
