@@ -20,25 +20,26 @@ class TypesTestCase(unittest.TestCase):
     """
     Tests the type mappings.
     """
+
     def test_types(self):
-        self.assertEquals(amf0.ASTypes.NUMBER, 0x00)
-        self.assertEquals(amf0.ASTypes.BOOL, 0x01)
-        self.assertEquals(amf0.ASTypes.STRING, 0x02)
-        self.assertEquals(amf0.ASTypes.OBJECT, 0x03)
-        self.assertEquals(amf0.ASTypes.MOVIECLIP, 0x04)
-        self.assertEquals(amf0.ASTypes.NULL, 0x05)
-        self.assertEquals(amf0.ASTypes.UNDEFINED, 0x06)
-        self.assertEquals(amf0.ASTypes.REFERENCE, 0x07)
-        self.assertEquals(amf0.ASTypes.MIXEDARRAY, 0x08)
-        self.assertEquals(amf0.ASTypes.OBJECTTERM, 0x09)
-        self.assertEquals(amf0.ASTypes.ARRAY, 0x0a)
-        self.assertEquals(amf0.ASTypes.DATE, 0x0b)
-        self.assertEquals(amf0.ASTypes.LONGSTRING, 0x0c)
-        self.assertEquals(amf0.ASTypes.UNSUPPORTED, 0x0d)
-        self.assertEquals(amf0.ASTypes.RECORDSET, 0x0e)
-        self.assertEquals(amf0.ASTypes.XML, 0x0f)
-        self.assertEquals(amf0.ASTypes.TYPEDOBJECT, 0x10)
-        self.assertEquals(amf0.ASTypes.AMF3, 0x11)
+        self.assertEquals(amf0.TYPE_NUMBER, '\x00')
+        self.assertEquals(amf0.TYPE_BOOL, '\x01')
+        self.assertEquals(amf0.TYPE_STRING, '\x02')
+        self.assertEquals(amf0.TYPE_OBJECT, '\x03')
+        self.assertEquals(amf0.TYPE_MOVIECLIP, '\x04')
+        self.assertEquals(amf0.TYPE_NULL, '\x05')
+        self.assertEquals(amf0.TYPE_UNDEFINED, '\x06')
+        self.assertEquals(amf0.TYPE_REFERENCE, '\x07')
+        self.assertEquals(amf0.TYPE_MIXEDARRAY, '\x08')
+        self.assertEquals(amf0.TYPE_OBJECTTERM, '\x09')
+        self.assertEquals(amf0.TYPE_ARRAY, '\x0a')
+        self.assertEquals(amf0.TYPE_DATE, '\x0b')
+        self.assertEquals(amf0.TYPE_LONGSTRING, '\x0c')
+        self.assertEquals(amf0.TYPE_UNSUPPORTED, '\x0d')
+        self.assertEquals(amf0.TYPE_RECORDSET, '\x0e')
+        self.assertEquals(amf0.TYPE_XML, '\x0f')
+        self.assertEquals(amf0.TYPE_TYPEDOBJECT, '\x10')
+        self.assertEquals(amf0.TYPE_AMF3, '\x11')
 
 class ContextTestCase(unittest.TestCase):
     def test_create(self):
@@ -290,19 +291,21 @@ class EncoderTestCase(ClassCacheClearingTestCase):
                 '\x00\x04spam\x00\x01b\x02\x00\x04eggs\x00\x00\t\x07\x00\x02')])
 
     def test_amf3(self):
-        self.assertFalse(hasattr(self.context, 'amf3_context'))
+        self.assertFalse(hasattr(self.context, 'amf3_encoder'))
 
         self.context.addAMF3Object(1)
         self.encoder.writeElement(1)
         self.assertEquals(self.buf.getvalue(), '\x11\x04\x01')
 
-        self.assertTrue(hasattr(self.context, 'amf3_context'))
+        self.assertTrue(hasattr(self.context, 'amf3_encoder'))
+
+        encoder = self.context.amf3_encoder
 
         self.buf.seek(0)
         self.buf.truncate()
         obj = object()
         self.context.addAMF3Object(obj)
-        self.context.amf3_context.addObject(obj)
+        encoder.context.addObject(obj)
 
         self.encoder.writeElement(obj)
 
@@ -550,17 +553,6 @@ class DecoderTestCase(ClassCacheClearingTestCase):
 
         e = DecoderTester(self.decoder, data)
         e.run(self)
-
-    def test_types(self):
-        for x in amf0.ACTIONSCRIPT_TYPES:
-            self.buf.write(chr(x))
-            self.buf.seek(0)
-            self.decoder.readType()
-            self.buf.truncate()
-
-        self.buf.write('x')
-        self.buf.seek(0)
-        self.assertRaises(pyamf.DecodeError, self.decoder.readType)
 
     def test_undefined(self):
         self._run([(pyamf.Undefined, '\x06')])

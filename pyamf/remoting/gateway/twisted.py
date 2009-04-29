@@ -56,8 +56,8 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
         @rtype: C{twisted.internet.defer.Deferred}
         """
         try:
-            service_request = self.gateway.getServiceRequest(request,
-                                                             request.target)
+            service_request = self.gateway.getServiceRequest(
+                request, request.target)
         except gateway.UnknownServiceError, e:
             return defer.succeed(self.buildErrorResponse(request))
 
@@ -261,10 +261,9 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
             self._finaliseRequest(request, 400, body)
 
         request.content.seek(0, 0)
-        context = pyamf.get_context(pyamf.AMF0)
 
         d = threads.deferToThread(remoting.decode, request.content.read(),
-            context, strict=self.strict)
+            strict=self.strict)
 
         def cb(amf_request):
             if self.logger is not None:
@@ -272,14 +271,14 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
 
             x = self.getResponse(request, amf_request)
 
-            x.addCallback(self.sendResponse, request, context)
+            x.addCallback(self.sendResponse, request)
 
         # Process the request
         d.addCallback(cb).addErrback(handleDecodeError)
 
         return server.NOT_DONE_YET
 
-    def sendResponse(self, amf_response, request, context):
+    def sendResponse(self, amf_response, request):
         def cb(result):
             self._finaliseRequest(request, 200, result.getvalue(),
                 remoting.CONTENT_TYPE)
@@ -302,7 +301,8 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
 
             self._finaliseRequest(request, 500, body)
 
-        d = threads.deferToThread(remoting.encode, amf_response, context, strict=self.strict)
+        d = threads.deferToThread(remoting.encode, amf_response,
+            strict=self.strict)
 
         d.addCallback(cb).addErrback(eb)
 
@@ -328,7 +328,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         @type amf_request: L{Envelope<pyamf.remoting.Envelope>}
         """
         response = remoting.Envelope(amf_request.amfVersion,
-                                     amf_request.clientType)
+            amf_request.clientType)
         dl = []
 
         def cb(body, name):
@@ -338,7 +338,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
             processor = self.getProcessor(message)
 
             d = defer.maybeDeferred(processor, message,
-                                    http_request=http_request)
+                http_request=http_request)
             d.addCallback(cb, name)
 
             dl.append(d)

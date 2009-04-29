@@ -124,11 +124,20 @@ class UnknownClassAlias(BaseError):
 class BaseContext(object):
     """
     I hold the AMF context for en/decoding streams.
+
+    @ivar objects: An indexed collection of referencable objects encountered
+        during en/decoding.
+    @type objects: L{util.IndexedCollection}
+    @ivar class_aliases: A L{dict} of C{class} to L{ClassAlias}
+    @ivar exceptions: If C{True} then reference errors will be propagated.
+    @type exceptions: C{bool}
     """
 
-    def __init__(self):
-        self.objects = util.IndexedCollection()
+    def __init__(self, exceptions=True):
+        self.objects = util.IndexedCollection(exceptions=False)
         self.clear()
+
+        self.exceptions = exceptions
 
     def clear(self):
         """
@@ -151,23 +160,28 @@ class BaseContext(object):
         """
         Gets an object based on a reference.
 
-        @raise ReferenceError: Unknown object reference.
+        @raise ReferenceError: Unknown object reference, if L{exceptions} is
+            C{True}, otherwise C{None} will be returned.
         """
-        try:
-            return self.objects.getByReference(ref)
-        except ReferenceError:
+        o = self.objects.getByReference(ref)
+
+        if o is None and self.exceptions:
             raise ReferenceError("Unknown object reference %r" % (ref,))
+
+        return o
 
     def getObjectReference(self, obj):
         """
         Gets a reference for an object.
-        
+
         @raise ReferenceError: Object not a valid reference,
         """
-        try:
-            return self.objects.getReferenceTo(obj)
-        except ReferenceError:
+        o = self.objects.getReferenceTo(obj)
+
+        if o is None and self.exceptions:
             raise ReferenceError("Object %r not a valid reference" % (obj,))
+
+        return o
 
     def addObject(self, obj):
         """
@@ -184,17 +198,21 @@ class BaseContext(object):
         """
         Gets a class alias based on the supplied C{klass}.
         """
-        if klass not in self.class_aliases.keys():
-            try:
-                self.class_aliases[klass] = get_class_alias(klass)
-            except UnknownClassAlias:
-                # no alias has been found yet .. check subclasses
-                alias = util.get_class_alias(klass)
+        try:
+            return self.class_aliases[klass]
+        except KeyError:
+            pass
 
-                if alias is not None:
-                    self.class_aliases[klass] = alias(klass, None)
-                else:
-                    self.class_aliases[klass] = None
+        try:
+            self.class_aliases[klass] = get_class_alias(klass)
+        except UnknownClassAlias:
+            # no alias has been found yet .. check subclasses
+            alias = util.get_class_alias(klass)
+
+            if alias is not None:
+                self.class_aliases[klass] = alias(klass, None)
+            else:
+                self.class_aliases[klass] = None
 
         return self.class_aliases[klass]
 
@@ -627,35 +645,18 @@ class BaseDecoder(object):
     type_map = {}
 
     def __init__(self, data=None, context=None, strict=False):
-        """
-        @type   data: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
-        @param  data: Data stream.
-        @type   context: L{Context<pyamf.amf0.Context>}
-        @param  context: Context.
-        @raise TypeError: The C{context} parameter must be of
-        type L{Context<pyamf.amf0.Context>}.
-        """
-        # coerce data to BufferedByteStream
         if isinstance(data, util.BufferedByteStream):
             self.stream = data
         else:
             self.stream = util.BufferedByteStream(data)
 
-        if context == None:
+        if context is None:
             self.context = self.context_class()
-        elif isinstance(context, self.context_class):
-            self.context = context
         else:
-            raise TypeError("context must be of type %s.%s" % (
-                self.context_class.__module__, self.context_class.__name__))
+            self.context = context
 
+        self.context.exceptions = False
         self.strict = strict
-
-    def readType(self):
-        """
-        @raise NotImplementedError: Override in a subclass.
-        """
-        raise NotImplementedError
 
     def readElement(self):
         """
@@ -665,26 +666,24 @@ class BaseDecoder(object):
         @raise EOStream: No more data left to decode.
         """
         try:
-            type = self.readType()
+            t = self.stream.read(1)
         except EOFError:
             raise EOStream
 
         try:
-            func = getattr(self, self.type_map[type])
+            func = getattr(self, self.type_map[t])
         except KeyError:
-            raise DecodeError("Unsupported ActionScript type 0x%02x" % (type,))
+            raise DecodeError("Unsupported ActionScript type %r" % (t,))
 
         return func()
 
     def __iter__(self):
-        """
-        @raise StopIteration:
-        """
         try:
             while 1:
                 yield self.readElement()
         except EOFError:
             raise StopIteration
+
 
 class CustomTypeFunc(object):
     """
@@ -696,6 +695,7 @@ class CustomTypeFunc(object):
 
     def __call__(self, data):
         self.encoder.writeElement(self.func(data, encoder=self.encoder))
+
 
 class BaseEncoder(object):
     """
@@ -717,36 +717,26 @@ class BaseEncoder(object):
         flexibility.
     @type strict: C{bool}, default is False.
     """
+
     context_class = BaseContext
     type_map = []
 
     def __init__(self, data=None, context=None, strict=False):
-        """
-        @type   data: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
-        @param  data: Data stream.
-        @type   context: L{Context<pyamf.amf0.Context>}
-        @param  context: Context.
-        @raise TypeError: The C{context} parameter must be of type
-            L{Context<pyamf.amf0.Context>}.
-        """
-        # coerce data to BufferedByteStream
         if isinstance(data, util.BufferedByteStream):
             self.stream = data
         else:
             self.stream = util.BufferedByteStream(data)
 
-        if context == None:
+        if context is None:
             self.context = self.context_class()
-        elif isinstance(context, self.context_class):
-            self.context = context
         else:
-            raise TypeError("context must be of type %s.%s" % (
-                self.context_class.__module__, self.context_class.__name__))
+            self.context = context
 
+        self.context.exceptions = False
         self._write_elem_func_cache = {}
         self.strict = strict
 
-    def writeFunc(self, obj):
+    def writeFunc(self, obj, **kwargs):
         """
         Not possible to encode functions.
 
@@ -809,6 +799,7 @@ class BaseEncoder(object):
         @param  data: The data to be encoded to the data stream.
         """
         raise NotImplementedError
+
 
 def register_class(klass, alias=None, attrs=None, attr_func=None, metadata=[]):
     """
@@ -1136,8 +1127,8 @@ def _get_encoder_class(encoding):
 
     raise ValueError("Unknown encoding %s" % (encoding,))
 
-def get_context(encoding):
-    return _get_context_class(encoding)()
+def get_context(encoding, **kwargs):
+    return _get_context_class(encoding)(**kwargs)
 
 def _get_context_class(encoding):
     """

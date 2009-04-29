@@ -775,13 +775,17 @@ class IndexedCollection(object):
     referenced objects.
 
     @note: All attributes on the instance are private.
+    @ivar exceptions: If C{True} then L{pyamf.ReferenceError} will be raised,
+        otherwise C{None} will be returned.
     """
 
-    def __init__(self, use_hash=False):
+    def __init__(self, use_hash=False, exceptions=True):
         if use_hash is True:
             self.func = hash
         else:
             self.func = id
+
+        self.exceptions = exceptions
 
         self.clear()
 
@@ -805,6 +809,9 @@ class IndexedCollection(object):
         try:
             return self.list[ref]
         except IndexError:
+            if self.exceptions is False:
+                return None
+
             raise pyamf.ReferenceError("Reference %r not found" % (ref,))
 
     def getReferenceTo(self, obj):
@@ -816,24 +823,25 @@ class IndexedCollection(object):
         try:
             return self.dict[self.func(obj)]
         except KeyError:
+            if self.exceptions is False:
+                return None
+
             raise pyamf.ReferenceError("Value %r not found" % (obj,))
 
     def append(self, obj):
         """
         Appends C{obj} to this index.
 
+        @note: Uniqueness is not checked
         @return: The reference to C{obj} in this index.
         """
         h = self.func(obj)
 
-        try:
-            return self.dict[h]
-        except KeyError:
-            self.list.append(obj)
-            idx = len(self.list) - 1
-            self.dict[h] = idx
+        self.list.append(obj)
+        idx = len(self.list) - 1
+        self.dict[h] = idx
 
-            return idx
+        return idx
 
     def __eq__(self, other):
         if isinstance(other, list):
@@ -871,8 +879,8 @@ class IndexedMap(IndexedCollection):
     @since: 0.4
     """
 
-    def __init__(self, use_hash=False):
-        IndexedCollection.__init__(self, use_hash)
+    def __init__(self, use_hash=False, exceptions=True):
+        IndexedCollection.__init__(self, use_hash, exceptions)
 
     def clear(self):
         IndexedCollection.clear(self)
@@ -892,6 +900,9 @@ class IndexedMap(IndexedCollection):
         try:
             return self.mapped[ref]
         except IndexError:
+            if self.exceptions is False:
+                return None
+
             raise pyamf.ReferenceError("Reference %r not found" % ref)
 
     def append(self, obj):

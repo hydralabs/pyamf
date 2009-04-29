@@ -38,6 +38,7 @@ class TimestampTestCase(unittest.TestCase):
         ts = util.get_timestamp(dt)
         self.assertEqual(util.get_datetime(ts), dt)
 
+
 class StringIOProxyTestCase(unittest.TestCase):
     """
     """
@@ -319,6 +320,7 @@ class StringIOProxyTestCase(unittest.TestCase):
         sp.consume()
         self.assertEquals(len(sp), 0)
 
+
 class cStringIOProxyTestCase(StringIOProxyTestCase):
     def setUp(self):
         from cStringIO import StringIO
@@ -326,8 +328,10 @@ class cStringIOProxyTestCase(StringIOProxyTestCase):
         self.previous = util.StringIOProxy._wrapped_class
         util.StringIOProxy._wrapped_class = StringIO
 
+
 class ByteStream(util.StringIOProxy, util.DataTypeMixIn):
     pass
+
 
 class DataTypeMixInTestCase(unittest.TestCase):
     endians = (util.DataTypeMixIn.ENDIAN_BIG, util.DataTypeMixIn.ENDIAN_LITTLE)
@@ -568,6 +572,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
             '\x00\x00\x00\x00\x00\x00\xf0\xff'
         ))
 
+
 class BufferedByteStreamTestCase(unittest.TestCase):
     """
     Tests for L{BufferedByteStream<util.BufferedByteStream>}
@@ -648,14 +653,18 @@ class BufferedByteStreamTestCase(unittest.TestCase):
         self.assertEquals(a.tell(), 1)
         self.assertEquals(b.tell(), 3)
 
+
 class DummyAlias(pyamf.ClassAlias):
     pass
+
 
 class AnotherDummyAlias(pyamf.ClassAlias):
     pass
 
+
 class YADummyAlias(pyamf.ClassAlias):
     pass
+
 
 class ClassAliasTestCase(unittest.TestCase):
     def setUp(self):
@@ -718,13 +727,18 @@ class ClassAliasTestCase(unittest.TestCase):
 
         self.assertEquals(util.get_class_alias(B), DummyAlias)
 
+
 class TestObject(object):
     def __init__(self):
         self.name = 'test'
 
+
 class IndexedCollectionTestCase(unittest.TestCase):
     def setUp(self):
         self.collection = util.IndexedCollection()
+
+    def test_create(self):
+        self.assertTrue(self.collection.exceptions)
 
     def test_append(self):
         max = 5
@@ -733,24 +747,35 @@ class IndexedCollectionTestCase(unittest.TestCase):
             test_obj.name = i
             self.collection.append(test_obj)
 
-        self.assertEquals(max, len(self.collection.list))
+        self.assertEquals(max, len(self.collection))
+
         for i in range(0, max):
-            self.assertEquals(i, self.collection.list[i].name)
+            self.assertEquals(i, self.collection[i].name)
 
     def test_get_reference_to(self):
-        test_obj = TestObject
+        test_obj = TestObject()
+
         self.collection.append(test_obj)
         idx = self.collection.getReferenceTo(test_obj)
+
         self.assertEquals(0, idx)
         self.assertRaises(pyamf.ReferenceError, self.collection.getReferenceTo, TestObject())
 
+        self.collection.exceptions = False
+        self.assertEquals(None, self.collection.getReferenceTo(TestObject()))
+
     def test_get_by_reference(self):
-        test_obj = TestObject
+        test_obj = TestObject()
         idx = self.collection.append(test_obj)
+
         self.assertEquals(id(test_obj), id(self.collection.getByReference(idx)))
         idx = self.collection.getReferenceTo(test_obj)
+
         self.assertEquals(id(test_obj), id(self.collection.getByReference(idx)))
         self.assertRaises(TypeError, self.collection.getByReference, 'bad ref')
+
+        self.collection.exceptions = False
+        self.assertEquals(None, self.collection.getByReference(74))
 
     def test_array(self):
         test_obj = []
@@ -769,15 +794,26 @@ class IndexedMapTestCase(unittest.TestCase):
     def setUp(self):
         self.collection = util.IndexedMap()
 
+    def test_create(self):
+        self.assertTrue(self.collection.exceptions)
+
     def test_map(self):
         test_obj = TestObject()
         test_map = TestObject()
+
         ref = self.collection.map(test_obj, test_map)
+
         self.assertEquals(test_obj, self.collection.getByReference(ref))
         self.assertEquals(test_map, self.collection.getMappedByReference(ref))
+
         ref = self.collection.getReferenceTo(test_obj)
         self.assertEquals(test_obj, self.collection.getByReference(ref))
         self.assertEquals(test_map, self.collection.getMappedByReference(ref))
+
+        self.assertRaises(pyamf.ReferenceError, self.collection.getMappedByReference, 74)
+
+        self.collection.exceptions = False
+        self.assertEquals(None, self.collection.getMappedByReference(74))
 
 
 class GetAttrsTestCase(unittest.TestCase):

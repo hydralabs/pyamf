@@ -8,6 +8,9 @@ versions of PyAMF.
 
 0.5 (unreleased)
 ----------------
+ - Made raising pyamf.ReferenceError optional for all Indexed* and Context
+   classes. Refactored AMF3 so that only one ClassDefinition appears per class
+   (Ticket:524)
  - Strict type checking now on pyamf.util.BufferedByteStream (Ticket:512)
  - Removed the default loggers from p.r.gateway.*. To re-enable supply a
    logger instance as a keyword arg to the gateway constructor (Ticket:525)

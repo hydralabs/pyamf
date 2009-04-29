@@ -25,87 +25,73 @@ import copy
 import pyamf
 from pyamf import util
 
-class ASTypes:
-    """
-    The AMF/RTMP data encoding format constants.
+#: Represented as 9 bytes: 1 byte for C{0×00} and 8 bytes a double
+#: representing the value of the number.
+TYPE_NUMBER      = '\x00'
+#: Represented as 2 bytes: 1 byte for C{0×01} and a second, C{0×00}
+#: for C{False}, C{0×01} for C{True}.
+TYPE_BOOL        = '\x01'
+#: Represented as 3 bytes + len(String): 1 byte C{0×02}, then a UTF8 string,
+#: including the top two bytes representing string length as a C{int}.
+TYPE_STRING      = '\x02'
+#: Represented as 1 byte, C{0×03}, then pairs of UTF8 string, the key, and
+#: an AMF element, ended by three bytes, C{0×00} C{0×00} C{0×09}.
+TYPE_OBJECT      = '\x03'
+#: MovieClip does not seem to be supported by Remoting.
+#: It may be used by other AMF clients such as SharedObjects.
+TYPE_MOVIECLIP   = '\x04'
+#: 1 single byte, C{0×05} indicates null.
+TYPE_NULL        = '\x05'
+#: 1 single byte, C{0×06} indicates null.
+TYPE_UNDEFINED   = '\x06'
+#: When an ActionScript object refers to itself, such C{this.self = this},
+#: or when objects are repeated within the same scope (for example, as the
+#: two parameters of the same function called), a code of C{0×07} and an
+#: C{int}, the reference number, are written.
+TYPE_REFERENCE   = '\x07'
+#: A MixedArray is indicated by code C{0×08}, then a Long representing the
+#: highest numeric index in the array, or 0 if there are none or they are
+#: all negative. After that follow the elements in key : value pairs.
+TYPE_MIXEDARRAY  = '\x08'
+#: @see: L{TYPE_OBJECT}
+TYPE_OBJECTTERM  = '\x09'
+#: An array is indicated by C{0x0A}, then a Long for array length, then the
+#: array elements themselves. Arrays are always sparse; values for
+#: inexistant keys are set to null (C{0×06}) to maintain sparsity.
+TYPE_ARRAY       = '\x0A'
+#: Date is represented as C{00x0B}, then a double, then an C{int}. The double
+#: represents the number of milliseconds since 01/01/1970. The C{int} represents
+#: the timezone offset in minutes between GMT. Note for the latter than values
+#: greater than 720 (12 hours) are represented as M{2^16} - the value. Thus GMT+1
+#: is 60 while GMT-5 is 65236.
+TYPE_DATE        = '\x0B'
+#: LongString is reserved for strings larger then M{2^16} characters long. It
+#: is represented as C{00x0C} then a LongUTF.
+TYPE_LONGSTRING  = '\x0C'
+#: Trying to send values which don’t make sense, such as prototypes, functions,
+#: built-in objects, etc. will be indicated by a single C{00x0D} byte.
+TYPE_UNSUPPORTED = '\x0D'
+#: Remoting Server -> Client only.
+#: @see: L{RecordSet}
+#: @see: U{RecordSet structure on OSFlash (external)
+#: <http://osflash.org/documentation/amf/recordset>}
+TYPE_RECORDSET   = '\x0E'
+#: The XML element is indicated by C{00x0F} and followed by a LongUTF containing
+#: the string representation of the XML object. The receiving gateway may which
+#: to wrap this string inside a language-specific standard XML object, or simply
+#: pass as a string.
+TYPE_XML         = '\x0F'
+#: A typed object is indicated by C{0×10}, then a UTF string indicating class
+#: name, and then the same structure as a normal C{0×03} Object. The receiving
+#: gateway may use a mapping scheme, or send back as a vanilla object or
+#: associative array.
+TYPE_TYPEDOBJECT = '\x10'
+#: An AMF message sent from an AVM+ client such as the Flash Player 9 may break
+#: out into L{AMF3<pyamf.amf3>} mode. In this case the next byte will be the
+#: AMF3 type code and the data will be in AMF3 format until the decoded object
+#: reaches it’s logical conclusion (for example, an object has no more keys).
+TYPE_AMF3        = '\x11'
 
-    @see: U{Data types on OSFlash (external)
-    <http://osflash.org/documentation/amf/astypes>}
-    """
-    #: Represented as 9 bytes: 1 byte for C{0×00} and 8 bytes a double
-    #: representing the value of the number.
-    NUMBER      = 0x00
-    #: Represented as 2 bytes: 1 byte for C{0×01} and a second, C{0×00}
-    #: for C{False}, C{0×01} for C{True}.
-    BOOL        = 0x01
-    #: Represented as 3 bytes + len(String): 1 byte C{0×02}, then a UTF8 string,
-    #: including the top two bytes representing string length as a C{int}.
-    STRING      = 0x02
-    #: Represented as 1 byte, C{0×03}, then pairs of UTF8 string, the key, and
-    #: an AMF element, ended by three bytes, C{0×00} C{0×00} C{0×09}.
-    OBJECT      = 0x03
-    #: MovieClip does not seem to be supported by Remoting.
-    #: It may be used by other AMF clients such as SharedObjects.
-    MOVIECLIP   = 0x04
-    #: 1 single byte, C{0×05} indicates null.
-    NULL        = 0x05
-    #: 1 single byte, C{0×06} indicates null.
-    UNDEFINED   = 0x06
-    #: When an ActionScript object refers to itself, such C{this.self = this},
-    #: or when objects are repeated within the same scope (for example, as the
-    #: two parameters of the same function called), a code of C{0×07} and an
-    #: C{int}, the reference number, are written.
-    REFERENCE   = 0x07
-    #: A MixedArray is indicated by code C{0×08}, then a Long representing the
-    #: highest numeric index in the array, or 0 if there are none or they are
-    #: all negative. After that follow the elements in key : value pairs.
-    MIXEDARRAY  = 0x08
-    #: @see: L{OBJECT}
-    OBJECTTERM  = 0x09
-    #: An array is indicated by C{0x0A}, then a Long for array length, then the
-    #: array elements themselves. Arrays are always sparse; values for
-    #: inexistant keys are set to null (C{0×06}) to maintain sparsity.
-    ARRAY       = 0x0a
-    #: Date is represented as C{00x0B}, then a double, then an C{int}. The double
-    #: represents the number of milliseconds since 01/01/1970. The C{int} represents
-    #: the timezone offset in minutes between GMT. Note for the latter than values
-    #: greater than 720 (12 hours) are represented as M{2^16} - the value. Thus GMT+1
-    #: is 60 while GMT-5 is 65236.
-    DATE        = 0x0b
-    #: LongString is reserved for strings larger then M{2^16} characters long. It
-    #: is represented as C{00x0C} then a LongUTF.
-    LONGSTRING  = 0x0c
-    #: Trying to send values which don’t make sense, such as prototypes, functions,
-    #: built-in objects, etc. will be indicated by a single C{00x0D} byte.
-    UNSUPPORTED = 0x0d
-    #: Remoting Server -> Client only.
-    #: @see: L{RecordSet}
-    #: @see: U{RecordSet structure on OSFlash (external)
-    #: <http://osflash.org/documentation/amf/recordset>}
-    RECORDSET   = 0x0e
-    #: The XML element is indicated by C{00x0F} and followed by a LongUTF containing
-    #: the string representation of the XML object. The receiving gateway may which
-    #: to wrap this string inside a language-specific standard XML object, or simply
-    #: pass as a string.
-    XML         = 0x0f
-    #: A typed object is indicated by C{0×10}, then a UTF string indicating class
-    #: name, and then the same structure as a normal C{0×03} Object. The receiving
-    #: gateway may use a mapping scheme, or send back as a vanilla object or
-    #: associative array.
-    TYPEDOBJECT = 0x10
-    #: An AMF message sent from an AVM+ client such as the Flash Player 9 may break
-    #: out into L{AMF3<pyamf.amf3>} mode. In this case the next byte will be the
-    #: AMF3 type code and the data will be in AMF3 format until the decoded object
-    #: reaches it’s logical conclusion (for example, an object has no more keys).
-    AMF3        = 0x11
-
-#: List of available ActionScript types in AMF0.
-ACTIONSCRIPT_TYPES = []
-
-for x in ASTypes.__dict__:
-    if not x.startswith('_'):
-        ACTIONSCRIPT_TYPES.append(ASTypes.__dict__[x])
-del x
 
 class Context(pyamf.BaseContext):
     """
@@ -117,10 +103,10 @@ class Context(pyamf.BaseContext):
         L{AMF3<pyamf.amf3>}.
     @type amf3_objs: L{util.IndexedCollection}
     """
-    def __init__(self):
-        self.amf3_objs = util.IndexedCollection()
+    def __init__(self, **kwargs):
+        self.amf3_objs = util.IndexedCollection(exceptions=False)
 
-        pyamf.BaseContext.__init__(self)
+        pyamf.BaseContext.__init__(self, **kwargs)
 
     def clear(self):
         """
@@ -142,18 +128,21 @@ class Context(pyamf.BaseContext):
         pyamf.BaseContext.reset(self)
 
         if hasattr(self, 'amf3_context'):
-            self.amf3_context.reset()
+            self.amf3_context.clear()
 
     def getAMF3ObjectReference(self, obj):
         """
         Gets a reference for an object.
 
-        @raise ReferenceError: Object reference could not be found.
+        @raise ReferenceError: Unknown AMF3 object reference.
         """
-        try:
-            return self.amf3_objs.getReferenceTo(obj)
-        except KeyError:
-            raise ReferenceError
+        o = self.amf3_objs.getReferenceTo(obj)
+
+        if o is None and self.exceptions:
+            raise pyamf.ReferenceError(
+                'Unknown AMF3 reference for (%r)' % (obj,))
+
+        return o
 
     def addAMF3Object(self, obj):
         """
@@ -167,10 +156,11 @@ class Context(pyamf.BaseContext):
         return self.amf3_objs.append(obj)
 
     def __copy__(self):
-        cpy = self.__class__()
+        cpy = self.__class__(exceptions=self.exceptions)
         cpy.amf3_objs = copy.copy(self.amf3_objs)
 
         return cpy
+
 
 class Decoder(pyamf.BaseDecoder):
     """
@@ -179,40 +169,25 @@ class Decoder(pyamf.BaseDecoder):
 
     context_class = Context
 
-    # XXX nick: Do we need to support ASTypes.MOVIECLIP here?
+    # XXX nick: Do we need to support TYPE_MOVIECLIP here?
     type_map = {
-        ASTypes.NUMBER:     'readNumber',
-        ASTypes.BOOL:       'readBoolean',
-        ASTypes.STRING:     'readString',
-        ASTypes.OBJECT:     'readObject',
-        ASTypes.NULL:       'readNull',
-        ASTypes.UNDEFINED:  'readUndefined',
-        ASTypes.REFERENCE:  'readReference',
-        ASTypes.MIXEDARRAY: 'readMixedArray',
-        ASTypes.ARRAY:      'readList',
-        ASTypes.DATE:       'readDate',
-        ASTypes.LONGSTRING: 'readLongString',
+        TYPE_NUMBER:     'readNumber',
+        TYPE_BOOL:       'readBoolean',
+        TYPE_STRING:     'readString',
+        TYPE_OBJECT:     'readObject',
+        TYPE_NULL:       'readNull',
+        TYPE_UNDEFINED:  'readUndefined',
+        TYPE_REFERENCE:  'readReference',
+        TYPE_MIXEDARRAY: 'readMixedArray',
+        TYPE_ARRAY:      'readList',
+        TYPE_DATE:       'readDate',
+        TYPE_LONGSTRING: 'readLongString',
         # TODO: do we need a special value here?
-        ASTypes.UNSUPPORTED:'readNull',
-        ASTypes.XML:        'readXML',
-        ASTypes.TYPEDOBJECT:'readTypedObject',
-        ASTypes.AMF3:       'readAMF3'
+        TYPE_UNSUPPORTED:'readNull',
+        TYPE_XML:        'readXML',
+        TYPE_TYPEDOBJECT:'readTypedObject',
+        TYPE_AMF3:       'readAMF3'
     }
-
-    def readType(self):
-        """
-        Read and returns the next byte in the stream and determine its type.
-
-        @raise DecodeError: AMF0 type not recognized.
-        @return: AMF0 type.
-        """
-        type = self.stream.read_uchar()
-
-        if type not in ACTIONSCRIPT_TYPES:
-            raise pyamf.DecodeError("Unknown AMF0 type 0x%02x at %d" % (
-                type, self.stream.tell() - 1))
-
-        return type
 
     def readNumber(self):
         """
@@ -327,12 +302,13 @@ class Decoder(pyamf.BaseDecoder):
         @return: The AMF3 element read from the stream
         """
         if not hasattr(self.context, 'amf3_context'):
-            from pyamf import amf3
+            self.context.amf3_context = pyamf.get_context(pyamf.AMF3, exceptions=False)
 
-            self.context.amf3_context = amf3.Context()
+        if not hasattr(self.context, 'amf3_decoder'):
+            self.context.amf3_decoder = pyamf.get_decoder(
+                pyamf.AMF3, self.stream, self.context.amf3_context)
 
-        decoder = pyamf._get_decoder_class(pyamf.AMF3)(self.stream, self.context.amf3_context, strict=self.strict)
-
+        decoder = self.context.amf3_decoder
         element = decoder.readElement()
         self.context.addAMF3Object(element)
 
@@ -349,17 +325,16 @@ class Decoder(pyamf.BaseDecoder):
         return self.stream.read_utf8_string(len)
 
     def _readObject(self, obj, alias=None):
-        ot = chr(ASTypes.OBJECTTERM)
         obj_attrs = dict()
 
         key = self.readString().encode('utf8')
 
-        while self.stream.peek() != ot:
+        while self.stream.peek() != TYPE_OBJECTTERM:
             obj_attrs[key] = self.readElement()
             key = self.readString().encode('utf8')
 
-        # discard the end marker (ASTypes.OBJECTTERM)
-        self.stream.read(len(ot))
+        # discard the end marker (TYPE_OBJECTTERM)
+        self.stream.read(1)
 
         if alias:
             alias.applyAttributes(obj, obj_attrs, codec=self)
@@ -382,10 +357,17 @@ class Decoder(pyamf.BaseDecoder):
     def readReference(self):
         """
         Reads a reference from the data stream.
+
+        @raise pyamf.ReferenceError: Unknown reference.
         """
         idx = self.stream.read_ushort()
 
-        return self.context.getObject(idx)
+        o = self.context.getObject(idx)
+
+        if o is None:
+            raise pyamf.ReferenceError('Unknown reference %d' % (idx,))
+
+        return o
 
     def readDate(self):
         """
@@ -426,6 +408,7 @@ class Decoder(pyamf.BaseDecoder):
 
         return xml
 
+
 class Encoder(pyamf.BaseEncoder):
     """
     Encodes an AMF0 stream.
@@ -458,30 +441,26 @@ class Encoder(pyamf.BaseEncoder):
 
         pyamf.BaseEncoder.__init__(self, *args, **kwargs)
 
-    def writeType(self, type):
+    def writeType(self, t):
         """
         Writes the type to the stream.
 
-        @type   type: C{int}
-        @param  type: ActionScript type.
+        @type   t: C{str}
+        @param  t: ActionScript type.
 
         @raise pyamf.EncodeError: AMF0 type is not recognized.
         """
-        if type not in ACTIONSCRIPT_TYPES:
-            raise pyamf.EncodeError("Unknown AMF0 type 0x%02x at %d" % (
-                type, self.stream.tell() - 1))
-
-        self.stream.write_uchar(type)
+        self.stream.write(t)
 
     def writeUndefined(self, data):
         """
-        Writes the L{undefined<ASTypes.UNDEFINED>} data type to the stream.
+        Writes the L{undefined<TYPE_UNDEFINED>} data type to the stream.
 
         @param data: The C{undefined} data to be encoded to the AMF0 data
             stream.
         @type data: C{undefined} data
         """
-        self.writeType(ASTypes.UNDEFINED)
+        self.writeType(TYPE_UNDEFINED)
 
     def writeFunc(self, *args, **kwargs):
         """
@@ -491,14 +470,14 @@ class Encoder(pyamf.BaseEncoder):
 
     def writeUnsupported(self, data):
         """
-        Writes L{unsupported<ASTypes.UNSUPPORTED>} data type to the
+        Writes L{unsupported<TYPE_UNSUPPORTED>} data type to the
         stream.
 
         @param data: The C{unsupported} data to be encoded to the AMF0
             data stream.
         @type data: C{unsupported} data
         """
-        self.writeType(ASTypes.UNSUPPORTED)
+        self.writeType(TYPE_UNSUPPORTED)
 
     def _writeElementFunc(self, data):
         """
@@ -509,11 +488,9 @@ class Encoder(pyamf.BaseEncoder):
         # There is a very specific use case that we must check for.
         # In the context there is an array of amf3_objs that contain
         # references to objects that are to be encoded in amf3.
-        try:
-            self.context.getAMF3ObjectReference(data)
+
+        if self.context.getAMF3ObjectReference(data) is not None:
             return self.writeAMF3
-        except pyamf.ReferenceError:
-            pass
 
         return pyamf.BaseEncoder._writeElementFunc(self, data)
 
@@ -547,7 +524,7 @@ class Encoder(pyamf.BaseEncoder):
         @type   n: C{None}
         @param  n: Is ignored.
         """
-        self.writeType(ASTypes.NULL)
+        self.writeType(TYPE_NULL)
 
     def writeArray(self, a):
         """
@@ -565,13 +542,12 @@ class Encoder(pyamf.BaseEncoder):
 
             return
 
-        try:
-            self.writeReference(a)
+        if self.writeReference(a) is not None:
             return
-        except pyamf.ReferenceError:
-            self.context.addObject(a)
 
-        self.writeType(ASTypes.ARRAY)
+        self.context.addObject(a)
+
+        self.writeType(TYPE_ARRAY)
         self.stream.write_ulong(len(a))
 
         for data in a:
@@ -584,7 +560,7 @@ class Encoder(pyamf.BaseEncoder):
         @type   n: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param  n: The number data to be encoded to the AMF0 data stream.
         """
-        self.writeType(ASTypes.NUMBER)
+        self.writeType(TYPE_NUMBER)
         self.stream.write_double(float(n))
 
     def writeBoolean(self, b):
@@ -594,7 +570,7 @@ class Encoder(pyamf.BaseEncoder):
         @type b: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param b: The boolean data to be encoded to the AMF0 data stream.
         """
-        self.writeType(ASTypes.BOOL)
+        self.writeType(TYPE_BOOL)
 
         if b:
             self.stream.write_uchar(1)
@@ -628,10 +604,10 @@ class Encoder(pyamf.BaseEncoder):
 
         if len(s) > 0xffff:
             if writeType:
-                self.writeType(ASTypes.LONGSTRING)
+                self.writeType(TYPE_LONGSTRING)
         else:
             if writeType:
-                self.stream.write_uchar(ASTypes.STRING)
+                self.writeType(TYPE_STRING)
 
         self._writeString(s)
 
@@ -645,8 +621,13 @@ class Encoder(pyamf.BaseEncoder):
         """
         idx = self.context.getObjectReference(o)
 
-        self.writeType(ASTypes.REFERENCE)
+        if idx is None:
+            return None
+
+        self.writeType(TYPE_REFERENCE)
         self.stream.write_ushort(idx)
+
+        return idx
 
     def _writeDict(self, o):
         """
@@ -668,13 +649,11 @@ class Encoder(pyamf.BaseEncoder):
         @param o: The mixed array data to be encoded to the AMF0
             data stream.
         """
-        try:
-            self.writeReference(o)
+        if self.writeReference(o) is not None:
             return
-        except pyamf.ReferenceError:
-            self.context.addObject(o)
 
-        self.writeType(ASTypes.MIXEDARRAY)
+        self.context.addObject(o)
+        self.writeType(TYPE_MIXEDARRAY)
 
         # TODO: optimise this
         # work out the highest integer index
@@ -697,7 +676,7 @@ class Encoder(pyamf.BaseEncoder):
         # Write a null string, this is an optimisation so that we don't
         # have to waste precious cycles by encoding the string etc.
         self.stream.write('\x00\x00')
-        self.writeType(ASTypes.OBJECTTERM)
+        self.writeType(TYPE_OBJECTTERM)
 
     def _getObjectAttrs(self, o, alias):
         """
@@ -731,16 +710,14 @@ class Encoder(pyamf.BaseEncoder):
 
             return
 
-        try:
-            self.writeReference(o)
+        if self.writeReference(o) is not None:
             return
-        except pyamf.ReferenceError:
-            self.context.addObject(o)
 
+        self.context.addObject(o)
         alias = self.context.getClassAlias(o.__class__)
 
         if alias is None:
-            self.writeType(ASTypes.OBJECT)
+            self.writeType(TYPE_OBJECT)
         else:
             if 'amf3' in alias.metadata:
                 self.writeAMF3(o)
@@ -748,9 +725,9 @@ class Encoder(pyamf.BaseEncoder):
                 return
 
             if 'anonymous' in alias.metadata:
-                self.writeType(ASTypes.OBJECT)
+                self.writeType(TYPE_OBJECT)
             else:
-                self.writeType(ASTypes.TYPEDOBJECT)
+                self.writeType(TYPE_TYPEDOBJECT)
                 self.writeString(alias.alias, False)
 
         obj_attrs = self._getObjectAttrs(o, alias)
@@ -773,7 +750,7 @@ class Encoder(pyamf.BaseEncoder):
         secs = util.get_timestamp(d)
         tz = 0
 
-        self.writeType(ASTypes.DATE)
+        self.writeType(TYPE_DATE)
         self.stream.write_double(secs * 1000.0)
         self.stream.write_short(tz)
 
@@ -789,7 +766,7 @@ class Encoder(pyamf.BaseEncoder):
 
             return
 
-        self.writeType(ASTypes.XML)
+        self.writeType(TYPE_XML)
 
         data = util.ET.tostring(e, 'utf-8')
         self.stream.write_ulong(len(data))
@@ -803,15 +780,18 @@ class Encoder(pyamf.BaseEncoder):
         @param data: The data to be encoded to the AMF0 data stream.
         """
         if not hasattr(self.context, 'amf3_context'):
-            from pyamf import amf3
+            self.context.amf3_context = pyamf.get_context(pyamf.AMF3, exceptions=False)
 
-            self.context.amf3_context = amf3.Context()
+        if not hasattr(self.context, 'amf3_encoder'):
+            self.context.amf3_encoder = pyamf.get_encoder(
+                pyamf.AMF3, self.stream, self.context.amf3_context)
 
         self.context.addAMF3Object(data)
-        encoder = pyamf._get_encoder_class(pyamf.AMF3)(self.stream, self.context.amf3_context)
+        encoder = self.context.amf3_encoder
 
-        self.writeType(ASTypes.AMF3)
+        self.writeType(TYPE_AMF3)
         encoder.writeElement(data)
+
 
 def decode(stream, context=None, strict=False):
     """
@@ -850,6 +830,7 @@ def encode(*args, **kwargs):
         encoder.writeElement(element)
 
     return buf
+
 
 class RecordSet(object):
     """

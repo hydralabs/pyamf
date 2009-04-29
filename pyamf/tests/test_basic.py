@@ -775,6 +775,29 @@ class BaseContextTestCase(unittest.TestCase):
         self.assertEquals(alias.__class__, DummyAlias)
         self.assertEquals(alias.klass, B)
 
+    def test_create(self):
+        x = pyamf.BaseContext()
+
+        self.assertTrue(x.exceptions)
+        self.assertFalse(x.objects.exceptions)
+
+    def test_object_references(self):
+        x = pyamf.BaseContext()
+
+        self.assertRaises(pyamf.ReferenceError, x.getObject, 62)
+
+        x.exceptions = False
+        self.assertEquals(x.getObject(62), None)
+
+        x = pyamf.BaseContext()
+
+        self.assertRaises(pyamf.ReferenceError, x.getObjectReference, object())
+
+        x.exceptions = False
+        self.assertEquals(x.getObjectReference(object()), None)
+
+
+
 class TypedObjectTestCase(unittest.TestCase):
     def test_externalised(self):
         o = pyamf.TypedObject(None)

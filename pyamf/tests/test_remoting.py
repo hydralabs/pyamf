@@ -164,11 +164,11 @@ class DecoderTestCase(unittest.TestCase):
             '\x70\x00\x02\x2f\x31\x00\x00\x00\x1c\x0a\x00\x00\x00\x01\x11\x0a'
             '\x0b\x01\x09\x73\x74\x72\x41\x06\x09\x74\x65\x73\x74\x09\x73\x74'
             '\x72\x42\x06\x02\x01')
+
         self.assertEquals(msg.amfVersion, 0)
         self.assertEquals(msg.clientType, 3)
         self.assertEquals(len(msg.headers), 1)
-        self.assertEquals(
-            msg.headers['Credentials'],
+        self.assertEquals(msg.headers['Credentials'],
             {'password': 'gggg', 'userid':'genopro\\@gerard'})
         self.assertEquals(len(msg), 1)
         self.assertTrue('/1' in msg)
