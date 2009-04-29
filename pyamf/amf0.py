@@ -7,7 +7,7 @@
 AMF0 implementation.
 
 C{AMF0} supports the basic data types used for the NetConnection, NetStream,
-LocalConnection, SharedObjects and other classes in the Flash Player.
+LocalConnection, SharedObjects and other classes in the Adobe Flash Player.
 
 @see: U{Official AMF0 Specification in English (external)
 <http://opensource.adobe.com/wiki/download/attachments/1114283/amf0_spec_121207.pdf>}
@@ -86,10 +86,11 @@ TYPE_XML         = '\x0F'
 #: gateway may use a mapping scheme, or send back as a vanilla object or
 #: associative array.
 TYPE_TYPEDOBJECT = '\x10'
-#: An AMF message sent from an AVM+ client such as the Flash Player 9 may break
-#: out into L{AMF3<pyamf.amf3>} mode. In this case the next byte will be the
-#: AMF3 type code and the data will be in AMF3 format until the decoded object
-#: reaches it’s logical conclusion (for example, an object has no more keys).
+#: An AMF message sent from an AVM+ client such as the Adobe Flash Player 9 may
+#: break out into L{AMF3<pyamf.amf3>} mode. In this case the next byte will be
+#: the AMF3 type code and the data will be in AMF3 format until the decoded
+#: object reaches it’s logical conclusion (for example, an object has no more
+#: keys).
 TYPE_AMF3        = '\x11'
 
 
@@ -834,7 +835,7 @@ def encode(*args, **kwargs):
 
 class RecordSet(object):
     """
-    I represent the C{RecordSet} class used in Flash Remoting to hold
+    I represent the C{RecordSet} class used in Adobe Flash Remoting to hold
     (amongst other things) SQL records.
 
     @ivar columns: The columns to send.
