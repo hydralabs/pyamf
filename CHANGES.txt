@@ -8,6 +8,8 @@ versions of PyAMF.
 
 0.5 (unreleased)
 ----------------
+ - Removed duplicate method Context.reset, in favour of Context.clear
+   (Ticket:527)
  - Rewrote cpyamf.util.BufferedByteStream to not depend on cStringIO. Added a
    C based api for stream functions (Ticket:513)
  - Unified exceptions for BufferedByteStream so that only IOError is raised.

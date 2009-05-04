@@ -120,17 +120,6 @@ class Context(pyamf.BaseContext):
         if hasattr(self, 'amf3_context'):
             self.amf3_context.clear()
 
-    def reset(self):
-        """
-        Resets the context.
-
-        @see: L{pyamf.BaseContext.reset}
-        """
-        pyamf.BaseContext.reset(self)
-
-        if hasattr(self, 'amf3_context'):
-            self.amf3_context.clear()
-
     def getAMF3ObjectReference(self, obj):
         """
         Gets a reference for an object.
