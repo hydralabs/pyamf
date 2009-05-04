@@ -141,44 +141,21 @@ class StringIOProxy(object):
         self._len_changed = False
         self._buffer.seek(0, 0)
 
-    def close(self):
-        self._buffer.close()
-        self._len = 0
-        self._len_changed = False
-
-    def flush(self):
-        self._buffer.flush()
-
     def getvalue(self):
         return self._buffer.getvalue()
-
-    def next(self):
-        return self._buffer.next()
 
     def read(self, n=-1):
         bytes = self._buffer.read(n)
 
         return bytes
 
-    def readline(self):
-        line = self._buffer.readline()
-
-        return line
-
-    def readlines(self, sizehint=0):
-        """
-        @type sizehint: C{int}
-        @param sizehint: Default is 0.
-        @note: This function does not consume the buffer.
-        """
-        lines = self._buffer.readlines(sizehint)
-
-        return lines
-
     def seek(self, pos, mode=0):
         return self._buffer.seek(pos, mode)
 
     def tell(self):
+        """
+        Returns the position of the stream pointer.
+        """
         return self._buffer.tell()
 
     def truncate(self, size=0):
@@ -199,10 +176,6 @@ class StringIOProxy(object):
 
     def write(self, s):
         self._buffer.write(s)
-        self._len_changed = True
-
-    def writelines(self, iterable):
-        self._buffer.writelines(iterable)
         self._len_changed = True
 
     def _get_len(self):
@@ -233,7 +206,11 @@ class StringIOProxy(object):
 
         @since: 0.4
         """
-        bytes = self.read()
+        try:
+            bytes = self.read()
+        except IOError:
+            bytes = ''
+
         self.truncate()
 
         if len(bytes) > 0:
@@ -257,14 +234,14 @@ class DataTypeMixIn(object):
     def _read(self, length):
         """
         Reads C{length} bytes from the stream. If an attempt to read past the
-        end of the buffer is made, L{EOFError} is raised.
+        end of the buffer is made, L{IOError} is raised.
         """
         bytes = self.read(length)
 
         if len(bytes) != length:
             self.seek(0 - len(bytes), 1)
 
-            raise EOFError("Tried to read %d byte(s) from the stream" % length)
+            raise IOError("Tried to read %d byte(s) from the stream" % length)
 
         return bytes
 
@@ -537,12 +514,13 @@ if struct.pack('@H', 1)[0] == '\x01':
 else:
     DataTypeMixIn._system_endian = DataTypeMixIn.ENDIAN_BIG
 
+
 class BufferedByteStream(StringIOProxy, DataTypeMixIn):
     """
     An extension of C{StringIO}.
 
     Features:
-     - Raises L{EOFError} if reading past end.
+     - Raises L{IOError} if reading past end.
      - Allows you to C{peek()} at the next byte.
     """
 
@@ -557,24 +535,10 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
 
     def read(self, length=-1):
         """
-        Read bytes from stream.
-
-        If we are at the end of the buffer, a C{EOFError} is raised.
-        If there is not enough buffer to be read and length is
-        specified C{IOError} is raised.
-
-        @param length: Number of bytes to read.
-        @type length: C{int}
-        @raise EOFError: Reading past end of stream.
-        @raise IOError: Length specified but not enough buffer
-        available.
-
-        @rtype: array of C{char}
-        @return: The bytes read from the stream.
         """
-        if length > 0 and self.at_eof():
-            raise EOFError
-        if length > 0 and self.tell() + length > len(self):
+        if length == -1 and self.at_eof():
+            raise IOError
+        elif length > 0 and self.tell() + length > len(self):
             raise IOError
 
         return StringIOProxy.read(self, length)
@@ -607,15 +571,6 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
 
         return bytes
 
-    def at_eof(self):
-        """
-        Returns true if C{next.read(1)} will trigger an C{EOFError}.
-
-        @rtype: C{bool}
-        @return:
-        """
-        return self.tell() >= len(self)
-
     def remaining(self):
         """
         Returns number of remaining bytes.
@@ -624,6 +579,15 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
         @return: Number of remaining bytes.
         """
         return len(self) - self.tell()
+
+    def at_eof(self):
+        """
+        Returns true if the internal pointer is at the end of the stream.
+
+        @rtype: C{bool}
+        """
+        return self.tell() == len(self)
+
 
     def __add__(self, other):
         old_pos = self.tell()
@@ -640,6 +604,7 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
         new.seek(0)
 
         return new
+
 
 def hexdump(data):
     """

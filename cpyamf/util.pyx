@@ -350,16 +350,15 @@ cdef class BufferedByteStream:
         if not self.buffer:
             raise ValueError('buffer is closed')
 
+        if n == -1 and self.c_at_eof():
+            raise IOError
+        elif n > 0 and self.tell() + n > len(self):
+            raise IOError
+
         cdef char *buf = NULL
         cdef int chars_read = StringIO_cread(self.buffer, &buf, n)
 
-        if n > chars_read:
-            if chars_read > 0:
-                raise IOError
-
-            raise EOFError
-
-        return PyString_FromStringAndSize(buf, chars_read);
+        return PyString_FromStringAndSize(buf, chars_read)
 
     def read_uchar(self):
         if not self.buffer:
@@ -368,7 +367,7 @@ cdef class BufferedByteStream:
         cdef char *buf = NULL
 
         if StringIO_cread(self.buffer, &buf, 1) != 1:
-            raise EOFError
+            raise IOError
 
         result = <unsigned char>buf[0]
 
@@ -381,7 +380,7 @@ cdef class BufferedByteStream:
         cdef char *buf = NULL
 
         if StringIO_cread(self.buffer, &buf, 1) != 1:
-            raise EOFError
+            raise IOError
 
         return PyInt_FromLong(<long>buf[0])
 
@@ -393,7 +392,7 @@ cdef class BufferedByteStream:
         cdef unsigned short result = 0
 
         if StringIO_cread(self.buffer, &buf, 2) != 2:
-            raise EOFError
+            raise IOError
 
         result = <unsigned short>self.unpack_uint(buf, 2)
 
@@ -407,7 +406,7 @@ cdef class BufferedByteStream:
         cdef short result = 0
 
         if StringIO_cread(self.buffer, &buf, 2) != 2:
-            raise EOFError
+            raise IOError
 
         result = <short>self.unpack_uint(buf, 2)
 
@@ -420,7 +419,7 @@ cdef class BufferedByteStream:
         cdef char *buf = NULL
 
         if StringIO_cread(self.buffer, &buf, 4) != 4:
-            raise EOFError
+            raise IOError
 
         return self.unpack_uint(buf, 4)
 
@@ -432,7 +431,7 @@ cdef class BufferedByteStream:
         cdef short result = 0
 
         if StringIO_cread(self.buffer, &buf, 4) != 4:
-            raise EOFError
+            raise IOError
 
         return PyInt_FromLong(self.unpack_int(buf, 4))
 
@@ -448,7 +447,7 @@ cdef class BufferedByteStream:
         cdef char *buf = NULL
 
         if StringIO_cread(self.buffer, &buf, 3) != 3:
-            raise EOFError
+            raise IOError
 
         return PyInt_FromLong(self.unpack_uint(buf, 3))
 
@@ -464,7 +463,7 @@ cdef class BufferedByteStream:
         cdef char *buf = NULL
 
         if StringIO_cread(self.buffer, &buf, 3) != 3:
-            raise EOFError
+            raise IOError
 
         return PyInt_FromLong(self.unpack_int(buf, 3))
 
@@ -583,7 +582,7 @@ cdef class BufferedByteStream:
         n = StringIO_cread(self.buffer, &buf, l)
 
         if n != l:
-            raise EOFError
+            raise IOError
 
         return PyUnicode_DecodeUTF8(buf, n, '')
 
@@ -620,7 +619,7 @@ cdef class BufferedByteStream:
         cdef unsigned char le = 1
 
         if StringIO_cread(self.buffer, &buf, 8) != 8:
-            raise EOFError
+            raise IOError
 
         if float_broken:
             le = 0
@@ -684,7 +683,7 @@ cdef class BufferedByteStream:
         cdef unsigned char le = 0
 
         if StringIO_cread(self.buffer, &buf, 4) != 4:
-            raise EOFError
+            raise IOError
 
         if not is_big_endian(self._endian):
             le = 1

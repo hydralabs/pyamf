@@ -89,27 +89,6 @@ class StringIOProxyTestCase(unittest.TestCase):
 
         self.assertRaises(TypeError, util.StringIOProxy, self)
 
-    def test_close(self):
-        sp = util.StringIOProxy()
-
-        sp.close()
-
-        self.assertEquals(len(sp), 0)
-        self.assertRaises(ValueError, sp.write, 'asdfasdf')
-
-    def test_flush(self):
-        sp = util.StringIOProxy('spameggs')
-
-        self.assertEquals(sp.getvalue(), 'spameggs')
-        self.assertEquals(len(sp), 8)
-        self.assertEquals(sp.tell(), 0)
-
-        sp.flush()
-
-        self.assertEquals(sp.getvalue(), 'spameggs')
-        self.assertEquals(len(sp), 8)
-        self.assertEquals(sp.tell(), 0)
-
     def test_getvalue(self):
         sp = util.StringIOProxy()
 
@@ -127,41 +106,6 @@ class StringIOProxyTestCase(unittest.TestCase):
         self.assertEquals(len(sp), 14)
         self.assertEquals(sp.read(10), 'his is a t')
         self.assertEquals(sp.read(), 'est')
-
-    def test_readline(self):
-        sp = util.StringIOProxy("this is a test\nspam and eggs")
-
-        self.assertEquals(len(sp), 28)
-        self.assertEquals(sp.getvalue(), "this is a test\nspam and eggs")
-        self.assertEquals(sp.readline(), 'this is a test\n')
-
-        self.assertEquals(len(sp), 28)
-        self.assertEquals(sp.getvalue(), "this is a test\nspam and eggs")
-        self.assertEquals(sp.readline(), 'spam and eggs')
-
-    def test_readlines(self):
-        sp = util.StringIOProxy("\n".join([
-            "line 1",
-            "line 2",
-            "line 3",
-            "line 4",
-        ]))
-
-        self.assertEquals(len(sp), 27)
-        self.assertEquals(sp.readlines(), [
-            "line 1\n",
-            "line 2\n",
-            "line 3\n",
-            "line 4",
-        ])
-
-        self.assertEquals(len(sp), 27)
-        self.assertEquals(sp.getvalue(), "\n".join([
-            "line 1",
-            "line 2",
-            "line 3",
-            "line 4",
-        ]))
 
     def test_seek(self):
         sp = util.StringIOProxy('abcdefghijklmnopqrstuvwxyz')
@@ -253,20 +197,6 @@ class StringIOProxyTestCase(unittest.TestCase):
         self.assertEquals(len(sp), 3)
         self.assertEquals(sp.tell(), 3)
 
-    def test_writelines(self):
-        lines = ["line 1", "line 2", "line 3", "line 4"]
-        sp = util.StringIOProxy()
-
-        self.assertEquals(sp.getvalue(), '')
-        self.assertEquals(len(sp), 0)
-        self.assertEquals(sp.tell(), 0)
-
-        sp.writelines(lines)
-
-        self.assertEquals(sp.getvalue(), "".join(lines))
-        self.assertEquals(len(sp), 24)
-        self.assertEquals(sp.tell(), 24)
-
     def test_len(self):
         sp = util.StringIOProxy()
 
@@ -319,6 +249,11 @@ class StringIOProxyTestCase(unittest.TestCase):
         self.assertEquals(len(sp), 6)
         sp.consume()
         self.assertEquals(len(sp), 0)
+
+        sp = util.StringIOProxy('abcdef')
+        sp.seek(6)
+        sp.consume()
+        self.assertEquals(sp.getvalue(), '')
 
 
 class cStringIOProxyTestCase(StringIOProxyTestCase):
@@ -592,12 +527,16 @@ class BufferedByteStreamTestCase(unittest.TestCase):
     def test_read(self):
         x = util.BufferedByteStream()
 
-        x.read()
-        self.assertRaises(EOFError, x.read, 10)
+        self.assertEquals(x.tell(), 0)
+        self.assertEquals(len(x), 0)
+        self.assertRaises(IOError, x.read)
+
+        self.assertRaises(IOError, x.read, 10)
 
         x.write('hello')
         x.seek(0)
         self.assertRaises(IOError, x.read, 10)
+        self.assertEquals(x.read(), 'hello')
 
     def test_peek(self):
         x = util.BufferedByteStream('abcdefghijklmnopqrstuvwxyz')

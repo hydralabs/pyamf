@@ -50,6 +50,7 @@ AMF3 = 3
 #: Supported AMF encoding types.
 ENCODING_TYPES = (AMF0, AMF3)
 
+
 class ClientTypes:
     """
     Typecodes used to identify AMF clients and servers.
@@ -66,6 +67,7 @@ class ClientTypes:
     #: Specifies a Adobe Flash Player 9.0 client or newer.
     Flash9   = 3
 
+
 #: List of AMF client typecodes.
 CLIENT_TYPES = []
 
@@ -74,12 +76,14 @@ for x in ClientTypes.__dict__:
         CLIENT_TYPES.append(ClientTypes.__dict__[x])
 del x
 
+
 class UndefinedType(object):
     def __repr__(self):
         return 'pyamf.Undefined'
 
 #: Represents the C{undefined} value in a Adobe Flash Player client.
 Undefined = UndefinedType()
+
 
 class BaseError(Exception):
     """
@@ -88,21 +92,25 @@ class BaseError(Exception):
     All AMF related errors should be subclassed from this class.
     """
 
+
 class DecodeError(BaseError):
     """
     Raised if there is an error in decoding an AMF data stream.
     """
+
 
 class EOStream(BaseError):
     """
     Raised if the data stream has come to a natural end.
     """
 
+
 class ReferenceError(BaseError):
     """
     Raised if an AMF data stream refers to a non-existent object
     or string reference.
     """
+
 
 class EncodeError(BaseError):
     """
@@ -113,6 +121,7 @@ class EncodeError(BaseError):
     for more info about the empty key string array bug.
     """
 
+
 class UnknownClassAlias(BaseError):
     """
     Raised if the AMF stream specifies a class that does not
@@ -120,6 +129,7 @@ class UnknownClassAlias(BaseError):
 
     @see: L{register_class}
     """
+
 
 class BaseContext(object):
     """
@@ -219,6 +229,7 @@ class BaseContext(object):
     def __copy__(self):
         raise NotImplementedError
 
+
 class ASObject(dict):
     """
     This class represents a Flash Actionscript Object (typed or untyped).
@@ -247,10 +258,12 @@ class ASObject(dict):
     def __hash__(self):
         return id(self)
 
+
 class MixedArray(dict):
     """
     Used to be able to specify the C{mixedarray} type.
     """
+
 
 class ClassMetaData(list):
     """
@@ -320,6 +333,7 @@ class ClassMetaData(list):
         return list.__contains__(self, str(other).lower())
 
     # TODO nick: deal with slices
+
 
 class ClassAlias(object):
     """
@@ -579,6 +593,7 @@ class ClassAlias(object):
         """
         return self.klass(*args, **kwargs)
 
+
 class TypedObject(dict):
     """
     This class is used when a strongly typed object is decoded but there is no
@@ -614,6 +629,7 @@ class TypedObject(dict):
             'corresponding __readamf__ method will be required.' % (
                 self.alias,))
 
+
 class TypedObjectClassAlias(ClassAlias):
     """
     @since: 0.4
@@ -624,6 +640,7 @@ class TypedObjectClassAlias(ClassAlias):
 
     def checkClass(kls, klass):
         pass
+
 
 class BaseDecoder(object):
     """
@@ -667,7 +684,7 @@ class BaseDecoder(object):
         """
         try:
             t = self.stream.read(1)
-        except EOFError:
+        except IOError:
             raise EOStream
 
         try:
@@ -681,7 +698,7 @@ class BaseDecoder(object):
         try:
             while 1:
                 yield self.readElement()
-        except EOFError:
+        except EOStream:
             raise StopIteration
 
 
@@ -842,6 +859,7 @@ def register_class(klass, alias=None, attrs=None, attr_func=None, metadata=[]):
 
     return x
 
+
 def unregister_class(alias):
     """
     Deletes a class from the cache.
@@ -861,6 +879,7 @@ def unregister_class(alias):
         del CLASS_CACHE[alias]
     except KeyError:
         raise UnknownClassAlias("Unknown alias %s" % (alias,))
+
 
 def register_class_loader(loader):
     """
@@ -883,6 +902,7 @@ def register_class_loader(loader):
 
     CLASS_LOADERS.append(loader)
 
+
 def unregister_class_loader(loader):
     """
     Unregisters a class loader.
@@ -896,6 +916,7 @@ def unregister_class_loader(loader):
         raise LookupError("loader not found")
 
     del CLASS_LOADERS[CLASS_LOADERS.index(loader)]
+
 
 def get_module(mod_name):
     """
@@ -917,6 +938,7 @@ def get_module(mod_name):
         mod = getattr(mod, comp)
 
     return mod
+
 
 def load_class(alias):
     """
@@ -980,6 +1002,7 @@ def load_class(alias):
     # All available methods for finding the class have been exhausted
     raise UnknownClassAlias("Unknown alias %s" % (alias,))
 
+
 def get_class_alias(klass):
     """
     Finds the alias registered to the class.
@@ -1010,6 +1033,7 @@ def get_class_alias(klass):
 
     raise UnknownClassAlias("Unknown alias %s" % (klass,))
 
+
 def has_alias(obj):
     """
     @rtype: C{bool}
@@ -1020,6 +1044,7 @@ def has_alias(obj):
         return True
     except UnknownClassAlias:
         return False
+
 
 def decode(stream, encoding=AMF0, context=None, strict=False):
     """
@@ -1041,6 +1066,7 @@ def decode(stream, encoding=AMF0, context=None, strict=False):
             yield decoder.readElement()
         except EOStream:
             break
+
 
 def encode(*args, **kwargs):
     """
@@ -1071,8 +1097,10 @@ def encode(*args, **kwargs):
 
     return stream
 
+
 def get_decoder(encoding, data=None, context=None, strict=False):
     return _get_decoder_class(encoding)(data=data, context=context, strict=strict)
+
 
 def _get_decoder_class(encoding):
     """
@@ -1097,12 +1125,14 @@ def _get_decoder_class(encoding):
 
     raise ValueError("Unknown encoding %s" % (encoding,))
 
+
 def get_encoder(encoding, data=None, context=None, strict=False):
     """
     Returns a subclassed instance of L{pyamf.BaseEncoder}, based on C{encoding}
     """
     return _get_encoder_class(encoding)(data=data, context=context,
         strict=strict)
+
 
 def _get_encoder_class(encoding):
     """
@@ -1127,8 +1157,10 @@ def _get_encoder_class(encoding):
 
     raise ValueError("Unknown encoding %s" % (encoding,))
 
+
 def get_context(encoding, **kwargs):
     return _get_context_class(encoding)(**kwargs)
+
 
 def _get_context_class(encoding):
     """
@@ -1153,6 +1185,7 @@ def _get_context_class(encoding):
 
     raise ValueError("Unknown encoding %s" % (encoding,))
 
+
 def flex_loader(alias):
     """
     Loader for L{Flex<pyamf.flex>} framework compatibility classes.
@@ -1173,6 +1206,7 @@ def flex_loader(alias):
         return CLASS_CACHE[alias]
     except KeyError:
         raise UnknownClassAlias(alias)
+
 
 def add_type(type_, func=None):
     """
@@ -1200,6 +1234,7 @@ def add_type(type_, func=None):
 
     TYPE_MAP[type_] = func
 
+
 def get_type(type_):
     """
     Gets the declaration for the corresponding custom type.
@@ -1215,6 +1250,7 @@ def get_type(type_):
 
     raise KeyError("Unknown type %r" % (type_,))
 
+
 def remove_type(type_):
     """
     Removes the custom type declaration.
@@ -1226,6 +1262,7 @@ def remove_type(type_):
     del TYPE_MAP[type_]
 
     return declaration
+
 
 def add_error_class(klass, code):
     """
@@ -1260,6 +1297,7 @@ def add_error_class(klass, code):
 
     ERROR_CLASS_MAP[code] = klass
 
+
 def remove_error_class(klass):
     """
     Removes a class from C{ERROR_CLASS_MAP}.
@@ -1281,6 +1319,7 @@ def remove_error_class(klass):
         raise TypeError("Invalid type, expected class or string")
 
     del ERROR_CLASS_MAP[klass]
+
 
 def register_alias_type(klass, *args):
     """
@@ -1331,6 +1370,9 @@ def register_alias_type(klass, *args):
             check_type_registered(arg)
 
     ALIAS_TYPES[klass] = args
+
+
+# init module here
 
 register_class_loader(flex_loader)
 register_adapters()
