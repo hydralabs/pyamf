@@ -8,6 +8,8 @@ versions of PyAMF.
 
 0.5 (unreleased)
 ----------------
+ - Rewrote cpyamf.util.BufferedByteStream to not depend on cStringIO. Added a
+   C based api for stream functions (Ticket:513)
  - Unified exceptions for BufferedByteStream so that only IOError is raised.
    (Ticket:520)
  - Made raising pyamf.ReferenceError optional for all Indexed* and Context
