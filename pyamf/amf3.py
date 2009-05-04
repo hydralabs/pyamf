@@ -644,20 +644,6 @@ class Context(pyamf.BaseContext):
         self.legacy_xml.clear()
         self.object_aliases.clear()
 
-    def reset(self):
-        """
-        Resets the context.
-
-        @see: L{pyamf.BaseContext.reset}
-        """
-        pyamf.BaseContext.reset(self)
-
-        self.strings.clear()
-        self.classes = {}
-        self.class_defs.clear()
-        self.legacy_xml.clear()
-        self.object_aliases.clear()
-
     def setObjectAlias(self, obj, alias):
         """
         Maps an object to an aliased object.

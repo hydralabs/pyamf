@@ -291,36 +291,6 @@ class ContextTestCase(_util.ClassCacheClearingTestCase):
         self.assertEquals(new.legacy_xml, [])
         self.assertEquals(len(new.legacy_xml), 0)
 
-    def test_reset(self):
-        x = amf3.Context()
-        y = [1, 2, 3]
-        z = {'spam': 'eggs'}
-
-        pyamf.register_class(Spam, 'spam.eggs')
-
-        class Foo:
-            pass
-        pyamf.register_class(Foo, 'foo.bar')
-
-        a = amf3.ClassDefinition('spam.eggs')
-        b = amf3.ClassDefinition('foo.bar')
-
-        ref1 = x.addObject(y)
-        ref2 = x.addObject(z)
-        x.addString('abc')
-        x.addString('def')
-        x.addLegacyXML('<a></a>')
-        x.addLegacyXML('<b></b>')
-        x.addClassDefinition(a, Spam)
-        x.addClassDefinition(b, Foo)
-
-        x.reset()
-
-        self.assertEquals(x.strings, [])
-        self.assertEquals(x.objects, [])
-        self.assertEquals(x.classes, {})
-        self.assertEquals(x.legacy_xml, [])
-        self.assertEquals(x.object_aliases, [])
 
 class ClassDefinitionTestCase(_util.ClassCacheClearingTestCase):
     def test_create(self):

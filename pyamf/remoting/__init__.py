@@ -619,7 +619,7 @@ def decode(stream, context=None, strict=False):
     body_count = stream.read_short()
 
     for i in range(body_count):
-        context.reset()
+        context.clear()
 
         target, payload = _read_body(stream, decoder, strict)
         msg[target] = payload
@@ -664,7 +664,7 @@ def encode(msg, context=None, strict=False):
     stream.write_short(len(msg))
 
     for name, message in msg.iteritems():
-        encoder.context.reset()
+        encoder.context.clear()
 
         _write_body(name, message, stream, encoder, strict)
 
