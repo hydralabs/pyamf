@@ -47,7 +47,7 @@ def get_version():
     # we read the file instead of importing it as root sometimes does not
     # have the cwd as part of the PYTHONPATH
 
-    fn = os.path.join(os.path.dirname(__file__), 'pyamf', '__init__.py')
+    fn = os.path.join(os.getcwd(), 'pyamf', '__init__.py')
     lines = open(fn, 'rt').readlines()
 
     version = None

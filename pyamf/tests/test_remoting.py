@@ -23,7 +23,7 @@ class DecoderTestCase(unittest.TestCase):
         for x in ('\x00', '\x03'):
             try:
                 remoting.decode(x)
-            except EOFError:
+            except IOError:
                 pass
 
         self.failUnlessRaises(pyamf.DecodeError, remoting.decode, '\x10')
@@ -35,7 +35,7 @@ class DecoderTestCase(unittest.TestCase):
         for x in ('\x00', '\x01', '\x03'):
             try:
                 remoting.decode('\x00' + x)
-            except EOFError:
+            except IOError:
                 pass
 
     def test_null_msg(self):
@@ -104,7 +104,7 @@ class DecoderTestCase(unittest.TestCase):
         self.assertEquals(y, [])
 
     def test_simple_body(self):
-        self.failUnlessRaises(EOFError, remoting.decode,
+        self.failUnlessRaises(IOError, remoting.decode,
             '\x00\x00\x00\x00\x00\x01')
 
         msg = remoting.decode('\x00\x00\x00\x00\x00\x01\x00\x09test.test\x00'

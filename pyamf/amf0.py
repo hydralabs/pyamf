@@ -25,6 +25,7 @@ import copy
 import pyamf
 from pyamf import util
 
+
 #: Represented as 9 bytes: 1 byte for C{0×00} and 8 bytes a double
 #: representing the value of the number.
 TYPE_NUMBER      = '\x00'
@@ -86,11 +87,10 @@ TYPE_XML         = '\x0F'
 #: gateway may use a mapping scheme, or send back as a vanilla object or
 #: associative array.
 TYPE_TYPEDOBJECT = '\x10'
-#: An AMF message sent from an AVM+ client such as the Adobe Flash Player 9 may
-#: break out into L{AMF3<pyamf.amf3>} mode. In this case the next byte will be
-#: the AMF3 type code and the data will be in AMF3 format until the decoded
-#: object reaches it’s logical conclusion (for example, an object has no more
-#: keys).
+#: An AMF message sent from an AVM+ client such as the Flash Player 9 may break
+#: out into L{AMF3<pyamf.amf3>} mode. In this case the next byte will be the
+#: AMF3 type code and the data will be in AMF3 format until the decoded object
+#: reaches it’s logical conclusion (for example, an object has no more keys).
 TYPE_AMF3        = '\x11'
 
 

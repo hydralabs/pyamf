@@ -81,7 +81,7 @@ class WSGIGateway(gateway.BaseGateway):
         # Decode the request
         try:
             request = remoting.decode(body, context, strict=self.strict)
-        except (pyamf.DecodeError, EOFError):
+        except (pyamf.DecodeError, IOError):
             if self.logger is not None:
                 self.logger.exception(gateway.format_exception())
 

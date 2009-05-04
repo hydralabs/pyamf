@@ -84,7 +84,7 @@ class DjangoGateway(gateway.BaseGateway):
         # Decode the request
         try:
             request = remoting.decode(http_request.raw_post_data, context, strict=self.strict)
-        except (pyamf.DecodeError, EOFError):
+        except (pyamf.DecodeError, IOError):
             fe = gateway.format_exception()
 
             if self.logger is not None:
