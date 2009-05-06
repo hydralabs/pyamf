@@ -7,11 +7,11 @@ If you have a question or comment, it's probably best to mail
 dev@pyamf.org, rather than mailing any of these people
 directly.
 
-         thijs   Thijs Triemstra <info@collab.nl>
-         arnar   Arnar Birgisson <arnarbi@gmail.com>
-          nick   Nick Joyce <nick@boxdesign.co.uk>
-       feisley   Jacob Feisley <jacob.feisley@gmail.com>
+         thijs   Thijs Triemstra <thijs@pyamf.org>
+         arnar   Arnar Birgisson <arnar@pyamf.org>
+          nick   Nick Joyce <nick@pyamf.org>
+       feisley   Jacob Feisley <feisley@pyamf.org>
  mvantellingen   Michael van Tellingen
-                 <michael.vantellingen@auto-interactive.nl>
-        gerard   Gerard Escalante <gerard@saygo.ca>
-      dthompso   Dave Thompson <dthompso@email.arizona.edu>
+                 <michael.vantellingen@pyamf.org>
+        gerard   Gerard Escalante <gerard@pyamf.org>
+      dthompso   Dave Thompson <dave@pyamf.org>
