@@ -8,6 +8,7 @@ versions of PyAMF.
 
 0.5 (unreleased)
 ----------------
+ - amf0.Encoder now supports attribute ordering (Ticket:558)
  - Removed duplicate method Context.reset, in favour of Context.clear
    (Ticket:527)
  - Rewrote cpyamf.util.BufferedByteStream to not depend on cStringIO. Added a
