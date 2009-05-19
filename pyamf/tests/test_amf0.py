@@ -537,6 +537,36 @@ class EncoderTestCase(ClassCacheClearingTestCase):
             '\x07baz\x06\x07gak\x01'
         ))))
 
+    def test_static_attrs(self):
+        class Foo(object):
+            pass
+
+        class Bar(object):
+            pass
+
+        pyamf.register_class(Foo, attrs=['bar', 'foo'])
+        pyamf.register_class(Bar, attrs=['foo', 'bar'])
+
+        x = Foo()
+        x.foo = 'baz'
+        x.bar = 'gak'
+
+        y = Bar()
+        y.foo = 'baz'
+        y.bar = 'gak'
+
+        self.encoder.writeElement(x)
+
+        self.assertEquals(self.buf.getvalue(), '\x03\x00\x03bar\x02\x00\x03'
+            'gak\x00\x03foo\x02\x00\x03baz\x00\x00\t')
+
+        self.buf.truncate()
+        self.encoder.writeElement(y)
+
+        self.assertEquals(self.buf.getvalue(), '\x03\x00\x03foo\x02\x00\x03'
+            'baz\x00\x03bar\x02\x00\x03gak\x00\x00\t')
+
+
 class DecoderTestCase(ClassCacheClearingTestCase):
     """
     Tests the output from the AMF0 L{Decoder<pyamf.amf0.Decoder>} class.

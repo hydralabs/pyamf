@@ -672,21 +672,25 @@ class Encoder(pyamf.BaseEncoder):
         """
         @raise pyamf.EncodeError: Unable to determine object attributes.
         """
-        obj_attrs = None
-
         if alias is not None:
+            static_attrs = alias.getAttrs(o, codec=self)[0]
             obj_attrs = {}
 
             for attrs in alias.getAttributes(o, codec=self):
                 obj_attrs.update(attrs)
 
-        if obj_attrs is None:
-            obj_attrs = util.get_attrs(o)
+            if static_attrs is None:
+                static_attrs = []
+
+            return static_attrs, obj_attrs
+
+        obj_attrs = util.get_attrs(o)
 
         if obj_attrs is None:
-            raise pyamf.EncodeError('Unable to determine object attributes')
+            raise pyamf.EncodeError('Unable to determine object attributes '
+                'for %r' % (o,))
 
-        return obj_attrs
+        return [], obj_attrs
 
     def writeObject(self, o):
         """
@@ -720,7 +724,13 @@ class Encoder(pyamf.BaseEncoder):
                 self.writeType(TYPE_TYPEDOBJECT)
                 self.writeString(alias.alias, False)
 
-        obj_attrs = self._getObjectAttrs(o, alias)
+        static_attrs, obj_attrs = self._getObjectAttrs(o, alias)
+
+        for key in static_attrs:
+            self.writeString(key, False)
+            self.writeElement(obj_attrs[key])
+
+            del obj_attrs[key]
 
         for key, value in obj_attrs.iteritems():
             self.writeString(key, False)
