@@ -21,6 +21,7 @@ from pyamf.remoting import gateway
 
 __all__ = ['DjangoGateway']
 
+
 class DjangoGateway(gateway.BaseGateway):
     """
     An instance of this class is suitable as a Django view.

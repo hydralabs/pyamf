@@ -15,6 +15,7 @@ import pyamf
 
 __all__ = ['ArrayCollection', 'ObjectProxy']
 
+
 class ArrayCollection(list):
     """
     I represent the ActionScript 3 based class
@@ -206,6 +207,7 @@ class ArrayCollection(list):
 
 pyamf.register_class(ArrayCollection, 'flex.messaging.io.ArrayCollection',
     metadata=['external', 'amf3'])
+
 
 class ObjectProxy(object):
     """

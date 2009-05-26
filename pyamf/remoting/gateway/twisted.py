@@ -12,7 +12,8 @@ servers.
 @since: 0.1.0
 """
 
-import sys, os.path
+import sys
+import os.path
 
 try:
     sys.path.remove('')

@@ -17,6 +17,7 @@ import __builtin__
 if not hasattr(__builtin__, 'set'):
     from sets import Set as set
 
+
 class Iterable(object):
     """
     A generic iterable class that supports .. iterating.
@@ -36,6 +37,7 @@ class Iterable(object):
 
     def __getitem__(self, name):
         return self.iterable.__getitem__(name)
+
 
 class HelperTestCase(unittest.TestCase):
     def setUp(self):
@@ -76,6 +78,7 @@ def suite():
     suite.addTest(unittest.makeSuite(HelperTestCase))
 
     return suite
+
 
 def main():
     unittest.main(defaultTest='suite')

@@ -6,10 +6,11 @@ Tests for the C{sets} module integration.
 """
 
 import unittest
-
 import sets
+
 import pyamf
 from pyamf.tests.util import check_buffer
+
 
 class ImmutableSetTestCase(unittest.TestCase):
     def test_amf0_encode(self):
@@ -35,6 +36,7 @@ class ImmutableSetTestCase(unittest.TestCase):
                 '\x06\x032'
             ))
         ))
+
 
 def suite():
     suite = unittest.TestSuite()

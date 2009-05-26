@@ -7,9 +7,12 @@ Test utilities.
 @since: 0.1.0
 """
 
-import unittest, copy
+import unittest
+import copy
+
 import pyamf
 from pyamf.util import BufferedByteStream, is_float_broken
+
 
 class ClassicSpam:
     def __readamf__(self, input):
@@ -18,9 +21,10 @@ class ClassicSpam:
     def __writeamf__(self, output):
         pass
 
+
 class Spam(object):
     """
-    A generic object to use for object encoding
+    A generic object to use for object encoding.
     """
 
     def __init__(self, d={}):
@@ -31,6 +35,7 @@ class Spam(object):
 
     def __writeamf__(self, output):
         pass
+
 
 class ClassCacheClearingTestCase(unittest.TestCase):
     def setUp(self):
@@ -44,6 +49,7 @@ class ClassCacheClearingTestCase(unittest.TestCase):
 
         pyamf.CLASS_CACHE = self._class_cache
         pyamf.CLASS_LOADERS = self._class_loaders
+
 
 class EncoderTester(object):
     """
@@ -74,6 +80,7 @@ class EncoderTester(object):
             elif isinstance(s, (tuple, list)):
                 testcase.assertTrue(check_buffer(self.getval(), s))
 
+
 class DecoderTester(object):
     """
     A helper object that takes some input, runs over the decoder
@@ -101,6 +108,7 @@ class DecoderTester(object):
             # make sure that the entire buffer was consumed
             testcase.assertEqual(self.buf.remaining(), 0)
 
+
 def isNaN(val):
     if is_float_broken():
         import fpconst
@@ -108,6 +116,7 @@ def isNaN(val):
         return fpconst.isNaN(val)
     else:
         return str(float(val)) == str(1e300000/1e300000)
+
 
 def isPosInf(val):
     if is_float_broken():
@@ -117,6 +126,7 @@ def isPosInf(val):
     else:
         return val == 1e300000
 
+
 def isNegInf(val):
     if is_float_broken():
         import fpconst
@@ -124,6 +134,7 @@ def isNegInf(val):
         return fpconst.isNegInf(val)
     else:
         return val == -1e300000
+
 
 def check_buffer(buf, parts, inner=False):
     assert isinstance(parts, (tuple, list))
@@ -153,6 +164,7 @@ def check_buffer(buf, parts, inner=False):
 
     return len(buf) == 0
 
+
 def replace_dict(src, dest):
     for name in dest.keys():
         if name not in src:
@@ -163,12 +175,14 @@ def replace_dict(src, dest):
         if dest[name] is not src[name]:
             dest[name] = src[name]
 
+
 class BaseCodecMixIn(object):
     amf_version = pyamf.AMF0
 
     def setUp(self):
         self.context = pyamf.get_context(self.amf_version)
         self.stream = BufferedByteStream()
+
 
 class BaseDecoderMixIn(BaseCodecMixIn):
     def setUp(self):
@@ -177,12 +191,14 @@ class BaseDecoderMixIn(BaseCodecMixIn):
         self.decoder = pyamf.get_decoder(
             self.amf_version, data=self.stream, context=self.context)
 
+
 class BaseEncoderMixIn(BaseCodecMixIn):
     def setUp(self):
         BaseCodecMixIn.setUp(self)
 
         self.encoder = pyamf.get_encoder(
             self.amf_version, data=self.stream, context=self.context)
+
 
 class NullFileDescriptor(object):
     def write(self, *args, **kwargs):

@@ -7,7 +7,9 @@ PyAMF Google adapter tests.
 @since: 0.3.1
 """
 
-import unittest, datetime, struct
+import unittest
+import datetime
+import struct
 
 from google.appengine.ext import db
 
@@ -17,13 +19,15 @@ from pyamf.tests.util import ClassCacheClearingTestCase, Spam
 
 from pyamf.adapters import _google_appengine_ext_db as adapter_db
 
-# 'borrowed' from http://code.google.com/appengine/docs/datastore/entitiesandmodels.html
+
 class PetModel(db.Model):
+    # 'borrowed' from http://code.google.com/appengine/docs/datastore/entitiesandmodels.html
     name = db.StringProperty(required=True)
     type = db.StringProperty(required=True, choices=set(["cat", "dog", "bird"]))
     birthdate = db.DateProperty()
     weight_in_pounds = db.IntegerProperty()
     spayed_or_neutered = db.BooleanProperty()
+
 
 class PetExpando(db.Expando):
     name = db.StringProperty(required=True)
@@ -31,6 +35,7 @@ class PetExpando(db.Expando):
     birthdate = db.DateProperty()
     weight_in_pounds = db.IntegerProperty()
     spayed_or_neutered = db.BooleanProperty()
+
 
 class EncodingModelTestCase(ClassCacheClearingTestCase):
     def setUp(self):
@@ -83,7 +88,7 @@ class EncodingModelTestCase(ClassCacheClearingTestCase):
             '\x04name\x02\x00\x07Jessica\x00\x04_key\x02%s%s\x00\x04type\x02'
             '\x00\x03cat\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00'
             '\x00\x12spayed_or_neutered\x01\x00\x00\x00\t' % (
-            struct.pack('>H' ,len(k)), k))
+            struct.pack('>H', len(k)), k))
 
     def test_save_amf3(self):
         self.jessica.put()
@@ -119,6 +124,7 @@ class EncodingModelTestCase(ClassCacheClearingTestCase):
             '\nk\x07Pet\t_key!weight_in_pounds\ttype\tname\x13birthdate%'
             'spayed_or_neutered\x01\x04\x05\x06\x07cat\x06\x0fJessica\x08\x01'
             'B^\xc4\xae\xaa\x00\x00\x00\x02\x01')
+
 
 class EncodingExpandoTestCase(ClassCacheClearingTestCase):
     def setUp(self):
@@ -208,11 +214,12 @@ class EncodingExpandoTestCase(ClassCacheClearingTestCase):
             'spayed_or_neutered\x01\x04\x05\x06\x07cat\x06\x0fJessica\x08\x01'
             'B^\xc4\xae\xaa\x00\x00\x00\x02\x07foo\x06\x07bar\x01')
 
+
 class EncodingReferencesTestCase(ClassCacheClearingTestCase):
     """
     This test case refers to
     L{db.ReferenceProperty<http://code.google.com/appengine/docs/datastore/typesandpropertyclasses.html#ReferenceProperty>},
-    not AMF references
+    not AMF references.
     """
 
     def test_model(self):
@@ -375,8 +382,10 @@ class EncodingReferencesTestCase(ClassCacheClearingTestCase):
         a.delete()
         b.delete()
 
+
 class ListModel(db.Model):
     numbers = db.ListProperty(long)
+
 
 class ListPropertyTestCase(ClassCacheClearingTestCase):
     def test_encode(self):
@@ -458,6 +467,7 @@ class ListPropertyTestCase(ClassCacheClearingTestCase):
 
         self.assertEquals(x.numbers, [])
 
+
 class DecodingModelTestCase(ClassCacheClearingTestCase):
     def setUp(self):
         ClassCacheClearingTestCase.setUp(self)
@@ -531,6 +541,7 @@ class DecodingModelTestCase(ClassCacheClearingTestCase):
         self.assertEquals(x.parent(), self.jessica.parent())
         self.assertEquals(x.parent_key(), self.jessica.parent_key())
         self.assertTrue(x.is_saved())
+
 
 class DecodingExpandoTestCase(ClassCacheClearingTestCase):
     def setUp(self):
@@ -606,6 +617,7 @@ class DecodingExpandoTestCase(ClassCacheClearingTestCase):
         self.assertEquals(x.parent(), self.jessica.parent())
         self.assertEquals(x.parent_key(), self.jessica.parent_key())
         self.assertTrue(x.is_saved())
+
 
 class ClassAliasTestCase(unittest.TestCase):
     def setUp(self):
@@ -792,6 +804,7 @@ class ClassAliasTestCase(unittest.TestCase):
 
         self.assertEquals(obj.prop, 'foo')
 
+
 class ReferencesTestCase(ClassCacheClearingTestCase):
     def setUp(self):
         ClassCacheClearingTestCase.setUp(self)
@@ -966,6 +979,7 @@ class ReferencesTestCase(ClassCacheClearingTestCase):
             {}
         ))
 
+
 class GAEReferenceCollectionTestCase(unittest.TestCase):
     def setUp(self):
         self.klass = adapter_db.GAEReferenceCollection
@@ -1026,12 +1040,14 @@ class GAEReferenceCollectionTestCase(unittest.TestCase):
             PetExpando: {'baz': pe1}
         })
 
+
 class GettableModelStub(db.Model):
     gets = []
 
     @staticmethod
     def get(*args, **kwargs):
         GettableModelStub.gets.append([args, kwargs])
+
 
 class HelperTestCase(unittest.TestCase):
     def test_getGAEObjects(self):
@@ -1077,6 +1093,7 @@ class HelperTestCase(unittest.TestCase):
 
         self.assertTrue(isinstance(q, db.Query))
         self.assertEquals(pyamf.encode(q).getvalue(), '\n\x00\x00\x00\x00')
+
 
 def suite():
     suite = unittest.TestSuite()

@@ -9,12 +9,15 @@ Tests for AMF0 Implementation.
 @since: 0.1.0
 """
 
-import unittest, datetime, types
+import unittest
+import datetime
+import types
 
 import pyamf
 from pyamf import amf0, util
 from pyamf.tests.util import check_buffer, EncoderTester, DecoderTester, \
     ClassCacheClearingTestCase, Spam, ClassicSpam, isNaN, isPosInf, isNegInf
+
 
 class TypesTestCase(unittest.TestCase):
     """
@@ -40,6 +43,7 @@ class TypesTestCase(unittest.TestCase):
         self.assertEquals(amf0.TYPE_XML, '\x0f')
         self.assertEquals(amf0.TYPE_TYPEDOBJECT, '\x10')
         self.assertEquals(amf0.TYPE_AMF3, '\x11')
+
 
 class ContextTestCase(unittest.TestCase):
     def test_create(self):
@@ -114,6 +118,7 @@ class ContextTestCase(unittest.TestCase):
         self.assertEquals(x.getObjectReference(y), ref1)
         self.assertEquals(x.getObjectReference(z), ref2)
         self.assertRaises(pyamf.ReferenceError, x.getObjectReference, {})
+
 
 class EncoderTestCase(ClassCacheClearingTestCase):
     """
@@ -874,6 +879,7 @@ class DecoderTestCase(ClassCacheClearingTestCase):
         self.assertEquals(foo.family_name, 'Doe')
         self.assertEquals(foo.given_name, 'Jane')
 
+
 class HelperTestCase(unittest.TestCase):
     def test_encode(self):
         buf = amf0.encode(1)
@@ -905,6 +911,7 @@ class HelperTestCase(unittest.TestCase):
         obj = object()
         context.addObject(obj)
         self.assertEquals([x for x in amf0.decode('\x07\x00\x00', context=context)], [obj])
+
 
 class RecordSetTestCase(unittest.TestCase):
     def test_create(self):
@@ -1039,6 +1046,7 @@ class RecordSetTestCase(unittest.TestCase):
         self.assertEquals(x.service, None)
         self.assertEquals(x.id, None)
 
+
 class ClassInheritanceTestCase(ClassCacheClearingTestCase):
     def test_simple(self):
         class A(object):
@@ -1096,6 +1104,7 @@ class ClassInheritanceTestCase(ClassCacheClearingTestCase):
             '\x00\x01c\x02\x00\x03foo',
             '\x00\x01b\x02\x00\x04eggs'
         ), '\x00\x00\t')))
+
 
 def suite():
     suite = unittest.TestSuite()

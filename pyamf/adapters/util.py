@@ -12,6 +12,7 @@ import __builtin__
 if not hasattr(__builtin__, 'set'):
     from sets import Set as set
 
+
 def to_list(obj, encoder):
     """
     Converts an arbitrary object C{obj} to a list.
@@ -19,6 +20,7 @@ def to_list(obj, encoder):
     @rtype: L{list}
     """
     return list(obj)
+
 
 def to_dict(obj, encoder):
     """
@@ -28,6 +30,7 @@ def to_dict(obj, encoder):
     """
     return dict(obj)
 
+
 def to_set(obj, encoder):
     """
     Converts an arbitrary object C{obj} to a set.
@@ -35,6 +38,7 @@ def to_set(obj, encoder):
     @rtype: L{set}
     """
     return set(obj)
+
 
 def to_tuple(x, encoder):
     """

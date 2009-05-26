@@ -18,12 +18,14 @@ from pyamf.remoting import gateway
 from pyamf.flex import messaging
 from pyamf.remoting.gateway import twisted as _twisted
 
+
 class TestService(object):
     def spam(self):
         return 'spam'
 
     def echo(self, x):
         return x
+
 
 class TwistedServerTestCase(unittest.TestCase):
     def setUp(self):
@@ -295,6 +297,7 @@ class TwistedServerTestCase(unittest.TestCase):
 
         return d.addCallback(cb)
 
+
 class DummyHTTPRequest:
     def __init__(self):
         self.headers = {}
@@ -311,6 +314,7 @@ class DummyHTTPRequest:
 
     def finish(self):
         self.finished = True
+
 
 class TwistedGatewayTestCase(unittest.TestCase):
     def test_finalise_request(self):
@@ -337,6 +341,7 @@ class TwistedGatewayTestCase(unittest.TestCase):
 
         self.assertTrue(isinstance(gw.getProcessor(a3), _twisted.AMF3RequestProcessor))
         self.assertTrue(isinstance(gw.getProcessor(a0), _twisted.AMF0RequestProcessor))
+
 
 class AMF0RequestProcessorTestCase(unittest.TestCase):
     def test_unknown_service_request(self):
@@ -532,6 +537,7 @@ class AMF0RequestProcessorTestCase(unittest.TestCase):
         proc(request).addCallback(cb).addErrback(lambda x: d.errback())
 
         return d
+
 
 class AMF3RequestProcessorTestCase(unittest.TestCase):
     def test_unknown_service_request(self):
@@ -779,6 +785,7 @@ class AMF3RequestProcessorTestCase(unittest.TestCase):
         proc(request).addCallback(cb).addErrback(lambda failure: d.errback())
 
         return d
+
 
 def suite():
     import unittest

@@ -9,6 +9,7 @@ Specific module tests
 
 import unittest
 
+
 def suite():
     from glob import glob
     import os.path

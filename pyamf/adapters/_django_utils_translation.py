@@ -12,6 +12,7 @@ from django.utils.translation import ugettext_lazy
 
 import pyamf
 
+
 def convert_lazy(l, encoder=None):
     if l.__class__._delegate_unicode:
         return unicode(l)

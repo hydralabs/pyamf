@@ -11,6 +11,7 @@ import decimal
 
 import pyamf
 
+
 def convert_Decimal(x, encoder):
     """
     Called when an instance of L{decimal.Decimal} is about to be encoded to

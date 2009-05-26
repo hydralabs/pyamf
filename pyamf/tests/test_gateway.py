@@ -7,11 +7,13 @@ General gateway tests.
 @since: 0.1.0
 """
 
-import unittest, sys
+import unittest
+import sys
 
 import pyamf
 from pyamf import remoting
 from pyamf.remoting import gateway, amf0
+
 
 class TestService(object):
     def spam(self):
@@ -19,6 +21,7 @@ class TestService(object):
 
     def echo(self, x):
         return x
+
 
 class FaultTestCase(unittest.TestCase):
     def test_create(self):
@@ -80,6 +83,7 @@ class FaultTestCase(unittest.TestCase):
 
         self.assertEquals(fault.code, 'Server.UnknownResource')
 
+
 class ServiceWrapperTestCase(unittest.TestCase):
     def test_create(self):
         x = gateway.ServiceWrapper('blah')
@@ -125,6 +129,7 @@ class ServiceWrapperTestCase(unittest.TestCase):
 
         self.assertEquals(x('echo', [x]), x)
 
+
 class ServiceRequestTestCase(unittest.TestCase):
     def test_create(self):
         sw = gateway.ServiceWrapper(TestService)
@@ -150,6 +155,7 @@ class ServiceRequestTestCase(unittest.TestCase):
         x = gateway.ServiceRequest(request, sw, 'echo')
         self.assertEquals(x(x), x)
 
+
 class ServiceCollectionTestCase(unittest.TestCase):
     def test_contains(self):
         x = gateway.ServiceCollection()
@@ -161,6 +167,7 @@ class ServiceCollectionTestCase(unittest.TestCase):
 
         self.assertTrue(TestService in x)
         self.assertTrue('spam.eggs' in x)
+
 
 class BaseGatewayTestCase(unittest.TestCase):
     def test_create(self):
@@ -388,6 +395,7 @@ class BaseGatewayTestCase(unittest.TestCase):
         self.assertFalse(gw.authenticateRequest(sr, None, None))
         self.assertTrue(gw.authenticateRequest(sr, 'spam', 'eggs'))
 
+
 class QueryBrowserTestCase(unittest.TestCase):
     def test_request(self):
         gw = gateway.BaseGateway()
@@ -406,6 +414,7 @@ class QueryBrowserTestCase(unittest.TestCase):
 
         self.assertEquals(response.status, remoting.STATUS_OK)
         self.assertEquals(response.body, 'This is a test')
+
 
 class AuthenticatorTestCase(unittest.TestCase):
     def setUp(self):
@@ -540,6 +549,7 @@ class AuthenticatorTestCase(unittest.TestCase):
         self.assertEquals(response.status, remoting.STATUS_OK)
         self.assertEquals(response.body, 'spam')
 
+
 class ExposeRequestTestCase(unittest.TestCase):
     def test_default(self):
         gw = gateway.BaseGateway()
@@ -597,6 +607,7 @@ class ExposeRequestTestCase(unittest.TestCase):
         service_request = gateway.ServiceRequest(envelope, gw.services['test'], None)
 
         self.assertTrue(gw.mustExposeRequest(service_request))
+
 
 class PreProcessingTestCase(unittest.TestCase):
     def _preproc(self):
@@ -693,6 +704,7 @@ class PreProcessingTestCase(unittest.TestCase):
 
         self.assertTrue(isinstance(response, remoting.Response))
         self.assertEquals(response.status, remoting.STATUS_ERROR)
+
 
 def suite():
     suite = unittest.TestSuite()

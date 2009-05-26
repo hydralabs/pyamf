@@ -9,7 +9,10 @@ AMF Utilities.
 @since: 0.1.0
 """
 
-import struct, calendar, datetime, types
+import struct
+import calendar
+import datetime
+import types
 
 import pyamf
 
@@ -104,6 +107,7 @@ def find_xml_lib():
     xml_types = tuple(xml_types)
 
     return xml_types
+
 
 class StringIOProxy(object):
     """
@@ -285,7 +289,7 @@ class DataTypeMixIn(object):
     def write_char(self, c):
         """
         Write a C{char} to the stream.
-        
+
         @raise OverflowError: Not in range.
         """
         if type(c) not in int_types:
@@ -345,7 +349,7 @@ class DataTypeMixIn(object):
     def write_ulong(self, l):
         """
         Writes a 4 byte unsigned integer to the stream.
-        
+
         @raise OverflowError: Not in range.
         """
         if type(l) not in int_types:
@@ -365,7 +369,7 @@ class DataTypeMixIn(object):
     def write_long(self, l):
         """
         Writes a 4 byte integer to the stream.
-        
+
         @raise OverflowError: Not in range.
         """
         if type(l) not in int_types:
@@ -637,6 +641,7 @@ def hexdump(data):
 
     return buf
 
+
 def get_timestamp(d):
     """
     Returns a UTC timestamp for a C{datetime.datetime} object.
@@ -656,6 +661,7 @@ def get_timestamp(d):
 
     return float('%s.%s' % (calendar.timegm(d.utctimetuple()), msec))
 
+
 def get_datetime(secs):
     """
     Return a UTC date from a timestamp.
@@ -674,7 +680,7 @@ def get_datetime(secs):
 def get_attrs(obj):
     """
     Gets a C{dict} of the attrs of an object in a predefined resolution order.
-    
+
     @raise AttributeError: A duplicate attribute was already found in this
         collection, are you mixing different key types?
     """
@@ -704,13 +710,14 @@ def get_attrs(obj):
 
     return None
 
+
 def set_attrs(obj, attrs):
     """
     A generic function which applies a collection of attributes C{attrs} to
-    object C{obj}
+    object C{obj}.
 
-    @param obj: An instance implementing the __setattr__ function
-    @param attrs: A collection implementing the iteritems function
+    @param obj: An instance implementing the C{__setattr__} function
+    @param attrs: A collection implementing the C{iteritems} function
     @type attrs: Usually a dict
     """
     f = lambda n, v: setattr(obj, n, v)
@@ -720,6 +727,7 @@ def set_attrs(obj, attrs):
 
     for k, v in attrs.iteritems():
         f(k, v)
+
 
 def get_class_alias(klass):
     for k, v in pyamf.ALIAS_TYPES.iteritems():

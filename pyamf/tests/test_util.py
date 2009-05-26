@@ -16,8 +16,8 @@ from StringIO import StringIO
 
 import pyamf
 from pyamf import util
-
 from pyamf.tests import util as _util
+
 
 class TimestampTestCase(unittest.TestCase):
     """
@@ -40,8 +40,6 @@ class TimestampTestCase(unittest.TestCase):
 
 
 class StringIOProxyTestCase(unittest.TestCase):
-    """
-    """
 
     def setUp(self):
         from StringIO import StringIO
@@ -721,6 +719,7 @@ class IndexedCollectionTestCase(unittest.TestCase):
         idx = self.collection.append(test_obj)
         self.assertEquals(id(test_obj), id(self.collection.getByReference(idx)))
 
+
 class IndexedMapTestCase(unittest.TestCase):
     """
     Tests for L{util.IndexedMap}
@@ -758,6 +757,7 @@ class IndexedMapTestCase(unittest.TestCase):
 class GetAttrsTestCase(unittest.TestCase):
     def test_duplicate_keys(self):
         self.assertRaises(AttributeError, util.get_attrs, {0:0, '0':1})
+
 
 def suite():
     """

@@ -28,6 +28,7 @@ from pyamf.remoting import gateway
 
 __all__ = ['WSGIGateway']
 
+
 class WSGIGateway(gateway.BaseGateway):
     """
     WSGI Remoting Gateway.

@@ -14,6 +14,7 @@ import unittest
 import pyamf
 from pyamf import remoting, util
 
+
 class DecoderTestCase(unittest.TestCase):
     """
     Tests the decoders.
@@ -178,6 +179,7 @@ class DecoderTestCase(unittest.TestCase):
         self.assertEquals(m.target, 'createGroup')
         self.assertEquals(m.body, [{'strB':'test', 'strA':'test'}])
 
+
 class EncoderTestCase(unittest.TestCase):
     """
     Test the encoders.
@@ -285,6 +287,7 @@ class EncoderTestCase(unittest.TestCase):
             '/onResult\x00\x04null\x00\x00\x00\x00\x11\x0bq<root><sections>'
             '<section /><section /></sections></root>')
 
+
 class StrictEncodingTestCase(unittest.TestCase):
     def test_request(self):
         msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash6)
@@ -304,6 +307,7 @@ class StrictEncodingTestCase(unittest.TestCase):
             '\x00\x00\x00\x00\x00\x01\x00\x0b/1/onResult\x00\x04null\x00\x00'
             '\x00\x0c\n\x00\x00\x00\x01\x02\x00\x04spam')
 
+
 class FaultTestCase(unittest.TestCase):
     def test_exception(self):
         x = remoting.get_fault({'level': 'error', 'code': 'Server.Call.Failed'})
@@ -313,6 +317,7 @@ class FaultTestCase(unittest.TestCase):
     def test_kwargs(self):
         x = remoting.get_fault({'foo': 'bar'})
         # The fact that this doesn't throw an error means that this test passes
+
 
 class ContextTextCase(unittest.TestCase):
     def test_body_references(self):
@@ -328,6 +333,7 @@ class ContextTextCase(unittest.TestCase):
             'a\x02\x00\x01b\x02\x00\x01c\x00\x03bar\x00\x02/2\x00\x00\x00\x00'
             '\n\x00\x00\x00\x01\n\x00\x00\x00\x03\x02\x00\x01a\x02\x00\x01b'
             '\x02\x00\x01c')
+
 
 class FunctionalTestCase(unittest.TestCase):
     def test_encode_bytearray(self):
@@ -363,6 +369,7 @@ class ReprTestCase(unittest.TestCase):
 
         self.assertEquals(repr(r),
             "BaseFault level=None code=u'\\xe5' type=u'\\xe5' description=u'\\xe5'\nTraceback:\nu'\\xe5'")
+
 
 def suite():
     """

@@ -12,6 +12,7 @@ from django.db.models import fields
 
 import pyamf
 
+
 def convert_NOT_PROVIDED(x, encoder):
     """
     @rtype: L{Undefined<pyamf.Undefined>}

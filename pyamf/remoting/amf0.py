@@ -7,10 +7,12 @@ AMF0 Remoting support.
 @since: 0.1.0
 """
 
-import traceback, sys
+import traceback
+import sys
 
 from pyamf import remoting
 from pyamf.remoting import gateway
+
 
 class RequestProcessor(object):
     def __init__(self, gateway):
@@ -110,6 +112,7 @@ class RequestProcessor(object):
             raise
         except:
             return self.buildErrorResponse(request)
+
 
 def build_fault(cls, e, tb):
     """

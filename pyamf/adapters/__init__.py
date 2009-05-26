@@ -8,9 +8,11 @@ packages. This includes registering classes, setting up type maps etc.
 @since: 0.1.0
 """
 
-import os.path, glob
+import os.path
+import glob
 
 from pyamf.util import imports
+
 
 class PackageImporter(object):
     """
@@ -23,6 +25,7 @@ class PackageImporter(object):
         __import__('%s.%s' % ('pyamf.adapters', self.name))
 
 adapters_registered = False
+
 
 def register_adapters():
     global adapters_registered
@@ -48,6 +51,7 @@ def register_adapters():
             pass
 
     adapters_registered = True
+
 
 def register_adapter(mod, func):
     """
