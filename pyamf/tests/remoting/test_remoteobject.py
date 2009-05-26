@@ -14,6 +14,7 @@ from pyamf import remoting
 from pyamf.remoting import amf3, gateway
 from pyamf.flex import messaging
 
+
 class RandomIdGeneratorTestCase(unittest.TestCase):
     def test_generate(self):
         x = []
@@ -23,6 +24,7 @@ class RandomIdGeneratorTestCase(unittest.TestCase):
 
             self.assertTrue(id_ not in x)
             x.append(id_)
+
 
 class AcknowlegdementGeneratorTestCase(unittest.TestCase):
     def test_generate(self):
@@ -42,6 +44,7 @@ class AcknowlegdementGeneratorTestCase(unittest.TestCase):
         self.assertTrue(ack.timestamp is not None)
 
         self.assertEquals(ack.correlationId, '123123')
+
 
 class RequestProcessorTestCase(unittest.TestCase):
     def test_create(self):
@@ -197,6 +200,7 @@ class RequestProcessorTestCase(unittest.TestCase):
         self.assertTrue(isinstance(response, remoting.Response))
         self.assertEquals(response.status, remoting.STATUS_OK)
         self.assertTrue(isinstance(ack, messaging.AcknowledgeMessage))
+
 
 def suite():
     suite = unittest.TestSuite()

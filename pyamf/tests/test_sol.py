@@ -9,13 +9,17 @@ Tests for Local Shared Object (LSO) Implementation.
 @since: 0.1.0
 """
 
-import unittest, os.path, warnings, tempfile
+import unittest
+import os.path
+import warnings
+import tempfile
 
 import pyamf
 from pyamf import sol
 from pyamf.tests.util import check_buffer
 
 warnings.simplefilter('ignore', RuntimeWarning)
+
 
 class DecoderTestCase(unittest.TestCase):
     def test_header(self):
@@ -66,6 +70,7 @@ class DecoderTestCase(unittest.TestCase):
         self.assertEquals(sol.decode(bytes), (u'EchoTest',
             {u'httpUri': u'http://localhost:8000/gateway/', u'rtmpUri': u'rtmp://localhost/echo'}))
 
+
 class EncoderTestCase(unittest.TestCase):
     def test_encode_header(self):
         stream = sol.encode('hello', {})
@@ -90,6 +95,7 @@ class EncoderTestCase(unittest.TestCase):
             {u'httpUri': u'http://localhost:8000/gateway/', u'rtmpUri': u'rtmp://localhost/echo'}, encoding=pyamf.AMF3)
 
         self.assertTrue(check_buffer(stream.getvalue(), bytes))
+
 
 class HelperTestCase(unittest.TestCase):
     contents = (
@@ -167,6 +173,7 @@ class HelperTestCase(unittest.TestCase):
 
         fp.close()
 
+
 class SOLTestCase(unittest.TestCase):
     def test_create(self):
         s = sol.SOL('eggs')
@@ -211,6 +218,7 @@ class SOLTestCase(unittest.TestCase):
                 os.unlink(x)
 
             raise
+
 
 def suite():
     suite = unittest.TestSuite()

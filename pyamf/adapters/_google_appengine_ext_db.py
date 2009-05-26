@@ -20,6 +20,7 @@ import pyamf
 from pyamf.util import imports
 from pyamf.adapters import util
 
+
 class ModelStub(object):
     """
     This class represents a L{db.Model} or L{db.Expando} class as the typed
@@ -41,6 +42,7 @@ class ModelStub(object):
 
     def dynamic_properties(self):
         return []
+
 
 class GAEReferenceCollection(dict):
     """
@@ -91,6 +93,7 @@ class GAEReferenceCollection(dict):
         d = self._getClass(klass)
 
         d[key] = obj
+
 
 class DataStoreClassAlias(pyamf.ClassAlias):
     """
@@ -248,6 +251,7 @@ class DataStoreClassAlias(pyamf.ClassAlias):
         for k, v in attrs.iteritems():
             setattr(obj, k, v)
 
+
 def getGAEObjects(context):
     """
     Returns a reference to the C{gae_objects} on the context. If it doesn't
@@ -263,6 +267,7 @@ def getGAEObjects(context):
         context.gae_objects = GAEReferenceCollection()
 
     return context.gae_objects
+
 
 def loadInstanceFromDatastore(klass, key, codec=None):
     """
@@ -305,6 +310,7 @@ def loadInstanceFromDatastore(klass, key, codec=None):
 
     return obj
 
+
 def writeGAEObject(self, object, *args, **kwargs):
     """
     The GAE Datastore creates new instances of objects for each get request.
@@ -342,6 +348,7 @@ def writeGAEObject(self, object, *args, **kwargs):
         return
 
     self.writeNonGAEObject(referenced_object, *args, **kwargs)
+
 
 def install_gae_reference_model_hook(mod):
     """

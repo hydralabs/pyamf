@@ -18,9 +18,11 @@ import pyamf.flex
 from pyamf.tests.util import Spam
 from pyamf.adapters import _sqlalchemy as adapter
 
+
 class BaseObject(object):
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
+
 
 class User(BaseObject):
     def __init__(self, **kwargs):
@@ -28,14 +30,18 @@ class User(BaseObject):
 
         self.lazy_loaded = [LazyLoaded()]
 
+
 class Address(BaseObject):
     pass
+
 
 class LazyLoaded(BaseObject):
     pass
 
+
 class AnotherLazyLoaded(BaseObject):
     pass
+
 
 class BaseTestCase(unittest.TestCase):
     """
@@ -120,6 +126,7 @@ class BaseTestCase(unittest.TestCase):
             self.session.clear()
         else:
             raise AttributeError('Don\'t know how to clear session')
+
 
 class SATestCase(BaseTestCase):
     def _test_obj(self, encoded, decoded):
@@ -252,11 +259,13 @@ class SATestCase(BaseTestCase):
         for i in range(0, max):
             self.assertEquals(id(decoded[0]), id(decoded[i]))
 
+
 class BaseClassAliasTestCase(BaseTestCase):
     def setUp(self):
         BaseTestCase.setUp(self)
 
         self.alias = pyamf.get_class_alias(User)
+
 
 class ClassAliasTestCase(BaseClassAliasTestCase):
     def test_type(self):
@@ -346,6 +355,7 @@ class ClassAliasTestCase(BaseClassAliasTestCase):
         alias.applyAttributes(obj, {'ro': 'baz'})
         self.assertEquals(obj.ro, 'gak')
 
+
 class ApplyAttributesTestCase(BaseClassAliasTestCase):
     def test_undefined(self):
         u = self.alias.createInstance()
@@ -397,9 +407,10 @@ class ApplyAttributesTestCase(BaseClassAliasTestCase):
         # sqlalchemy can't find any state to work with
         self.assertRaises(AttributeError, self.alias.applyAttributes, u, attrs)
 
+
 class AdapterTestCase(BaseTestCase):
     """
-    Checks to see if the adapter will actually intercept a class correctly
+    Checks to see if the adapter will actually intercept a class correctly.
     """
 
     def test_mapped(self):
@@ -414,6 +425,7 @@ class AdapterTestCase(BaseTestCase):
     def test_not_mapped(self):
         self.assertRaises(adapter.UnmappedInstanceError, adapter.class_mapper, Spam)
         self.assertFalse(adapter.is_class_sa_mapped(Spam))
+
 
 def suite():
     suite = unittest.TestSuite()

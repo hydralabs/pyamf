@@ -15,6 +15,7 @@ import pyamf
 from pyamf import flex, util, amf3, amf0
 from pyamf.tests.util import check_buffer
 
+
 class ArrayCollectionTestCase(unittest.TestCase):
     def test_create(self):
         self.assertEquals(flex.ArrayCollection(), [])
@@ -93,6 +94,7 @@ class ArrayCollectionTestCase(unittest.TestCase):
         self.assertTrue(isinstance(x, flex.ArrayCollection))
         self.assertEquals(x, ['foo', 'bar'])
 
+
 class ArrayCollectionAPITestCase(unittest.TestCase):
     def test_addItem(self):
         a = flex.ArrayCollection()
@@ -166,6 +168,7 @@ class ArrayCollectionAPITestCase(unittest.TestCase):
         self.assertEquals(a, ['a', 'd', 'c'])
         self.assertEquals(a.length, 3)
 
+
 class ObjectProxyTestCase(unittest.TestCase):
     def test_encode(self):
         stream = util.BufferedByteStream()
@@ -209,6 +212,7 @@ class ObjectProxyTestCase(unittest.TestCase):
 
         x._amf_object = None
         self.assertEquals(x._amf_object, None)
+
 
 def suite():
     suite = unittest.TestSuite()

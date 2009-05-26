@@ -7,10 +7,13 @@ Tests pyamf.util.imports
 @since: 0.3.1
 """
 
-import unittest, sys, os.path
+import unittest
+import sys
+import os.path
 
 from pyamf.util import imports
 from pyamf.tests import util as _util
+
 
 class JoinPathTestCase(unittest.TestCase):
     def test_empty(self):
@@ -33,6 +36,7 @@ class JoinPathTestCase(unittest.TestCase):
     def test_relative(self):
         self.assertEquals(imports.joinPath('a.b', 'c/../d/e/../../f'), 'a.b.f')
 
+
 class PostLoadHookClearingTestCase(unittest.TestCase):
     def setUp(self):
         self.plHooks, imports.postLoadHooks = imports.postLoadHooks, imports.postLoadHooks.copy()
@@ -41,6 +45,7 @@ class PostLoadHookClearingTestCase(unittest.TestCase):
     def tearDown(self):
         imports.postLoadHooks = self.plHooks
         imports.loadedModules = self.ldMods
+
 
 class GetModuleHooksTestCase(PostLoadHookClearingTestCase):
     def test_default(self):
@@ -58,6 +63,7 @@ class GetModuleHooksTestCase(PostLoadHookClearingTestCase):
         imports.postLoadHooks['spam.eggs'] = None
 
         self.assertRaises(imports.AlreadyRead, imports.getModuleHooks, 'spam.eggs')
+
 
 class LazyModuleTestCase(unittest.TestCase):
     def loadModule(self, name):
@@ -124,6 +130,7 @@ class LazyModuleTestCase(unittest.TestCase):
         self.assertEquals(mod.__dict__, {'__name__': 'foo', '__file__': 'bar', '__path__': ['baz'], 'a': 'b'})
         self.assertEquals(self.moduleName, mod)
 
+
 class IsLazyTestCase(PostLoadHookClearingTestCase):
     def test_lazy(self):
         imports.postLoadHooks['spam'] = []
@@ -138,6 +145,7 @@ class IsLazyTestCase(PostLoadHookClearingTestCase):
         mod = imports.LazyModule('spam', 'eggs')
 
         self.assertFalse(imports._isLazy(mod))
+
 
 class WhenImportedTestCase(PostLoadHookClearingTestCase):
     def setUp(self):
@@ -240,6 +248,7 @@ class WhenImportedTestCase(PostLoadHookClearingTestCase):
 
         self.assertEquals(self._mods, [foo.bar.baz, foo.bar.gak])
 
+
 class FindModuleTestCase(unittest.TestCase):
     def setUp(self):
         self.path = os.path.join(os.path.dirname(__file__), 'imports')
@@ -268,6 +277,7 @@ class FindModuleTestCase(unittest.TestCase):
 
     def test_error(self):
         self.assertRaises(ImportError, imports.find_module, 'eggs')
+
 
 def suite():
     """

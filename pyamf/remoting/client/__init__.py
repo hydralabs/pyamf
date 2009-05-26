@@ -7,7 +7,8 @@ Remoting client implementation.
 @since: 0.1.0
 """
 
-import httplib, urlparse
+import httplib
+import urlparse
 
 import pyamf
 from pyamf import remoting, logging
@@ -22,11 +23,13 @@ DEFAULT_USER_AGENT = 'PyAMF/%s' % '.'.join(map(lambda x: str(x),
 
 HTTP_OK = 200
 
+
 def convert_args(args):
     if args == (tuple(),):
         return []
     else:
         return [x for x in args]
+
 
 class ServiceMethodProxy(object):
     """
@@ -62,6 +65,7 @@ class ServiceMethodProxy(object):
             service_name = '%s.%s' % (service_name, self.name)
 
         return service_name
+
 
 class ServiceProxy(object):
     """
@@ -117,6 +121,7 @@ class ServiceProxy(object):
         """
         return self._name
 
+
 class RequestWrapper(object):
     """
     A container object that wraps a service method request.
@@ -165,6 +170,7 @@ class RequestWrapper(object):
         self._result = result
 
     result = property(_get_result, _set_result)
+
 
 class RemotingService(object):
     """
@@ -257,9 +263,9 @@ class RemotingService(object):
             self.connection = httplib.HTTPSConnection(hostname, port)
         else:
             raise ValueError('Unknown scheme')
-        
+
         location = '%s://%s:%s%s' % (self.url[0], hostname, port, self.url[2])
-        
+
         self.logger.info('Connecting to %s' % location)
         self.logger.debug('Referer: %s' % self.referer)
         self.logger.debug('User-Agent: %s' % self.user_agent)
@@ -437,7 +443,7 @@ class RemotingService(object):
     def _getResponse(self):
         """
         Gets and handles the HTTP response from the remote gateway.
-        
+
         @raise RemotingError: HTTP Gateway reported error status.
         @raise RemotingError: Incorrect MIME type received.
         """

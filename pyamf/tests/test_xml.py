@@ -13,12 +13,15 @@ import unittest
 
 import pyamf
 
+
 class ElementTreeTestCase(unittest.TestCase):
     """
     Tests the type mappings.
     """
+
     amf0_encoding = '\x0f\x00\x00\x00\x11<foo bar="baz" />'
     amf3_encoding = '\x0b#<foo bar="baz" />'
+
     def _encode(self, mod):
         element = mod.Element('foo', bar='baz')
 
@@ -78,6 +81,7 @@ try:
     from elementtree import ElementTree
 except ImportError:
     del ElementTreeTestCase.test_ElementTree
+
 
 def suite():
     suite = unittest.TestSuite()

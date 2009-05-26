@@ -14,6 +14,7 @@ import unittest
 from pyamf import remoting, util
 from pyamf.remoting.gateway.wsgi import WSGIGateway
 
+
 class WSGIServerTestCase(unittest.TestCase):
     def setUp(self):
         self.gw = WSGIGateway()
@@ -148,6 +149,7 @@ class WSGIServerTestCase(unittest.TestCase):
             raise
 
         remoting.decode = self.old_method
+
 
 def suite():
     suite = unittest.TestSuite()

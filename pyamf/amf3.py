@@ -23,14 +23,16 @@ L{ByteArray} and L{ArrayCollection}.
 @since: 0.1.0
 """
 
-import types, datetime, zlib
+import types
+import datetime
+import zlib
 
 import pyamf
 from pyamf import util
 from pyamf.flex import ObjectProxy, ArrayCollection
 
-#: If True encode/decode lists/tuples to ArrayCollections
-#: and dicts to ObjectProxy
+#: If True encode/decode lists/tuples to L{ArrayCollections<ArrayCollection>}
+#: and dicts to L{ObjectProxy}
 use_proxies_default = False
 
 try:
@@ -1202,6 +1204,7 @@ class Decoder(pyamf.BaseDecoder):
 
         return obj
 
+
 class Encoder(pyamf.BaseEncoder):
     """
     Encodes an AMF3 data stream.
@@ -1733,6 +1736,7 @@ class Encoder(pyamf.BaseEncoder):
 
         self._writeString(util.ET.tostring(n, 'utf-8'), False)
 
+
 def decode(stream, context=None, strict=False):
     """
     A helper function to decode an AMF3 datastream.
@@ -1749,6 +1753,7 @@ def decode(stream, context=None, strict=False):
             yield decoder.readElement()
         except pyamf.EOStream:
             break
+
 
 def encode(*args, **kwargs):
     """
@@ -1768,6 +1773,7 @@ def encode(*args, **kwargs):
         encoder.writeElement(element)
 
     return buf
+
 
 def encode_int(n):
     """
@@ -1802,6 +1808,7 @@ def encode_int(n):
         bytes += chr(n & 0x7f)
 
     return bytes
+
 
 def decode_int(stream, signed=False):
     n = result = 0

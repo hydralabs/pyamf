@@ -29,6 +29,7 @@ HEADER_SIGNATURE = 'TCSO\x00\x04\x00\x00\x00\x00'
 #: Padding - 4 bytes
 PADDING_BYTE = '\x00'
 
+
 def decode(stream, strict=True):
     """
     Decodes a SOL stream. C{strict} mode ensures that the sol stream is as spec
@@ -94,6 +95,7 @@ def decode(stream, strict=True):
 
     return (root_name, values)
 
+
 def encode(name, values, strict=True, encoding=pyamf.AMF0):
     """
     Produces a SharedObject encoded stream based on the name and values.
@@ -147,6 +149,7 @@ def encode(name, values, strict=True, encoding=pyamf.AMF0):
 
     return stream
 
+
 def load(name_or_file):
     """
     Loads a sol file and returns a L{SOL} object.
@@ -176,6 +179,7 @@ def load(name_or_file):
 
     return s
 
+
 def save(sol, name_or_file, encoding=pyamf.AMF0):
     """
     Writes a L{SOL} object to C{name_or_file}.
@@ -202,6 +206,7 @@ def save(sol, name_or_file, encoding=pyamf.AMF0):
 
     if opened:
         f.close()
+
 
 class SOL(dict):
     """

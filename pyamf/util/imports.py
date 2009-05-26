@@ -18,7 +18,8 @@ __all__ = [
     'lazyModule', 'joinPath', 'whenImported', 'getModuleHooks',
 ]
 
-import sys, os.path
+import sys
+import os.path
 from types import ModuleType
 
 postLoadHooks = {}
@@ -33,7 +34,7 @@ try:
     find_module('pyamf.util.imports')
 except ImportError:
     def find_module(subname, path=None):
-        # the dev_appserver freaks out if you have pyc, pyo in here as 
+        # the dev_appserver freaks out if you have pyc, pyo in here as
         # we're hooking pyamf.amf0 and pyamf.amf3 in the gae adapter and
         # monkey-patching it. It rightly complains as the byte-compiled module
         # is different to the 'final' module.
@@ -61,6 +62,7 @@ except ImportError:
 
         raise ImportError('No module named %s' % subname)
 
+
 class SubModuleLoadHook(object):
     def __init__(self, parent, child, hook, *args, **kwargs):
         self.parent = parent
@@ -78,8 +80,10 @@ class SubModuleLoadHook(object):
     def __call__(self, module):
         return self.hook(*self.args, **self.kwargs)
 
+
 class AlreadyRead(Exception):
     pass
+
 
 class LazyModule(ModuleType):
     __slots__ = ()
@@ -104,9 +108,11 @@ class LazyModule(ModuleType):
 
         return ModuleType.__setattr__(self, attr, value)
 
+
 def _loadModule(module):
     if _isLazy(module) and module not in loadedModules:
         _loadAndRunHooks(module)
+
 
 def joinPath(modname, relativePath):
     """
@@ -123,6 +129,7 @@ def joinPath(modname, relativePath):
             module.append(p)
 
     return '.'.join(module)
+
 
 def lazyModule(modname, relativePath=None):
     """
@@ -209,6 +216,7 @@ def lazyModule(modname, relativePath=None):
 
     return sys.modules[modname]
 
+
 def _isLazy(module):
     """
     Checks to see if the supplied C{module} is lazy
@@ -217,6 +225,7 @@ def _isLazy(module):
         return False
 
     return postLoadHooks[module.__name__] is not None
+
 
 def _loadAndRunHooks(module):
     """
@@ -233,6 +242,7 @@ def _loadAndRunHooks(module):
         # Ensure hooks are not called again, even if they fail
         postLoadHooks[module.__name__] = None
 
+
 def getModuleHooks(moduleName):
     """
     Get list of hooks for 'moduleName'; error if module already loaded
@@ -243,6 +253,7 @@ def getModuleHooks(moduleName):
         raise AlreadyRead("Module already imported", moduleName)
 
     return hooks
+
 
 def _setModuleHook(moduleName, hook):
     if moduleName in sys.modules and postLoadHooks.get(moduleName) is None:
@@ -255,6 +266,7 @@ def _setModuleHook(moduleName, hook):
     getModuleHooks(moduleName).append(hook)
 
     return lazyModule(moduleName)
+
 
 def whenImported(moduleName, hook):
     """

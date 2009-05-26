@@ -12,6 +12,7 @@ import unittest
 import pyamf
 from pyamf.tests.util import ClassCacheClearingTestCase, replace_dict, Spam
 
+
 class ASObjectTestCase(unittest.TestCase):
     """
     I exercise all functionality relating to the L{ASObject<pyamf.ASObject>}
@@ -74,6 +75,7 @@ class ASObjectTestCase(unittest.TestCase):
 
         self.assertNotEquals(None, hash(bag))
 
+
 class ClassMetaDataTestCase(unittest.TestCase):
     def test_create(self):
         x = pyamf.ClassMetaData()
@@ -118,6 +120,7 @@ class ClassMetaDataTestCase(unittest.TestCase):
         self.assertFalse('dynamic' in x)
         x.append('dynamic')
         self.assertTrue('dynamic' in x)
+
 
 class ClassAliasTestCase(ClassCacheClearingTestCase):
     """
@@ -306,6 +309,7 @@ class ClassAliasTestCase(ClassCacheClearingTestCase):
         self._obj = Spam()
         self.assertEquals(alias.getAttrs(self._obj), (['foo', 'bar'], []))
 
+
 class HelperTestCase(unittest.TestCase):
     """
     Tests all helper functions in C{pyamf.__init__}
@@ -372,6 +376,7 @@ class HelperTestCase(unittest.TestCase):
         returned = [x for x in pyamf.decode(bytes)]
 
         self.assertEquals(expected, returned)
+
 
 class RegisterClassTestCase(ClassCacheClearingTestCase):
     def test_simple(self):
@@ -457,6 +462,7 @@ class RegisterClassTestCase(ClassCacheClearingTestCase):
 
         pyamf.register_class(Foo)
 
+
 class UnregisterClassTestCase(ClassCacheClearingTestCase):
     def test_klass(self):
         alias = pyamf.register_class(Spam, 'spam.eggs')
@@ -471,6 +477,7 @@ class UnregisterClassTestCase(ClassCacheClearingTestCase):
         pyamf.unregister_class('spam.eggs')
         self.assertTrue('spam.eggs' not in pyamf.CLASS_CACHE.keys())
         self.assertTrue(alias not in pyamf.CLASS_CACHE)
+
 
 class ClassLoaderTestCase(ClassCacheClearingTestCase):
     def test_register(self):
@@ -538,6 +545,7 @@ class ClassLoaderTestCase(ClassCacheClearingTestCase):
     def test_load_class_by_module_bad(self):
         self.assertRaises(pyamf.UnknownClassAlias, pyamf.load_class,
             '__builtin__.tuple.')
+
 
 class TypeMapTestCase(unittest.TestCase):
     def setUp(self):
@@ -622,6 +630,7 @@ class TypeMapTestCase(unittest.TestCase):
 
         self.assertEquals(td, td2)
 
+
 class ErrorClassMapTestCase(unittest.TestCase):
     """
     I test all functionality related to manipulating L{pyamf.ERROR_CLASS_MAP}
@@ -676,8 +685,10 @@ class ErrorClassMapTestCase(unittest.TestCase):
         self.assertRaises(ValueError, pyamf.remove_error_class, B)
         self.assertRaises(ValueError, pyamf.remove_error_class, 'abc')
 
+
 class DummyAlias(pyamf.ClassAlias):
     pass
+
 
 class RegisterAliasTypeTestCase(unittest.TestCase):
     def setUp(self):
@@ -730,6 +741,7 @@ class RegisterAliasTypeTestCase(unittest.TestCase):
         pyamf.register_alias_type(DummyAlias, A)
 
         self.assertRaises(RuntimeError, pyamf.register_alias_type, DummyAlias, A)
+
 
 class BaseContextTestCase(unittest.TestCase):
     def test_no_alias(self):
@@ -797,13 +809,13 @@ class BaseContextTestCase(unittest.TestCase):
         self.assertEquals(x.getObjectReference(object()), None)
 
 
-
 class TypedObjectTestCase(unittest.TestCase):
     def test_externalised(self):
         o = pyamf.TypedObject(None)
 
         self.assertRaises(pyamf.DecodeError, o.__readamf__, None)
         self.assertRaises(pyamf.EncodeError, o.__writeamf__, None)
+
 
 def suite():
     suite = unittest.TestSuite()

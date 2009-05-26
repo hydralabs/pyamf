@@ -17,6 +17,7 @@ import datetime
 
 import pyamf
 
+
 class DjangoClassAlias(pyamf.ClassAlias):
     def getAttrs(self, obj, codec=None):
         static_attrs, dynamic_attrs = [], []

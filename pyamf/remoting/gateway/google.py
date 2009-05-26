@@ -13,7 +13,8 @@ applications to AMF clients and servers.
 @since: 0.3.1
 """
 
-import sys, os.path
+import sys
+import os.path
 
 try:
     sys.path.remove(os.path.dirname(os.path.abspath(__file__)))
@@ -30,6 +31,7 @@ from pyamf import remoting
 from pyamf.remoting import gateway
 
 __all__ = ['WebAppGateway']
+
 
 class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
     """

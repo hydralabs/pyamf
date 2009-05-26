@@ -15,6 +15,7 @@ import pyamf
 from pyamf import remoting
 from pyamf.remoting import client
 
+
 class ServiceMethodProxyTestCase(unittest.TestCase):
     def test_create(self):
         x = client.ServiceMethodProxy('a', 'b')
@@ -46,6 +47,7 @@ class ServiceMethodProxyTestCase(unittest.TestCase):
 
         x = client.ServiceMethodProxy('spam', None)
         self.assertEquals(str(x), 'spam')
+
 
 class ServiceProxyTestCase(unittest.TestCase):
     def test_create(self):
@@ -152,6 +154,7 @@ class ServiceProxyTestCase(unittest.TestCase):
 
         self.assertEquals(str(x), 'test')
 
+
 class RequestWrapperTestCase(unittest.TestCase):
     def test_create(self):
         x = client.RequestWrapper(1, 2, 3, 4)
@@ -181,6 +184,7 @@ class RequestWrapperTestCase(unittest.TestCase):
         self.assertEquals(x.response, y)
         self.assertEquals(x.result, 'spam.eggs')
 
+
 class DummyResponse(object):
     tc = None
     closed = False
@@ -205,6 +209,7 @@ class DummyResponse(object):
     def close(self):
         self.closed = True
 
+
 class DummyConnection(object):
     tc = None
     expected_value = None
@@ -220,6 +225,7 @@ class DummyConnection(object):
 
     def getresponse(self):
         return self.response
+
 
 class RemotingServiceTestCase(unittest.TestCase):
     def test_create(self):
@@ -464,7 +470,7 @@ class RemotingServiceTestCase(unittest.TestCase):
         gw.setCredentials('spam', 'eggs')
         self.assertTrue('Credentials' in gw.headers)
         self.assertEquals(gw.headers['Credentials'],
-            {'userid' : u'spam', 'password': u'eggs'})
+            {'userid': u'spam', 'password': u'eggs'})
 
         envelope = gw.getAMFRequest([])
         self.assertTrue('Credentials' in envelope.headers)

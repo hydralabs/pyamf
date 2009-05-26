@@ -59,10 +59,12 @@ APPEND_TO_GATEWAY_URL = 'AppendToGatewayUrl'
 REPLACE_GATEWAY_URL = 'ReplaceGatewayUrl'
 REQUEST_PERSISTENT_HEADER = 'RequestPersistentHeader'
 
+
 class RemotingError(pyamf.BaseError):
     """
     Generic remoting error class.
     """
+
 
 class RemotingCallFailed(RemotingError):
     """
@@ -70,6 +72,7 @@ class RemotingCallFailed(RemotingError):
     """
 
 pyamf.add_error_class(RemotingCallFailed, ERROR_CODES[ERROR_CALL_FAILED])
+
 
 class HeaderCollection(dict):
     """
@@ -104,6 +107,7 @@ class HeaderCollection(dict):
 
     def __len__(self):
         return len(self.keys())
+
 
 class Envelope(object):
     """
@@ -221,6 +225,7 @@ class Envelope(object):
 
             return True
 
+
 class Message(object):
     """
     I represent a singular request/response, containing a collection of
@@ -244,6 +249,7 @@ class Message(object):
 
     headers = property(_get_headers)
 
+
 class Request(Message):
     """
     An AMF Request payload.
@@ -259,6 +265,7 @@ class Request(Message):
     def __repr__(self):
         return "<%s target=%s>%s</%s>" % (
             type(self).__name__, repr(self.target), repr(self.body), type(self).__name__)
+
 
 class Response(Message):
     """
@@ -277,6 +284,7 @@ class Response(Message):
             type(self).__name__, _get_status(self.status), repr(self.body),
             type(self).__name__
         )
+
 
 class BaseFault(object):
     """
@@ -327,6 +335,7 @@ class BaseFault(object):
 pyamf.register_class(BaseFault,
     attrs=['level', 'code', 'type', 'details', 'description'])
 
+
 class ErrorFault(BaseFault):
     """
     I represent an error level fault.
@@ -334,6 +343,7 @@ class ErrorFault(BaseFault):
     level = 'error'
 
 pyamf.register_class(ErrorFault)
+
 
 def _read_header(stream, decoder, strict=False):
     """
@@ -371,6 +381,7 @@ def _read_header(stream, decoder, strict=False):
 
     return (name, required, data)
 
+
 def _write_header(name, header, required, stream, encoder, strict=False):
     """
     Write AMF message header.
@@ -404,6 +415,7 @@ def _write_header(name, header, required, stream, encoder, strict=False):
         stream.seek(write_pos)
         stream.write_ulong(new_pos - old_pos)
         stream.seek(new_pos)
+
 
 def _read_body(stream, decoder, strict=False):
     """
@@ -464,6 +476,7 @@ def _read_body(stream, decoder, strict=False):
             data = get_fault(data)
 
         return (target, Response(data, status))
+
 
 def _write_body(name, message, stream, encoder, strict=False):
     """
@@ -530,6 +543,7 @@ def _write_body(name, message, stream, encoder, strict=False):
         stream.write_ulong(new_pos - old_pos)
         stream.seek(new_pos)
 
+
 def _get_status(status):
     """
     Get status code.
@@ -545,6 +559,7 @@ def _get_status(status):
 
     return STATUS_CODES[status]
 
+
 def get_fault_class(level, **kwargs):
     code = kwargs.get('code', '')
 
@@ -552,6 +567,7 @@ def get_fault_class(level, **kwargs):
         return ErrorFault
 
     return BaseFault
+
 
 def get_fault(data):
     try:
@@ -569,6 +585,7 @@ def get_fault(data):
             e[x] = y
 
     return get_fault_class(level, **e)(**e)
+
 
 def decode(stream, context=None, strict=False):
     """
@@ -629,6 +646,7 @@ def decode(stream, context=None, strict=False):
 
     return msg
 
+
 def encode(msg, context=None, strict=False):
     """
     Encodes AMF stream and returns file object.
@@ -669,6 +687,7 @@ def encode(msg, context=None, strict=False):
         _write_body(name, message, stream, encoder, strict)
 
     return stream
+
 
 def get_exception_from_fault(fault):
     """

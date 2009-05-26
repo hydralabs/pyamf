@@ -19,7 +19,8 @@ LocalConnection, SharedObjects and other classes in the Adobe Flash Player.
 @since: 0.1.0
 """
 
-import datetime, types
+import datetime
+import types
 import copy
 
 import pyamf
@@ -104,6 +105,7 @@ class Context(pyamf.BaseContext):
         L{AMF3<pyamf.amf3>}.
     @type amf3_objs: L{util.IndexedCollection}
     """
+
     def __init__(self, **kwargs):
         self.amf3_objs = util.IndexedCollection(exceptions=False)
 
@@ -810,6 +812,7 @@ def decode(stream, context=None, strict=False):
         except pyamf.EOStream:
             break
 
+
 def encode(*args, **kwargs):
     """
     A helper function to encode an element into the AMF0 format.
@@ -900,6 +903,7 @@ class RecordSet(object):
         return ret
 
 pyamf.register_class(RecordSet, 'RecordSet', attrs=['serverInfo'], metadata=['amf0'])
+
 
 def _check_for_int(x):
     """

@@ -23,6 +23,7 @@ __all__ = [
 
 NAMESPACE = 'flex.messaging.messages'
 
+
 class AbstractMessage(object):
     """
     Abstract base class for all Flex messages.
@@ -93,6 +94,7 @@ pyamf.register_class(AbstractMessage, '.'.join([NAMESPACE, 'AbstractMessage']),
         'timeToLive', 'timestamp'
     ], metadata=['amf3', 'static'])
 
+
 class AsyncMessage(AbstractMessage):
     """
     I am the base class for all asynchronous Flex messages.
@@ -116,6 +118,7 @@ class AsyncMessage(AbstractMessage):
 pyamf.register_class(AsyncMessage, '.'.join([NAMESPACE, 'AsyncMessage']),
     attrs=['correlationId'], metadata=['amf3', 'static'])
 
+
 class AcknowledgeMessage(AsyncMessage):
     """
     I acknowledge the receipt of a message that was sent previously.
@@ -133,6 +136,7 @@ class AcknowledgeMessage(AsyncMessage):
 
 pyamf.register_class(AcknowledgeMessage, '.'.join([NAMESPACE, 'AcknowledgeMessage']),
     attrs=[], metadata=['amf3', 'static'])
+
 
 class CommandMessage(AsyncMessage):
     """
@@ -196,6 +200,7 @@ class CommandMessage(AsyncMessage):
 pyamf.register_class(CommandMessage, '.'.join([NAMESPACE, 'CommandMessage']),
     attrs=['operation', 'messageRefType'], metadata=['amf3', 'static'])
 
+
 class ErrorMessage(AcknowledgeMessage):
     """
     I am the Flex error message to be returned to the client.
@@ -233,6 +238,7 @@ class ErrorMessage(AcknowledgeMessage):
 pyamf.register_class(ErrorMessage, '.'.join([NAMESPACE, 'ErrorMessage']),
     attrs=['extendedData', 'faultCode', 'faultDetail', 'faultString', 'rootCause'],
     metadata=['amf3', 'static'])
+
 
 class RemotingMessage(AbstractMessage):
     """

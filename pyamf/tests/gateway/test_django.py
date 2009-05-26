@@ -9,12 +9,15 @@ Django gateway tests.
 @since: 0.1.0
 """
 
-import unittest, sys, os
+import unittest
+import sys
+import os
 
 from django import http
 
 from pyamf import remoting, util
 from pyamf.remoting.gateway import django as _django
+
 
 class HttpRequest(http.HttpRequest):
     """
@@ -26,6 +29,7 @@ class HttpRequest(http.HttpRequest):
         http.HttpRequest.__init__(self, *args, **kwargs)
 
         self.raw_post_data = ''
+
 
 class DjangoGatewayTestCase(unittest.TestCase):
     def setUp(self):
@@ -154,6 +158,7 @@ class DjangoGatewayTestCase(unittest.TestCase):
             raise
 
         remoting.decode = self.old_method
+
 
 def suite():
     suite = unittest.TestSuite()

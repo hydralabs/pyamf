@@ -16,7 +16,8 @@ U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>}.
 @status: Production/Stable
 """
 
-import types, inspect
+import types
+import inspect
 
 from pyamf import util
 from pyamf.adapters import register_adapters
@@ -43,7 +44,8 @@ ERROR_CLASS_MAP = {}
 #: Alias mapping support
 ALIAS_TYPES = {}
 
-#: Specifies that objects are serialized using AMF for ActionScript 1.0 and 2.0.
+#: Specifies that objects are serialized using AMF for ActionScript 1.0
+#: and 2.0.
 AMF0 = 0
 #: Specifies that objects are serialized using AMF for ActionScript 3.0.
 AMF3 = 3
@@ -78,6 +80,7 @@ del x
 
 
 class UndefinedType(object):
+
     def __repr__(self):
         return 'pyamf.Undefined'
 
@@ -343,8 +346,8 @@ class ClassAlias(object):
         @param klass: The class to alias.
         @type alias: C{str}
         @param alias: The alias to the class e.g. C{org.example.Person}. If the
-            value of this is C{None}, then it is worked out based on the C{klass}.
-            The anonymous tag is also added to the class.
+            value of this is C{None}, then it is worked out based on the
+            C{klass}. The anonymous tag is also added to the class.
         @type attrs: A list of attributes to encode for this class.
         @param attrs: C{list}
         @type metadata: A list of metadata tags similar to ActionScript tags.
@@ -696,6 +699,7 @@ class CustomTypeFunc(object):
     """
     Custom type mappings.
     """
+
     def __init__(self, encoder, func):
         self.encoder = encoder
         self.func = func
@@ -1206,6 +1210,7 @@ def add_type(type_, func=None):
     @raise TypeError: Unable to add as a custom type (expected a class or callable).
     @raise KeyError: Type already exists.
     """
+
     def _check_type(type_):
         if not (isinstance(type_, (type, types.ClassType)) or callable(type_)):
             raise TypeError('Unable to add \'%r\' as a custom type (expected a class or callable)' % (type_,))
@@ -1332,6 +1337,7 @@ def register_alias_type(klass, *args):
     @raise ValueError: New aliases must subclass L{pyamf.ClassAlias}.
     @raise ValueError: At least one type must be supplied.
     """
+
     def check_type_registered(arg):
         # FIXME: Create a reverse index of registered types and do a quicker lookup
         for k, v in ALIAS_TYPES.iteritems():

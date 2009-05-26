@@ -7,11 +7,15 @@ PyAMF Django adapter tests.
 @since: 0.3.1
 """
 
-import unittest, sys, os, new
+import unittest
+import sys
+import os
+import new
 import datetime
 
 import pyamf
 from pyamf.tests import util
+
 
 class ModelsBaseTestCase(unittest.TestCase):
     def setUp(self):
@@ -74,6 +78,7 @@ class ModelsBaseTestCase(unittest.TestCase):
 
         sys.stderr = old_stderr
 
+
 class TypeMapTestCase(ModelsBaseTestCase):
     def test_objects_all(self):
         from django.db import models
@@ -102,6 +107,7 @@ class TypeMapTestCase(ModelsBaseTestCase):
         encoder = pyamf.get_encoder(pyamf.AMF3)
         encoder.writeElement(fields.NOT_PROVIDED)
         self.assertEquals(encoder.stream.getvalue(), '\x00')
+
 
 class ClassAliasTestCase(ModelsBaseTestCase):
     def test_time(self):
@@ -161,7 +167,7 @@ class ClassAliasTestCase(ModelsBaseTestCase):
         })
 
         self.assertEquals(x.id, fields.NOT_PROVIDED)
-    
+
         x.id = fields.NOT_PROVIDED
 
         sa, da = alias.getAttributes(x)
@@ -198,6 +204,7 @@ class ClassAliasTestCase(ModelsBaseTestCase):
 
         # test it hasn't been set
         self.assertEquals(x.numberOfOddPages, 234)
+
 
 class ForeignKeyTestCase(ModelsBaseTestCase):
     def test_one_to_many(self):
@@ -389,12 +396,14 @@ class ForeignKeyTestCase(ModelsBaseTestCase):
         self.assertEquals(len(p), 1)
         self.assertEquals(p[0], p1)
 
+
 class I18NTestCase(ModelsBaseTestCase):
     def test_encode(self):
         from django.utils.translation import ugettext_lazy
 
         self.assertEquals(pyamf.encode(ugettext_lazy('Hello')).getvalue(),
             '\x02\x00\x05Hello')
+
 
 def suite():
     suite = unittest.TestSuite()

@@ -18,6 +18,7 @@ from google.appengine.ext import webapp
 from pyamf import remoting
 from pyamf.remoting.gateway import google as _google
 
+
 class WebAppGatewayTestCase(unittest.TestCase):
     def setUp(self):
         unittest.TestCase.setUp(self)
@@ -83,6 +84,7 @@ class WebAppGatewayTestCase(unittest.TestCase):
         self.gw.post()
 
         self.assertTrue(self.executed)
+
 
 def suite():
     suite = unittest.TestSuite()

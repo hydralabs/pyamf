@@ -14,6 +14,7 @@ import unittest
 import pyamf
 from pyamf.flex import messaging
 
+
 class AbstractMessageTestCase(unittest.TestCase):
     def test_repr(self):
         a = messaging.AbstractMessage()
@@ -24,6 +25,7 @@ class AbstractMessageTestCase(unittest.TestCase):
             repr(a)
         except:
             self.fail()
+
 
 class EncodingTestCase(unittest.TestCase):
     def test_AsyncMessage(self):
@@ -75,6 +77,7 @@ class EncodingTestCase(unittest.TestCase):
             'operation\rsource\tbody\x11clientId\x17destination\x0fheaders\x13'
             'messageId\x15timeToLive\x13timestamp\x01\x06\x0ffoo.bar\x01\x01'
             '\x01\n\x0b\x01\x01\x01\x04\x00\x04\x00')
+
 
 def suite():
     suite = unittest.TestSuite()
