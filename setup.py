@@ -5,7 +5,7 @@ from ez_setup import use_setuptools
 
 use_setuptools()
 
-import sys
+import sys, os.path
 from setuptools import setup, find_packages, Extension
 from setuptools.command import test
 
@@ -43,7 +43,6 @@ def get_version():
 
     @since: 0.4
     """
-    import os.path
     # we read the file instead of importing it as root sometimes does not
     # have the cwd as part of the PYTHONPATH
 
@@ -150,10 +149,12 @@ amf amf0 amf3 flex flash remoting rpc http flashplayer air bytearray
 objectproxy arraycollection recordset actionscript decoder encoder
 gateway remoteobject twisted pylons django sharedobject lso sol"""
 
+readme = os.path.join(os.path.dirname(__file__), 'README.txt')
+
 setup(name = "PyAMF",
     version = get_version(),
     description = "AMF support for Python",
-    long_description = open('README.txt', 'rt').read(),
+    long_description = open(readme, 'rt').read(),
     url = "http://pyamf.org",
     author = "The PyAMF Project",
     author_email = "dev@pyamf.org",
