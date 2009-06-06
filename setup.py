@@ -14,6 +14,7 @@ try:
 except ImportError:
     from setuptools.command.build_ext import build_ext
 
+
 class TestCommand(test.test):
     def run_twisted(self):
         from twisted.trial import runner
@@ -35,6 +36,7 @@ class TestCommand(test.test):
             return self.run_twisted()
         except ImportError:
             return test.test.run_tests(self)
+
 
 def get_version():
     """
@@ -64,20 +66,6 @@ def get_version():
 
     return '.'.join([str(x) for x in version])
 
-def is_float_broken():
-    """
-    Older versions of python (<=2.5) and the Windows platform are renowned for
-    mixing up 'special' floats. This function determines whether this is the
-    case.
-
-    @since: 0.4
-    """
-    import struct
-
-    # we do this instead of float('nan') because windows throws a wobbler.
-    nan = 1e300000 / 1e300000
-
-    return str(nan) != str(struct.unpack("!d", '\xff\xf8\x00\x00\x00\x00\x00\x00')[0])
 
 def get_cpyamf_extensions():
     """
@@ -117,6 +105,7 @@ def get_cpyamf_extensions():
 
     return ext_modules
 
+
 def get_extensions():
     """
     Returns a list of extensions to be built for PyAMF.
@@ -129,6 +118,7 @@ def get_extensions():
 
     return ext_modules
 
+
 def get_install_requirements():
     """
     Returns a list of dependancies for PyAMF to function correctly on the
@@ -139,10 +129,8 @@ def get_install_requirements():
     if sys.version_info < (2, 5):
         install_requires.extend(["elementtree >= 1.2.6", "uuid>=1.30"])
 
-    if is_float_broken():
-        install_requires.append("fpconst>=0.7.2")
-
     return install_requires
+
 
 keyw = """\
 amf amf0 amf3 flex flash remoting rpc http flashplayer air bytearray

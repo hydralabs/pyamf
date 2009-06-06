@@ -13,6 +13,10 @@ import copy
 import pyamf
 from pyamf.util import BufferedByteStream, is_float_broken
 
+PosInf = 1e300000
+NegInf = -1e300000
+NaN = PosInf / PosInf
+
 
 class ClassicSpam:
     def __readamf__(self, input):
@@ -110,30 +114,15 @@ class DecoderTester(object):
 
 
 def isNaN(val):
-    if is_float_broken():
-        import fpconst
-
-        return fpconst.isNaN(val)
-    else:
-        return str(float(val)) == str(1e300000/1e300000)
+    return str(float(val)) == str(NaN)
 
 
 def isPosInf(val):
-    if is_float_broken():
-        import fpconst
-
-        return fpconst.isPosInf(val)
-    else:
-        return val == 1e300000
+    return str(float(val)) == str(PosInf)
 
 
 def isNegInf(val):
-    if is_float_broken():
-        import fpconst
-
-        return fpconst.isNegInf(val)
-    else:
-        return val == -1e300000
+    return str(float(val)) == str(NegInf)
 
 
 def check_buffer(buf, parts, inner=False):

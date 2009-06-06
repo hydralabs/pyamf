@@ -21,6 +21,7 @@ try:
 except ImportError:
     from StringIO import StringIO
 
+
 xml_types = None
 ET = None
 negative_timestamp_broken = False
@@ -41,6 +42,11 @@ except NameError:
 
 int_types = tuple(int_types)
 str_types = tuple(str_types)
+
+PosInf = 1e300000
+NegInf = -1e300000
+# we do this instead of float('nan') because windows throws a wobbler.
+NaN = PosInf / PosInf
 
 
 def find_xml_lib():
@@ -910,10 +916,30 @@ def is_float_broken():
     @since: 0.4
     @rtype: C{bool}
     """
-    # we do this instead of float('nan') because windows throws a wobbler.
-    nan = 1e300000/1e300000
+    global NaN
 
-    return str(nan) != str(struct.unpack("!d", '\xff\xf8\x00\x00\x00\x00\x00\x00')[0])
+    return str(NaN) != str(struct.unpack("!d", '\xff\xf8\x00\x00\x00\x00\x00\x00')[0])
+
+
+def isNaN(val):
+    """
+    @since 0.5
+    """
+    return str(float(val)) == str(NaN)
+
+
+def isPosInf(val):
+    """
+    @since 0.5
+    """
+    return str(float(val)) == str(PosInf)
+
+
+def isNegInf(val):
+    """
+    @since 0.5
+    """
+    return str(float(val)) == str(NegInf)
 
 
 # init the module from here ..
@@ -926,29 +952,29 @@ except ValueError:
     negative_timestamp_broken = True
 
 if is_float_broken():
-    import fpconst
-
     def read_double_workaround(self):
+        global PosInf, NegInf, NaN
+
         bytes = self.read(8)
 
         if self._is_big_endian():
             if bytes == '\xff\xf8\x00\x00\x00\x00\x00\x00':
-                return fpconst.NaN
+                return NaN
 
             if bytes == '\xff\xf0\x00\x00\x00\x00\x00\x00':
-                return fpconst.NegInf
+                return NegInf
 
             if bytes == '\x7f\xf0\x00\x00\x00\x00\x00\x00':
-                return fpconst.PosInf
+                return PosInf
         else:
             if bytes == '\x00\x00\x00\x00\x00\x00\xf8\xff':
-                return fpconst.NaN
+                return NaN
 
             if bytes == '\x00\x00\x00\x00\x00\x00\xf0\xff':
-                return fpconst.NegInf
+                return NegInf
 
             if bytes == '\x00\x00\x00\x00\x00\x00\xf0\x7f':
-                return fpconst.PosInf
+                return PosInf
 
         return struct.unpack("%sd" % self.endian, bytes)[0]
 
@@ -958,17 +984,17 @@ if is_float_broken():
         if type(d) is not float:
             raise TypeError('expected a float (got:%r)' % (type(d),))
 
-        if fpconst.isNaN(d):
+        if isNaN(d):
             if self._is_big_endian():
                 self.write('\xff\xf8\x00\x00\x00\x00\x00\x00')
             else:
                 self.write('\x00\x00\x00\x00\x00\x00\xf8\xff')
-        elif fpconst.isNegInf(d):
+        elif isNegInf(d):
             if self._is_big_endian():
                 self.write('\xff\xf0\x00\x00\x00\x00\x00\x00')
             else:
                 self.write('\x00\x00\x00\x00\x00\x00\xf0\xff')
-        elif fpconst.isPosInf(d):
+        elif isPosInf(d):
             if self._is_big_endian():
                 self.write('\x7f\xf0\x00\x00\x00\x00\x00\x00')
             else:
@@ -979,6 +1005,7 @@ if is_float_broken():
     x = DataTypeMixIn.write_double
     DataTypeMixIn.write_double = write_double_workaround
     write_double_workaround.old_func = x
+
 
 try:
     from cpyamf.util import BufferedByteStream
