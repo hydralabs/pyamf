@@ -8,6 +8,8 @@ versions of PyAMF.
 
 0.5 (unreleased)
 ----------------
+ - Removed dependancy on fpconst. Platforms with broken platforms are detected
+   and handled correctly internally (Ticket:564)
  - amf0.Encoder now supports attribute ordering (Ticket:558)
  - Removed duplicate method Context.reset, in favour of Context.clear
    (Ticket:527)

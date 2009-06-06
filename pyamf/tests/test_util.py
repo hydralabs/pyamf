@@ -778,7 +778,7 @@ def suite():
 
     try:
         import cStringIO
-        test_cases.append(cStringIOProxyTestCase)
+        #test_cases.append(cStringIOProxyTestCase)
     except ImportError:
         pass
 

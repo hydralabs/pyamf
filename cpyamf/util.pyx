@@ -70,16 +70,14 @@ DEF ENDIAN_BIG = ">"
 cdef char SYSTEM_ENDIAN
 
 cdef int float_broken = -1
-cdef double NaN = float('nan')
-cdef double NegInf = float('-inf')
-cdef double PosInf = float('inf')
-cdef double system_nan = float('nan')
-cdef double system_posinf = float('inf')
-cdef double system_neginf = float('-inf')
+cdef double PosInf = <double>0x7ff0000000000000
+cdef double NegInf = <double>0xfff0000000000000 
+cdef double NaN = <double>0x7ff8000000000000
+cdef double system_nan = <double>0x7ff8000000000000
+cdef double system_posinf = <double>0x7ff0000000000000
+cdef double system_neginf = <double>0xfff0000000000000
 
 cdef int complete_init = 0
-
-import fpconst
 
 cdef int complete_import() except? -1:
     # this will be filled out later ..
@@ -251,7 +249,7 @@ cdef class cBufferedByteStream:
 
         buf[0] = <char *>PyMem_Malloc(sizeof(char *) * size)
 
-        if not buf[0]:
+        if buf[0] == NULL:
             raise MemoryError
 
             return -1
@@ -782,12 +780,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
 
         cdef char *buf = NULL
 
-        if cBufferedByteStream.read(self, &buf, s) == -1:
-            if buf != NULL:
-                PyMem_Free(buf)
-
-            cls = <object>PyErr_Occurred()
-            raise cls()
+        cBufferedByteStream.read(self, &buf, s)
 
         r = PyString_FromStringAndSize(buf, s)
         PyMem_Free(buf)
@@ -847,58 +840,130 @@ cdef class BufferedByteStream(cBufferedByteStream):
         cBufferedByteStream.consume(self)
 
     def read_uchar(self):
-        cdef unsigned char ret
+        cdef unsigned char *i = NULL
+        cdef object ret
 
-        cBufferedByteStream.read_uchar(self, &ret)
+        i = <unsigned char *>PyMem_Malloc(1 * sizeof(unsigned char))
+
+        if i == NULL:
+            raise MemoryError
+
+        cBufferedByteStream.read_uchar(self, i)
+
+        ret = <unsigned char>(i[0])
+        PyMem_Free(i)
 
         return ret
 
     def read_char(self):
-        cdef char ret
+        cdef char *i = NULL
+        cdef object ret
 
-        cBufferedByteStream.read_char(self, &ret)
+        i = <char *>PyMem_Malloc(1 * sizeof(char))
+
+        if i == NULL:
+            raise MemoryError
+
+        cBufferedByteStream.read_char(self, i)
+
+        ret = <char>(i[0])
+        PyMem_Free(i)
 
         return ret
 
     def read_ushort(self):
-        cdef unsigned short ret
+        cdef unsigned short *i = NULL
+        cdef object ret
 
-        cBufferedByteStream.read_ushort(self, &ret)
+        i = <unsigned short *>PyMem_Malloc(1 * sizeof(unsigned short))
+
+        if i == NULL:
+            raise MemoryError
+
+        cBufferedByteStream.read_ushort(self, i)
+
+        ret = <unsigned short>(i[0])
+        PyMem_Free(i)
 
         return ret
 
     def read_short(self):
-        cdef short ret
+        cdef short *i = NULL
+        cdef object ret
 
-        cBufferedByteStream.read_short(self, &ret)
+        i = <short *>PyMem_Malloc(1 * sizeof(short))
+
+        if i == NULL:
+            raise MemoryError
+
+        cBufferedByteStream.read_short(self, i)
+
+        ret = <short>(i[0])
+        PyMem_Free(i)
 
         return ret
 
     def read_ulong(self):
-        cdef unsigned long ret
+        cdef unsigned long *i = NULL
+        cdef object ret
 
-        cBufferedByteStream.read_ulong(self, &ret)
+        i = <unsigned long *>PyMem_Malloc(1 * sizeof(unsigned long))
+
+        if i == NULL:
+            raise MemoryError
+
+        cBufferedByteStream.read_ulong(self, i)
+
+        ret = <unsigned long>(i[0])
+        PyMem_Free(i)
 
         return ret
 
     def read_long(self):
-        cdef long ret
+        cdef long *i = NULL
+        cdef object ret
 
-        cBufferedByteStream.read_long(self, &ret)
+        i = <long *>PyMem_Malloc(1 * sizeof(long))
+
+        if i == NULL:
+            raise MemoryError
+
+        cBufferedByteStream.read_long(self, i)
+
+        ret = <long>(i[0])
+        PyMem_Free(i)
 
         return ret
 
     def read_24bit_uint(self):
-        cdef unsigned long ret
+        cdef unsigned long *i = NULL
+        cdef object ret
 
-        cBufferedByteStream.read_24bit_uint(self, &ret)
+        i = <unsigned long *>PyMem_Malloc(1 * sizeof(unsigned long))
+
+        if i == NULL:
+            raise MemoryError
+
+        cBufferedByteStream.read_24bit_uint(self, i)
+
+        ret = <long>(i[0])
+        PyMem_Free(i)
 
         return ret
 
     def read_24bit_int(self):
-        cdef long ret
+        cdef long *i = NULL
+        cdef object ret
 
-        cBufferedByteStream.read_24bit_int(self, &ret)
+        i = <long *>PyMem_Malloc(1 * sizeof(long))
+
+        if i == NULL:
+            raise MemoryError
+
+        cBufferedByteStream.read_24bit_int(self, i)
+
+        ret = <long>(i[0])
+        PyMem_Free(i)
 
         return ret
 
@@ -958,11 +1023,11 @@ cdef class BufferedByteStream(cBufferedByteStream):
 
         if float_broken:
             if memcmp(&x, &NaN, 8) == 0:
-                return fpconst.NaN
+                return NaN
             elif memcmp(&x, &NegInf, 8) == 0:
-                return fpconst.NegInf
+                return NegInf
             elif memcmp(&x, &PosInf, 8) == 0:
-                return fpconst.PosInf
+                return PosInf
 
         return PyFloat_FromDouble(x)
 
