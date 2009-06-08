@@ -2,7 +2,7 @@
 # See LICENSE for details.
 
 """
-Python C-extensions for L{PyAMF<pyamf>}.
+C-extension for L{pyamf.amf3} Python module in L{PyAMF<pyamf>}.
 
 @since: 0.4
 """
@@ -93,6 +93,11 @@ cdef long _decode_int(object stream, int sign=0):
     return result
 
 def encode_int(long n):
+    """
+    Encode C{int}.
+    
+    @raise OverflowError: Out of range.
+    """
     if n >= 0x40000000:
         raise OverflowError("Out of range")
 
@@ -105,4 +110,7 @@ def encode_int(long n):
     return o
 
 def decode_int(stream, sign=False):
+    """
+    Decode C{int}.
+    """
     return PyInt_FromLong(_decode_int(stream, <int>sign))

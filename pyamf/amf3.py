@@ -1777,6 +1777,8 @@ def encode(*args, **kwargs):
 
 def encode_int(n):
     """
+    Encode C{int}.
+    
     @raise OverflowError: Out of range.
     """
     if n & 0xf0000000 not in [0, 0xf0000000]:
@@ -1811,6 +1813,9 @@ def encode_int(n):
 
 
 def decode_int(stream, signed=False):
+    """
+    Decode C{int}.
+    """
     n = result = 0
     b = stream.read_uchar()
 
