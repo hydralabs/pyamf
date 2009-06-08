@@ -21,9 +21,11 @@ try:
 except ImportError:
     from StringIO import StringIO
 
-
+#: XML types.
 xml_types = None
 ET = None
+#: On some Python versions retrieving a negative timestamp, like
+#: C{datetime.datetime.utcfromtimestamp(-31536000.0)} is broken.
 negative_timestamp_broken = False
 
 int_types = [int]
@@ -40,7 +42,9 @@ try:
 except NameError:
     pass
 
+#: Numeric types.
 int_types = tuple(int_types)
+#: String types.
 str_types = tuple(str_types)
 
 PosInf = 1e300000
@@ -152,14 +156,29 @@ class StringIOProxy(object):
         self._buffer.seek(0, 0)
 
     def getvalue(self):
+        """
+        Get raw data from buffer.
+        """
         return self._buffer.getvalue()
 
     def read(self, n=-1):
+        """
+        Reads C{n} bytes from the stream.
+        """
         bytes = self._buffer.read(n)
 
         return bytes
 
     def seek(self, pos, mode=0):
+        """
+        Sets the file-pointer offset, measured from the beginning of this stream,
+        at which the next write operation will occur.
+        
+        @param pos:
+        @type pos: C{int}
+        @param mode:
+        @type mode: C{int}
+        """
         return self._buffer.seek(pos, mode)
 
     def tell(self):
@@ -169,6 +188,12 @@ class StringIOProxy(object):
         return self._buffer.tell()
 
     def truncate(self, size=0):
+        """
+        Truncates the stream to the specified length.
+        
+        @param size: The length of the stream, in bytes.
+        @type size: C{int}
+        """
         if size == 0:
             self._buffer = StringIOProxy._wrapped_class()
             self._len_changed = True
@@ -185,10 +210,19 @@ class StringIOProxy(object):
         self._len_changed = True
 
     def write(self, s):
+        """
+        Writes the content of the specified C{s} into this buffer.
+        
+        @param s:
+        @type s:
+        """
         self._buffer.write(s)
         self._len_changed = True
 
     def _get_len(self):
+        """
+        Return total number of bytes in buffer.
+        """
         if hasattr(self._buffer, 'len'):
             self._len = self._buffer.len
 
@@ -232,11 +266,19 @@ class DataTypeMixIn(object):
     """
     Provides methods for reading and writing basic data types for file-like
     objects.
+    
+    @ivar endian: Byte ordering used to represent the data. Default byte order
+        is L{ENDIAN_NETWORK}.
+    @type endian: C{str}
     """
 
+    #: Network byte order
     ENDIAN_NETWORK = "!"
+    #: Native byte order
     ENDIAN_NATIVE = "@"
+    #: Little endian
     ENDIAN_LITTLE = "<"
+    #: Big endian
     ENDIAN_BIG = ">"
 
     endian = ENDIAN_NETWORK
@@ -276,6 +318,9 @@ class DataTypeMixIn(object):
         """
         Writes an C{unsigned char} to the stream.
 
+        @param c: Unsigned char
+        @type c: C{int}
+        @raise TypeError: Unexpected type for int C{c}.
         @raise OverflowError: Not in range.
         """
         if type(c) not in int_types:
@@ -296,6 +341,9 @@ class DataTypeMixIn(object):
         """
         Write a C{char} to the stream.
 
+        @param c: char
+        @type c: C{int}
+        @raise TypeError: Unexpected type for int C{c}. 
         @raise OverflowError: Not in range.
         """
         if type(c) not in int_types:
@@ -316,6 +364,9 @@ class DataTypeMixIn(object):
         """
         Writes a 2 byte unsigned integer to the stream.
 
+        @param s: 2 byte unsigned integer
+        @type s: C{int}
+        @raise TypeError: Unexpected type for int C{s}.
         @raise OverflowError: Not in range.
         """
         if type(s) not in int_types:
@@ -336,6 +387,9 @@ class DataTypeMixIn(object):
         """
         Writes a 2 byte integer to the stream.
 
+        @param s: 2 byte integer
+        @type s: C{int}
+        @raise TypeError: Unexpected type for int C{s}.
         @raise OverflowError: Not in range.
         """
         if type(s) not in int_types:
@@ -356,6 +410,9 @@ class DataTypeMixIn(object):
         """
         Writes a 4 byte unsigned integer to the stream.
 
+        @param l: 4 byte unsigned integer
+        @type l: C{int}
+        @raise TypeError: Unexpected type for int C{l}.
         @raise OverflowError: Not in range.
         """
         if type(l) not in int_types:
@@ -376,6 +433,9 @@ class DataTypeMixIn(object):
         """
         Writes a 4 byte integer to the stream.
 
+        @param l: 4 byte integer
+        @type l: C{int}
+        @raise TypeError: Unexpected type for int C{l}.
         @raise OverflowError: Not in range.
         """
         if type(l) not in int_types:
@@ -411,6 +471,10 @@ class DataTypeMixIn(object):
         Writes a 24 bit unsigned integer to the stream.
 
         @since: 0.4
+        @param n: 24 bit unsigned integer
+        @type n: C{int}
+        @raise TypeError: Unexpected type for int C{n}.
+        @raise OverflowError: Not in range.
         """
         if type(n) not in int_types:
             raise TypeError('expected an int (got:%r)' % (type(n),))
@@ -447,6 +511,10 @@ class DataTypeMixIn(object):
         Writes a 24 bit integer to the stream.
 
         @since: 0.4
+        @param n: 24 bit integer
+        @type n: C{int}
+        @raise TypeError: Unexpected type for int C{n}.
+        @raise OverflowError: Not in range.
         """
         if type(n) not in int_types:
             raise TypeError('expected an int (got:%r)' % (type(n),))
@@ -476,6 +544,10 @@ class DataTypeMixIn(object):
     def write_double(self, d):
         """
         Writes an 8 byte float to the stream.
+        
+        @param d: 8 byte float
+        @type d: C{float}
+        @raise TypeError: Unexpected type for float C{d}.
         """
         if not type(d) is float:
             raise TypeError('expected a float (got:%r)' % (type(d),))
@@ -491,6 +563,10 @@ class DataTypeMixIn(object):
     def write_float(self, f):
         """
         Writes a 4 byte float to the stream.
+        
+        @param f: 4 byte float
+        @type f: C{float}
+        @raise TypeError: Unexpected type for float C{f}.
         """
         if type(f) is not float:
             raise TypeError('expected a float (got:%r)' % (type(f),))
@@ -509,7 +585,10 @@ class DataTypeMixIn(object):
 
     def write_utf8_string(self, u):
         """
-        Writes a unicode object to the stream in UTF-8
+        Writes a unicode object to the stream in UTF-8.
+        
+        @param u: unicode object
+        @raise TypeError: Unexpected type for str C{u}.
         """
         if type(u) not in str_types:
             raise TypeError('expected a str (got:%r)' % (type(u),))
@@ -532,6 +611,8 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
     Features:
      - Raises L{IOError} if reading past end.
      - Allows you to C{peek()} at the next byte.
+
+    @see: L{cBufferedByteStream<cpyamf.util.cBufferedByteStream>}
     """
 
     def __init__(self, buf=None):
@@ -545,17 +626,22 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
 
     def read(self, length=-1):
         """
+        Reads up to the specified number of bytes from the stream into
+        the specified byte array of specified length.
+        
+        @raise IOError: FIXME
+        @raise IOError: FIXME
         """
         if length == -1 and self.at_eof():
-            raise IOError
+            raise IOError("FIXME")
         elif length > 0 and self.tell() + length > len(self):
-            raise IOError
+            raise IOError("FIXME")
 
         return StringIOProxy.read(self, length)
 
     def peek(self, size=1):
         """
-        Looks size bytes ahead in the stream, returning what it finds,
+        Looks C{size} bytes ahead in the stream, returning what it finds,
         returning the stream pointer to its initial position.
 
         @param size: Default is 1.
@@ -592,12 +678,11 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
 
     def at_eof(self):
         """
-        Returns true if the internal pointer is at the end of the stream.
+        Returns C{True} if the internal pointer is at the end of the stream.
 
         @rtype: C{bool}
         """
         return self.tell() == len(self)
-
 
     def __add__(self, other):
         old_pos = self.tell()
@@ -754,8 +839,8 @@ class IndexedCollection(object):
     referenced objects.
 
     @note: All attributes on the instance are private.
-    @ivar exceptions: If C{True} then L{pyamf.ReferenceError} will be raised,
-        otherwise C{None} will be returned.
+    @ivar exceptions: If C{True} then L{ReferenceError<pyamf.ReferenceError>}
+        will be raised, otherwise C{None} will be returned.
     """
 
     def __init__(self, use_hash=False, exceptions=True):
@@ -862,6 +947,9 @@ class IndexedMap(IndexedCollection):
         IndexedCollection.__init__(self, use_hash, exceptions)
 
     def clear(self):
+        """
+        Clears the index and mapping.
+        """
         IndexedCollection.clear(self)
 
         self.mapped = []
@@ -885,6 +973,11 @@ class IndexedMap(IndexedCollection):
             raise pyamf.ReferenceError("Reference %r not found" % ref)
 
     def append(self, obj):
+        """
+        Appends C{obj} to this index.
+
+        @return: The reference to C{obj} in this index.
+        """
         idx = IndexedCollection.append(self, obj)
         diff = (idx + 1) - len(self.mapped)
 
@@ -894,6 +987,9 @@ class IndexedMap(IndexedCollection):
         return idx
 
     def map(self, obj, mapped_obj):
+        """
+        Maps an object.
+        """
         idx = self.append(obj)
         self.mapped[idx] = mapped_obj
 
@@ -955,6 +1051,10 @@ if is_float_broken():
     def read_double_workaround(self):
         global PosInf, NegInf, NaN
 
+        """
+        Override the L{DataTypeMixIn.read_double} method to fix problems
+        with doubles by using the third-party C{fpconst} library.
+        """
         bytes = self.read(8)
 
         if self._is_big_endian():
@@ -981,6 +1081,10 @@ if is_float_broken():
     DataTypeMixIn.read_double = read_double_workaround
 
     def write_double_workaround(self, d):
+        """
+        Override the L{DataTypeMixIn.write_double} method to fix problems
+        with doubles by using the third-party C{fpconst} library.
+        """
         if type(d) is not float:
             raise TypeError('expected a float (got:%r)' % (type(d),))
 
@@ -1009,7 +1113,7 @@ if is_float_broken():
 
 try:
     from cpyamf.util import BufferedByteStream
-
+    
     class StringIOProxy(BufferedByteStream):
         _wrapped_class = None
 
@@ -1018,9 +1122,13 @@ try:
             self._buffer = self
 
     class DataTypeMixIn(BufferedByteStream):
+        #: Network byte order
         ENDIAN_NETWORK = "!"
+        #: Native byte order
         ENDIAN_NATIVE = "@"
+        #: Little endian
         ENDIAN_LITTLE = "<"
+        #: Big endian
         ENDIAN_BIG = ">"
 except ImportError:
     pass
