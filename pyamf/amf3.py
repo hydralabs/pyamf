@@ -1224,7 +1224,7 @@ class Encoder(pyamf.BaseEncoder):
         ((float,), "writeNumber"),
         (types.StringTypes, "writeString"),
         ((ByteArray,), "writeByteArray"),
-        ((datetime.date, datetime.datetime), "writeDate"),
+        ((datetime.date, datetime.datetime, datetime.time), "writeDate"),
         ((util.is_ET_element,), "writeXML"),
         ((pyamf.UndefinedType,), "writeUndefined"),
         ((types.InstanceType, types.ObjectType,), "writeInstance"),
@@ -1404,6 +1404,11 @@ class Encoder(pyamf.BaseEncoder):
         @type   use_references: C{bool}
         @param  use_references: Default is C{True}.
         """
+        if isinstance(n, datetime.time):
+            raise pyamf.EncodeError('A datetime.time instance was found but '
+                'AMF3 has no way to encode time objects. Please use '
+                'datetime.datetime instead (got:%r)' % (n,))
+
         self.stream.write(TYPE_DATE)
 
         if use_references is True:

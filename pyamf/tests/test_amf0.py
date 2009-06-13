@@ -243,6 +243,15 @@ class EncoderTestCase(ClassCacheClearingTestCase):
             (datetime.datetime(2009, 3, 8, 23, 30, 47, 770122),
                 '\x0bBq\xfe\x86\xca5\xa1\xf4\x00\x00')])
 
+        try:
+            self._run([(datetime.time(22, 3), '')])
+        except pyamf.EncodeError, e:
+            self.assertEquals(str(e), 'A datetime.time instance was found but '
+                'AMF0 has no way to encode time objects. Please use '
+                'datetime.datetime instead (got:datetime.time(22, 3))')
+        else:
+            self.fail('pyamf.EncodeError not raised when encoding datetime.time')
+
     def test_xml(self):
         self._run([
             (util.ET.fromstring('<a><b>hello world</b></a>'), '\x0f\x00\x00'
