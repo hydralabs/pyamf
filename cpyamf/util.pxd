@@ -54,3 +54,4 @@ cdef class cBufferedByteStream:
     cdef int write_double(self, double val) except? -1
     cdef int read_float(self, float *x) except? -1
     cdef int write_float(self, float c) except? -1
+    cdef int append(self, object obj) except? -1

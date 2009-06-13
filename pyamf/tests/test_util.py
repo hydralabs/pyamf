@@ -590,6 +590,180 @@ class BufferedByteStreamTestCase(unittest.TestCase):
         self.assertEquals(a.tell(), 1)
         self.assertEquals(b.tell(), 3)
 
+    def test_append_types(self):
+        # test non string types
+        a = util.BufferedByteStream()
+
+        self.assertRaises(TypeError, a.append, 234234)
+        self.assertRaises(TypeError, a.append, 234.0)
+        self.assertRaises(TypeError, a.append, 234234L)
+        self.assertRaises(TypeError, a.append, [])
+        self.assertRaises(TypeError, a.append, {})
+        self.assertRaises(TypeError, a.append, lambda _: None)
+        self.assertRaises(TypeError, a.append, ())
+        self.assertRaises(TypeError, a.append, object())
+
+    def test_append_string(self):
+        """
+        Test L{util.BufferedByteStream.append} with C{str} objects.
+        """
+        # test empty
+        a = util.BufferedByteStream()
+
+        self.assertEquals(a.getvalue(), '')
+        self.assertEquals(a.tell(), 0)
+        self.assertEquals(len(a), 0)
+
+        a.append('foo')
+
+        self.assertEquals(a.getvalue(), 'foo')
+        self.assertEquals(a.tell(), 0) # <-- pointer hasn't moved
+        self.assertEquals(len(a), 3)
+
+        # test pointer beginning, some data
+
+        a = util.BufferedByteStream('bar')
+
+        self.assertEquals(a.getvalue(), 'bar')
+        self.assertEquals(a.tell(), 0)
+        self.assertEquals(len(a), 3)
+
+        a.append('gak')
+
+        self.assertEquals(a.getvalue(), 'bargak')
+        self.assertEquals(a.tell(), 0) # <-- pointer hasn't moved
+        self.assertEquals(len(a), 6)
+
+        # test pointer middle, some data
+
+        a = util.BufferedByteStream('bar')
+        a.seek(2)
+
+        self.assertEquals(a.getvalue(), 'bar')
+        self.assertEquals(a.tell(), 2)
+        self.assertEquals(len(a), 3)
+
+        a.append('gak')
+
+        self.assertEquals(a.getvalue(), 'bargak')
+        self.assertEquals(a.tell(), 2) # <-- pointer hasn't moved
+        self.assertEquals(len(a), 6)
+
+        # test pointer end, some data
+
+        a = util.BufferedByteStream('bar')
+        a.seek(0, 2)
+
+        self.assertEquals(a.getvalue(), 'bar')
+        self.assertEquals(a.tell(), 3)
+        self.assertEquals(len(a), 3)
+
+        a.append('gak')
+
+        self.assertEquals(a.getvalue(), 'bargak')
+        self.assertEquals(a.tell(), 3) # <-- pointer hasn't moved
+        self.assertEquals(len(a), 6)
+
+        class Foo(object):
+            def getvalue(self):
+                return 'foo'
+
+            def __str__(self):
+                raise AttributeError()
+
+        a = util.BufferedByteStream()
+
+        self.assertEquals(a.getvalue(), '')
+        self.assertEquals(a.tell(), 0)
+        self.assertEquals(len(a), 0)
+
+        a.append(Foo())
+
+        self.assertEquals(a.getvalue(), 'foo')
+        self.assertEquals(a.tell(), 0)
+        self.assertEquals(len(a), 3)
+
+    def test_append_unicode(self):
+        """
+        Test L{util.BufferedByteStream.append} with C{unicode} objects.
+        """
+        # test empty
+        a = util.BufferedByteStream()
+
+        self.assertEquals(a.getvalue(), '')
+        self.assertEquals(a.tell(), 0)
+        self.assertEquals(len(a), 0)
+
+        a.append(u'foo')
+
+        self.assertEquals(a.getvalue(), 'foo')
+        self.assertEquals(a.tell(), 0) # <-- pointer hasn't moved
+        self.assertEquals(len(a), 3)
+
+        # test pointer beginning, some data
+
+        a = util.BufferedByteStream('bar')
+
+        self.assertEquals(a.getvalue(), 'bar')
+        self.assertEquals(a.tell(), 0)
+        self.assertEquals(len(a), 3)
+
+        a.append(u'gak')
+
+        self.assertEquals(a.getvalue(), 'bargak')
+        self.assertEquals(a.tell(), 0) # <-- pointer hasn't moved
+        self.assertEquals(len(a), 6)
+
+        # test pointer middle, some data
+
+        a = util.BufferedByteStream('bar')
+        a.seek(2)
+
+        self.assertEquals(a.getvalue(), 'bar')
+        self.assertEquals(a.tell(), 2)
+        self.assertEquals(len(a), 3)
+
+        a.append(u'gak')
+
+        self.assertEquals(a.getvalue(), 'bargak')
+        self.assertEquals(a.tell(), 2) # <-- pointer hasn't moved
+        self.assertEquals(len(a), 6)
+
+        # test pointer end, some data
+
+        a = util.BufferedByteStream('bar')
+        a.seek(0, 2)
+
+        self.assertEquals(a.getvalue(), 'bar')
+        self.assertEquals(a.tell(), 3)
+        self.assertEquals(len(a), 3)
+
+        a.append(u'gak')
+
+        self.assertEquals(a.getvalue(), 'bargak')
+        self.assertEquals(a.tell(), 3) # <-- pointer hasn't moved
+        self.assertEquals(len(a), 6)
+
+        class Foo(object):
+            def getvalue(self):
+                return u'foo'
+
+            def __str__(self):
+                raise AttributeError()
+
+        a = util.BufferedByteStream()
+
+        self.assertEquals(a.getvalue(), '')
+        self.assertEquals(a.tell(), 0)
+        self.assertEquals(len(a), 0)
+
+        a.append(Foo())
+
+        self.assertEquals(a.getvalue(), 'foo')
+        self.assertEquals(a.tell(), 0)
+        self.assertEquals(len(a), 3)
+
+
 
 class DummyAlias(pyamf.ClassAlias):
     pass
