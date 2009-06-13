@@ -629,13 +629,14 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
         Reads up to the specified number of bytes from the stream into
         the specified byte array of specified length.
 
-        @raise IOError: FIXME
-        @raise IOError: FIXME
+        @raise IOError: Attempted to read past the end of the buffer.
         """
         if length == -1 and self.at_eof():
-            raise IOError("FIXME")
+            raise IOError('Attempted to read from the buffer but already at '
+                'the end')
         elif length > 0 and self.tell() + length > len(self):
-            raise IOError("FIXME")
+            raise IOError('Attempted to read %d bytes from the buffer but '
+                'only %d remain' % (length, len(self) - self.tell()))
 
         return StringIOProxy.read(self, length)
 
