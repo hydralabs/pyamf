@@ -8,6 +8,8 @@ versions of PyAMF.
 
 0.5 (unreleased)
 ----------------
+ - Added a new register_package helper function to make bulk class
+   registration easier. Check the docstring for more info. (Ticket:576)
  - cpyamf.amf3._decode_int now propagates exceptions correctly (Ticket:506)
  - Fixed an incorrect OverflowError when encoding large integers in AMF3
    (Ticket:519)
