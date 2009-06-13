@@ -554,64 +554,6 @@ class AMF3RequestProcessorTestCase(unittest.TestCase):
         self.assertTrue(response.status, remoting.STATUS_ERROR)
         self.assertTrue(isinstance(response.body, messaging.ErrorMessage))
 
-    """
-    def test_error_auth(self):
-        def auth(u, p):
-            raise IndexError
-
-        gw = _twisted.TwistedGateway({'echo': lambda x: x},
-            expose_request=False, authenticator=auth)
-        proc = _twisted.AMF3RequestProcessor(gw)
-
-        request = remoting.Request('null', body=[messaging.RemotingMessage(body=['spam.eggs'], operation='echo')])
-
-        d = proc(request)
-
-        self.assertTrue(isinstance(d, defer.Deferred))
-        response = d.result
-        self.assertTrue(isinstance(response, remoting.Response))
-        self.assertTrue(response.status, remoting.STATUS_ERROR)
-        self.assertTrue(isinstance(response.body, remoting.ErrorFault))
-        self.assertEquals(response.body.code, 'IndexError')
-
-    def test_auth_fail(self):
-        def auth(u, p):
-            return False
-
-        gw = _twisted.TwistedGateway({'echo': lambda x: x}, authenticator=auth)
-        proc = _twisted.AMF3RequestProcessor(gw)
-
-        request = remoting.Request('echo', envelope=remoting.Envelope())
-
-        d = proc(request)
-
-        self.assertTrue(isinstance(d, defer.Deferred))
-        response = d.result
-        self.assertTrue(isinstance(response, remoting.Response))
-        self.assertTrue(response.status, remoting.STATUS_ERROR)
-        self.assertTrue(isinstance(response.body, remoting.ErrorFault))
-        self.assertEquals(response.body.code, 'AuthenticationError')
-
-    def test_deferred_auth(self):
-        d = defer.Deferred()
-
-        def auth(u, p):
-            return reactor.callLater(0, lambda: True)
-
-        gw = _twisted.TwistedGateway({'echo': lambda x: x}, authenticator=auth)
-        proc = _twisted.AMF3RequestProcessor(gw)
-
-        request = remoting.Request('echo', envelope=remoting.Envelope())
-
-        def cb(result):
-            self.assertTrue(result)
-            d.callback(None)
-
-        proc(request).addCallback(cb).addErrback(lambda failure: d.errback())
-
-        return d
-    """
-
     def test_error_preprocessor(self):
         def preprocessor(service_request, *args):
             raise IndexError
