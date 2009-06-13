@@ -8,6 +8,7 @@ General tests.
 """
 
 import unittest
+import imp
 
 import pyamf
 from pyamf.tests.util import ClassCacheClearingTestCase, replace_dict, Spam
@@ -817,21 +818,88 @@ class TypedObjectTestCase(unittest.TestCase):
         self.assertRaises(pyamf.EncodeError, o.__writeamf__, None)
 
 
+class PackageTestCase(ClassCacheClearingTestCase):
+    """
+    Tests for L{pyamf.register_package}
+    """
+
+    class NewType(object):
+        pass
+
+    class ClassicType:
+        pass
+
+    def setUp(self):
+        ClassCacheClearingTestCase.setUp(self)
+
+        self.module = imp.new_module('foo')
+
+        self.module.Classic = self.ClassicType
+        self.module.New = self.NewType
+        self.module.s = 'str'
+        self.module.i = 12323
+        self.module.f = 345.234
+        self.module.u = u'unicode'
+        self.module.l = ['list', 'of', 'junk']
+        self.module.d = {'foo': 'bar', 'baz': 'gak'}
+        self.module.obj = object()
+        self.module.mod = self.module
+        self.module.lam = lambda _: None
+
+    def check_module(self, r, base_package):
+        self.assertEquals(len(r), 2)
+
+        for c in [self.NewType, self.ClassicType]:
+            alias = r[c]
+
+            self.assertTrue(isinstance(alias, pyamf.ClassAlias))
+            self.assertEquals(alias.klass, c)
+            self.assertEquals(alias.alias, base_package + c.__name__)
+
+    def test_module(self):
+        r = pyamf.register_package(self.module, 'com.example')
+        self.check_module(r, 'com.example.')
+
+    def test_all(self):
+        self.module.Spam = Spam
+
+        self.module.__all__ = ['Classic', 'New']
+
+        r = pyamf.register_package(self.module, 'com.example')
+        self.check_module(r, 'com.example.')
+
+    def test_ignore(self):
+        self.module.Spam = Spam
+
+        r = pyamf.register_package(self.module, 'com.example', ignore=['Spam'])
+        self.check_module(r, 'com.example.')
+
+    def test_separator(self):
+        r = pyamf.register_package(self.module, 'com/example', separator='/')
+        self.check_module(r, 'com/example/')
+
+
 def suite():
     suite = unittest.TestSuite()
 
-    suite.addTest(unittest.makeSuite(ASObjectTestCase))
-    suite.addTest(unittest.makeSuite(ClassMetaDataTestCase))
-    suite.addTest(unittest.makeSuite(ClassAliasTestCase))
-    suite.addTest(unittest.makeSuite(HelperTestCase))
-    suite.addTest(unittest.makeSuite(RegisterClassTestCase))
-    suite.addTest(unittest.makeSuite(UnregisterClassTestCase))
-    suite.addTest(unittest.makeSuite(ClassLoaderTestCase))
-    suite.addTest(unittest.makeSuite(TypeMapTestCase))
-    suite.addTest(unittest.makeSuite(ErrorClassMapTestCase))
-    suite.addTest(unittest.makeSuite(RegisterAliasTypeTestCase))
-    suite.addTest(unittest.makeSuite(BaseContextTestCase))
-    suite.addTest(unittest.makeSuite(TypedObjectTestCase))
+    test_cases = [
+        ASObjectTestCase,
+        ClassMetaDataTestCase,
+        ClassAliasTestCase,
+        HelperTestCase,
+        RegisterClassTestCase,
+        UnregisterClassTestCase,
+        ClassLoaderTestCase,
+        TypeMapTestCase,
+        ErrorClassMapTestCase,
+        RegisterAliasTypeTestCase,
+        BaseContextTestCase,
+        TypedObjectTestCase,
+        PackageTestCase
+    ]
+
+    for tc in test_cases:
+        suite.addTest(unittest.makeSuite(tc))
 
     return suite
 

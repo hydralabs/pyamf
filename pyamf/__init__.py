@@ -1368,6 +1368,67 @@ def register_alias_type(klass, *args):
     ALIAS_TYPES[klass] = args
 
 
+def register_package(module, package, separator='.', ignore=[]):
+    """
+    This is a helper function that takes the concept of Flex packages and
+    registers all the classes in the supplied Python module under that package.
+    It auto-aliased all classes in C{module} based on package.
+
+    e.g.:
+    mymodule.py:
+        class User(object):
+            pass
+
+        class Permission(object):
+            pass
+
+    >>> import mymodule
+    >>> pyamf.register_package(mymodule, 'com.example.app')
+
+    Now all instances of mymodule.User will appear in Flex under the alias
+    'com.example.app.User'. Same goes for mymodule.Permission - Flex alias is
+    'com.example.app.Permission'. The reverse is also true, any objects with
+    the correct aliases will now be instances of the relevant Python class.
+
+    This function respects the __all__ attribute of the module but you can
+    have further control of what not to auto alias by populating the ignore
+    argument.
+
+    @param module: The Python module that will contain all the classes to
+        auto alias.
+    @type module: C{module} or C{dict}
+    @param package: The base package name. e.g. 'com.example.app'
+    @type package: C{str} or C{unicode}
+    @param separator: The separator used to append to C{package} to form the
+        complete alias.
+    @type separator: C{str}
+    @param ignore: To give fine grain control over what gets aliased and what
+        doesn't, supply a list of classes that you *do not* want to be aliased.
+    @type ignore: C{iterable}
+    @return: A collection of all the classes that were registered and their
+        respective L{ClassAlias} objects.
+    @since: 0.5
+    """
+    keys = None
+
+    if hasattr(module, '__all__'):
+        keys = module.__all__
+    else:
+        keys = module.__dict__.keys()
+
+    # gotta love python
+    f = lambda x: isinstance(x, (types.ClassType, types.TypeType)) and x.__name__ not in ignore
+    classes = filter(f, [getattr(module, x) for x in keys])
+
+    registered = {}
+
+    for klass in classes:
+        alias = '%s%s%s' % (package, separator, klass.__name__)
+
+        registered[klass] = register_class(klass, alias)
+
+    return registered
+
 # init module here
 
 register_class_loader(flex_loader)
