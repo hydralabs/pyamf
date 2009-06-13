@@ -111,6 +111,9 @@ TYPE_BYTEARRAY = '\x0C'
 #: Reference bit.
 REFERENCE_BIT = 0x01
 
+#: The maximum that can be represented by an unsigned 29 bit integer.
+MAX_29B_INT = 0x3FFFFFFF
+
 
 class ObjectEncoding:
     """
@@ -1321,7 +1324,7 @@ class Encoder(pyamf.BaseEncoder):
         @type   use_references: C{bool}
         @param  use_references: Default is C{True}.
         """
-        if n & 0xf0000000 not in [0, 0xf0000000]:
+        if n < 0 or n > MAX_29B_INT:
             self.writeNumber(float(n))
 
             return
@@ -1777,18 +1780,19 @@ def encode(*args, **kwargs):
 
 def encode_int(n):
     """
-    Encode C{int}.
-    
+    Encodes an int as a variable length unsigned 29-bit integer as defined by
+    the spec.
+
+    @param n: The integer to be encoded
+    @return: The encoded string
+    @rtype: C{str}
     @raise OverflowError: Out of range.
     """
-    if n & 0xf0000000 not in [0, 0xf0000000]:
+    if n < 0 or n > MAX_29B_INT:
         raise OverflowError("Out of range")
 
     bytes = ''
     real_value = None
-
-    if n < 0:
-        n += 0x20000000
 
     if n > 0x1fffff:
         real_value = n

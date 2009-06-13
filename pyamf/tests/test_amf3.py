@@ -788,6 +788,21 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
         self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, pyamf)
         self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, ''.startswith)
 
+    def test_29b_ints(self):
+        """
+        Tests for ints that don't fit into 29bits. Reference: #519
+        """
+        ints = [
+            (-1, '\x05\xbf\xf0\x00\x00\x00\x00\x00\x00'),
+            (amf3.MAX_29B_INT + 1, '\x05A\xd0\x00\x00\x00\x00\x00\x00')
+        ]
+
+        for i, val in ints:
+            self.buf.truncate()
+
+            self.encoder.writeElement(i)
+            self.assertEquals(self.buf.getvalue(), val)
+
 
 class DecoderTestCase(_util.ClassCacheClearingTestCase):
     """

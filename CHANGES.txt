@@ -8,6 +8,8 @@ versions of PyAMF.
 
 0.5 (unreleased)
 ----------------
+ - Fixed an incorrect OverflowError when encoding large integers in AMF3
+   (Ticket:519)
  - Added `append` to pyamf.util.BufferedByteStream (Ticket:574)
  - Added Epydoc signatures to all util.StringIOProxy, util.DataTypeMixIn and
    util.BufferedByteStream classes (Ticket:440)
