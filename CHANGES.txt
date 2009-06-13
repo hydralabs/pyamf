@@ -8,6 +8,7 @@ versions of PyAMF.
 
 0.5 (unreleased)
 ----------------
+ - cpyamf.amf3._decode_int now propagates exceptions correctly (Ticket:506)
  - Fixed an incorrect OverflowError when encoding large integers in AMF3
    (Ticket:519)
  - Added `append` to pyamf.util.BufferedByteStream (Ticket:574)

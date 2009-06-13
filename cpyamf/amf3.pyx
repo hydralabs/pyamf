@@ -14,7 +14,8 @@ cdef extern from "Python.h":
     object PyString_FromStringAndSize(char *buffer, Py_ssize_t length)
     object PyInt_FromLong(long v)
 
-cdef Py_ssize_t _encode_int(unsigned long n, char **buf):
+
+cdef Py_ssize_t _encode_int(long n, char **buf) except? -1:
     cdef Py_ssize_t size = 0
     cdef unsigned long real_value = n
     cdef char changed = 0
@@ -62,7 +63,7 @@ cdef Py_ssize_t _encode_int(unsigned long n, char **buf):
 
     return size
 
-cdef long _decode_int(object stream, int sign=0):
+cdef long _decode_int(object stream, int sign=0) except? -1:
     cdef int n = 0
     cdef long result = 0 
     cdef unsigned char b = <unsigned char>stream.read_uchar()
