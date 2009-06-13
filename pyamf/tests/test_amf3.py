@@ -613,6 +613,28 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
         self.assertEqual(self.buf.getvalue(), '\n\x0b\x1dorg.pyamf.spam\x07baz'
             '\x06\x0bhello\x01')
 
+    def test_date(self):
+        import datetime
+
+        x = datetime.datetime(2005, 3, 18, 1, 58, 31)
+        self.encoder.writeElement(x)
+
+        self.assertEquals(self.buf.getvalue(), '\x08\x01Bp+6!\x15\x80\x00')
+        self.buf.truncate()
+        self.encoder.writeElement(x)
+
+        self.assertEquals(self.buf.getvalue(), '\x08\x00')
+
+        try:
+            self._run([(datetime.time(22, 3), '')])
+        except pyamf.EncodeError, e:
+            self.assertEquals(str(e), 'A datetime.time instance was found but '
+                'AMF3 has no way to encode time objects. Please use '
+                'datetime.datetime instead (got:datetime.time(22, 3))')
+        else:
+            self.fail('pyamf.EncodeError not raised when encoding datetime.time')
+
+
     def test_byte_array(self):
         self._run([(amf3.ByteArray('hello'), '\x0c\x0bhello')])
 

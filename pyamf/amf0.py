@@ -422,7 +422,7 @@ class Encoder(pyamf.BaseEncoder):
         ((pyamf.ASObject,), "writeObject"),
         ((pyamf.MixedArray,), "writeMixedArray"),
         ((types.ListType, types.TupleType,), "writeArray"),
-        ((datetime.date, datetime.datetime), "writeDate"),
+        ((datetime.date, datetime.datetime, datetime.time), "writeDate"),
         ((util.is_ET_element,), "writeXML"),
         ((lambda x: x is pyamf.Undefined,), "writeUndefined"),
         ((types.InstanceType,types.ObjectType,), "writeObject"),
@@ -747,6 +747,11 @@ class Encoder(pyamf.BaseEncoder):
         @type d: Instance of C{datetime.datetime}
         @param d: The date to be encoded to the AMF0 data stream.
         """
+        if isinstance(d, datetime.time):
+            raise pyamf.EncodeError('A datetime.time instance was found but '
+                'AMF0 has no way to encode time objects. Please use '
+                'datetime.datetime instead (got:%r)' % (d,))
+
         # According to the Red5 implementation of AMF0, dates references are
         # created, but not used.
         secs = util.get_timestamp(d)
