@@ -628,7 +628,7 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
         """
         Reads up to the specified number of bytes from the stream into
         the specified byte array of specified length.
-        
+
         @raise IOError: FIXME
         @raise IOError: FIXME
         """
@@ -683,6 +683,27 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
         @rtype: C{bool}
         """
         return self.tell() == len(self)
+
+    def append(self, data):
+        """
+        Append data to the end of the stream. The pointer will not move if
+        this operation is successful.
+
+        @param data: The data to append to the stream.
+        @type data: C{str} or C{unicode}
+        @raise TypeError: data is not C{str} or C{unicode}
+        """
+        t = self.tell()
+
+        # seek to the end of the stream
+        self.seek(0, 2)
+
+        if hasattr(data, 'getvalue'):
+            self.write_utf8_string(data.getvalue())
+        else:
+            self.write_utf8_string(data)
+
+        self.seek(t)
 
     def __add__(self, other):
         old_pos = self.tell()
