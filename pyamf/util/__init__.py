@@ -173,7 +173,7 @@ class StringIOProxy(object):
         """
         Sets the file-pointer offset, measured from the beginning of this stream,
         at which the next write operation will occur.
-        
+
         @param pos:
         @type pos: C{int}
         @param mode:
@@ -190,7 +190,7 @@ class StringIOProxy(object):
     def truncate(self, size=0):
         """
         Truncates the stream to the specified length.
-        
+
         @param size: The length of the stream, in bytes.
         @type size: C{int}
         """
@@ -212,7 +212,7 @@ class StringIOProxy(object):
     def write(self, s):
         """
         Writes the content of the specified C{s} into this buffer.
-        
+
         @param s:
         @type s:
         """
@@ -266,7 +266,7 @@ class DataTypeMixIn(object):
     """
     Provides methods for reading and writing basic data types for file-like
     objects.
-    
+
     @ivar endian: Byte ordering used to represent the data. Default byte order
         is L{ENDIAN_NETWORK}.
     @type endian: C{str}
@@ -343,7 +343,7 @@ class DataTypeMixIn(object):
 
         @param c: char
         @type c: C{int}
-        @raise TypeError: Unexpected type for int C{c}. 
+        @raise TypeError: Unexpected type for int C{c}.
         @raise OverflowError: Not in range.
         """
         if type(c) not in int_types:
@@ -544,7 +544,7 @@ class DataTypeMixIn(object):
     def write_double(self, d):
         """
         Writes an 8 byte float to the stream.
-        
+
         @param d: 8 byte float
         @type d: C{float}
         @raise TypeError: Unexpected type for float C{d}.
@@ -563,7 +563,7 @@ class DataTypeMixIn(object):
     def write_float(self, f):
         """
         Writes a 4 byte float to the stream.
-        
+
         @param f: 4 byte float
         @type f: C{float}
         @raise TypeError: Unexpected type for float C{f}.
@@ -586,7 +586,7 @@ class DataTypeMixIn(object):
     def write_utf8_string(self, u):
         """
         Writes a unicode object to the stream in UTF-8.
-        
+
         @param u: unicode object
         @raise TypeError: Unexpected type for str C{u}.
         """
@@ -1135,7 +1135,7 @@ if is_float_broken():
 
 try:
     from cpyamf.util import BufferedByteStream
-    
+
     class StringIOProxy(BufferedByteStream):
         _wrapped_class = None
 
