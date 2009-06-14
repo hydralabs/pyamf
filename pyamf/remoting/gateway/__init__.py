@@ -13,8 +13,14 @@ import types
 import pyamf
 from pyamf import remoting, util
 
-SERVER_NAME = 'PyAMF/%s Python/%s' % (
-    '.'.join(map(lambda x: str(x), pyamf.__version__)),
+try:
+    from platform import python_implementation
+    impl = python_implementation()
+except ImportError:
+    impl = 'Python'
+    
+SERVER_NAME = 'PyAMF/%s %s/%s' % (
+    '.'.join(map(lambda x: str(x), pyamf.__version__)), impl,
     '.'.join(map(lambda x: str(x), sys.version_info[0:3]))
 )
 
