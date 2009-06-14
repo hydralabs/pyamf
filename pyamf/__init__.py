@@ -45,9 +45,10 @@ ERROR_CLASS_MAP = {}
 ALIAS_TYPES = {}
 
 #: Specifies that objects are serialized using AMF for ActionScript 1.0
-#: and 2.0.
+#: and 2.0 that were introduced in the Adobe Flash Player 6.
 AMF0 = 0
-#: Specifies that objects are serialized using AMF for ActionScript 3.0.
+#: Specifies that objects are serialized using AMF for ActionScript 3.0
+#: that was introduced in the Adobe Flash Player 9.
 AMF3 = 3
 #: Supported AMF encoding types.
 ENCODING_TYPES = (AMF0, AMF3)
@@ -127,8 +128,8 @@ class EncodeError(BaseError):
 
 class UnknownClassAlias(BaseError):
     """
-    Raised if the AMF stream specifies a class that does not
-    have an alias.
+    Raised if the AMF stream specifies an Actionscript class that does not
+    have a Python class alias.
 
     @see: L{register_class}
     """
@@ -430,8 +431,8 @@ class ClassAlias(object):
 
     def checkClass(kls, klass):
         """
-        This function is used to check the class being aliased to fits certain
-        criteria. The default is to check that the __init__ constructor does
+        This function is used to check if the class being aliased fits certain
+        criteria. The default is to check that the C{__init__} constructor does
         not pass in arguments.
 
         @since: 0.4
@@ -1370,12 +1371,11 @@ def register_alias_type(klass, *args):
 
 def register_package(module, package, separator='.', ignore=[]):
     """
-    This is a helper function that takes the concept of Flex packages and
-    registers all the classes in the supplied Python module under that package.
-    It auto-aliased all classes in C{module} based on package.
+    This is a helper function that takes the concept of Actionscript packages
+    and registers all the classes in the supplied Python module under that
+    package. It auto-aliased all classes in C{module} based on C{package}.
 
-    e.g.:
-    mymodule.py:
+    e.g. C{mymodule.py}::
         class User(object):
             pass
 
@@ -1385,13 +1385,14 @@ def register_package(module, package, separator='.', ignore=[]):
     >>> import mymodule
     >>> pyamf.register_package(mymodule, 'com.example.app')
 
-    Now all instances of mymodule.User will appear in Flex under the alias
-    'com.example.app.User'. Same goes for mymodule.Permission - Flex alias is
-    'com.example.app.Permission'. The reverse is also true, any objects with
-    the correct aliases will now be instances of the relevant Python class.
+    Now all instances of C{mymodule.User} will appear in Actionscript under the
+    alias 'com.example.app.User'. Same goes for C{mymodule.Permission} - the
+    Actionscript alias is 'com.example.app.Permission'. The reverse is also
+    true, any objects with the correct aliases will now be instances of the
+    relevant Python class.
 
-    This function respects the __all__ attribute of the module but you can
-    have further control of what not to auto alias by populating the ignore
+    This function respects the C{__all__} attribute of the module but you can
+    have further control of what not to auto alias by populating the C{ignore}
     argument.
 
     @param module: The Python module that will contain all the classes to
@@ -1403,7 +1404,7 @@ def register_package(module, package, separator='.', ignore=[]):
         complete alias.
     @type separator: C{str}
     @param ignore: To give fine grain control over what gets aliased and what
-        doesn't, supply a list of classes that you *do not* want to be aliased.
+        doesn't, supply a list of classes that you B{do not} want to be aliased.
     @type ignore: C{iterable}
     @return: A collection of all the classes that were registered and their
         respective L{ClassAlias} objects.
