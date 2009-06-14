@@ -1041,21 +1041,21 @@ def is_float_broken():
 
 def isNaN(val):
     """
-    @since 0.5
+    @since: 0.5
     """
     return str(float(val)) == str(NaN)
 
 
 def isPosInf(val):
     """
-    @since 0.5
+    @since: 0.5
     """
     return str(float(val)) == str(PosInf)
 
 
 def isNegInf(val):
     """
-    @since 0.5
+    @since: 0.5
     """
     return str(float(val)) == str(NegInf)
 
