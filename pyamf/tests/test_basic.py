@@ -893,6 +893,32 @@ class PackageTestCase(ClassCacheClearingTestCase):
         r = pyamf.register_package(self.module)
         self.check_module(r, 'spam.eggs.')
 
+    def test_dict(self):
+        """
+        @see: #585
+        """
+        d = dict()
+        d['Spam'] = Spam
+
+        r = pyamf.register_package(d, 'com.example')
+
+        self.assertEquals(len(r), 1)
+
+        alias = r[Spam]
+
+        self.assertTrue(isinstance(alias, pyamf.ClassAlias))
+        self.assertEquals(alias.klass, Spam)
+        self.assertEquals(alias.alias, 'com.example.Spam')
+
+    def test_odd(self):
+        self.assertRaises(TypeError, pyamf.register_package, object())
+        self.assertRaises(TypeError, pyamf.register_package, 1)
+        self.assertRaises(TypeError, pyamf.register_package, 1.2)
+        self.assertRaises(TypeError, pyamf.register_package, 23897492834L)
+        self.assertRaises(TypeError, pyamf.register_package, [])
+        self.assertRaises(TypeError, pyamf.register_package, '')
+        self.assertRaises(TypeError, pyamf.register_package, u'')
+
 
 def suite():
     suite = unittest.TestSuite()
