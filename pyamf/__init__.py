@@ -629,8 +629,15 @@ class TypedObjectClassAlias(ClassAlias):
     @since: 0.4
     """
 
+    klass = TypedObject
+
+    def __init__(self, klass, alias, *args, **kwargs):
+        # klass attr is ignored
+
+        ClassAlias.__init__(self, self.klass, alias)
+
     def createInstance(self, codec=None):
-        return TypedObject(self.alias)
+        return self.klass(self.alias)
 
     def checkClass(kls, klass):
         pass

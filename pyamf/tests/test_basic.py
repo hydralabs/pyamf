@@ -817,6 +817,15 @@ class TypedObjectTestCase(unittest.TestCase):
         self.assertRaises(pyamf.DecodeError, o.__readamf__, None)
         self.assertRaises(pyamf.EncodeError, o.__writeamf__, None)
 
+    def test_alias(self):
+        class Foo:
+            pass
+
+        alias = pyamf.TypedObjectClassAlias(Foo, 'bar')
+
+        self.assertEquals(alias.klass, pyamf.TypedObject)
+        self.assertNotEqual(alias.klass, Foo)
+
 
 class PackageTestCase(ClassCacheClearingTestCase):
     """
