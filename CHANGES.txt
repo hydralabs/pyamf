@@ -8,6 +8,8 @@ versions of PyAMF.
 
 0.5 (unreleased)
 ----------------
+ - If a call to Decoder.readElement results in an IOError exception, the
+   original position of the stream will be restored (Ticket:573)
  - Replaced hardcoded Python implementation title in p.r.gateway.SERVER_NAME
    (Ticket:541)
  - Provide a user friendly way to handle datetime.time objects (Ticket:498)
