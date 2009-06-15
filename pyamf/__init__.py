@@ -683,6 +683,8 @@ class BaseDecoder(object):
         @raise DecodeError: The ActionScript type is unsupported.
         @raise EOStream: No more data left to decode.
         """
+        pos = self.stream.tell()
+
         try:
             t = self.stream.read(1)
         except IOError:
@@ -693,7 +695,12 @@ class BaseDecoder(object):
         except KeyError:
             raise DecodeError("Unsupported ActionScript type %r" % (t,))
 
-        return func()
+        try:
+            return func()
+        except IOError:
+            self.stream.seek(pos)
+
+            raise
 
     def __iter__(self):
         try:

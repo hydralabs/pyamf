@@ -1149,6 +1149,22 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
         decoder = amf3.Decoder(self.buf, context=self.context)
         self.assertFalse(decoder.use_proxies)
 
+    def test_ioerror_buffer_position(self):
+        """
+        Test to ensure that if an IOError is raised by `readElement` that
+        the original position of the stream is restored.
+        """
+        bytes = pyamf.encode(u'foo', [1, 2, 3], encoding=pyamf.AMF3).getvalue()
+
+        self.buf.write(bytes[:-1])
+        self.buf.seek(0)
+
+        self.decoder.readElement()
+        self.assertEquals(self.buf.tell(), 5)
+
+        self.assertRaises(IOError, self.decoder.readElement)
+        self.assertEquals(self.buf.tell(), 5)
+
 
 class ObjectEncodingTestCase(_util.ClassCacheClearingTestCase):
     def setUp(self):
