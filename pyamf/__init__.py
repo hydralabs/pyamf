@@ -1426,18 +1426,30 @@ def register_package(module, package=None, separator='.', ignore=[]):
     @since: 0.5
     """
     if package is None:
-        package = module.__name__
+        try:
+            package = module.__name__
+        except AttributeError:
+            raise TypeError('Cannot get list of classes from %r' % (module,))
 
     keys = None
 
     if hasattr(module, '__all__'):
         keys = module.__all__
-    else:
+    elif hasattr(module, '__dict__'):
         keys = module.__dict__.keys()
+    elif hasattr(module, 'keys'):
+        keys = module.keys()
+    else:
+        raise TypeError('Cannot get list of classes from %r' % (module,))
+
+    if type(module) is dict:
+        d = module.__getitem__
+    else:
+        d = lambda x: getattr(module, x)
 
     # gotta love python
     f = lambda x: isinstance(x, (types.ClassType, types.TypeType)) and x.__name__ not in ignore
-    classes = filter(f, [getattr(module, x) for x in keys])
+    classes = filter(f, [d(x) for x in keys])
 
     registered = {}
 
