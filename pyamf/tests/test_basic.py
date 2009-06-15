@@ -887,6 +887,12 @@ class PackageTestCase(ClassCacheClearingTestCase):
         r = pyamf.register_package(self.module, 'com/example', separator='/')
         self.check_module(r, 'com/example/')
 
+    def test_name(self):
+        self.module.__name__ = 'spam.eggs'
+
+        r = pyamf.register_package(self.module)
+        self.check_module(r, 'spam.eggs.')
+
 
 def suite():
     suite = unittest.TestSuite()

@@ -1383,7 +1383,7 @@ def register_alias_type(klass, *args):
     ALIAS_TYPES[klass] = args
 
 
-def register_package(module, package, separator='.', ignore=[]):
+def register_package(module, package=None, separator='.', ignore=[]):
     """
     This is a helper function that takes the concept of Actionscript packages
     and registers all the classes in the supplied Python module under that
@@ -1412,8 +1412,9 @@ def register_package(module, package, separator='.', ignore=[]):
     @param module: The Python module that will contain all the classes to
         auto alias.
     @type module: C{module} or C{dict}
-    @param package: The base package name. e.g. 'com.example.app'
-    @type package: C{str} or C{unicode}
+    @param package: The base package name. e.g. 'com.example.app'. If this
+        is C{None} then the value is inferred from module.__name__.
+    @type package: C{str} or C{unicode} or C{None}
     @param separator: The separator used to append to C{package} to form the
         complete alias.
     @type separator: C{str}
@@ -1424,6 +1425,9 @@ def register_package(module, package, separator='.', ignore=[]):
         respective L{ClassAlias} objects.
     @since: 0.5
     """
+    if package is None:
+        package = module.__name__
+
     keys = None
 
     if hasattr(module, '__all__'):
