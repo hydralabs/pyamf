@@ -8,7 +8,7 @@ Python that is compatible with the Adobe
 U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>}.
 
 @copyright: Copyright (c) 2007-2009 The PyAMF Project. All Rights Reserved.
-@contact: U{dev@pyamf.org<mailto:dev@pyamf.org>}
+@contact: U{users@pyamf.org<mailto:users@pyamf.org>}
 @see: U{http://pyamf.org}
 
 @since: October 2007
