@@ -11,7 +11,7 @@ import unittest
 import copy
 
 import pyamf
-from pyamf.util import BufferedByteStream, is_float_broken
+from pyamf.util import BufferedByteStream
 
 PosInf = 1e300000
 NegInf = -1e300000

@@ -26,8 +26,6 @@ the Adobe Flash Player to understand the response therefore.
 @since: 0.1.0
 """
 
-import copy
-
 import pyamf
 from pyamf import util
 
