@@ -21,9 +21,7 @@ try:
 except ValueError:
     pass
 
-google = __import__('google')
-__import__('google.appengine.ext.webapp')
-
+google = __import__('google.appengine.ext.webapp')
 webapp = google.appengine.ext.webapp
 
 import pyamf
@@ -37,6 +35,7 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
     """
     Google App Engine Remoting Gateway.
     """
+
     __name__ = None
 
     def __init__(self, *args, **kwargs):
@@ -71,18 +70,18 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
         body = self.request.body_file.read()
         stream = None
 
-        context = pyamf.get_context(pyamf.AMF0)
-
         # Decode the request
         try:
-            request = remoting.decode(body, context, strict=self.strict)
+            request = remoting.decode(body, strict=self.strict, logger=self.logger)
+        except (KeyboardInterrupt, SystemExit):
+            raise
         except:
             fe = gateway.format_exception()
 
-            if self.logger is not None:
+            if self.logger:
                 self.logger.exception(fe)
 
-            response = "400 Bad Request\n\nThe request body was unable to " \
+            response = "400 Bad Request\n\nThe request body was unable to "
                 "be successfully decoded."
 
             if self.debug:
@@ -95,8 +94,8 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
 
             return
 
-        if self.logger is not None:
-            self.logger.debug("AMF Request: %r" % request)
+        if self.logger:
+            self.logger.info("AMF Request: %r" % request)
 
         # Process the request
         try:
@@ -106,7 +105,7 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
         except:
             fe = gateway.format_exception()
 
-            if self.logger is not None:
+            if self.logger:
                 self.logger.exception(fe)
 
             response = "500 Internal Server Error\n\nThe request was " \
@@ -122,16 +121,16 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
 
             return
 
-        if self.logger is not None:
-            self.logger.debug("AMF Response: %r" % response)
+        if self.logger:
+            self.logger.info("AMF Response: %r" % response)
 
         # Encode the response
         try:
-            stream = remoting.encode(response, context, strict=self.strict)
+            stream = remoting.encode(response, strict=self.strict, logger=self.logger)
         except:
             fe = gateway.format_exception()
 
-            if self.logger is not None:
+            if self.logger:
                 self.logger.exception(fe)
 
             response = "500 Internal Server Error\n\nThe request was " \
