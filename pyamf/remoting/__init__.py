@@ -11,10 +11,10 @@ authentication info, tag transactions, etc. Bodies contain actual Remoting
 requests and responses. A single Remoting envelope can contain several
 requests; Remoting supports batching out of the box.
 
-Client headers and bodies need not be responded to in a one-to-one manner. That
-is, a body or header may not require a response. Debug information is requested
-by a header but sent back as a body object. The response index is essential for
-the Adobe Flash Player to understand the response therefore.
+Client headers and bodies need not be responded to in a one-to-one manner.
+That is, a body or header may not require a response. Debug information is
+requested by a header but sent back as a body object. The response index is
+essential for the Adobe Flash Player to understand the response therefore.
 
 @see: U{Remoting Envelope on OSFlash (external)
 <http://osflash.org/documentation/amf/envelopes/remoting>}
@@ -76,6 +76,7 @@ class HeaderCollection(dict):
     """
     Collection of AMF message headers.
     """
+
     def __init__(self, raw_headers={}):
         self.required = []
 
@@ -124,6 +125,7 @@ class Envelope(object):
     @type bodies: L{list} containing tuples of the key of the request and
         the instance of the L{Message}
     """
+
     def __init__(self, amfVersion=None, clientType=None):
         self.amfVersion = amfVersion
         self.clientType = clientType
@@ -200,10 +202,10 @@ class Envelope(object):
 
     def __eq__(self, other):
         if isinstance(other, Envelope):
-            return self.amfVersion == other.amfVersion and \
-                self.clientType == other.clientType and \
-                self.headers == other.headers and \
-                self.bodies == other.bodies
+            return (self.amfVersion == other.amfVersion and
+                self.clientType == other.clientType and
+                self.headers == other.headers and
+                self.bodies == other.bodies)
 
         if hasattr(other, 'keys') and hasattr(other, 'items'):
             keys, o_keys = self.keys(), other.keys()
@@ -238,6 +240,7 @@ class Message(object):
     @ivar headers: The message headers.
     @type headers: C{dict}
     """
+
     def __init__(self, envelope, body):
         self.envelope = envelope
         self.body = body
@@ -255,6 +258,7 @@ class Request(Message):
     @ivar target: The target of the request
     @type target: C{basestring}
     """
+
     def __init__(self, target, body=[], envelope=None):
         Message.__init__(self, envelope, body)
 
@@ -272,6 +276,7 @@ class Response(Message):
     @ivar status: The status of the message. Default is L{STATUS_OK}.
     @type status: Member of L{STATUS_CODES}.
     """
+
     def __init__(self, body, status=STATUS_OK, envelope=None):
         Message.__init__(self, envelope, body)
 
@@ -300,6 +305,7 @@ class BaseFault(object):
     @see: U{mx.rpc.Fault on Livedocs (external)
     <http://livedocs.adobe.com/flex/201/langref/mx/rpc/Fault.html>}
     """
+
     level = None
 
     def __init__(self, *args, **kwargs):
@@ -338,6 +344,7 @@ class ErrorFault(BaseFault):
     """
     I represent an error level fault.
     """
+
     level = 'error'
 
 pyamf.register_class(ErrorFault)
@@ -415,17 +422,20 @@ def _write_header(name, header, required, stream, encoder, strict=False):
         stream.seek(new_pos)
 
 
-def _read_body(stream, decoder, strict=False):
+def _read_body(stream, decoder, strict=False, logger=None):
     """
     Read AMF message body.
 
-    @type   stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
-    @param  stream: AMF data.
-    @type   decoder: L{amf0.Decoder<pyamf.amf0.Decoder>}
-    @param  decoder: AMF decoder instance.
-    @type strict: C{bool}
+    @param stream: AMF data.
+    @type stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
+    @param decoder: AMF decoder instance.
+    @type decoder: L{amf0.Decoder<pyamf.amf0.Decoder>}
     @param strict: Use strict decoding policy. Default is C{False}.
+    @type strict: C{bool}
     @raise DecodeError: Data read from stream does not match body length.
+    @param logger: Used to log interesting events whilst reading a remoting
+        body.
+    @type logger: A L{logging.Logger} instance or C{None}.
 
     @rtype: C{tuple}
     @return: A C{tuple} containing:
@@ -449,11 +459,16 @@ def _read_body(stream, decoder, strict=False):
     status = STATUS_OK
     is_request = True
 
-    for (code, s) in STATUS_CODES.iteritems():
-        if target.endswith(s):
-            is_request = False
-            status = code
-            target = target[:0 - len(s)]
+    for code, s in STATUS_CODES.iteritems():
+        if not target.endswith(s):
+            continue
+
+        is_request = False
+        status = code
+        target = target[:0 - len(s)]
+
+    if logger:
+        logger.debug('Remoting target: %r' % (target,))
 
     data_len = stream.read_ulong()
     pos = stream.tell()
@@ -468,12 +483,12 @@ def _read_body(stream, decoder, strict=False):
             "length (%d != %d)" % (pos + data_len, stream.tell(),))
 
     if is_request:
-        return (response, Request(target, body=data))
-    else:
-        if status == STATUS_ERROR and isinstance(data, pyamf.ASObject):
-            data = get_fault(data)
+        return response, Request(target, body=data)
 
-        return (target, Response(data, status))
+    if status == STATUS_ERROR and isinstance(data, pyamf.ASObject):
+        data = get_fault(data)
+
+    return target, Response(data, status)
 
 
 def _write_body(name, message, stream, encoder, strict=False):
@@ -529,17 +544,19 @@ def _write_body(name, message, stream, encoder, strict=False):
     if not strict:
         stream.write_ulong(0)
         _encode_body(message)
-    else:
-        write_pos = stream.tell()
-        stream.write_ulong(0)
-        old_pos = stream.tell()
 
-        _encode_body(message)
-        new_pos = stream.tell()
+        return
 
-        stream.seek(write_pos)
-        stream.write_ulong(new_pos - old_pos)
-        stream.seek(new_pos)
+    write_pos = stream.tell()
+    stream.write_ulong(0)
+    old_pos = stream.tell()
+
+    _encode_body(message)
+    new_pos = stream.tell()
+
+    stream.seek(write_pos)
+    stream.write_ulong(new_pos - old_pos)
+    stream.seek(new_pos)
 
 
 def _get_status(status):
@@ -585,27 +602,33 @@ def get_fault(data):
     return get_fault_class(level, **e)(**e)
 
 
-def decode(stream, context=None, strict=False):
+def decode(stream, context=None, strict=False, logger=None):
     """
-    Decodes the incoming stream.
+    Decodes the incoming stream as a remoting message.
 
-    @type   stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
-    @param  stream: AMF data.
-    @type   context: L{amf0.Context<pyamf.amf0.Context>} or
+    @param stream: AMF data.
+    @type stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
+    @param context: Context.
+    @type context: L{amf0.Context<pyamf.amf0.Context>} or
     L{amf3.Context<pyamf.amf3.Context>}
-    @param  context: Context.
+    @param strict: Enforce strict decoding. Default is C{False}.
     @type strict: C{bool}
-    @param strict: Enforce strict encoding. Default is C{False}.
+    @param logger: Used to log interesting events whilst decoding a remoting
+        message.
+    @type logger: A L{logging.Logger} instance or C{None}.
 
     @raise DecodeError: Malformed stream.
     @raise RuntimeError: Decoder is unable to fully consume the
-    stream buffer.
+        stream buffer.
 
     @return: Message envelope.
     @rtype: L{Envelope}
     """
     if not isinstance(stream, util.BufferedByteStream):
         stream = util.BufferedByteStream(stream)
+
+    if logger is not None:
+        logger.debug('remoting.decode start')
 
     msg = Envelope()
     msg.amfVersion = stream.read_uchar()
@@ -636,16 +659,19 @@ def decode(stream, context=None, strict=False):
     for i in range(body_count):
         context.clear()
 
-        target, payload = _read_body(stream, decoder, strict)
+        target, payload = _read_body(stream, decoder, strict, logger)
         msg[target] = payload
 
     if strict and stream.remaining() > 0:
         raise RuntimeError("Unable to fully consume the buffer")
 
+    if logger is not None:
+        logger.debug('remoting.decode end')
+
     return msg
 
 
-def encode(msg, context=None, strict=False):
+def encode(msg, context=None, strict=False, logger=None):
     """
     Encodes AMF stream and returns file object.
 
@@ -655,6 +681,9 @@ def encode(msg, context=None, strict=False):
     @param strict: Determines whether encoding should be strict. Specifically
         header/body lengths will be written correctly, instead of the default 0.
         Default is C{False}. Introduced in 0.4.
+    @param logger: Used to log interesting events whilst encoding a remoting
+        message.
+    @type logger: A L{logging.Logger} instance or C{None}.
     @rtype: C{StringIO}
     @return: File object.
     """

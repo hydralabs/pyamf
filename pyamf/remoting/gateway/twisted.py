@@ -67,7 +67,7 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
         def eb(failure):
             errMesg = "%s: %s" % (failure.type, failure.getErrorMessage())
 
-            if self.gateway.logger is not None:
+            if self.gateway.logger:
                 self.gateway.logger.error(errMesg)
                 self.gateway.logger.info(failure.getTraceback())
 
@@ -75,7 +75,7 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
                 request, (failure.type, failure.value, failure.tb)))
 
         def response_cb(result):
-            if self.gateway.logger is not None:
+            if self.gateway.logger:
                 self.gateway.logger.debug("AMF Response: %s" % (result,))
 
             response.body = result
@@ -137,7 +137,7 @@ class AMF3RequestProcessor(amf3.RequestProcessor):
         def eb(failure):
             errMesg = "%s: %s" % (failure.type, failure.getErrorMessage())
 
-            if self.gateway.logger is not None:
+            if self.gateway.logger:
                 self.gateway.logger.error(errMesg)
                 self.gateway.logger.info(failure.getTraceback())
 
@@ -150,7 +150,7 @@ class AMF3RequestProcessor(amf3.RequestProcessor):
             ro_response.body = result
             res = remoting.Response(ro_response)
 
-            if self.gateway.logger is not None:
+            if self.gateway.logger:
                 self.gateway.logger.debug("AMF Response: %r" % (res,))
 
             deferred_response.callback(res)
@@ -182,7 +182,7 @@ class AMF3RequestProcessor(amf3.RequestProcessor):
         def eb(failure):
             errMesg = "%s: %s" % (failure.type, failure.getErrorMessage())
 
-            if self.gateway.logger is not None:
+            if self.gateway.logger:
                 self.gateway.logger.error(errMesg)
                 self.gateway.logger.info(failure.getTraceback())
 
@@ -248,7 +248,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
             """
             errMesg = "%s: %s" % (failure.type, failure.getErrorMessage())
 
-            if self.logger is not None:
+            if self.logger:
                 self.logger.error(errMesg)
                 self.logger.info(failure.getTraceback())
 
@@ -263,10 +263,10 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         request.content.seek(0, 0)
 
         d = threads.deferToThread(remoting.decode, request.content.read(),
-            strict=self.strict)
+            strict=self.strict, logger=self.logger)
 
         def cb(amf_request):
-            if self.logger is not None:
+            if self.logger:
                 self.logger.debug("AMF Request: %r" % amf_request)
 
             x = self.getResponse(request, amf_request)
@@ -289,12 +289,12 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
             """
             errMesg = "%s: %s" % (failure.type, failure.getErrorMessage())
 
-            if self.logger is not None:
+            if self.logger:
                 self.logger.error(errMesg)
                 self.logger.info(failure.getTraceback())
 
-            body = "500 Internal Server Error\n\nThere was an error encoding" \
-                " the response."
+            body = "500 Internal Server Error\n\nThere was an error encoding " \
+                "the response."
 
             if self.debug:
                 body += "\n\nTraceback:\n\n%s" % failure.getTraceback()
@@ -302,7 +302,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
             self._finaliseRequest(request, 500, body)
 
         d = threads.deferToThread(remoting.encode, amf_response,
-            strict=self.strict)
+            strict=self.strict, logger=self.logger)
 
         d.addCallback(cb).addErrback(eb)
 
@@ -352,7 +352,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
             """
             errMesg = "%s: %s" % (failure.type, failure.getErrorMessage())
 
-            if self.logger is not None:
+            if self.logger:
                 self.logger.error(errMesg)
                 self.logger.info(failure.getTraceback())
 
@@ -378,7 +378,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         """
         authenticator = self.getAuthenticator(service_request)
 
-        if self.logger is not None:
+        if self.logger:
             self.logger.debug('Authenticator expands to: %r' % authenticator)
 
         if authenticator is None:
@@ -398,7 +398,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         """
         processor = self.getPreprocessor(service_request)
 
-        if self.logger is not None:
+        if self.logger:
             self.logger.debug('Preprocessor expands to: %r' % processor)
 
         if processor is None:

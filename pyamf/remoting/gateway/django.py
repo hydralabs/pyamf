@@ -79,16 +79,16 @@ class DjangoGateway(gateway.BaseGateway):
         if http_request.method != 'POST':
             return http.HttpResponseNotAllowed(['POST'])
 
-        context = pyamf.get_context(pyamf.AMF0)
         stream = None
 
         # Decode the request
         try:
-            request = remoting.decode(http_request.raw_post_data, context, strict=self.strict)
+            request = remoting.decode(http_request.raw_post_data,
+                strict=self.strict, logger=self.logger)
         except (pyamf.DecodeError, IOError):
             fe = gateway.format_exception()
 
-            if self.logger is not None:
+            if self.logger:
                 self.logger.exception(fe)
 
             response = "400 Bad Request\n\nThe request body was unable to " \
@@ -103,7 +103,7 @@ class DjangoGateway(gateway.BaseGateway):
         except:
             fe = gateway.format_exception()
 
-            if self.logger is not None:
+            if self.logger:
                 self.logger.exception(fe)
 
             response = "500 Internal Server Error\n\nAn unexpected error occurred."
@@ -113,8 +113,8 @@ class DjangoGateway(gateway.BaseGateway):
 
             return http.HttpResponseServerError(mimetype='text/plain', content=response)
 
-        if self.logger is not None:
-            self.logger.debug("AMF Request: %r" % request)
+        if self.logger:
+            self.logger.info("AMF Request: %r" % request)
 
         # Process the request
         try:
@@ -124,7 +124,7 @@ class DjangoGateway(gateway.BaseGateway):
         except:
             fe = gateway.format_exception()
 
-            if self.logger is not None:
+            if self.logger:
                 self.logger.exception(fe)
 
             response = "500 Internal Server Error\n\nThe request was " \
@@ -135,16 +135,16 @@ class DjangoGateway(gateway.BaseGateway):
 
             return http.HttpResponseServerError(mimetype='text/plain', content=response)
 
-        if self.logger is not None:
-            self.logger.debug("AMF Response: %r" % response)
+        if self.logger:
+            self.logger.info("AMF Response: %r" % response)
 
         # Encode the response
         try:
-            stream = remoting.encode(response, context, strict=self.strict)
+            stream = remoting.encode(response, strict=self.strict, logger=self.logger)
         except:
             fe = gateway.format_exception()
 
-            if self.logger is not None:
+            if self.logger:
                 self.logger.exception(fe)
 
             response = "500 Internal Server Error\n\nThe request was " \
