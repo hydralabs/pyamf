@@ -855,11 +855,11 @@ class PackageTestCase(ClassCacheClearingTestCase):
         self.module.mod = self.module
         self.module.lam = lambda _: None
 
-        self.NewType.__module__ = 'com.example'
-        self.ClassicType.__module__ = 'com.example'
+        self.NewType.__module__ = 'foo'
+        self.ClassicType.__module__ = 'foo'
 
         self.spam_module = Spam.__module__
-        Spam.__module__ = 'com.example'
+        Spam.__module__ = 'foo'
 
         self.names = (self.module.__name__,)
 
@@ -920,7 +920,7 @@ class PackageTestCase(ClassCacheClearingTestCase):
         d = dict()
         d['Spam'] = Spam
 
-        r = pyamf.register_package(d, 'com.example')
+        r = pyamf.register_package(d, 'com.example', strict=False)
 
         self.assertEquals(len(r), 1)
 
@@ -946,19 +946,6 @@ class PackageTestCase(ClassCacheClearingTestCase):
 
         r = pyamf.register_package(self.module, 'com.example', strict=True)
         self.check_module(r, 'com.example.')
-
-        d = {'Spam': Spam, PackageTestCase.__name__: PackageTestCase}
-        Spam.__module__ = 'com.example'
-
-        r = pyamf.register_package(d, 'com.example', strict=True)
-
-        self.assertEquals(len(r), 1)
-
-        alias = r[Spam]
-
-        self.assertTrue(isinstance(alias, pyamf.ClassAlias))
-        self.assertEquals(alias.klass, Spam)
-        self.assertEquals(alias.alias, 'com.example.Spam')
 
     def test_not_strict(self):
         self.module.Spam = Spam
