@@ -1383,7 +1383,7 @@ def register_alias_type(klass, *args):
     ALIAS_TYPES[klass] = args
 
 
-def register_package(module, package=None, separator='.', ignore=[]):
+def register_package(module=None, package=None, separator='.', ignore=[], strict=True):
     """
     This is a helper function that takes the concept of Actionscript packages
     and registers all the classes in the supplied Python module under that
@@ -1409,6 +1409,18 @@ def register_package(module, package=None, separator='.', ignore=[]):
     have further control of what not to auto alias by populating the C{ignore}
     argument.
 
+    This function provides the ability to register the module it is being
+    called in, an example:
+
+    >>> class Foo:
+    ...     pass
+    ...
+    >>> class Bar:
+    ...     pass
+    ...
+    >>> import pyamf
+    >>> pyamf.register_package('foo')
+
     @param module: The Python module that will contain all the classes to
         auto alias.
     @type module: C{module} or C{dict}
@@ -1421,11 +1433,41 @@ def register_package(module, package=None, separator='.', ignore=[]):
     @param ignore: To give fine grain control over what gets aliased and what
         doesn't, supply a list of classes that you B{do not} want to be aliased.
     @type ignore: C{iterable}
+    @param strict: If this value is C{True} then only classes that originate
+        from C{module} will be registered, all others will be left in peace.
+    @type strict: C{bool}
     @return: A collection of all the classes that were registered and their
         respective L{ClassAlias} objects.
     @since: 0.5
     """
-    if package is None:
+    def check_attr(attr):
+        if not isinstance(attr, (types.ClassType, types.TypeType)):
+            return False
+
+        if attr.__name__ in ignore:
+            return False
+
+        try:
+            if strict and attr.__module__ != module.__name__:
+                return False
+        except AttributeError:
+            pass
+
+        return True
+
+    if module is None and package is None:
+        import inspect
+
+        prev_frame = inspect.stack()[1][0]
+        module = prev_frame.f_locals
+        package = module['__name__']
+    elif isinstance(module, basestring):
+        import inspect
+
+        prev_frame = inspect.stack()[1][0]
+        package = module
+        module = prev_frame.f_locals
+    elif package is None:
         try:
             package = module.__name__
         except AttributeError:
@@ -1448,8 +1490,7 @@ def register_package(module, package=None, separator='.', ignore=[]):
         d = lambda x: getattr(module, x)
 
     # gotta love python
-    f = lambda x: isinstance(x, (types.ClassType, types.TypeType)) and x.__name__ not in ignore
-    classes = filter(f, [d(x) for x in keys])
+    classes = filter(check_attr, [d(x) for x in keys])
 
     registered = {}
 
