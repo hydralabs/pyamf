@@ -855,6 +855,21 @@ class PackageTestCase(ClassCacheClearingTestCase):
         self.module.mod = self.module
         self.module.lam = lambda _: None
 
+        self.NewType.__module__ = 'com.example'
+        self.ClassicType.__module__ = 'com.example'
+
+        self.spam_module = Spam.__module__
+        Spam.__module__ = 'com.example'
+
+        self.names = (self.module.__name__,)
+
+    def tearDown(self):
+        ClassCacheClearingTestCase.tearDown(self)
+
+        Spam.__module__ = self.spam_module
+
+        self.module.__name__ = self.names
+
     def check_module(self, r, base_package):
         self.assertEquals(len(r), 2)
 
@@ -884,11 +899,16 @@ class PackageTestCase(ClassCacheClearingTestCase):
         self.check_module(r, 'com.example.')
 
     def test_separator(self):
-        r = pyamf.register_package(self.module, 'com/example', separator='/')
-        self.check_module(r, 'com/example/')
+        r = pyamf.register_package(self.module, 'com.example', separator='/')
+
+        self.ClassicType.__module__ = 'com.example'
+        self.NewType.__module__ = 'com.example'
+        self.check_module(r, 'com.example/')
 
     def test_name(self):
         self.module.__name__ = 'spam.eggs'
+        self.ClassicType.__module__ = 'spam.eggs'
+        self.NewType.__module__ = 'spam.eggs'
 
         r = pyamf.register_package(self.module)
         self.check_module(r, 'spam.eggs.')
@@ -918,6 +938,43 @@ class PackageTestCase(ClassCacheClearingTestCase):
         self.assertRaises(TypeError, pyamf.register_package, [])
         self.assertRaises(TypeError, pyamf.register_package, '')
         self.assertRaises(TypeError, pyamf.register_package, u'')
+
+    def test_strict(self):
+        self.module.Spam = Spam
+
+        Spam.__module__ = self.spam_module
+
+        r = pyamf.register_package(self.module, 'com.example', strict=True)
+        self.check_module(r, 'com.example.')
+
+        d = {'Spam': Spam, PackageTestCase.__name__: PackageTestCase}
+        Spam.__module__ = 'com.example'
+
+        r = pyamf.register_package(d, 'com.example', strict=True)
+
+        self.assertEquals(len(r), 1)
+
+        alias = r[Spam]
+
+        self.assertTrue(isinstance(alias, pyamf.ClassAlias))
+        self.assertEquals(alias.klass, Spam)
+        self.assertEquals(alias.alias, 'com.example.Spam')
+
+    def test_not_strict(self):
+        self.module.Spam = Spam
+
+        Spam.__module__ = self.spam_module
+
+        r = pyamf.register_package(self.module, 'com.example', strict=False)
+
+        self.assertEquals(len(r), 3)
+
+        for c in [self.NewType, self.ClassicType, Spam]:
+            alias = r[c]
+
+            self.assertTrue(isinstance(alias, pyamf.ClassAlias))
+            self.assertEquals(alias.klass, c)
+            self.assertEquals(alias.alias, 'com.example.' + c.__name__)
 
 
 def suite():
