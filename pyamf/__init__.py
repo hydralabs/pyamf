@@ -1451,7 +1451,7 @@ def register_package(module=None, package=None, separator='.', ignore=[], strict
             if strict and attr.__module__ != module.__name__:
                 return False
         except AttributeError:
-            pass
+            return False
 
         return True
 
@@ -1462,6 +1462,9 @@ def register_package(module=None, package=None, separator='.', ignore=[], strict
         module = prev_frame.f_locals
         package = module['__name__']
     elif isinstance(module, basestring):
+        if module == '':
+            raise TypeError('Cannot get list of classes from %r' % (module,))
+
         import inspect
 
         prev_frame = inspect.stack()[1][0]
