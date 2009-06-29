@@ -205,6 +205,36 @@ class ClassAliasTestCase(ModelsBaseTestCase):
         # test it hasn't been set
         self.assertEquals(x.numberOfOddPages, 234)
 
+    def test_dynamic(self):
+        """
+        Test for dynamic property encoding.
+        """
+        from django.db import models
+
+        class Foo(models.Model):
+            pass
+
+        alias = self.adapter.DjangoClassAlias(Foo, 'Book')
+
+        x = Foo()
+        x.spam = 'eggs'
+
+        self.assertEquals(alias.getAttrs(x), (
+            ['id'],
+            ['spam']
+        ))
+
+        self.assertEquals(alias.getAttributes(x), (
+            {'id': None},
+            {'spam': 'eggs'}
+        ))
+
+        # now we test sending the numberOfOddPages attribute
+        alias.applyAttributes(x, {'spam': 'foo', 'id': None})
+
+        # test it has been set
+        self.assertEquals(x.spam, 'foo')
+
 
 class ForeignKeyTestCase(ModelsBaseTestCase):
     def test_one_to_many(self):

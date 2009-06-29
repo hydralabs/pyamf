@@ -8,6 +8,9 @@ versions of PyAMF.
 
 0.5 (unreleased)
 ----------------
+ - Django models will now accept dynamic properties (Ticket:575)
+ - Django PK properties will be set first to allow related properties to apply
+   correctly (Ticket:599)
  - p.r.encode/p.r.decode both have a new logger kwarg. Supply a logging.Logger
    instance if you want to see debug output (Ticket:588)
  - pyamf.TypedObjectClassAlias now forces the class type (Ticket:537)
