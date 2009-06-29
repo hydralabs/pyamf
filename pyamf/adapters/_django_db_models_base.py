@@ -27,11 +27,13 @@ class DjangoClassAlias(pyamf.ClassAlias):
         else:
             static_attrs = self.static_attrs = []
             self.fields = {}
+            self.columns = []
 
             for x in obj._meta.fields:
                 if x.name not in static_attrs:
                     self.fields[x.name] = x
                     static_attrs.append(x.name)
+                    self.columns.append(x.attname)
 
             for k, v in self.klass.__dict__.iteritems():
                 if isinstance(v, property):
@@ -40,6 +42,19 @@ class DjangoClassAlias(pyamf.ClassAlias):
                     if k not in static_attrs:
                         self.fields[k] = v.field
                         static_attrs.append(k)
+
+        # fetch all dynamic attributes
+        for key in obj.__dict__.keys():
+            if key.startswith('_'):
+                continue
+
+            if key in self.static_attrs:
+                continue
+
+            if key in self.columns:
+                continue
+
+            dynamic_attrs.append(key)
 
         return static_attrs, dynamic_attrs
 
@@ -95,6 +110,9 @@ class DjangoClassAlias(pyamf.ClassAlias):
                     static_attrs[name] = None
             else:
                 static_attrs[name] = self._encodeValue(prop, getattr(obj, name))
+
+        for name in dan:
+            dynamic_attrs[name] = getattr(obj, name)
 
         return static_attrs, dynamic_attrs
 
