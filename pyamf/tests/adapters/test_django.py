@@ -405,6 +405,57 @@ class I18NTestCase(ModelsBaseTestCase):
             '\x02\x00\x05Hello')
 
 
+class PKTestCase(ModelsBaseTestCase):
+    """
+    See ticket #599 for this. Check to make sure that django pk fields
+    are set first
+    """
+
+    def test_behaviour(self):
+        from django.db import models
+
+        class Publication(models.Model):
+            title = models.CharField(max_length=30)
+
+            def __unicode__(self):
+                return self.title
+
+            class Meta:
+                ordering = ('title',)
+
+        class Article2(models.Model):
+            headline = models.CharField(max_length=100)
+            publications = models.ManyToManyField(Publication)
+
+            def __unicode__(self):
+                return self.headline
+
+            class Meta:
+                ordering = ('headline',)
+
+        self.resetDB()
+
+        p = Publication(id=None, title='The Python Journal')
+        a = Article2(id=None, headline='Django lets you build Web apps easily')
+
+        # Associate the Article with a Publication.
+        self.assertRaises(ValueError, lambda a, p: a.publications.add(p), a, p)
+
+        p.save()
+        a.save()
+
+        self.assertEquals(a.id, 2)
+
+        article_alias = self.adapter.DjangoClassAlias(Article2, None)
+        x = Article2()
+
+        article_alias.applyAttributes(x, {
+            'headline': 'Foo bar!',
+            'id': 2,
+            'publications': [p]
+        })
+
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -417,7 +468,8 @@ def suite():
         TypeMapTestCase,
         ClassAliasTestCase,
         ForeignKeyTestCase,
-        I18NTestCase
+        I18NTestCase,
+        PKTestCase
     ]
 
     for tc in test_cases:

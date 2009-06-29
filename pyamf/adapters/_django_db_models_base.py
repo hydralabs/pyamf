@@ -81,18 +81,20 @@ class DjangoClassAlias(pyamf.ClassAlias):
         for name in san:
             if name not in self.fields.keys():
                 static_attrs[name] = getattr(obj, name)
-            else:
-                prop = self.fields[name]
 
-                if isinstance(prop, related.ManyToManyField):
-                    static_attrs[name] = [x for x in getattr(obj, name).all()]
-                elif isinstance(prop, models.ForeignKey):
-                    if '_%s_cache' % name in obj.__dict__:
-                        static_attrs[name] = getattr(obj, name)
-                    else:
-                        static_attrs[name] = None
+                continue
+
+            prop = self.fields[name]
+
+            if isinstance(prop, related.ManyToManyField):
+                static_attrs[name] = [x for x in getattr(obj, name).all()]
+            elif isinstance(prop, models.ForeignKey):
+                if '_%s_cache' % name in obj.__dict__:
+                    static_attrs[name] = getattr(obj, name)
                 else:
-                    static_attrs[name] = self._encodeValue(prop, getattr(obj, name))
+                    static_attrs[name] = None
+            else:
+                static_attrs[name] = self._encodeValue(prop, getattr(obj, name))
 
         return static_attrs, dynamic_attrs
 
@@ -109,6 +111,18 @@ class DjangoClassAlias(pyamf.ClassAlias):
             if isinstance(prop, property) and f in attrs.keys():
                 if prop.fset is None:
                     del attrs[f]
+
+        # primary key of django object must always be set first for
+        # relationships with other model objects to work properly
+        # and dict.iteritems() does not guarantee order
+        #
+        # django also forces the use only one attribute as primary key, so
+        # our obj._meta.pk.attname check is sufficient)
+        try:
+            setattr(obj, obj._meta.pk.attname, attrs[obj._meta.pk.attname])
+            del attrs[obj._meta.pk.attname]
+        except KeyError:
+            pass
 
         return pyamf.ClassAlias.applyAttributes(self, obj, attrs)
 
