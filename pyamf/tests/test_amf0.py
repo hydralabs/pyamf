@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (c) 2007-2009 The PyAMF Project.
-# See LICENSE for details.
+# See LICENSE.txt for details.
 
 """
 Tests for AMF0 Implementation.
