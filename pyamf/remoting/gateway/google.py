@@ -81,8 +81,8 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
             if self.logger:
                 self.logger.exception(fe)
 
-            response = "400 Bad Request\n\nThe request body was unable to "
-                "be successfully decoded."
+            response = ("400 Bad Request\n\nThe request body was unable to "
+                "be successfully decoded.")
 
             if self.debug:
                 response += "\n\nTraceback:\n\n%s" % fe

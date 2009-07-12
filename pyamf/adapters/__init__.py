@@ -73,4 +73,4 @@ def register_adapter(mod, func):
     if not callable(func):
         raise TypeError('func must be callable')
 
-    imports.whenImported(str(mod), func)
+    imports.when_imported(str(mod), func)

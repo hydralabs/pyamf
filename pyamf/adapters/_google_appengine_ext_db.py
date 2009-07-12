@@ -368,5 +368,5 @@ pyamf.add_type(db.Query, util.to_list)
 pyamf.register_alias_type(DataStoreClassAlias, db.Model, db.Expando)
 
 # hook the L{writeGAEObject} method to the Encoder class on import
-imports.whenImported('pyamf.amf0', install_gae_reference_model_hook)
-imports.whenImported('pyamf.amf3', install_gae_reference_model_hook)
+imports.when_imported('pyamf.amf0', install_gae_reference_model_hook)
+imports.when_imported('pyamf.amf3', install_gae_reference_model_hook)

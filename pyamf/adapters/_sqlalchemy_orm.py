@@ -1,16 +1,5 @@
-# Copyright (c) 2007-2009 The PyAMF Project.
-# See LICENSE.txt for details.
-
 """
-SQLAlchemy adapter module.
-
-@see: U{SQLAlchemy homepage (external)<http://www.sqlalchemy.org>}
-
-@since: 0.4
 """
-
-import sqlalchemy
-from sqlalchemy.orm import collections
 
 try:
     from sqlalchemy.orm import class_mapper, object_mapper
@@ -202,7 +191,3 @@ def is_class_sa_mapped(klass):
     return True
 
 pyamf.register_alias_type(SaMappedClassAlias, is_class_sa_mapped)
-
-pyamf.add_type(collections.InstrumentedList, util.to_list)
-pyamf.add_type(collections.InstrumentedDict, util.to_dict)
-pyamf.add_type(collections.InstrumentedSet, util.to_set)
