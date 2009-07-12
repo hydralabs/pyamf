@@ -233,8 +233,6 @@ class EncoderTestCase(ClassCacheClearingTestCase):
             ), '\x00\x00\t')])
 
     def test_date(self):
-        import datetime
-
         self._run([
             (datetime.datetime(2005, 3, 18, 1, 58, 31),
                 '\x0bBp+6!\x15\x80\x00\x00\x00'),
@@ -621,7 +619,7 @@ class DecoderTestCase(ClassCacheClearingTestCase):
             (1.23456789, '\x00\x3f\xf3\xc0\xca\x42\x83\xde\x1b')])
 
     def test_number_types(self):
-        types = [
+        nr_types = [
             ('\x00\x00\x00\x00\x00\x00\x00\x00\x00', int),
             ('\x00\x3f\xc9\x99\x99\x99\x99\x99\x9a', float),
             ('\x00\x3f\xf0\x00\x00\x00\x00\x00\x00', int),
@@ -633,7 +631,7 @@ class DecoderTestCase(ClassCacheClearingTestCase):
             ('\x00\x7f\xf0\x00\x00\x00\x00\x00\x00', float), # inf
         ]
 
-        for t in types:
+        for t in nr_types:
             bytes, expected_type = t
             self.buf.truncate()
             self.buf.write(bytes)

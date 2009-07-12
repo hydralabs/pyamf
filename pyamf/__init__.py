@@ -997,7 +997,7 @@ def load_class(alias):
 
         try:
             module = get_module(module)
-        except ImportError, AttributeError:
+        except (ImportError, AttributeError):
             # XXX What to do here?
             pass
         else:

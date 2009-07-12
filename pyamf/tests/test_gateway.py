@@ -42,7 +42,7 @@ class FaultTestCase(unittest.TestCase):
 
         try:
             raise TypeError("Unknown type")
-        except TypeError, e:
+        except TypeError:
             fault = amf0.build_fault(*sys.exc_info())
 
         self.assertTrue(isinstance(fault, remoting.ErrorFault))
@@ -57,7 +57,7 @@ class FaultTestCase(unittest.TestCase):
 
         try:
             raise TypeError("Unknown type")
-        except TypeError, e:
+        except TypeError:
             encoder.writeElement(amf0.build_fault(*sys.exc_info()))
 
         buffer = encoder.stream
@@ -78,7 +78,7 @@ class FaultTestCase(unittest.TestCase):
 
         try:
             raise X()
-        except X, e:
+        except X:
             fault = amf0.build_fault(*sys.exc_info())
 
         self.assertEquals(fault.code, 'Server.UnknownResource')

@@ -75,7 +75,7 @@ class RequestProcessor(object):
         try:
             service_request = self.gateway.getServiceRequest(request,
                 request.target)
-        except gateway.UnknownServiceError, e:
+        except gateway.UnknownServiceError:
             return self.buildErrorResponse(request)
 
         # we have a valid service, now attempt authentication

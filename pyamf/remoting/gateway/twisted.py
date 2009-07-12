@@ -58,7 +58,7 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
         try:
             service_request = self.gateway.getServiceRequest(
                 request, request.target)
-        except gateway.UnknownServiceError, e:
+        except gateway.UnknownServiceError:
             return defer.succeed(self.buildErrorResponse(request))
 
         response = remoting.Response(None)
@@ -127,7 +127,7 @@ class AMF3RequestProcessor(amf3.RequestProcessor):
 
             service_request = self.gateway.getServiceRequest(amf_request,
                                                              service_name)
-        except gateway.UnknownServiceError, e:
+        except gateway.UnknownServiceError:
             return defer.succeed(remoting.Response(
                 self.buildErrorResponse(ro_request),
                 status=remoting.STATUS_ERROR))
