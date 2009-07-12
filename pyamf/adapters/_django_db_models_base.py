@@ -77,8 +77,11 @@ class DjangoClassAlias(pyamf.ClassAlias):
         if value is pyamf.Undefined:
             return fields.NOT_PROVIDED
 
-        # deal with dates
-        if isinstance(field, fields.DateTimeField):
+        if isinstance(field, fields.AutoField):
+            if value == 0:
+                return None
+        elif isinstance(field, fields.DateTimeField):
+            # deal with dates
             return value
         elif isinstance(field, fields.DateField):
             return datetime.date(value.year, value.month, value.day)
