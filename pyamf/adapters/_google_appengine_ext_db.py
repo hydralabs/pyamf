@@ -215,7 +215,9 @@ class DataStoreClassAlias(pyamf.ClassAlias):
                     del attrs[k]
                     continue
 
-                if isinstance(prop, db.ListProperty) and v is None:
+                if isinstance(prop, db.FloatProperty) and isinstance(v, (int, long)):
+                    attrs[k] = float(v)
+                elif isinstance(prop, db.ListProperty) and v is None:
                     attrs[k] = []
                 elif isinstance(v, datetime.datetime):
                     # Date/Time Property fields expect specific types of data
