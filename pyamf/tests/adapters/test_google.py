@@ -1088,6 +1088,39 @@ class HelperTestCase(unittest.TestCase):
         self.assertEquals(pyamf.encode(q).getvalue(), '\n\x00\x00\x00\x00')
 
 
+class FloatPropertyTestCase(unittest.TestCase):
+    """
+    Tests for #609.
+    """
+
+    def setUp(self):
+        class FloatModel(db.Model):
+            f = db.FloatProperty()
+
+        self.klass = FloatModel
+        self.f = FloatModel()
+        self.alias = adapter_db.DataStoreClassAlias(self.klass, None)
+
+    def tearDown(self):
+        if self.f.is_saved():
+            self.f.delete()
+
+    def test_behaviour(self):
+        """
+        Test the behaviour of the Google SDK not handling ints gracefully
+        """
+        self.assertRaises(db.BadValueError, setattr, self.f, 'f', 3)
+
+        self.f.f = 3.0
+
+        self.assertEquals(self.f.f, 3.0)
+
+    def test_apply_attributes(self):
+        self.alias.applyAttributes(self.f, {'f': 3})
+
+        self.assertEquals(self.f.f, 3.0)
+
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -1101,7 +1134,8 @@ def suite():
         ClassAliasTestCase,
         ReferencesTestCase,
         GAEReferenceCollectionTestCase,
-        HelperTestCase
+        HelperTestCase,
+        FloatPropertyTestCase
     ]
 
     for tc in test_cases:

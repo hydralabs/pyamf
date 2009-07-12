@@ -8,6 +8,7 @@ versions of PyAMF.
 
 0.5 (unreleased)
 ----------------
+ - GAE FloatProperty can now accept int's without issue (Ticket:609)
  - Revamped the lazy imports module to use sys.meta_path instead. Fixes all
    erroneous import errors (Ticket:485).
  - Django models will now accept dynamic properties (Ticket:575)
