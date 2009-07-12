@@ -825,6 +825,16 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
             self.encoder.writeElement(i)
             self.assertEquals(self.buf.getvalue(), val)
 
+    def test_class(self):
+        class New(object):
+            pass
+
+        class Classic:
+            pass
+
+        self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, Classic)
+        self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, New)
+
 
 class DecoderTestCase(_util.ClassCacheClearingTestCase):
     """
