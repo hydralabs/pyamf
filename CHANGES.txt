@@ -8,6 +8,8 @@ versions of PyAMF.
 
 0.5 (unreleased)
 ----------------
+ - Revamped the lazy imports module to use sys.meta_path instead. Fixes all
+   erroneous import errors (Ticket:485).
  - Django models will now accept dynamic properties (Ticket:575)
  - Django PK properties will be set first to allow related properties to apply
    correctly (Ticket:599)

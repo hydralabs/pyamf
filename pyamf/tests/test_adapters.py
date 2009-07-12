@@ -61,9 +61,6 @@ class AdapterHelperTestCase(PostLoadHookClearingTestCase):
         self.assertTrue(self.imported)
         self.assertEquals(self.foo, foo)
 
-    def test_root_import_fail(self):
-        self.assertRaises(ImportError, adapters.register_adapter, '__xyz', lambda x: x)
-
 
 def suite():
     import os.path

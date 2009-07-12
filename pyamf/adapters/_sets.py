@@ -12,6 +12,7 @@ import sets
 import pyamf
 from pyamf.adapters import util
 
+
 if hasattr(sets, 'ImmutableSet'):
     pyamf.add_type(sets.ImmutableSet, util.to_tuple)
 

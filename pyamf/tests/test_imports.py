@@ -15,282 +15,235 @@ from pyamf.util import imports
 from pyamf.tests import util as _util
 
 
-class JoinPathTestCase(unittest.TestCase):
-    def test_empty(self):
-        self.assertEquals(imports.joinPath('a.b', ''), '')
-
-    def test_root(self):
-        self.assertEquals(imports.joinPath('a.b', '/'), '')
-
-    def test_cwd(self):
-        self.assertEquals(imports.joinPath('a.b', '.'), 'a.b')
-        self.assertEquals(imports.joinPath('a.b.c.d.e.f.g', '.'), 'a.b.c.d.e.f.g')
-
-    def test_prev_dir(self):
-        self.assertEquals(imports.joinPath('a.b', '..'), 'a')
-        self.assertEquals(imports.joinPath('a.b.c.d.e.f.g', '..'), 'a.b.c.d.e.f')
-
-    def test_name(self):
-        self.assertEquals(imports.joinPath('a.b', 'c/d'), 'a.b.c.d')
-
-    def test_relative(self):
-        self.assertEquals(imports.joinPath('a.b', 'c/../d/e/../../f'), 'a.b.f')
-
-
 class PostLoadHookClearingTestCase(unittest.TestCase):
     def setUp(self):
-        self.plHooks, imports.postLoadHooks = imports.postLoadHooks, imports.postLoadHooks.copy()
-        self.ldMods, imports.loadedModules = imports.loadedModules, imports.loadedModules[:]
-
-    def tearDown(self):
-        imports.postLoadHooks = self.plHooks
-        imports.loadedModules = self.ldMods
-
-
-class GetModuleHooksTestCase(PostLoadHookClearingTestCase):
-    def test_default(self):
-        self.assertFalse('spam.eggs' in imports.postLoadHooks.keys())
-
-        self.assertEquals(imports.getModuleHooks('spam.eggs'), [])
-
-    def test_existant(self):
-        obj = object()
-        imports.postLoadHooks['spam.eggs'] = obj
-
-        self.assertEquals(imports.getModuleHooks('spam.eggs'), obj)
-
-    def test_none(self):
-        imports.postLoadHooks['spam.eggs'] = None
-
-        self.assertRaises(imports.AlreadyRead, imports.getModuleHooks, 'spam.eggs')
-
-
-class LazyModuleTestCase(unittest.TestCase):
-    def loadModule(self, name):
-        self.moduleLoaded = True
-        self.moduleName = name
-
-    def setUp(self):
-        self.moduleLoaded = False
-        self.moduleName = None
-
-        self.func = imports._loadModule
-
-        imports._loadModule = self.loadModule
-
-    def tearDown(self):
-        imports._loadModule = self.func
-
-    def test_slots(self):
-        self.assertEquals(imports.LazyModule('spam', 'eggs').__slots__, tuple())
-
-    def test_init(self):
-        mod = imports.LazyModule('spam', 'eggs')
-
-        self.assertEquals(mod.__name__, 'spam')
-        self.assertEquals(mod.__file__, 'eggs')
-        self.assertRaises(AttributeError, getattr, mod, '__path__')
-
-        mod = imports.LazyModule('foo', 'bar', [])
-
-        self.assertEquals(mod.__name__, 'foo')
-        self.assertEquals(mod.__file__, 'bar')
-        self.assertEquals(mod.__path__, [])
-
-    def test_type(self):
-        import types
-
-        mod = imports.LazyModule('spam', 'eggs')
-
-        self.assertTrue(isinstance(mod, types.ModuleType))
-
-    def test_getattr(self):
-        mod = imports.LazyModule('spam', 'eggs')
-
-        self.assertEquals(mod.__name__, 'spam')
-        self.assertEquals(mod.__file__, 'eggs')
-
-        self.assertFalse(self.moduleLoaded)
-
-        self.assertEquals(mod.__dict__, {'__name__': 'spam', '__file__': 'eggs'})
-        self.assertTrue(self.moduleLoaded)
-        self.assertEquals(self.moduleName, mod)
-
-    def test_setattr(self):
-        mod = imports.LazyModule('spam', 'eggs')
-
-        mod.__name__ = 'foo'
-        mod.__file__ = 'bar'
-        mod.__path__ = ['baz']
-
-        self.assertFalse(self.moduleLoaded)
-
-        mod.a = 'b'
-        self.assertTrue(self.moduleLoaded)
-        self.assertEquals(mod.__dict__, {'__name__': 'foo', '__file__': 'bar', '__path__': ['baz'], 'a': 'b'})
-        self.assertEquals(self.moduleName, mod)
-
-
-class IsLazyTestCase(PostLoadHookClearingTestCase):
-    def test_lazy(self):
-        imports.postLoadHooks['spam'] = []
-
-        mod = imports.LazyModule('spam', 'eggs')
-
-        self.assertTrue(imports._isLazy(mod))
-
-    def test_loaded(self):
-        imports.postLoadHooks['spam'] = None
-
-        mod = imports.LazyModule('spam', 'eggs')
-
-        self.assertFalse(imports._isLazy(mod))
-
-
-class WhenImportedTestCase(PostLoadHookClearingTestCase):
-    def setUp(self):
-        PostLoadHookClearingTestCase.setUp(self)
+        self.plHooks, imports.post_load_hooks = imports.post_load_hooks, imports.post_load_hooks.copy()
+        self.ldMods, imports.loaded_modules = imports.loaded_modules, imports.loaded_modules[:]
 
         self.path = os.path.join(os.path.dirname(__file__), 'imports')
-        self.mods = sys.modules.copy()
-        self.executed = False
 
         sys.path.insert(0, self.path)
 
     def tearDown(self):
-        PostLoadHookClearingTestCase.tearDown(self)
+        imports.post_load_hooks = self.plHooks
+        imports.loaded_modules = self.ldMods
 
         del sys.path[0]
 
-        _util.replace_dict(self.mods, sys.modules)
+        self._clearModules('foo', 'spam')
+
+    def _clearModules(self, *args):
+        for mod in args:
+            for k, v in sys.modules.copy().iteritems():
+                if k.startswith(mod) or k == 'pyamf.tests.%s' % (mod,):
+                    del sys.modules[k]
+
+
+class SplitModuleTestCase(unittest.TestCase):
+    """
+    Tests for L{imports.split_module}
+    """
+
+    def test_no_parent(self):
+        self.assertEquals(imports.split_module('foo'), (None, 'foo'))
+
+    def test_one_parent(self):
+        self.assertEquals(imports.split_module('foo.bar'), ('foo', 'bar'))
+
+    def test_deep(self):
+        self.assertEquals(imports.split_module('foo.bar.baz.gak'),
+            ('foo.bar.baz', 'gak'))
+
+
+class RunHooksTestCase(PostLoadHookClearingTestCase):
+    """
+    Tests for L{imports.run_hooks}
+    """
+
+    def test_iterate(self):
+        module = object()
+        self.executed = []
+
+        def foo(mod):
+            self.assertTrue(module is mod)
+            self.executed.append('foo')
+
+        def bar(mod):
+            self.assertTrue(module is mod)
+            self.executed.append('bar')
+
+        imports.post_load_hooks['foo'] = [foo, bar]
+
+        imports.run_hooks('foo', module)
+
+        self.assertEquals(self.executed, ['foo', 'bar'])
+
+    def test_clear(self):
+        module = object()
+        imports.post_load_hooks['foo'] = []
+
+        imports.run_hooks('foo', module)
+
+        self.assertFalse('foo' in imports.post_load_hooks)
+
+    def test_error(self):
+        """
+        Make sure that if an error occurs that post_load_hooks is still
+        deleted correctly.
+        """
+        module = object()
+        self.executed = []
+
+        def foo(mod):
+            raise RuntimeError
+
+        imports.post_load_hooks['foo'] = [foo]
+
+        self.assertRaises(RuntimeError, imports.run_hooks, 'foo', module)
+        self.assertFalse('foo' in imports.post_load_hooks)
+
+
+class WhenImportedTestCase(PostLoadHookClearingTestCase):
+    """
+    Tests for L{imports.when_imported}
+    """
+
+    def setUp(self):
+        PostLoadHookClearingTestCase.setUp(self)
+
+        self.executed = False
 
     def _hook(self, module):
         self.executed = True
 
-    def test_module(self):
-        self._clearModules('spam')
-        imports.whenImported('spam', self._hook)
+    def test_import(self):
+        imports.loaded_modules = []
 
-        self.assertTrue('spam' in imports.postLoadHooks.keys())
-        self.assertEquals(imports.postLoadHooks['spam'], [self._hook])
+        imports.when_imported('spam', self._hook)
+
+        self.assertFalse(self.executed)
 
         import spam
-        imports._loadModule(spam)
+
+        self.assertTrue(self.executed)
+        self.assertEquals(imports.loaded_modules, ['spam'])
+
+    def test_register(self):
+        imports.when_imported('spam', self._hook)
+
+        self.assertTrue('spam' in imports.post_load_hooks)
+        self.assertEquals(imports.post_load_hooks['spam'], [self._hook])
+
+    def test_already_imported(self):
+        import spam
+
+        imports.when_imported('spam', self._hook)
 
         self.assertTrue(self.executed)
 
-    def _clearModules(self, *args):
-        for mod in args:
-            try:
-                del sys.modules[mod]
-            except KeyError:
-                pass
+    def test_already_loaded(self):
+        import spam
+        imports.loaded_modules = ['spam']
 
-    def test_submodule(self):
-        self._clearModules('foo', 'foo.bar', 'foo.bar.baz')
-        imports.whenImported('foo.bar.baz', self._hook)
+        imports.when_imported('spam', self._hook)
 
-        self.assertTrue('foo' in imports.postLoadHooks.keys())
-        self.assertFalse('foo.bar' in imports.postLoadHooks.keys())
-        self.assertFalse('foo.bar.baz' in imports.postLoadHooks.keys())
-
-        self.assertEquals(len(imports.postLoadHooks['foo']), 1)
-
-        import foo
-        imports._loadModule(foo)
-
-        self.assertTrue('foo' in imports.postLoadHooks.keys())
-        self.assertTrue('foo.bar' in imports.postLoadHooks.keys())
-        self.assertFalse('foo.bar.baz' in imports.postLoadHooks.keys())
-        self.assertEquals(imports.postLoadHooks['foo'], None)
-        self.assertEquals(len(imports.postLoadHooks['foo.bar']), 1)
-        self.assertTrue(hasattr(foo, 'bar'))
-        self.assertEquals(self.executed, False)
-
-        # ensure that the module was actually loaded
-        self.assertEquals(foo.spam, 'eggs')
-
-        import foo.bar
-        imports._loadModule(foo.bar)
-
-        self.assertTrue('foo' in imports.postLoadHooks.keys())
-        self.assertTrue('foo.bar' in imports.postLoadHooks.keys())
-        self.assertTrue('foo.bar.baz' in imports.postLoadHooks.keys())
-        self.assertEquals(imports.postLoadHooks['foo'], None)
-        self.assertEquals(imports.postLoadHooks['foo.bar'], None)
-        self.assertEquals(len(imports.postLoadHooks['foo.bar.baz']), 1)
-        self.assertTrue(hasattr(foo.bar, 'baz'))
-        self.assertEquals(self.executed, False)
-
-        import foo.bar.baz
-        imports._loadModule(foo.bar.baz)
-
-        self.assertTrue('foo' in imports.postLoadHooks.keys())
-        self.assertTrue('foo.bar' in imports.postLoadHooks.keys())
-        self.assertTrue('foo.bar.baz' in imports.postLoadHooks.keys())
-        self.assertEquals(imports.postLoadHooks['foo'], None)
-        self.assertEquals(imports.postLoadHooks['foo.bar'], None)
-        self.assertEquals(imports.postLoadHooks['foo.bar.baz'], None)
-        self.assertEquals(self.executed, True)
-
-    def test_multipleChildDeepParent(self):
-        self._clearModules('foo', 'foo.bar', 'foo.bar.baz', 'foo.bar.gak')
-        self._mods = []
-
-        imports.whenImported('foo.bar.baz', lambda m: self._mods.append(m))
-        imports.whenImported('foo.bar.gak', lambda m: self._mods.append(m))
-
-        import foo.bar.baz
-        import foo.bar.gak
-
-        imports._loadModule(foo.bar.baz)
-        imports._loadModule(foo.bar.gak)
-
-        self.assertEquals(self._mods, [foo.bar.baz, foo.bar.gak])
+        self.assertTrue(self.executed)
 
 
-class FindModuleTestCase(unittest.TestCase):
+class BaseModuleFinderTestCase(PostLoadHookClearingTestCase):
+    """
+    """
+
     def setUp(self):
-        self.path = os.path.join(os.path.dirname(__file__), 'imports')
-        sys.path.insert(0, self.path)
+        PostLoadHookClearingTestCase.setUp(self)
 
-    def tearDown(self):
-        sys.path.remove(self.path)
+        self.finder = imports.ModuleFinder()
 
-    def test_root(self):
-        fm = imports.find_module('spam')
 
-        self.assertEquals(type(fm[0]), file)
-        self.assertTrue(fm[1].startswith(os.path.join(self.path, 'spam.py')))
+class ModuleFinderFindModuleTestCase(BaseModuleFinderTestCase):
+    """
+    Tests for L{imports.ModuleFinder.find_module}
+    """
+
+    def test_found(self):
+        imports.post_load_hooks['foo'] = None
+
+        self.assertTrue(self.finder is self.finder.find_module('foo', None))
+
+    def test_not_found(self):
+        self.assertFalse('foo' in imports.post_load_hooks)
+
+        self.assertEquals(None, self.finder.find_module('foo', None))
+
+
+class ModuleFinderLoadModuleTestCase(BaseModuleFinderTestCase):
+    """
+    Tests for L{imports.ModuleFinder.load_module}
+    """
+
+    def setUp(self):
+        BaseModuleFinderTestCase.setUp(self)
+
+        imports.loaded_modules = []
+
+    def test_file(self):
+        self.assertFalse('spam' in sys.modules)
+
+        imports.post_load_hooks['spam'] = []
+        mod = self.finder.load_module('spam')
+
+        self.assertTrue(mod is sys.modules['spam'])
+        self.assertEquals(imports.loaded_modules, ['spam'])
 
     def test_package(self):
-        fm = imports.find_module('foo')
+        self.assertFalse('foo' in sys.modules)
 
-        self.assertEquals(fm[0], None)
-        self.assertEquals(fm[1], os.path.join(self.path, 'foo'))
+        imports.post_load_hooks['foo'] = []
+        mod = self.finder.load_module('foo')
 
-    def test_subpackage(self):
-        fm = imports.find_module('bar', [os.path.join(self.path, 'foo')])
+        self.assertTrue(mod is sys.modules['foo'])
+        self.assertEquals(imports.loaded_modules, ['foo'])
 
-        self.assertEquals(fm[0], None)
-        self.assertEquals(fm[1], os.path.join(self.path, 'foo', 'bar'))
+    def test_package_child(self):
+        self.assertFalse('foo.bar' in sys.modules)
 
-    def test_error(self):
-        self.assertRaises(ImportError, imports.find_module, 'eggs')
+        import foo
+
+        imports.post_load_hooks['foo.bar'] = []
+        mod = self.finder.load_module('foo.bar')
+
+        self.assertTrue(mod is sys.modules['foo.bar'])
+        self.assertEquals(imports.loaded_modules, ['foo.bar'])
+
+        self.assertTrue(sys.modules['foo'].bar is mod)
+
+    def test_hook(self):
+        self.executed = False
+
+        def h(mod):
+            self.executed = True
+
+        imports.post_load_hooks['foo'] = [h]
+
+        mod = self.finder.load_module('foo')
+
+        self.assertTrue(self.executed)
+        self.assertTrue(mod is sys.modules['foo'])
 
 
 def suite():
-    """
-    Unit tests for AMF utilities.
-    """
     suite = unittest.TestSuite()
 
-    suite.addTest(unittest.makeSuite(JoinPathTestCase))
-    suite.addTest(unittest.makeSuite(GetModuleHooksTestCase))
-    suite.addTest(unittest.makeSuite(LazyModuleTestCase))
-    suite.addTest(unittest.makeSuite(IsLazyTestCase))
-    suite.addTest(unittest.makeSuite(WhenImportedTestCase))
-    suite.addTest(unittest.makeSuite(FindModuleTestCase))
+    tcs = [
+        SplitModuleTestCase,
+        RunHooksTestCase,
+        WhenImportedTestCase,
+        ModuleFinderFindModuleTestCase,
+        ModuleFinderLoadModuleTestCase
+    ]
+
+    for tc in tcs:
+        suite.addTest(unittest.makeSuite(tc))
 
     return suite
 
