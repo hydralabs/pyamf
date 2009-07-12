@@ -954,7 +954,8 @@ def load_class(alias):
     Finds the class registered to the alias.
 
     The search is done in order:
-      1. Checks if the class name has been registered via L{register_class}.
+      1. Checks if the class name has been registered via L{register_class} or
+        L{register_package}.
       2. Checks all functions registered via L{register_class_loader}.
       3. Attempts to load the class via standard module loading techniques.
 
