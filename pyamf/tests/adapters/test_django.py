@@ -485,6 +485,30 @@ class PKTestCase(ModelsBaseTestCase):
             'publications': [p]
         })
 
+    def test_none(self):
+        """
+        See #556. Make sure that PK fields with a value of 0 are actually set
+        to C{None}.
+        """
+        from django.db import models
+
+        class Foo(models.Model):
+            pass
+
+        self.resetDB()
+
+        alias = self.adapter.DjangoClassAlias(Foo, None)
+
+        x = Foo()
+
+        self.assertEquals(x.id, None)
+
+        alias.applyAttributes(x, {
+            'id': 0
+        })
+
+        self.assertEquals(x.id, None)
+
 
 def suite():
     suite = unittest.TestSuite()
