@@ -425,6 +425,7 @@ class Encoder(pyamf.BaseEncoder):
         ((datetime.date, datetime.datetime, datetime.time), "writeDate"),
         ((util.is_ET_element,), "writeXML"),
         ((lambda x: x is pyamf.Undefined,), "writeUndefined"),
+        ((types.ClassType, types.TypeType), "writeClass"),
         ((types.InstanceType,types.ObjectType,), "writeObject"),
     ]
 
@@ -453,6 +454,12 @@ class Encoder(pyamf.BaseEncoder):
         @type data: C{undefined} data
         """
         self.writeType(TYPE_UNDEFINED)
+
+    def writeClass(self, *args, **kwargs):
+        """
+        Classes cannot be serialised.
+        """
+        raise pyamf.EncodeError("Class objects cannot be serialised")
 
     def writeFunc(self, *args, **kwargs):
         """
