@@ -84,8 +84,6 @@ class ArrayCollectionTestCase(unittest.TestCase):
         self.assertEquals(x, ['eggs'])
 
     def test_source_attr(self):
-        d = {'source': ['foo', 'bar']}
-
         s = '\n\x07Cflex.messaging.io.ArrayCollection\n\x0b\x01\rsource' \
             '\t\x05\x01\x06\x07foo\x06\x07bar\x01'
 

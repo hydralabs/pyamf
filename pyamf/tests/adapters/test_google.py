@@ -928,7 +928,6 @@ class ReferencesTestCase(ClassCacheClearingTestCase):
             s, p = Novel.all().order('-title').fetch(2)
 
             encoder = pyamf.get_encoder(pyamf.AMF3)
-            stream = encoder.stream
             context = encoder.context
 
             self.assertFalse(hasattr(context, 'gae_objects'))

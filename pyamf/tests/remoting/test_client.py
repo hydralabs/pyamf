@@ -477,7 +477,7 @@ class RemotingServiceTestCase(unittest.TestCase):
 
         cred = envelope.headers['Credentials']
 
-        self.assertEquals(envelope.headers['Credentials'], gw.headers['Credentials'])
+        self.assertEquals(cred, gw.headers['Credentials'])
 
     def test_append_url_header(self):
         gw = client.RemotingService('http://example.org/amf-gateway')

@@ -42,8 +42,6 @@ class TimestampTestCase(unittest.TestCase):
 class StringIOProxyTestCase(unittest.TestCase):
 
     def setUp(self):
-        from StringIO import StringIO
-
         self.previous = util.StringIOProxy._wrapped_class
         util.StringIOProxy._wrapped_class = StringIO
 
@@ -585,8 +583,6 @@ class BufferedByteStreamTestCase(unittest.TestCase):
         self.assertEquals(a.tell(), 1)
         self.assertEquals(b.tell(), 3)
 
-        c = a + b
-
         self.assertEquals(a.tell(), 1)
         self.assertEquals(b.tell(), 3)
 
@@ -952,7 +948,7 @@ def suite():
 
     try:
         import cStringIO
-        #test_cases.append(cStringIOProxyTestCase)
+        test_cases.append(cStringIOProxyTestCase)
     except ImportError:
         pass
 

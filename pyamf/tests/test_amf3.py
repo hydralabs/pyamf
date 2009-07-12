@@ -1793,7 +1793,7 @@ class ComplexEncodingTestCase(unittest.TestCase, _util.BaseEncoderMixIn):
         self.encoder.writeElement(complex)
         encoded = self.encoder.stream.getvalue()
         context = amf3.Context()
-        decoded = amf3.Decoder(self.encoder.stream.getvalue(), context).readElement()
+        decoded = amf3.Decoder(encoded, context).readElement()
         self.complex_encode_decode_test(decoded['objects'])
 
 

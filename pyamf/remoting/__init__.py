@@ -576,8 +576,6 @@ def _get_status(status):
 
 
 def get_fault_class(level, **kwargs):
-    code = kwargs.get('code', '')
-
     if level == 'error':
         return ErrorFault
 

@@ -81,7 +81,7 @@ def suite():
                 mod = getattr(mod, x)
 
             suite.addTest(mod.suite())
-        except ImportError, e:
+        except ImportError:
             continue
 
     return suite

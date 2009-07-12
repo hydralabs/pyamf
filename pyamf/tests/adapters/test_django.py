@@ -515,7 +515,7 @@ def suite():
 
     try:
         import django
-    except ImportError, e:
+    except ImportError:
         return suite
 
     test_cases = [
