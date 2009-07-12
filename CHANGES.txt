@@ -8,6 +8,7 @@ versions of PyAMF.
 
 0.5 (unreleased)
 ----------------
+ - Added support for the collections module. (Ticket:474)
  - Added type checks for class objects. (Ticket:473)
  - GAE FloatProperty can now accept int's without issue (Ticket:609)
  - Revamped the lazy imports module to use sys.meta_path instead. Fixes all
