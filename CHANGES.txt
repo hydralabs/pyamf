@@ -8,6 +8,7 @@ versions of PyAMF.
 
 0.5 (unreleased)
 ----------------
+ - Added support for the `array` module (Ticket:468)
  - Fixed an issue with Django model AutoFields being set to 0 by the Flex
    client (Ticket:556)
  - Added support for the collections module. (Ticket:474)
