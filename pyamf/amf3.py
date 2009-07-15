@@ -1258,15 +1258,10 @@ class Encoder(pyamf.BaseEncoder):
 
         t = type(func)
 
-        try:
-            if t is types.MethodType:
-                func(data, use_references=use_references, use_proxies=use_proxies)
-            elif t is pyamf.CustomTypeFunc:
-                func(data)
-        except (KeyboardInterrupt, SystemExit):
-            raise
-        except:
-            raise
+        if t is types.MethodType:
+            func(data, use_references=use_references, use_proxies=use_proxies)
+        elif t is pyamf.CustomTypeFunc:
+            func(data)
 
     def writeClass(self, *args, **kwargs):
         """
@@ -1690,7 +1685,7 @@ class Encoder(pyamf.BaseEncoder):
                     self._writeString(attr)
                     self.writeElement(value)
 
-                self._writeString('')
+                self.stream.write('\x01')
 
     def writeByteArray(self, n, use_references=True, use_proxies=None):
         """
