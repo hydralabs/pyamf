@@ -97,9 +97,12 @@ class DjangoGatewayTestCase(unittest.TestCase):
 
     def test_expose_request(self):
         http_request = HttpRequest()
+        self.executed = False
 
         def test(request):
             self.assertEquals(http_request, request)
+            self.assertTrue(hasattr(request, 'amf_request'))
+            self.executed = True
 
         gw = _django.DjangoGateway({'test.test': test}, expose_request=True)
 
@@ -112,6 +115,8 @@ class DjangoGatewayTestCase(unittest.TestCase):
         http_request.raw_post_data = request.getvalue()
 
         gw(http_request)
+
+        self.assertTrue(self.executed)
 
     def _raiseException(self, e, *args, **kwargs):
         raise e()

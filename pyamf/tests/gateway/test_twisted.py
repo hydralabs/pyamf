@@ -139,20 +139,30 @@ class TwistedServerTestCase(unittest.TestCase):
 
     def test_expose_request(self):
         self.gw.expose_request = True
-
-        def echo(request, data):
-            self.assertTrue(isinstance(request, http.Request))
-
-            return data
-
-        self.gw.addService(echo)
+        self.executed = False
 
         env = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash9)
         request = remoting.Request('echo', body=['hello'])
         env['/1'] = request
 
-        return client.getPage("http://127.0.0.1:%d/" % (self.port,),
+        def echo(http_request, data):
+            self.assertTrue(isinstance(http_request, http.Request))
+
+            self.assertTrue(hasattr(http_request, 'amf_request'))
+            amf_request = http_request.amf_request
+
+            self.assertEquals(request.target, 'echo')
+            self.assertEquals(request.body, ['hello'])
+            self.executed = True
+
+            return data
+
+        self.gw.addService(echo)
+
+        d = client.getPage("http://127.0.0.1:%d/" % (self.port,),
                 method="POST", postdata=remoting.encode(env).getvalue())
+
+        return d.addCallback(lambda x: self.assertTrue(self.executed))
 
     def test_preprocessor(self):
         d = defer.Deferred()

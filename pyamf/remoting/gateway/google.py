@@ -53,6 +53,8 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
         response = remoting.Envelope(request.amfVersion, request.clientType)
 
         for name, message in request:
+            self.request.amf_request = message
+
             processor = self.getProcessor(message)
             response[name] = processor(message, http_request=self.request)
 
