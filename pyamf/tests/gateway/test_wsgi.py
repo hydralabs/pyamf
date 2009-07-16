@@ -11,6 +11,7 @@ WSGI gateway tests.
 
 import unittest
 
+import pyamf
 from pyamf import remoting, util
 from pyamf.remoting.gateway.wsgi import WSGIGateway
 
@@ -127,7 +128,8 @@ class WSGIServerTestCase(unittest.TestCase):
 
         remoting.decode = self.old_method
 
-        self.assertEquals(response, ['500 Internal Server Error\n\nAn unexpected error occurred whilst decoding.'])
+        self.assertEquals(response, ['500 Internal Server Error\n\nAn unexpec'
+            'ted error occurred whilst decoding.'])
         self.assertTrue(self.executed)
 
     def test_expected_exceptions_decode(self):
@@ -149,6 +151,40 @@ class WSGIServerTestCase(unittest.TestCase):
             raise
 
         remoting.decode = self.old_method
+
+    def test_expose_request(self):
+        self.gw.expose_request = True
+        self.executed = False
+
+        env = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash9)
+        request = remoting.Request('echo', body=['hello'])
+        env['/1'] = request
+
+        request = remoting.encode(env)
+
+        env = {
+            'REQUEST_METHOD': 'POST',
+            'CONTENT_LENGTH': str(len(request)),
+            'wsgi.input': request
+        }
+
+        def echo(http_request, data):
+            self.assertTrue('pyamf.request' in http_request)
+            request = http_request['pyamf.request']
+
+            self.assertTrue(isinstance(request, remoting.Request))
+
+            self.assertEquals(request.target, 'echo')
+            self.assertEquals(request.body, ['hello'])
+            self.executed = True
+
+            return data
+
+        self.gw.addService(echo)
+
+        response = self.gw(env, lambda *args: None)
+
+        self.assertTrue(self.executed)
 
 
 def suite():

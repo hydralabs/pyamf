@@ -47,6 +47,7 @@ class WSGIGateway(gateway.BaseGateway):
 
         for name, message in request:
             processor = self.getProcessor(message)
+            environ['pyamf.request'] = message
             response[name] = processor(message, http_request=environ)
 
         return response

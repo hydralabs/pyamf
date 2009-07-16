@@ -72,6 +72,8 @@ class WebAppGatewayTestCase(unittest.TestCase):
 
         def test(request):
             self.assertEquals(self.request, request)
+            self.assertTrue(hasattr(self.request, 'amf_request'))
+
             self.executed = True
 
         self.gw.expose_request = True

@@ -711,6 +711,8 @@ def encode(msg, context=None, strict=False, logger=None):
 
         _write_body(name, message, stream, encoder, strict)
 
+    stream.seek(0)
+
     return stream
 
 

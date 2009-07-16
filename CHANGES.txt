@@ -8,6 +8,9 @@ versions of PyAMF.
 
 0.5 (unreleased)
 ----------------
+ - Exposed the amf request object if expose_request=True.
+   Twisted/Django/Google have an amf_request property on the http request
+   object.  WSGI has an entry in the environ dict - pyamf.request (Ticket:234)
  - Added support for the `array` module (Ticket:468)
  - Fixed an issue with Django model AutoFields being set to 0 by the Flex
    client (Ticket:556)

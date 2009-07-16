@@ -84,7 +84,8 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
 
         def preprocess_cb(result):
             d = defer.maybeDeferred(self._getBody, request, response,
-                                    service_request, **kwargs)
+                service_request, **kwargs)
+
             d.addCallback(response_cb).addErrback(eb)
 
         def auth_cb(result):
@@ -98,7 +99,8 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
                 return
 
             d = defer.maybeDeferred(self.gateway.preprocessRequest,
-                                    service_request, *args, **kwargs)
+                service_request, *args, **kwargs)
+
             d.addCallback(preprocess_cb).addErrback(eb)
 
         # we have a valid service, now attempt authentication
@@ -337,11 +339,16 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         for name, message in amf_request:
             processor = self.getProcessor(message)
 
+            http_request.amf_request = message
+
             d = defer.maybeDeferred(processor, message,
                 http_request=http_request)
             d.addCallback(cb, name)
 
-            dl.append(d)
+            d = defer.maybeDeferred(
+                processor, message, http_request=http_request)
+
+            dl.append(d.addCallback(cb, name))
 
         def cb2(result):
             return response

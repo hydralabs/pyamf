@@ -287,6 +287,17 @@ class EncoderTestCase(unittest.TestCase):
             '/onResult\x00\x04null\x00\x00\x00\x00\x11\x0bq<root><sections>'
             '<section /><section /></sections></root>')
 
+    def test_stream_pos(self):
+        """
+        Ensure that the stream pointer is placed at the beginning.
+        """
+        msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash6)
+
+        msg['/1'] = remoting.Response(body=[1, 2, 3])
+
+        stream = remoting.encode(msg)
+        self.assertEquals(stream.tell(), 0)
+
 
 class StrictEncodingTestCase(unittest.TestCase):
     def test_request(self):

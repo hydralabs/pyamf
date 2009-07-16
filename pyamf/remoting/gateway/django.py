@@ -62,6 +62,8 @@ class DjangoGateway(gateway.BaseGateway):
         response = remoting.Envelope(request.amfVersion, request.clientType)
 
         for name, message in request:
+            http_request.amf_request = message
+
             processor = self.getProcessor(message)
             response[name] = processor(message, http_request=http_request)
 
