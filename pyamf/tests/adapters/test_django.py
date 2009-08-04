@@ -548,6 +548,94 @@ class ModelInheritanceTestCase(ModelsBaseTestCase):
         self.assertEquals(da, None)
 
 
+class MockFile(object):
+    """
+    mock for L{django.core.files.base.File}
+    """
+
+    def chunks(self):
+        return []
+
+    def __len__(self):
+        return 0
+
+    def read(self, n):
+        return ''
+
+
+class FieldsTestCase(ModelsBaseTestCase):
+    """
+    Tests for L{fields}
+    """
+
+    def test_file(self):
+        from django.db import models
+        from django.core.files.base import File
+
+        self.executed = False
+
+        def get_studio_watermark(*args, **kwargs):
+            self.executed = True
+
+            return 'foo'
+
+        class Image(models.Model):
+            file = models.FileField(upload_to=get_studio_watermark)
+            text = models.CharField(max_length=64)
+
+        self.resetDB()
+
+        alias = self.adapter.DjangoClassAlias(Image)
+
+        i = Image()
+        i.file.save('bar', MockFile())
+
+        i.save()
+
+        sa, da = alias.getEncodableAttributes(i)
+
+        self.assertEquals(sa, {'text': '', 'id': 1, 'file': u'foo'})
+        self.assertEquals(da, None)
+        self.assertTrue(self.executed)
+
+        attrs = alias.getDecodableAttributes(i, sa)
+
+        self.assertEquals(attrs, {'text': ''})
+
+    def test_image(self):
+        from django.db import models
+        from django.core.files.base import File
+
+        self.executed = False
+
+        def get_studio_watermark(*args, **kwargs):
+            self.executed = True
+
+            return 'foo'
+
+        class Profile(models.Model):
+            file = models.ImageField(upload_to=get_studio_watermark)
+            text = models.CharField(max_length=64)
+
+        self.resetDB()
+
+        alias = self.adapter.DjangoClassAlias(Profile)
+
+        i = Profile()
+        i.file.save('bar', MockFile())
+
+        i.save()
+
+        sa, da = alias.getEncodableAttributes(i)
+
+        self.assertEquals(sa, {'text': '', 'id': 1, 'file': u'foo_'})
+        self.assertEquals(da, None)
+        self.assertTrue(self.executed)
+
+        attrs = alias.getDecodableAttributes(i, sa)
+
+        self.assertEquals(attrs, {'text': ''})
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -562,7 +650,8 @@ def suite():
         ForeignKeyTestCase,
         I18NTestCase,
         PKTestCase,
-        ModelInheritanceTestCase
+        ModelInheritanceTestCase,
+        FieldsTestCase
     ]
 
     for tc in test_cases:

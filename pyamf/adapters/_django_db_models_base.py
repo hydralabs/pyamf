@@ -12,7 +12,7 @@ C{django.db.models} adapter module.
 from django.db.models.base import Model
 from django.db import models
 from django.db.models import fields
-from django.db.models.fields import related
+from django.db.models.fields import related, files
 
 import datetime
 
@@ -31,6 +31,9 @@ class DjangoClassAlias(pyamf.ClassAlias):
         self.meta = self.klass._meta
 
         for x in self.meta.local_fields:
+            if isinstance(x, files.FileField):
+                self.readonly_attrs.update([x.name])
+
             if not isinstance(x, related.ForeignKey):
                 self.fields[x.name] = x
             else:
@@ -74,6 +77,8 @@ class DjangoClassAlias(pyamf.ClassAlias):
         elif isinstance(field, fields.TimeField):
             return datetime.datetime(1970, 1, 1,
                 value.hour, value.minute, value.second, value.microsecond)
+        elif isinstance(value, files.FieldFile):
+            return value.name
 
         return value
 
@@ -130,7 +135,9 @@ class DjangoClassAlias(pyamf.ClassAlias):
     def getDecodableAttributes(self, obj, attrs, **kwargs):
         attrs = pyamf.ClassAlias.getDecodableAttributes(self, obj, attrs, **kwargs)
 
-        for n, f in self.fields.iteritems():
+        for n in self.decodable_properties:
+            f = self.fields[n]
+
             attrs[f.attname] = self._decodeValue(f, attrs[n])
 
         # primary key of django object must always be set first for
