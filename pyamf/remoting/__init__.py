@@ -308,6 +308,9 @@ class BaseFault(object):
 
     level = None
 
+    class __amf__:
+        static = ('level', 'code', 'type', 'details', 'description')
+
     def __init__(self, *args, **kwargs):
         self.code = kwargs.get('code', '')
         self.type = kwargs.get('type', '')
@@ -336,9 +339,6 @@ class BaseFault(object):
         """
         raise get_exception_from_fault(self), self.description, None
 
-pyamf.register_class(BaseFault,
-    attrs=['level', 'code', 'type', 'details', 'description'])
-
 
 class ErrorFault(BaseFault):
     """
@@ -346,8 +346,6 @@ class ErrorFault(BaseFault):
     """
 
     level = 'error'
-
-pyamf.register_class(ErrorFault)
 
 
 def _read_header(stream, decoder, strict=False):
@@ -726,3 +724,6 @@ def get_exception_from_fault(fault):
     except KeyError:
         # default to RemotingError
         return RemotingError
+
+
+pyamf.register_class(ErrorFault)

@@ -821,7 +821,7 @@ class ClassAliasTestCase(unittest.TestCase):
         self.assertEquals(util.get_class_alias(A), DummyAlias)
 
     def test_none_existant(self):
-        self.assertEquals(None, util.get_class_alias(self.__class__))
+        self.assertEquals(pyamf.ClassAlias, util.get_class_alias(self.__class__))
 
     def test_subclass(self):
         class A(object):
@@ -929,6 +929,260 @@ class GetAttrsTestCase(unittest.TestCase):
         self.assertRaises(AttributeError, util.get_attrs, {0:0, '0':1})
 
 
+class IsClassSealedTestCase(unittest.TestCase):
+    """
+    Tests for L{util.is_class_sealed}
+    """
+
+    def test_new_mixed(self):
+        class A(object):
+            __slots__ = ('foo', 'bar')
+
+        class B(A):
+            pass
+
+        class C(B):
+            __slots__ = ('spam', 'eggs')
+
+        self.assertTrue(util.is_class_sealed(A))
+        self.assertFalse(util.is_class_sealed(B))
+        self.assertFalse(util.is_class_sealed(C))
+
+    def test_deep(self):
+        class A(object):
+            __slots__ = ('foo', 'bar')
+
+        class B(A):
+            __slots__ = ('gak',)
+
+        class C(B):
+            pass
+
+        self.assertTrue(util.is_class_sealed(A))
+        self.assertTrue(util.is_class_sealed(B))
+        self.assertFalse(util.is_class_sealed(C))
+
+
+class GetClassMetaTestCase(unittest.TestCase):
+    """
+    Tests for L{util.get_class_meta}
+    """
+
+    def test_types(self):
+        class A:
+            pass
+
+        class B(object):
+            pass
+
+        for t in ['', u'', 1, 1.0, 1L, [], {}, object, object(), A(), B()]:
+            self.assertRaises(TypeError, util.get_class_meta, t)
+
+    def test_no_meta(self):
+        class A:
+            pass
+
+        class B(object):
+            pass
+
+        empty = {
+            'readonly_attrs': None,
+            'static_attrs': None,
+            'dynamic': None,
+            'alias': None,
+            'amf3': None,
+            'exclude_attrs': None,
+            'external': None
+        }
+
+        self.assertEquals(util.get_class_meta(A), empty)
+        self.assertEquals(util.get_class_meta(B), empty)
+
+    def test_alias(self):
+        class A:
+            class __amf__:
+                alias = 'foo.bar.Spam'
+
+        class B(object):
+            class __amf__:
+                alias = 'foo.bar.Spam'
+
+        meta = {
+            'readonly_attrs': None,
+            'static_attrs': None,
+            'dynamic': None,
+            'alias': 'foo.bar.Spam',
+            'amf3': None,
+            'exclude_attrs': None,
+            'external': None
+        }
+
+        self.assertEquals(util.get_class_meta(A), meta)
+        self.assertEquals(util.get_class_meta(B), meta)
+
+    def test_static(self):
+        class A:
+            class __amf__:
+                static = ('foo', 'bar')
+
+        class B(object):
+            class __amf__:
+                static = ('foo', 'bar')
+
+        meta = {
+            'readonly_attrs': None,
+            'static_attrs': ['foo', 'bar'],
+            'dynamic': None,
+            'alias': None,
+            'amf3': None,
+            'exclude_attrs': None,
+            'external': None
+        }
+
+        self.assertEquals(util.get_class_meta(A), meta)
+        self.assertEquals(util.get_class_meta(B), meta)
+
+    def test_exclude(self):
+        class A:
+            class __amf__:
+                exclude = ('foo', 'bar')
+
+        class B(object):
+            class __amf__:
+                exclude = ('foo', 'bar')
+
+        meta = {
+            'readonly_attrs': None,
+            'exclude_attrs': ['foo', 'bar'],
+            'dynamic': None,
+            'alias': None,
+            'amf3': None,
+            'static_attrs': None,
+            'external': None
+        }
+
+        self.assertEquals(util.get_class_meta(A), meta)
+        self.assertEquals(util.get_class_meta(B), meta)
+
+    def test_readonly(self):
+        class A:
+            class __amf__:
+                readonly = ('foo', 'bar')
+
+        class B(object):
+            class __amf__:
+                readonly = ('foo', 'bar')
+
+        meta = {
+            'exclude_attrs': None,
+            'readonly_attrs': ['foo', 'bar'],
+            'dynamic': None,
+            'alias': None,
+            'amf3': None,
+            'static_attrs': None,
+            'external': None
+        }
+
+        self.assertEquals(util.get_class_meta(A), meta)
+        self.assertEquals(util.get_class_meta(B), meta)
+
+    def test_amf3(self):
+        class A:
+            class __amf__:
+                amf3 = True
+
+        class B(object):
+            class __amf__:
+                amf3 = True
+
+        meta = {
+            'exclude_attrs': None,
+            'readonly_attrs': None,
+            'dynamic': None,
+            'alias': None,
+            'amf3': True,
+            'static_attrs': None,
+            'external': None
+        }
+
+        self.assertEquals(util.get_class_meta(A), meta)
+        self.assertEquals(util.get_class_meta(B), meta)
+
+    def test_dynamic(self):
+        class A:
+            class __amf__:
+                dynamic = False
+
+        class B(object):
+            class __amf__:
+                dynamic = False
+
+        meta = {
+            'exclude_attrs': None,
+            'readonly_attrs': None,
+            'dynamic': False,
+            'alias': None,
+            'amf3': None,
+            'static_attrs': None,
+            'external': None
+        }
+
+        self.assertEquals(util.get_class_meta(A), meta)
+        self.assertEquals(util.get_class_meta(B), meta)
+
+    def test_external(self):
+        class A:
+            class __amf__:
+                external = True
+
+        class B(object):
+            class __amf__:
+                external = True
+
+        meta = {
+            'exclude_attrs': None,
+            'readonly_attrs': None,
+            'dynamic': None,
+            'alias': None,
+            'amf3': None,
+            'static_attrs': None,
+            'external': True
+        }
+
+        self.assertEquals(util.get_class_meta(A), meta)
+        self.assertEquals(util.get_class_meta(B), meta)
+
+    def test_dict(self):
+        meta = {
+            'exclude': ['foo'],
+            'readonly': ['bar'],
+            'dynamic': False,
+            'alias': 'spam.eggs',
+            'amf3': True,
+            'static': ['baz'],
+            'external': True
+        }
+
+        class A:
+            __amf__ = meta
+
+        class B(object):
+            __amf__ = meta
+
+        ret = {
+            'readonly_attrs': ['bar'],
+            'static_attrs': ['baz'],
+            'dynamic': False,
+            'alias': 'spam.eggs',
+            'amf3': True,
+            'exclude_attrs': ['foo'],
+            'external': True
+        }
+
+        self.assertEquals(util.get_class_meta(A), ret)
+        self.assertEquals(util.get_class_meta(B), ret)
+
+
 def suite():
     """
     Unit tests for AMF utilities.
@@ -943,7 +1197,9 @@ def suite():
         ClassAliasTestCase,
         IndexedCollectionTestCase,
         IndexedMapTestCase,
-        GetAttrsTestCase
+        GetAttrsTestCase,
+        IsClassSealedTestCase,
+        GetClassMetaTestCase
     ]
 
     try:

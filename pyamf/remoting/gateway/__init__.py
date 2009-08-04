@@ -24,16 +24,11 @@ SERVER_NAME = 'PyAMF/%s %s/%s' % (
     '.'.join(map(lambda x: str(x), sys.version_info[0:3]))
 )
 
-fault_alias = pyamf.get_class_alias(remoting.ErrorFault)
-
 
 class BaseServiceError(pyamf.BaseError):
     """
     Base service error.
     """
-
-pyamf.register_class(BaseServiceError, attrs=fault_alias.attrs)
-del fault_alias
 
 
 class UnknownServiceError(BaseServiceError):

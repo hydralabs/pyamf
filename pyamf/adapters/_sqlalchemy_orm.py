@@ -1,5 +1,15 @@
+# Copyright (c) 2007-2009 The PyAMF Project.
+# See LICENSE for details.
+
 """
+SQLAlchemy adapter module.
+
+@see: U{SQLAlchemy homepage (external)<http://www.sqlalchemy.org>}
+
+@since: 0.4
 """
+
+from sqlalchemy import orm, __version__
 
 try:
     from sqlalchemy.orm import class_mapper, object_mapper
@@ -21,111 +31,58 @@ class SaMappedClassAlias(pyamf.ClassAlias):
     KEY_ATTR = 'sa_key'
     LAZY_ATTR = 'sa_lazy'
     EXCLUDED_ATTRS = [
-        '_sa_instance_state', '_sa_session_id', '_state',
-        '_entity_name', '_instance_key', '_sa_class_manager',
-        '_sa_adapter', '_sa_appender', '_sa_instrumented',
-        '_sa_iterator', '_sa_remover', '_sa_initiator',
+        '_entity_name', '_instance_key', '_sa_adapter', '_sa_appender',
+        '_sa_class_manager', '_sa_initiator', '_sa_instance_state',
+        '_sa_instrumented', '_sa_iterator', '_sa_remover', '_sa_session_id',
+        '_state'
     ]
 
-    def _getMapper(self, obj):
-        """
-        Returns C{sqlalchemy.orm.mapper.Mapper} object.
-        """
-        if hasattr(self, 'primary_mapper'):
-            return self.primary_mapper
+    STATE_ATTR = '_sa_instance_state'
 
-        try:
-            self.primary_mapper = object_mapper(obj)
-        except UnmappedInstanceError:
-            self.primary_mapper = None
+    if __version__.startswith('0.4'):
+        STATE_ATTR = '_state'
 
-        return self.primary_mapper
+    def getCustomProperties(self):
+        self.mapper = class_mapper(self.klass)
+        self.exclude_attrs.update(self.EXCLUDED_ATTRS)
 
-    def getAttrs(self, obj, *args, **kwargs):
-        """
-        Returns a C{tuple} containing 2 lists. The 1st is a list of allowed
-        static attribute names, and the 2nd is a list of allowed dynamic
-        attribute names.
-        """
-        mapper = self._getMapper(obj)
+        self.properties = []
 
-        if mapper is None:
-            return pyamf.ClassAlias.getAttrs(self, obj, *args, **kwargs)
+        for prop in self.mapper.iterate_properties:
+            self.properties.append(prop.key)
 
-        if not hasattr(self, 'static_attrs'):
-            self.static_attrs = [self.KEY_ATTR, self.LAZY_ATTR]
-            self.properties = []
+        self.encodable_properties.update(self.properties)
+        self.decodable_properties.update(self.properties)
+        self.static_attrs.update(self.properties)
 
-            for prop in mapper.iterate_properties:
-                self.static_attrs.append(prop.key)
-
-            for key, prop in self.klass.__dict__.iteritems():
-                if isinstance(prop, property):
-                    self.properties.append(key)
-                    self.static_attrs.append(key)
-
-        dynamic_attrs = []
-
-        for key in obj.__dict__.keys():
-            if key in self.EXCLUDED_ATTRS:
-                continue
-
-            if key not in self.static_attrs:
-                dynamic_attrs.append(key)
-
-        return self.static_attrs, dynamic_attrs
-
-    def getAttributes(self, obj, *args, **kwargs):
+    def getEncodableAttributes(self, obj, **kwargs):
         """
         Returns a C{tuple} containing a dict of static and dynamic attributes
         for C{obj}.
         """
-        mapper = self._getMapper(obj)
+        sa, da = pyamf.ClassAlias.getEncodableAttributes(self, obj, **kwargs)
 
-        if mapper is None:
-            return pyamf.ClassAlias.getAttributes(self, obj, *args, **kwargs)
+        if not da:
+            da = {}
 
-        static_attrs = {}
-        dynamic_attrs = {}
         lazy_attrs = []
-
-        static_attr_names, dynamic_attr_names = self.getAttrs(obj)
 
         # primary_key_from_instance actually changes obj.__dict__ if
         # primary key properties do not already exist in obj.__dict__
-        static_attrs[self.KEY_ATTR] = mapper.primary_key_from_instance(obj)
+        da[self.KEY_ATTR] = self.mapper.primary_key_from_instance(obj)
 
-        for attr in static_attr_names:
-            if attr in obj.__dict__ or attr in self.properties:
-                static_attrs[attr] = getattr(obj, attr)
+        for attr in self.properties:
+            if attr not in obj.__dict__:
+                lazy_attrs.append(attr)
 
-                continue
+        da[self.LAZY_ATTR] = lazy_attrs
 
-            if attr in [self.KEY_ATTR, self.LAZY_ATTR]:
-                continue
+        return sa, da
 
-            # attrs here are lazy but have not been loaded from the db yet ..
-            lazy_attrs.append(attr)
-            static_attrs[attr] = pyamf.Undefined
-
-        for attr in dynamic_attr_names:
-            if attr in obj.__dict__:
-                dynamic_attrs[attr] = getattr(obj, attr)
-
-        static_attrs[self.LAZY_ATTR] = lazy_attrs
-
-        return static_attrs, dynamic_attrs
-
-    def applyAttributes(self, obj, attrs, *args, **kwargs):
+    def getDecodableAttributes(self, obj, attrs, **kwargs):
         """
-        Add decoded attributes to instance.
         """
-        mapper = self._getMapper(obj)
-
-        if mapper is None:
-            pyamf.ClassAlias.applyAttributes(self, obj, attrs, *args, **kwargs)
-
-            return
+        attrs = pyamf.ClassAlias.getDecodableAttributes(self, obj, attrs, **kwargs)
 
         # Delete lazy-loaded attrs.
         #
@@ -139,8 +96,8 @@ class SaMappedClassAlias(pyamf.ClassAlias):
         if self.LAZY_ATTR in attrs:
             obj_state = None
 
-            if hasattr(sqlalchemy.orm.attributes, 'instance_state'):
-                obj_state = sqlalchemy.orm.attributes.instance_state(obj)
+            if hasattr(orm.attributes, 'instance_state'):
+                obj_state = orm.attributes.instance_state(obj)
 
             for lazy_attr in attrs[self.LAZY_ATTR]:
                 if lazy_attr in obj.__dict__:
@@ -168,12 +125,7 @@ class SaMappedClassAlias(pyamf.ClassAlias):
         if self.KEY_ATTR in attrs:
             del attrs[self.KEY_ATTR]
 
-        for key, prop in self.klass.__dict__.iteritems():
-            if isinstance(prop, property) and key in attrs.keys():
-                if prop.fset is None:
-                    del attrs[key]
-
-        pyamf.util.set_attrs(obj, attrs)
+        return attrs
 
 
 def is_class_sa_mapped(klass):

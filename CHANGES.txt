@@ -8,6 +8,9 @@ versions of PyAMF.
 
 0.5 (unreleased)
 ----------------
+ - Rewrote attribute handling code. Added the ability to exclude, set
+   read-only and static attributes. See http://pyamf.org/wiki/AttributeControl
+   for more details. (Ticket:601)
  - Exposed the amf request object if expose_request=True.
    Twisted/Django/Google have an amf_request property on the http request
    object.  WSGI has an entry in the environ dict - pyamf.request (Ticket:234)

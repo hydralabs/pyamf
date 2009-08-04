@@ -267,7 +267,8 @@ class EncoderTestCase(ClassCacheClearingTestCase):
             ({'a': 'b'}, '\x03\x00\x01a\x02\x00\x01b\x00\x00\x09')])
 
     def test_force_amf3(self):
-        pyamf.register_class(Spam, 'spam.eggs', metadata=['amf3'])
+        alias = pyamf.register_class(Spam, 'spam.eggs')
+        alias.amf3 = True
 
         x = Spam()
         x.x = 'y'
@@ -337,56 +338,45 @@ class EncoderTestCase(ClassCacheClearingTestCase):
             ), '\x00\x00\t'))])
 
     def test_dynamic(self):
-        def attr_func(obj):
-            self.assertTrue(isinstance(obj, Spam))
-
-            return ['hello']
-
         x = Spam()
 
         x.foo = 'bar'
         x.hello = 'world'
 
-        pyamf.register_class(Spam, attr_func=attr_func, metadata=['dynamic'])
+        alias = pyamf.register_class(Spam)
+
+        alias.exclude_attrs = ['foo']
+
+        alias.compile()
+
+        self.assertTrue(alias.dynamic)
+
         self._run([(x, '\x03\x00\x05hello\x02\x00\x05world\x00\x00\t')])
         pyamf.unregister_class(Spam)
 
         # try duplicate attributes
-        pyamf.register_class(Spam, attrs=['hello'], attr_func=attr_func,
-            metadata=['dynamic'])
-        self._run([(x, '\x03\x00\x05hello\x02\x00\x05world\x00\x00\t')])
-        pyamf.unregister_class(Spam)
+        alias = pyamf.register_class(Spam)
 
-        pyamf.register_class(Spam, attrs=['foo'], attr_func=attr_func,
-            metadata=['dynamic'])
-        self._run([
-            (x, ('\x03', (
-                '\x00\x03foo\x02\x00\x03bar',
-                '\x00\x05hello\x02\x00\x05world'
-            ), '\x00\x00\t'))])
+        alias.static_attrs = ['hello']
+        alias.compile()
 
+        self.assertTrue(alias.dynamic)
+
+        self._run([(x, '\x03\x00\x05hello\x02\x00\x05world\x00\x03foo\x02'
+            '\x00\x03bar\x00\x00\t')])
         pyamf.unregister_class(Spam)
 
         # and now typedobject
-        pyamf.register_class(Spam, 'x', attr_func=attr_func,
-            metadata=['dynamic'])
+        alias = pyamf.register_class(Spam, 'x')
+
+        alias.exclude_attrs = ['foo']
+
+        alias.compile()
+
+        self.assertTrue(alias.dynamic)
+
         self._run([(x,
             '\x10\x00\x01x\x00\x05hello\x02\x00\x05world\x00\x00\t')])
-        pyamf.unregister_class(Spam)
-
-        pyamf.register_class(Spam, 'x', attrs=['hello'], attr_func=attr_func,
-            metadata=['dynamic'])
-        self._run([(x,
-            '\x10\x00\x01x\x00\x05hello\x02\x00\x05world\x00\x00\t')])
-        pyamf.unregister_class(Spam)
-
-        pyamf.register_class(Spam, 'x', attrs=['foo'], attr_func=attr_func,
-            metadata=['dynamic'])
-        self._run([
-            (x, ('\x10\x00\x01x', (
-                '\x00\x03foo\x02\x00\x03bar',
-                '\x00\x05hello\x02\x00\x05world'
-            ), '\x00\x00\t'))])
 
     def test_custom_type(self):
         def write_as_list(list_interface_obj, encoder):
@@ -494,13 +484,16 @@ class EncoderTestCase(ClassCacheClearingTestCase):
 
     def test_external_subclassed_list(self):
         class L(list):
+            class __amf__:
+                external = True
+
             def __readamf__(self, o):
                 pass
 
             def __writeamf__(self, o):
                 pass
 
-        pyamf.register_class(L, 'a', metadata=['external'])
+        pyamf.register_class(L, 'a')
 
         a = L()
 
@@ -551,32 +544,19 @@ class EncoderTestCase(ClassCacheClearingTestCase):
 
     def test_static_attrs(self):
         class Foo(object):
-            pass
+            class __amf__:
+                static = ('foo', 'bar')
 
-        class Bar(object):
-            pass
-
-        pyamf.register_class(Foo, attrs=['bar', 'foo'])
-        pyamf.register_class(Bar, attrs=['foo', 'bar'])
+        pyamf.register_class(Foo)
 
         x = Foo()
         x.foo = 'baz'
         x.bar = 'gak'
 
-        y = Bar()
-        y.foo = 'baz'
-        y.bar = 'gak'
-
         self.encoder.writeElement(x)
 
-        self.assertEquals(self.buf.getvalue(), '\x03\x00\x03bar\x02\x00\x03'
-            'gak\x00\x03foo\x02\x00\x03baz\x00\x00\t')
-
-        self.buf.truncate()
-        self.encoder.writeElement(y)
-
-        self.assertEquals(self.buf.getvalue(), '\x03\x00\x03foo\x02\x00\x03'
-            'baz\x00\x03bar\x02\x00\x03gak\x00\x00\t')
+        self.assertEquals(self.buf.getvalue(), '\x03\x00\x03bar\x02\x00\x03gak'
+            '\x00\x03foo\x02\x00\x03baz\x00\x00\t')
 
     def test_class(self):
         class Classic:
@@ -798,36 +778,16 @@ class DecoderTestCase(ClassCacheClearingTestCase):
         class Foo(pyamf.ASObject):
             pass
 
-        def attr_func(obj):
-            self.assertTrue(isinstance(obj, Foo))
-
-            return ['hello']
-
         x = Foo()
 
         x.foo = 'bar'
-        x.hello = 'world'
 
-        y = Foo()
-        y.hello = x.hello
-
-        pyamf.register_class(Foo, 'x', attr_func=attr_func,
-            metadata=['dynamic'])
+        alias = pyamf.register_class(Foo, 'x')
+        alias.exclude_attrs = ['hello']
 
         self._run([(x, '\x10\x00\x01x\x00\x03foo\x02\x00\x03bar\x00\x05hello'
             '\x02\x00\x05world\x00\x00\t')])
         pyamf.unregister_class(Foo)
-
-        pyamf.register_class(Foo, 'x', attrs=['hello'], attr_func=attr_func,
-            metadata=['dynamic'])
-        self._run([(x, '\x10\x00\x01x\x00\x03foo\x02\x00\x03bar\x00\x05hello'
-            '\x02\x00\x05world\x00\x00\t')])
-        pyamf.unregister_class(Foo)
-
-        pyamf.register_class(Foo, 'x', attrs=['foo'], attr_func=attr_func,
-            metadata=['dynamic'])
-        self._run([(x, '\x10\x00\x01x\x00\x03foo\x02\x00\x03bar\x00\x05hello'
-            '\x02\x00\x05world\x00\x00\t')])
 
     def test_classic_class(self):
         pyamf.register_class(ClassicSpam, 'spam.eggs')
@@ -1083,14 +1043,16 @@ class RecordSetTestCase(unittest.TestCase):
 class ClassInheritanceTestCase(ClassCacheClearingTestCase):
     def test_simple(self):
         class A(object):
-            pass
+            class __amf__:
+                static = ('a')
 
-        pyamf.register_class(A, 'A', attrs=['a'])
 
         class B(A):
-            pass
+            class __amf__:
+                static = ('b')
 
-        pyamf.register_class(B, 'B', attrs=['b'])
+        pyamf.register_class(A, 'A')
+        pyamf.register_class(B, 'B')
 
         x = B()
         x.a = 'spam'
@@ -1108,19 +1070,20 @@ class ClassInheritanceTestCase(ClassCacheClearingTestCase):
 
     def test_deep(self):
         class A(object):
-            pass
-
-        pyamf.register_class(A, 'A', attrs=['a'])
+            class __amf__:
+                static = ('a')
 
         class B(A):
-            pass
-
-        pyamf.register_class(B, 'B', attrs=['b'])
+            class __amf__:
+                static = ('b')
 
         class C(B):
-            pass
+            class __amf__:
+                static = ('c')
 
-        pyamf.register_class(C, 'C', attrs=['c'])
+        pyamf.register_class(A, 'A')
+        pyamf.register_class(B, 'B')
+        pyamf.register_class(C, 'C')
 
         x = C()
         x.a = 'spam'

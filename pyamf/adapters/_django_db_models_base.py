@@ -10,6 +10,7 @@ C{django.db.models} adapter module.
 """
 
 from django.db.models.base import Model
+from django.db import models
 from django.db.models import fields
 from django.db.models.fields import related
 
@@ -19,44 +20,39 @@ import pyamf
 
 
 class DjangoClassAlias(pyamf.ClassAlias):
-    def getAttrs(self, obj, codec=None):
-        static_attrs, dynamic_attrs = [], []
+    """
+    """
 
-        if hasattr(self, 'static_attrs'):
-            static_attrs = self.static_attrs
-        else:
-            static_attrs = self.static_attrs = []
-            self.fields = {}
-            self.columns = []
+    def getCustomProperties(self):
+        self.fields = {}
+        self.relations = {}
+        self.columns = []
 
-            for x in obj._meta.fields:
-                if x.name not in static_attrs:
-                    self.fields[x.name] = x
-                    static_attrs.append(x.name)
-                    self.columns.append(x.attname)
+        self.meta = self.klass._meta
 
-            for k, v in self.klass.__dict__.iteritems():
-                if isinstance(v, property):
-                    static_attrs.append(k)
-                elif isinstance(v, related.ReverseManyRelatedObjectsDescriptor):
-                    if k not in static_attrs:
-                        self.fields[k] = v.field
-                        static_attrs.append(k)
+        for x in self.meta.local_fields:
+            if not isinstance(x, related.ForeignKey):
+                self.fields[x.name] = x
+            else:
+                self.relations[x.name] = x
 
-        # fetch all dynamic attributes
-        for key in obj.__dict__.keys():
-            if key.startswith('_'):
-                continue
+            self.columns.append(x.attname)
 
-            if key in self.static_attrs:
-                continue
+        for k, v in self.klass.__dict__.iteritems():
+            if isinstance(v, related.ReverseManyRelatedObjectsDescriptor):
+                self.fields[k] = v.field
 
-            if key in self.columns:
-                continue
+        props = self.fields.keys()
 
-            dynamic_attrs.append(key)
+        self.static_attrs.update(props)
+        self.encodable_properties.update(props)
+        self.decodable_properties.update(props)
 
-        return static_attrs, dynamic_attrs
+    def _compile_base_class(self, klass):
+        if klass is Model:
+            return
+
+        pyamf.ClassAlias._compile_base_class(self, klass)
 
     def _encodeValue(self, field, value):
         if value is fields.NOT_PROVIDED:
@@ -77,9 +73,8 @@ class DjangoClassAlias(pyamf.ClassAlias):
         if value is pyamf.Undefined:
             return fields.NOT_PROVIDED
 
-        if isinstance(field, fields.AutoField):
-            if value == 0:
-                return None
+        if isinstance(field, fields.AutoField) and value == 0:
+            return None
         elif isinstance(field, fields.DateTimeField):
             # deal with dates
             return value
@@ -90,48 +85,45 @@ class DjangoClassAlias(pyamf.ClassAlias):
 
         return value
 
-    def getAttributes(self, obj, codec=None):
-        from django.db import models
+    def getEncodableAttributes(self, obj, **kwargs):
+        sa, da = pyamf.ClassAlias.getEncodableAttributes(self, obj, **kwargs)
 
-        san, dan = self.getAttrs(obj)
-        static_attrs, dynamic_attrs = {}, {}
-
-        for name in san:
-            if name not in self.fields.keys():
-                static_attrs[name] = getattr(obj, name)
-
+        for name, prop in self.fields.iteritems():
+            if name not in sa:
                 continue
 
-            prop = self.fields[name]
-
             if isinstance(prop, related.ManyToManyField):
-                static_attrs[name] = [x for x in getattr(obj, name).all()]
-            elif isinstance(prop, models.ForeignKey):
-                if '_%s_cache' % name in obj.__dict__:
-                    static_attrs[name] = getattr(obj, name)
-                else:
-                    static_attrs[name] = None
+                sa[name] = [x for x in getattr(obj, name).all()]
             else:
-                static_attrs[name] = self._encodeValue(prop, getattr(obj, name))
+                sa[name] = self._encodeValue(prop, getattr(obj, name))
 
-        for name in dan:
-            dynamic_attrs[name] = getattr(obj, name)
+        if not da:
+            da = {}
 
-        return static_attrs, dynamic_attrs
+        keys = da.keys()
 
-    def applyAttributes(self, obj, attrs, codec=None):
-        if not hasattr(self, 'static_attrs'):
-            self.getAttrs(obj)
+        for key in keys:
+            if key.startswith('_'):
+                del da[key]
+            elif key in self.columns:
+                del da[key]
+
+        for name, relation in self.relations.iteritems():
+            if '_%s_cache' % name in obj.__dict__:
+                da[name] = getattr(obj, name)
+            else:
+                da[name] = pyamf.Undefined
+
+        if not da:
+            da = None
+
+        return sa, da
+
+    def getDecodableAttributes(self, obj, attrs, **kwargs):
+        attrs = pyamf.ClassAlias.getDecodableAttributes(self, obj, attrs, **kwargs)
 
         for n, f in self.fields.iteritems():
             attrs[f.attname] = self._decodeValue(f, attrs[n])
-
-        for f in self.klass.__dict__:
-            prop = self.klass.__dict__[f]
-
-            if isinstance(prop, property) and f in attrs.keys():
-                if prop.fset is None:
-                    del attrs[f]
 
         # primary key of django object must always be set first for
         # relationships with other model objects to work properly
@@ -145,6 +137,7 @@ class DjangoClassAlias(pyamf.ClassAlias):
         except KeyError:
             pass
 
-        return pyamf.ClassAlias.applyAttributes(self, obj, attrs)
+        return attrs
+
 
 pyamf.register_alias_type(DjangoClassAlias, Model)

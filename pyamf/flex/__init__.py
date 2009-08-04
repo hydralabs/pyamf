@@ -37,6 +37,12 @@ class ArrayCollection(list):
     @type length: C{int}
     """
 
+    class __amf__:
+        external = True
+        amf3 = True
+
+        exclude = ('length',)
+
     def __init__(self, source=None):
         if source is not None:
             if isinstance(source, dict):
@@ -205,9 +211,6 @@ class ArrayCollection(list):
         """
         return self
 
-pyamf.register_class(ArrayCollection, 'flex.messaging.io.ArrayCollection',
-    metadata=['external', 'amf3'])
-
 
 class ObjectProxy(object):
     """
@@ -218,6 +221,10 @@ class ObjectProxy(object):
     @see: U{ObjectProxy on Livedocs (external)
     <http://livedocs.adobe.com/flex/201/langref/mx/utils/ObjectProxy.html>}
     """
+
+    class __amf__:
+        external = True
+        amf3 = True
 
     def __init__(self, object=None):
         if object is None:
@@ -246,5 +253,5 @@ class ObjectProxy(object):
     def __writeamf__(self, output):
         output.writeObject(self._amf_object, use_proxies=False)
 
-pyamf.register_class(ObjectProxy, 'flex.messaging.io.ObjectProxy',
-    metadata=['external', 'amf3'])
+
+pyamf.register_package(globals(), package='flex.messaging.io')

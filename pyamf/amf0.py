@@ -272,7 +272,7 @@ class Decoder(pyamf.BaseDecoder):
         alias = None
 
         try:
-            alias = pyamf.load_class(classname)
+            alias = pyamf.get_class_alias(classname)
 
             ret = alias.createInstance(codec=self)
         except pyamf.UnknownClassAlias:
@@ -534,7 +534,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         alias = self.context.getClassAlias(a.__class__)
 
-        if alias is not None and 'external' in alias.metadata:
+        if alias.external:
             # a is a subclassed list with a registered alias - push to the
             # correct method
             self.writeObject(a)
@@ -672,34 +672,8 @@ class Encoder(pyamf.BaseEncoder):
         self._writeEndObject()
 
     def _writeEndObject(self):
-        # Write a null string, this is an optimisation so that we don't
-        # have to waste precious cycles by encoding the string etc.
         self.stream.write('\x00\x00')
         self.writeType(TYPE_OBJECTTERM)
-
-    def _getObjectAttrs(self, o, alias):
-        """
-        @raise pyamf.EncodeError: Unable to determine object attributes.
-        """
-        if alias is not None:
-            static_attrs = alias.getAttrs(o, codec=self)[0]
-            obj_attrs = {}
-
-            for attrs in alias.getAttributes(o, codec=self):
-                obj_attrs.update(attrs)
-
-            if static_attrs is None:
-                static_attrs = []
-
-            return static_attrs, obj_attrs
-
-        obj_attrs = util.get_attrs(o)
-
-        if obj_attrs is None:
-            raise pyamf.EncodeError('Unable to determine object attributes '
-                'for %r' % (o,))
-
-        return [], obj_attrs
 
     def writeObject(self, o):
         """
@@ -708,7 +682,7 @@ class Encoder(pyamf.BaseEncoder):
         @type o: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param o: The object data to be encoded to the AMF0 data stream.
         """
-        if self.use_amf3 is True:
+        if self.use_amf3:
             self.writeAMF3(o)
 
             return
@@ -719,31 +693,30 @@ class Encoder(pyamf.BaseEncoder):
         self.context.addObject(o)
         alias = self.context.getClassAlias(o.__class__)
 
-        if alias is None:
+        alias.compile()
+
+        if alias.amf3:
+            self.writeAMF3(o)
+
+            return
+
+        if alias.anonymous:
             self.writeType(TYPE_OBJECT)
         else:
-            if 'amf3' in alias.metadata:
-                self.writeAMF3(o)
+            self.writeType(TYPE_TYPEDOBJECT)
+            self.writeString(alias.alias, False)
 
-                return
+        sa, da = alias.getEncodableAttributes(o, codec=self)
 
-            if 'anonymous' in alias.metadata:
-                self.writeType(TYPE_OBJECT)
-            else:
-                self.writeType(TYPE_TYPEDOBJECT)
-                self.writeString(alias.alias, False)
+        if sa:
+            for key in alias.static_attrs:
+                self.writeString(key, False)
+                self.writeElement(sa[key])
 
-        static_attrs, obj_attrs = self._getObjectAttrs(o, alias)
-
-        for key in static_attrs:
-            self.writeString(key, False)
-            self.writeElement(obj_attrs[key])
-
-            del obj_attrs[key]
-
-        for key, value in obj_attrs.iteritems():
-            self.writeString(key, False)
-            self.writeElement(value)
+        if da:
+            for key, value in da.iteritems():
+                self.writeString(key, False)
+                self.writeElement(value)
 
         self._writeEndObject()
 
@@ -866,6 +839,11 @@ class RecordSet(object):
     <http://osflash.org/documentation/amf/recordset>}
     """
 
+    class __amf__:
+        alias = 'RecordSet'
+        static = ('serverInfo',)
+        dynamic = False
+
     def __init__(self, columns=[], items=[], service=None, id=None):
         self.columns = columns
         self.items = items
@@ -914,7 +892,7 @@ class RecordSet(object):
 
         return ret
 
-pyamf.register_class(RecordSet, 'RecordSet', attrs=['serverInfo'], metadata=['amf0'])
+pyamf.register_class(RecordSet)
 
 
 def _check_for_int(x):

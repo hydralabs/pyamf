@@ -63,18 +63,18 @@ class EncodingModelTestCase(ClassCacheClearingTestCase):
 
         encoder.writeElement(self.jessica)
         self.assertEquals(encoder.stream.getvalue(),
-            '\x03\x00\x04_key\x05\x00\x10weight_in_pounds\x00@\x14\x00\x00'
-            '\x00\x00\x00\x00\x00\x04type\x02\x00\x03cat\x00\x04name\x02\x00'
-            '\x07Jessica\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00'
-            '\x00\x12spayed_or_neutered\x01\x00\x00\x00\t')
+            '\x03\x00\x04_key\x05\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00'
+            '\x00\x00\x00\x00\x04name\x02\x00\x07Jessica\x00\x12'
+            'spayed_or_neutered\x01\x00\x00\x04type\x02\x00\x03cat\x00\x10'
+            'weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00\x00\x00\t')
 
     def test_amf3(self):
         encoder = pyamf.get_encoder(pyamf.AMF3)
         encoder.writeElement(self.jessica)
         self.assertEquals(encoder.stream.getvalue(),
-            '\nk\x01\t_key!weight_in_pounds\ttype\tname\x13birthdate%'
-            'spayed_or_neutered\x01\x04\x05\x06\x07cat\x06\x0fJessica\x08\x01'
-            'B^\xc4\xae\xaa\x00\x00\x00\x02\x01')
+            '\nk\x01\t_key\x13birthdate\tname%spayed_or_neutered\ttype!'
+            'weight_in_pounds\x01\x08\x01B^\xc4\xae\xaa\x00\x00\x00\x06\x0f'
+            'Jessica\x02\x06\x07cat\x04\x05\x01')
 
     def test_save_amf0(self):
         self.jessica.put()
@@ -84,10 +84,10 @@ class EncodingModelTestCase(ClassCacheClearingTestCase):
         encoder.writeElement(self.jessica)
 
         self.assertEquals(encoder.stream.getvalue(),
-            '\x03\x00\x04_key\x02%s%s\x00\x10weight_in_pounds\x00@\x14\x00'
-            '\x00\x00\x00\x00\x00\x00\x04type\x02\x00\x03cat\x00\x04name\x02'
-            '\x00\x07Jessica\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00'
-            '\x00\x00\x12spayed_or_neutered\x01\x00\x00\x00\t' % (
+            '\x03\x00\x04_key\x02%s%s\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00'
+            '\x00\x00\x00\x00\x00\x04name\x02\x00\x07Jessica\x00\x12'
+            'spayed_or_neutered\x01\x00\x00\x04type\x02\x00\x03cat\x00\x10'
+            'weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00\x00\x00\t' % (
                 struct.pack('>H', len(k)), k))
 
     def test_save_amf3(self):
@@ -98,11 +98,10 @@ class EncodingModelTestCase(ClassCacheClearingTestCase):
         encoder.writeElement(self.jessica)
 
         self.assertEquals(encoder.stream.getvalue(),
-            '\nk\x01\t_key!weight_in_pounds\ttype\tname\x13birthdate%%'
-            'spayed_or_neutered\x06%s%s\x04\x05\x06\x07cat\x06\x0fJessica'
-            '\x08\x01B^\xc4\xae\xaa\x00\x00\x00\x02\x01' % (
-                amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k
-            ))
+            '\nk\x01\t_key\x13birthdate\tname%%spayed_or_neutered\ttype!'
+            'weight_in_pounds\x06%s%s\x08\x01B^\xc4\xae\xaa\x00\x00\x00\x06'
+            '\x0fJessica\x02\x06\x07cat\x04\x05\x01' % (
+                amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k))
 
     def test_alias_amf0(self):
         pyamf.register_class(PetModel, 'Pet')
@@ -110,10 +109,10 @@ class EncodingModelTestCase(ClassCacheClearingTestCase):
 
         encoder.writeElement(self.jessica)
         self.assertEquals(encoder.stream.getvalue(),
-            '\x10\x00\x03Pet\x00\x04_key\x05\x00\x10weight_in_pounds\x00@\x14'
-            '\x00\x00\x00\x00\x00\x00\x00\x04type\x02\x00\x03cat\x00\x04name'
-            '\x02\x00\x07Jessica\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00'
-            '\x00\x00\x00\x12spayed_or_neutered\x01\x00\x00\x00\t')
+            '\x10\x00\x03Pet\x00\x04_key\x05\x00\tbirthdate\x0bB^\xc4\xae\xaa'
+            '\x00\x00\x00\x00\x00\x00\x04name\x02\x00\x07Jessica\x00\x12'
+            'spayed_or_neutered\x01\x00\x00\x04type\x02\x00\x03cat\x00\x10'
+            'weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00\x00\x00\t')
 
     def test_alias_amf3(self):
         pyamf.register_class(PetModel, 'Pet')
@@ -121,9 +120,9 @@ class EncodingModelTestCase(ClassCacheClearingTestCase):
         encoder.writeElement(self.jessica)
 
         self.assertEquals(encoder.stream.getvalue(),
-            '\nk\x07Pet\t_key!weight_in_pounds\ttype\tname\x13birthdate%'
-            'spayed_or_neutered\x01\x04\x05\x06\x07cat\x06\x0fJessica\x08\x01'
-            'B^\xc4\xae\xaa\x00\x00\x00\x02\x01')
+            '\nk\x07Pet\t_key\x13birthdate\tname%spayed_or_neutered\ttype!'
+            'weight_in_pounds\x01\x08\x01B^\xc4\xae\xaa\x00\x00\x00\x06\x0f'
+            'Jessica\x02\x06\x07cat\x04\x05\x01')
 
 
 class EncodingExpandoTestCase(ClassCacheClearingTestCase):
@@ -149,20 +148,20 @@ class EncodingExpandoTestCase(ClassCacheClearingTestCase):
         encoder.writeElement(self.jessica)
 
         self.assertEquals(encoder.stream.getvalue(),
-            '\x03\x00\x04_key\x05\x00\x10weight_in_pounds\x00@\x14\x00\x00'
-            '\x00\x00\x00\x00\x00\x04type\x02\x00\x03cat\x00\x04name\x02\x00'
-            '\x07Jessica\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00'
-            '\x00\x12spayed_or_neutered\x01\x00\x00\x03foo\x02\x00\x03bar\x00'
-            '\x00\t')
+            '\x03\x00\x04_key\x05\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00'
+            '\x00\x00\x00\x00\x04name\x02\x00\x07Jessica\x00\x12'
+            'spayed_or_neutered\x01\x00\x00\x04type\x02\x00\x03cat\x00\x10'
+            'weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00\x00\x03foo\x02'
+            '\x00\x03bar\x00\x00\t')
 
     def test_amf3(self):
         encoder = pyamf.get_encoder(pyamf.AMF3)
         encoder.writeElement(self.jessica)
 
         self.assertEquals(encoder.stream.getvalue(),
-            '\nk\x01\t_key!weight_in_pounds\ttype\tname\x13birthdate%'
-            'spayed_or_neutered\x01\x04\x05\x06\x07cat\x06\x0fJessica\x08\x01'
-            'B^\xc4\xae\xaa\x00\x00\x00\x02\x07foo\x06\x07bar\x01')
+            '\nk\x01\t_key\x13birthdate\tname%spayed_or_neutered\ttype!'
+            'weight_in_pounds\x01\x08\x01B^\xc4\xae\xaa\x00\x00\x00\x06\x0f'
+            'Jessica\x02\x06\x07cat\x04\x05\x07foo\x06\x07bar\x01')
 
     def test_save_amf0(self):
         self.jessica.put()
@@ -172,11 +171,11 @@ class EncodingExpandoTestCase(ClassCacheClearingTestCase):
         encoder.writeElement(self.jessica)
 
         self.assertEquals(encoder.stream.getvalue(),
-            '\x03\x00\x04_key\x02%s%s\x00\x10weight_in_pounds\x00@\x14\x00'
-            '\x00\x00\x00\x00\x00\x00\x04type\x02\x00\x03cat\x00\x04name\x02'
-            '\x00\x07Jessica\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00'
-            '\x00\x00\x12spayed_or_neutered\x01\x00\x00\x03foo\x02\x00\x03bar'
-            '\x00\x00\t' % (struct.pack('>H', len(k)), k))
+            '\x03\x00\x04_key\x02%s%s\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00'
+            '\x00\x00\x00\x00\x00\x04name\x02\x00\x07Jessica\x00\x12'
+            'spayed_or_neutered\x01\x00\x00\x04type\x02\x00\x03cat\x00\x10'
+            'weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00\x00\x03foo\x02'
+            '\x00\x03bar\x00\x00\t' % (struct.pack('>H', len(k)), k))
 
     def test_save_amf3(self):
         self.jessica.put()
@@ -186,11 +185,10 @@ class EncodingExpandoTestCase(ClassCacheClearingTestCase):
         encoder.writeElement(self.jessica)
 
         self.assertEquals(encoder.stream.getvalue(),
-            '\nk\x01\t_key!weight_in_pounds\ttype\tname\x13birthdate%%'
-            'spayed_or_neutered\x06%s%s\x04\x05\x06\x07cat\x06\x0fJessica'
-            '\x08\x01B^\xc4\xae\xaa\x00\x00\x00\x02\x07foo\x06\x07bar\x01' % (
-                amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k
-            ))
+            '\nk\x01\t_key\x13birthdate\tname%%spayed_or_neutered\ttype!'
+            'weight_in_pounds\x06%s%s\x08\x01B^\xc4\xae\xaa\x00\x00\x00\x06'
+            '\x0fJessica\x02\x06\x07cat\x04\x05\x07foo\x06\x07bar\x01' % (
+                amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k))
 
     def test_alias_amf0(self):
         pyamf.register_class(PetExpando, 'Pet')
@@ -198,11 +196,11 @@ class EncodingExpandoTestCase(ClassCacheClearingTestCase):
 
         encoder.writeElement(self.jessica)
         self.assertEquals(encoder.stream.getvalue(),
-            '\x10\x00\x03Pet\x00\x04_key\x05\x00\x10weight_in_pounds\x00@\x14'
-            '\x00\x00\x00\x00\x00\x00\x00\x04type\x02\x00\x03cat\x00\x04name'
-            '\x02\x00\x07Jessica\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00'
-            '\x00\x00\x00\x12spayed_or_neutered\x01\x00\x00\x03foo\x02\x00'
-            '\x03bar\x00\x00\t')
+            '\x10\x00\x03Pet\x00\x04_key\x05\x00\tbirthdate\x0bB^\xc4\xae\xaa'
+            '\x00\x00\x00\x00\x00\x00\x04name\x02\x00\x07Jessica\x00\x12'
+            'spayed_or_neutered\x01\x00\x00\x04type\x02\x00\x03cat\x00\x10'
+            'weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00\x00\x03foo\x02'
+            '\x00\x03bar\x00\x00\t')
 
     def test_alias_amf3(self):
         pyamf.register_class(PetExpando, 'Pet')
@@ -210,9 +208,9 @@ class EncodingExpandoTestCase(ClassCacheClearingTestCase):
         encoder.writeElement(self.jessica)
 
         self.assertEquals(encoder.stream.getvalue(),
-            '\nk\x07Pet\t_key!weight_in_pounds\ttype\tname\x13birthdate%'
-            'spayed_or_neutered\x01\x04\x05\x06\x07cat\x06\x0fJessica\x08\x01'
-            'B^\xc4\xae\xaa\x00\x00\x00\x02\x07foo\x06\x07bar\x01')
+            '\nk\x07Pet\t_key\x13birthdate\tname%spayed_or_neutered\ttype!'
+            'weight_in_pounds\x01\x08\x01B^\xc4\xae\xaa\x00\x00\x00\x06\x0f'
+            'Jessica\x02\x06\x07cat\x04\x05\x07foo\x06\x07bar\x01')
 
 
 class EncodingReferencesTestCase(ClassCacheClearingTestCase):
@@ -626,13 +624,45 @@ class ClassAliasTestCase(unittest.TestCase):
         if self.jessica_expando.is_saved():
             self.jessica_expando.delete()
 
+        try:
+            pyamf.unregister_class(PetModel)
+        except:
+            pass
+
+    def test_get_alias(self):
+        alias = pyamf.register_class(PetModel)
+
+        self.assertTrue(isinstance(alias, adapter_db.DataStoreClassAlias))
+
+    def test_alias(self):
+        self.alias.compile()
+
+        self.assertEquals(self.alias.decodable_properties, [
+            '_key',
+            'birthdate',
+            'name',
+            'spayed_or_neutered',
+            'type',
+            'weight_in_pounds'
+        ])
+        self.assertEquals(self.alias.encodable_properties, [
+            '_key',
+            'birthdate',
+            'name',
+            'spayed_or_neutered',
+            'type',
+            'weight_in_pounds'
+        ])
+        self.assertEquals(self.alias.static_attrs,
+            ['_key', 'birthdate', 'name', 'spayed_or_neutered', 'type', 'weight_in_pounds'])
+        self.assertEquals(self.alias.readonly_attrs, None)
+        self.assertEquals(self.alias.exclude_attrs, None)
+        self.assertEquals(self.alias.reference_properties, None)
+
     def test_create_instance(self):
         x = self.alias.createInstance()
 
         self.assertTrue(isinstance(x, adapter_db.ModelStub))
-
-        #for y in adapter_db.DataStoreClassAlias.INTERNAL_ATTRS:
-        #    self.assertEquals(None, getattr(x, y))
 
         self.assertTrue(hasattr(x, 'klass'))
         self.assertEquals(x.klass, self.alias.klass)
@@ -649,68 +679,77 @@ class ClassAliasTestCase(unittest.TestCase):
         self.alias.applyAttributes(x, {
             adapter_db.DataStoreClassAlias.KEY_ATTR: None,
             'name': 'Jessica',
-            'type': 'cat'
+            'type': 'cat',
+            'birthdate': None,
+            'weight_in_pounds': None,
+            'spayed_or_neutered': None
         })
 
         self.assertFalse(hasattr(x, 'klass'))
 
     def test_get_attrs(self):
-        self.assertEquals(self.alias.getAttrs(self.jessica), (
-            # static attributes
-            ['_key', 'weight_in_pounds', 'type', 'name', 'birthdate',
-                'spayed_or_neutered'],
-            # dynamic attributes
-            []
-        ))
-
-    def test_get_attrs_expando(self):
-        self.assertEquals(self.alias.getAttrs(self.jessica_expando), (
-            # static attributes
-            ['_key', 'weight_in_pounds', 'type', 'name', 'birthdate',
-                'spayed_or_neutered'],
-            # dynamic attributes
-            ['foo']
-        ))
-
-    def test_get_attributes(self):
-        sa, da = self.alias.getAttributes(self.jessica)
-
+        sa, da = self.alias.getEncodableAttributes(self.jessica)
         self.assertEquals(sa, {
-            'name': 'Jessica',
             '_key': None,
+            'type': 'cat',
+            'name': 'Jessica',
             'birthdate': None,
             'weight_in_pounds': None,
-            'type': 'cat',
             'spayed_or_neutered': None
         })
+        self.assertEquals(da, None)
 
-        self.assertEquals(da, {})
+    def test_get_attrs_expando(self):
+        sa, da = self.alias.getEncodableAttributes(self.jessica_expando)
+        self.assertEquals(sa, {
+            '_key': None,
+            'type': 'cat',
+            'name': 'Jessica',
+            'birthdate': None,
+            'weight_in_pounds': None,
+            'spayed_or_neutered': None,
+        })
+        self.assertEquals(da, {
+            'foo': 'bar'
+        })
+
+    def test_get_attributes(self):
+        sa, da = self.alias.getEncodableAttributes(self.jessica)
+
+        self.assertEquals(sa, {
+            '_key': None,
+            'type': 'cat',
+            'name': 'Jessica',
+            'birthdate': None,
+            'weight_in_pounds': None,
+            'spayed_or_neutered': None
+        })
+        self.assertEquals(da, None)
 
     def test_get_attributes_saved(self):
         self.jessica.put()
 
-        sa, da = self.alias.getAttributes(self.jessica)
+        sa, da = self.alias.getEncodableAttributes(self.jessica)
 
         self.assertEquals(sa, {
             'name': 'Jessica',
             '_key': str(self.jessica.key()),
+            'type': 'cat',
             'birthdate': None,
             'weight_in_pounds': None,
-            'type': 'cat',
             'spayed_or_neutered': None
         })
-
-        self.assertEquals(da, {})
+        self.assertEquals(da, None)
 
     def test_get_attributes_expando(self):
-        sa, da = self.alias.getAttributes(self.jessica_expando)
+        sa, da = self.alias.getEncodableAttributes(self.jessica_expando)
 
         self.assertEquals(sa, {
             'name': 'Jessica',
             '_key': None,
+            'type': 'cat',
             'birthdate': None,
             'weight_in_pounds': None,
-            'type': 'cat',
             'spayed_or_neutered': None
         })
 
@@ -721,14 +760,14 @@ class ClassAliasTestCase(unittest.TestCase):
     def test_get_attributes_saved_expando(self):
         self.jessica_expando.put()
 
-        sa, da = self.alias.getAttributes(self.jessica_expando)
+        sa, da = self.alias.getEncodableAttributes(self.jessica_expando)
 
         self.assertEquals(sa, {
             'name': 'Jessica',
             '_key': str(self.jessica_expando.key()),
+            'type': 'cat',
             'birthdate': None,
             'weight_in_pounds': None,
-            'type': 'cat',
             'spayed_or_neutered': None
         })
 
@@ -739,17 +778,16 @@ class ClassAliasTestCase(unittest.TestCase):
     def test_arbitrary_properties(self):
         self.jessica.foo = 'bar'
 
-        sa, da = self.alias.getAttributes(self.jessica)
+        sa, da = self.alias.getEncodableAttributes(self.jessica)
 
         self.assertEquals(sa, {
-            'name': 'Jessica',
             '_key': None,
+            'type': 'cat',
+            'name': 'Jessica',
             'birthdate': None,
             'weight_in_pounds': None,
-            'type': 'cat',
             'spayed_or_neutered': None
         })
-
         self.assertEquals(da, {
             'foo': 'bar'
         })
@@ -772,23 +810,15 @@ class ClassAliasTestCase(unittest.TestCase):
 
         obj = PropertyTypeModel()
 
-        sa, da = alias.getAttrs(obj)
-        self.assertEquals(sa, ['_key', 'readonly', 'read_write'])
-        self.assertEquals(da, [])
-
-        sa, da = alias.getAttributes(obj)
-        self.assertEquals(sa, {
-            '_key': None,
-            'readonly': True,
-            'read_write': False
-        })
-        self.assertEquals(da, {})
+        sa, da = alias.getEncodableAttributes(obj)
+        self.assertEquals(sa, {'_key': None})
+        self.assertEquals(da, {'read_write': False, 'readonly': True})
 
         self.assertFalse(hasattr(obj, 'prop'))
 
         alias.applyAttributes(obj, {
             '_key': None,
-            'readonly': True,
+            'readonly': False,
             'read_write': 'foo'
         })
 
@@ -828,10 +858,10 @@ class ReferencesTestCase(ClassCacheClearingTestCase):
         self.assertTrue(hasattr(context, 'gae_objects'))
         self.assertEquals(context.gae_objects, {PetModel: {s: self.jessica}})
         self.assertEquals(stream.getvalue(), '\x03\x00\x04_key\x02%s%s\x00'
-            '\x10weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00\x00\x04'
-            'type\x02\x00\x03cat\x00\x04name\x02\x00\x07Jessica\x00\t'
-            'birthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00\x00\x12'
-            'spayed_or_neutered\x01\x00\x00\x00\t' % (struct.pack('>H', len(s)), s))
+            '\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00\x00\x04name'
+            '\x02\x00\x07Jessica\x00\x12spayed_or_neutered\x01\x00\x00\x04'
+            'type\x02\x00\x03cat\x00\x10weight_in_pounds\x00@\x14\x00\x00\x00'
+            '\x00\x00\x00\x00\x00\t' % (struct.pack('>H', len(s)), s))
 
         stream.truncate()
         encoder.writeObject(self.jessica2)
@@ -862,11 +892,10 @@ class ReferencesTestCase(ClassCacheClearingTestCase):
 
         self.assertTrue(hasattr(context, 'gae_objects'))
         self.assertEquals(context.gae_objects, {PetModel: {s: self.jessica}})
-        self.assertEquals(stream.getvalue(), '\nk\x01\t_key!weight_in_pounds'
-            '\ttype\tname\x13birthdate%%spayed_or_neutered\x06%s%s\x04\x05\x06'
-            '\x07cat\x06\x0fJessica\x08\x01B^\xc4\xae\xaa'
-            '\x00\x00\x00\x02\x01' % (
-                amf3.encode_int(len(s) << 1 | amf3.REFERENCE_BIT), s))
+        self.assertEquals(stream.getvalue(), '\nk\x01\t_key\x13birthdate\t'
+            'name%%spayed_or_neutered\ttype!weight_in_pounds\x06%s%s\x08\x01'
+            'B^\xc4\xae\xaa\x00\x00\x00\x06\x0fJessica\x02\x06\x07cat\x04'
+            '\x05\x01' % (amf3.encode_int(len(s) << 1 | amf3.REFERENCE_BIT), s))
 
         stream.truncate()
         encoder.writeObject(self.jessica2)
@@ -960,14 +989,14 @@ class ReferencesTestCase(ClassCacheClearingTestCase):
             encoder = pyamf.get_encoder(encoding=pyamf.AMF3)
             alias = adapter_db.DataStoreClassAlias(Novel, None)
 
-            self.assertEquals(alias.getAttributes(c, codec=encoder), (
-                {
-                    '_key': str(c.key()),
-                    'title': 'Pride and Prejudice',
-                    'author': None
-                },
-                {}
-            ))
+            sa, da = alias.getEncodableAttributes(c, codec=encoder)
+
+            self.assertEquals(sa, {
+                '_key': str(c.key()),
+                'title': 'Pride and Prejudice',
+                'author': None
+            })
+            self.assertEquals(da, None)
         finally:
             c.delete()
 

@@ -108,112 +108,115 @@ class DataStoreClassAlias(pyamf.ClassAlias):
     # The name of the attribute used to represent the key
     KEY_ATTR = '_key'
 
-    def getAttrs(self, obj, codec=None):
-        """
-        @since: 0.4
-        """
-        if not hasattr(self, 'static_attrs'):
-            self.static_attrs = obj.properties().keys()
-            self.static_attrs.insert(0, DataStoreClassAlias.KEY_ATTR)
+    def _compile_base_class(self, klass):
+        if klass is db.Model:
+            return
 
-            for k, v in self.klass.__dict__.iteritems():
-                if isinstance(v, property):
-                    self.static_attrs.append(k)
+        pyamf.ClassAlias._compile_base_class(self, klass)
 
-        dynamic_attrs = obj.dynamic_properties()
+    def getCustomProperties(self):
+        props = [self.KEY_ATTR]
+        self.reference_properties = {}
+        self.properties = {}
+        reverse_props = []
 
-        for k, v in obj.__dict__.iteritems():
-            if k.startswith('_'):
-                continue
+        for name, prop in self.klass.properties().iteritems():
+            self.properties[name] = prop
 
-            if k not in self.static_attrs:
-                dynamic_attrs.append(k)
-
-        return self.static_attrs, dynamic_attrs
-
-    def getAttributes(self, obj, codec=None):
-        static_attrs = {}
-        dynamic_attrs = {}
-        static_attrs_names, dynamic_attrs_names = self.getAttrs(obj, codec=codec)
-        gae_objects = None
-
-        if codec is not None:
-            gae_objects = getGAEObjects(codec.context)
-
-        key = str(obj.key()) if obj.is_saved() else None
-
-        static_attrs[DataStoreClassAlias.KEY_ATTR] = key
-        kd = self.klass.__dict__
-
-        for a in static_attrs_names:
-            if a == DataStoreClassAlias.KEY_ATTR:
-                continue
-
-            try:
-                prop = kd[a]
-            except KeyError:
-                prop = None
+            props.append(name)
 
             if isinstance(prop, db.ReferenceProperty):
-                if gae_objects is not None:
-                    klass = prop.reference_class
-                    key = prop.get_value_for_datastore(obj)
+                self.reference_properties[name] = prop
 
-                    if key is not None:
-                        key = str(key)
+        # check if the property is a defined as a collection_name. These types
+        # of properties are read-only and the datastore freaks out if you
+        # attempt to meddle with it. We delete the attribute entirely ..
+        for name, value in self.klass.__dict__.iteritems():
+            if isinstance(value, db._ReverseReferenceProperty):
+                reverse_props.append(name)
 
-                        try:
-                            static_attrs[a] = gae_objects.getClassKey(klass, key)
-                        except KeyError:
-                            ref_obj = getattr(obj, a)
-                            gae_objects.addClassKey(klass, key, ref_obj)
-                            static_attrs[a] = ref_obj
+        self.static_attrs.update(props)
+        self.encodable_properties.update(self.properties.keys())
+        self.decodable_properties.update(self.properties.keys())
+        self.readonly_attrs.update(reverse_props)
 
-                        continue
+        if not self.reference_properties:
+            self.reference_properties = None
 
-            static_attrs[a] = getattr(obj, a)
+        if not self.properties:
+            self.properties = None
 
-        for a in dynamic_attrs_names:
-            dynamic_attrs[a] = getattr(obj, a)
+    def getEncodableAttributes(self, obj, codec=None):
+        sa, da = pyamf.ClassAlias.getEncodableAttributes(self, obj, codec=codec)
 
-        return static_attrs, dynamic_attrs
+        sa[self.KEY_ATTR] = str(obj.key()) if obj.is_saved() else None
+        gae_objects = getGAEObjects(codec.context) if codec else None
+
+        if self.reference_properties and gae_objects:
+            for name, prop in self.reference_properties.iteritems():
+                klass = prop.reference_class
+                key = prop.get_value_for_datastore(obj)
+
+                if not key:
+                    continue
+
+                key = str(key)
+
+                try:
+                    sa[name] = gae_objects.getClassKey(klass, key)
+                except KeyError:
+                    ref_obj = getattr(obj, name)
+                    gae_objects.addClassKey(klass, key, ref_obj)
+                    sa[name] = ref_obj
+
+        if da:
+            for k, v in da.copy().iteritems():
+                if k.startswith('_'):
+                    del da[k]
+
+        if not da:
+            da = {}
+
+        for attr in obj.dynamic_properties():
+            da[attr] = getattr(obj, attr)
+
+        if not da:
+            da = None
+
+        return sa, da
 
     def createInstance(self, codec=None):
         return ModelStub(self.klass)
 
-    def applyAttributes(self, obj, attrs, codec=None):
+    def getDecodableAttributes(self, obj, attrs, codec=None):
+        try:
+            key = attrs[self.KEY_ATTR]
+        except KeyError:
+            key = attrs[self.KEY_ATTR] = None
+
+        attrs = pyamf.ClassAlias.getDecodableAttributes(self, obj, attrs, codec=codec)
+
+        del attrs[self.KEY_ATTR]
         new_obj = None
 
         # attempt to load the object from the datastore if KEY_ATTR exists.
-        if DataStoreClassAlias.KEY_ATTR in attrs.keys():
-            if attrs[DataStoreClassAlias.KEY_ATTR] is not None:
-                key = attrs[DataStoreClassAlias.KEY_ATTR]
-                new_obj = loadInstanceFromDatastore(self.klass, key, codec)
-
-            del attrs[DataStoreClassAlias.KEY_ATTR]
-
-        properties = self.klass.properties()
-        p_keys = properties.keys()
-        apply_init = True
-        sa, da = self.getAttrs(obj)
+        if key and codec:
+            new_obj = loadInstanceFromDatastore(self.klass, key, codec)
 
         # clean up the stub
         if isinstance(obj, ModelStub) and hasattr(obj, 'klass'):
             del obj.klass
 
-        if new_obj is not None:
+        if new_obj:
             obj.__dict__ = new_obj.__dict__.copy()
 
         obj.__class__ = self.klass
-        kd = self.klass.__dict__
+        apply_init = True
 
-        for k, v in attrs.copy().iteritems():
-            if k in p_keys:
-                prop = properties[k]
-
-                if k not in sa:
-                    del attrs[k]
-                    continue
+        if self.properties:
+            for k in [k for k in attrs.keys() if k in self.properties.keys()]:
+                prop = self.properties[k]
+                v = attrs[k]
 
                 if isinstance(prop, db.FloatProperty) and isinstance(v, (int, long)):
                     attrs[k] = float(v)
@@ -227,22 +230,9 @@ class DataStoreClassAlias(pyamf.ClassAlias):
                     elif isinstance(prop, db.TimeProperty):
                         attrs[k] = v.time()
 
-                if new_obj is None and isinstance(v, ModelStub) and (k in kd and isinstance(kd[k], db.ReferenceProperty) and kd[k].required is True):
+                if new_obj is None and isinstance(v, ModelStub) and prop.required and k in self.reference_properties:
                     apply_init = False
                     del attrs[k]
-                    continue
-            elif k in kd:
-                kp = kd[k]
-
-                # check if the property is a defined as a collection_name.
-                # These types of properties are read-only and the datastore
-                # freaks out if you attempt to meddle with it. We delete the
-                # attribute entirely ..
-                if isinstance(kp, db._ReverseReferenceProperty):
-                    del attrs[k]
-                elif isinstance(kp, property):
-                    if kp.fset is None:
-                        del attrs[k]
 
         # If the object does not exist in the datastore, we must fire the
         # class constructor. This sets internal attributes that pyamf has
@@ -250,8 +240,7 @@ class DataStoreClassAlias(pyamf.ClassAlias):
         if new_obj is None and apply_init is True:
             obj.__init__(**attrs)
 
-        for k, v in attrs.iteritems():
-            setattr(obj, k, v)
+        return attrs
 
 
 def getGAEObjects(context):
@@ -339,15 +328,12 @@ def writeGAEObject(self, object, *args, **kwargs):
     s = str(object.key())
 
     gae_objects = getGAEObjects(context)
-    referenced_object = None
 
     try:
         referenced_object = gae_objects.getClassKey(kls, s)
     except KeyError:
+        referenced_object = object
         gae_objects.addClassKey(kls, s, object)
-        self.writeNonGAEObject(object, *args, **kwargs)
-
-        return
 
     self.writeNonGAEObject(referenced_object, *args, **kwargs)
 
