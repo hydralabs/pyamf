@@ -8,6 +8,7 @@ versions of PyAMF.
 
 0.5 (unreleased)
 ----------------
+ - Support for Django model inheritance (Ticket:626)
  - Rewrote attribute handling code. Added the ability to exclude, set
    read-only and static attributes. See http://pyamf.org/wiki/AttributeControl
    for more details. (Ticket:601)
