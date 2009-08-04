@@ -82,7 +82,10 @@ class EncoderTester(object):
             if isinstance(s, basestring):
                 testcase.assertEqual(self.getval(), s)
             elif isinstance(s, (tuple, list)):
-                testcase.assertTrue(check_buffer(self.getval(), s))
+                val = self.getval()
+
+                if not check_buffer(val, s):
+                    testcase.fail('%r != %r' % (val, s))
 
 
 class DecoderTester(object):
@@ -128,6 +131,8 @@ def isNegInf(val):
 def check_buffer(buf, parts, inner=False):
     assert isinstance(parts, (tuple, list))
 
+    orig = buf
+
     parts = [p for p in parts]
 
     for part in parts:
@@ -152,6 +157,11 @@ def check_buffer(buf, parts, inner=False):
             return buf
 
     return len(buf) == 0
+
+
+def assert_buffer(testcase, val, s):
+    if not check_buffer(val, s):
+        testcase.fail('%r != %r' % (val, s))
 
 
 def replace_dict(src, dest):
@@ -192,3 +202,7 @@ class BaseEncoderMixIn(BaseCodecMixIn):
 class NullFileDescriptor(object):
     def write(self, *args, **kwargs):
         pass
+
+
+def get_fqcn(klass):
+    return '%s.%s' % (klass.__module__, klass.__name__)

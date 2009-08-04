@@ -13,6 +13,7 @@ import struct
 import calendar
 import datetime
 import types
+import inspect
 
 import pyamf
 
@@ -20,6 +21,12 @@ try:
     from cStringIO import StringIO
 except ImportError:
     from StringIO import StringIO
+
+try:
+    set
+except NameError:
+    from sets import Set as set
+
 
 #: XML types.
 xml_types = None
@@ -790,6 +797,15 @@ def get_datetime(secs):
     return datetime.datetime.utcfromtimestamp(secs)
 
 
+def get_properties(obj):
+    if hasattr(obj, 'keys'):
+        return set(obj.keys())
+    elif hasattr(obj, '__dict__'):
+        return obj.__dict__.keys()
+
+    return []
+
+
 def get_attrs(obj):
     """
     Gets a C{dict} of the attrs of an object in a predefined resolution order.
@@ -833,16 +849,20 @@ def set_attrs(obj, attrs):
     @param attrs: A collection implementing the C{iteritems} function
     @type attrs: Usually a dict
     """
-    f = lambda n, v: setattr(obj, n, v)
-
     if isinstance(obj, (list, dict)):
-        f = obj.__setitem__
+        for k, v in attrs.iteritems():
+            obj[k] = v
+
+        return
 
     for k, v in attrs.iteritems():
-        f(k, v)
+        setattr(obj, k, v)
 
 
 def get_class_alias(klass):
+    """
+    Returns a alias class suitable for klass. Defaults to L{pyamf.ClassAlias}
+    """
     for k, v in pyamf.ALIAS_TYPES.iteritems():
         for kl in v:
             if isinstance(kl, types.FunctionType):
@@ -852,7 +872,70 @@ def get_class_alias(klass):
                 if issubclass(klass, kl):
                     return k
 
-    return None
+    return pyamf.ClassAlias
+
+
+def is_class_sealed(klass):
+    """
+    Returns a boolean whether or not the supplied class can accept dynamic
+    properties.
+    """
+    mro = inspect.getmro(klass)
+    new = False
+
+    if mro[-1] is object:
+        mro = mro[:-1]
+        new = True
+
+    for kls in mro:
+        if new and '__dict__' in kls.__dict__:
+            return False
+
+        if not hasattr(kls, '__slots__'):
+            return False
+
+    return True
+
+
+def get_class_meta(klass):
+    """
+    Returns a dict containing meta data based on the supplied class, useful
+    for class aliasing.
+    """
+    if not isinstance(klass, (type, types.ClassType)) or klass is object:
+        raise TypeError('klass must be a class object, got %r' % type(klass))
+
+    meta = {
+        'static_attrs': None,
+        'exclude_attrs': None,
+        'readonly_attrs': None,
+        'amf3': None,
+        'dynamic': None,
+        'alias': None,
+        'external': None
+    }
+
+    if not hasattr(klass, '__amf__'):
+        return meta
+
+    a = klass.__amf__
+
+    if type(a) is dict:
+        in_func = lambda x: x in a
+        get_func = a.__getitem__
+    else:
+        in_func = lambda x: hasattr(a, x)
+        get_func = lambda x: getattr(a, x)
+
+    for prop in ['alias', 'amf3', 'dynamic', 'external']:
+        if in_func(prop):
+            meta[prop] = get_func(prop)
+
+    for prop in ['static', 'exclude', 'readonly']:
+        if in_func(prop):
+            meta[prop + '_attrs'] = list(get_func(prop))
+
+    return meta
 
 
 class IndexedCollection(object):

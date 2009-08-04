@@ -54,6 +54,12 @@ class AbstractMessage(object):
     @type timestamp: C{int}
     """
 
+    class __amf__:
+        amf3 = True
+        static = ('body', 'clientId', 'destination', 'headers', 'messageId',
+            'timestamp', 'timeToLive')
+        dynamic = False
+
     #: Each message pushed from the server will contain this header identifying
     #: the client that will receive the message.
     DESTINATION_CLIENT_ID_HEADER = "DSDstClientId"
@@ -75,24 +81,16 @@ class AbstractMessage(object):
         self.destination = kwargs.get('destination', None)
         self.headers = kwargs.get('headers', {})
         self.messageId = kwargs.get('messageId', None)
-        self.timeToLive = kwargs.get('timeToLive', 0)
         self.timestamp = kwargs.get('timestamp', 0)
+        self.timeToLive = kwargs.get('timeToLive', 0)
 
     def __repr__(self):
         m = '<%s ' % self.__class__.__name__
 
-        for k, v in self.__dict__.iteritems():
-            m += ' %s=%r' % (k, v)
+        for k in self.__dict__:
+            m += ' %s=%r' % (k, getattr(self, k))
 
         return m + " />"
-
-# This class shouldn't be encoded directly but is registered to allow
-# inheritable static attrs to work
-pyamf.register_class(AbstractMessage, '.'.join([NAMESPACE, 'AbstractMessage']),
-    attrs=[
-        'body', 'clientId', 'destination', 'headers', 'messageId',
-        'timeToLive', 'timestamp'
-    ], metadata=['amf3', 'static'])
 
 
 class AsyncMessage(AbstractMessage):
@@ -110,13 +108,13 @@ class AsyncMessage(AbstractMessage):
     #: target subtopic in this header.
     SUBTOPIC_HEADER = "DSSubtopic"
 
+    class __amf__:
+        static = ('correlationId',)
+
     def __init__(self, *args, **kwargs):
         AbstractMessage.__init__(self, *args, **kwargs)
 
         self.correlationId = kwargs.get('correlationId', None)
-
-pyamf.register_class(AsyncMessage, '.'.join([NAMESPACE, 'AsyncMessage']),
-    attrs=['correlationId'], metadata=['amf3', 'static'])
 
 
 class AcknowledgeMessage(AsyncMessage):
@@ -133,9 +131,6 @@ class AcknowledgeMessage(AsyncMessage):
     #: Used to indicate that the acknowledgement is for a message that
     #: generated an error.
     ERROR_HINT_HEADER = "DSErrorHint"
-
-pyamf.register_class(AcknowledgeMessage, '.'.join([NAMESPACE, 'AcknowledgeMessage']),
-    attrs=[], metadata=['amf3', 'static'])
 
 
 class CommandMessage(AsyncMessage):
@@ -188,6 +183,9 @@ class CommandMessage(AsyncMessage):
     #: This operation is used to indicate that a channel has disconnected.
     DISCONNECT_OPERATION = 12
 
+    class __amf__:
+        static = ('operation',)
+
     def __init__(self, *args, **kwargs):
         AsyncMessage.__init__(self, *args, **kwargs)
 
@@ -196,9 +194,6 @@ class CommandMessage(AsyncMessage):
         #: whether this message type matches the message type the service
         #: handles.
         self.messageRefType = kwargs.get('messageRefType', None)
-
-pyamf.register_class(CommandMessage, '.'.join([NAMESPACE, 'CommandMessage']),
-    attrs=['operation', 'messageRefType'], metadata=['amf3', 'static'])
 
 
 class ErrorMessage(AcknowledgeMessage):
@@ -220,6 +215,10 @@ class ErrorMessage(AcknowledgeMessage):
     #: be retryable rather than fatal.
     RETRYABLE_HINT_HEADER = "DSRetryableErrorHint"
 
+    class __amf__:
+        static = ('extendedData', 'faultCode', 'faultDetail', 'faultString',
+            'rootCause')
+
     def __init__(self, *args, **kwargs):
         AcknowledgeMessage.__init__(self, *args, **kwargs)
         #: Extended data that the remote destination has chosen to associate
@@ -235,10 +234,6 @@ class ErrorMessage(AcknowledgeMessage):
         #: message.
         self.rootCause = kwargs.get('rootCause', {})
 
-pyamf.register_class(ErrorMessage, '.'.join([NAMESPACE, 'ErrorMessage']),
-    attrs=['extendedData', 'faultCode', 'faultDetail', 'faultString', 'rootCause'],
-    metadata=['amf3', 'static'])
-
 
 class RemotingMessage(AbstractMessage):
     """
@@ -248,6 +243,9 @@ class RemotingMessage(AbstractMessage):
     <http://livedocs.adobe.com/flex/201/langref/mx/messaging/messages/RemotingMessage.html>}
     """
 
+    class __amf__:
+        static = ('operation', 'source')
+
     def __init__(self, *args, **kwargs):
         AbstractMessage.__init__(self, *args, **kwargs)
         #: Name of the remote method/operation that should be called.
@@ -256,5 +254,5 @@ class RemotingMessage(AbstractMessage):
         #: This property is provided for backwards compatibility.
         self.source = kwargs.get('source', None)
 
-pyamf.register_class(RemotingMessage, '.'.join([NAMESPACE, 'RemotingMessage']),
-    attrs=['operation', 'source'], metadata=['amf3', 'static'])
+
+pyamf.register_package(globals(), package=NAMESPACE)

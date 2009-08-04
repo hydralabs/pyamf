@@ -18,4 +18,3 @@ if hasattr(collections, 'deque'):
 
 if hasattr(collections, 'defaultdict'):
     pyamf.add_type(collections.defaultdict, util.to_dict)
-

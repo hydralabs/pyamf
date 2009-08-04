@@ -19,8 +19,6 @@ import pyamf
 from pyamf import remoting
 from pyamf.flex import messaging
 
-error_alias = pyamf.get_class_alias(messaging.ErrorMessage)
-
 
 class BaseServerError(pyamf.BaseError):
     """
@@ -33,10 +31,6 @@ class ServerCallFailed(BaseServerError):
     A catchall error.
     """
     _amf_code = 'Server.Call.Failed'
-
-pyamf.register_class(ServerCallFailed, attrs=error_alias.attrs)
-
-del error_alias
 
 
 def generate_random_id():

@@ -119,6 +119,4 @@ class DataErrorMessage(ErrorMessage):
 #: Namespace for C{flex.data} messages.
 MESSAGES_NS = 'flex.data.messages'
 
-for x in (DataMessage, SequencedMessage, PagedMessage, DataErrorMessage):
-    pyamf.register_class(x, '%s.%s' % (MESSAGES_NS, x.__name__), metadata=['amf3'])
-del x
+pyamf.register_package(globals(), MESSAGES_NS)

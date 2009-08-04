@@ -22,4 +22,5 @@ def convert_lazy(l, encoder=None):
 
     raise ValueError('Don\'t know how to convert lazy value %s' % (repr(l),))
 
+
 pyamf.add_type(type(ugettext_lazy('foo')), convert_lazy)

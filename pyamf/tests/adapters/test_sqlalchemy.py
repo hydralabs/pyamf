@@ -11,12 +11,13 @@ import unittest
 
 import sqlalchemy
 from sqlalchemy import MetaData, Table, Column, Integer, String, ForeignKey, \
-                       create_engine
-from sqlalchemy.orm import mapper, relation, sessionmaker, clear_mappers, attributes
+    create_engine
+from sqlalchemy.orm import mapper, relation, sessionmaker, clear_mappers, \
+    attributes
 
 import pyamf.flex
 from pyamf.tests.util import Spam
-from pyamf.adapters import _sqlalchemy as adapter
+from pyamf.adapters import _sqlalchemy_orm as adapter
 
 
 class BaseObject(object):
@@ -199,46 +200,6 @@ class SATestCase(BaseTestCase):
         merged_user = self.session.merge(decoded)
         self.assertEqual(len(merged_user.addresses), 2)
 
-    def test_lazy_load_attributes(self):
-        user = self._build_obj()
-
-        self._save(user)
-        self.session.commit()
-        self._clear()
-        user = self.session.query(User).first()
-
-        encoder = pyamf.get_encoder(pyamf.AMF3)
-        encoder.writeElement(user)
-        encoded = encoder.stream.getvalue()
-
-        decoded = pyamf.get_decoder(pyamf.AMF3, encoded).readElement()
-        self.assertFalse(decoded.__dict__.has_key('lazy_loaded'))
-
-        if hasattr(attributes, 'instance_state'):
-            obj_state = attributes.instance_state(decoded)
-            self.assertFalse(obj_state.committed_state.has_key('lazy_loaded'))
-            self.assertFalse(obj_state.dict.has_key('lazy_loaded'))
-
-    def test_merge_with_lazy_loaded_attrs(self):
-        user = self._build_obj()
-
-        self._save(user)
-        self.session.commit()
-        self._clear()
-        user = self.session.query(User).first()
-
-        encoder = pyamf.get_encoder(pyamf.AMF3)
-        encoder.writeElement(user)
-        encoded = encoder.stream.getvalue()
-
-        decoded = pyamf.get_decoder(pyamf.AMF3, encoded).readElement()
-        self.assertFalse(decoded.__dict__.has_key('lazy_loaded'))
-        self.session.merge(user)
-        self.session.commit()
-
-        user = self.session.query(User).first()
-        self.assertTrue(len(user.lazy_loaded) == 1)
-
     def test_encode_decode_with_references(self):
         user = self._build_obj()
         self._save(user)
@@ -272,46 +233,45 @@ class ClassAliasTestCase(BaseClassAliasTestCase):
         self.assertEquals(self.alias.__class__, adapter.SaMappedClassAlias)
 
     def test_get_mapper(self):
-        self.assertFalse(hasattr(self.alias, 'primary_mapper'))
+        self.assertFalse(hasattr(self.alias, 'mapper'))
 
-        mapper = self.alias._getMapper(User())
+        self.alias.compile()
+        mapper = adapter.class_mapper(User)
 
-        self.assertTrue(hasattr(self.alias, 'primary_mapper'))
-        self.assertEquals(id(mapper), id(self.alias.primary_mapper))
+        self.assertTrue(hasattr(self.alias, 'mapper'))
+        self.assertEquals(id(mapper), id(self.alias.mapper))
 
     def test_get_attrs(self):
         u = self._build_obj()
-        static, dynamic = self.alias.getAttrs(u)
+        static, dynamic = self.alias.getEncodableAttributes(u)
 
-        self.assertEquals(static, [
-            'sa_key',
-            'sa_lazy',
+        self.assertEquals(static.keys(), [
+            'id',
             'lazy_loaded',
             'addresses',
-            'another_lazy_loaded',
-            'id',
-            'name'
+            'name',
+            'another_lazy_loaded'
         ])
-
-        self.assertEquals(dynamic, [])
+        self.assertEquals(dynamic, {'sa_key': [None], 'sa_lazy': []})
 
     def test_get_attributes(self):
         u = self._build_obj()
 
         self.assertFalse(u in self.session)
         self.assertEquals([None], self.mappers['user'].primary_key_from_instance(u))
-        static, dynamic = self.alias.getAttributes(u)
+        static, dynamic = self.alias.getEncodableAttributes(u)
 
         self.assertEquals(static, {
-            'sa_lazy': ['another_lazy_loaded'],
-            'sa_key': [None],
             'addresses': u.addresses,
             'lazy_loaded': u.lazy_loaded,
-            'another_lazy_loaded': pyamf.Undefined,
+            'another_lazy_loaded': [],
             'id': None,
             'name': 'test_user'
         })
-        self.assertEquals(dynamic, {})
+        self.assertEquals(dynamic, {
+            'sa_lazy': [],
+            'sa_key': [None]
+        })
 
     def test_property(self):
         class Person(object):
@@ -336,23 +296,24 @@ class ClassAliasTestCase(BaseClassAliasTestCase):
 
         obj = Person()
 
-        sa, da = alias.getAttrs(obj)
-        self.assertEquals(sa, ['sa_key', 'sa_lazy', 'id', 'name', 'rw', 'ro'])
-        self.assertEquals(da, [])
-
-        sa, da = alias.getAttributes(obj)
+        sa, da = alias.getEncodableAttributes(obj)
         self.assertEquals(sa, {
-            'sa_lazy': ['name'],
-            'rw': 'bar',
-            'name': pyamf.Undefined,
+            'id': None,
+            'name': None})
+        self.assertEquals(da, {
             'sa_key': [None],
-            'ro': 'gak',
-            'id': None
-        })
-        self.assertEquals(da, {})
+            'sa_lazy': [],
+            'rw': 'bar',
+            'ro': 'gak'})
 
         self.assertEquals(obj.ro, 'gak')
-        alias.applyAttributes(obj, {'ro': 'baz'})
+        alias.applyAttributes(obj, {
+            'sa_key': [None],
+            'sa_lazy': [],
+            'id': None,
+            'name': None,
+            'rw': 'bar',
+            'ro': 'baz'})
         self.assertEquals(obj.ro, 'gak')
 
 

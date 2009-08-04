@@ -22,6 +22,13 @@ import inspect
 from pyamf import util
 from pyamf.adapters import register_adapters
 
+
+try:
+    set
+except NameError:
+    from sets import Set as set
+
+
 __all__ = [
     'register_class',
     'register_class_loader',
@@ -213,10 +220,7 @@ class BaseContext(object):
             # no alias has been found yet .. check subclasses
             alias = util.get_class_alias(klass)
 
-            if alias is not None:
-                self.class_aliases[klass] = alias(klass, None)
-            else:
-                self.class_aliases[klass] = None
+            self.class_aliases[klass] = alias(klass)
 
         return self.class_aliases[klass]
 
@@ -233,6 +237,9 @@ class ASObject(dict):
 
     @raise AttributeError: Unknown attribute.
     """
+
+    class __amf__:
+        dynamic = True
 
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
@@ -259,161 +266,235 @@ class MixedArray(dict):
     """
 
 
-class ClassMetaData(list):
-    """
-    I hold a list of tags relating to the class. The idea behind this is
-    to emulate the metadata tags you can supply to ActionScript,
-    e.g. C{static}/C{dynamic}.
-    """
-
-    _allowed_tags = (
-        ('static', 'dynamic', 'external'),
-        ('amf3', 'amf0'),
-        ('anonymous',),
-    )
-
-    def __init__(self, *args):
-        if len(args) == 1 and hasattr(args[0], '__iter__'):
-            for x in args[0]:
-                self.append(x)
-        else:
-            for x in args:
-                self.append(x)
-
-    def _is_tag_allowed(self, x):
-        for y in self._allowed_tags:
-            if isinstance(y, (types.ListType, types.TupleType)):
-                if x in y:
-                    return (True, y)
-            else:
-                if x == y:
-                    return (True, None)
-
-        return (False, None)
-
-    def append(self, x):
-        """
-        Adds a tag to the metadata.
-
-        @param x: Tag.
-        @raise ValueError: Unknown tag.
-        """
-        x = str(x).lower()
-
-        allowed, tags = self._is_tag_allowed(x)
-
-        if not allowed:
-            raise ValueError("Unknown tag %s" % (x,))
-
-        if tags is not None:
-            # check to see if a tag in the list is about to be clobbered if so,
-            # raise a warning
-            for y in tags:
-                if y not in self:
-                    continue
-
-                if x != y:
-                    import warnings
-
-                    warnings.warn(
-                        "Previously defined tag %s superceded by %s" % (y, x))
-
-                list.pop(self, self.index(y))
-                break
-
-        list.append(self, x)
-
-    def __contains__(self, other):
-        return list.__contains__(self, str(other).lower())
-
-    # TODO nick: deal with slices
-
-
 class ClassAlias(object):
     """
-    Class alias.
-
-    All classes are initially set to a dynamic state.
-
-    @ivar attrs: A list of attributes to encode for this class.
-    @type attrs: C{list}
-    @ivar metadata: A list of metadata tags similar to ActionScript tags.
-    @type metadata: C{list}
+    Class alias. Provides class/instance meta data to the En/Decoder to allow
+    fine grain control and some performance increases.
     """
 
-    def __init__(self, klass, alias, attrs=None, attr_func=None, metadata=[]):
-        """
-        @type klass: C{class}
-        @param klass: The class to alias.
-        @type alias: C{str}
-        @param alias: The alias to the class e.g. C{org.example.Person}. If the
-            value of this is C{None}, then it is worked out based on the
-            C{klass}. The anonymous tag is also added to the class.
-        @type attrs: A list of attributes to encode for this class.
-        @param attrs: C{list}
-        @type metadata: A list of metadata tags similar to ActionScript tags.
-        @param metadata: C{list}
-
-        @raise TypeError: The C{klass} must be a class type.
-        @raise TypeError: The C{attr_func} must be callable.
-        @raise TypeError: C{__readamf__} must be callable.
-        @raise TypeError: C{__writeamf__} must be callable.
-        @raise AttributeError: An externalised class was specified, but no
-            C{__readamf__} attribute was found.
-        @raise AttributeError: An externalised class was specified, but no
-            C{__writeamf__} attribute was found.
-        @raise ValueError: The C{attrs} keyword must be specified for static
-            classes.
-        """
+    def __init__(self, klass, alias=None, **kwargs):
         if not isinstance(klass, (type, types.ClassType)):
-            raise TypeError("klass must be a class type")
+            raise TypeError('klass must be a class type, got %r' % type(klass))
 
         self.checkClass(klass)
 
-        self.metadata = ClassMetaData(metadata)
-
-        if alias is None:
-            self.metadata.append('anonymous')
-            alias = "%s.%s" % (klass.__module__, klass.__name__,)
-
         self.klass = klass
         self.alias = alias
-        self.attr_func = attr_func
-        self.attrs = attrs
 
-        if 'external' in self.metadata:
-            # class is declared as external, lets check
-            if not hasattr(klass, '__readamf__'):
-                raise AttributeError("An externalised class was specified, but"
-                    " no __readamf__ attribute was found for class %s" % (
-                        klass.__name__))
+        self.static_attrs = kwargs.get('static_attrs', None)
+        self.exclude_attrs = kwargs.get('exclude_attrs', None)
+        self.readonly_attrs = kwargs.get('readonly_attrs', None)
+        self.amf3 = kwargs.get('amf3', None)
+        self.external = kwargs.get('external', None)
+        self.dynamic = kwargs.get('dynamic', None)
 
-            if not hasattr(klass, '__writeamf__'):
-                raise AttributeError("An externalised class was specified, but"
-                    " no __writeamf__ attribute was found for class %s" % (
-                        klass.__name__))
+        self._compiled = False
+        self.anonymous = False
+        self.sealed = None
 
-            if not isinstance(klass.__readamf__, types.UnboundMethodType):
-                raise TypeError("%s.__readamf__ must be callable" % (
-                    klass.__name__))
+        if self.alias is None:
+            self.anonymous = True
+            # we don't set this to None because AMF3 untyped objects have a
+            # class name of ''
+            self.alias = ''
+        else:
+            if self.alias == '':
+                raise ValueError('Cannot set class alias as \'\'')
 
-            if not isinstance(klass.__writeamf__, types.UnboundMethodType):
-                raise TypeError("%s.__writeamf__ must be callable" % (
-                    klass.__name__))
+        if not kwargs.get('defer', False):
+            self.compile()
 
-        if 'dynamic' in self.metadata:
-            if attr_func is not None and not callable(attr_func):
-                raise TypeError("attr_func must be callable")
+    def _checkExternal(self):
+        if not hasattr(self.klass, '__readamf__'):
+            raise AttributeError("An externalised class was specified, but"
+                " no __readamf__ attribute was found for %r" % (self.klass,))
 
-        if 'static' in self.metadata:
-            if attrs is None:
-                raise ValueError("attrs keyword must be specified for static classes")
+        if not hasattr(self.klass, '__writeamf__'):
+            raise AttributeError("An externalised class was specified, but"
+                " no __writeamf__ attribute was found for %r" % (self.klass,))
+
+        if not isinstance(self.klass.__readamf__, types.UnboundMethodType):
+            raise TypeError("%s.__readamf__ must be callable" % (
+                self.klass.__name__,))
+
+        if not isinstance(self.klass.__writeamf__, types.UnboundMethodType):
+            raise TypeError("%s.__writeamf__ must be callable" % (
+                self.klass.__name__,))
+
+    def compile(self):
+        """
+        This compiles the alias into a form that can be of most benefit to the
+        en/decoder.
+        """
+        if self._compiled:
+            return
+
+        self.decodable_properties = set()
+        self.encodable_properties = set()
+        self.inherited_dynamic = None
+        self.inherited_sealed = None
+
+        self.exclude_attrs = set(self.exclude_attrs or [])
+        self.readonly_attrs = set(self.readonly_attrs or [])
+        self.static_attrs = set(self.static_attrs or [])
+
+        if self.external:
+            self._checkExternal()
+            self._finalise_compile()
+
+            # this class is external so no more compiling is necessary
+            return
+
+        self.sealed = util.is_class_sealed(self.klass)
+
+        if hasattr(self.klass, '__slots__'):
+            self.decodable_properties.update(self.klass.__slots__)
+            self.encodable_properties.update(self.klass.__slots__)
+
+        for k, v in self.klass.__dict__.iteritems():
+            if not isinstance(v, property):
+                continue
+
+            if v.fget:
+                self.encodable_properties.update([k])
+
+            if v.fset:
+                self.decodable_properties.update([k])
+            else:
+                self.readonly_attrs.update([k])
+
+        mro = inspect.getmro(self.klass)[1:]
+
+        try:
+            self._compile_base_class(mro[0])
+        except IndexError:
+            pass
+
+        self.getCustomProperties()
+
+        self._finalise_compile()
+
+    def _compile_base_class(self, klass):
+        if klass is object:
+            return
+
+        try:
+            alias = get_class_alias(klass)
+        except UnknownClassAlias:
+            alias = register_class(klass)
+
+        alias.compile()
+
+        if alias.exclude_attrs:
+            self.exclude_attrs.update(alias.exclude_attrs)
+
+        if alias.readonly_attrs:
+            self.readonly_attrs.update(alias.readonly_attrs)
+
+        if alias.static_attrs:
+            self.static_attrs.update(alias.static_attrs)
+
+        if alias.encodable_properties:
+            self.encodable_properties.update(alias.encodable_properties)
+
+        if alias.decodable_properties:
+            self.decodable_properties.update(alias.decodable_properties)
+
+        if self.amf3 is None and alias.amf3:
+            self.amf3 = alias.amf3
+
+        if self.dynamic is None and alias.dynamic is not None:
+            self.inherited_dynamic = alias.dynamic
+
+        if alias.sealed is not None:
+            self.inherited_sealed = alias.sealed
+
+    def _finalise_compile(self):
+        if self.dynamic is None:
+            self.dynamic = True
+
+            if self.inherited_dynamic is not None:
+                if self.inherited_dynamic is False and not self.sealed and self.inherited_sealed:
+                    self.dynamic = True
+                else:
+                    self.dynamic = self.inherited_dynamic
+
+        if self.sealed:
+            self.dynamic = False
+
+        if self.amf3 is None:
+            self.amf3 = False
+
+        if self.external is None:
+            self.external = False
+
+        if not self.static_attrs:
+            self.static_attrs = None
+        else:
+            self.encodable_properties.update(self.static_attrs)
+            self.decodable_properties.update(self.static_attrs)
+
+        if self.static_attrs is not None:
+            if self.exclude_attrs:
+                self.static_attrs.difference_update(self.exclude_attrs)
+
+            self.static_attrs = list(self.static_attrs)
+            self.static_attrs.sort()
+
+        if not self.exclude_attrs:
+            self.exclude_attrs = None
+        else:
+            self.encodable_properties.difference_update(self.exclude_attrs)
+            self.decodable_properties.difference_update(self.exclude_attrs)
+
+        if self.exclude_attrs is not None:
+            self.exclude_attrs = list(self.exclude_attrs)
+            self.exclude_attrs.sort()
+
+        if not self.readonly_attrs:
+            self.readonly_attrs = None
+        else:
+            self.decodable_properties.difference_update(self.readonly_attrs)
+
+        if self.readonly_attrs is not None:
+            self.readonly_attrs = list(self.readonly_attrs)
+            self.readonly_attrs.sort()
+
+        if len(self.decodable_properties) == 0:
+            self.decodable_properties = None
+        else:
+            self.decodable_properties = list(self.decodable_properties)
+            self.decodable_properties.sort()
+
+        if len(self.encodable_properties) == 0:
+            self.encodable_properties = None
+        else:
+            self.encodable_properties = list(self.encodable_properties)
+            self.encodable_properties.sort()
+
+        self.non_static_encodable_properties = None
+
+        if self.encodable_properties:
+            self.non_static_encodable_properties = set(self.encodable_properties)
+
+            if self.static_attrs:
+                self.non_static_encodable_properties.difference_update(self.static_attrs)
+
+        self.shortcut_encode = True
+
+        if self.encodable_properties or self.static_attrs or self.exclude_attrs:
+            self.shortcut_encode = False
+
+        self._compiled = True
+
+    def is_compiled(self):
+        return self._compiled
 
     def __str__(self):
         return self.alias
 
     def __repr__(self):
-        return '<ClassAlias alias=%s klass=%s @ %s>' % (
+        return '<ClassAlias alias=%s klass=%s @ 0x%x>' % (
             self.alias, self.klass, id(self))
 
     def __eq__(self, other):
@@ -429,7 +510,7 @@ class ClassAlias(object):
     def __hash__(self):
         return id(self)
 
-    def checkClass(kls, klass):
+    def checkClass(self, klass):
         """
         This function is used to check if the class being aliased fits certain
         criteria. The default is to check that the C{__init__} constructor does
@@ -455,129 +536,155 @@ class ClassAlias(object):
                 sign = "%s.__init__(%s)" % (klass.__name__, ", ".join(args))
             else:
                 named_args = zip(args[len(args) - len(values):], values)
-                sign = "%s.__init__(%s, %s)" % (
-                    klass.__name__,
+                sign = "%s.%s.__init__(%s, %s)" % (
+                    klass.__module__, klass.__name__,
                     ", ".join(args[:0-len(values)]),
-                    ", ".join(map(lambda x: "%s=%s" % (x,), named_args)))
+                    ", ".join(map(lambda x: "%s=%s" % x, named_args)))
 
             raise TypeError("__init__ doesn't support additional arguments: %s"
                 % sign)
 
-    checkClass = classmethod(checkClass)
-
-    def _getAttrs(self, obj, static_attrs=None, dynamic_attrs=None, traverse=True):
-        if static_attrs is None:
-            static_attrs = []
-
-        if dynamic_attrs is None:
-            dynamic_attrs = []
-
-        modified_attrs = False
-
-        if self.attrs is not None:
-            modified_attrs = True
-            static_attrs.extend(self.attrs)
-        elif traverse is True and hasattr(obj, '__slots__'):
-            modified_attrs = True
-            static_attrs.extend(obj.__slots__)
-
-        if self.attr_func is not None:
-            modified_attrs = True
-            extra_attrs = self.attr_func(obj)
-
-            dynamic_attrs.extend([key for key in extra_attrs if key not in static_attrs])
-
-        if traverse is True:
-            for base in inspect.getmro(obj.__class__):
-                try:
-                    alias = get_class_alias(base)
-                except UnknownClassAlias:
-                    continue
-
-                x, y = alias._getAttrs(obj, static_attrs, dynamic_attrs, False)
-
-                if x is not None:
-                    static_attrs.extend(x)
-                    modified_attrs = True
-
-                if y is not None:
-                    dynamic_attrs.extend(y)
-                    modified_attrs = True
-
-        if modified_attrs is False:
-            return None, None
-
-        sa = []
-        da = []
-
-        for x in static_attrs:
-            if x not in sa:
-                sa.append(x)
-
-        for x in dynamic_attrs:
-            if x not in da:
-                da.append(x)
-
-        return (sa, da)
-
-    def getAttrs(self, obj, codec=None):
+    def getEncodableAttributes(self, obj, codec=None):
         """
-        Returns a tuple of lists, static and dynamic attrs to encode.
-
-        @param codec: An optional argument that will contain the en/decoder
-            instance calling this function.
-        """
-        return self._getAttrs(obj)
-
-    def getAttributes(self, obj, codec=None):
-        """
-        Returns a collection of attributes for an object.
         Returns a C{tuple} containing a dict of static and dynamic attributes
+        for an object to encode.
 
         @param codec: An optional argument that will contain the en/decoder
             instance calling this function.
         """
-        dynamic_attrs = {}
+        if not self._compiled:
+            self.compile()
+
         static_attrs = {}
-        static_attr_names, dynamic_attr_names = self.getAttrs(obj, codec=codec)
+        dynamic_attrs = {}
 
-        if static_attr_names is None and dynamic_attr_names is None:
-            dynamic_attrs = util.get_attrs(obj)
-
-        if static_attr_names is not None:
-            for attr in static_attr_names:
+        if self.static_attrs:
+            for attr in self.static_attrs:
                 if hasattr(obj, attr):
                     static_attrs[attr] = getattr(obj, attr)
                 else:
                     static_attrs[attr] = Undefined
 
-        if dynamic_attr_names is not None:
-            for attr in dynamic_attr_names:
-                if attr in static_attrs:
-                    continue
-
-                if hasattr(obj, attr):
+        if not self.dynamic:
+            if self.non_static_encodable_properties:
+                for attr in self.non_static_encodable_properties:
                     dynamic_attrs[attr] = getattr(obj, attr)
 
-        return (static_attrs, dynamic_attrs)
+            if not static_attrs:
+                static_attrs = None
+
+            if not dynamic_attrs:
+                dynamic_attrs = None
+
+            return static_attrs, dynamic_attrs
+
+        dynamic_props = util.get_properties(obj)
+
+        if not self.shortcut_encode:
+            dynamic_props = set(dynamic_props)
+
+            if self.encodable_properties:
+                dynamic_props.update(self.encodable_properties)
+
+            if self.static_attrs:
+                dynamic_props.difference_update(self.static_attrs)
+
+            if self.exclude_attrs:
+                dynamic_props.difference_update(self.exclude_attrs)
+
+        if self.klass is dict:
+            for attr in dynamic_props:
+                dynamic_attrs[attr] = obj[attr]
+        else:
+            for attr in dynamic_props:
+                dynamic_attrs[attr] = getattr(obj, attr)
+
+        if not static_attrs:
+            static_attrs = None
+
+        if not dynamic_attrs:
+            dynamic_attrs = None
+
+        return static_attrs, dynamic_attrs
+
+    def getDecodableAttributes(self, obj, attrs, codec=None):
+        """
+        Returns a dictionary of attributes for C{obj} that has been filtered,
+        based on the supplied C{attrs}. This allows for fine grain control
+        over what will finally end up on the object or not ..
+
+        @param obj: The reference object.
+        @param attrs: The attrs dictionary that has been decoded.
+        @param codec: An optional argument that will contain the codec
+            instance calling this function.
+        @return: A dictionary of attributes that can be applied to C{obj}
+        @since: 0.5
+        """
+        if not self._compiled:
+            self.compile()
+
+        changed = False
+
+        props = set(attrs.keys())
+
+        if self.static_attrs:
+            missing_attrs = []
+
+            for p in self.static_attrs:
+                if p not in props:
+                    missing_attrs.append(p)
+
+            if missing_attrs:
+                raise AttributeError('Static attributes %r expected '
+                    'when decoding %r' % (missing_attrs, self.klass))
+
+        if not self.dynamic:
+            if not self.decodable_properties:
+                props = set()
+            else:
+                props.intersection_update(self.decodable_properties)
+
+            changed = True
+
+        if self.readonly_attrs:
+            props.difference_update(self.readonly_attrs)
+            changed = True
+
+        if self.exclude_attrs:
+            props.difference_update(self.exclude_attrs)
+            changed = True
+
+        if not changed:
+            return attrs
+
+        a = {}
+
+        [a.__setitem__(p, attrs[p]) for p in props]
+
+        return a
 
     def applyAttributes(self, obj, attrs, codec=None):
         """
         Applies the collection of attributes C{attrs} to aliased object C{obj}.
-        It is mainly used when reading aliased objects from an AMF byte stream.
+        Called when decoding reading aliased objects from an AMF byte stream.
+
+        Override this to provide fine grain control of application of
+        attributes to C{obj}.
 
         @param codec: An optional argument that will contain the en/decoder
             instance calling this function.
         """
-        if 'static' in self.metadata:
-            s, d = self.getAttrs(obj, codec=codec)
-
-            if s is not None:
-                for k in attrs.keys():
-                    if k not in s:
-                        del attrs[k]
+        attrs = self.getDecodableAttributes(obj, attrs, codec=codec)
 
         util.set_attrs(obj, attrs)
+
+    def getCustomProperties(self):
+        """
+        Overrride this to provide known static properties based on the aliased
+        class.
+
+        @since: 0.5
+        """
 
     def createInstance(self, codec=None, *args, **kwargs):
         """
@@ -598,7 +705,6 @@ class TypedObject(dict):
 
     @ivar alias: The alias of the typed object.
     @type alias: C{unicode}
-
     @since: 0.4
     """
 
@@ -719,7 +825,7 @@ class CustomTypeFunc(object):
         self.encoder = encoder
         self.func = func
 
-    def __call__(self, data):
+    def __call__(self, data, *args, **kwargs):
         self.encoder.writeElement(self.func(data, encoder=self.encoder))
 
 
@@ -827,44 +933,25 @@ class BaseEncoder(object):
         raise NotImplementedError
 
 
-def register_class(klass, alias=None, attrs=None, attr_func=None, metadata=[]):
+def register_class(klass, alias=None):
     """
     Registers a class to be used in the data streaming.
 
-    @type alias: C{str}
-    @param alias: The alias of klass, i.e. C{org.example.Person}.
-    @param attrs: A list of attributes that will be encoded for the class.
-    @type attrs: C{list} or C{None}
-    @type attr_func:
-    @param attr_func:
-    @type metadata:
-    @param metadata:
-    @raise TypeError: PyAMF doesn't support required init arguments.
-    @raise TypeError: The C{klass} is not callable.
-    @raise ValueError: The C{klass} or C{alias} is already registered.
     @return: The registered L{ClassAlias}.
     """
-    if not callable(klass):
-        raise TypeError("klass must be callable")
+    meta = util.get_class_meta(klass)
 
-    if klass in CLASS_CACHE:
-        raise ValueError("klass %s already registered" % (klass,))
-
-    if alias is not None and alias in CLASS_CACHE.keys():
-        raise ValueError("alias '%s' already registered" % (alias,))
+    if alias is not None:
+        meta['alias'] = alias
 
     alias_klass = util.get_class_alias(klass)
 
-    if alias_klass is None:
-        alias_klass = ClassAlias
+    x = alias_klass(klass, defer=True, **meta)
 
-    x = alias_klass(klass, alias, attr_func=attr_func,
-        attrs=attrs, metadata=metadata)
+    if not x.anonymous:
+        CLASS_CACHE[x.alias] = x
 
-    if alias is None:
-        alias = "%s.%s" % (klass.__module__, klass.__name__,)
-
-    CLASS_CACHE[alias] = x
+    CLASS_CACHE[klass] = x
 
     return x
 
@@ -879,15 +966,44 @@ def unregister_class(alias):
     @param alias: Alias for class to delete.
     @raise UnknownClassAlias: Unknown alias.
     """
-    if isinstance(alias, (type, types.ClassType)):
-        for s, a in CLASS_CACHE.iteritems():
-            if a.klass == alias:
-                alias = s
-                break
     try:
-        del CLASS_CACHE[alias]
+        x = CLASS_CACHE[alias]
     except KeyError:
-        raise UnknownClassAlias("Unknown alias %s" % (alias,))
+        raise UnknownClassAlias('Unknown alias %r' % (alias,))
+
+    if not x.anonymous:
+        del CLASS_CACHE[x.alias]
+
+    del CLASS_CACHE[x.klass]
+
+    return x
+
+
+def get_class_alias(klass):
+    """
+    Finds the alias registered to the class.
+
+    @type klass: C{object} or class object.
+    @return: The class alias linked to C{klass}.
+    @rtype: L{ClassAlias}
+    @raise UnknownClassAlias: Class not found.
+    """
+    if isinstance(klass, basestring):
+        try:
+            return CLASS_CACHE[klass]
+        except KeyError:
+            return load_class(klass)
+
+    if not isinstance(klass, (type, types.ClassType)):
+        if isinstance(klass, types.InstanceType):
+            klass = klass.__class__
+        elif isinstance(klass, types.ObjectType):
+            klass = type(klass)
+
+    try:
+        return CLASS_CACHE[klass]
+    except KeyError:
+        raise UnknownClassAlias('Unknown alias for %r' % (klass,))
 
 
 def register_class_loader(loader):
@@ -924,7 +1040,7 @@ def unregister_class_loader(loader):
     if loader not in CLASS_LOADERS:
         raise LookupError("loader not found")
 
-    del CLASS_LOADERS[CLASS_LOADERS.index(loader)]
+    CLASS_LOADERS.remove(loader)
 
 
 def get_module(mod_name):
@@ -984,10 +1100,11 @@ def load_class(alias):
             return register_class(klass, alias)
         elif isinstance(klass, ClassAlias):
             CLASS_CACHE[str(alias)] = klass
+            CLASS_CACHE[klass.klass] = klass
+
+            return klass
         else:
             raise TypeError("Expecting class type or ClassAlias from loader")
-
-        return klass
 
     # XXX nick: Are there security concerns for loading classes this way?
     mod_class = alias.split('.')
@@ -1004,56 +1121,18 @@ def load_class(alias):
         else:
             klass = getattr(module, klass)
 
-            if callable(klass):
-                CLASS_CACHE[alias] = klass
+            if isinstance(klass, (type, types.ClassType)):
+                return register_class(klass, alias)
+            elif isinstance(klass, ClassAlias):
+                CLASS_CACHE[str(alias)] = klass
+                CLASS_CACHE[klass.klass] = klass
 
-                return klass
+                return klass.klass
+            else:
+                raise TypeError("Expecting class type or ClassAlias from loader")
 
     # All available methods for finding the class have been exhausted
-    raise UnknownClassAlias("Unknown alias %s" % (alias,))
-
-
-def get_class_alias(klass):
-    """
-    Finds the alias registered to the class.
-
-    @type klass: C{object} or class
-    @rtype: L{ClassAlias}
-    @return: The class alias linked to the C{klass}.
-    @raise UnknownClassAlias: Class not found.
-    @raise TypeError: Expecting C{string} or C{class} type.
-    """
-    if not isinstance(klass, (type, types.ClassType, basestring)):
-        if isinstance(klass, types.InstanceType):
-            klass = klass.__class__
-        elif isinstance(klass, types.ObjectType):
-            klass = type(klass)
-
-    if isinstance(klass, basestring):
-        for a, k in CLASS_CACHE.iteritems():
-            if klass == a:
-                return k
-    else:
-        for a, k in CLASS_CACHE.iteritems():
-            if klass == k.klass:
-                return k
-
-    if isinstance(klass, basestring):
-        return load_class(klass)
-
-    raise UnknownClassAlias("Unknown alias %s" % (klass,))
-
-
-def has_alias(obj):
-    """
-    @rtype: C{bool}
-    @return: Alias is available.
-    """
-    try:
-        alias = get_class_alias(obj)
-        return True
-    except UnknownClassAlias:
-        return False
+    raise UnknownClassAlias("Unknown alias for %r" % (alias,))
 
 
 def decode(stream, encoding=AMF0, context=None, strict=False):
@@ -1109,7 +1188,10 @@ def encode(*args, **kwargs):
 
 
 def get_decoder(encoding, data=None, context=None, strict=False):
-    return _get_decoder_class(encoding)(data=data, context=context, strict=strict)
+    """
+    Returns a subclassed instance of L{pyamf.BaseDecoder}, based on C{encoding}
+    """
+    return _get_decoder_class(encoding)(data, context, strict)
 
 
 def _get_decoder_class(encoding):
@@ -1140,8 +1222,7 @@ def get_encoder(encoding, data=None, context=None, strict=False):
     """
     Returns a subclassed instance of L{pyamf.BaseEncoder}, based on C{encoding}
     """
-    return _get_encoder_class(encoding)(data=data, context=context,
-        strict=strict)
+    return _get_encoder_class(encoding)(data, context, strict)
 
 
 def _get_encoder_class(encoding):
@@ -1226,10 +1307,10 @@ def add_type(type_, func=None):
     @raise TypeError: Unable to add as a custom type (expected a class or callable).
     @raise KeyError: Type already exists.
     """
-
     def _check_type(type_):
         if not (isinstance(type_, (type, types.ClassType)) or callable(type_)):
-            raise TypeError('Unable to add \'%r\' as a custom type (expected a class or callable)' % (type_,))
+            raise TypeError(r'Unable to add '%r' as a custom type (expected a '
+                'class or callable)' % (type_,))
 
     if isinstance(type_, list):
         type_ = tuple(type_)
@@ -1441,6 +1522,41 @@ def register_package(module=None, package=None, separator='.', ignore=[], strict
         respective L{ClassAlias} objects.
     @since: 0.5
     """
+    if isinstance(module, basestring):
+        if module == '':
+            raise TypeError('Cannot get list of classes from %r' % (module,))
+
+        package = module
+        module = None
+
+    if module is None:
+        import inspect
+
+        prev_frame = inspect.stack()[1][0]
+        module = prev_frame.f_locals
+
+    if type(module) is dict:
+        has = lambda x: x in module.keys()
+        get = module.__getitem__
+    else:
+        has = lambda x: hasattr(module, x)
+        get = lambda x: getattr(module, x)
+
+    if package is None:
+        if has('__name__'):
+            package = get('__name__')
+        else:
+            raise TypeError('Cannot get list of classes from %r' % (module,))
+
+    if has('__all__'):
+        keys = get('__all__')
+    elif hasattr(module, '__dict__'):
+        keys = module.__dict__.keys()
+    elif hasattr(module, 'keys'):
+        keys = module.keys()
+    else:
+        raise TypeError('Cannot get list of classes from %r' % (module,))
+
     def check_attr(attr):
         if not isinstance(attr, (types.ClassType, types.TypeType)):
             return False
@@ -1449,52 +1565,15 @@ def register_package(module=None, package=None, separator='.', ignore=[], strict
             return False
 
         try:
-            if strict and attr.__module__ != module.__name__:
+            if strict and attr.__module__ != get('__name__'):
                 return False
         except AttributeError:
             return False
 
         return True
 
-    if module is None and package is None:
-        import inspect
-
-        prev_frame = inspect.stack()[1][0]
-        module = prev_frame.f_locals
-        package = module['__name__']
-    elif isinstance(module, basestring):
-        if module == '':
-            raise TypeError('Cannot get list of classes from %r' % (module,))
-
-        import inspect
-
-        prev_frame = inspect.stack()[1][0]
-        package = module
-        module = prev_frame.f_locals
-    elif package is None:
-        try:
-            package = module.__name__
-        except AttributeError:
-            raise TypeError('Cannot get list of classes from %r' % (module,))
-
-    keys = None
-
-    if hasattr(module, '__all__'):
-        keys = module.__all__
-    elif hasattr(module, '__dict__'):
-        keys = module.__dict__.keys()
-    elif hasattr(module, 'keys'):
-        keys = module.keys()
-    else:
-        raise TypeError('Cannot get list of classes from %r' % (module,))
-
-    if type(module) is dict:
-        d = module.__getitem__
-    else:
-        d = lambda x: getattr(module, x)
-
     # gotta love python
-    classes = filter(check_attr, [d(x) for x in keys])
+    classes = filter(check_attr, [get(x) for x in keys])
 
     registered = {}
 
@@ -1505,9 +1584,10 @@ def register_package(module=None, package=None, separator='.', ignore=[], strict
 
     return registered
 
+
 # init module here
-
+register_class(ASObject)
 register_class_loader(flex_loader)
-register_adapters()
-
 register_alias_type(TypedObjectClassAlias, TypedObject)
+
+register_adapters()

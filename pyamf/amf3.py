@@ -114,6 +114,8 @@ REFERENCE_BIT = 0x01
 #: The maximum that can be represented by an unsigned 29 bit integer.
 MAX_29B_INT = 0x3FFFFFFF
 
+ENCODED_INT_CACHE = {}
+
 
 class ObjectEncoding:
     """
@@ -224,11 +226,11 @@ class DataOutput(object):
         @type value: C{str}
         @param value: The string value to be written.
         @type charset: C{str}
-        @param charset: The string denoting the character
-        set to use. Possible character set strings include
-        C{shift-jis}, C{cn-gb}, C{iso-8859-1} and others.
+        @param charset: The string denoting the character set to use. Possible
+            character set strings include C{shift-jis}, C{cn-gb},
+            C{iso-8859-1} and others.
         @see: U{Supported character sets on Livedocs (external)
-        <http://livedocs.adobe.com/flex/201/langref/charset-codes.html>}
+            <http://livedocs.adobe.com/flex/201/langref/charset-codes.html>}
         """
         self.stream.write(unicode(value).encode(charset))
 
@@ -482,6 +484,10 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
     @see: U{ByteArray on Livedocs (external)
     <http://livedocs.adobe.com/flex/201/langref/flash/utils/ByteArray.html>}
     """
+
+    class __amf__:
+        amf3 = True
+
     def __init__(self, *args, **kwargs):
         self.context = kwargs.pop('context', Context())
 
@@ -516,104 +522,30 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
 
 class ClassDefinition(object):
     """
-    I contain meta relating to the class definition. Once created, an instance
-    is intended to be immutable.
-
-    @ivar alias: The alias to this class definition. If this value is C{None},
-        or an empty string, the class is considered to be anonymous.
-    @type alias: L{ClassAlias<pyamf.ClassAlias>}
-    @ivar encoding: The type of encoding to use when serializing the object.
-    @type encoding: C{int}
     """
 
-    def __init__(self, alias, encoding=ObjectEncoding.DYNAMIC):
-        self.encoding = encoding
+    def __init__(self, alias):
+        self.alias = alias
         self.reference = None
 
-        if alias in (None, ''):
-            alias = None
-        elif not isinstance(alias, pyamf.ClassAlias):
-            alias = pyamf.get_class_alias(alias)
+        alias.compile()
 
-        self.alias = alias
+        self.attr_len = 0
 
-        if alias is None:
-            self.name = ''
-            self.klass = pyamf.ASObject
-            self.anonymous = True
-        else:
-            if 'anonymous' in self.alias.metadata:
-                self.name = ''
-                self.anonymous = True
-            else:
-                self.name = str(alias)
-                self.anonymous = False
+        if alias.static_attrs:
+            self.attr_len = len(alias.static_attrs)
 
-            self.klass = self.alias.klass
+        self.encoding = ObjectEncoding.DYNAMIC
 
-    def getStaticAttrs(self, obj, codec=None):
-        """
-        Returns a list of static attributes based on C{obj}. Once built,
-        this list is immutable.
+        if alias.external:
+            self.encoding = ObjectEncoding.EXTERNAL
+        elif not alias.dynamic:
+            if alias.static_attrs == alias.encodable_properties:
+                self.encoding = ObjectEncoding.STATIC
 
-        @param obj: The object to determine the static attributes from.
-        @type obj: C{mixed}.
-        @since: 0.4
-        """
-        if hasattr(self, 'static_attrs'):
-            return self.static_attrs
-
-        if not self.alias:
-            if hasattr(self.klass, '__slots__'):
-                self.static_attrs = list(self.klass.__slots__)
-            else:
-                self.static_attrs = []
-
-            return self.static_attrs
-
-        static_attrs, dynamic_attrs = self.alias.getAttrs(obj, codec=self)
-
-        if static_attrs is None:
-            self.static_attrs = []
-        else:
-            self.static_attrs = static_attrs
-
-        return self.static_attrs
-
-    def getAttrs(self, obj, codec=None):
-        """
-        Returns a C{tuple} containing a dict of static and dynamic attributes
-        for C{obj}.
-        """
-        if self.alias is not None:
-            return self.alias.getAttributes(obj, codec=codec)
-
-        dynamic_attrs = util.get_attrs(obj)
-        static_attrs = {}
-
-        for a in self.getStaticAttrs(obj, codec=codec):
-            static_attrs[a] = dynamic_attrs[a]
-            del dynamic_attrs[a]
-
-        return static_attrs, dynamic_attrs
-
-    def createInstance(self, codec=None):
-        """
-        Creates a new instance.
-        """
-        if self.alias:
-            return self.alias.createInstance(codec=codec)
-
-        return self.klass()
-
-    def applyAttributes(self, obj, attrs, codec=None):
-        """
-        Applies a collection of attributes C{attrs} to object C{obj}
-        """
-        if self.alias:
-            self.alias.applyAttributes(obj, attrs, codec=codec)
-        else:
-            util.set_attrs(obj, attrs)
+    def __repr__(self):
+        return '<%s.ClassDefinition reference=%r encoding=%r alias=%r at 0x%x>' % (
+            self.__class__.__module__, self.reference, self.encoding, self.alias, id(self))
 
 
 class Context(pyamf.BaseContext):
@@ -631,9 +563,11 @@ class Context(pyamf.BaseContext):
     def __init__(self, exceptions=True):
         self.strings = util.IndexedCollection(use_hash=True, exceptions=False)
         self.classes = {}
-        self.class_defs = util.IndexedCollection(exceptions=False)
+        self.class_ref = {}
         self.legacy_xml = util.IndexedCollection(exceptions=False)
         self.object_aliases = util.IndexedMap(exceptions=False) # Maps one object to another
+
+        self.class_idx = 0
 
         pyamf.BaseContext.__init__(self, exceptions=exceptions)
 
@@ -645,9 +579,11 @@ class Context(pyamf.BaseContext):
 
         self.strings.clear()
         self.classes = {}
-        self.class_defs.clear()
+        self.class_ref = {}
         self.legacy_xml.clear()
         self.object_aliases.clear()
+
+        self.class_idx = 0
 
     def setObjectAlias(self, obj, alias):
         """
@@ -743,24 +679,23 @@ class Context(pyamf.BaseContext):
 
         return self.strings.append(s)
 
-    def getClassDefinitionByReference(self, ref):
+    def getClassByReference(self, ref):
         """
         Return class reference.
 
         @raise pyamf.ReferenceError: The class reference could not be found.
         @return: Class reference.
         """
-        i = self.class_defs.getByReference(ref)
-
-        if i is None:
+        try:
+            return self.class_ref[ref]
+        except KeyError:
             if not self.exceptions:
                 return None
 
-            raise pyamf.ReferenceError("Class reference %r not found" % (ref,))
+            raise pyamf.ReferenceError("Class reference %r not found" % (
+                ref,))
 
-        return i
-
-    def getClassDefinition(self, klass):
+    def getClass(self, klass):
         """
         Return class reference.
 
@@ -773,18 +708,25 @@ class Context(pyamf.BaseContext):
             if not self.exceptions:
                 return None
 
-            raise pyamf.ReferenceError("Class definition for %s not found" % (klass,))
+            raise pyamf.ReferenceError("Class alias for %r not found" % (
+                klass,))
 
-    def addClassDefinition(self, class_def, klass):
+    def addClass(self, alias, klass):
         """
         Creates a reference to C{class_def}.
 
-        @param class_def: C{ClassDefinition} instance.
+        @param alias: C{ClassDefinition} instance.
         """
-        class_def.reference = self.class_defs.append(class_def)
-        self.classes[klass] = class_def
+        ref = self.class_idx
 
-        return class_def.reference
+        self.class_ref[ref] = alias
+        cd = self.classes[klass] = alias
+
+        cd.reference = ref
+
+        self.class_idx += 1
+
+        return ref
 
     def getLegacyXML(self, ref):
         """
@@ -1001,7 +943,7 @@ class Decoder(pyamf.BaseDecoder):
 
         key = self.readString().encode('utf8')
 
-        if key == "":
+        if key == '':
             # integer indexes only -> python list
             result = []
             self.context.addObject(result)
@@ -1028,31 +970,43 @@ class Decoder(pyamf.BaseDecoder):
         """
         Reads class definition from the stream.
         """
-        class_ref = ref & REFERENCE_BIT == 0
-        class_def = None
-
+        is_ref = ref & REFERENCE_BIT == 0
         ref >>= 1
 
-        if class_ref:
-            class_def = self.context.getClassDefinitionByReference(ref)
-        else:
-            class_name = self.readString()
+        if is_ref:
+            class_def = self.context.getClassByReference(ref)
 
-            if class_name == '':
-                class_alias = None
-            else:
-                try:
-                    class_alias = pyamf.get_class_alias(class_name)
-                except pyamf.UnknownClassAlias:
-                    if self.strict:
-                        raise
+            return class_def, class_def.alias
 
-                    class_alias = pyamf.TypedObjectClassAlias(pyamf.TypedObject, class_name)
+        name = self.readString()
+        alias = None
 
-            class_def = ClassDefinition(class_alias, encoding=ref & 0x03)
-            self.context.addClassDefinition(class_def, class_def.klass)
+        if name == '':
+            name = pyamf.ASObject
 
-        return class_ref, class_def, ref >> 2
+        try:
+            alias = pyamf.get_class_alias(name)
+        except pyamf.UnknownClassAlias:
+            if self.strict:
+                raise
+
+            alias = pyamf.TypedObjectClassAlias(pyamf.TypedObject, name)
+
+        class_def = ClassDefinition(alias)
+
+        class_def.encoding = ref & 0x03
+        class_def.attr_len = ref >> 2
+        class_def.static_properties = []
+
+        if class_def.attr_len > 0:
+            for i in xrange(class_def.attr_len):
+                key = self.readString().encode('utf8')
+
+                class_def.static_properties.append(key)
+
+        self.context.addClass(class_def, alias.klass)
+
+        return class_def, alias
 
     def readObject(self, use_proxies=None):
         """
@@ -1065,19 +1019,11 @@ class Decoder(pyamf.BaseDecoder):
         if use_proxies is None:
             use_proxies = self.use_proxies
 
-        def readStatic(is_ref, class_def, obj, num_attrs):
-            if not is_ref:
-                class_def.static_attrs = []
-
-                for i in xrange(num_attrs):
-                    key = self.readString().encode('utf8')
-
-                    class_def.static_attrs.append(key)
-
-            for attr in class_def.static_attrs:
+        def readStatic(class_def, obj):
+            for attr in class_def.static_properties:
                 obj[attr] = self.readElement()
 
-        def readDynamic(is_ref, class_def, obj):
+        def readDynamic(class_def, obj):
             attr = self.readString().encode('utf8')
 
             while attr != '':
@@ -1096,13 +1042,9 @@ class Decoder(pyamf.BaseDecoder):
 
         ref >>= 1
 
-        class_ref, class_def, num_attrs = self._getClassDefinition(ref)
+        class_def, alias = self._getClassDefinition(ref)
 
-        if class_def.alias and 'amf0' in class_def.alias.metadata:
-            raise pyamf.EncodeError('Decoding an object in amf3 tagged as ' \
-                'amf0 only is not allowed')
-
-        obj = class_def.createInstance(codec=self)
+        obj = alias.createInstance(codec=self)
         obj_attrs = dict()
 
         self.context.addObject(obj)
@@ -1110,14 +1052,14 @@ class Decoder(pyamf.BaseDecoder):
         if class_def.encoding in (ObjectEncoding.EXTERNAL, ObjectEncoding.PROXY):
             obj.__readamf__(DataInput(self))
         elif class_def.encoding == ObjectEncoding.DYNAMIC:
-            readStatic(class_ref, class_def, obj_attrs, num_attrs)
-            readDynamic(class_ref, class_def, obj_attrs)
+            readStatic(class_def, obj_attrs)
+            readDynamic(class_def, obj_attrs)
         elif class_def.encoding == ObjectEncoding.STATIC:
-            readStatic(class_ref, class_def, obj_attrs, num_attrs)
+            readStatic(class_def, obj_attrs)
         else:
             raise pyamf.DecodeError("Unknown object encoding")
 
-        class_def.applyAttributes(obj, obj_attrs, codec=self)
+        alias.applyAttributes(obj, obj_attrs, codec=self)
 
         if use_proxies is True:
             obj = self.readProxyObject(obj)
@@ -1231,7 +1173,8 @@ class Encoder(pyamf.BaseEncoder):
         ((types.InstanceType, types.ObjectType,), "writeInstance"),
     ]
 
-    def __init__(self, data=None, context=None, strict=False, use_proxies=None, string_references=True):
+    def __init__(self, data=None, context=None, strict=False, use_proxies=None,
+        string_references=True):
         pyamf.BaseEncoder.__init__(self, data, context, strict)
 
         if use_proxies is None:
@@ -1245,23 +1188,18 @@ class Encoder(pyamf.BaseEncoder):
         """
         Writes the data.
 
-        @type   data: C{mixed}
-        @param  data: The data to be encoded to the AMF3 data stream.
-        @type   use_references: C{bool}
-        @param  use_references: Default is C{True}.
+        @param data: The data to be encoded to the AMF3 data stream.
+        @type data: C{mixed}
+        @param use_references: Default is C{True}.
+        @type use_references: C{bool}
         @raise EncodeError: Cannot find encoder func for C{data}.
         """
         func = self._writeElementFunc(data)
 
         if func is None:
-            raise pyamf.EncodeError("Cannot find encoder func for %r" % (data,))
+            raise pyamf.EncodeError("Unknown type %r" % (data,))
 
-        t = type(func)
-
-        if t is types.MethodType:
-            func(data, use_references=use_references, use_proxies=use_proxies)
-        elif t is pyamf.CustomTypeFunc:
-            func(data)
+        func(data, use_references=use_references, use_proxies=use_proxies)
 
     def writeClass(self, *args, **kwargs):
         """
@@ -1269,40 +1207,28 @@ class Encoder(pyamf.BaseEncoder):
         """
         raise pyamf.EncodeError("Class objects cannot be serialised")
 
-    def writeUndefined(self, d, use_references=True, use_proxies=None):
+    def writeUndefined(self, *args, **kwargs):
         """
         Writes an C{pyamf.Undefined} value to the stream.
-
-        @param d: The C{undefined} data to be encoded to the AMF3 data stream.
-        @type use_references: C{bool}
-        @param use_references: Default is C{True}.
         """
         self.stream.write(TYPE_UNDEFINED)
 
-    def writeNull(self, n, use_references=True, use_proxies=None):
+    def writeNull(self, *args, **kwargs):
         """
         Writes a C{null} value to the stream.
-
-        @param n: The C{null} data to be encoded to the AMF3 data stream.
-        @type n: C{null} data.
-        @type use_references: C{bool}
-        @param use_references: Default is C{True}.
         """
         self.stream.write(TYPE_NULL)
 
-    def writeBoolean(self, n, use_references=True, use_proxies=None):
+    def writeBoolean(self, n, **kwargs):
         """
         Writes a Boolean to the stream.
-
-        @param n: The C{boolean} data to be encoded to the AMF3 data stream.
-        @type n: C{bool}
-        @type   use_references: C{bool}
-        @param  use_references: Default is C{True}.
         """
-        if n is True:
-            self.stream.write(TYPE_BOOL_TRUE)
-        else:
-            self.stream.write(TYPE_BOOL_FALSE)
+        t = TYPE_BOOL_TRUE
+
+        if not n:
+            t = TYPE_BOOL_FALSE
+
+        self.stream.write(t)
 
     def _writeInteger(self, n):
         """
@@ -1315,9 +1241,13 @@ class Encoder(pyamf.BaseEncoder):
         <http://osflash.org/documentation/amf3/parsing_integers>}
         for more info.
         """
-        self.stream.write(encode_int(n))
+        try:
+            self.stream.write(ENCODED_INT_CACHE[n])
+        except KeyError:
+            ENCODED_INT_CACHE[n] = encode_int(n)
+            self.stream.write(ENCODED_INT_CACHE[n])
 
-    def writeInteger(self, n, use_references=True, use_proxies=None):
+    def writeInteger(self, n, **kwargs):
         """
         Writes an integer to the stream.
 
@@ -1334,26 +1264,21 @@ class Encoder(pyamf.BaseEncoder):
         self.stream.write(TYPE_INTEGER)
         self.stream.write(encode_int(n))
 
-    def writeNumber(self, n, use_references=True, use_proxies=None):
+    def writeNumber(self, n, **kwargs):
         """
-        Writes a non integer to the stream.
+        Writes a float to the stream.
 
-        @type   n: number data
-        @param  n: The number data to be encoded to the AMF3 data stream.
-        @type   use_references: C{bool}
-        @param  use_references: Default is C{True}
+        @type n: C{float}
         """
         self.stream.write(TYPE_NUMBER)
         self.stream.write_double(n)
 
-    def _writeString(self, n, use_references=None, use_proxies=None):
+    def _writeString(self, n, **kwargs):
         """
         Writes a raw string to the stream.
 
         @type   n: C{str} or C{unicode}
         @param  n: The string data to be encoded to the AMF3 data stream.
-        @type   use_references: C{bool}
-        @param  use_references: Default is C{True}.
         """
         if n == '':
             self.stream.write_uchar(REFERENCE_BIT)
@@ -1373,17 +1298,17 @@ class Encoder(pyamf.BaseEncoder):
         if self.string_references:
             ref = self.context.getStringReference(n)
 
-            if ref is None:
-                self.context.addString(n)
-            else:
+            if ref is not None:
                 self._writeInteger(ref << 1)
 
                 return
 
+            self.context.addString(n)
+
         self._writeInteger((len(bytes) << 1) | REFERENCE_BIT)
         self.stream.write(bytes)
 
-    def writeString(self, n, use_references=None, use_proxies=None):
+    def writeString(self, n, **kwargs):
         """
         Writes a string to the stream. If C{n} is not a unicode string, an
         attempt will be made to convert it.
@@ -1395,16 +1320,16 @@ class Encoder(pyamf.BaseEncoder):
         """
         self.stream.write(TYPE_STRING)
 
-        self._writeString(n, use_references)
+        self._writeString(n, **kwargs)
 
-    def writeDate(self, n, use_references=True, use_proxies=None):
+    def writeDate(self, n, use_references=True, **kwargs):
         """
         Writes a C{datetime} instance to the stream.
 
         @type n: L{datetime}
         @param n: The C{Date} data to be encoded to the AMF3 data stream.
-        @type   use_references: C{bool}
-        @param  use_references: Default is C{True}.
+        @type use_references: C{bool}
+        @param use_references: Default is C{True}.
         """
         if isinstance(n, datetime.time):
             raise pyamf.EncodeError('A datetime.time instance was found but '
@@ -1416,12 +1341,12 @@ class Encoder(pyamf.BaseEncoder):
         if use_references is True:
             ref = self.context.getObjectReference(n)
 
-            if ref is None:
-                self.context.addObject(n)
-            else:
+            if ref is not None:
                 self._writeInteger(ref << 1)
 
                 return
+
+            self.context.addObject(n)
 
         self.stream.write_uchar(REFERENCE_BIT)
 
@@ -1442,7 +1367,7 @@ class Encoder(pyamf.BaseEncoder):
         if use_proxies is None:
             use_proxies = self.use_proxies
 
-        if use_proxies is True:
+        if use_proxies:
             ref_obj = self.context.getObjectAlias(n)
 
             if ref_obj is None:
@@ -1456,17 +1381,17 @@ class Encoder(pyamf.BaseEncoder):
 
         self.stream.write(TYPE_ARRAY)
 
-        if use_references is True:
+        if use_references:
             ref = self.context.getObjectReference(n)
 
-            if ref is None:
-                self.context.addObject(n)
-            else:
+            if ref is not None:
                 self._writeInteger(ref << 1)
 
                 return
 
-        self._writeInteger(len(n) << 1 | REFERENCE_BIT)
+            self.context.addObject(n)
+
+        self._writeInteger((len(n) << 1) | REFERENCE_BIT)
         self.stream.write_uchar(0x01)
 
         [self.writeElement(x) for x in n]
@@ -1509,12 +1434,12 @@ class Encoder(pyamf.BaseEncoder):
         if use_references:
             ref = self.context.getObjectReference(n)
 
-            if ref is None:
-                self.context.addObject(n)
-            else:
+            if ref is not None:
                 self._writeInteger(ref << 1)
 
                 return
+
+            self.context.addObject(n)
 
         # The AMF3 spec demands that all str based indicies be listed first
         keys = n.keys()
@@ -1557,44 +1482,22 @@ class Encoder(pyamf.BaseEncoder):
         for k in int_keys:
             self.writeElement(n[k])
 
-    def _getClassDefinition(self, obj):
-        """
-        Builds a class definition based on the C{obj}.
-        """
-        encoding = ObjectEncoding.DYNAMIC
-        alias = self.context.getClassAlias(obj.__class__)
-
-        if alias:
-            if 'dynamic' in alias.metadata:
-                encoding = ObjectEncoding.DYNAMIC
-            elif 'static' in alias.metadata:
-                encoding = ObjectEncoding.STATIC
-            elif 'external' in alias.metadata:
-                encoding = ObjectEncoding.EXTERNAL
-
-        class_def = ClassDefinition(alias, encoding)
-
-        return class_def
-
-    def writeInstance(self, obj, use_references=True, use_proxies=None):
+    def writeInstance(self, obj, **kwargs):
         """
         Read class definition.
 
-        @param obj: The class instance data to be encoded to the AMF3
-            data stream.
-        @type obj: instance data
-        @type use_references: C{bool}
-        @param use_references: Default is C{True}.
+        @param obj: The class instance to be encoded.
         """
-        if obj.__class__ is pyamf.MixedArray:
-            self._write_elem_func_cache[obj.__class__] = self.writeDict
-            self.writeDict(obj, use_references, use_proxies)
-        elif obj.__class__ in (list, set, tuple):
-            self._write_elem_func_cache[obj.__class__] = self.writeList
-            self.writeList(obj, use_references, use_proxies)
+        kls = obj.__class__
+
+        if kls is pyamf.MixedArray:
+            f = self._write_elem_func_cache[kls] = self.writeDict
+        elif kls in (list, set, tuple):
+            f = self._write_elem_func_cache[kls] = self.writeList
         else:
-            self._write_elem_func_cache[obj.__class__] = self.writeObject
-            self.writeObject(obj, use_references, use_proxies)
+            f = self._write_elem_func_cache[kls] = self.writeObject
+
+        f(obj, **kwargs)
 
     def writeObject(self, obj, use_references=True, use_proxies=None):
         """
@@ -1613,7 +1516,7 @@ class Encoder(pyamf.BaseEncoder):
             ref_obj = self.context.getObjectAlias(obj)
 
             if ref_obj is None:
-                proxy = ObjectProxy(pyamf.ASObject(obj))
+                proxy = ObjectProxy(obj)
                 self.context.setObjectAlias(obj, proxy)
                 ref_obj = proxy
 
@@ -1623,90 +1526,116 @@ class Encoder(pyamf.BaseEncoder):
 
         self.stream.write(TYPE_OBJECT)
 
-        if use_references is True:
+        if use_references:
             ref = self.context.getObjectReference(obj)
 
-            if ref is None:
-                self.context.addObject(obj)
-            else:
+            if ref is not None:
                 self._writeInteger(ref << 1)
 
                 return
 
-        class_def = self.context.getClassDefinition(obj.__class__)
+            self.context.addObject(obj)
+
+        # object is not referenced, serialise it
+        kls = obj.__class__
+        definition = self.context.getClass(kls)
+        alias = None
         class_ref = False # if the class definition is a reference
 
-        if class_def is not None:
+        if definition:
             class_ref = True
+            alias = definition.alias
 
-            if class_def.anonymous:
-                class_ref = False
+            if alias.anonymous and definition.reference is not None:
+                class_ref = True
         else:
-            class_def = self._getClassDefinition(obj)
+            try:
+                alias = pyamf.get_class_alias(kls)
+            except pyamf.UnknownClassAlias:
+                alias_klass = util.get_class_alias(kls)
 
-            if class_def.alias and 'amf0' in class_def.alias.metadata:
-                raise pyamf.EncodeError("Encoding an object in amf3 tagged as amf0 only")
+                alias = alias_klass(kls, defer=True)
 
-            self.context.addClassDefinition(class_def, obj.__class__)
+            definition = ClassDefinition(alias)
 
-            if class_def.anonymous:
-                class_def.reference = 0
-                class_def.klass = obj.__class__
+            self.context.addClass(definition, alias.klass)
 
-            class_def.static_attrs = class_def.getStaticAttrs(obj)
-            class_def.static_attrs_len = len(class_def.static_attrs)
+        if class_ref:
+            self.stream.write(definition.reference)
 
-        if class_ref is True:
-            self._writeInteger(class_def.reference << 2 | REFERENCE_BIT)
+            if alias.anonymous:
+                self.stream.write_uchar(0x01)
         else:
-            ref = class_def.reference
+            ref = 0
 
-            if class_def.encoding != ObjectEncoding.EXTERNAL:
-                ref += class_def.static_attrs_len << 4
+            if definition.encoding != ObjectEncoding.EXTERNAL:
+                ref += definition.attr_len << 4
 
-            self._writeInteger(ref | class_def.encoding << 2 | REFERENCE_BIT << 1 | REFERENCE_BIT)
-            self._writeString(class_def.name)
+            final_reference = encode_int(ref | definition.encoding << 2 | 
+                REFERENCE_BIT << 1 | REFERENCE_BIT)
 
-        if class_def.encoding in (ObjectEncoding.EXTERNAL, ObjectEncoding.PROXY):
+            self.stream.write(final_reference)
+
+            if alias.anonymous:
+                self.stream.write_uchar(0x01)
+                #self._writeString('')
+            else:
+                self._writeString(alias.alias)
+
+            # work out what the final reference for the class will be.
+            # this is okay because the next time an object of the same
+            # class is encoded, class_ref will be True and never get here
+            # again.
+            if alias.anonymous:
+                definition.reference = final_reference
+            else:
+                definition.reference = encode_int(
+                    definition.reference << 2 | REFERENCE_BIT)
+
+        if alias.external:
             obj.__writeamf__(DataOutput(self))
-        else:
-            static_attrs, dynamic_attrs = class_def.getAttrs(obj, codec=self)
 
-            if static_attrs is not None or static_attrs == {}:
-                attrs = class_def.static_attrs
+            return
 
-                if not class_ref:
-                    [self._writeString(attr) for attr in attrs]
+        sa, da = alias.getEncodableAttributes(obj, codec=self)
 
-                [self.writeElement(static_attrs[attr]) for attr in attrs]
+        if sa:
+            if not class_ref:
+                [self._writeString(attr) for attr in alias.static_attrs]
 
-            if class_def.encoding == ObjectEncoding.DYNAMIC and dynamic_attrs is not None:
-                for attr, value in dynamic_attrs.iteritems():
+            [self.writeElement(sa[attr]) for attr in alias.static_attrs]
+
+            if definition.encoding == ObjectEncoding.STATIC:
+                return
+
+        if definition.encoding == ObjectEncoding.DYNAMIC:
+            if da:
+                for attr, value in da.iteritems():
                     self._writeString(attr)
                     self.writeElement(value)
 
-                self.stream.write('\x01')
+            self.stream.write_uchar(0x01)
 
-    def writeByteArray(self, n, use_references=True, use_proxies=None):
+    def writeByteArray(self, n, use_references=True, **kwargs):
         """
         Writes a L{ByteArray} to the data stream.
 
-        @type   n: L{ByteArray}
-        @param  n: The L{ByteArray} data to be encoded to the AMF3 data stream.
-        @type   use_references: C{bool}
-        @param  use_references: Default is C{True}.
+        @param n: The L{ByteArray} data to be encoded to the AMF3 data stream.
+        @type n: L{ByteArray}
+        @param use_references: Default is C{True}.
+        @type use_references: C{bool}
         """
         self.stream.write(TYPE_BYTEARRAY)
 
         if use_references:
             ref = self.context.getObjectReference(n)
 
-            if ref is None:
-                self.context.addObject(n)
-            else:
+            if ref is not None:
                 self._writeInteger(ref << 1)
 
                 return
+
+            self.context.addObject(n)
 
         buf = str(n)
         l = len(buf)
@@ -1737,14 +1666,14 @@ class Encoder(pyamf.BaseEncoder):
         if use_references:
             ref = self.context.getObjectReference(n)
 
-            if ref is None:
-                self.context.addObject(n)
-            else:
+            if ref is not None:
                 self._writeInteger(ref << 1)
 
                 return
 
-        self._writeString(util.ET.tostring(n, 'utf-8'), False)
+            self.context.addObject(n)
+
+        self._writeString(util.ET.tostring(n, 'utf-8'))
 
 
 def decode(stream, context=None, strict=False):
@@ -1857,4 +1786,9 @@ try:
 except ImportError:
     pass
 
-pyamf.register_class(ByteArray, metadata=['amf3'])
+
+pyamf.register_class(ByteArray)
+
+for x in range(0, 20):
+    ENCODED_INT_CACHE[x] = encode_int(x)
+del x

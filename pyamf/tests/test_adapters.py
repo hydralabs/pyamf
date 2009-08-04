@@ -77,6 +77,7 @@ def suite():
         try:
             __import__(name[5:])
             mod = __import__('.'.join(base_mod))
+
             for x in base_mod[1:]:
                 mod = getattr(mod, x)
 

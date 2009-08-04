@@ -124,4 +124,4 @@ for obj in sys.meta_path:
     if obj.__class__ is ModuleFinder:
         break
 else:
-    sys.meta_path.append(ModuleFinder())
+    sys.meta_path.insert(0, ModuleFinder())

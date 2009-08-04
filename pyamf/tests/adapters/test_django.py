@@ -126,7 +126,7 @@ class ClassAliasTestCase(ModelsBaseTestCase):
 
         alias = self.adapter.DjangoClassAlias(TestClass, None)
 
-        sa, da = alias.getAttributes(x)
+        sa, da = alias.getEncodableAttributes(x)
 
         self.assertEquals(sa, {
             'id': None,
@@ -135,7 +135,7 @@ class ClassAliasTestCase(ModelsBaseTestCase):
             't': datetime.datetime(1970, 1, 1, 12, 12, 12)
         })
 
-        self.assertEquals(da, {})
+        self.assertEquals(da, None)
 
         y = TestClass()
 
@@ -170,9 +170,9 @@ class ClassAliasTestCase(ModelsBaseTestCase):
 
         x.id = fields.NOT_PROVIDED
 
-        sa, da = alias.getAttributes(x)
+        sa, da = alias.getEncodableAttributes(x)
 
-        self.assertEquals(da, {})
+        self.assertEquals(da, None)
         self.assertEquals(sa, {'id': pyamf.Undefined})
 
     def test_non_field_prop(self):
@@ -189,14 +189,9 @@ class ClassAliasTestCase(ModelsBaseTestCase):
 
         x = Book()
 
-        self.assertEquals(alias.getAttrs(x), (
-            ['id', 'numberOfOddPages'],
-            []
-        ))
-
-        self.assertEquals(alias.getAttributes(x), (
-            {'numberOfOddPages': 234, 'id': None},
-            {}
+        self.assertEquals(alias.getEncodableAttributes(x), (
+            {'id': None},
+            {'numberOfOddPages': 234}
         ))
 
         # now we test sending the numberOfOddPages attribute
@@ -219,12 +214,7 @@ class ClassAliasTestCase(ModelsBaseTestCase):
         x = Foo()
         x.spam = 'eggs'
 
-        self.assertEquals(alias.getAttrs(x), (
-            ['id'],
-            ['spam']
-        ))
-
-        self.assertEquals(alias.getAttributes(x), (
+        self.assertEquals(alias.getEncodableAttributes(x), (
             {'id': None},
             {'spam': 'eggs'}
         ))
@@ -281,64 +271,47 @@ class ForeignKeyTestCase(ModelsBaseTestCase):
         del a
 
         a = Article.objects.filter(pk=1)[0]
-        alias = self.adapter.DjangoClassAlias(Reporter, None)
+        alias = self.adapter.DjangoClassAlias(Article, defer=True)
 
         self.assertFalse(hasattr(alias, 'fields'))
-        self.assertEquals(alias.getAttrs(a), (
-            ['id', 'headline', 'pub_date', 'reporter'],
-            []
-        ))
-        self.assertTrue(hasattr(alias, 'fields'))
-        self.assertEquals(alias.fields.keys(),
-            ['headline', 'pub_date', 'id', 'reporter'])
-
-        self.assertEquals(alias.getAttributes(a), (
-            {
-                'headline': u'This is a test',
-                'pub_date': datetime.datetime(2005, 7, 27, 0, 0),
-                'id': 1,
-                'reporter': None,
-            },
-            {}
-        ))
+        sa, da = alias.getEncodableAttributes(a)
+        self.assertEquals(sa, {
+            'headline': u'This is a test',
+            'pub_date': datetime.datetime(2005, 7, 27, 0, 0),
+            'id': 1,
+        })
+        self.assertEquals(da, {
+            'reporter': pyamf.Undefined
+        })
 
         self.assertFalse('_reporter_cache' in a.__dict__)
         self.assertEquals(pyamf.encode(a, encoding=pyamf.AMF3).getvalue(),
-            '\nK\x01\x05id\x11headline\x11pub_date\x11reporter\x04\x01\x06'
-            '\x1dThis is a test\x08\x01BpUYj@\x00\x00\x01\x01')
+            '\n;\x01\x11headline\x05id\x11pub_date\x06\x1dThis is a test\x04'
+            '\x01\x08\x01BpUYj@\x00\x00\x11reporter\x00\x01')
 
         del a
 
         # now with select_related to pull in the reporter object
         a = Article.objects.select_related().filter(pk=1)[0]
 
-        alias = self.adapter.DjangoClassAlias(Reporter, None)
+        alias = self.adapter.DjangoClassAlias(Article, defer=True)
 
         self.assertFalse(hasattr(alias, 'fields'))
-        self.assertEquals(alias.getAttrs(a), (
-            ['id', 'headline', 'pub_date', 'reporter'],
-            []
-        ))
-        self.assertTrue(hasattr(alias, 'fields'))
-        self.assertEquals(alias.fields.keys(),
-            ['headline', 'pub_date', 'id', 'reporter'])
-
-        self.assertEquals(alias.getAttributes(a), (
-            {
-                'headline': u'This is a test',
-                'pub_date': datetime.datetime(2005, 7, 27, 0, 0),
-                'id': 1,
-                'reporter': r,
-            },
-            {}
-        ))
+        self.assertEquals(alias.getEncodableAttributes(a), ({
+            'headline': u'This is a test',
+            'pub_date': datetime.datetime(2005, 7, 27, 0, 0),
+            'id': 1,
+        },
+        {
+            'reporter': r,
+        }))
 
         self.assertTrue('_reporter_cache' in a.__dict__)
         self.assertEquals(pyamf.encode(a, encoding=pyamf.AMF3).getvalue(),
-            '\nK\x01\x05id\x11headline\x11pub_date\x11reporter'
-            '\x04\x01\x06\x1dThis is a test\x08\x01BpUYj@\x00\x00\nK'
-            '\x01\x00\x15first_name\x13last_name\x0bemail\x04\x01\x06\tJohn'
-            '\x06\x0bSmith\x06!john@example.com\x01\x01')
+            '\n;\x01\x11headline\x05id\x11pub_date\x06\x1dThis is a test\x04'
+            '\x01\x08\x01BpUYj@\x00\x00\x11reporter\nK\x01\x0bemail\x15'
+            'first_name\x02\x13last_name\x06!john@example.com\x06\tJohn\x04'
+            '\x01\x06\x0bSmith\x01\x01')
 
     def test_many_to_many(self):
         from django.db import models
@@ -387,29 +360,17 @@ class ForeignKeyTestCase(ModelsBaseTestCase):
         test_publication = Publication.objects.filter(pk=1)[0]
         test_article = Article2.objects.filter(pk=1)[0]
 
-        self.assertEquals(pub_alias.getAttrs(test_publication), (
-            ['id', 'title'],
-            []
-        ))
+        sa, da = pub_alias.getEncodableAttributes(test_publication)
+        self.assertEquals(sa, {'id': 1, 'title': u'The Python Journal'})
+        self.assertEquals(da, None)
 
-        self.assertEquals(art_alias.getAttrs(test_article), (
-            ['id', 'headline', 'publications'],
-            []
-        ))
-
-        self.assertEquals(pub_alias.getAttributes(test_publication), (
-            {'id': 1, 'title': u'The Python Journal'},
-            {}
-        ))
-
-        self.assertEquals(art_alias.getAttributes(test_article), (
-            {
-                'headline': u'Django lets you build Web apps easily',
-                'id': 1,
-                'publications': [p1]
-            },
-            {},
-        ))
+        sa, da = art_alias.getEncodableAttributes(test_article)
+        self.assertEquals(sa, {
+            'headline': u'Django lets you build Web apps easily',
+            'id': 1,
+            'publications': [p1]
+        })
+        self.assertEquals(da, None)
 
         x = Article2()
         art_alias.applyAttributes(x, {

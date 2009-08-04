@@ -16,4 +16,5 @@ from django.db.models import query
 import pyamf
 from pyamf.adapters import util
 
+
 pyamf.add_type(query.QuerySet, util.to_list)

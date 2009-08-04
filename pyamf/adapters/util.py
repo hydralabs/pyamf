@@ -47,3 +47,11 @@ def to_tuple(x, encoder):
     @rtype: L{tuple}
     """
     return tuple(x)
+
+def to_string(x, encoder):
+    """
+    Converts an arbitrary object C{obj} to a string.
+
+    @rtype: L{tuple}
+    """
+    return str(x)

@@ -15,7 +15,7 @@ import types
 import pyamf
 from pyamf import amf3, util
 from pyamf.tests import util as _util
-from pyamf.tests.util import Spam, check_buffer
+from pyamf.tests.util import Spam, check_buffer, assert_buffer
 
 
 class MockAlias(object):
@@ -109,13 +109,13 @@ class ContextTestCase(_util.ClassCacheClearingTestCase):
     def test_add_class(self):
         x = amf3.Context()
 
-        pyamf.register_class(Spam, 'spam.eggs')
-        y = amf3.ClassDefinition('spam.eggs')
+        alias = pyamf.register_class(Spam, 'spam.eggs')
+        y = amf3.ClassDefinition(alias)
 
-        self.assertEquals(x.addClassDefinition(y, Spam), 0)
+        self.assertEquals(x.addClass(y, Spam), 0)
         self.assertEquals(x.classes, {Spam: y})
-        self.assertTrue(y in x.class_defs)
-        self.assertEquals(len(x.class_defs), 1)
+        self.assertEquals(x.class_ref, {0: y})
+        self.assertEquals(len(x.class_ref), 1)
 
     def test_add_legacy_xml(self):
         x = amf3.Context()
@@ -173,7 +173,7 @@ class ContextTestCase(_util.ClassCacheClearingTestCase):
         y = [1, 2, 3]
         z = {'spam': 'eggs'}
 
-        pyamf.register_class(Spam, 'spam.eggs')
+        alias_spam = pyamf.register_class(Spam, 'spam.eggs')
 
         class Foo:
             pass
@@ -181,10 +181,10 @@ class ContextTestCase(_util.ClassCacheClearingTestCase):
         class Bar:
             pass
 
-        pyamf.register_class(Foo, 'foo.bar')
+        alias_foo = pyamf.register_class(Foo, 'foo.bar')
 
-        a = amf3.ClassDefinition('spam.eggs')
-        b = amf3.ClassDefinition('foo.bar')
+        a = amf3.ClassDefinition(alias_spam)
+        b = amf3.ClassDefinition(alias_foo)
 
         x.addObject(y)
         x.addObject(z)
@@ -192,8 +192,8 @@ class ContextTestCase(_util.ClassCacheClearingTestCase):
         x.addString('def')
         x.addLegacyXML('<a></a>')
         x.addLegacyXML('<b></b>')
-        x.addClassDefinition(a, Foo)
-        x.addClassDefinition(b, Bar)
+        x.addClass(a, Foo)
+        x.addClass(b, Bar)
 
         self.assertEquals(x.getObject(0), y)
         self.assertEquals(x.getObject(1), z)
@@ -211,21 +211,21 @@ class ContextTestCase(_util.ClassCacheClearingTestCase):
         self.assertEquals(x.getLegacyXML(1), '<b></b>')
         self.assertRaises(pyamf.ReferenceError, x.getLegacyXML, 2)
 
-        self.assertEquals(x.getClassDefinition(Foo), a)
-        self.assertEquals(x.getClassDefinition(Bar), b)
-        self.assertRaises(pyamf.ReferenceError, x.getClassDefinition, 2)
+        self.assertEquals(x.getClass(Foo), a)
+        self.assertEquals(x.getClass(Bar), b)
+        self.assertRaises(pyamf.ReferenceError, x.getClass, 2)
 
-        self.assertEquals(x.getClassDefinitionByReference(0), a)
-        self.assertEquals(x.getClassDefinitionByReference(1), b)
-        self.assertRaises(pyamf.ReferenceError, x.getClassDefinitionByReference, 2)
+        self.assertEquals(x.getClassByReference(0), a)
+        self.assertEquals(x.getClassByReference(1), b)
+        self.assertRaises(pyamf.ReferenceError, x.getClassByReference, 2)
 
         x.exceptions = False
 
         self.assertEquals(x.getObject(2), None)
         self.assertEquals(x.getString(2), None)
-        self.assertEquals(x.getClassDefinition(2), None)
+        self.assertEquals(x.getClass(2), None)
         self.assertEquals(x.getLegacyXML(2), None)
-        self.assertEquals(x.getClassDefinitionByReference(2), None)
+        self.assertEquals(x.getClassByReference(2), None)
         self.assertEquals(x.getLegacyXMLReference(object()), None)
 
     def test_empty_string(self):
@@ -238,14 +238,15 @@ class ContextTestCase(_util.ClassCacheClearingTestCase):
         y = [1, 2, 3]
         z = {'spam': 'eggs'}
 
-        pyamf.register_class(Spam, 'spam.eggs')
+        spam_alias = pyamf.register_class(Spam, 'spam.eggs')
 
         class Foo:
             pass
-        pyamf.register_class(Foo, 'foo.bar')
 
-        a = amf3.ClassDefinition('spam.eggs')
-        b = amf3.ClassDefinition('foo.bar')
+        foo_alias = pyamf.register_class(Foo, 'foo.bar')
+
+        a = amf3.ClassDefinition(spam_alias)
+        b = amf3.ClassDefinition(foo_alias)
 
         ref1 = x.addObject(y)
         ref2 = x.addObject(z)
@@ -253,8 +254,8 @@ class ContextTestCase(_util.ClassCacheClearingTestCase):
         x.addString('def')
         x.addLegacyXML('<a></a>')
         x.addLegacyXML('<b></b>')
-        x.addClassDefinition(a, Spam)
-        x.addClassDefinition(b, Foo)
+        x.addClass(a, Spam)
+        x.addClass(b, Foo)
 
         self.assertEquals(x.getObjectReference(y), ref1)
         self.assertEquals(x.getObjectReference(z), ref2)
@@ -268,9 +269,9 @@ class ContextTestCase(_util.ClassCacheClearingTestCase):
         self.assertEquals(x.getLegacyXMLReference('<b></b>'), 1)
         self.assertRaises(pyamf.ReferenceError, x.getLegacyXMLReference, '<c/>')
 
-        self.assertEquals(x.getClassDefinition(Spam), a)
-        self.assertEquals(x.getClassDefinition(Foo), b)
-        self.assertRaises(pyamf.ReferenceError, x.getClassDefinition, object())
+        self.assertEquals(x.getClass(Spam), a)
+        self.assertEquals(x.getClass(Foo), b)
+        self.assertRaises(pyamf.ReferenceError, x.getClass, object())
 
     def test_copy(self):
         import copy
@@ -295,220 +296,54 @@ class ContextTestCase(_util.ClassCacheClearingTestCase):
 
 
 class ClassDefinitionTestCase(_util.ClassCacheClearingTestCase):
-    def test_create(self):
-        x = amf3.ClassDefinition('')
 
-        self.assertEquals(x.alias, None)
+    def setUp(self):
+        _util.ClassCacheClearingTestCase.setUp(self)
+
+        self.alias = pyamf.ClassAlias(Spam, defer=True)
+
+    def test_dynamic(self):
+        self.assertFalse(self.alias.is_compiled())
+
+        x = amf3.ClassDefinition(self.alias)
+
+        self.assertTrue(x.alias is self.alias)
         self.assertEquals(x.encoding, 2)
-        self.assertEquals(x.name, '')
-        self.assertEquals(x.klass, pyamf.ASObject)
-        self.assertTrue(x.anonymous)
-        self.assertFalse(hasattr(x, 'static_attrs'))
+        self.assertEquals(x.reference, None)
+        self.assertEquals(x.attr_len, 0)
 
-        x = amf3.ClassDefinition(None)
+        self.assertTrue(self.alias.is_compiled())
 
-        self.assertEquals(x.alias, None)
+    def test_static(self):
+        self.alias.static_attrs = ['foo', 'bar']
+        self.alias.dynamic = False
+
+        x = amf3.ClassDefinition(self.alias)
+
+        self.assertTrue(x.alias is self.alias)
+        self.assertEquals(x.encoding, 0)
+        self.assertEquals(x.reference, None)
+        self.assertEquals(x.attr_len, 2)
+
+    def test_mixed(self):
+        self.alias.static_attrs = ['foo', 'bar']
+
+        x = amf3.ClassDefinition(self.alias)
+
+        self.assertTrue(x.alias is self.alias)
         self.assertEquals(x.encoding, 2)
-        self.assertEquals(x.name, '')
-        self.assertEquals(x.klass, pyamf.ASObject)
-        self.assertTrue(x.anonymous)
-        self.assertFalse(hasattr(x, 'static_attrs'))
+        self.assertEquals(x.reference, None)
+        self.assertEquals(x.attr_len, 2)
 
-        pyamf.register_class(Spam, 'spam.eggs')
+    def test_external(self):
+        self.alias.external = True
 
-        x = amf3.ClassDefinition('spam.eggs')
-        self.assertTrue(isinstance(x.alias, pyamf.ClassAlias))
-        self.assertEquals(x.alias, pyamf.get_class_alias('spam.eggs'))
-        self.assertEquals(x.encoding, 2)
-        self.assertEquals(x.name, 'spam.eggs')
-        self.assertEquals(x.klass, Spam)
-        self.assertFalse(x.anonymous)
-        self.assertFalse(hasattr(x, 'static_attrs'))
+        x = amf3.ClassDefinition(self.alias)
 
-        pyamf.unregister_class(Spam)
-        pyamf.register_class(Spam, 'spam.eggs', metadata=['anonymous'])
-
-        x = amf3.ClassDefinition('spam.eggs')
-        self.assertTrue(isinstance(x.alias, pyamf.ClassAlias))
-        self.assertEquals(x.alias, pyamf.get_class_alias('spam.eggs'))
-        self.assertEquals(x.encoding, 2)
-        self.assertEquals(x.name, '')
-        self.assertEquals(x.klass, Spam)
-        self.assertTrue(x.anonymous)
-        self.assertFalse(hasattr(x, 'static_attrs'))
-
-    def test_name(self):
-        x = amf3.ClassDefinition('')
-        self.assertEquals(x.name, '')
-
-        x = amf3.ClassDefinition(None)
-        self.assertEquals(x.name, '')
-
-        pyamf.register_class(Spam, 'spam.eggs')
-
-        x = amf3.ClassDefinition('spam.eggs')
-        self.assertEquals(x.name, 'spam.eggs')
-
-    def test_get_class(self):
-        # anonymous class
-        x = amf3.ClassDefinition('')
-        self.assertEquals(x.klass, pyamf.ASObject)
-
-        x = amf3.ClassDefinition(None)
-        self.assertEquals(x.klass, pyamf.ASObject)
-
-        pyamf.register_class(Spam, 'spam.eggs')
-
-        x = amf3.ClassDefinition('spam.eggs')
-        self.assertEquals(x.klass, Spam)
-
-    def test_get_alias(self):
-        pyamf.register_class(Spam, 'spam.eggs')
-
-        x = amf3.ClassDefinition('spam.eggs')
-        alias = x.alias
-
-        self.assertEquals(alias.klass, Spam)
-        self.assertEquals(alias.alias, 'spam.eggs')
-
-        pyamf.unregister_class(Spam)
-
-        x = amf3.ClassDefinition(None)
-        self.assertEquals(x.alias, None)
-
-        x = amf3.ClassDefinition('')
-        self.assertEquals(x.alias, None)
-
-    def test_get_static_attrs(self):
-        x = amf3.ClassDefinition(None)
-
-        y = Spam()
-
-        self.assertTrue(x.anonymous)
-        self.assertEquals(x.alias, None)
-        self.assertEquals(x.getStaticAttrs(y), [])
-        self.assertEquals(x.static_attrs, [])
-
-        # test anonymous slot
-        class SlotObject(object):
-            __slots__ = ('x', 'y')
-
-        x = amf3.ClassDefinition(None)
-
-        x.klass = SlotObject
-
-        y = SlotObject()
-
-        self.assertTrue(x.anonymous)
-        self.assertEquals(x.alias, None)
-        self.assertEquals(x.getStaticAttrs(y), ['x', 'y'])
-        self.assertEquals(x.static_attrs, ['x', 'y'])
-
-        # test blank alias
-        pyamf.register_class(Spam, 'spam.eggs', metadata=['anonymous'])
-        x = amf3.ClassDefinition('spam.eggs')
-
-        y = Spam()
-
-        self.assertTrue(x.anonymous)
-        self.assertEquals(x.getStaticAttrs(y), [])
-        self.assertEquals(x.static_attrs, [])
-
-        # test anonymous slot alias
-        pyamf.register_class(SlotObject, 'foo.bar', metadata=['anonymous'])
-        x = amf3.ClassDefinition('foo.bar')
-
-        y = SlotObject()
-
-        self.assertTrue(x.anonymous)
-        self.assertEquals(x.getStaticAttrs(y), ['x', 'y'])
-        self.assertEquals(x.static_attrs, ['x', 'y'])
-
-        # test attr alias
-        pyamf.unregister_class(Spam)
-
-        pyamf.register_class(Spam, 'spam.eggs', attrs=['foo', 'bar'])
-        x = amf3.ClassDefinition('spam.eggs')
-
-        y = Spam()
-
-        self.assertFalse(x.anonymous)
-        self.assertEquals(x.getStaticAttrs(y), ['foo', 'bar'])
-        self.assertEquals(x.static_attrs, ['foo', 'bar'])
-
-    def test_get_attrs(self):
-        c = amf3.ClassDefinition(None)
-        c.alias = MockAlias()
-        x = object()
-
-        self.assertEquals(c.getAttrs(x), ({}, {}))
-        self.assertEquals(c.alias.get_attributes, [[(x,), {'codec': None}]])
-
-        # test anonymous slot classes
-        class SlotObject(object):
-            __slots__ = ('foo', 'bar')
-
-        c = amf3.ClassDefinition(None)
-        c.klass = SlotObject
-        c.anonymous = True
-
-        x = SlotObject()
-        x.foo = 'gak'
-        x.bar = 'baz'
-
-        self.assertEquals(c.getAttrs(x), ({
-            'foo': 'gak',
-            'bar': 'baz'
-        }, {}))
-
-        # test anonymous static attrs
-        c = amf3.ClassDefinition(None)
-        c.alias = MockAlias()
-        c.anonymous = True
-
-        c.alias.static_attrs = {'foo': 'bar', 'baz': 'gak'}
-        c.alias.attrs = (c.alias.static_attrs, {'spam': 'eggs'})
-
-        codec = object()
-        x = {'foo': 'bar', 'baz': 'gak', 'spam': 'eggs'}
-
-        self.assertEquals(c.getAttrs(x, codec=codec), c.alias.attrs)
-        self.assertEquals(c.alias.get_attributes, [[(x,), {'codec': codec}]])
-        self.assertEquals(c.alias.get_static_attrs, [])
-
-    def test_create_instance(self):
-        # test an anonymous creation
-        c = amf3.ClassDefinition(None)
-        ret = object()
-
-        def x():
-            return ret
-
-        c.klass = x
-
-        self.assertEquals(c.createInstance(), ret)
-
-        # now test with an alias
-        c = amf3.ClassDefinition(None)
-        c.alias = MockAlias()
-
-        self.assertEquals(c.createInstance(), c.alias.expected_instance)
-
-    def test_apply_attrs(self):
-        c = amf3.ClassDefinition(None)
-        x = Spam()
-        c.alias = None
-
-        c.applyAttributes(x, {'foo': 'bar'})
-
-        self.assertEquals(x.__dict__, {'foo': 'bar'})
-
-        c = amf3.ClassDefinition(None)
-        x = Spam()
-        c.alias = MockAlias()
-
-        c.applyAttributes(x, {'foo': 'bar'})
-        self.assertEquals(c.alias.apply_attrs, [[(x, {'foo': 'bar'}), {'codec': None}]])
+        self.assertTrue(x.alias is self.alias)
+        self.assertEquals(x.encoding, 1)
+        self.assertEquals(x.reference, None)
+        self.assertEquals(x.attr_len, 0)
 
 
 class EncoderTestCase(_util.ClassCacheClearingTestCase):
@@ -661,41 +496,6 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
         self.encoder.writeElement(x)
         self.assertEquals(self.buf.getvalue(), '\x0b\x00')
 
-    def test_get_class_definition(self):
-        pyamf.register_class(Spam, 'abc.xyz')
-
-        x = Spam({'spam': 'eggs'})
-
-        class_def = self.encoder._getClassDefinition(x)
-
-        self.assertEquals(class_def.name, 'abc.xyz')
-        self.assertEquals(class_def.klass, Spam)
-        self.assertFalse(hasattr(class_def, 'static_attrs'))
-
-        pyamf.unregister_class(Spam)
-
-        # test anonymous object
-        x = {'spam': 'eggs'}
-
-        class_def = self.encoder._getClassDefinition(x)
-
-        self.assertEquals(class_def.name, '')
-        self.assertEquals(class_def.klass, pyamf.ASObject)
-        self.assertFalse(hasattr(x, 'static_attrs'))
-
-    def test_get_class_definition_attrs(self):
-        # test supplied attributes
-        attrs = ['spam', 'eggs']
-        pyamf.register_class(Spam, 'abc.xyz', attrs=attrs)
-
-        x = Spam({'spam': 'eggs'})
-
-        class_def = self.encoder._getClassDefinition(x)
-
-        self.assertEquals(class_def.name, 'abc.xyz')
-        self.assertEquals(class_def.klass, Spam)
-        self.assertFalse(hasattr(x, 'static_attrs'))
-
     def test_anonymous(self):
         pyamf.register_class(Spam)
 
@@ -736,14 +536,12 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
 
         self.encoder.writeElement(u)
 
-        self.assertTrue(check_buffer(
-            self.buf.getvalue(), (
-                '\n\x0b!spam.eggs.Person', (
-                    '\x17family_name\x06\x07Doe',
-                    '\x15given_name\x06\tJane'
-                ),
-                '\x01'
-            )
+        assert_buffer(self, self.buf.getvalue(), (
+            '\n\x0b!spam.eggs.Person', (
+                '\x17family_name\x06\x07Doe',
+                '\x15given_name\x06\tJane'
+            ),
+            '\x01'
         ))
 
     def test_slots(self):
@@ -756,8 +554,10 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
 
         self.encoder.writeElement(u)
 
-        self.assertEquals(self.buf.getvalue(), '\n+\x01\x17family_name\x15'
-            'given_name\x06\x07Doe\x06\tJane\x01')
+        assert_buffer(self, self.buf.getvalue(), ('\n\x0b\x01', (
+            '\x17family_name\x06\x07Doe',
+            '\x15given_name\x06\tJane'
+            ), '\x01'))
 
     def test_slots_registered(self):
         class Person(object):
@@ -771,8 +571,10 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
 
         self.encoder.writeElement(u)
 
-        self.assertEquals(self.buf.getvalue(), '\n+!spam.eggs.Person\x17'
-            'family_name\x15given_name\x06\x07Doe\x06\tJane\x01')
+        assert_buffer(self, self.buf.getvalue(), ('\n\x0b!spam.eggs.Person', (
+            '\x17family_name\x06\x07Doe',
+            '\x15given_name\x06\tJane'
+        ), '\x01'))
 
     def test_elementtree_tag(self):
         class NotAnElement(object):
@@ -1067,44 +869,41 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
         self.buf.write('\x0fabc.xyz')
         self.buf.seek(0, 0)
 
-        is_ref, class_def, num_attrs = self.decoder._getClassDefinition(0x01)
+        class_def, alias = self.decoder._getClassDefinition(0x01)
 
-        self.assertFalse(is_ref)
         self.assertTrue(isinstance(class_def, amf3.ClassDefinition))
-        self.assertTrue(class_def.klass, Spam)
-        self.assertTrue(class_def.name, 'abc.xyz')
+        self.assertTrue(alias.klass, Spam)
+        self.assertTrue(alias.alias, 'abc.xyz')
         self.assertEquals(class_def.encoding, amf3.ObjectEncoding.STATIC)
 
-        self.assertTrue(class_def in self.context.class_defs)
-        self.assertTrue(class_def.klass in self.context.classes)
+        self.assertTrue(class_def in self.context.class_ref.values())
+        self.assertTrue(alias.klass in self.context.classes)
 
-        self.context.class_defs.clear()
+        self.context.class_ref = {}
         self.buf.write('\x0fabc.xyz')
         self.buf.seek(0, 0)
 
-        is_ref, class_def, num_attrs = self.decoder._getClassDefinition(0x03)
+        class_def, alias = self.decoder._getClassDefinition(0x03)
 
-        self.assertFalse(is_ref)
         self.assertTrue(isinstance(class_def, amf3.ClassDefinition))
-        self.assertTrue(class_def.klass, Spam)
-        self.assertTrue(class_def.name, 'abc.xyz')
+        self.assertTrue(alias.klass, Spam)
+        self.assertTrue(alias.alias, 'abc.xyz')
         self.assertEquals(class_def.encoding, amf3.ObjectEncoding.EXTERNAL)
 
-        self.assertTrue(class_def in self.context.class_defs)
+        self.assertTrue(class_def in self.context.class_ref.values())
 
-        self.context.class_defs.clear()
+        self.context.class_ref = {}
         self.buf.write('\x0fabc.xyz')
         self.buf.seek(0, 0)
 
-        is_ref, class_def, num_attrs = self.decoder._getClassDefinition(0x05)
+        class_def, alias = self.decoder._getClassDefinition(0x05)
 
-        self.assertFalse(is_ref)
         self.assertTrue(isinstance(class_def, amf3.ClassDefinition))
-        self.assertTrue(class_def.klass, Spam)
-        self.assertTrue(class_def.name, 'abc.xyz')
+        self.assertTrue(alias.klass, Spam)
+        self.assertTrue(alias.alias, 'abc.xyz')
         self.assertEquals(class_def.encoding, amf3.ObjectEncoding.DYNAMIC)
 
-        self.assertTrue(class_def in self.context.class_defs)
+        self.assertTrue(class_def in self.context.class_ref.values())
 
     def test_not_strict(self):
         self.assertFalse(self.decoder.strict)
@@ -1201,8 +1000,8 @@ class ObjectEncodingTestCase(_util.ClassCacheClearingTestCase):
         self.assertNotEquals(self.stream.getvalue(), '\x0a\x00')
 
     def test_class_references(self):
-        pyamf.register_class(Spam, 'abc.xyz')
-        class_defs = self.context.class_defs
+        alias = pyamf.register_class(Spam, 'abc.xyz')
+        class_defs = self.context.class_ref
 
         x = Spam({'spam': 'eggs'})
         y = Spam({'foo': 'bar'})
@@ -1211,7 +1010,7 @@ class ObjectEncodingTestCase(_util.ClassCacheClearingTestCase):
         self.assertEquals(len(class_defs), 1)
         cd = class_defs[0]
 
-        self.assertEquals(cd.klass, Spam)
+        self.assertTrue(cd.alias is alias)
 
         self.assertEquals(self.stream.getvalue(), '\n\x0b\x0fabc.xyz\tspam\x06\teggs\x01')
 
@@ -1220,7 +1019,9 @@ class ObjectEncodingTestCase(_util.ClassCacheClearingTestCase):
         self.assertEquals(self.stream.getvalue()[pos:], '\n\x01\x07foo\x06\x07bar\x01')
 
     def test_static(self):
-        pyamf.register_class(Spam, 'abc.xyz', metadata='static', attrs=[])
+        alias = pyamf.register_class(Spam, 'abc.xyz')
+
+        alias.dynamic = False
 
         x = Spam({'spam': 'eggs'})
         self.encoder.writeElement(x)
@@ -1229,14 +1030,16 @@ class ObjectEncodingTestCase(_util.ClassCacheClearingTestCase):
         self.stream.truncate()
         self.encoder.context.clear()
 
-        pyamf.register_class(Spam, 'abc.xyz', metadata='static', attrs=['spam'])
+        alias = pyamf.register_class(Spam, 'abc.xyz')
+        alias.dynamic = False
+        alias.static_attrs = ['spam']
 
-        x = Spam({'spam': 'eggs'})
+        x = Spam({'spam': 'eggs', 'foo': 'bar'})
         self.encoder.writeElement(x)
         self.assertEquals(self.stream.getvalue(), '\n\x13\x0fabc.xyz\tspam\x06\teggs')
 
     def test_dynamic(self):
-        pyamf.register_class(Spam, 'abc.xyz', metadata='dynamic')
+        pyamf.register_class(Spam, 'abc.xyz')
 
         x = Spam({'spam': 'eggs'})
         self.encoder.writeElement(x)
@@ -1244,10 +1047,9 @@ class ObjectEncodingTestCase(_util.ClassCacheClearingTestCase):
         self.assertEquals(self.stream.getvalue(), '\n\x0b\x0fabc.xyz\tspam\x06\teggs\x01')
 
     def test_combined(self):
-        def wf(obj):
-            return ['eggs']
+        alias = pyamf.register_class(Spam, 'abc.xyz')
 
-        pyamf.register_class(Spam, 'abc.xyz', attrs=['spam'], attr_func=wf)
+        alias.static_attrs = ['spam']
 
         x = Spam({'spam': 'foo', 'eggs': 'bar'})
         self.encoder.writeElement(x)
@@ -1257,7 +1059,9 @@ class ObjectEncodingTestCase(_util.ClassCacheClearingTestCase):
         self.assertEquals(buf, '\n\x1b\x0fabc.xyz\tspam\x06\x07foo\teggs\x06\x07bar\x01')
 
     def test_external(self):
-        pyamf.register_class(Spam, 'abc.xyz', metadata=['external'])
+        alias = pyamf.register_class(Spam, 'abc.xyz')
+
+        alias.external = True
 
         x = Spam({'spam': 'eggs'})
         self.encoder.writeElement(x)
@@ -1301,22 +1105,22 @@ class ObjectDecodingTestCase(_util.ClassCacheClearingTestCase):
         self.assertEquals(self.context.objects, [])
         self.assertEquals(self.context.strings, [])
         self.assertEquals(self.context.classes, {})
-        self.assertEquals(self.context.class_defs, [])
+        self.assertEquals(self.context.class_ref, {})
 
         self.stream.write('\x0a\x13\x0fabc.xyz\x09spam\x06\x09eggs')
         self.stream.seek(0, 0)
 
         obj = self.decoder.readElement()
 
-        class_def = self.context.class_defs[0]
+        class_def = self.context.class_ref[0]
 
-        self.assertEquals(class_def.static_attrs, ['spam'])
+        self.assertEquals(class_def.static_properties, ['spam'])
 
         self.assertTrue(isinstance(obj, Spam))
         self.assertEquals(obj.__dict__, {'spam': 'eggs'})
 
     def test_dynamic(self):
-        pyamf.register_class(Spam, 'abc.xyz', metadata='dynamic')
+        pyamf.register_class(Spam, 'abc.xyz')
 
         self.assertEquals(self.context.objects, [])
         self.assertEquals(self.context.strings, [])
@@ -1327,9 +1131,9 @@ class ObjectDecodingTestCase(_util.ClassCacheClearingTestCase):
 
         obj = self.decoder.readElement()
 
-        class_def = self.context.class_defs[0]
+        class_def = self.context.class_ref[0]
 
-        self.assertEquals(class_def.static_attrs, [])
+        self.assertEquals(class_def.static_properties, [])
 
         self.assertTrue(isinstance(obj, Spam))
         self.assertEquals(obj.__dict__, {'spam': 'eggs'})
@@ -1339,7 +1143,7 @@ class ObjectDecodingTestCase(_util.ClassCacheClearingTestCase):
         This tests an object encoding with static properties and dynamic
         properties
         """
-        pyamf.register_class(Spam, 'abc.xyz', metadata='dynamic')
+        pyamf.register_class(Spam, 'abc.xyz')
 
         self.assertEquals(self.context.objects, [])
         self.assertEquals(self.context.strings, [])
@@ -1351,15 +1155,16 @@ class ObjectDecodingTestCase(_util.ClassCacheClearingTestCase):
 
         obj = self.decoder.readElement()
 
-        class_def = self.context.class_defs[0]
+        class_def = self.context.class_ref[0]
 
-        self.assertEquals(class_def.static_attrs, ['spam'])
+        self.assertEquals(class_def.static_properties, ['spam'])
 
         self.assertTrue(isinstance(obj, Spam))
         self.assertEquals(obj.__dict__, {'spam': 'eggs', 'baz': 'nat'})
 
     def test_external(self):
-        pyamf.register_class(Spam, 'abc.xyz', metadata=['external'])
+        alias = pyamf.register_class(Spam, 'abc.xyz')
+        alias.external = True
 
         self.stream.write('\x0a\x07\x0fabc.xyz')
         self.stream.seek(0)
@@ -1644,12 +1449,14 @@ class ClassInheritanceTestCase(_util.ClassCacheClearingTestCase):
         class A(object):
             pass
 
-        pyamf.register_class(A, 'A', attrs=['a'])
+        alias = pyamf.register_class(A, 'A')
+        alias.static_attrs = ['a']
 
         class B(A):
             pass
 
-        pyamf.register_class(B, 'B', attrs=['b'])
+        alias = pyamf.register_class(B, 'B')
+        alias.static_attrs = ['b']
 
         x = B()
         x.a = 'spam'
@@ -1661,23 +1468,26 @@ class ClassInheritanceTestCase(_util.ClassCacheClearingTestCase):
         encoder.writeElement(x)
 
         self.assertEquals(stream.getvalue(),
-            '\n+\x03B\x03b\x03a\x06\teggs\x06\tspam\x01')
+            '\n+\x03B\x03a\x03b\x06\tspam\x06\teggs\x01')
 
     def test_deep(self):
         class A(object):
             pass
 
-        pyamf.register_class(A, 'A', attrs=['a'])
+        alias = pyamf.register_class(A, 'A')
+        alias.static_attrs = ['a']
 
         class B(A):
             pass
 
-        pyamf.register_class(B, 'B', attrs=['b'])
+        alias = pyamf.register_class(B, 'B')
+        alias.static_attrs = ['b']
 
         class C(B):
             pass
 
-        pyamf.register_class(C, 'C', attrs=['c'])
+        alias = pyamf.register_class(C, 'C')
+        alias.static_attrs = ['c']
 
         x = C()
         x.a = 'spam'
@@ -1690,7 +1500,7 @@ class ClassInheritanceTestCase(_util.ClassCacheClearingTestCase):
         encoder.writeElement(x)
 
         self.assertEquals(stream.getvalue(),
-            '\n;\x03C\x03c\x03b\x03a\x06\x07foo\x06\teggs\x06\tspam\x01')
+            '\n;\x03C\x03a\x03b\x03c\x06\tspam\x06\teggs\x06\x07foo\x01')
 
 
 class HelperTestCase(unittest.TestCase):
@@ -1736,9 +1546,15 @@ class ComplexEncodingTestCase(unittest.TestCase, _util.BaseEncoderMixIn):
             self.sub_obj = None
             self.test_dict = {'test': 'ignore'}
 
+        def __repr__(self):
+            return '<TestObject %r @ 0x%x>' % (self.__dict__, id(self))
+
     class TestSubObject(object):
         def __init__(self):
             self.number = None
+
+        def __repr__(self):
+            return '<TestSubObject %r @ 0x%x>' % (self.__dict__, id(self))
 
     def setUp(self):
         _util.BaseEncoderMixIn.setUp(self)
@@ -1763,19 +1579,16 @@ class ComplexEncodingTestCase(unittest.TestCase, _util.BaseEncoderMixIn):
         return test_objects
 
     def complex_test(self):
-        class_defs = self.context.class_defs
+        class_defs = self.context.class_ref
         classes = self.context.classes
 
         self.assertEquals(len(classes), 3)
         self.assertTrue(self.TestObject in classes.keys())
-        self.assertEquals(classes[self.TestObject].reference, 1)
-
         self.assertTrue(self.TestSubObject in classes.keys())
-        self.assertEquals(classes[self.TestSubObject].reference, 2)
 
         self.assertEquals(len(class_defs), 3)
-        self.assertEquals(self.TestObject, class_defs[1].klass)
-        self.assertEquals(self.TestSubObject, class_defs[2].klass)
+        self.assertEquals(self.TestObject, class_defs[1].alias.klass)
+        self.assertEquals(self.TestSubObject, class_defs[2].alias.klass)
 
     def complex_encode_decode_test(self, decoded):
         for obj in decoded:
@@ -1792,9 +1605,59 @@ class ComplexEncodingTestCase(unittest.TestCase, _util.BaseEncoderMixIn):
         complex = {'element': 'ignore', 'objects': self.build_complex()}
         self.encoder.writeElement(complex)
         encoded = self.encoder.stream.getvalue()
+
         context = amf3.Context()
         decoded = amf3.Decoder(encoded, context).readElement()
+
         self.complex_encode_decode_test(decoded['objects'])
+
+    def test_class_refs(self):
+        class_defs = self.context.class_ref
+        classes = self.context.classes
+
+        self.assertEquals(class_defs, {})
+        self.assertEquals(classes, {})
+
+        a = self.TestSubObject()
+        b = self.TestSubObject()
+
+        self.encoder.writeInstance(a)
+
+        cd = class_defs[0]
+
+        self.assertEqual(cd.reference, '\x01')
+        self.assertEquals(class_defs, {0: cd})
+        self.assertEquals(classes, {self.TestSubObject: cd})
+
+        self.encoder.writeElement({'foo': 'bar'})
+
+        cd2 = class_defs[1]
+
+        self.assertEquals(class_defs, {0: cd, 1: cd2})
+        self.assertEquals(classes, {self.TestSubObject: cd, dict: cd2})
+        self.assertEquals(cd2.reference, '\x0b')
+
+        self.encoder.writeElement({})
+
+        self.assertEquals(class_defs, {0: cd, 1: cd2})
+        self.assertEquals(classes, {self.TestSubObject: cd, dict: cd2})
+
+        self.encoder.writeElement(b)
+
+        self.assertEquals(class_defs, {0: cd, 1: cd2})
+        self.assertEquals(classes, {self.TestSubObject: cd, dict: cd2})
+
+        c = self.TestObject()
+
+        self.encoder.writeElement(c)
+
+        cd3 = class_defs[2]
+
+        self.assertEquals(class_defs, {0: cd, 1: cd2, 2: cd3})
+        self.assertEquals(classes,
+            {self.TestSubObject: cd, dict: cd2, self.TestObject: cd3})
+
+        self.assertEquals(cd3.reference, '\x09')
 
 
 def suite():
