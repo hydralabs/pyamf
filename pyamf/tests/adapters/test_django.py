@@ -471,6 +471,83 @@ class PKTestCase(ModelsBaseTestCase):
         self.assertEquals(x.id, None)
 
 
+class ModelInheritanceTestCase(ModelsBaseTestCase):
+    """
+    Tests for L{Django model inheritance<http://docs.djangoproject.com/en/dev/topics/db/models/#model-inheritance>}
+    """
+
+    def test_abstract(self):
+        from django.db import models
+
+        class CommonInfo(models.Model):
+            name = models.CharField(max_length=100)
+            age = models.PositiveIntegerField()
+
+            class Meta:
+                abstract = True
+
+        class Student(CommonInfo):
+            home_group = models.CharField(max_length=5)
+
+        self.resetDB()
+
+        alias = self.adapter.DjangoClassAlias(Student)
+
+        x = Student()
+
+        sa, da = alias.getEncodableAttributes(x)
+
+        self.assertEquals(sa, {
+            'age': None,
+            'home_group': '',
+            'id': None,
+            'name': ''
+        })
+
+        self.assertEquals(da, None)
+
+    def test_concrete(self):
+        from django.db import models
+
+        class Place(models.Model):
+            name = models.CharField(max_length=50)
+            address = models.CharField(max_length=80)
+
+        class Restaurant(Place):
+            serves_hot_dogs = models.BooleanField()
+            serves_pizza = models.BooleanField()
+
+        self.resetDB()
+
+        alias = self.adapter.DjangoClassAlias(Place)
+        x = Place()
+
+        sa, da = alias.getEncodableAttributes(x)
+
+        self.assertEquals(sa, {
+            'id': None,
+            'name': '',
+            'address': ''
+        })
+
+        self.assertEquals(da, None)
+
+        alias = self.adapter.DjangoClassAlias(Restaurant)
+        x = Restaurant()
+
+        sa, da = alias.getEncodableAttributes(x)
+
+        self.assertEquals(sa, {
+            'id': None,
+            'name': '',
+            'address': '',
+            'serves_hot_dogs': False,
+            'serves_pizza': False
+        })
+
+        self.assertEquals(da, None)
+
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -484,7 +561,8 @@ def suite():
         ClassAliasTestCase,
         ForeignKeyTestCase,
         I18NTestCase,
-        PKTestCase
+        PKTestCase,
+        ModelInheritanceTestCase
     ]
 
     for tc in test_cases:

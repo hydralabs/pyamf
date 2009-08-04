@@ -42,6 +42,14 @@ class DjangoClassAlias(pyamf.ClassAlias):
             if isinstance(v, related.ReverseManyRelatedObjectsDescriptor):
                 self.fields[k] = v.field
 
+        parent_fields = []
+
+        for field in self.meta.parents.values():
+            parent_fields.append(field.attname)
+            del self.relations[field.name]
+
+        self.exclude_attrs.update(parent_fields)
+
         props = self.fields.keys()
 
         self.static_attrs.update(props)
