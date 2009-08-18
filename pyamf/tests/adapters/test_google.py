@@ -12,6 +12,7 @@ import datetime
 import struct
 
 from google.appengine.ext import db
+from google.appengine.ext.db import polymodel
 
 import pyamf
 from pyamf import amf3
@@ -1149,6 +1150,46 @@ class FloatPropertyTestCase(unittest.TestCase):
         self.assertEquals(self.f.f, 3.0)
 
 
+class PolyModelTestCase(unittest.TestCase):
+    """
+    Tests for L{db.PolyModel}. See #633
+    """
+
+    def setUp(self):
+        class Poly(polymodel.PolyModel):
+            s = db.StringProperty()
+
+        self.klass = Poly
+        self.p = Poly()
+        self.alias = adapter_db.DataStoreClassAlias(self.klass, None)
+
+    def test_encode(self):
+        self.p.s = 'foo'
+
+        sa, da = self.alias.getEncodableAttributes(self.p)
+
+        self.assertEquals(sa, {'_key': None, 's': 'foo'})
+        self.assertEquals(da, None)
+
+    def test_deep_inheritance(self):
+        class DeepPoly(self.klass):
+            d = db.IntegerProperty()
+
+        self.alias = adapter_db.DataStoreClassAlias(DeepPoly, None)
+        self.dp = DeepPoly()
+        self.dp.s = 'bar'
+        self.dp.d = 92
+
+        sa, da = self.alias.getEncodableAttributes(self.dp)
+
+        self.assertEquals(sa, {
+            '_key': None,
+            's': 'bar',
+            'd': 92
+        })
+        self.assertEquals(da, None)
+
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -1163,7 +1204,8 @@ def suite():
         ReferencesTestCase,
         GAEReferenceCollectionTestCase,
         HelperTestCase,
-        FloatPropertyTestCase
+        FloatPropertyTestCase,
+        PolyModelTestCase
     ]
 
     for tc in test_cases:
