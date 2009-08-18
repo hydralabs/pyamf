@@ -584,7 +584,6 @@ class FieldsTestCase(ModelsBaseTestCase):
 
     def test_file(self):
         from django.db import models
-        from django.core.files.base import File
 
         self.executed = False
 
@@ -624,7 +623,6 @@ class ImageTestCase(ModelsBaseTestCase):
 
     def test_image(self):
         from django.db import models
-        from django.core.files.base import File
 
         self.executed = False
 

@@ -24,7 +24,6 @@ except ValueError:
 google = __import__('google.appengine.ext.webapp')
 webapp = google.appengine.ext.webapp
 
-import pyamf
 from pyamf import remoting
 from pyamf.remoting import gateway
 

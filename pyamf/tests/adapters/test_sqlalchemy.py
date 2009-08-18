@@ -12,8 +12,7 @@ import unittest
 import sqlalchemy
 from sqlalchemy import MetaData, Table, Column, Integer, String, ForeignKey, \
     create_engine
-from sqlalchemy.orm import mapper, relation, sessionmaker, clear_mappers, \
-    attributes
+from sqlalchemy.orm import mapper, relation, sessionmaker, clear_mappers
 
 import pyamf.flex
 from pyamf.tests.util import Spam

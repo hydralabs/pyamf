@@ -10,7 +10,7 @@ to have them in one file.
 import unittest
 
 import pyamf
-from pyamf import ClassAlias, register_class
+from pyamf import ClassAlias
 from pyamf.tests.util import ClassCacheClearingTestCase, Spam, get_fqcn
 
 try:
