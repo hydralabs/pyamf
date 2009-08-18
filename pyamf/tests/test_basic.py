@@ -13,11 +13,6 @@ import new
 import pyamf
 from pyamf.tests.util import ClassCacheClearingTestCase, replace_dict, Spam
 
-try:
-    set
-except NameError:
-    from sets import Set as set
-
 
 class ASObjectTestCase(unittest.TestCase):
     """

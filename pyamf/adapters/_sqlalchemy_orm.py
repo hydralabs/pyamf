@@ -12,12 +12,11 @@ SQLAlchemy adapter module.
 from sqlalchemy import orm, __version__
 
 try:
-    from sqlalchemy.orm import class_mapper, object_mapper
+    from sqlalchemy.orm import class_mapper
 except ImportError:
-    from sqlalchemy.orm.util import class_mapper, object_mapper
+    from sqlalchemy.orm.util import class_mapper
 
 import pyamf
-from pyamf.adapters import util
 
 UnmappedInstanceError = None
 

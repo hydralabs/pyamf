@@ -12,7 +12,6 @@ import sys
 import os.path
 
 from pyamf.util import imports
-from pyamf.tests import util as _util
 
 
 class PostLoadHookClearingTestCase(unittest.TestCase):

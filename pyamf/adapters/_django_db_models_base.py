@@ -10,7 +10,6 @@ C{django.db.models} adapter module.
 """
 
 from django.db.models.base import Model
-from django.db import models
 from django.db.models import fields
 from django.db.models.fields import related, files
 
