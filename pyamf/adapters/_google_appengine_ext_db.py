@@ -14,6 +14,7 @@ in Google App Engine.
 """
 
 from google.appengine.ext import db
+from google.appengine.ext.db import polymodel
 import datetime
 
 import pyamf
@@ -109,7 +110,7 @@ class DataStoreClassAlias(pyamf.ClassAlias):
     KEY_ATTR = '_key'
 
     def _compile_base_class(self, klass):
-        if klass is db.Model:
+        if klass in (db.Model, polymodel.PolyModel):
             return
 
         pyamf.ClassAlias._compile_base_class(self, klass)
@@ -127,6 +128,10 @@ class DataStoreClassAlias(pyamf.ClassAlias):
 
             if isinstance(prop, db.ReferenceProperty):
                 self.reference_properties[name] = prop
+
+        if issubclass(self.klass, polymodel.PolyModel):
+            del self.properties['_class']
+            props.remove('_class')
 
         # check if the property is a defined as a collection_name. These types
         # of properties are read-only and the datastore freaks out if you

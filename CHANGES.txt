@@ -8,6 +8,7 @@ versions of PyAMF.
 
 0.5 (unreleased)
 ----------------
+ - Support for google.appengine.ext.db.polymodel.PolyModel (Ticket:633)
  - Support for Django File/ImageField (Ticket:631)
  - Support for Django model inheritance (Ticket:626)
  - Rewrote attribute handling code. Added the ability to exclude, set
