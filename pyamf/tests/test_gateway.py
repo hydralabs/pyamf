@@ -48,6 +48,19 @@ class FaultTestCase(unittest.TestCase):
         self.assertTrue(isinstance(fault, remoting.ErrorFault))
         self.assertEquals(fault.level, 'error')
         self.assertEquals(fault.code, 'TypeError')
+        self.assertEquals(fault.details, None)
+
+    def test_build_traceback(self):
+        fault = None
+
+        try:
+            raise TypeError("Unknown type")
+        except TypeError:
+            fault = amf0.build_fault(include_traceback=True, *sys.exc_info())
+
+        self.assertTrue(isinstance(fault, remoting.ErrorFault))
+        self.assertEquals(fault.level, 'error')
+        self.assertEquals(fault.code, 'TypeError')
         self.assertTrue("\\n" not in fault.details)
 
     def test_encode(self):
@@ -350,6 +363,29 @@ class BaseGatewayTestCase(unittest.TestCase):
         self.assertEquals(response.status, remoting.STATUS_OK)
         self.assertEquals(response.body, 'spam')
 
+    def test_unknown_service(self):
+        # Test a non existant service call
+        gw = gateway.BaseGateway({'test': TestService})
+        envelope = remoting.Envelope()
+
+        request = remoting.Request('nope', envelope=envelope)
+        processor = gw.getProcessor(request)
+        response = processor(request)
+
+        self.assertFalse(gw.debug)
+        self.assertTrue(isinstance(response, remoting.Message))
+        self.assertEquals(response.status, remoting.STATUS_ERROR)
+        self.assertTrue(isinstance(response.body, remoting.ErrorFault))
+
+        self.assertEquals(response.body.code, 'Service.ResourceNotFound')
+        self.assertEquals(response.body.description, 'Unknown service nope')
+        self.assertEquals(response.body.details, None)
+
+    def test_debug_traceback(self):
+        # Test a non existant service call
+        gw = gateway.BaseGateway({'test': TestService}, debug=True)
+        envelope = remoting.Envelope()
+
         # Test a non existant service call
         request = remoting.Request('nope', envelope=envelope)
         processor = gw.getProcessor(request)
@@ -361,6 +397,7 @@ class BaseGatewayTestCase(unittest.TestCase):
 
         self.assertEquals(response.body.code, 'Service.ResourceNotFound')
         self.assertEquals(response.body.description, 'Unknown service nope')
+        self.assertNotEquals(response.body.details, None)
 
     def test_malformed_credentials_header(self):
         gw = gateway.BaseGateway({'test': TestService})

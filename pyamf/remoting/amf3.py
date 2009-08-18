@@ -50,7 +50,7 @@ def generate_acknowledgement(request=None):
     return ack
 
 
-def generate_error(request, cls, e, tb):
+def generate_error(request, cls, e, tb, include_traceback=False):
     """
     Builds an L{ErrorMessage<pyamf.flex.messaging.ErrorMessage>} based on the
     last traceback and the request that was sent.
@@ -62,10 +62,13 @@ def generate_error(request, cls, e, tb):
     else:
         code = cls.__name__
 
-    detail = []
+    detail = None
 
-    for x in traceback.format_exception(cls, e, tb):
-        detail.append(x.replace("\\n", ''))
+    if include_traceback:
+        detail = []
+
+        for x in traceback.format_exception(cls, e, tb):
+            detail.append(x.replace("\\n", ''))
 
     return messaging.ErrorMessage(messageId=generate_random_id(),
         clientId=generate_random_id(), timestamp=calendar.timegm(time.gmtime()),
@@ -91,7 +94,7 @@ class RequestProcessor(object):
         else:
             cls, e, tb = sys.exc_info()
 
-        return generate_error(request, cls, e, tb)
+        return generate_error(request, cls, e, tb, self.gateway.debug)
 
     def _getBody(self, amf_request, ro_request, **kwargs):
         """
