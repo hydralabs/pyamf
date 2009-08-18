@@ -69,6 +69,9 @@ class DjangoClassAlias(pyamf.ClassAlias):
         if value is fields.NOT_PROVIDED:
             return pyamf.Undefined
 
+        if value is None:
+            return value
+
         # deal with dates ..
         if isinstance(field, fields.DateTimeField):
             return value
@@ -92,8 +95,14 @@ class DjangoClassAlias(pyamf.ClassAlias):
             # deal with dates
             return value
         elif isinstance(field, fields.DateField):
+            if not value:
+                return None
+
             return datetime.date(value.year, value.month, value.day)
         elif isinstance(field, fields.TimeField):
+            if not value:
+                return None
+
             return datetime.time(value.hour, value.minute, value.second, value.microsecond)
 
         return value
