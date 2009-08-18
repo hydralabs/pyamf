@@ -602,6 +602,12 @@ class FieldsTestCase(ModelsBaseTestCase):
 
         self.assertEquals(attrs, {'text': ''})
 
+
+class ImageTestCase(ModelsBaseTestCase):
+    """
+    Tests for L{fields}
+    """
+
     def test_image(self):
         from django.db import models
         from django.core.files.base import File
@@ -653,6 +659,13 @@ def suite():
         ModelInheritanceTestCase,
         FieldsTestCase
     ]
+
+    try:
+        import PIL
+    except:
+        pass
+    else:
+        test_cases.append(ImageTestCase)
 
     for tc in test_cases:
         suite.addTest(unittest.makeSuite(tc))
