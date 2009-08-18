@@ -50,7 +50,7 @@ class RequestProcessor(object):
         else:
             cls, e, tb = sys.exc_info()
 
-        return remoting.Response(build_fault(cls, e, tb),
+        return remoting.Response(build_fault(cls, e, tb, self.gateway.debug),
             status=remoting.STATUS_ERROR)
 
     def _getBody(self, request, response, service_request, **kwargs):
@@ -114,15 +114,22 @@ class RequestProcessor(object):
             return self.buildErrorResponse(request)
 
 
-def build_fault(cls, e, tb):
+def build_fault(cls, e, tb, include_traceback=False):
     """
     Builds a L{ErrorFault<pyamf.remoting.ErrorFault>} object based on the last
     exception raised.
+
+    If include_traceback is C{False} then the traceback will not be added to
+    the L{remoting.ErrorFault}.
     """
     if hasattr(cls, '_amf_code'):
         code = cls._amf_code
     else:
         code = cls.__name__
 
-    return remoting.ErrorFault(code=code, description=str(e),
-        details=str(traceback.format_exception(cls, e, tb)).replace("\\n", ''))
+    details = None
+
+    if include_traceback:
+        details = str(traceback.format_exception(cls, e, tb)).replace("\\n", '')
+
+    return remoting.ErrorFault(code=code, description=str(e), details=details)

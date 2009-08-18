@@ -93,10 +93,30 @@ class RequestProcessorTestCase(unittest.TestCase):
         response = rp(request)
         ack = response.body
 
+        self.assertFalse(gw.debug)
         self.assertTrue(isinstance(response, remoting.Response))
         self.assertEquals(response.status, remoting.STATUS_ERROR)
         self.assertTrue(isinstance(ack, messaging.ErrorMessage))
         self.assertEquals(ack.faultCode, 'TypeError')
+
+    def test_error_debug(self):
+        def echo(x):
+            raise TypeError
+
+        gw = gateway.BaseGateway({'echo': echo}, debug=True)
+        rp = amf3.RequestProcessor(gw)
+        message = messaging.RemotingMessage(body=['spam.eggs'], operation='echo')
+        request = remoting.Request('null', body=[message])
+
+        response = rp(request)
+        ack = response.body
+
+        self.assertTrue(gw.debug)
+        self.assertTrue(isinstance(response, remoting.Response))
+        self.assertEquals(response.status, remoting.STATUS_ERROR)
+        self.assertTrue(isinstance(ack, messaging.ErrorMessage))
+        self.assertEquals(ack.faultCode, 'TypeError')
+        self.assertNotEquals(ack.extendedData, None)
 
     def test_too_many_args(self):
         def spam(bar):
