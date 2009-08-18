@@ -151,6 +151,20 @@ class ClassAliasTestCase(ModelsBaseTestCase):
         self.assertEquals(y.dt, datetime.datetime(2008, 3, 12, 12, 12, 12))
         self.assertEquals(y.t, datetime.time(12, 12, 12))
 
+        y = TestClass()
+
+        alias.applyAttributes(y, {
+            'id': None,
+            'd': None,
+            'dt': None,
+            't': None
+        })
+
+        self.assertEquals(y.id, None)
+        self.assertEquals(y.d, None)
+        self.assertEquals(y.dt, None)
+        self.assertEquals(y.t, None)
+
     def test_undefined(self):
         from django.db import models
         from django.db.models import fields
