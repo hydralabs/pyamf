@@ -192,6 +192,14 @@ class DataOutput(object):
         """
         self.stream.write_char(value)
 
+    def writeUnsignedByte(self, value):
+        """
+        Writes an unsigned byte.
+
+        @type value: C{int}
+        """
+        return self.stream.write_uchar(value)
+
     def writeDouble(self, value):
         """
         Writes an IEEE 754 double-precision (64-bit) floating
@@ -252,6 +260,15 @@ class DataOutput(object):
         @param value: A byte value as an integer.
         """
         self.stream.write_short(value)
+
+    def writeUnsignedShort(self, value):
+        """
+        Writes a 16-bit unsigned integer.
+
+        @type value: C{int}
+        @param value: A byte value as an integer.
+        """
+        self.stream.write_ushort(value)
 
     def writeUnsignedInt(self, value):
         """

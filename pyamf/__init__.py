@@ -1297,6 +1297,19 @@ def _get_context_class(encoding):
     raise ValueError("Unknown encoding %s" % (encoding,))
 
 
+def blaze_loader(alias):
+    """
+    Loader for L{BlazeDS} framework compatibility classes, specifically
+    implementing ISmallMessage.
+    """
+    if alias not in ['DSC', 'DSK']:
+        return
+
+    import pyamf.flex.messaging
+
+    return CLASS_CACHE[alias]
+
+
 def flex_loader(alias):
     """
     Loader for L{Flex<pyamf.flex>} framework compatibility classes.
@@ -1608,6 +1621,7 @@ def register_package(module=None, package=None, separator='.', ignore=[], strict
 # init module here
 register_class(ASObject)
 register_class_loader(flex_loader)
+register_class_loader(blaze_loader)
 register_alias_type(TypedObjectClassAlias, TypedObject)
 register_alias_type(ErrorAlias, Exception)
 
