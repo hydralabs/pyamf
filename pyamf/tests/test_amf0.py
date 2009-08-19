@@ -573,6 +573,7 @@ class DecoderTestCase(ClassCacheClearingTestCase):
     """
     Tests the output from the AMF0 L{Decoder<pyamf.amf0.Decoder>} class.
     """
+
     def setUp(self):
         ClassCacheClearingTestCase.setUp(self)
 
@@ -1102,6 +1103,53 @@ class ClassInheritanceTestCase(ClassCacheClearingTestCase):
         ), '\x00\x00\t')))
 
 
+class ExceptionEncodingTestCase(ClassCacheClearingTestCase):
+    """
+    Tests for encoding exceptions.
+    """
+
+    def setUp(self):
+        ClassCacheClearingTestCase.setUp(self)
+
+        self.buffer = util.BufferedByteStream()
+        self.encoder = amf0.Encoder(self.buffer)
+
+    def test_exception(self):
+        try:
+            raise Exception('foo bar')
+        except Exception, e:
+            self.encoder.writeElement(e)
+
+        self.assertEquals(self.buffer.getvalue(), '\x03\x00\x07message\x02'
+            '\x00\x07foo bar\x00\x04name\x02\x00\tException\x00\x00\t')
+
+    def test_user_defined(self):
+        class FooBar(Exception):
+            pass
+
+        try:
+            raise FooBar('foo bar')
+        except Exception, e:
+            self.encoder.writeElement(e)
+
+        self.assertEquals(self.buffer.getvalue(), '\x03\x00\x07message\x02'
+            '\x00\x07foo bar\x00\x04name\x02\x00\x06FooBar\x00\x00\t')
+
+    def test_typed(self):
+        class XYZ(Exception):
+            pass
+
+        pyamf.register_class(XYZ, 'foo.bar')
+
+        try:
+            raise XYZ('blarg')
+        except Exception, e:
+            self.encoder.writeElement(e)
+
+        self.assertEquals(self.buffer.getvalue(), '\x10\x00\x07foo.bar\x00'
+            '\x07message\x02\x00\x05blarg\x00\x04name\x02\x00\x03XYZ\x00\x00\t')
+
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -1112,7 +1160,8 @@ def suite():
         DecoderTestCase,
         RecordSetTestCase,
         HelperTestCase,
-        ClassInheritanceTestCase
+        ClassInheritanceTestCase,
+        ExceptionEncodingTestCase
     ]
 
     for tc in test_cases:
