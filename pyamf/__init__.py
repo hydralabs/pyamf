@@ -754,6 +754,9 @@ class ErrorAlias(ClassAlias):
     Adapts python exception objects to flash error objects.
     """
 
+    def getCustomProperties(self):
+        self.exclude_attrs.update(['args'])
+
     def getEncodableAttributes(self, obj, **kwargs):
         sa, da = ClassAlias.getEncodableAttributes(self, obj, **kwargs)
 
