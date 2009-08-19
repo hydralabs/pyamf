@@ -12,7 +12,10 @@ This module contains the message classes used with Flex Data Services.
 @since: 0.1.0
 """
 
-import pyamf
+import uuid
+
+import pyamf.util
+from pyamf import amf3
 
 __all__ = [
     'RemotingMessage',
@@ -22,6 +25,8 @@ __all__ = [
 ]
 
 NAMESPACE = 'flex.messaging.messages'
+
+SMALL_FLAG_MORE = 0x80
 
 
 class AbstractMessage(object):
@@ -75,14 +80,26 @@ class AbstractMessage(object):
     #: out the request.
     REQUEST_TIMEOUT_HEADER = "DSRequestTimeout"
 
+    SMALL_ATTRIBUTE_FLAGS = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40]
+    SMALL_ATTRIBUTES = dict(zip(
+        SMALL_ATTRIBUTE_FLAGS,
+        __amf__.static
+    ))
+
+    SMALL_UUID_FLAGS = [0x01, 0x02]
+    SMALL_UUIDS = dict(zip(
+        SMALL_UUID_FLAGS,
+        ['clientId', 'messageId']
+    ))
+
     def __init__(self, *args, **kwargs):
         self.body = kwargs.get('body', None)
         self.clientId = kwargs.get('clientId', None)
         self.destination = kwargs.get('destination', None)
         self.headers = kwargs.get('headers', {})
         self.messageId = kwargs.get('messageId', None)
-        self.timestamp = kwargs.get('timestamp', 0)
-        self.timeToLive = kwargs.get('timeToLive', 0)
+        self.timestamp = kwargs.get('timestamp', None)
+        self.timeToLive = kwargs.get('timeToLive', None)
 
     def __repr__(self):
         m = '<%s ' % self.__class__.__name__
@@ -91,6 +108,82 @@ class AbstractMessage(object):
             m += ' %s=%r' % (k, getattr(self, k))
 
         return m + " />"
+
+    def decodeSmallAttribute(self, attr, input):
+        obj = input.readObject()
+
+        if attr in ['timestamp', 'timeToLive']:
+            return pyamf.util.get_datetime(obj / 1000.0)
+
+        return obj
+
+    def encodeSmallAttribute(self, attr):
+        obj = getattr(self, attr)
+
+        if not obj:
+            return obj
+
+        if attr in ['timestamp', 'timeToLive']:
+            return pyamf.util.get_timestamp(obj) * 1000.0
+        elif attr in ['clientId', 'messageId']:
+            if isinstance(obj, uuid.UUID):
+                return None
+
+        return obj
+
+    def __readamf__(self, input):
+        flags = read_flags(input)
+
+        if len(flags) > 2:
+            raise pyamf.DecodeError('Expected <=2 (got %d) flags for the '
+                'AbstractMessage portion of the small message for %r' % (
+                    len(flags), self.__class__))
+
+        for index, byte in enumerate(flags):
+            if index == 0:
+                for flag in self.SMALL_ATTRIBUTE_FLAGS:
+                    if flag & byte:
+                        attr = self.SMALL_ATTRIBUTES[flag]
+                        setattr(self, attr, self.decodeSmallAttribute(attr, input))
+            elif index == 1:
+                for flag in self.SMALL_UUID_FLAGS:
+                    if flag & byte:
+                        attr = self.SMALL_UUIDS[flag]
+                        setattr(self, attr, decode_uuid(input.readObject()))
+
+    def __writeamf__(self, output):
+        flag_attrs = []
+        uuid_attrs = []
+        byte = 0
+
+        for flag in self.SMALL_ATTRIBUTE_FLAGS:
+            value = self.encodeSmallAttribute(self.SMALL_ATTRIBUTES[flag])
+
+            if value:
+                byte |= flag
+                flag_attrs.append(value)
+
+        flags = byte
+        byte = 0
+
+        for flag in self.SMALL_UUID_FLAGS:
+            attr = self.SMALL_UUIDS[flag]
+            value = getattr(self, attr)
+
+            if not value:
+                continue
+
+            byte |= flag
+            uuid_attrs.append(amf3.ByteArray(value.bytes))
+
+        if not byte:
+            output.writeUnsignedByte(flags)
+        else:
+            output.writeUnsignedByte(flags | SMALL_FLAG_MORE)
+            output.writeUnsignedByte(byte)
+
+        [output.writeObject(attr) for attr in flag_attrs]
+        [output.writeObject(attr) for attr in uuid_attrs]
 
 
 class AsyncMessage(AbstractMessage):
@@ -116,6 +209,34 @@ class AsyncMessage(AbstractMessage):
 
         self.correlationId = kwargs.get('correlationId', None)
 
+    def __readamf__(self, input):
+        AbstractMessage.__readamf__(self, input)
+
+        flags = read_flags(input)
+
+        if len(flags) > 1:
+            raise pyamf.DecodeError('Expected <=1 (got %d) flags for the '
+                'AsyncMessage portion of the small message for %r' % (
+                    len(flags), self.__class__))
+
+        byte = flags[0]
+
+        if byte & 0x01:
+            self.correlationId = input.readObject()
+
+        if byte & 0x02:
+            self.correlationId = decode_uuid(input.readObject())
+
+    def __writeamf__(self, output):
+        AbstractMessage.__writeamf__(self, output)
+
+        if not isinstance(self.correlationId, uuid.UUID):
+            output.writeUnsignedByte(0x01)
+            output.writeObject(self.correlationId)
+        else:
+            output.writeUnsignedByte(0x02)
+            output.writeObject(pyamf.amf3.ByteArray(self.correlationId.bytes))
+
 
 class AcknowledgeMessage(AsyncMessage):
     """
@@ -131,6 +252,21 @@ class AcknowledgeMessage(AsyncMessage):
     #: Used to indicate that the acknowledgement is for a message that
     #: generated an error.
     ERROR_HINT_HEADER = "DSErrorHint"
+
+    def __readamf__(self, input):
+        AsyncMessage.__readamf__(self, input)
+
+        flags = read_flags(input)
+
+        if len(flags) > 1:
+            raise pyamf.DecodeError('Expected <=1 (got %d) flags for the '
+                'AcknowledgeMessage portion of the small message for %r' % (
+                    len(flags), self.__class__))
+
+    def __writeamf__(self, output):
+        AsyncMessage.__writeamf__(self, output)
+
+        output.writeUnsignedByte(0)
 
 
 class CommandMessage(AsyncMessage):
@@ -195,6 +331,33 @@ class CommandMessage(AsyncMessage):
         #: handles.
         self.messageRefType = kwargs.get('messageRefType', None)
 
+    def __readamf__(self, input):
+        AsyncMessage.__readamf__(self, input)
+
+        flags = read_flags(input)
+
+        if not flags:
+            return
+
+        if len(flags) > 1:
+            raise pyamf.DecodeError('Expected <=1 (got %d) flags for the '
+                'CommandMessage portion of the small message for %r' % (
+                    len(flags), self.__class__))
+
+        byte = flags[0]
+
+        if byte & 0x01:
+            self.operation = input.readObject()
+
+    def __writeamf__(self, output):
+        AsyncMessage.__writeamf__(self, output)
+
+        if self.operation:
+            output.writeUnsignedByte(0x01)
+            output.writeObject(self.operation)
+        else:
+            output.writeUnsignedByte(0)
+
 
 class ErrorMessage(AcknowledgeMessage):
     """
@@ -255,4 +418,59 @@ class RemotingMessage(AbstractMessage):
         self.source = kwargs.get('source', None)
 
 
+class AcknowledgeMessageExt(AcknowledgeMessage):
+    """
+    An L{AcknowledgeMessage}, but implementing ISmallMessage
+    """
+
+    class __amf__:
+        external = True
+
+
+class CommandMessageExt(CommandMessage):
+    """
+    A L{CommandMessage}, but implementing ISmallMessage
+    """
+
+    class __amf__:
+        external = True
+
+
+class AsyncMessageExt(AsyncMessage):
+    """
+    A L{AsyncMessage}, but implementing ISmallMessage
+    """
+
+    class __amf__:
+        external = True
+
+
+def read_flags(input):
+    flags = []
+
+    done = False
+
+    while not done:
+        byte = input.readUnsignedByte()
+
+        if not byte & SMALL_FLAG_MORE:
+            done = True
+        else:
+            byte = byte ^ SMALL_FLAG_MORE
+
+        flags.append(byte)
+
+    return flags
+
+
+def decode_uuid(obj):
+    """
+    Decode a ByteArray contents to a L{uuid.UUID} instance.
+    """
+    return uuid.UUID(bytes=str(obj))
+
+
 pyamf.register_package(globals(), package=NAMESPACE)
+pyamf.register_class(AcknowledgeMessageExt, 'DSK')
+pyamf.register_class(CommandMessageExt, 'DSC')
+pyamf.register_class(AsyncMessageExt, 'DSA')
