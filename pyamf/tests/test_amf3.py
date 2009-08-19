@@ -1660,6 +1660,53 @@ class ComplexEncodingTestCase(unittest.TestCase, _util.BaseEncoderMixIn):
         self.assertEquals(cd3.reference, '\x09')
 
 
+class ExceptionEncodingTestCase(_util.ClassCacheClearingTestCase):
+    """
+    Tests for encoding exceptions.
+    """
+
+    def setUp(self):
+        _util.ClassCacheClearingTestCase.setUp(self)
+
+        self.buffer = util.BufferedByteStream()
+        self.encoder = amf3.Encoder(self.buffer)
+
+    def test_exception(self):
+        try:
+            raise Exception('foo bar')
+        except Exception, e:
+            self.encoder.writeElement(e)
+
+        self.assertEquals(self.buffer.getvalue(), '\n\x0b\x01\x0fmessage\x06'
+            '\x0ffoo bar\tname\x06\x13Exception\x01')
+
+    def test_user_defined(self):
+        class FooBar(Exception):
+            pass
+
+        try:
+            raise FooBar('foo bar')
+        except Exception, e:
+            self.encoder.writeElement(e)
+
+        self.assertEquals(self.buffer.getvalue(), '\n\x0b\x01\x0fmessage\x06'
+            '\x0ffoo bar\tname\x06\rFooBar\x01')
+
+    def test_typed(self):
+        class XYZ(Exception):
+            pass
+
+        pyamf.register_class(XYZ, 'foo.bar')
+
+        try:
+            raise XYZ('blarg')
+        except Exception, e:
+            self.encoder.writeElement(e)
+
+        self.assertEquals(self.buffer.getvalue(), '\n\x0b\x0ffoo.bar\x0f'
+            'message\x06\x0bblarg\tname\x06\x07XYZ\x01')
+
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -1675,7 +1722,8 @@ def suite():
         DataInputTestCase,
         ClassInheritanceTestCase,
         HelperTestCase,
-        ComplexEncodingTestCase
+        ComplexEncodingTestCase,
+        ExceptionEncodingTestCase
     ]
 
     for tc in test_cases:

@@ -749,6 +749,23 @@ class TypedObjectClassAlias(ClassAlias):
         pass
 
 
+class ErrorAlias(ClassAlias):
+    """
+    Adapts python exception objects to flash error objects.
+    """
+
+    def getEncodableAttributes(self, obj, **kwargs):
+        sa, da = ClassAlias.getEncodableAttributes(self, obj, **kwargs)
+
+        if not da:
+            da = {}
+
+        da['message'] = str(obj)
+        da['name'] = obj.__class__.__name__
+
+        return sa, da
+
+
 class BaseDecoder(object):
     """
     Base AMF decoder.
@@ -1589,5 +1606,6 @@ def register_package(module=None, package=None, separator='.', ignore=[], strict
 register_class(ASObject)
 register_class_loader(flex_loader)
 register_alias_type(TypedObjectClassAlias, TypedObject)
+register_alias_type(ErrorAlias, Exception)
 
 register_adapters()

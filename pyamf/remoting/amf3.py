@@ -62,10 +62,12 @@ def generate_error(request, cls, e, tb, include_traceback=False):
     else:
         code = cls.__name__
 
-    detail = None
+    detail = ''
+    rootCause = None
 
     if include_traceback:
         detail = []
+        rootCause = e
 
         for x in traceback.format_exception(cls, e, tb):
             detail.append(x.replace("\\n", ''))
@@ -73,7 +75,7 @@ def generate_error(request, cls, e, tb, include_traceback=False):
     return messaging.ErrorMessage(messageId=generate_random_id(),
         clientId=generate_random_id(), timestamp=calendar.timegm(time.gmtime()),
         correlationId = request.messageId, faultCode=code, faultString=str(e),
-        faultDetail=str(detail), extendedData=detail)
+        faultDetail=str(detail), extendedData=detail, rootCause=rootCause)
 
 
 class RequestProcessor(object):
