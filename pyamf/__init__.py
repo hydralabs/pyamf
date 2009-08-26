@@ -551,6 +551,7 @@ class ClassAlias(object):
 
         @param codec: An optional argument that will contain the en/decoder
             instance calling this function.
+        @since: 0.5
         """
         if not self._compiled:
             self.compile()
@@ -1299,8 +1300,11 @@ def _get_context_class(encoding):
 
 def blaze_loader(alias):
     """
-    Loader for L{BlazeDS} framework compatibility classes, specifically
-    implementing ISmallMessage.
+    Loader for BlazeDS framework compatibility classes, specifically
+    implementing C{ISmallMessage}.
+    
+    @see: U{BlazeDS (external)<http://opensource.adobe.com/wiki/display/blazeds/BlazeDS>}
+    @since: 0.5
     """
     if alias not in ['DSC', 'DSK']:
         return

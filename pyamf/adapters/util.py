@@ -53,5 +53,6 @@ def to_string(x, encoder):
     Converts an arbitrary object C{obj} to a string.
 
     @rtype: L{tuple}
+    @since: 0.5
     """
     return str(x)

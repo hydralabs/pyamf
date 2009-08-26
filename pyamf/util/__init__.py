@@ -798,6 +798,9 @@ def get_datetime(secs):
 
 
 def get_properties(obj):
+    """
+    @since: 0.5
+    """
     if hasattr(obj, 'keys'):
         return set(obj.keys())
     elif hasattr(obj, '__dict__'):
@@ -877,8 +880,11 @@ def get_class_alias(klass):
 
 def is_class_sealed(klass):
     """
-    Returns a boolean whether or not the supplied class can accept dynamic
+    Returns a C{boolean} whether or not the supplied class can accept dynamic
     properties.
+    
+    @rtype: C{bool}
+    @since: 0.5
     """
     mro = inspect.getmro(klass)
     new = False
@@ -899,8 +905,11 @@ def is_class_sealed(klass):
 
 def get_class_meta(klass):
     """
-    Returns a dict containing meta data based on the supplied class, useful
+    Returns a C{dict} containing meta data based on the supplied class, useful
     for class aliasing.
+    
+    @rtype: C{dict}
+    @since: 0.5
     """
     if not isinstance(klass, (type, types.ClassType)) or klass is object:
         raise TypeError('klass must be a class object, got %r' % type(klass))
