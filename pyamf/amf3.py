@@ -197,6 +197,7 @@ class DataOutput(object):
         Writes an unsigned byte.
 
         @type value: C{int}
+        @since: 0.5
         """
         return self.stream.write_uchar(value)
 
@@ -267,6 +268,7 @@ class DataOutput(object):
 
         @type value: C{int}
         @param value: A byte value as an integer.
+        @since: 0.5
         """
         self.stream.write_ushort(value)
 

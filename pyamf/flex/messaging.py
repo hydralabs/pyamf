@@ -9,13 +9,14 @@ This module contains the message classes used with Flex Data Services.
 @see: U{RemoteObject on OSFlash (external)
 <http://osflash.org/documentation/amf3#remoteobject>}
 
-@since: 0.1.0
+@since: 0.1
 """
 
 import uuid
 
 import pyamf.util
 from pyamf import amf3
+
 
 __all__ = [
     'RemotingMessage',
@@ -110,6 +111,9 @@ class AbstractMessage(object):
         return m + " />"
 
     def decodeSmallAttribute(self, attr, input):
+        """
+        @since: 0.5
+        """
         obj = input.readObject()
 
         if attr in ['timestamp', 'timeToLive']:
@@ -118,6 +122,9 @@ class AbstractMessage(object):
         return obj
 
     def encodeSmallAttribute(self, attr):
+        """
+        @since: 0.5
+        """
         obj = getattr(self, attr)
 
         if not obj:
@@ -420,7 +427,9 @@ class RemotingMessage(AbstractMessage):
 
 class AcknowledgeMessageExt(AcknowledgeMessage):
     """
-    An L{AcknowledgeMessage}, but implementing ISmallMessage
+    An L{AcknowledgeMessage}, but implementing C{ISmallMessage}.
+
+    @since: 0.5
     """
 
     class __amf__:
@@ -429,7 +438,9 @@ class AcknowledgeMessageExt(AcknowledgeMessage):
 
 class CommandMessageExt(CommandMessage):
     """
-    A L{CommandMessage}, but implementing ISmallMessage
+    A L{CommandMessage}, but implementing C{ISmallMessage}.
+
+    @since: 0.5
     """
 
     class __amf__:
@@ -438,7 +449,9 @@ class CommandMessageExt(CommandMessage):
 
 class AsyncMessageExt(AsyncMessage):
     """
-    A L{AsyncMessage}, but implementing ISmallMessage
+    A L{AsyncMessage}, but implementing C{ISmallMessage}.
+
+    @since: 0.5
     """
 
     class __amf__:
@@ -446,6 +459,9 @@ class AsyncMessageExt(AsyncMessage):
 
 
 def read_flags(input):
+    """
+    @since: 0.5
+    """
     flags = []
 
     done = False
@@ -465,7 +481,9 @@ def read_flags(input):
 
 def decode_uuid(obj):
     """
-    Decode a ByteArray contents to a L{uuid.UUID} instance.
+    Decode a L{ByteArray} contents to a C{uuid.UUID} instance.
+
+    @since: 0.5
     """
     return uuid.UUID(bytes=str(obj))
 
