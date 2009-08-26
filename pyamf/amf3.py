@@ -20,7 +20,7 @@ L{ByteArray} and L{ArrayCollection}.
 @see: U{AMF3 documentation on OSFlash (external)
 <http://osflash.org/documentation/amf3>}
 
-@since: 0.1.0
+@since: 0.1
 """
 
 import types
@@ -1271,7 +1271,7 @@ class Encoder(pyamf.BaseEncoder):
         @type   n: integer data
         @param  n: The integer data to be encoded to the AMF3 data stream.
         @type   use_references: C{bool}
-        @param  use_references: Default is C{True}.
+        @kwarg  use_references: Default is C{True}.
         """
         if n < 0 or n > MAX_29B_INT:
             self.writeNumber(float(n))
@@ -1333,7 +1333,7 @@ class Encoder(pyamf.BaseEncoder):
         @type   n: C{basestring}
         @param  n: The string data to be encoded to the AMF3 data stream.
         @type   use_references: C{bool}
-        @param  use_references: Default is C{True}.
+        @kwarg  use_references: Default is C{True}.
         """
         self.stream.write(TYPE_STRING)
 

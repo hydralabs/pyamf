@@ -1,10 +1,12 @@
-# Copyright (c) 2007-2009 The PyAMF Project.
+# Copyright (c) 2009 The PyAMF Project.
 # See LICENSE.txt for details.
 
 """
 Tests for L{ClassAlias} and L{register_class}. Both are the most
 fundamental parts of PyAMF and the test suite for it is big so it makes sense
 to have them in one file.
+
+@since: 0.5
 """
 
 import unittest

@@ -16,7 +16,7 @@ LocalConnection, SharedObjects and other classes in the Adobe Flash Player.
 @see: U{AMF documentation on OSFlash (external)
 <http://osflash.org/documentation/amf>}
 
-@since: 0.1.0
+@since: 0.1
 """
 
 import datetime
