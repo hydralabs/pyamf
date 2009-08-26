@@ -752,7 +752,9 @@ class TypedObjectClassAlias(ClassAlias):
 
 class ErrorAlias(ClassAlias):
     """
-    Adapts python exception objects to flash error objects.
+    Adapts Python exception objects to Adobe Flash Player error objects.
+
+    @since: 0.5
     """
 
     def getCustomProperties(self):
