@@ -1531,7 +1531,7 @@ class Encoder(pyamf.BaseEncoder):
         if use_proxies is None:
             use_proxies = self.use_proxies
 
-        if use_proxies is True:
+        if use_proxies is True and obj.__class__ is dict:
             ref_obj = self.context.getObjectAlias(obj)
 
             if ref_obj is None:
