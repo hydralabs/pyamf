@@ -254,4 +254,16 @@ class ObjectProxy(object):
         output.writeObject(self._amf_object, use_proxies=False)
 
 
+def unproxy_object(obj):
+    """
+    Returns the unproxied version of the object.
+    """
+    if isinstance(obj, ArrayCollection):
+        return list(obj)
+    elif isinstance(obj, ObjectProxy):
+        return obj._amf_object
+
+    return obj
+
+
 pyamf.register_package(globals(), package='flex.messaging.io')

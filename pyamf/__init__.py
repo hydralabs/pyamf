@@ -133,7 +133,13 @@ class EncodeError(BaseError):
     """
 
 
-class UnknownClassAlias(BaseError):
+class ClassAliasError(BaseError):
+    """
+    Generic error for anything class alias related.
+    """
+
+
+class UnknownClassAlias(ClassAliasError):
     """
     Raised if the AMF stream specifies an Actionscript class that does not
     have a Python class alias.
@@ -284,6 +290,7 @@ class ClassAlias(object):
         self.static_attrs = kwargs.get('static_attrs', None)
         self.exclude_attrs = kwargs.get('exclude_attrs', None)
         self.readonly_attrs = kwargs.get('readonly_attrs', None)
+        self.proxy_attrs = kwargs.get('proxy_attrs', None)
         self.amf3 = kwargs.get('amf3', None)
         self.external = kwargs.get('external', None)
         self.dynamic = kwargs.get('dynamic', None)
@@ -337,6 +344,7 @@ class ClassAlias(object):
         self.exclude_attrs = set(self.exclude_attrs or [])
         self.readonly_attrs = set(self.readonly_attrs or [])
         self.static_attrs = set(self.static_attrs or [])
+        self.proxy_attrs = set(self.proxy_attrs or [])
 
         if self.external:
             self._checkExternal()
@@ -393,6 +401,9 @@ class ClassAlias(object):
 
         if alias.static_attrs:
             self.static_attrs.update(alias.static_attrs)
+
+        if alias.proxy_attrs:
+            self.proxy_attrs.update(alias.proxy_attrs)
 
         if alias.encodable_properties:
             self.encodable_properties.update(alias.encodable_properties)
@@ -459,6 +470,17 @@ class ClassAlias(object):
         if self.readonly_attrs is not None:
             self.readonly_attrs = list(self.readonly_attrs)
             self.readonly_attrs.sort()
+
+        if not self.proxy_attrs:
+            self.proxy_attrs = None
+        else:
+            if not self.amf3:
+                raise ClassAliasError('amf3 = True must be specified for '
+                    'classes with proxied attributes. Attribute = %r, '
+                    'Class = %r' % (self.proxy_attrs, self.klass,))
+
+            self.proxy_attrs = list(self.proxy_attrs)
+            self.proxy_attrs.sort()
 
         if len(self.decodable_properties) == 0:
             self.decodable_properties = None
@@ -600,6 +622,17 @@ class ClassAlias(object):
             for attr in dynamic_props:
                 dynamic_attrs[attr] = getattr(obj, attr)
 
+        if self.proxy_attrs is not None:
+            if static_attrs:
+                for k, v in static_attrs.copy().iteritems():
+                    if k in self.proxy_attrs:
+                        static_attrs[k] = self.getProxiedAttribute(k, v)
+
+            if dynamic_attrs:
+                for k, v in dynamic_attrs.copy().iteritems():
+                    if k in self.proxy_attrs:
+                        dynamic_attrs[k] = self.getProxiedAttribute(k, v)
+
         if not static_attrs:
             static_attrs = None
 
@@ -655,6 +688,17 @@ class ClassAlias(object):
             props.difference_update(self.exclude_attrs)
             changed = True
 
+        if self.proxy_attrs is not None:
+            from pyamf import flex
+
+            for k in self.proxy_attrs:
+                try:
+                    v = attrs[k]
+                except KeyError:
+                    continue
+
+                attrs[k] = flex.unproxy_object(v)
+
         if not changed:
             return attrs
 
@@ -663,6 +707,27 @@ class ClassAlias(object):
         [a.__setitem__(p, attrs[p]) for p in props]
 
         return a
+
+    def getProxiedAttribute(self, attr, obj):
+        """
+        Returns the proxied equivalent for C{obj}.
+
+        @param attr: The attribute of the proxy request. Useful for class
+            introspection.
+        @type attr: C{str}
+        @param obj: The object to proxy.
+        @return: The proxied object or the original object if it cannot be
+            proxied.
+        """
+        # the default is to just check basic types
+        from pyamf import flex
+
+        if type(obj) is list:
+            return flex.ArrayCollection(obj)
+        elif type(obj) is dict:
+            return flex.ObjectProxy(obj)
+
+        return obj
 
     def applyAttributes(self, obj, attrs, codec=None):
         """

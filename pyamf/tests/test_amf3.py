@@ -637,6 +637,25 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
         self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, Classic)
         self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, New)
 
+    def test_proxy(self):
+        """
+        Test to ensure that only C{dict} objects will be proxied correctly
+        """
+        x = pyamf.ASObject()
+
+        self.encoder.use_proxies = True
+        self.encoder.writeElement(x)
+
+        self.assertEquals(self.buf.getvalue(), '\n\x0b\x01\x01')
+
+        self.buf.truncate()
+        x = dict()
+
+        self.encoder.writeElement(x)
+
+        self.assertEquals(self.buf.getvalue(), '\n\x07;flex.messaging.io.'
+            'ObjectProxy\n\x0b\x01\x01')
+
 
 class DecoderTestCase(_util.ClassCacheClearingTestCase):
     """
