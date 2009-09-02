@@ -780,20 +780,20 @@ class TypedObject(dict):
         self.alias = alias
 
     def __readamf__(self, o):
-        raise DecodeError('Unable to decode an externalised stream.\n\nThe '
-            'class alias \'%s\' was found and because strict mode is False an'
-            ' attempt was made to decode the object automatically. To decode '
-            'this stream, a registered class with the alias and a '
-            'corresponding __readamf__ method will be required.' % (
-                self.alias,))
+        raise DecodeError('Unable to decode an externalised stream with '
+            'class alias \'%s\'.\n\nThe class alias was found and because '
+            'strict mode is False an attempt was made to decode the object '
+            'automatically. To decode this stream, a registered class with '
+            'the alias and a corresponding __readamf__ method will be '
+            'required.' % (self.alias,))
 
     def __writeamf__(self, o):
-        raise EncodeError('Unable to encode an externalised stream.\n\nThe '
-            'class alias \'%s\' was found and because strict mode is False an'
-            'attempt was made to encode the object automatically. To encode '
-            'this stream, a registered class with the alias and a '
-            'corresponding __readamf__ method will be required.' % (
-                self.alias,))
+        raise EncodeError('Unable to encode an externalised stream with '
+            'class alias \'%s\'.\n\nThe class alias was found and because '
+            'strict mode is False an attempt was made to encode the object '
+            'automatically. To encode this stream, a registered class with '
+            'the alias and a corresponding __readamf__ method will be '
+            'required.' % (self.alias,))
 
 
 class TypedObjectClassAlias(ClassAlias):
