@@ -8,6 +8,9 @@ versions of PyAMF.
 
 0.5 (unreleased)
 ----------------
+ - Setting `None` on a Django DateField would blow up the encoder (Ticket:632)
+ - `rootCause` in ErrorFault objects are now populated with the traceback
+   object. (Ticket:637)
  - Support for encoding/decoding BlazeDS specific messages (Ticket:581)
  - Removed tracebacks from exception messages if debug=False (Ticket:552)
  - Support for google.appengine.ext.db.polymodel.PolyModel (Ticket:633)
