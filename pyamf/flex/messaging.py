@@ -192,6 +192,15 @@ class AbstractMessage(object):
         [output.writeObject(attr) for attr in flag_attrs]
         [output.writeObject(attr) for attr in uuid_attrs]
 
+    def getSmallMessage(self):
+        """
+        Return a ISmallMessage representation of this object. If one is not
+        available, L{NotImplementedError} will be raised.
+
+        @since: 0.5
+        """
+        raise NotImplementedError
+
 
 class AsyncMessage(AbstractMessage):
     """
@@ -244,6 +253,14 @@ class AsyncMessage(AbstractMessage):
             output.writeUnsignedByte(0x02)
             output.writeObject(pyamf.amf3.ByteArray(self.correlationId.bytes))
 
+    def getSmallMessage(self):
+        """
+        Return a ISmallMessage representation of this async message.
+
+        @since: 0.5
+        """
+        return AsyncMessageExt(**self.__dict__)
+
 
 class AcknowledgeMessage(AsyncMessage):
     """
@@ -274,6 +291,14 @@ class AcknowledgeMessage(AsyncMessage):
         AsyncMessage.__writeamf__(self, output)
 
         output.writeUnsignedByte(0)
+
+    def getSmallMessage(self):
+        """
+        Return a ISmallMessage representation of this acknowledge message.
+
+        @since: 0.5
+        """
+        return AcknowledgeMessageExt(**self.__dict__)
 
 
 class CommandMessage(AsyncMessage):
@@ -365,6 +390,14 @@ class CommandMessage(AsyncMessage):
         else:
             output.writeUnsignedByte(0)
 
+    def getSmallMessage(self):
+        """
+        Return a ISmallMessage representation of this command message.
+
+        @since: 0.5
+        """
+        return CommandMessageExt(**self.__dict__)
+
 
 class ErrorMessage(AcknowledgeMessage):
     """
@@ -403,6 +436,14 @@ class ErrorMessage(AcknowledgeMessage):
         #: Should a traceback exist for the error, this property contains the
         #: message.
         self.rootCause = kwargs.get('rootCause', {})
+
+    def getSmallMessage(self):
+        """
+        Return a ISmallMessage representation of this error message.
+
+        @since: 0.5
+        """
+        raise NotImplementedError
 
 
 class RemotingMessage(AbstractMessage):
