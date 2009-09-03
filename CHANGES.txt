@@ -8,6 +8,8 @@ versions of PyAMF.
 
 0.5 (unreleased)
 ----------------
+ - Fixed a Django reference bug where parent.child.parent is parent would
+   encode 3 objects and not 2. (Ticket:642)
  - Setting `None` on a Django DateField would blow up the encoder (Ticket:632)
  - `rootCause` in ErrorFault objects are now populated with the traceback
    object. (Ticket:637)
