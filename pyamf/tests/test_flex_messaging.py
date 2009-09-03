@@ -143,6 +143,57 @@ class SmallMessageTestCase(unittest.TestCase):
 
         self.assertEquals(buffer, bytes)
 
+    def test_async(self):
+        pass
+
+    def test_getmessage(self):
+        """
+        Tests for `getSmallMessage`
+        """
+        for cls in ['AbstractMessage', 'ErrorMessage', 'RemotingMessage']:
+            cls = getattr(messaging, cls)
+            self.assertRaises(NotImplementedError, cls().getSmallMessage)
+
+        kwargs = {
+            'body': {'foo': 'bar'},
+            'clientId': 'spam',
+            'destination': 'eggs',
+            'headers': {'blarg': 'whoop'},
+            'messageId': 'baz',
+            'timestamp': 1234,
+            'timeToLive': 99
+        }
+
+        # test async
+        a = messaging.AsyncMessage(correlationId='yay', **kwargs)
+        m = a.getSmallMessage()
+
+        k = kwargs.copy()
+        k.update({'correlationId': 'yay'})
+
+        self.assertTrue(isinstance(m, messaging.AsyncMessageExt))
+        self.assertEquals(m.__dict__, k)
+
+        # test command
+        a = messaging.CommandMessage(operation='yay', **kwargs)
+        m = a.getSmallMessage()
+
+        k = kwargs.copy()
+        k.update({'operation': 'yay', 'correlationId': None, 'messageRefType': None})
+
+        self.assertTrue(isinstance(m, messaging.CommandMessageExt))
+        self.assertEquals(m.__dict__, k)
+
+        # test ack
+        a = messaging.AcknowledgeMessage(**kwargs)
+        m = a.getSmallMessage()
+
+        k = kwargs.copy()
+        k.update({'correlationId': None})
+
+        self.assertTrue(isinstance(m, messaging.AcknowledgeMessageExt))
+        self.assertEquals(m.__dict__, k)
+
 
 def suite():
     suite = unittest.TestSuite()
