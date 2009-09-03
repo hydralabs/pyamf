@@ -306,6 +306,8 @@ class EncoderTestCase(ClassCacheClearingTestCase):
     def test_amf3(self):
         self.assertFalse(hasattr(self.context, 'amf3_encoder'))
 
+        self.encoder.use_amf3 = True
+
         self.context.addAMF3Object(1)
         self.encoder.writeElement(1)
         self.assertEquals(self.buf.getvalue(), '\x11\x04\x01')

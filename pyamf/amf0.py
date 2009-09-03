@@ -107,7 +107,7 @@ class Context(pyamf.BaseContext):
     """
 
     def __init__(self, **kwargs):
-        self.amf3_objs = util.IndexedCollection(exceptions=False)
+        self.amf3_objs = []
 
         pyamf.BaseContext.__init__(self, **kwargs)
 
@@ -117,17 +117,18 @@ class Context(pyamf.BaseContext):
         """
         pyamf.BaseContext.clear(self)
 
-        self.amf3_objs.clear()
+        self.amf3_objs = []
 
         if hasattr(self, 'amf3_context'):
             self.amf3_context.clear()
 
-    def getAMF3ObjectReference(self, obj):
+    def hasAMF3ObjectReference(self, obj):
         """
         Gets a reference for an object.
 
         @raise ReferenceError: Unknown AMF3 object reference.
         """
+        return obj in self.amf3_objs
         o = self.amf3_objs.getReferenceTo(obj)
 
         if o is None and self.exceptions:
@@ -488,7 +489,7 @@ class Encoder(pyamf.BaseEncoder):
         # In the context there is an array of amf3_objs that contain
         # references to objects that are to be encoded in amf3.
 
-        if self.context.getAMF3ObjectReference(data) is not None:
+        if self.use_amf3 and self.context.hasAMF3ObjectReference(data):
             return self.writeAMF3
 
         return pyamf.BaseEncoder._writeElementFunc(self, data)
@@ -505,16 +506,8 @@ class Encoder(pyamf.BaseEncoder):
 
         if func is None:
             raise pyamf.EncodeError("Cannot find encoder func for %r" % (data,))
-        else:
-            try:
-                func(data)
-            except (KeyboardInterrupt, SystemExit):
-                raise
-            except pyamf.EncodeError:
-                raise
-            except:
-                #raise pyamf.EncodeError("Unable to encode '%r'" % (data,))
-                raise
+
+        func(data)
 
     def writeNull(self, n):
         """
@@ -577,13 +570,12 @@ class Encoder(pyamf.BaseEncoder):
             self.stream.write_uchar(0)
 
     def _writeString(self, s):
-        if not isinstance(s, basestring):
-            s = unicode(s).encode('utf8')
+        l = len(s)
 
-        if len(s) > 0xffff:
-            self.stream.write_ulong(len(s))
+        if l > 0xffff:
+            self.stream.write_ulong(l)
         else:
-            self.stream.write_ushort(len(s))
+            self.stream.write_ushort(l)
 
         self.stream.write(s)
 
@@ -596,16 +588,19 @@ class Encoder(pyamf.BaseEncoder):
         @type writeType: C{bool}
         @param writeType: Write data type.
         """
-        if isinstance(s, unicode):
+        t = type(s)
+
+        if t is str:
+            pass
+        elif isinstance(s, unicode):
             s = s.encode('utf8')
         elif not isinstance(s, basestring):
             s = unicode(s).encode('utf8')
 
-        if len(s) > 0xffff:
-            if writeType:
+        if writeType:
+            if len(s) > 0xffff:
                 self.writeType(TYPE_LONGSTRING)
-        else:
-            if writeType:
+            else:
                 self.writeType(TYPE_STRING)
 
         self._writeString(s)
