@@ -654,6 +654,81 @@ class ImageTestCase(ModelsBaseTestCase):
 
         self.assertEquals(attrs, {'text': ''})
 
+
+class ReferenceTestCase(ModelsBaseTestCase):
+    """
+    Test case to make sure that the same object from the database is encoded
+    by reference.
+    """
+
+    def setUp(self):
+        ModelsBaseTestCase.setUp(self)
+
+        from django.db import models
+
+        class ParentReference(models.Model):
+            name = models.CharField(max_length=100)
+            bar = models.ForeignKey('ChildReference', null=True)
+
+        class ChildReference(models.Model):
+            name = models.CharField(max_length=100)
+            foo = models.ForeignKey(ParentReference)
+
+        self.ParentReference = ParentReference
+        self.ChildReference = ChildReference
+
+        self.resetDB()
+
+    def tearDown(self):
+        ModelsBaseTestCase.tearDown(self)
+
+    def test_not_referenced(self):
+        """
+        Test to ensure that we observe the correct behaviour in the Django
+        ORM.
+        """
+        f = self.ParentReference()
+        f.name = 'foo'
+
+        b = self.ChildReference()
+        b.name = 'bar'
+
+        f.save()
+        b.foo = f
+        b.save()
+        f.bar = b
+        f.save()
+
+        self.assertEquals(f.id, 1)
+        foo = self.ParentReference.objects.select_related().get(id=1)
+
+        self.assertFalse(foo.bar.foo is foo)
+
+    def test_referenced_encode(self):
+        f = self.ParentReference()
+        f.name = 'foo'
+
+        b = self.ChildReference()
+        b.name = 'bar'
+
+        f.save()
+        b.foo = f
+        b.save()
+        f.bar = b
+        f.save()
+
+        self.assertEquals(f.id, 2)
+        foo = self.ParentReference.objects.select_related().get(id=2)
+
+        # ensure the referenced attribute resolves
+        foo.bar.foo
+
+        self.assertEquals(pyamf.encode(foo).getvalue(), '\x03\x00\x02id\x00'
+            '@\x00\x00\x00\x00\x00\x00\x00\x00\x04name\x02\x00\x03foo\x00'
+            '\x03bar\x03\x00\x02id\x00@\x00\x00\x00\x00\x00\x00\x00\x00\x04na'
+            'me\x02\x00\x03bar\x00\x03foo\x07\x00\x00\x00\x00\t\x00\x00\t')
+
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -669,7 +744,8 @@ def suite():
         I18NTestCase,
         PKTestCase,
         ModelInheritanceTestCase,
-        FieldsTestCase
+        FieldsTestCase,
+        ReferenceTestCase
     ]
 
     try:

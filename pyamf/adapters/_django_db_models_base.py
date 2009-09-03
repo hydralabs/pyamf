@@ -16,6 +16,49 @@ from django.db.models.fields import related, files
 import datetime
 
 import pyamf
+from pyamf.util import imports
+
+
+class DjangoReferenceCollection(dict):
+    """
+    This helper class holds a dict of klass to pk/objects loaded from the
+    underlying db.
+
+    @since: 0.5
+    """
+
+    def _getClass(self, klass):
+        if klass not in self.keys():
+            self[klass] = {}
+
+        return self[klass]
+
+    def getClassKey(self, klass, key):
+        """
+        Return an instance based on klass/key.
+
+        If an instance cannot be found then L{KeyError} is raised.
+
+        @param klass: The class of the instance.
+        @param key: The primary_key of the instance.
+        @return: The instance linked to the C{klass}/C{key}.
+        @rtype: Instance of L{klass}.
+        """
+        d = self._getClass(klass)
+
+        return d[key]
+
+    def addClassKey(self, klass, key, obj):
+        """
+        Adds an object to the collection, based on klass and key.
+
+        @param klass: The class of the object.
+        @param key: The datastore key of the object.
+        @param obj: The loaded instance from the datastore.
+        """
+        d = self._getClass(klass)
+
+        d[key] = obj
 
 
 class DjangoClassAlias(pyamf.ClassAlias):
@@ -163,4 +206,77 @@ class DjangoClassAlias(pyamf.ClassAlias):
         return attrs
 
 
+def getDjangoObjects(context):
+    """
+    Returns a reference to the C{django_objects} on the context. If it doesn't
+    exist then it is created.
+
+    @param context: The context to load the C{django_objects} index from.
+    @type context: Instance of L{pyamf.BaseContext}
+    @return: The C{django_objects} index reference.
+    @rtype: Instance of L{DjangoReferenceCollection}
+    @since: 0.5
+    """
+    if not hasattr(context, 'django_objects'):
+        context.django_objects = DjangoReferenceCollection()
+
+    return context.django_objects
+
+
+def writeDjangoObject(self, obj, *args, **kwargs):
+    """
+    The Django ORM creates new instances of objects for each db request.
+    This is a problem for PyAMF as it uses the id(obj) of the object to do
+    reference checking.
+
+    We could just ignore the problem, but the objects are conceptually the
+    same so the effort should be made to attempt to resolve references for a
+    given object graph.
+
+    We create a new map on the encoder context object which contains a dict of
+    C{object.__class__: {key1: object1, key2: object2, .., keyn: objectn}}. We
+    use the primary key to do the reference checking.
+
+    @since: 0.5
+    """
+    if not isinstance(obj, Model):
+        self.writeNonDjangoObject(obj, *args, **kwargs)
+
+        return
+
+    context = self.context
+    kls = obj.__class__
+
+    s = obj.pk
+
+    django_objects = getDjangoObjects(context)
+
+    try:
+        referenced_object = django_objects.getClassKey(kls, s)
+    except KeyError:
+        referenced_object = obj
+        django_objects.addClassKey(kls, s, obj)
+
+    self.writeNonDjangoObject(referenced_object, *args, **kwargs)
+
+
+def install_django_reference_model_hook(mod):
+    """
+    Called when L{pyamf.amf0} or L{pyamf.amf3} are imported. Attaches the
+    L{writeDjangoObject} method to the C{Encoder} class in that module.
+
+    @param mod: The module imported.
+    @since: 0.4.1
+    """
+    if not hasattr(mod.Encoder, 'writeNonDjangoObject'):
+        mod.Encoder.writeNonDjangoObject = mod.Encoder.writeObject
+        mod.Encoder.writeObject = writeDjangoObject
+
+
+# initialise the module here: hook into pyamf
+
 pyamf.register_alias_type(DjangoClassAlias, Model)
+
+# hook the L{writeDjangobject} method to the Encoder class on import
+imports.when_imported('pyamf.amf0', install_django_reference_model_hook)
+imports.when_imported('pyamf.amf3', install_django_reference_model_hook)
