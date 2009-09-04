@@ -82,6 +82,12 @@ class HelperTestCase(unittest.TestCase):
     Tests all helper functions in C{pyamf.__init__}
     """
 
+    def setUp(self):
+        self.default_encoding = pyamf.DEFAULT_ENCODING
+
+    def tearDown(self):
+        pyamf.DEFAULT_ENCODING = self.default_encoding
+
     def test_get_decoder(self):
         from pyamf import amf0, amf3
 
@@ -94,13 +100,13 @@ class HelperTestCase(unittest.TestCase):
         self.assertRaises(ValueError, pyamf.get_decoder, 'spam')
 
         context = amf0.Context()
-        decoder = pyamf.get_decoder(pyamf.AMF0, data='123', context=context, strict=True)
+        decoder = pyamf.get_decoder(pyamf.AMF0, stream='123', context=context, strict=True)
         self.assertEquals(decoder.stream.getvalue(), '123')
         self.assertEquals(decoder.context, context)
         self.assertTrue(decoder.strict)
 
         context = amf3.Context()
-        decoder = pyamf.get_decoder(pyamf.AMF3, data='456', context=context, strict=True)
+        decoder = pyamf.get_decoder(pyamf.AMF3, stream='456', context=context, strict=True)
         self.assertEquals(decoder.stream.getvalue(), '456')
         self.assertEquals(decoder.context, context)
         self.assertTrue(decoder.strict)
@@ -117,13 +123,13 @@ class HelperTestCase(unittest.TestCase):
         self.assertRaises(ValueError, pyamf.get_encoder, 'spam')
 
         context = amf0.Context()
-        encoder = pyamf.get_encoder(pyamf.AMF0, data='spam', context=context)
+        encoder = pyamf.get_encoder(pyamf.AMF0, stream='spam', context=context)
         self.assertEquals(encoder.stream.getvalue(), 'spam')
         self.assertEquals(encoder.context, context)
         self.assertFalse(encoder.strict)
 
         context = amf3.Context()
-        encoder = pyamf.get_encoder(pyamf.AMF3, data='eggs', context=context)
+        encoder = pyamf.get_encoder(pyamf.AMF3, stream='eggs', context=context)
         self.assertFalse(encoder.strict)
 
         encoder = pyamf.get_encoder(pyamf.AMF0, strict=True)
@@ -143,6 +149,19 @@ class HelperTestCase(unittest.TestCase):
         returned = [x for x in pyamf.decode(bytes)]
 
         self.assertEquals(expected, returned)
+
+    def test_default_encoding(self):
+        pyamf.DEFAULT_ENCODING = pyamf.AMF3
+
+        x = pyamf.encode('foo').getvalue()
+
+        self.assertEquals(x, '\x06\x07foo')
+
+        pyamf.DEFAULT_ENCODING = pyamf.AMF0
+
+        x = pyamf.encode('foo').getvalue()
+
+        self.assertEquals(x, '\x02\x00\x03foo')
 
 
 class UnregisterClassTestCase(ClassCacheClearingTestCase):

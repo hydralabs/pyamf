@@ -77,10 +77,12 @@ class WSGIGateway(gateway.BaseGateway):
 
         body = environ['wsgi.input'].read(int(environ['CONTENT_LENGTH']))
         stream = None
+        timezone_offset = self._get_timezone_offset()
 
         # Decode the request
         try:
-            request = remoting.decode(body, strict=self.strict, logger=self.logger)
+            request = remoting.decode(body, strict=self.strict,
+                logger=self.logger, timezone_offset=timezone_offset)
         except (pyamf.DecodeError, IOError):
             if self.logger:
                 self.logger.exception(gateway.format_exception())
@@ -149,7 +151,8 @@ class WSGIGateway(gateway.BaseGateway):
 
         # Encode the response
         try:
-            stream = remoting.encode(response, strict=self.strict)
+            stream = remoting.encode(response, strict=self.strict,
+                timezone_offset=timezone_offset)
         except:
             if self.logger:
                 self.logger.exception(gateway.format_exception())

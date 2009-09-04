@@ -60,6 +60,9 @@ AMF3 = 3
 #: Supported AMF encoding types.
 ENCODING_TYPES = (AMF0, AMF3)
 
+#: Default encoding
+DEFAULT_ENCODING = AMF0
+
 
 class ClientTypes:
     """
@@ -851,16 +854,19 @@ class BaseDecoder(object):
         being this relates to typed objects in the stream that do not have a
         registered alias. Introduced in 0.4.
     @type strict: C{bool}
+    @ivar timezone_offset: The offset from UTC for any datetime objects being
+        decoded. Default to C{None} means no offset.
+    @type timezone_offset: L{datetime.timedelta}
     """
 
     context_class = BaseContext
     type_map = {}
 
-    def __init__(self, data=None, context=None, strict=False):
-        if isinstance(data, util.BufferedByteStream):
-            self.stream = data
+    def __init__(self, stream=None, context=None, strict=False, timezone_offset=None):
+        if isinstance(stream, util.BufferedByteStream):
+            self.stream = stream
         else:
-            self.stream = util.BufferedByteStream(data)
+            self.stream = util.BufferedByteStream(stream)
 
         if context is None:
             self.context = self.context_class()
@@ -869,6 +875,8 @@ class BaseDecoder(object):
 
         self.context.exceptions = False
         self.strict = strict
+
+        self.timezone_offset = timezone_offset
 
     def readElement(self):
         """
@@ -936,16 +944,19 @@ class BaseEncoder(object):
         is really affected by this for the time being - its just here for
         flexibility.
     @type strict: C{bool}, default is False.
+    @ivar timezone_offset: The offset from UTC for any datetime objects being
+        encoded. Default to C{None} means no offset.
+    @type timezone_offset: L{datetime.timedelta}
     """
 
     context_class = BaseContext
     type_map = []
 
-    def __init__(self, data=None, context=None, strict=False):
-        if isinstance(data, util.BufferedByteStream):
-            self.stream = data
+    def __init__(self, stream=None, context=None, strict=False, timezone_offset=None):
+        if isinstance(stream, util.BufferedByteStream):
+            self.stream = stream
         else:
-            self.stream = util.BufferedByteStream(data)
+            self.stream = util.BufferedByteStream(stream)
 
         if context is None:
             self.context = self.context_class()
@@ -955,6 +966,7 @@ class BaseEncoder(object):
         self.context.exceptions = False
         self._write_elem_func_cache = {}
         self.strict = strict
+        self.timezone_offset = timezone_offset
 
     def writeFunc(self, obj, **kwargs):
         """
@@ -1223,12 +1235,12 @@ def load_class(alias):
     raise UnknownClassAlias("Unknown alias for %r" % (alias,))
 
 
-def decode(stream, encoding=AMF0, context=None, strict=False):
+def decode(*args, **kwargs):
     """
     A generator function to decode a datastream.
 
-    @type   stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
-    @param  stream: AMF data.
+    @param stream: AMF data.
+    @type stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     @type   encoding: C{int}
     @param  encoding: AMF encoding type.
     @type   context: L{AMF0 Context<pyamf.amf0.Context>} or
@@ -1236,7 +1248,8 @@ def decode(stream, encoding=AMF0, context=None, strict=False):
     @param  context: Context.
     @return: Each element in the stream.
     """
-    decoder = _get_decoder_class(encoding)(stream, context, strict)
+    encoding = kwargs.pop('encoding', DEFAULT_ENCODING)
+    decoder = _get_decoder_class(encoding)(*args, **kwargs)
 
     while 1:
         try:
@@ -1249,7 +1262,7 @@ def encode(*args, **kwargs):
     """
     A helper function to encode an element.
 
-    @type element: C{mixed}
+    @type args: C{mixed}
     @keyword element: Python data.
     @type encoding: C{int}
     @keyword encoding: AMF encoding type.
@@ -1260,12 +1273,10 @@ def encode(*args, **kwargs):
     @rtype: C{StringIO}
     @return: File-like object.
     """
-    encoding = kwargs.get('encoding', AMF0)
-    context = kwargs.get('context', None)
-    strict = kwargs.get('strict', False)
+    encoding = kwargs.pop('encoding', DEFAULT_ENCODING)
 
-    stream = util.BufferedByteStream()
-    encoder = _get_encoder_class(encoding)(stream, context, strict)
+    encoder = _get_encoder_class(encoding)(**kwargs)
+    stream = encoder.stream
 
     for el in args:
         encoder.writeElement(el)
@@ -1275,11 +1286,11 @@ def encode(*args, **kwargs):
     return stream
 
 
-def get_decoder(encoding, data=None, context=None, strict=False):
+def get_decoder(encoding, *args, **kwargs):
     """
     Returns a subclassed instance of L{pyamf.BaseDecoder}, based on C{encoding}
     """
-    return _get_decoder_class(encoding)(data, context, strict)
+    return _get_decoder_class(encoding)(*args, **kwargs)
 
 
 def _get_decoder_class(encoding):
@@ -1306,11 +1317,11 @@ def _get_decoder_class(encoding):
     raise ValueError("Unknown encoding %s" % (encoding,))
 
 
-def get_encoder(encoding, data=None, context=None, strict=False):
+def get_encoder(encoding, *args, **kwargs):
     """
     Returns a subclassed instance of L{pyamf.BaseEncoder}, based on C{encoding}
     """
-    return _get_encoder_class(encoding)(data, context, strict)
+    return _get_encoder_class(encoding)(*args, **kwargs)
 
 
 def _get_encoder_class(encoding):

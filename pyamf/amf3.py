@@ -828,13 +828,10 @@ class Decoder(pyamf.BaseDecoder):
         TYPE_BYTEARRAY:  'readByteArray',
     }
 
-    def __init__(self, data=None, context=None, strict=False, use_proxies=None):
-        pyamf.BaseDecoder.__init__(self, data, context, strict)
+    def __init__(self, *args, **kwargs):
+        self.use_proxies = kwargs.pop('use_proxies', use_proxies_default)
 
-        if use_proxies is None:
-            self.use_proxies = use_proxies_default
-        else:
-            self.use_proxies = use_proxies
+        pyamf.BaseDecoder.__init__(self, *args, **kwargs)
 
     def readUndefined(self):
         """
@@ -937,6 +934,9 @@ class Decoder(pyamf.BaseDecoder):
 
         ms = self.stream.read_double()
         result = util.get_datetime(ms / 1000.0)
+
+        if self.timezone_offset is not None:
+            result += self.timezone_offset
 
         self.context.addObject(result)
 
@@ -1192,16 +1192,11 @@ class Encoder(pyamf.BaseEncoder):
         ((types.InstanceType, types.ObjectType,), "writeInstance"),
     ]
 
-    def __init__(self, data=None, context=None, strict=False, use_proxies=None,
-        string_references=True):
-        pyamf.BaseEncoder.__init__(self, data, context, strict)
+    def __init__(self, *args, **kwargs):
+        self.use_proxies = kwargs.pop('use_proxies', use_proxies_default)
+        self.string_references = kwargs.pop('string_references', True)
 
-        if use_proxies is None:
-            self.use_proxies = use_proxies_default
-        else:
-            self.use_proxies = use_proxies
-
-        self.string_references = string_references
+        pyamf.BaseEncoder.__init__(self, *args, **kwargs)
 
     def writeElement(self, data, use_references=True, use_proxies=None):
         """
@@ -1368,6 +1363,9 @@ class Encoder(pyamf.BaseEncoder):
             self.context.addObject(n)
 
         self.stream.write_uchar(REFERENCE_BIT)
+
+        if self.timezone_offset is not None:
+            n -= self.timezone_offset
 
         ms = util.get_timestamp(n)
         self.stream.write_double(ms * 1000.0)

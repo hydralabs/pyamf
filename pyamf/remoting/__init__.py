@@ -598,7 +598,7 @@ def get_fault(data):
     return get_fault_class(level, **e)(**e)
 
 
-def decode(stream, context=None, strict=False, logger=None):
+def decode(stream, context=None, strict=False, logger=None, timezone_offset=None):
     """
     Decodes the incoming stream as a remoting message.
 
@@ -612,6 +612,10 @@ def decode(stream, context=None, strict=False, logger=None):
     @param logger: Used to log interesting events whilst decoding a remoting
         message.
     @type logger: A L{logging.Logger} instance or C{None}.
+    @param timezone_offset: The difference between the current timezone and
+        UTC. Date/times should always be handled in UTC to avoid confusion but
+        this is required for legacy systems.
+    @type timezone_offset: L{datetime.timedelta}
 
     @raise DecodeError: Malformed stream.
     @raise RuntimeError: Decoder is unable to fully consume the
@@ -638,7 +642,8 @@ def decode(stream, context=None, strict=False, logger=None):
     if context is None:
         context = pyamf.get_context(pyamf.AMF0, exceptions=False)
 
-    decoder = pyamf.get_decoder(pyamf.AMF0, stream, context=context, strict=strict)
+    decoder = pyamf.get_decoder(pyamf.AMF0, stream, context=context,
+        strict=strict, timezone_offset=timezone_offset)
     msg.clientType = stream.read_uchar()
 
     header_count = stream.read_ushort()
@@ -667,7 +672,7 @@ def decode(stream, context=None, strict=False, logger=None):
     return msg
 
 
-def encode(msg, context=None, strict=False, logger=None):
+def encode(msg, context=None, strict=False, logger=None, timezone_offset=None):
     """
     Encodes AMF stream and returns file object.
 
@@ -680,6 +685,10 @@ def encode(msg, context=None, strict=False, logger=None):
     @param logger: Used to log interesting events whilst encoding a remoting
         message.
     @type logger: A L{logging.Logger} instance or C{None}.
+    @param timezone_offset: The difference between the current timezone and
+        UTC. Date/times should always be handled in UTC to avoid confusion but
+        this is required for legacy systems.
+    @type timezone_offset: L{datetime.timedelta}
     @rtype: C{StringIO}
     @return: File object.
     """
@@ -688,7 +697,8 @@ def encode(msg, context=None, strict=False, logger=None):
     if context is None:
         context = pyamf.get_context(pyamf.AMF0, exceptions=False)
 
-    encoder = pyamf.get_encoder(pyamf.AMF0, stream, context=context, strict=strict)
+    encoder = pyamf.get_encoder(pyamf.AMF0, stream, context=context,
+        timezone_offset=timezone_offset, strict=strict)
 
     if msg.clientType == pyamf.ClientTypes.Flash9:
         encoder.use_amf3 = True

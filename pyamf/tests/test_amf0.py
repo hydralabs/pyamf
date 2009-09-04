@@ -570,6 +570,14 @@ class EncoderTestCase(ClassCacheClearingTestCase):
         self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, Classic)
         self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, New)
 
+    def test_timezone(self):
+        d = datetime.datetime(2009, 9, 24, 14, 23, 23)
+        self.encoder.timezone_offset = datetime.timedelta(hours=-5)
+
+        self.encoder.writeElement(d)
+
+        self.assertEquals(self.buf.getvalue(), '\x0bBr>\xd8\x1f\xff\x80\x00\x00\x00')
+
 
 class DecoderTestCase(ClassCacheClearingTestCase):
     """
@@ -874,6 +882,16 @@ class DecoderTestCase(ClassCacheClearingTestCase):
 
         self.assertRaises(IOError, self.decoder.readElement)
         self.assertEquals(self.buf.tell(), 6)
+
+    def test_timezone(self):
+        self.decoder.timezone_offset = datetime.timedelta(hours=-5)
+
+        self.buf.write('\x0bBr>\xc6\xf5w\x80\x00\x00\x00')
+        self.buf.seek(0)
+
+        f = self.decoder.readElement()
+
+        self.assertEquals(f, datetime.datetime(2009, 9, 24, 9, 23, 23))
 
 
 class HelperTestCase(unittest.TestCase):

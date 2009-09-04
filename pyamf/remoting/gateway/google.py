@@ -63,17 +63,20 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.headers['Server'] = gateway.SERVER_NAME
         self.error(405)
-        self.response.out.write("405 Method Not Allowed\n\n" + \
-            "To access this PyAMF gateway you must use POST requests " + \
+        self.response.out.write("405 Method Not Allowed\n\n"
+            "To access this PyAMF gateway you must use POST requests "
             "(%s received)" % self.request.method)
 
     def post(self):
         body = self.request.body_file.read()
         stream = None
+        timezone_offset = self._get_timezone_offset()
+
 
         # Decode the request
         try:
-            request = remoting.decode(body, strict=self.strict, logger=self.logger)
+            request = remoting.decode(body, strict=self.strict,
+                logger=self.logger, timezone_offset=timezone_offset)
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
@@ -127,7 +130,8 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
 
         # Encode the response
         try:
-            stream = remoting.encode(response, strict=self.strict, logger=self.logger)
+            stream = remoting.encode(response, strict=self.strict,
+                logger=self.logger, timezone_offset=timezone_offset)
         except:
             fe = gateway.format_exception()
 

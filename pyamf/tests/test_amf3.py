@@ -11,6 +11,7 @@ Tests for AMF3 Implementation.
 
 import unittest
 import types
+import datetime
 
 import pyamf
 from pyamf import amf3, util
@@ -656,6 +657,14 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
         self.assertEquals(self.buf.getvalue(), '\n\x07;flex.messaging.io.'
             'ObjectProxy\n\x0b\x01\x01')
 
+    def test_timezone(self):
+        d = datetime.datetime(2009, 9, 24, 14, 23, 23)
+        self.encoder.timezone_offset = datetime.timedelta(hours=-5)
+
+        self.encoder.writeElement(d)
+
+        self.assertEquals(self.buf.getvalue(), '\x08\x01Br>\xd8\x1f\xff\x80\x00')
+
 
 class DecoderTestCase(_util.ClassCacheClearingTestCase):
     """
@@ -992,6 +1001,16 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
 
         self.assertRaises(IOError, self.decoder.readElement)
         self.assertEquals(self.buf.tell(), 5)
+
+    def test_timezone(self):
+        self.decoder.timezone_offset = datetime.timedelta(hours=-5)
+
+        self.buf.write('\x08\x01Br>\xc6\xf5w\x80\x00')
+        self.buf.seek(0)
+
+        f = self.decoder.readElement()
+
+        self.assertEquals(f, datetime.datetime(2009, 9, 24, 9, 23, 23))
 
 
 class ObjectEncodingTestCase(_util.ClassCacheClearingTestCase):
