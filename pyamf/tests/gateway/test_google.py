@@ -15,6 +15,7 @@ from StringIO import StringIO
 
 from google.appengine.ext import webapp
 
+import pyamf
 from pyamf import remoting
 from pyamf.remoting.gateway import google as _google
 
@@ -85,6 +86,36 @@ class WebAppGatewayTestCase(unittest.TestCase):
 
         self.gw.post()
 
+        self.assertTrue(self.executed)
+
+    def test_timezone(self):
+        import datetime
+
+        self.executed = False
+
+        td = datetime.timedelta(hours=-5)
+        now = datetime.datetime.utcnow()
+
+        def echo(d):
+            self.assertEquals(d, now + td)
+            self.executed = True
+
+            return d
+
+        self.gw.addService(echo)
+        self.gw.timezone_offset = -18000
+
+        msg = remoting.Envelope(amfVersion=pyamf.AMF0, clientType=0)
+        msg['/1'] = remoting.Request(target='echo', body=[now])
+
+        stream = remoting.encode(msg)
+        self.environ['wsgi.input'] = stream
+        self.gw.post()
+
+        envelope = remoting.decode(self.response.out.getvalue())
+        message = envelope['/1']
+
+        self.assertEquals(message.body, now)
         self.assertTrue(self.executed)
 
 

@@ -14,6 +14,8 @@ servers.
 
 django = __import__('django.http')
 http = django.http
+conf = __import__('django.conf')
+conf = conf.conf
 
 import pyamf
 from pyamf import remoting
@@ -45,6 +47,19 @@ class DjangoGateway(gateway.BaseGateway):
 
     def __init__(self, *args, **kwargs):
         kwargs['expose_request'] = kwargs.get('expose_request', True)
+
+        try:
+            tz = conf.settings.AMF_TIME_OFFSET
+        except AttributeError:
+            tz = None
+
+        try:
+            debug = conf.settings.DEBUG
+        except AttributeError:
+            debug = False
+
+        kwargs['timezone_offset'] = kwargs.get('timezone_offset', tz)
+        kwargs['debug'] = kwargs.get('debug', debug)
 
         gateway.BaseGateway.__init__(self, *args, **kwargs)
 
@@ -82,11 +97,13 @@ class DjangoGateway(gateway.BaseGateway):
             return http.HttpResponseNotAllowed(['POST'])
 
         stream = None
+        timezone_offset = self._get_timezone_offset()
 
         # Decode the request
         try:
             request = remoting.decode(http_request.raw_post_data,
-                strict=self.strict, logger=self.logger)
+                strict=self.strict, logger=self.logger,
+                timezone_offset=timezone_offset)
         except (pyamf.DecodeError, IOError):
             fe = gateway.format_exception()
 
@@ -108,12 +125,14 @@ class DjangoGateway(gateway.BaseGateway):
             if self.logger:
                 self.logger.exception(fe)
 
-            response = "500 Internal Server Error\n\nAn unexpected error occurred."
+            response = ('500 Internal Server Error\n\n'
+                'An unexpected error occurred.')
 
             if self.debug:
                 response += "\n\nTraceback:\n\n%s" % fe
 
-            return http.HttpResponseServerError(mimetype='text/plain', content=response)
+            return http.HttpResponseServerError(mimetype='text/plain',
+                content=response)
 
         if self.logger:
             self.logger.info("AMF Request: %r" % request)
@@ -135,22 +154,24 @@ class DjangoGateway(gateway.BaseGateway):
             if self.debug:
                 response += "\n\nTraceback:\n\n%s" % fe
 
-            return http.HttpResponseServerError(mimetype='text/plain', content=response)
+            return http.HttpResponseServerError(mimetype='text/plain',
+                content=response)
 
         if self.logger:
             self.logger.info("AMF Response: %r" % response)
 
         # Encode the response
         try:
-            stream = remoting.encode(response, strict=self.strict, logger=self.logger)
+            stream = remoting.encode(response, strict=self.strict,
+                logger=self.logger, timezone_offset=timezone_offset)
         except:
             fe = gateway.format_exception()
 
             if self.logger:
                 self.logger.exception(fe)
 
-            response = "500 Internal Server Error\n\nThe request was " \
-                "unable to be encoded."
+            response = ("500 Internal Server Error\n\nThe request was "
+                "unable to be encoded.")
 
             if self.debug:
                 response += "\n\nTraceback:\n\n%s" % fe

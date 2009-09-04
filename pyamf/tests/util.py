@@ -196,7 +196,7 @@ class BaseEncoderMixIn(BaseCodecMixIn):
         BaseCodecMixIn.setUp(self)
 
         self.encoder = pyamf.get_encoder(
-            self.amf_version, data=self.stream, context=self.context)
+            self.amf_version, stream=self.stream, context=self.context)
 
 
 class NullFileDescriptor(object):

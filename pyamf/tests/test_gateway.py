@@ -196,7 +196,11 @@ class BaseGatewayTestCase(unittest.TestCase):
         x = gateway.BaseGateway({'x': TestService})
         self.assertEquals(x.services, {'x': TestService})
 
+        x = gateway.BaseGateway({}, timezone_offset=-180)
+        self.assertEquals(x.timezone_offset, -180)
+
         self.assertRaises(TypeError, gateway.BaseGateway, [])
+        self.assertRaises(TypeError, gateway.BaseGateway, foo='bar')
 
     def test_add_service(self):
         gw = gateway.BaseGateway()

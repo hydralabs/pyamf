@@ -263,9 +263,11 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
             self._finaliseRequest(request, 400, body)
 
         request.content.seek(0, 0)
+        timezone_offset = self._get_timezone_offset()
 
         d = threads.deferToThread(remoting.decode, request.content.read(),
-            strict=self.strict, logger=self.logger)
+            strict=self.strict, logger=self.logger,
+            timezone_offset=timezone_offset)
 
         def cb(amf_request):
             if self.logger:
@@ -303,8 +305,10 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
 
             self._finaliseRequest(request, 500, body)
 
+        timezone_offset = self._get_timezone_offset()
         d = threads.deferToThread(remoting.encode, amf_response,
-            strict=self.strict, logger=self.logger)
+            strict=self.strict, logger=self.logger,
+            timezone_offset=timezone_offset)
 
         d.addCallback(cb).addErrback(eb)
 

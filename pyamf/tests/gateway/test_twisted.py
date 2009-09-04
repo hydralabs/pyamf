@@ -307,6 +307,40 @@ class TwistedServerTestCase(unittest.TestCase):
 
         return d.addCallback(cb)
 
+    def test_timezone(self):
+        import datetime
+
+        self.executed = False
+
+        td = datetime.timedelta(hours=-5)
+        now = datetime.datetime.utcnow()
+
+        def echo(d):
+            self.assertEquals(d, now + td)
+            self.executed = True
+
+            return d
+
+        self.gw.addService(echo)
+        self.gw.timezone_offset = -18000
+
+        msg = remoting.Envelope(amfVersion=pyamf.AMF0, clientType=0)
+        msg['/1'] = remoting.Request(target='echo', body=[now])
+
+        stream = remoting.encode(msg)
+
+        d = client.getPage("http://127.0.0.1:%d/" % (self.port,),
+                method="POST", postdata=stream.getvalue())
+
+        def cb(response):
+            envelope = remoting.decode(''.join(response))
+            message = envelope['/1']
+
+            self.assertEquals(message.status, remoting.STATUS_OK)
+            self.assertEquals(message.body, now)
+
+        return d.addCallback(cb)
+
 
 class DummyHTTPRequest:
     def __init__(self):

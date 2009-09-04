@@ -179,6 +179,22 @@ class DecoderTestCase(unittest.TestCase):
         self.assertEquals(m.target, 'createGroup')
         self.assertEquals(m.body, [{'strB':'test', 'strA':'test'}])
 
+    def test_timezone(self):
+        """
+        Ensure that the timezone offsets work as expected
+        """
+        import datetime
+
+        td = datetime.timedelta(hours=-5)
+
+        msg = remoting.decode(
+            '\x00\x00\x00\x00\x00\x01\x00\x0b/1/onResult\x00\x04null\x00\x00'
+            '\x00\x00\n\x00\x00\x00\x01\x0bBr>\xcc\n~\x00\x00\x00\x00',
+            timezone_offset=td)
+
+        self.assertEquals(msg['/1'].body[0],
+            datetime.datetime(2009, 9, 24, 10, 52, 12))
+
 
 class EncoderTestCase(unittest.TestCase):
     """
@@ -297,6 +313,24 @@ class EncoderTestCase(unittest.TestCase):
 
         stream = remoting.encode(msg)
         self.assertEquals(stream.tell(), 0)
+
+    def test_timezone(self):
+        """
+        Ensure that the timezone offsets work as expected
+        """
+        import datetime
+
+        d = datetime.datetime(2009, 9, 24, 15, 52, 12)
+        td = datetime.timedelta(hours=-5)
+        msg = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash6)
+
+        msg['/1'] = remoting.Response(body=[d])
+
+        stream = remoting.encode(msg, timezone_offset=td).getvalue()
+
+        self.assertEquals(stream, '\x00\x00\x00\x00\x00\x01\x00\x0b/1/onResult'
+            '\x00\x04null\x00\x00\x00\x00\n\x00\x00\x00\x01\x0bBr>\xdd5\x06'
+            '\x00\x00\x00\x00')
 
 
 class StrictEncodingTestCase(unittest.TestCase):

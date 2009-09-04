@@ -15,6 +15,7 @@ import os
 
 from django import http
 
+import pyamf
 from pyamf import remoting, util
 from pyamf.remoting.gateway import django as _django
 
@@ -47,6 +48,21 @@ class DjangoGatewayTestCase(unittest.TestCase):
             os.environ['DJANGO_SETTINGS_MODULE'] = self.old_env
 
         del sys.modules[self.mod_name]
+
+    def test_settings(self):
+        from django import conf
+
+        settings_mod = sys.modules[self.mod_name]
+
+        settings_mod.DEBUG = True
+        settings_mod.AMF_TIME_OFFSET = 1000
+
+        conf.settings = conf.Settings(self.mod_name)
+
+        gw = _django.DjangoGateway()
+
+        self.assertTrue(gw.debug)
+        self.assertEquals(gw.timezone_offset, 1000)
 
     def test_request_method(self):
         gw = _django.DjangoGateway()
@@ -163,6 +179,35 @@ class DjangoGatewayTestCase(unittest.TestCase):
             raise
 
         remoting.decode = self.old_method
+
+    def test_timezone(self):
+        import datetime
+
+        http_request = HttpRequest()
+        self.executed = False
+
+        td = datetime.timedelta(hours=-5)
+        now = datetime.datetime.utcnow()
+
+        def echo(d):
+            self.assertEquals(d, now + td)
+            self.executed = True
+
+            return d
+
+        gw = _django.DjangoGateway({'test.test': echo}, timezone_offset=-18000,
+            expose_request=False)
+
+        msg = remoting.Envelope(amfVersion=pyamf.AMF0, clientType=0)
+        msg['/1'] = remoting.Request(target='test.test', body=[now])
+
+        http_request.method = 'POST'
+        http_request.raw_post_data = remoting.encode(msg).getvalue()
+
+        res = remoting.decode(gw(http_request).content)
+        self.assertTrue(self.executed)
+
+        self.assertEquals(res['/1'].body, now)
 
 
 def suite():

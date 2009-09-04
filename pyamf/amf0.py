@@ -379,6 +379,10 @@ class Decoder(pyamf.BaseDecoder):
 
         # Timezones are ignored
         d = util.get_datetime(ms)
+
+        if self.timezone_offset:
+            d = d + self.timezone_offset
+
         self.context.addObject(d)
 
         return d
@@ -729,6 +733,9 @@ class Encoder(pyamf.BaseEncoder):
 
         # According to the Red5 implementation of AMF0, dates references are
         # created, but not used.
+        if self.timezone_offset is not None:
+            d -= self.timezone_offset
+
         secs = util.get_timestamp(d)
         tz = 0
 
@@ -775,16 +782,11 @@ class Encoder(pyamf.BaseEncoder):
         encoder.writeElement(data)
 
 
-def decode(stream, context=None, strict=False):
+def decode(*args, **kwargs):
     """
     A helper function to decode an AMF0 datastream.
-
-    @type   stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
-    @param  stream: AMF0 datastream.
-    @type   context: L{Context<pyamf.amf0.Context>}
-    @param  context: AMF0 Context.
     """
-    decoder = Decoder(stream, context, strict=strict)
+    decoder = Decoder(*args, **kwargs)
 
     while 1:
         try:
@@ -805,14 +807,12 @@ def encode(*args, **kwargs):
     @rtype: C{StringIO}
     @return: The encoded stream.
     """
-    context = kwargs.get('context', None)
-    buf = util.BufferedByteStream()
-    encoder = Encoder(buf, context)
+    encoder = Encoder(**kwargs)
 
     for element in args:
         encoder.writeElement(element)
 
-    return buf
+    return encoder.stream
 
 
 class RecordSet(object):

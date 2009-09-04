@@ -9,6 +9,7 @@ Remoting server implementations.
 
 import sys
 import types
+import datetime
 
 import pyamf
 from pyamf import remoting, util
@@ -259,24 +260,29 @@ class BaseGateway(object):
     @ivar logger: A logging instance.
     @ivar strict: Defines whether the gateway should use strict en/decoding.
     @type strict: C{bool}
+    @ivar timezone_offset: A L{datetime.timedelta} between UTC and the
+        timezone to be encoded. Most dates should be handled as UTC to avoid
+        confusion but for older legacy systems this is not an option. Supplying
+        an int as this will be interpretted in seconds.
     """
+
     _request_class = ServiceRequest
-    debug = False
 
-    def __init__(self, services={}, authenticator=None, expose_request=False,
-        preprocessor=None, debug=None, strict=False, logger=None):
-        """
-        @raise TypeError: C{dict} type is required for C{services}.
-        """
-        self.logger = logger
+    def __init__(self, services={}, **kwargs):
         self.services = ServiceCollection()
-        self.authenticator = authenticator
-        self.preprocessor = preprocessor
-        self.expose_request = expose_request
-        self.strict=strict
+        self.authenticator = kwargs.pop('authenticator', None)
+        self.preprocessor = kwargs.pop('preprocessor', None)
+        self.expose_request = kwargs.pop('expose_request', False)
+        self.strict = kwargs.pop('strict', False)
+        self.logger = kwargs.pop('logger', None)
+        self.timezone_offset = kwargs.pop('timezone_offset', None)
 
-        if debug is not None:
-            self.debug = debug
+        debug = kwargs.pop('debug', False)
+
+        if kwargs:
+            raise TypeError('Unknown kwargs: %r' % (kwargs,))
+
+        self.debug = debug
 
         if not hasattr(services, 'iteritems'):
             raise TypeError("dict type required for services")
@@ -322,6 +328,15 @@ class BaseGateway(object):
 
         self.services[name] = ServiceWrapper(service, description,
             authenticator, expose_request, preprocessor)
+
+    def _get_timezone_offset(self):
+        if self.timezone_offset is None:
+            return None
+
+        if isinstance(self.timezone_offset, datetime.timedelta):
+            return self.timezone_offset
+
+        return datetime.timedelta(seconds=self.timezone_offset)
 
     def removeService(self, service):
         """
