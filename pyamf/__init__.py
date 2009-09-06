@@ -1239,13 +1239,13 @@ def decode(*args, **kwargs):
     """
     A generator function to decode a datastream.
 
-    @param stream: AMF data.
+    @kwarg stream: AMF data.
     @type stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     @type   encoding: C{int}
-    @param  encoding: AMF encoding type.
+    @kwarg  encoding: AMF encoding type.
     @type   context: L{AMF0 Context<pyamf.amf0.Context>} or
     L{AMF3 Context<pyamf.amf3.Context>}
-    @param  context: Context.
+    @kwarg  context: Context.
     @return: Each element in the stream.
     """
     encoding = kwargs.pop('encoding', DEFAULT_ENCODING)
