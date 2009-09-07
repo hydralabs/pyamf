@@ -6,7 +6,7 @@ versions of PyAMF.
 
 .. contents::
 
-0.5 (unreleased)
+0.5 (2009-09-07)
 ----------------
  - Added the ability to modify the timezones of dates being de/encoded for
    legacy systems. (Ticket:612)
