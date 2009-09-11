@@ -6,9 +6,10 @@ versions of PyAMF.
 
 .. contents::
 
-0.6 (unreleased)
+0.5.1 (unreleased)
 ----------------
-
+ - amf3.encode_int now encodes signed 29bit ints, not unsigned. Thanks to
+   gerard for the report, investigation and patch! (Ticket:646)
 
 0.5 (2009-09-07)
 ----------------
