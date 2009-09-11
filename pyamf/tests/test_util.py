@@ -10,6 +10,7 @@ Tests for AMF utilities.
 """
 
 import unittest
+import sys
 
 from datetime import datetime
 from StringIO import StringIO
@@ -844,15 +845,42 @@ class IndexedCollectionTestCase(unittest.TestCase):
     def setUp(self):
         self.collection = util.IndexedCollection()
 
+
+    def test_clear(self):
+        o = object()
+
+        self.assertEquals(sys.getrefcount(o), 2)
+        self.collection.append(o)
+        self.assertEquals(sys.getrefcount(o), 3)
+
+        self.collection.clear()
+
+        self.assertEquals(sys.getrefcount(o), 2)
+
     def test_create(self):
         self.assertTrue(self.collection.exceptions)
+
+    def test_delete(self):
+        o = object()
+
+        self.assertEquals(sys.getrefcount(o), 2)
+        self.collection.append(o)
+        self.assertEquals(sys.getrefcount(o), 3)
+
+        del self.collection
+
+        self.assertEquals(sys.getrefcount(o), 2)
 
     def test_append(self):
         max = 5
         for i in range(0, max):
             test_obj = TestObject()
+
             test_obj.name = i
+
+            self.assertEquals(sys.getrefcount(test_obj), 2)
             self.collection.append(test_obj)
+            self.assertEquals(sys.getrefcount(test_obj), 3)
 
         self.assertEquals(max, len(self.collection))
 
@@ -863,7 +891,10 @@ class IndexedCollectionTestCase(unittest.TestCase):
         test_obj = TestObject()
 
         self.collection.append(test_obj)
+
+        self.assertEquals(sys.getrefcount(test_obj), 3)
         idx = self.collection.getReferenceTo(test_obj)
+        self.assertEquals(sys.getrefcount(test_obj), 3)
 
         self.assertEquals(0, idx)
         self.assertRaises(pyamf.ReferenceError, self.collection.getReferenceTo, TestObject())
@@ -875,14 +906,29 @@ class IndexedCollectionTestCase(unittest.TestCase):
         test_obj = TestObject()
         idx = self.collection.append(test_obj)
 
+        self.assertEquals(sys.getrefcount(test_obj), 3)
+
         self.assertEquals(id(test_obj), id(self.collection.getByReference(idx)))
+
+        self.assertEquals(sys.getrefcount(test_obj), 3)
         idx = self.collection.getReferenceTo(test_obj)
+        self.assertEquals(sys.getrefcount(test_obj), 3)
 
         self.assertEquals(id(test_obj), id(self.collection.getByReference(idx)))
         self.assertRaises(TypeError, self.collection.getByReference, 'bad ref')
 
         self.collection.exceptions = False
         self.assertEquals(None, self.collection.getByReference(74))
+
+    def test_get_by_refererence_refcount(self):
+        test_obj = TestObject()
+        idx = self.collection.append(test_obj)
+
+        self.assertEquals(sys.getrefcount(test_obj), 3)
+
+        o = self.collection.getByReference(idx)
+
+        self.assertEquals(sys.getrefcount(test_obj), 4)
 
     def test_array(self):
         test_obj = []
@@ -909,7 +955,13 @@ class IndexedMapTestCase(unittest.TestCase):
         test_obj = TestObject()
         test_map = TestObject()
 
+        self.assertEquals(sys.getrefcount(test_obj), 2)
+        self.assertEquals(sys.getrefcount(test_map), 2)
+
         ref = self.collection.map(test_obj, test_map)
+
+        self.assertEquals(sys.getrefcount(test_obj), 3)
+        self.assertEquals(sys.getrefcount(test_map), 3)
 
         self.assertEquals(test_obj, self.collection.getByReference(ref))
         self.assertEquals(test_map, self.collection.getMappedByReference(ref))
