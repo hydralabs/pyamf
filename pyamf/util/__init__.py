@@ -1226,7 +1226,7 @@ if is_float_broken():
 
 
 try:
-    from cpyamf.util import BufferedByteStream
+    from cpyamf.util import BufferedByteStream, IndexedCollection, IndexedMap
 
     class StringIOProxy(BufferedByteStream):
         _wrapped_class = None

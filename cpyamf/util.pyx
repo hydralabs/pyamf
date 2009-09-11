@@ -76,6 +76,8 @@ DEF ENDIAN_BIG = ">"
 cdef char SYSTEM_ENDIAN
 
 cdef int float_broken = -1
+cdef object pyamf_ReferenceError
+
 cdef int complete_init = 0
 
 cdef unsigned char *NaN = <unsigned char *>'\xff\xf8\x00\x00\x00\x00\x00\x00'
@@ -167,6 +169,7 @@ cdef int complete_import() except? -1:
     """
     global complete_init, float_broken
     global pyamf_NaN, pyamf_NegInf, pyamf_PosInf
+    global pyamf_ReferenceError
 
     complete_init = 1
 
@@ -177,11 +180,13 @@ cdef int complete_import() except? -1:
 
     build_platform_exceptional_floats()
 
-    from pyamf import util
+    import pyamf.util
 
-    pyamf_NaN = util.NaN
-    pyamf_NegInf = util.NegInf
-    pyamf_PosInf = util.PosInf
+    pyamf_ReferenceError = pyamf.ReferenceError
+
+    pyamf_NaN = pyamf.util.NaN
+    pyamf_NegInf = pyamf.util.NegInf
+    pyamf_PosInf = pyamf.util.PosInf
 
     return 0
 
@@ -1033,7 +1038,9 @@ cdef class BufferedByteStream(cBufferedByteStream):
         cdef Py_ssize_t i
         cdef cBufferedByteStream x
 
-        if isinstance(buf, cBufferedByteStream):
+        if buf is None:
+            pass
+        elif isinstance(buf, cBufferedByteStream):
             x = <cBufferedByteStream>buf
             self.write(x.getvalue())
         elif isinstance(buf, (str, unicode)):
@@ -1045,8 +1052,6 @@ cdef class BufferedByteStream(cBufferedByteStream):
             buf.seek(0)
             self.write(buf.read())
             buf.seek(old_pos)
-        elif buf is None:
-            pass
         else:
             raise TypeError("Unable to coerce buf->StringIO")
 
@@ -1565,3 +1570,342 @@ cdef class BufferedByteStream(cBufferedByteStream):
 
     def __str__(self):
         return cBufferedByteStream.getvalue(self)
+
+
+cdef class cIndexedCollection:
+    """
+    """
+
+    def __cinit__(self, int use_hash=0, int exceptions=1):
+        if complete_init == 0:
+            complete_import()
+
+        self.use_hash = use_hash
+        self.exceptions = exceptions
+        self.length = 0
+        self.size = 64
+
+        self.data = <PyObject **>PyMem_Malloc(sizeof(PyObject *) * self.size)
+
+        if self.data == NULL:
+            raise MemoryError()
+
+        self.refs = {}
+
+    def __dealloc__(self):
+        cdef Py_ssize_t i
+
+        if self.data != NULL:
+            for i from 0 <= i < self.length:
+                Py_DECREF(self.data[i])
+
+            PyMem_Free(self.data)
+            self.data = NULL
+
+    cdef int _increase_size(self) except? -1:
+        cdef Py_ssize_t new_len = self.length + 1
+        cdef Py_ssize_t current_size = self.size
+
+        while new_len > current_size:
+            current_size *= 2
+
+        if current_size != self.size:
+            self.size = current_size
+
+            self.data = <PyObject **>PyMem_Realloc(self.data, sizeof(PyObject *) * self.size)
+
+            if self.data == NULL:
+                raise MemoryError()
+
+        return 0
+
+    cdef int clear(self) except? -1:
+        cdef Py_ssize_t i
+
+        if self.data != NULL:
+            for i from 0 <= i < self.length:
+                Py_DECREF(self.data[i])
+
+            PyMem_Free(self.data)
+
+        self.length = 0
+        self.size = 64
+
+        self.data = <PyObject **>PyMem_Malloc(sizeof(PyObject *) * self.size)
+
+        if self.data == NULL:
+            raise MemoryError()
+
+        self.refs = {}
+
+        return 0
+
+    cdef object getByReference(self, Py_ssize_t ref):
+        """
+        """
+        if ref < 0 or ref >= self.length:
+            if self.exceptions == 1:
+                raise pyamf_ReferenceError('Reference not found')
+
+            return None
+
+        return <object>self.data[ref]
+
+    cdef inline object _ref(self, object obj):
+        if self.use_hash == 1:
+            return hash(obj)
+
+        return id(obj)
+
+    cdef Py_ssize_t getReferenceTo(self, object obj) except? -1:
+        cdef PyObject *p = <PyObject *>PyDict_GetItem(self.refs, self._ref(obj))
+
+        if p == NULL:
+            if self.exceptions == 1:
+                raise pyamf_ReferenceError("Object not found")
+
+            return -1
+
+        return <Py_ssize_t>PyInt_AS_LONG(<object>p)
+
+    cdef Py_ssize_t append(self, object obj) except? -1:
+        if self._increase_size() == -1:
+            return -1
+
+        cdef object h = self._ref(obj)
+
+        if PyDict_SetItem(self.refs, h, <object>self.length) == -1:
+            return -1
+
+        self.data[self.length] = <PyObject *>obj
+        Py_INCREF(<PyObject *>obj)
+
+        self.length += 1
+
+        return self.length - 1
+
+    def __iter__(self):
+        cdef object x = []
+        cdef Py_ssize_t idx
+
+        for idx from 0 <= idx < self.length:
+            x.append(<object>self.data[idx])
+
+        return iter(x)
+
+    def __len__(self):
+        return self.length
+
+    def __richcmp__(self, object other, int op):
+        cdef int equal
+        cdef Py_ssize_t i
+        cdef cIndexedCollection s = self # this is necessary because cython does not see the c-space vars of the class for this func
+
+        if PyDict_Check(other) == 1:
+            equal = s.refs == other
+        elif PyList_Check(other) != 1:
+            equal = 0
+        else:
+            equal = 0
+
+            if PyList_GET_SIZE(other) == s.length:
+                equal = 1
+
+                for i from 0 <= i < s.length:
+                    if PyList_GET_ITEM(other, i) != <object>s.data[i]:
+                        equal = 0
+
+                        break
+
+        if op == 2: # ==
+            return equal
+        elif op == 3: # !=
+            return not equal
+        else:
+            raise NotImplementedError
+
+    def __getitem__(self, idx):
+        return self.getByReference(idx)
+
+    def __copy__(self):
+        cdef cIndexedCollection n = cIndexedCollection(self.use_hash, self.exceptions)
+
+        for x in self:
+            n.append(x)
+
+        return n
+
+
+cdef class IndexedCollection(cIndexedCollection):
+    """
+    """
+
+    def __init__(self, use_hash=False, exceptions=True):
+        if use_hash:
+            self.use_hash = 1
+        else:
+            self.use_hash = 0
+
+        if exceptions:
+            self.exceptions = 1
+        else:
+            self.exceptions = 0
+
+    property use_hash:
+        def __get__(self):
+            if self.use_hash == 1:
+                return True
+
+            return False
+
+        def __set__(self, value):
+            if value is True:
+                self.use_hash = 1
+            else:
+                self.use_hash = 0
+
+    property exceptions:
+        def __get__(self):
+            if self.exceptions == 1:
+                return True
+
+            return False
+
+        def __set__(self, value):
+            if value is True:
+                self.exceptions = 1
+            else:
+                self.exceptions = 0
+
+    def getByReference(self, ref):
+        if PyInt_Check(ref) == 0 and PyLong_Check(ref) == 0:
+            raise TypeError("Bad reference type")
+
+        return cIndexedCollection.getByReference(self, <Py_ssize_t>ref)
+
+    def getReferenceTo(self, object obj):
+        cdef int i = cIndexedCollection.getReferenceTo(self, obj)
+
+        if i == -1:
+            return None
+
+        return i
+
+    def append(self, object obj):
+        return cIndexedCollection.append(self, obj)
+
+    def clear(self):
+         cIndexedCollection.clear(self)
+
+
+cdef class cIndexedMap(cIndexedCollection):
+    def __cinit__(self, int use_hash=0, int exceptions=1):
+        self.mapped = []
+
+    cdef int clear(self):
+        cIndexedCollection.clear(self)
+
+        self.mapped = []
+
+        return 0
+
+    cdef object getMappedByReference(self, Py_ssize_t ref):
+        if ref < 0 or ref >= self.length:
+            if self.exceptions == 1:
+                raise pyamf_ReferenceError('Unknown reference')
+
+            return None
+
+        return PyList_GET_ITEM(self.mapped, ref)
+
+    cdef Py_ssize_t append(self, object obj) except? -1:
+        cdef Py_ssize_t idx, diff, i
+
+        idx = cIndexedCollection.append(self, obj)
+
+        if idx == -1:
+            return -1
+
+        diff = idx - PyList_GET_SIZE(self.mapped)
+
+        for i from 0 <= i < diff:
+            if PyList_Append(self.mapped, None) == -1:
+                raise RuntimeError('Unable to add to mapped')
+
+        return idx
+
+    cdef Py_ssize_t map(self, object obj, object mapped_obj) except? -1:
+        cdef Py_ssize_t idx = cIndexedMap.append(self, obj)
+
+        if idx == -1:
+            return -1
+
+        if PyList_Append(self.mapped, mapped_obj) == -1:
+            raise RuntimeError('Unable to map object')
+
+        return idx
+
+
+cdef class IndexedMap(cIndexedMap):
+    """
+    """
+
+    def __init__(self, use_hash=False, exceptions=True):
+        if use_hash:
+            self.use_hash = 1
+        else:
+            self.use_hash = 0
+
+        if exceptions:
+            self.exceptions = 1
+        else:
+            self.exceptions = 0
+
+    property use_hash:
+        def __get__(self):
+            if self.use_hash == 1:
+                return True
+
+            return False
+
+        def __set__(self, value):
+            if value is True:
+                self.use_hash = 1
+            else:
+                self.use_hash = 0
+
+    property exceptions:
+        def __get__(self):
+            if self.exceptions == 1:
+                return True
+
+            return False
+
+        def __set__(self, value):
+            if value is True:
+                self.exceptions = 1
+            else:
+                self.exceptions = 0
+
+    def getByReference(self, Py_ssize_t ref):
+        return cIndexedMap.getByReference(self, ref)
+
+    def getReferenceTo(self, object obj):
+        cdef Py_ssize_t i = cIndexedMap.getReferenceTo(self, obj)
+
+        if i == -1:
+            return None
+
+        return i
+
+    def append(self, object obj):
+        return cIndexedMap.append(self, obj)
+
+    def clear(self):
+         cIndexedMap.clear(self)
+
+    def getMappedByReference(self, Py_ssize_t ref):
+        return cIndexedMap.getMappedByReference(self, ref)
+
+    def map(self, obj, mapped_obj):
+        return cIndexedMap.map(self, obj, mapped_obj)

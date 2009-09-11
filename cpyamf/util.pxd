@@ -55,3 +55,26 @@ cdef class cBufferedByteStream:
     cdef int read_float(self, float *x) except? -1
     cdef int write_float(self, float c) except? -1
     cdef int append(self, object obj) except? -1
+
+
+cdef class cIndexedCollection:
+    cdef int use_hash
+    cdef int exceptions
+    cdef PyObject **data
+    cdef object refs
+    cdef Py_ssize_t size
+    cdef Py_ssize_t length
+
+    cdef int _increase_size(self) except? -1
+    cdef int clear(self) except? -1
+    cdef object _ref(self, object obj)
+    cdef object getByReference(self, Py_ssize_t ref)
+    cdef Py_ssize_t getReferenceTo(self, object obj) except? -1
+    cdef Py_ssize_t append(self, object obj) except? -1
+
+
+cdef class cIndexedMap(cIndexedCollection):
+    cdef object mapped
+
+    cdef object getMappedByReference(self, Py_ssize_t ref)
+    cdef Py_ssize_t map(self, object obj, object mapped_obj) except? -1

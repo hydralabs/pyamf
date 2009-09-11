@@ -96,12 +96,7 @@ cdef long _decode_int(object stream, int sign=0) except? -1:
 def encode_int(long n):
     """
     Encode C{int}.
-    
-    @raise OverflowError: Out of range.
-    """
-    """
-    Encode C{int}.
-    
+
     @raise OverflowError: Out of range.
     """
     if n >= 0x10000000 or n < -0x10000000:
