@@ -1380,7 +1380,7 @@ def blaze_loader(alias):
     """
     Loader for BlazeDS framework compatibility classes, specifically
     implementing C{ISmallMessage}.
-    
+
     @see: U{BlazeDS (external)<http://opensource.adobe.com/wiki/display/blazeds/BlazeDS>}
     @since: 0.5
     """
