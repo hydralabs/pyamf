@@ -618,11 +618,38 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
         Tests for ints that don't fit into 29bits. Reference: #519
         """
         ints = [
-            (-1, '\x05\xbf\xf0\x00\x00\x00\x00\x00\x00'),
-            (amf3.MAX_29B_INT + 1, '\x05A\xd0\x00\x00\x00\x00\x00\x00')
+            (amf3.MIN_29B_INT - 1, '\x05\xc1\xb0\x00\x00\x01\x00\x00\x00'),
+            (amf3.MAX_29B_INT + 1, '\x05A\xb0\x00\x00\x00\x00\x00\x00')
         ]
 
         for i, val in ints:
+            self.buf.truncate()
+
+            self.encoder.writeElement(i)
+            self.assertEquals(self.buf.getvalue(), val)
+
+    def test_number(self):
+        vals = [
+            (0,        '\x04\x00'),
+            (0.2,      '\x05\x3f\xc9\x99\x99\x99\x99\x99\x9a'),
+            (1,        '\x04\x01'),
+            (127,      '\x04\x7f'),
+            (128,      '\x04\x81\x00'),
+            (0x3fff,   '\x04\xff\x7f'),
+            (0x4000,   '\x04\x81\x80\x00'),
+            (0x1FFFFF, '\x04\xff\xff\x7f'),
+            (0x200000, '\x04\x80\xc0\x80\x00'),
+            (0x3FFFFF, '\x04\x80\xff\xff\xff'),
+            (0x400000, '\x04\x81\x80\x80\x00'),
+            (-1,       '\x04\xff\xff\xff\xff'),
+            (42,       '\x04\x2a'),
+            (-123,     '\x04\xff\xff\xff\x85'),
+            (amf3.MIN_29B_INT, '\x04\xc0\x80\x80\x00'),
+            (amf3.MAX_29B_INT, '\x04\xbf\xff\xff\xff'),
+            (1.23456789, '\x05\x3f\xf3\xc0\xca\x42\x83\xde\x1b')
+	]
+
+        for i, val in vals:
             self.buf.truncate()
 
             self.encoder.writeElement(i)
@@ -691,7 +718,9 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
             (0,    '\x04\x00'),
             (0.2,  '\x05\x3f\xc9\x99\x99\x99\x99\x99\x9a'),
             (1,    '\x04\x01'),
+            (-1,    '\x04\xff\xff\xff\xff'),
             (42,   '\x04\x2a'),
+            (-123, '\x04\xff\xff\xff\x85'),
             (-123, '\x05\xc0\x5e\xc0\x00\x00\x00\x00\x00'),
             (1.23456789, '\x05\x3f\xf3\xc0\xca\x42\x83\xde\x1b')])
 

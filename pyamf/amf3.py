@@ -55,7 +55,7 @@ TYPE_BOOL_FALSE = '\x02'
 #: a Boolean value of C{true}. No further information is encoded for this
 #: value.
 TYPE_BOOL_TRUE = '\x03'
-#: In AMF 3 integers are serialized using a variable length unsigned 29-bit
+#: In AMF 3 integers are serialized using a variable length signed 29-bit
 #: integer.
 #: @see: U{Parsing Integers on OSFlash (external)
 #: <http://osflash.org/documentation/amf3/parsing_integers>}
@@ -111,8 +111,11 @@ TYPE_BYTEARRAY = '\x0C'
 #: Reference bit.
 REFERENCE_BIT = 0x01
 
-#: The maximum that can be represented by an unsigned 29 bit integer.
-MAX_29B_INT = 0x3FFFFFFF
+#: The maximum that can be represented by an signed 29 bit integer.
+MAX_29B_INT = 0x0FFFFFFF
+
+#: The minimum that can be represented by an signed 29 bit integer.
+MIN_29B_INT = -0x10000000
 
 ENCODED_INT_CACHE = {}
 
@@ -1270,7 +1273,7 @@ class Encoder(pyamf.BaseEncoder):
         @type   use_references: C{bool}
         @kwarg  use_references: Default is C{True}.
         """
-        if n < 0 or n > MAX_29B_INT:
+        if n < MIN_29B_INT or n > MAX_29B_INT:
             self.writeNumber(float(n))
 
             return
@@ -1733,7 +1736,7 @@ def encode(*args, **kwargs):
 
 def encode_int(n):
     """
-    Encodes an int as a variable length unsigned 29-bit integer as defined by
+    Encodes an int as a variable length signed 29-bit integer as defined by
     the spec.
 
     @param n: The integer to be encoded
@@ -1741,8 +1744,11 @@ def encode_int(n):
     @rtype: C{str}
     @raise OverflowError: Out of range.
     """
-    if n < 0 or n > MAX_29B_INT:
+    if n < MIN_29B_INT or n > MAX_29B_INT:
         raise OverflowError("Out of range")
+
+    if n < 0:
+        n += 0x20000000
 
     bytes = ''
     real_value = None

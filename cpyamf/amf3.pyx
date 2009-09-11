@@ -15,7 +15,10 @@ cdef extern from "Python.h":
     object PyInt_FromLong(long v)
 
 
-cdef Py_ssize_t _encode_int(long n, char **buf) except? -1:
+cdef Py_ssize_t _encode_int(long i, char **buf) except? -1:
+    # Use typecasting to get the twos complement representation of i
+    cdef unsigned long n = (<unsigned long*>(<void *>(&i)))[0]
+
     cdef Py_ssize_t size = 0
     cdef unsigned long real_value = n
     cdef char changed = 0
@@ -90,7 +93,7 @@ cdef long _decode_int(object stream, int sign=0) except? -1:
 
     return result
 
-def encode_int(unsigned long n):
+def encode_int(long n):
     """
     Encode C{int}.
     
@@ -101,7 +104,7 @@ def encode_int(unsigned long n):
     
     @raise OverflowError: Out of range.
     """
-    if n >= 0x40000000:
+    if n >= 0x10000000 or n < -0x10000000:
         raise OverflowError("Out of range")
 
     cdef char *buf = NULL
