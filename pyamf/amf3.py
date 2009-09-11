@@ -1573,8 +1573,9 @@ class Encoder(pyamf.BaseEncoder):
                 alias = pyamf.get_class_alias(kls)
             except pyamf.UnknownClassAlias:
                 alias_klass = util.get_class_alias(kls)
+                meta = util.get_class_meta(kls)
 
-                alias = alias_klass(kls, defer=True)
+                alias = alias_klass(kls, defer=True, **meta)
 
             definition = ClassDefinition(alias)
 
@@ -1582,9 +1583,6 @@ class Encoder(pyamf.BaseEncoder):
 
         if class_ref:
             self.stream.write(definition.reference)
-
-            if alias.anonymous:
-                self.stream.write_uchar(0x01)
         else:
             ref = 0
 
@@ -1596,9 +1594,11 @@ class Encoder(pyamf.BaseEncoder):
 
             self.stream.write(final_reference)
 
+            definition.reference = encode_int(
+                definition.reference << 2 | REFERENCE_BIT)
+
             if alias.anonymous:
                 self.stream.write_uchar(0x01)
-                #self._writeString('')
             else:
                 self._writeString(alias.alias)
 
@@ -1606,11 +1606,6 @@ class Encoder(pyamf.BaseEncoder):
             # this is okay because the next time an object of the same
             # class is encoded, class_ref will be True and never get here
             # again.
-            if alias.anonymous:
-                definition.reference = final_reference
-            else:
-                definition.reference = encode_int(
-                    definition.reference << 2 | REFERENCE_BIT)
 
         if alias.external:
             obj.__writeamf__(DataOutput(self))

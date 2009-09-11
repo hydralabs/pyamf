@@ -1143,6 +1143,29 @@ class ObjectEncodingTestCase(_util.ClassCacheClearingTestCase):
 
         self.assertEquals(len(buf), 10)
 
+    def test_anonymous_class_references(self):
+        """
+        Test to ensure anonymous class references with static attributes
+        are encoded propertly
+        """
+        class Foo:
+            class __amf__:
+                static = ('name', 'id', 'description')
+
+        x = Foo()
+        x.id = 1
+        x.name = 'foo'
+        x.description = None
+
+        y = Foo()
+        y.id = 2
+        y.name = 'bar'
+        y.description = None
+
+        self.encoder.writeElement([x, y])
+
+        self.assertEquals(self.stream.getvalue(), '\t\x05\x01\n;\x01\x17description\x05id\tname\x01\x04\x01\x06\x07foo\x01\n\x01\x01\x04\x02\x06\x07bar\x01')
+
 
 class ObjectDecodingTestCase(_util.ClassCacheClearingTestCase):
     def setUp(self):
@@ -1702,7 +1725,7 @@ class ComplexEncodingTestCase(unittest.TestCase, _util.BaseEncoderMixIn):
 
         self.assertEquals(class_defs, {0: cd, 1: cd2})
         self.assertEquals(classes, {self.TestSubObject: cd, dict: cd2})
-        self.assertEquals(cd2.reference, '\x0b')
+        self.assertEquals(cd2.reference, '\x05')
 
         self.encoder.writeElement({})
 

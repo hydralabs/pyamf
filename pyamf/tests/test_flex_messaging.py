@@ -62,8 +62,8 @@ class EncodingTestCase(unittest.TestCase):
             'clientId\x1bcorrelationId\x17destination\x19extendedData\x13'
             'faultCode\x17faultDetail\x17faultString\x0fheaders\x13messageId'
             '\x13rootCause\x15timeToLive\x13timestamp\x01\x01\x01\x01\n\x0b'
-            '\x01\x01\x01\x01\x06\x15ValueError\n\x0b\x01\x01\x01\n\x0b\x01'
-            '\x01\x01\x01')
+            '\x01\x01\x01\x01\x06\x15ValueError\n\x05\x01\x01\n\x05\x01\x01'
+            '\x01')
 
     def test_RemotingMessage(self):
         m = messaging.RemotingMessage(source='foo.bar')
