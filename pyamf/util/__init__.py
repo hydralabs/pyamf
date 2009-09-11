@@ -882,7 +882,7 @@ def is_class_sealed(klass):
     """
     Returns a C{boolean} whether or not the supplied class can accept dynamic
     properties.
-    
+
     @rtype: C{bool}
     @since: 0.5
     """
@@ -907,7 +907,7 @@ def get_class_meta(klass):
     """
     Returns a C{dict} containing meta data based on the supplied class, useful
     for class aliasing.
-    
+
     @rtype: C{dict}
     @since: 0.5
     """

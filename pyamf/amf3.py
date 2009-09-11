@@ -1591,7 +1591,7 @@ class Encoder(pyamf.BaseEncoder):
             if definition.encoding != ObjectEncoding.EXTERNAL:
                 ref += definition.attr_len << 4
 
-            final_reference = encode_int(ref | definition.encoding << 2 | 
+            final_reference = encode_int(ref | definition.encoding << 2 |
                 REFERENCE_BIT << 1 | REFERENCE_BIT)
 
             self.stream.write(final_reference)
