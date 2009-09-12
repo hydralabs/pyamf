@@ -21,6 +21,7 @@ cdef extern from "Python.h":
         pass
 
     PyObject *PyErr_Occurred()
+    object PyObject_Repr(PyObject *)
 
     void Py_INCREF(PyObject *)
     void Py_DECREF(PyObject *)
@@ -1599,11 +1600,11 @@ cdef class cIndexedCollection:
         self._clear()
 
     cdef int _increase_size(self) except? -1:
-        cdef Py_ssize_t new_len = self.length + 1
+        cdef Py_ssize_t new_len = self.length
         cdef Py_ssize_t current_size = self.size
         cdef PyObject **cpy
 
-        while new_len > current_size:
+        while new_len >= current_size:
             current_size *= 2
 
         if current_size != self.size:
@@ -1616,6 +1617,8 @@ cdef class cIndexedCollection:
                 self.data = NULL
 
                 raise MemoryError
+
+            self.data = cpy
 
         return 0
 
