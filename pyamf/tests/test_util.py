@@ -910,9 +910,9 @@ class IndexedCollectionTestCase(unittest.TestCase):
 
         self.assertEquals(id(test_obj), id(self.collection.getByReference(idx)))
 
-        self.assertEquals(sys.getrefcount(test_obj), 3)
+        self.assertEquals(sys.getrefcount(test_obj), 4)
         idx = self.collection.getReferenceTo(test_obj)
-        self.assertEquals(sys.getrefcount(test_obj), 3)
+        self.assertEquals(sys.getrefcount(test_obj), 4)
 
         self.assertEquals(id(test_obj), id(self.collection.getByReference(idx)))
         self.assertRaises(TypeError, self.collection.getByReference, 'bad ref')
@@ -928,7 +928,7 @@ class IndexedCollectionTestCase(unittest.TestCase):
 
         o = self.collection.getByReference(idx)
 
-        self.assertEquals(sys.getrefcount(test_obj), 4)
+        self.assertEquals(sys.getrefcount(test_obj), 5)
 
     def test_array(self):
         test_obj = []

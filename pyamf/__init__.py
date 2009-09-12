@@ -586,9 +586,9 @@ class ClassAlias(object):
 
         if self.static_attrs:
             for attr in self.static_attrs:
-                if hasattr(obj, attr):
+                try:
                     static_attrs[attr] = getattr(obj, attr)
-                else:
+                except AttributeError:
                     static_attrs[attr] = Undefined
 
         if not self.dynamic:
@@ -1018,7 +1018,9 @@ class BaseEncoder(object):
         except AttributeError:
             return self._getWriteElementFunc(data)
 
-        if key not in self._write_elem_func_cache:
+        try:
+            return self._write_elem_func_cache[key]
+        except KeyError:
             self._write_elem_func_cache[key] = self._getWriteElementFunc(data)
 
         return self._write_elem_func_cache[key]

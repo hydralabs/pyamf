@@ -1582,17 +1582,10 @@ cdef class cIndexedCollection:
 
         self.use_hash = use_hash
         self.exceptions = exceptions
-        self.length = 0
-        self.size = 64
 
-        self.data = <PyObject **>PyMem_Malloc(sizeof(PyObject *) * self.size)
+        self.clear()
 
-        if self.data == NULL:
-            raise MemoryError()
-
-        self.refs = {}
-
-    def __dealloc__(self):
+    cdef void _clear(self):
         cdef Py_ssize_t i
 
         if self.data != NULL:
@@ -1602,9 +1595,13 @@ cdef class cIndexedCollection:
             PyMem_Free(self.data)
             self.data = NULL
 
+    def __dealloc__(self):
+        self._clear()
+
     cdef int _increase_size(self) except? -1:
         cdef Py_ssize_t new_len = self.length + 1
         cdef Py_ssize_t current_size = self.size
+        cdef PyObject **cpy
 
         while new_len > current_size:
             current_size *= 2
@@ -1612,21 +1609,18 @@ cdef class cIndexedCollection:
         if current_size != self.size:
             self.size = current_size
 
-            self.data = <PyObject **>PyMem_Realloc(self.data, sizeof(PyObject *) * self.size)
+            cpy = <PyObject **>PyMem_Realloc(self.data, sizeof(PyObject *) * self.size)
 
-            if self.data == NULL:
-                raise MemoryError()
+            if cpy == NULL:
+                PyMem_Free(self.data)
+                self.data = NULL
+
+                raise MemoryError
 
         return 0
 
     cdef int clear(self) except? -1:
-        cdef Py_ssize_t i
-
-        if self.data != NULL:
-            for i from 0 <= i < self.length:
-                Py_DECREF(self.data[i])
-
-            PyMem_Free(self.data)
+        self._clear()
 
         self.length = 0
         self.size = 64
@@ -1634,7 +1628,7 @@ cdef class cIndexedCollection:
         self.data = <PyObject **>PyMem_Malloc(sizeof(PyObject *) * self.size)
 
         if self.data == NULL:
-            raise MemoryError()
+            raise MemoryError
 
         self.refs = {}
 
@@ -1648,6 +1642,8 @@ cdef class cIndexedCollection:
                 raise pyamf_ReferenceError('Reference not found')
 
             return None
+
+        Py_INCREF(self.data[ref])
 
         return <object>self.data[ref]
 
@@ -1729,6 +1725,8 @@ cdef class cIndexedCollection:
 
     def __copy__(self):
         cdef cIndexedCollection n = cIndexedCollection(self.use_hash, self.exceptions)
+
+        return n
 
         for x in self:
             n.append(x)
@@ -1816,7 +1814,11 @@ cdef class cIndexedMap(cIndexedCollection):
 
             return None
 
-        return PyList_GET_ITEM(self.mapped, ref)
+        cdef object ret = PyList_GET_ITEM(self.mapped, ref)
+
+        Py_INCREF(<PyObject *>ret)
+
+        return ret
 
     cdef Py_ssize_t append(self, object obj) except? -1:
         cdef Py_ssize_t idx, diff, i

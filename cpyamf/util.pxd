@@ -66,6 +66,7 @@ cdef class cIndexedCollection:
     cdef Py_ssize_t length
 
     cdef int _increase_size(self) except? -1
+    cdef void _clear(self)
     cdef int clear(self) except? -1
     cdef object _ref(self, object obj)
     cdef object getByReference(self, Py_ssize_t ref)
