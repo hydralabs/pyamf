@@ -8,6 +8,8 @@ versions of PyAMF.
 
 0.5.1 (unreleased)
 ------------------
+ - Fixed a regression in TwistedGateway where services would be called twice
+   (Ticket:648)
  - Fixed a bug with encoding anonymous trait references (Ticket:644)
  - Moved IndexedCollection into cpyamf (Ticket:424)
  - amf3.encode_int now encodes signed 29bit ints, not unsigned. Thanks to

@@ -341,6 +341,29 @@ class TwistedServerTestCase(unittest.TestCase):
 
         return d.addCallback(cb)
 
+    def test_double_encode(self):
+        """
+        See ticket #648
+        """
+        self.counter = 0
+
+        def service():
+            self.counter += 1
+
+        self.gw.addService(service)
+
+        env = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash9)
+        request = remoting.Request('service')
+        env['/1'] = request
+
+        d = client.getPage("http://127.0.0.1:%d/" % (self.port,),
+                method="POST", postdata=remoting.encode(env).getvalue())
+
+        def cb(result):
+            self.assertEquals(self.counter, 1)
+
+        return d.addCallback(cb)
+
 
 class DummyHTTPRequest:
     def __init__(self):

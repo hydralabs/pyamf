@@ -345,10 +345,6 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
 
             http_request.amf_request = message
 
-            d = defer.maybeDeferred(processor, message,
-                http_request=http_request)
-            d.addCallback(cb, name)
-
             d = defer.maybeDeferred(
                 processor, message, http_request=http_request)
 
