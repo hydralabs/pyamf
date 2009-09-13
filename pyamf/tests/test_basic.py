@@ -662,6 +662,24 @@ class PackageTestCase(ClassCacheClearingTestCase):
             self.assertEquals(alias.klass, c)
             self.assertEquals(alias.alias, 'com.example.' + c.__name__)
 
+    def test_list(self):
+        class Foo:
+            pass
+
+        class Bar:
+            pass
+
+        ret = pyamf.register_package([Foo, Bar], 'spam.eggs')
+
+        self.assertEquals(len(ret), 2)
+
+        for c in [Foo, Bar]:
+            alias = ret[c]
+
+            self.assertTrue(isinstance(alias, pyamf.ClassAlias))
+            self.assertEquals(alias.klass, c)
+            self.assertEquals(alias.alias, 'spam.eggs.' + c.__name__)
+
 
 def suite():
     suite = unittest.TestSuite()

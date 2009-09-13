@@ -8,6 +8,7 @@ versions of PyAMF.
 
 0.5.1 (unreleased)
 ------------------
+ - pyamf.register_package can now accept a list of classes (Ticket:650)
  - Fixed a regression in TwistedGateway where services would be called twice
    (Ticket:648)
  - Fixed a bug with encoding anonymous trait references (Ticket:644)

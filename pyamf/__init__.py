@@ -519,7 +519,7 @@ class ClassAlias(object):
         return self.alias
 
     def __repr__(self):
-        return '<ClassAlias alias=%s klass=%s @ 0x%x>' % (
+        return '<ClassAlias alias=%s class=%s @ 0x%x>' % (
             self.alias, self.klass, id(self))
 
     def __eq__(self, other):
@@ -1620,6 +1620,12 @@ def register_package(module=None, package=None, separator='.', ignore=[], strict
     >>> import pyamf
     >>> pyamf.register_package('foo')
 
+    You can also supply a list of classes to register. An example, taking the
+    above classes:
+
+    >>> import pyamf
+    >>> pyamf.register_package([Foo, Bar], 'foo')
+
     @param module: The Python module that will contain all the classes to
         auto alias.
     @type module: C{module} or C{dict}
@@ -1655,6 +1661,10 @@ def register_package(module=None, package=None, separator='.', ignore=[], strict
     if type(module) is dict:
         has = lambda x: x in module.keys()
         get = module.__getitem__
+    elif type(module) is list:
+        has = lambda x: x in module
+        get = module.__getitem__
+        strict = False
     else:
         has = lambda x: hasattr(module, x)
         get = lambda x: getattr(module, x)
@@ -1671,6 +1681,8 @@ def register_package(module=None, package=None, separator='.', ignore=[], strict
         keys = module.__dict__.keys()
     elif hasattr(module, 'keys'):
         keys = module.keys()
+    elif isinstance(module, list):
+        keys = range(len(module))
     else:
         raise TypeError('Cannot get list of classes from %r' % (module,))
 
