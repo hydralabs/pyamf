@@ -1325,17 +1325,16 @@ class Encoder(pyamf.BaseEncoder):
         self._writeInteger((len(bytes) << 1) | REFERENCE_BIT)
         self.stream.write(bytes)
 
-    def writeString(self, n, **kwargs):
+    def writeString(self, n, writeType=True, **kwargs):
         """
         Writes a string to the stream. If C{n} is not a unicode string, an
         attempt will be made to convert it.
 
         @type   n: C{basestring}
         @param  n: The string data to be encoded to the AMF3 data stream.
-        @type   use_references: C{bool}
-        @kwarg  use_references: Default is C{True}.
         """
-        self.stream.write(TYPE_STRING)
+        if writeType:
+            self.stream.write(TYPE_STRING)
 
         self._writeString(n, **kwargs)
 

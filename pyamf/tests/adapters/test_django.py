@@ -582,6 +582,15 @@ class FieldsTestCase(ModelsBaseTestCase):
     Tests for L{fields}
     """
 
+    def tearDown(self):
+        ModelsBaseTestCase.tearDown(self)
+
+        try:
+            os.unlink(os.path.join(os.getcwd(), 'foo'))
+        except OSError:
+            raise
+            pass
+
     def test_file(self):
         from django.db import models
 
