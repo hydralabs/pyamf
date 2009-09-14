@@ -573,16 +573,6 @@ class Encoder(pyamf.BaseEncoder):
         else:
             self.stream.write_uchar(0)
 
-    def _writeString(self, s):
-        l = len(s)
-
-        if l > 0xffff:
-            self.stream.write_ulong(l)
-        else:
-            self.stream.write_ushort(l)
-
-        self.stream.write(s)
-
     def writeString(self, s, writeType=True):
         """
         Write string to the data stream.
@@ -601,13 +591,20 @@ class Encoder(pyamf.BaseEncoder):
         elif not isinstance(s, basestring):
             s = unicode(s).encode('utf8')
 
+        l = len(s)
+
         if writeType:
-            if len(s) > 0xffff:
+            if l > 0xffff:
                 self.writeType(TYPE_LONGSTRING)
             else:
                 self.writeType(TYPE_STRING)
 
-        self._writeString(s)
+        if l > 0xffff:
+            self.stream.write_ulong(l)
+        else:
+            self.stream.write_ushort(l)
+
+        self.stream.write(s)
 
     def writeReference(self, o):
         """
