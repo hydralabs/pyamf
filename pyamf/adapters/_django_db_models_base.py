@@ -175,8 +175,6 @@ class DjangoClassAlias(pyamf.ClassAlias):
         for name, relation in self.relations.iteritems():
             if '_%s_cache' % name in obj.__dict__:
                 da[name] = getattr(obj, name)
-            else:
-                da[name] = pyamf.Undefined
 
         if not da:
             da = None

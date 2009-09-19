@@ -294,14 +294,13 @@ class ForeignKeyTestCase(ModelsBaseTestCase):
             'pub_date': datetime.datetime(2005, 7, 27, 0, 0),
             'id': 1,
         })
-        self.assertEquals(da, {
-            'reporter': pyamf.Undefined
-        })
+        # note that the reporter attribute does not exist.
+        self.assertEquals(da, None)
 
         self.assertFalse('_reporter_cache' in a.__dict__)
         self.assertEquals(pyamf.encode(a, encoding=pyamf.AMF3).getvalue(),
             '\n;\x01\x11headline\x05id\x11pub_date\x06\x1dThis is a test\x04'
-            '\x01\x08\x01BpUYj@\x00\x00\x11reporter\x00\x01')
+            '\x01\x08\x01BpUYj@\x00\x00\x01')
 
         del a
 
@@ -400,6 +399,33 @@ class ForeignKeyTestCase(ModelsBaseTestCase):
 
         self.assertEquals(len(p), 1)
         self.assertEquals(p[0], p1)
+
+    def test_nullable_foreign_keys(self):
+        from django.db import models
+
+        class FooBar(models.Model):
+            pass
+
+        class NullForeignKey(models.Model):
+            foobar = models.ForeignKey(FooBar, null=True)
+
+        class BlankForeignKey(models.Model):
+            foobar = models.ForeignKey(FooBar, blank=True)
+
+        self.resetDB()
+
+        x = FooBar()
+        x.save()
+
+        nfk_alias = self.adapter.DjangoClassAlias(NullForeignKey, None)
+        bfk_alias = self.adapter.DjangoClassAlias(BlankForeignKey, None)
+
+        nfk = NullForeignKey()
+
+        sa, da = nfk_alias.getEncodableAttributes(nfk)
+
+        self.assertEquals(sa, {'id': None})
+        self.assertEquals(da, None)
 
 
 class I18NTestCase(ModelsBaseTestCase):
