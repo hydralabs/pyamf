@@ -582,16 +582,16 @@ class Context(pyamf.BaseContext):
     @type legacy_xml: C{list}
     """
 
-    def __init__(self, exceptions=True):
-        self.strings = util.IndexedCollection(use_hash=True, exceptions=False)
+    def __init__(self):
+        self.strings = util.IndexedCollection(use_hash=True)
         self.classes = {}
         self.class_ref = {}
-        self.legacy_xml = util.IndexedCollection(exceptions=False)
-        self.object_aliases = util.IndexedMap(exceptions=False) # Maps one object to another
+        self.legacy_xml = util.IndexedCollection()
+        self.object_aliases = util.IndexedMap() # Maps one object to another
 
         self.class_idx = 0
 
-        pyamf.BaseContext.__init__(self, exceptions=exceptions)
+        pyamf.BaseContext.__init__(self)
 
     def clear(self):
         """
@@ -620,26 +620,13 @@ class Context(pyamf.BaseContext):
         Get an alias of an object.
 
         @since: 0.4
-        @raise pyamf.ReferenceError: Unknown object alias.
-        @raise pyamf.ReferenceError: Unknown mapped alias.
         """
         ref = self.object_aliases.getReferenceTo(obj)
 
         if ref is None:
-            if self.exceptions is False:
-                return None
+            return None
 
-            raise pyamf.ReferenceError('Unknown object alias for %r' % (obj,))
-
-        mapped = self.object_aliases.getMappedByReference(ref)
-
-        if mapped is None:
-            if self.exceptions is False:
-                return None
-
-            raise pyamf.ReferenceError('Unknown mapped alias for %r' % (obj,))
-
-        return mapped
+        return self.object_aliases.getMappedByReference(ref)
 
     def getString(self, ref):
         """
@@ -647,17 +634,11 @@ class Context(pyamf.BaseContext):
 
         @param ref: The reference index.
         @type ref: C{str}
-        @raise pyamf.ReferenceError: The referenced string could not be found.
 
-        @rtype: C{str}
+        @rtype: C{str} or C{None}
         @return: The referenced string.
         """
-        i = self.strings.getByReference(ref)
-
-        if i is None and self.exceptions:
-            raise pyamf.ReferenceError("String reference %r not found" % (ref,))
-
-        return i
+        return self.strings.getByReference(ref)
 
     def getStringReference(self, s):
         """
@@ -665,16 +646,10 @@ class Context(pyamf.BaseContext):
 
         @type s: C{str}
         @param s: The referenced string.
-        @raise pyamf.ReferenceError: The string reference could not be found.
         @return: The reference index to the string.
-        @rtype: C{int}
+        @rtype: C{int} or C{None}
         """
-        i = self.strings.getReferenceTo(s)
-
-        if i is None and self.exceptions:
-            raise pyamf.ReferenceError("Reference for string %r not found" % (s,))
-
-        return i
+        return self.strings.getReferenceTo(s)
 
     def addString(self, s):
         """
@@ -687,17 +662,12 @@ class Context(pyamf.BaseContext):
         @return: The reference index.
 
         @raise TypeError: The parameter C{s} is not of C{basestring} type.
-        @raise pyamf.ReferenceError: Trying to store a reference to an empty string.
         """
         if not isinstance(s, basestring):
             raise TypeError
 
         if len(s) == 0:
-            if not self.exceptions:
-                return None
-
-            # do not store empty string references
-            raise pyamf.ReferenceError("Cannot store a reference to an empty string")
+            return None
 
         return self.strings.append(s)
 
@@ -705,33 +675,23 @@ class Context(pyamf.BaseContext):
         """
         Return class reference.
 
-        @raise pyamf.ReferenceError: The class reference could not be found.
         @return: Class reference.
         """
         try:
             return self.class_ref[ref]
         except KeyError:
-            if not self.exceptions:
-                return None
-
-            raise pyamf.ReferenceError("Class reference %r not found" % (
-                ref,))
+            return None
 
     def getClass(self, klass):
         """
         Return class reference.
 
-        @raise pyamf.ReferenceError: The class reference could not be found.
         @return: Class reference.
         """
         try:
             return self.classes[klass]
         except KeyError:
-            if not self.exceptions:
-                return None
-
-            raise pyamf.ReferenceError("Class alias for %r not found" % (
-                klass,))
+            return None
 
     def addClass(self, alias, klass):
         """
@@ -758,18 +718,9 @@ class Context(pyamf.BaseContext):
 
         @type ref: C{int}
         @param ref: The reference index.
-        @raise pyamf.ReferenceError: The legacy XML reference could not be found.
-        @return: Instance of L{ET<util.ET>}
+        @return: Instance of L{ET<util.ET>} or C{None}
         """
-        i = self.legacy_xml.getByReference(ref)
-
-        if i is None:
-            if not self.exceptions:
-                return None
-
-            raise pyamf.ReferenceError("Legacy XML reference %r not found" % (ref,))
-
-        return i
+        return self.legacy_xml.getByReference(ref)
 
     def getLegacyXMLReference(self, doc):
         """
@@ -777,19 +728,10 @@ class Context(pyamf.BaseContext):
 
         @type doc: L{ET<util.ET>}
         @param doc: The XML document to reference.
-        @raise pyamf.ReferenceError: The reference could not be found.
-        @return: The reference to C{doc}.
+        @return: The reference to C{doc} or C{None}.
         @rtype: C{int}
         """
-        i = self.legacy_xml.getReferenceTo(doc)
-
-        if i is None:
-            if not self.exceptions:
-                return None
-
-            raise pyamf.ReferenceError("Reference for document %r not found" % (doc,))
-
-        return i
+        return self.legacy_xml.getReferenceTo(doc)
 
     def addLegacyXML(self, doc):
         """
@@ -806,7 +748,7 @@ class Context(pyamf.BaseContext):
         return self.legacy_xml.append(doc)
 
     def __copy__(self):
-        return self.__class__(exceptions=self.exceptions)
+        return self.__class__()
 
 
 class Decoder(pyamf.BaseDecoder):

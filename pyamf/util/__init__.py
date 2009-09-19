@@ -60,72 +60,6 @@ NegInf = -1e300000
 NaN = PosInf / PosInf
 
 
-def find_xml_lib():
-    """
-    Run through a predefined order looking through the various C{ElementTree}
-    implementations so that any type can be encoded but PyAMF will return
-    elements as the first implementation found.
-
-    We work through the C implementations first - then the pure Python
-    versions. The downside to this is that a possible of three libraries will
-    be loaded into memory that are not used but the libs are small
-    (relatively) and the flexibility that this gives seems to outweigh the
-    cost. Time will tell.
-
-    @since: 0.4
-    """
-    global xml_types, ET
-
-    xml_types = []
-
-    try:
-        import xml.etree.cElementTree as cET
-
-        ET = cET
-        xml_types.append(type(cET.Element('foo')))
-    except ImportError:
-        pass
-
-    try:
-        import cElementTree as cET
-
-        if ET is None:
-            ET = cET
-
-        xml_types.append(type(cET.Element('foo')))
-    except ImportError:
-        pass
-
-    try:
-        import xml.etree.ElementTree as pET
-
-        if ET is None:
-            ET = pET
-
-        xml_types.append(pET._ElementInterface)
-    except ImportError:
-        pass
-
-    try:
-        import elementtree.ElementTree as pET
-
-        if ET is None:
-            ET = pET
-
-        xml_types.append(pET._ElementInterface)
-    except ImportError:
-        pass
-
-    for x in xml_types[:]:
-        # hack for jython
-        if x.__name__ == 'instance':
-            xml_types.remove(x)
-
-    xml_types = tuple(xml_types)
-
-    return xml_types
-
-
 class StringIOProxy(object):
     """
     I am a C{StringIO} type object containing byte data from the AMF stream.
@@ -730,6 +664,229 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
         return new
 
 
+class IndexedCollection(object):
+    """
+    A class that provides a quick and clean way to store references and
+    referenced objects.
+
+    @note: All attributes on the instance are private.
+    """
+
+    def __init__(self, use_hash=False):
+        if use_hash is True:
+            self.func = hash
+        else:
+            self.func = id
+
+        self.clear()
+
+    def clear(self):
+        """
+        Clears the index.
+        """
+        self.list = []
+        self.dict = {}
+
+    def getByReference(self, ref):
+        """
+        Returns an object based on the reference.
+
+        If the reference is not found, C{None} will be returned.
+
+        @raise TypeError: Bad reference type.
+        """
+        if not isinstance(ref, int_types):
+            raise TypeError("Bad reference type, got %s" % (type(ref),))
+
+        try:
+            return self.list[ref]
+        except IndexError:
+            return None
+
+    def getReferenceTo(self, obj):
+        """
+        Returns a reference to C{obj} if it is contained within this index.
+
+        If the object is not contained within the collection, C{None} will be
+        returned.
+
+        @param obj: The object to find the reference to
+        @return: An C{int} representing the reference or C{None} is the object
+            is not contained within the collection.
+        """
+        try:
+            return self.dict[self.func(obj)]
+        except KeyError:
+            return None
+
+    def append(self, obj):
+        """
+        Appends C{obj} to this index.
+
+        @note: Uniqueness is not checked
+        @return: The reference to C{obj} in this index.
+        """
+        h = self.func(obj)
+
+        self.list.append(obj)
+        idx = len(self.list) - 1
+        self.dict[h] = idx
+
+        return idx
+
+    def __eq__(self, other):
+        if isinstance(other, list):
+            return self.list == other
+        elif isinstance(other, dict):
+            return self.dict == other
+
+        return False
+
+    def __len__(self):
+        return len(self.list)
+
+    def __getitem__(self, idx):
+        return self.getByReference(idx)
+
+    def __contains__(self, obj):
+        r = self.getReferenceTo(obj)
+
+        return r is not None
+
+    def __repr__(self):
+        return '<%s list=%r dict=%r>' % (self.__class__.__name__, self.list, self.dict)
+
+    def __iter__(self):
+        return iter(self.list)
+
+
+class IndexedMap(IndexedCollection):
+    """
+    Like L{IndexedCollection}, but also maps to another object.
+
+    @since: 0.4
+    """
+
+    def __init__(self, use_hash=False):
+        IndexedCollection.__init__(self, use_hash)
+
+    def clear(self):
+        """
+        Clears the index and mapping.
+        """
+        IndexedCollection.clear(self)
+
+        self.mapped = []
+
+    def getMappedByReference(self, ref):
+        """
+        Returns the mapped object by reference.
+
+        @param ref: The reference to the object contained within the
+            collection.
+        @type ref: C{int}
+        @return: The referenced object or C{None} if not found within this
+            collection.
+        @raise TypeError: Bad reference type.
+        """
+        if not isinstance(ref, int_types):
+            raise TypeError("Bad reference type. Expected int, got %r" % (
+                type(ref),))
+
+        try:
+            return self.mapped[ref]
+        except IndexError:
+            return None
+
+    def append(self, obj):
+        """
+        Appends C{obj} to this index.
+
+        @return: The reference to C{obj} in this index.
+        """
+        idx = IndexedCollection.append(self, obj)
+        diff = idx + 1 - len(self.mapped)
+
+        [self.mapped.append(None) for i in range(0, diff)]
+
+        return idx
+
+    def map(self, obj, mapped_obj):
+        """
+        Maps an object so that L{getMappedByReference} will return C{obj}.
+        """
+        idx = self.append(obj)
+        self.mapped[idx] = mapped_obj
+
+        return idx
+
+
+def find_xml_lib():
+    """
+    Run through a predefined order looking through the various C{ElementTree}
+    implementations so that any type can be encoded but PyAMF will return
+    elements as the first implementation found.
+
+    We work through the C implementations first - then the pure Python
+    versions. The downside to this is that a possible of three libraries will
+    be loaded into memory that are not used but the libs are small
+    (relatively) and the flexibility that this gives seems to outweigh the
+    cost. Time will tell.
+
+    @since: 0.4
+    """
+    global xml_types, ET
+
+    xml_types = []
+
+    try:
+        import xml.etree.cElementTree as cET
+
+        ET = cET
+        xml_types.append(type(cET.Element('foo')))
+    except ImportError:
+        pass
+
+    try:
+        import cElementTree as cET
+
+        if ET is None:
+            ET = cET
+
+        xml_types.append(type(cET.Element('foo')))
+    except ImportError:
+        pass
+
+    try:
+        import xml.etree.ElementTree as pET
+
+        if ET is None:
+            ET = pET
+
+        xml_types.append(pET._ElementInterface)
+    except ImportError:
+        pass
+
+    try:
+        import elementtree.ElementTree as pET
+
+        if ET is None:
+            ET = pET
+
+        xml_types.append(pET._ElementInterface)
+    except ImportError:
+        pass
+
+    for x in xml_types[:]:
+        # hack for jython
+        if x.__name__ == 'instance':
+            xml_types.remove(x)
+
+    xml_types = tuple(xml_types)
+
+    return xml_types
+
+
 def hexdump(data):
     """
     Get hexadecimal representation of C{StringIO} data.
@@ -807,40 +964,6 @@ def get_properties(obj):
         return obj.__dict__.keys()
 
     return []
-
-
-def get_attrs(obj):
-    """
-    Gets a C{dict} of the attrs of an object in a predefined resolution order.
-
-    @raise AttributeError: A duplicate attribute was already found in this
-        collection, are you mixing different key types?
-    """
-    if hasattr(obj, 'iteritems'):
-        attrs = {}
-
-        for k, v in obj.iteritems():
-            sk = str(k)
-
-            if sk in attrs.keys():
-                raise AttributeError('A duplicate attribute (%s) was '
-                    'already found in this collection, are you mixing '
-                    'different key types?' % (sk,))
-
-            attrs[sk] = v
-
-        return attrs
-    elif hasattr(obj, '__dict__'):
-        return obj.__dict__.copy()
-    elif hasattr(obj, '__slots__'):
-        attrs = {}
-
-        for k in obj.__slots__:
-            attrs[k] = getattr(obj, k)
-
-        return attrs
-
-    return None
 
 
 def set_attrs(obj, attrs):
@@ -945,169 +1068,6 @@ def get_class_meta(klass):
             meta[prop + '_attrs'] = list(get_func(prop))
 
     return meta
-
-
-class IndexedCollection(object):
-    """
-    A class that provides a quick and clean way to store references and
-    referenced objects.
-
-    @note: All attributes on the instance are private.
-    @ivar exceptions: If C{True} then L{ReferenceError<pyamf.ReferenceError>}
-        will be raised, otherwise C{None} will be returned.
-    """
-
-    def __init__(self, use_hash=False, exceptions=True):
-        if use_hash is True:
-            self.func = hash
-        else:
-            self.func = id
-
-        self.exceptions = exceptions
-
-        self.clear()
-
-    def clear(self):
-        """
-        Clears the index.
-        """
-        self.list = []
-        self.dict = {}
-
-    def getByReference(self, ref):
-        """
-        Returns an object based on the reference.
-
-        @raise TypeError: Bad reference type.
-        @raise pyamf.ReferenceError: Reference not found.
-        """
-        if not isinstance(ref, (int, long)):
-            raise TypeError("Bad reference type")
-
-        try:
-            return self.list[ref]
-        except IndexError:
-            if self.exceptions is False:
-                return None
-
-            raise pyamf.ReferenceError("Reference %r not found" % (ref,))
-
-    def getReferenceTo(self, obj):
-        """
-        Returns a reference to C{obj} if it is contained within this index.
-
-        @raise pyamf.ReferenceError: Value not found.
-        """
-        try:
-            return self.dict[self.func(obj)]
-        except KeyError:
-            if self.exceptions is False:
-                return None
-
-            raise pyamf.ReferenceError("Value %r not found" % (obj,))
-
-    def append(self, obj):
-        """
-        Appends C{obj} to this index.
-
-        @note: Uniqueness is not checked
-        @return: The reference to C{obj} in this index.
-        """
-        h = self.func(obj)
-
-        self.list.append(obj)
-        idx = len(self.list) - 1
-        self.dict[h] = idx
-
-        return idx
-
-    def __eq__(self, other):
-        if isinstance(other, list):
-            return self.list == other
-        elif isinstance(other, dict):
-            return self.dict == other
-
-        return False
-
-    def __len__(self):
-        return len(self.list)
-
-    def __getitem__(self, idx):
-        return self.getByReference(idx)
-
-    def __contains__(self, obj):
-        try:
-            r = self.getReferenceTo(obj)
-        except pyamf.ReferenceError:
-            r = None
-
-        return r is not None
-
-    def __repr__(self):
-        return '<%s list=%r dict=%r>' % (self.__class__.__name__, self.list, self.dict)
-
-    def __iter__(self):
-        return iter(self.list)
-
-
-class IndexedMap(IndexedCollection):
-    """
-    Like L{IndexedCollection}, but also maps to another object.
-
-    @since: 0.4
-    """
-
-    def __init__(self, use_hash=False, exceptions=True):
-        IndexedCollection.__init__(self, use_hash, exceptions)
-
-    def clear(self):
-        """
-        Clears the index and mapping.
-        """
-        IndexedCollection.clear(self)
-
-        self.mapped = []
-
-    def getMappedByReference(self, ref):
-        """
-        Returns the mapped object by reference.
-
-        @raise TypeError: Bad reference type.
-        @raise pyamf.ReferenceError: Reference not found.
-        """
-        if not isinstance(ref, (int, long)):
-            raise TypeError("Bad reference type.")
-
-        try:
-            return self.mapped[ref]
-        except IndexError:
-            if self.exceptions is False:
-                return None
-
-            raise pyamf.ReferenceError("Reference %r not found" % ref)
-
-    def append(self, obj):
-        """
-        Appends C{obj} to this index.
-
-        @return: The reference to C{obj} in this index.
-        """
-        idx = IndexedCollection.append(self, obj)
-        diff = (idx + 1) - len(self.mapped)
-
-        for i in range(0, diff):
-            self.mapped.append(None)
-
-        return idx
-
-    def map(self, obj, mapped_obj):
-        """
-        Maps an object.
-        """
-        idx = self.append(obj)
-        self.mapped[idx] = mapped_obj
-
-        return idx
 
 
 def is_ET_element(obj):

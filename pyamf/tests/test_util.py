@@ -857,9 +857,6 @@ class IndexedCollectionTestCase(unittest.TestCase):
 
         self.assertEquals(sys.getrefcount(o), 2)
 
-    def test_create(self):
-        self.assertTrue(self.collection.exceptions)
-
     def test_delete(self):
         o = object()
 
@@ -897,9 +894,6 @@ class IndexedCollectionTestCase(unittest.TestCase):
         self.assertEquals(sys.getrefcount(test_obj), 3)
 
         self.assertEquals(0, idx)
-        self.assertRaises(pyamf.ReferenceError, self.collection.getReferenceTo, TestObject())
-
-        self.collection.exceptions = False
         self.assertEquals(None, self.collection.getReferenceTo(TestObject()))
 
     def test_get_by_reference(self):
@@ -913,7 +907,6 @@ class IndexedCollectionTestCase(unittest.TestCase):
         self.assertEquals(id(test_obj), id(self.collection.getByReference(idx)))
         self.assertRaises(TypeError, self.collection.getByReference, 'bad ref')
 
-        self.collection.exceptions = False
         self.assertEquals(None, self.collection.getByReference(74))
 
     def test_get_by_refererence_refcount(self):
@@ -940,9 +933,6 @@ class IndexedMapTestCase(unittest.TestCase):
     def setUp(self):
         self.collection = util.IndexedMap()
 
-    def test_create(self):
-        self.assertTrue(self.collection.exceptions)
-
     def test_map(self):
         test_obj = TestObject()
         test_map = TestObject()
@@ -962,15 +952,7 @@ class IndexedMapTestCase(unittest.TestCase):
         self.assertEquals(test_obj, self.collection.getByReference(ref))
         self.assertEquals(test_map, self.collection.getMappedByReference(ref))
 
-        self.assertRaises(pyamf.ReferenceError, self.collection.getMappedByReference, 74)
-
-        self.collection.exceptions = False
         self.assertEquals(None, self.collection.getMappedByReference(74))
-
-
-class GetAttrsTestCase(unittest.TestCase):
-    def test_duplicate_keys(self):
-        self.assertRaises(AttributeError, util.get_attrs, {0:0, '0':1})
 
 
 class IsClassSealedTestCase(unittest.TestCase):
@@ -1241,7 +1223,6 @@ def suite():
         ClassAliasTestCase,
         IndexedCollectionTestCase,
         IndexedMapTestCase,
-        GetAttrsTestCase,
         IsClassSealedTestCase,
         GetClassMetaTestCase
     ]

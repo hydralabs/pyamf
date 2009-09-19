@@ -126,16 +126,8 @@ class Context(pyamf.BaseContext):
         """
         Gets a reference for an object.
 
-        @raise ReferenceError: Unknown AMF3 object reference.
         """
         return obj in self.amf3_objs
-        o = self.amf3_objs.getReferenceTo(obj)
-
-        if o is None and self.exceptions:
-            raise pyamf.ReferenceError(
-                'Unknown AMF3 reference for (%r)' % (obj,))
-
-        return o
 
     def addAMF3Object(self, obj):
         """
@@ -149,7 +141,7 @@ class Context(pyamf.BaseContext):
         return self.amf3_objs.append(obj)
 
     def __copy__(self):
-        cpy = self.__class__(exceptions=self.exceptions)
+        cpy = self.__class__()
         cpy.amf3_objs = copy.copy(self.amf3_objs)
 
         return cpy
@@ -295,7 +287,7 @@ class Decoder(pyamf.BaseDecoder):
         @return: The AMF3 element read from the stream
         """
         if not hasattr(self.context, 'amf3_context'):
-            self.context.amf3_context = pyamf.get_context(pyamf.AMF3, exceptions=False)
+            self.context.amf3_context = pyamf.get_context(pyamf.AMF3)
 
         if not hasattr(self.context, 'amf3_decoder'):
             self.context.amf3_decoder = pyamf.get_decoder(
@@ -766,7 +758,7 @@ class Encoder(pyamf.BaseEncoder):
         @param data: The data to be encoded to the AMF0 data stream.
         """
         if not hasattr(self.context, 'amf3_context'):
-            self.context.amf3_context = pyamf.get_context(pyamf.AMF3, exceptions=False)
+            self.context.amf3_context = pyamf.get_context(pyamf.AMF3)
 
         if not hasattr(self.context, 'amf3_encoder'):
             self.context.amf3_encoder = pyamf.get_encoder(

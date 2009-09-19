@@ -133,15 +133,11 @@ class BaseContext(object):
         during en/decoding.
     @type objects: L{util.IndexedCollection}
     @ivar class_aliases: A L{dict} of C{class} to L{ClassAlias}
-    @ivar exceptions: If C{True} then reference errors will be propagated.
-    @type exceptions: C{bool}
     """
 
-    def __init__(self, exceptions=True):
-        self.objects = util.IndexedCollection(exceptions=False)
+    def __init__(self):
+        self.objects = util.IndexedCollection()
         self.clear()
-
-        self.exceptions = exceptions
 
     def clear(self):
         """
@@ -154,28 +150,21 @@ class BaseContext(object):
         """
         Gets an object based on a reference.
 
-        @raise ReferenceError: Unknown object reference, if L{exceptions} is
-            C{True}, otherwise C{None} will be returned.
+        @param ref: The reference for the object.
+        @type ref: C{int}
+        @return: The referenced object or C{None} if not found.
         """
-        o = self.objects.getByReference(ref)
-
-        if o is None and self.exceptions:
-            raise ReferenceError("Unknown object reference %r" % (ref,))
-
-        return o
+        return self.objects.getByReference(ref)
 
     def getObjectReference(self, obj):
         """
         Gets a reference for an object.
 
-        @raise ReferenceError: Object not a valid reference,
+        @param obj: The referenced object.
+        @return: The reference to the object or C{None} if the object is not
+            in the context.
         """
-        o = self.objects.getReferenceTo(obj)
-
-        if o is None and self.exceptions:
-            raise ReferenceError("Object %r not a valid reference" % (obj,))
-
-        return o
+        return self.objects.getReferenceTo(obj)
 
     def addObject(self, obj):
         """
@@ -191,6 +180,9 @@ class BaseContext(object):
     def getClassAlias(self, klass):
         """
         Gets a class alias based on the supplied C{klass}.
+
+        @param klass: The class object.
+        @return: The L{ClassAlias} that is linked to C{klass}
         """
         try:
             return self.class_aliases[klass]
@@ -847,7 +839,6 @@ class BaseDecoder(object):
         else:
             self.context = context
 
-        self.context.exceptions = False
         self.strict = strict
 
         self.timezone_offset = timezone_offset
@@ -937,7 +928,6 @@ class BaseEncoder(object):
         else:
             self.context = context
 
-        self.context.exceptions = False
         self._write_elem_func_cache = {}
         self.strict = strict
         self.timezone_offset = timezone_offset

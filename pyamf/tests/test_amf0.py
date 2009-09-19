@@ -103,7 +103,7 @@ class ContextTestCase(unittest.TestCase):
 
         self.assertEquals(x.getObject(0), y)
         self.assertEquals(x.getObject(1), z)
-        self.assertRaises(pyamf.ReferenceError, x.getObject, 2)
+        self.assertEquals(x.getObject(2), None)
         self.assertRaises(TypeError, x.getObject, '')
         self.assertRaises(TypeError, x.getObject, 2.2323)
 
@@ -117,7 +117,7 @@ class ContextTestCase(unittest.TestCase):
 
         self.assertEquals(x.getObjectReference(y), ref1)
         self.assertEquals(x.getObjectReference(z), ref2)
-        self.assertRaises(pyamf.ReferenceError, x.getObjectReference, {})
+        self.assertEquals(x.getObjectReference({}), None)
 
 
 class EncoderTestCase(ClassCacheClearingTestCase):

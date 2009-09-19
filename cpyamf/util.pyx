@@ -77,7 +77,6 @@ DEF ENDIAN_BIG = ">"
 cdef char SYSTEM_ENDIAN
 
 cdef int float_broken = -1
-cdef object pyamf_ReferenceError
 
 cdef int complete_init = 0
 
@@ -170,7 +169,6 @@ cdef int complete_import() except? -1:
     """
     global complete_init, float_broken
     global pyamf_NaN, pyamf_NegInf, pyamf_PosInf
-    global pyamf_ReferenceError
 
     complete_init = 1
 
@@ -182,8 +180,6 @@ cdef int complete_import() except? -1:
     build_platform_exceptional_floats()
 
     import pyamf.util
-
-    pyamf_ReferenceError = pyamf.ReferenceError
 
     pyamf_NaN = pyamf.util.NaN
     pyamf_NegInf = pyamf.util.NegInf
@@ -1577,12 +1573,11 @@ cdef class cIndexedCollection:
     """
     """
 
-    def __cinit__(self, int use_hash=0, int exceptions=1):
+    def __cinit__(self, int use_hash=0):
         if complete_init == 0:
             complete_import()
 
         self.use_hash = use_hash
-        self.exceptions = exceptions
 
         self.clear()
 
@@ -1641,9 +1636,6 @@ cdef class cIndexedCollection:
         """
         """
         if ref < 0 or ref >= self.length:
-            if self.exceptions == 1:
-                raise pyamf_ReferenceError('Reference not found')
-
             return None
 
         Py_INCREF(self.data[ref])
@@ -1660,9 +1652,6 @@ cdef class cIndexedCollection:
         cdef PyObject *p = <PyObject *>PyDict_GetItem(self.refs, self._ref(obj))
 
         if p == NULL:
-            if self.exceptions == 1:
-                raise pyamf_ReferenceError("Object not found")
-
             return -1
 
         return <Py_ssize_t>PyInt_AS_LONG(<object>p)
@@ -1727,7 +1716,7 @@ cdef class cIndexedCollection:
         return self.getByReference(idx)
 
     def __copy__(self):
-        cdef cIndexedCollection n = cIndexedCollection(self.use_hash, self.exceptions)
+        cdef cIndexedCollection n = cIndexedCollection(self.use_hash)
 
         return n
 
@@ -1741,16 +1730,11 @@ cdef class IndexedCollection(cIndexedCollection):
     """
     """
 
-    def __init__(self, use_hash=False, exceptions=True):
+    def __init__(self, use_hash=False):
         if use_hash:
             self.use_hash = 1
         else:
             self.use_hash = 0
-
-        if exceptions:
-            self.exceptions = 1
-        else:
-            self.exceptions = 0
 
     property use_hash:
         def __get__(self):
@@ -1764,19 +1748,6 @@ cdef class IndexedCollection(cIndexedCollection):
                 self.use_hash = 1
             else:
                 self.use_hash = 0
-
-    property exceptions:
-        def __get__(self):
-            if self.exceptions == 1:
-                return True
-
-            return False
-
-        def __set__(self, value):
-            if value is True:
-                self.exceptions = 1
-            else:
-                self.exceptions = 0
 
     def getByReference(self, ref):
         if PyInt_Check(ref) == 0 and PyLong_Check(ref) == 0:
@@ -1800,7 +1771,7 @@ cdef class IndexedCollection(cIndexedCollection):
 
 
 cdef class cIndexedMap(cIndexedCollection):
-    def __cinit__(self, int use_hash=0, int exceptions=1):
+    def __cinit__(self, int use_hash=0):
         self.mapped = []
 
     cdef int clear(self):
@@ -1812,9 +1783,6 @@ cdef class cIndexedMap(cIndexedCollection):
 
     cdef object getMappedByReference(self, Py_ssize_t ref):
         if ref < 0 or ref >= self.length:
-            if self.exceptions == 1:
-                raise pyamf_ReferenceError('Unknown reference')
-
             return None
 
         cdef object ret = PyList_GET_ITEM(self.mapped, ref)
@@ -1855,16 +1823,11 @@ cdef class IndexedMap(cIndexedMap):
     """
     """
 
-    def __init__(self, use_hash=False, exceptions=True):
+    def __init__(self, use_hash=False):
         if use_hash:
             self.use_hash = 1
         else:
             self.use_hash = 0
-
-        if exceptions:
-            self.exceptions = 1
-        else:
-            self.exceptions = 0
 
     property use_hash:
         def __get__(self):
@@ -1878,19 +1841,6 @@ cdef class IndexedMap(cIndexedMap):
                 self.use_hash = 1
             else:
                 self.use_hash = 0
-
-    property exceptions:
-        def __get__(self):
-            if self.exceptions == 1:
-                return True
-
-            return False
-
-        def __set__(self, value):
-            if value is True:
-                self.exceptions = 1
-            else:
-                self.exceptions = 0
 
     def getByReference(self, Py_ssize_t ref):
         return cIndexedMap.getByReference(self, ref)

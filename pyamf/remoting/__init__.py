@@ -635,7 +635,7 @@ def decode(stream, context=None, strict=False, logger=None, timezone_offset=None
             msg.amfVersion)
 
     if context is None:
-        context = pyamf.get_context(pyamf.AMF0, exceptions=False)
+        context = pyamf.get_context(pyamf.AMF0)
 
     decoder = pyamf.get_decoder(pyamf.AMF0, stream, context=context,
         strict=strict, timezone_offset=timezone_offset)
@@ -689,7 +689,7 @@ def encode(msg, context=None, strict=False, logger=None, timezone_offset=None):
     stream = util.BufferedByteStream()
 
     if context is None:
-        context = pyamf.get_context(pyamf.AMF0, exceptions=False)
+        context = pyamf.get_context(pyamf.AMF0)
 
     encoder = pyamf.get_encoder(pyamf.AMF0, stream, context=context,
         timezone_offset=timezone_offset, strict=strict)

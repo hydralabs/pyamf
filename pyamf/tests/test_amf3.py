@@ -73,7 +73,6 @@ class ContextTestCase(_util.ClassCacheClearingTestCase):
     def test_create(self):
         c = amf3.Context()
 
-        self.assertEquals(c.exceptions, True)
         self.assertEquals(c.strings, [])
         self.assertEquals(c.objects, [])
         self.assertEquals(c.classes, {})
@@ -100,9 +99,6 @@ class ContextTestCase(_util.ClassCacheClearingTestCase):
         self.assertTrue(y in x.strings)
         self.assertEquals(len(x.strings), 1)
 
-        self.assertRaises(pyamf.ReferenceError, x.addString, '')
-
-        x.exceptions = False
         self.assertEquals(x.addString(''), None)
 
         self.assertRaises(TypeError, x.addString, 132)
@@ -142,9 +138,7 @@ class ContextTestCase(_util.ClassCacheClearingTestCase):
         x.setObjectAlias(obj, alias)
         self.assertEquals(alias, x.getObjectAlias(obj))
         self.assertEquals('aliased', x.getObjectAlias(obj)['label'])
-        self.assertRaises(pyamf.ReferenceError, x.getObjectAlias, object())
 
-        x.exceptions = False
         self.assertEquals(x.getObjectAlias(object()), None)
 
     def test_clear(self):
@@ -198,29 +192,27 @@ class ContextTestCase(_util.ClassCacheClearingTestCase):
 
         self.assertEquals(x.getObject(0), y)
         self.assertEquals(x.getObject(1), z)
-        self.assertRaises(pyamf.ReferenceError, x.getObject, 2)
+        self.assertEquals(x.getObject(2), None)
         self.assertRaises(TypeError, x.getObject, '')
         self.assertRaises(TypeError, x.getObject, 2.2323)
 
         self.assertEquals(x.getString(0), 'abc')
         self.assertEquals(x.getString(1), 'def')
-        self.assertRaises(pyamf.ReferenceError, x.getString, 2)
+        self.assertEquals(x.getString(2), None)
         self.assertRaises(TypeError, x.getString, '')
         self.assertRaises(TypeError, x.getString, 2.2323)
 
         self.assertEquals(x.getLegacyXML(0), '<a></a>')
         self.assertEquals(x.getLegacyXML(1), '<b></b>')
-        self.assertRaises(pyamf.ReferenceError, x.getLegacyXML, 2)
+        self.assertEquals(x.getLegacyXML(2), None)
 
         self.assertEquals(x.getClass(Foo), a)
         self.assertEquals(x.getClass(Bar), b)
-        self.assertRaises(pyamf.ReferenceError, x.getClass, 2)
+        self.assertEquals(x.getClass(2), None)
 
         self.assertEquals(x.getClassByReference(0), a)
         self.assertEquals(x.getClassByReference(1), b)
-        self.assertRaises(pyamf.ReferenceError, x.getClassByReference, 2)
-
-        x.exceptions = False
+        self.assertEquals(x.getClassByReference(2), None)
 
         self.assertEquals(x.getObject(2), None)
         self.assertEquals(x.getString(2), None)
@@ -228,11 +220,6 @@ class ContextTestCase(_util.ClassCacheClearingTestCase):
         self.assertEquals(x.getLegacyXML(2), None)
         self.assertEquals(x.getClassByReference(2), None)
         self.assertEquals(x.getLegacyXMLReference(object()), None)
-
-    def test_empty_string(self):
-        x = amf3.Context()
-
-        self.assertRaises(pyamf.ReferenceError, x.addString, '')
 
     def test_get_reference(self):
         x = amf3.Context()
@@ -260,19 +247,19 @@ class ContextTestCase(_util.ClassCacheClearingTestCase):
 
         self.assertEquals(x.getObjectReference(y), ref1)
         self.assertEquals(x.getObjectReference(z), ref2)
-        self.assertRaises(pyamf.ReferenceError, x.getObjectReference, {})
+        self.assertEquals(x.getObjectReference({}), None)
 
         self.assertEquals(x.getStringReference('abc'), 0)
         self.assertEquals(x.getStringReference('def'), 1)
-        self.assertRaises(pyamf.ReferenceError, x.getStringReference, 'asdfas')
+        self.assertEquals(x.getStringReference('asdfas'), None)
 
         self.assertEquals(x.getLegacyXMLReference('<a></a>'), 0)
         self.assertEquals(x.getLegacyXMLReference('<b></b>'), 1)
-        self.assertRaises(pyamf.ReferenceError, x.getLegacyXMLReference, '<c/>')
+        self.assertEquals(x.getLegacyXMLReference('<c/>'), None)
 
         self.assertEquals(x.getClass(Spam), a)
         self.assertEquals(x.getClass(Foo), b)
-        self.assertRaises(pyamf.ReferenceError, x.getClass, object())
+        self.assertEquals(x.getClass(object()), None)
 
     def test_copy(self):
         import copy

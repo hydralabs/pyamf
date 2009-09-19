@@ -59,7 +59,6 @@ cdef class cBufferedByteStream:
 
 cdef class cIndexedCollection:
     cdef int use_hash
-    cdef int exceptions
     cdef PyObject **data
     cdef object refs
     cdef Py_ssize_t size
