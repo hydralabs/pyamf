@@ -6,7 +6,10 @@ versions of PyAMF.
 
 .. contents::
 
-0.5.1 (unreleased)
+0.6 (unreleased)
+----------------
+
+0.5.1 (2009-09-19)
 ------------------
  - pyamf.register_package can now accept a list of classes (Ticket:650)
  - Fixed a regression in TwistedGateway where services would be called twice
