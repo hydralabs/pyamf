@@ -264,11 +264,17 @@ class BaseGateway(object):
         timezone to be encoded. Most dates should be handled as UTC to avoid
         confusion but for older legacy systems this is not an option. Supplying
         an int as this will be interpretted in seconds.
+    @ivar debug: Provides debugging information when an error occurs. Use only
+        in non production settings.
+    @type debug: C{bool}
     """
 
     _request_class = ServiceRequest
 
     def __init__(self, services={}, **kwargs):
+        if not hasattr(services, 'iteritems'):
+            raise TypeError("dict type required for services")
+
         self.services = ServiceCollection()
         self.authenticator = kwargs.pop('authenticator', None)
         self.preprocessor = kwargs.pop('preprocessor', None)
@@ -277,15 +283,10 @@ class BaseGateway(object):
         self.logger = kwargs.pop('logger', None)
         self.timezone_offset = kwargs.pop('timezone_offset', None)
 
-        debug = kwargs.pop('debug', False)
+        self.debug = kwargs.pop('debug', False)
 
         if kwargs:
             raise TypeError('Unknown kwargs: %r' % (kwargs,))
-
-        self.debug = debug
-
-        if not hasattr(services, 'iteritems'):
-            raise TypeError("dict type required for services")
 
         for name, service in services.iteritems():
             self.addService(service, name)
