@@ -1,0 +1,46 @@
+{% extends "!layout.html" %}
+{% block document %}
+<div>
+<a class="toplogo" href="{{ pathto('index') }}"><img src="{{ pathto('_static/logo.png', 1) }}" border="0"/></a>
+</div>
+{{ super() }}
+{% endblock %}
+{% block relbar1 %}
+{% endblock %}
+{% block relbar2 %}
+{% endblock %}
+{% block sidebartoc %}
+<h3>Download</h3>
+<ul>
+	<li><a href="{{ pathto('community/download') }}">Releases</a></li>
+	<li><a href="{{ pathto('community/download') }}">Source</a> <font color='black'>|</font> <a href="http://pyamf.org/browser">Browse</a></li>
+</ul>
+<h3>Documentation</h3>
+<ul>
+	<li><a href="{{ pathto('architecture/overview') }}">Features</a></li>
+	<li><a href="{{ pathto('tutorials/index') }}">Tutorials</a></li>
+	<li><a href="http://pyamf.org/browser/pyamf/trunk/INSTALL.txt">Installation</a></li>
+	<li><a href="{{ pathto('license') }}">License</a></li>
+</ul>
+<h3>Community</h3>
+<ul>
+	<li><a href="{{ pathto('community/mailinglist') }}">Mailing Lists</a></li>
+	<li><a href="{{ pathto('community/irc') }}">IRC Channel</a></li>
+	<li><a href="http://blog.pyamf.org">Weblog</a></li>
+</ul>
+{{ super() }}
+{% endblock %}
+{% block sidebarrel %}
+{% endblock %}
+{% block sidebarsourcelink %}
+{% endblock %}
+{% block sidebarsearch %}
+{% endblock %}
+{% block footer %}
+<div class="footer">
+{{ copyright }}
+</div>
+{% endblock %}
+{% block rootrellink %}
+{{ super() }}
+{% endblock %}

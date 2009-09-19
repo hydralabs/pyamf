@@ -1,0 +1,15 @@
+<VirtualHost 192.168.1.100:80>
+
+        ServerName example.server.com
+        DocumentRoot /var/www/myApp
+
+        CustomLog /var/log/apache2/myApp-access.log combined
+        ErrorLog /var/log/apache2/myApp-error.log
+
+        LogLevel warn
+        ServerSignature Off
+
+        # PyAMF gateway
+        WSGIScriptAlias /flashservices/gateway /var/www/myApp/startup.py
+
+</VirtualHost>

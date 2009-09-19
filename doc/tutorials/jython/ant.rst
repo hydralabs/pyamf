@@ -1,0 +1,190 @@
+**********
+  Ant 
+**********
+
+
+.. image:: images/ant-logo.gif
+
+
+.. topic:: Introduction
+
+    `Apache Ant <http://ant.apache.org>`_ is a Java-based build tool. Ant
+    build files are created using XML but it also support Python
+    scripts using `Jython <http://jython.org>`_.
+
+    This howto was created using Jython 2.5.0 standalone, PyAMF 0.5,
+    Ant 1.7 and Java JDK 1.6.0_13 on Mac OSX 10.5.7.
+
+
+About JSR-223
+=============
+
+There are 2 ways to execute Python scripts in Ant:
+
+- using `JSR-223 <http://jythonpodcast.hostjava.net/jythonbook/chapter10.html#jsr-223>`_
+- `utilizing <http://jythonpodcast.hostjava.net/jythonbook/chapter10.html#utilizing-pythoninterpreter>`_
+  the ``PythonInterpreter``
+
+JSR-223 enables dynamic languages to be callable via Java in a seamless
+manner, which is supported in Jython 2.2.1 and newer. This howto will
+show you how to make use of the ``PythonInterpreter`` class directly.
+
+This style of embedding code is very similar to making use of a
+scripting engine, and it has the advantage of working with Jython 2.5
+and newer. The JSR-223 requires the unreleased Jython 2.5.1 or newer.
+In order to make use of the ``PythonInterpreter`` technique, you only
+need to have the standalone ``jython.jar`` in your classpath, there
+is no need to have an extra engine involved.
+
+
+Application Setup
+=================
+
+Start out with checking whether Apache Ant is working:
+
+.. code-block:: bash
+ 
+   ant -version
+
+Returns the version number:
+
+.. code-block:: bash
+
+  Apache Ant version 1.7.0 compiled on May 21 2009
+
+Grab the example project from SVN:
+
+.. code-block:: bash
+
+  svn export http://svn.pyamf.org/pyamf/sandbox/thijs/jython-ant/2.5.0/embedded jython-ant
+
+Copy ``jython.jar`` from your Jython 2.5 distribution folder
+into the project's ``jython`` folder. Make sure you installed
+Jython 2.5 in standalone mode which produces a ``jython.jar``
+file that contains all necessary files for your application
+to run without any other Jython dependencies:
+
+.. code-block:: bash
+
+  cd jython-ant/jython
+  cp /path/to/jython2.5.0/jython.jar .
+
+This ``jython`` folder is on the classpath of your application
+so any other ``.jar`` files you may have go in here as well.
+
+Now grab a copy of PyAMF and put it in the ``jython/Lib``
+folder:
+
+.. code-block:: bash
+
+  cd Lib
+  svn export http://svn.pyamf.org/pyamf/trunk/pyamf
+
+
+Run Application
+===============
+
+Use Ant to build and run the application. This will do the
+following for you:
+
+- clean the ``build`` folder
+- compile the ``src/java/org/pyamf/HelloWorld.java`` class
+  containing the ``PythonInterpreter``
+- create a file called ``HelloWorld.jar`` in
+  ``build/classes/org/pyamf`` containing the compiled Java
+  ``.class`` file
+- run the ``HelloWorld.jar`` application
+- try to load the ``server.py`` script that contains the
+  PyAMF remoting gateway for WSGI
+
+Go to the project's base folder and run Ant:
+
+.. code-block:: bash
+
+  cd ../..
+  ant
+
+This should print the build progress and application output:
+
+.. code-block:: bash
+
+  Buildfile: build.xml
+
+  clean:
+
+  compile:
+    [mkdir] Created dir: /path/to/jython-ant/build/classes
+    [javac] Compiling 1 source file to /path/to/jython-ant/build/classes
+
+  jar:
+    [mkdir] Created dir: /path/to/jython-ant/build/jar
+      [jar] Building jar: /path/to/jython-ant/build/jar/HelloWorld.jar
+
+  run:
+     [java] *sys-package-mgr*: processing new jar, '/path/to/jython-ant/jython/jython.jar'
+     [java] *sys-package-mgr*: processing new jar, '/path/to/jython-ant/build/jar/HelloWorld.jar'
+     [java] *sys-package-mgr*: processing new jar, '/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar'
+     [java] *sys-package-mgr*: processing new jar, '/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/ui.jar'
+     [java] *sys-package-mgr*: processing new jar, '/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/laf.jar'
+     [java] *sys-package-mgr*: processing new jar, '/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/jsse.jar'
+     [java] *sys-package-mgr*: processing new jar, '/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/jce.jar'
+     [java] *sys-package-mgr*: processing new jar, '/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/charsets.jar'
+     [java] *sys-package-mgr*: processing new jar, '/System/Library/Java/Extensions/AppleScriptEngine.jar'
+     [java] *sys-package-mgr*: processing new jar, '/System/Library/Java/Extensions/CoreAudio.jar'
+     [java] *sys-package-mgr*: processing new jar, '/System/Library/Java/Extensions/dns_sd.jar'
+     [java] *sys-package-mgr*: processing new jar, '/System/Library/Java/Extensions/j3daudio.jar'
+     [java] *sys-package-mgr*: processing new jar, '/System/Library/Java/Extensions/j3dcore.jar'
+     [java] *sys-package-mgr*: processing new jar, '/System/Library/Java/Extensions/j3dutils.jar'
+     [java] *sys-package-mgr*: processing new jar, '/System/Library/Java/Extensions/jai_codec.jar'
+     [java] *sys-package-mgr*: processing new jar, '/System/Library/Java/Extensions/jai_core.jar'
+     [java] *sys-package-mgr*: processing new jar, '/System/Library/Java/Extensions/mlibwrapper_jai.jar'
+     [java] *sys-package-mgr*: processing new jar, '/System/Library/Java/Extensions/MRJToolkit.jar'
+     [java] *sys-package-mgr*: processing new jar, '/System/Library/Java/Extensions/QTJava.zip'
+     [java] *sys-package-mgr*: processing new jar, '/System/Library/Java/Extensions/vecmath.jar'
+     [java] *sys-package-mgr*: processing new jar, '/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Home/lib/ext/apple_provider.jar'
+     [java] *sys-package-mgr*: processing new jar, '/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Home/lib/ext/dnsns.jar'
+     [java] *sys-package-mgr*: processing new jar, '/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Home/lib/ext/localedata.jar'
+     [java] *sys-package-mgr*: processing new jar, '/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Home/lib/ext/sunjce_provider.jar'
+     [java] *sys-package-mgr*: processing new jar, '/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Home/lib/ext/sunpkcs11.jar'
+     [java] Running AMF gateway on http://localhost:8000
+
+
+The first time you run Ant it also includes some caching messages from Jython
+that start with ``*sys-package-mgr*: processing new jar``.
+The default folder where these cache files are stored is ``jython/cachedir``.
+
+The final line shows your AMF gateway is up and running.
+  
+
+Clients
+=======
+
+Python
+------
+
+Run ``client.py`` in ``src/python/`` which should print:
+
+.. code-block:: bash
+
+   2009-07-20 00:00:32,669 INFO  [root] Connecting to http://localhost:8000
+   2009-07-20 00:00:32,783 INFO  [root] Hello world!
+
+And the server running in Ant should show some debug information:
+
+.. code-block:: bash
+
+  [java] 2009-07-19 23:48:59,756 DEBUG [root] remoting.decode start
+  [java] 2009-07-19 23:49:00,190 DEBUG [root] Remoting target: u'echo.echo'
+  [java] 2009-07-19 23:49:00,223 DEBUG [root] remoting.decode end
+  [java] 2009-07-19 23:49:00,232 INFO  [root] AMF Request: <Envelope amfVersion=0 clientType=0>
+  [java]  (u'/1', <Request target=u'echo.echo'>[u'Hello world!']</Request>)
+  [java] </Envelope>
+  [java] 2009-07-19 23:49:00,323 INFO  [root] AMF Response: <Envelope amfVersion=0 clientType=0>
+  [java]  (u'/1', <Response status=/onResult>u'Hello world!'</Response>)
+  [java] </Envelope>
+  [java] 127.0.0.1 - - [19/Jul/2009 23:49:00] "POST / HTTP/1.1" 200 44
+
+Flash
+-----
+
+The Hello World Flash examples should all work with this example's ``server.py``.

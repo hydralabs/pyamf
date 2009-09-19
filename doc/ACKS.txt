@@ -1,0 +1,13 @@
+Contributors to the PyAMF Documentation
+---------------------------------------
+
+This section lists people who have contributed in some way to the PyAMF
+documentation.  It is probably not complete -- if you feel that you or
+anyone else should be on this list, please let us know (send email to
+the `users mailinglist <http://pyamf.org/wiki/MailingList#Users>`_),
+and we'll be glad to correct the problem.
+
+.. acks::
+
+   * Thijs Triemstra
+   * Nick Joyce
