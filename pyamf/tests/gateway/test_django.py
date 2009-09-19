@@ -198,7 +198,7 @@ class DjangoGatewayTestCase(unittest.TestCase):
         gw = _django.DjangoGateway({'test.test': echo}, timezone_offset=-18000,
             expose_request=False)
 
-        msg = remoting.Envelope(amfVersion=pyamf.AMF0, clientType=0)
+        msg = remoting.Envelope(amfVersion=pyamf.AMF0)
         msg['/1'] = remoting.Request(target='test.test', body=[now])
 
         http_request.method = 'POST'

@@ -10,6 +10,7 @@ versions of PyAMF.
 ----------------
  - Empty Django relations are now encoded as ``None``, not ``pyamf.Undefined``
    (Ticket:659)
+ - ``pyamf.ClientType`` removed, as it is not spec compliant (Ticket:651)
 
 0.5.1 (2009-09-19)
 ------------------

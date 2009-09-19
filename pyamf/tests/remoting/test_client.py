@@ -242,10 +242,7 @@ class RemotingServiceTestCase(unittest.TestCase):
         self.assertEquals(x.amf_version, pyamf.AMF3)
 
         # client type
-        x = client.RemotingService('http://example.org', pyamf.AMF3,
-            pyamf.ClientTypes.FlashCom)
-
-        self.assertEquals(x.client_type, pyamf.ClientTypes.FlashCom)
+        x = client.RemotingService('http://example.org', pyamf.AMF3)
 
     def test_schemes(self):
         x = client.RemotingService('http://example.org')
@@ -343,8 +340,7 @@ class RemotingServiceTestCase(unittest.TestCase):
         self.assertEquals(wrapper, wrapper2)
 
     def test_get_amf_request(self):
-        gw = client.RemotingService('http://example.org', pyamf.AMF3,
-            pyamf.ClientTypes.FlashCom)
+        gw = client.RemotingService('http://example.org', pyamf.AMF3)
 
         service = gw.getService('baz')
         method_proxy = service.gak
@@ -353,7 +349,6 @@ class RemotingServiceTestCase(unittest.TestCase):
         envelope = gw.getAMFRequest([wrapper])
 
         self.assertEquals(envelope.amfVersion, pyamf.AMF3)
-        self.assertEquals(envelope.clientType, pyamf.ClientTypes.FlashCom)
         self.assertEquals(envelope.keys(), ['/1'])
 
         request = envelope['/1']
@@ -363,7 +358,6 @@ class RemotingServiceTestCase(unittest.TestCase):
         envelope2 = gw.getAMFRequest(gw.requests)
 
         self.assertEquals(envelope2.amfVersion, pyamf.AMF3)
-        self.assertEquals(envelope2.clientType, pyamf.ClientTypes.FlashCom)
         self.assertEquals(envelope2.keys(), ['/1'])
 
         request = envelope2['/1']

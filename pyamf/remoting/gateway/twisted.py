@@ -333,8 +333,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         @param amf_request: The AMF Request.
         @type amf_request: L{Envelope<pyamf.remoting.Envelope>}
         """
-        response = remoting.Envelope(amf_request.amfVersion,
-            amf_request.clientType)
+        response = remoting.Envelope(amf_request.amfVersion)
         dl = []
 
         def cb(body, name):

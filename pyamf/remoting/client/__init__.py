@@ -13,9 +13,6 @@ import urlparse
 import pyamf
 from pyamf import remoting
 
-#: Default AMF client type.
-#: @see: L{ClientTypes<pyamf.ClientTypes>}
-DEFAULT_CLIENT_TYPE = pyamf.ClientTypes.Flash6
 
 #: Default user agent is C{PyAMF/x.x.x}.
 DEFAULT_USER_AGENT = 'PyAMF/%s' % '.'.join(map(lambda x: str(x),
@@ -189,8 +186,6 @@ class RemotingService(object):
     @ivar referer: The referer, or HTTP referer, identifies the address of the
         client. Ignored by default.
     @type referer: C{str}
-    @ivar client_type: The client type. See L{ClientTypes<pyamf.ClientTypes>}.
-    @type client_type: C{int}
     @ivar user_agent: Contains information about the user agent (client)
         originating the request. See L{DEFAULT_USER_AGENT}.
     @type user_agent: C{str}
@@ -205,21 +200,22 @@ class RemotingService(object):
     @type strict: C{bool}
     """
 
-    def __init__(self, url, amf_version=pyamf.AMF0, client_type=DEFAULT_CLIENT_TYPE,
-                 referer=None, user_agent=DEFAULT_USER_AGENT, strict=False,
-                 logger=None):
-        self.logger = logger
+    def __init__(self, url, amf_version=pyamf.AMF0, **kwargs):
         self.original_url = url
+        self.amf_version = amf_version
+
         self.requests = []
         self.request_number = 1
-
-        self.user_agent = user_agent
-        self.referer = referer
-        self.amf_version = amf_version
-        self.client_type = client_type
         self.headers = remoting.HeaderCollection()
         self.http_headers = {}
-        self.strict = strict
+
+        self.user_agent = kwargs.pop('user_agent', DEFAULT_USER_AGENT)
+        self.referer = kwargs.pop('referer', None)
+        self.strict = kwargs.pop('strict', False)
+        self.logger = kwargs.pop('logger', None)
+
+        if kwargs:
+            raise TypeError('Unexpected keyword arguments %r' % (kwargs,))
 
         self._setUrl(url)
 
@@ -372,11 +368,10 @@ class RemotingService(object):
         @type requests: C{list}
         @rtype: L{Envelope<pyamf.remoting.Envelope>}
         """
-        envelope = remoting.Envelope(self.amf_version, self.client_type)
+        envelope = remoting.Envelope(self.amf_version)
 
         if self.logger:
             self.logger.debug('AMF version: %s' % self.amf_version)
-            self.logger.debug('Client type: %s' % self.client_type)
 
         for request in requests:
             service = request.service

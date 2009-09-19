@@ -74,7 +74,7 @@ class DjangoGateway(gateway.BaseGateway):
         @rtype: L{Envelope<pyamf.remoting.Envelope>}
         @return: The AMF Response.
         """
-        response = remoting.Envelope(request.amfVersion, request.clientType)
+        response = remoting.Envelope(request.amfVersion)
 
         for name, message in request:
             http_request.amf_request = message

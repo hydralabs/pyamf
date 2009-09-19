@@ -156,7 +156,7 @@ class WSGIServerTestCase(unittest.TestCase):
         self.gw.expose_request = True
         self.executed = False
 
-        env = remoting.Envelope(pyamf.AMF0, pyamf.ClientTypes.Flash9)
+        env = remoting.Envelope(pyamf.AMF3)
         request = remoting.Request('echo', body=['hello'])
         env['/1'] = request
 
@@ -203,7 +203,7 @@ class WSGIServerTestCase(unittest.TestCase):
         self.gw.addService(echo)
         self.gw.timezone_offset = -18000
 
-        msg = remoting.Envelope(amfVersion=pyamf.AMF0, clientType=0)
+        msg = remoting.Envelope(amfVersion=pyamf.AMF0)
         msg['/1'] = remoting.Request(target='echo', body=[now])
 
         stream = remoting.encode(msg)

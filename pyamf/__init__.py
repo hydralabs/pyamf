@@ -64,32 +64,6 @@ ENCODING_TYPES = (AMF0, AMF3)
 DEFAULT_ENCODING = AMF0
 
 
-class ClientTypes:
-    """
-    Typecodes used to identify AMF clients and servers.
-
-    @see: U{Adobe Flash Player on WikiPedia (external)
-    <http://en.wikipedia.org/wiki/Flash_Player>}
-    @see: U{Adobe Flash Media Server on WikiPedia (external)
-    <http://en.wikipedia.org/wiki/Adobe_Flash_Media_Server>}
-    """
-    #: Specifies a Adobe Flash Player 6.0 - 8.0 client.
-    Flash6   = 0
-    #: Specifies a Adobe FlashCom / Flash Media Server client.
-    FlashCom = 1
-    #: Specifies a Adobe Flash Player 9.0 client or newer.
-    Flash9   = 3
-
-
-#: List of AMF client typecodes.
-CLIENT_TYPES = []
-
-for x in ClientTypes.__dict__:
-    if not x.startswith('_'):
-        CLIENT_TYPES.append(ClientTypes.__dict__[x])
-del x
-
-
 class UndefinedType(object):
 
     def __repr__(self):

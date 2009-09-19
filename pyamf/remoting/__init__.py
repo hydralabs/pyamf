@@ -116,8 +116,6 @@ class Envelope(object):
 
     @ivar amfVersion: AMF encoding version. See L{pyamf.ENCODING_TYPES}
     @type amfVersion: C{int} or C{None}
-    @ivar clientType: Client type. See L{ClientTypes<pyamf.ClientTypes>}
-    @type clientType: C{int} or C{None}
     @ivar headers: AMF headers, a list of name, value pairs. Global to each
         request.
     @type headers: L{HeaderCollection}
@@ -126,15 +124,13 @@ class Envelope(object):
         the instance of the L{Message}
     """
 
-    def __init__(self, amfVersion=None, clientType=None):
+    def __init__(self, amfVersion=None):
         self.amfVersion = amfVersion
-        self.clientType = clientType
         self.headers = HeaderCollection()
         self.bodies = []
 
     def __repr__(self):
-        r = "<Envelope amfVersion=%s clientType=%s>\n" % (
-            self.amfVersion, self.clientType)
+        r = "<Envelope amfVersion=%r>\n" % (self.amfVersion,)
 
         for h in self.headers:
             r += " " + repr(h) + "\n"
@@ -203,7 +199,6 @@ class Envelope(object):
     def __eq__(self, other):
         if isinstance(other, Envelope):
             return (self.amfVersion == other.amfVersion and
-                self.clientType == other.clientType and
                 self.headers == other.headers and
                 self.bodies == other.bodies)
 
@@ -631,7 +626,7 @@ def decode(stream, context=None, strict=False, logger=None, timezone_offset=None
         logger.debug('remoting.decode start')
 
     msg = Envelope()
-    msg.amfVersion = stream.read_uchar()
+    msg.amfVersion = stream.read_ushort()
 
     # see http://osflash.org/documentation/amf/envelopes/remoting#preamble
     # why we are doing this...
@@ -644,7 +639,6 @@ def decode(stream, context=None, strict=False, logger=None, timezone_offset=None
 
     decoder = pyamf.get_decoder(pyamf.AMF0, stream, context=context,
         strict=strict, timezone_offset=timezone_offset)
-    msg.clientType = stream.read_uchar()
 
     header_count = stream.read_ushort()
 
@@ -700,12 +694,11 @@ def encode(msg, context=None, strict=False, logger=None, timezone_offset=None):
     encoder = pyamf.get_encoder(pyamf.AMF0, stream, context=context,
         timezone_offset=timezone_offset, strict=strict)
 
-    if msg.clientType == pyamf.ClientTypes.Flash9:
+    if msg.amfVersion == pyamf.AMF3:
         encoder.use_amf3 = True
 
-    stream.write_uchar(msg.amfVersion)
-    stream.write_uchar(msg.clientType)
-    stream.write_short(len(msg.headers))
+    stream.write_ushort(msg.amfVersion)
+    stream.write_ushort(len(msg.headers))
 
     for name, header in msg.headers.iteritems():
         _write_header(

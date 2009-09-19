@@ -105,7 +105,7 @@ class WebAppGatewayTestCase(unittest.TestCase):
         self.gw.addService(echo)
         self.gw.timezone_offset = -18000
 
-        msg = remoting.Envelope(amfVersion=pyamf.AMF0, clientType=0)
+        msg = remoting.Envelope(amfVersion=pyamf.AMF0)
         msg['/1'] = remoting.Request(target='echo', body=[now])
 
         stream = remoting.encode(msg)
