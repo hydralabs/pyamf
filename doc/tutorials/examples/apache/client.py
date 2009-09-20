@@ -7,9 +7,8 @@ logging.basicConfig(
 
 from pyamf.remoting.client import RemotingService
 
-url = 'http://127.0.0.1:5000/gateway'
-client = RemotingService(url, logger=logging)
-service = client.getService('myservice')
-echo = service.echo('Hello World!')
+url = 'http://192.168.1.108/flashservices/gateway'
+gw = RemotingService(url, logger=logging)
+service = gw.getService('echo')
 
-logging.debug(echo) 
+print service('Hello World!')

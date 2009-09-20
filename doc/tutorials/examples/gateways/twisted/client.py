@@ -9,7 +9,7 @@ logging.basicConfig(
 
 
 url = 'http://localhost:8080'
-client = RemotingService(url, logger=logging, debug=True)
+client = RemotingService(url, logger=logging)
 
 service1 = client.getService('example')
 print service1.testn('Hello World')

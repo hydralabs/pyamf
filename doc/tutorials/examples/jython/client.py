@@ -4,7 +4,7 @@ from pyamf.remoting.client import RemotingService
 from pyamf.remoting import RemotingError
 
 url = 'http://localhost:8080/pyamf'
-client = RemotingService(url, logger=logging, debug=True)
+client = RemotingService(url, logger=logging)
 service = client.getService('my_service')
 
 try:

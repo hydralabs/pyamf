@@ -10,7 +10,7 @@ logging.basicConfig(
 
 
 path = 'http://localhost:8080/gateway/'
-gw = RemotingService(path, logger=logging, debug=True)
+gw = RemotingService(path, logger=logging)
 service = gw.getService('myservice')
 
 print service.echo('Hello World!')
