@@ -9,6 +9,7 @@
    architecture/index.rst
    community/index.rst
 
+   install.rst
    about.rst
    bugs.rst
    license.rst

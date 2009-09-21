@@ -44,12 +44,19 @@ You **don't** need these packages if you're using Python 2.5 or newer.
 - ElementTree_ 1.2.6 or newer
 - uuid_ 1.30 or newer
 
-1. Download_ and unpack the PyAMF archive of your choice::
+Step 1
+------
+
+Download_ and unpack the PyAMF archive of your choice::
 
     tar zxfv PyAMF-<version>.tar.gz
     cd PyAMF-<version>
 
-2. Run the Python-typical setup at the top of the source directory
+
+Step 2
+------
+
+Run the Python-typical setup at the top of the source directory
 from a command-prompt::
 
     python setup.py install
@@ -61,7 +68,6 @@ To disable the installation of the C-extension, supply the
 ``--disable-ext`` option::
 
     python setup.py install --disable-ext
-
 
 You can run the unit tests like this::
 

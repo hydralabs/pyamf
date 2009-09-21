@@ -16,6 +16,3 @@ always looking for volunteers wanting to help with the docs, so feel
 free to send a mail there!
 
 See :ref:`reporting-bugs` for information how to report bugs in PyAMF.
-
-.. including the ACKS file here so that it can be maintained separately
-.. include:: ACKS.txt
