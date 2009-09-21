@@ -26,6 +26,11 @@ source_suffix = '.rst'
 # The master toctree document.
 #master_doc = 'index'
 
+# create content template for the homepage
+from util import rst2html, copyrst
+readme = rst2html('../README.txt', 'html/intro.html')
+readme = copyrst('../CHANGES.txt', 'changelog.rst')
+
 # Location of the PyAMF source root folder.
 sys.path.insert(0, os.path.abspath('../pyamf'))
 import pyamf

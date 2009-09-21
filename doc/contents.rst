@@ -13,3 +13,4 @@
    about.rst
    bugs.rst
    license.rst
+   changelog.rst
