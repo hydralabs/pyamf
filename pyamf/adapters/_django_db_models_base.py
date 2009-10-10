@@ -185,6 +185,9 @@ class DjangoClassAlias(pyamf.ClassAlias):
         attrs = pyamf.ClassAlias.getDecodableAttributes(self, obj, attrs, **kwargs)
 
         for n in self.decodable_properties:
+            if n in self.relations:
+                continue
+
             f = self.fields[n]
 
             attrs[f.attname] = self._decodeValue(f, attrs[n])

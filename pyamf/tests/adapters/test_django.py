@@ -427,6 +427,36 @@ class ForeignKeyTestCase(ModelsBaseTestCase):
         self.assertEquals(sa, {'id': None})
         self.assertEquals(da, None)
 
+    def test_static_relation(self):
+        """
+        @see: #693
+        """
+        from django.db import models
+        from pyamf import util
+
+        class Gak(models.Model):
+            pass
+
+        class Baz(models.Model):
+            gak = models.ForeignKey(Gak)
+
+            class __amf__:
+                static = ('gak',)
+
+        self.resetDB()
+
+        alias = self.adapter.DjangoClassAlias(Baz, **util.get_class_meta(Baz))
+
+        alias.compile()
+
+        self.assertTrue('gak' in alias.relations)
+        self.assertTrue('gak' in alias.decodable_properties)
+        self.assertTrue('gak' in alias.static_attrs)
+
+        x = Baz()
+
+        alias.getDecodableAttributes(x, {'id': None, 'gak': 'foo'})
+
 
 class I18NTestCase(ModelsBaseTestCase):
     def test_encode(self):

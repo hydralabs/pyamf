@@ -8,6 +8,8 @@ versions of PyAMF.
 
 0.6 (unreleased)
 ----------------
+ - Fixed a small bug in decoding Django relations when declared as static.
+   Thanks to wolver for the patch. (Ticket:693)
  - Removed ``exceptions`` from all ``Context`` and ``pyamf.util.Indexed*``
    classes (Ticket:660)
  - Empty Django relations are now encoded as ``None``, not ``pyamf.Undefined``
