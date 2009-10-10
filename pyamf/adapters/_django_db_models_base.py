@@ -250,6 +250,11 @@ def writeDjangoObject(self, obj, *args, **kwargs):
 
     s = obj.pk
 
+    if s is None:
+        self.writeNonDjangoObject(obj, *args, **kwargs)
+
+        return
+
     django_objects = getDjangoObjects(context)
 
     try:

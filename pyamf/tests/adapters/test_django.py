@@ -540,6 +540,22 @@ class PKTestCase(ModelsBaseTestCase):
 
         self.assertEquals(x.id, None)
 
+    def test_no_pk(self):
+        """
+        Ensure that Models without a primary key are correctly serialized.
+        See #691.
+        """
+        from django.db import models
+
+        class NotSaved(models.Model):
+            name = models.CharField(max_length=100)
+
+        instances = [NotSaved(name="a"), NotSaved(name="b")]
+        encoded = pyamf.encode(instances, encoding=pyamf.AMF3).getvalue()
+        decoded = pyamf.get_decoder(pyamf.AMF3, encoded).readElement()
+        self.assertEquals(decoded[0]['name'], 'a')
+        self.assertEquals(decoded[1]['name'], 'b')
+
 
 class ModelInheritanceTestCase(ModelsBaseTestCase):
     """
