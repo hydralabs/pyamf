@@ -1784,6 +1784,52 @@ class ExceptionEncodingTestCase(_util.ClassCacheClearingTestCase):
             'message\x06\x0bblarg\tname\x06\x07XYZ\x01')
 
 
+class ByteArrayTestCase(unittest.TestCase):
+    """
+    Tests for L{amf3.ByteArray}
+    """
+
+    def test_write_context(self):
+        """
+        @see: #695
+        """
+        obj = {'foo': 'bar'}
+        b = amf3.ByteArray()
+
+        b.writeObject(obj)
+
+        bytes = b.getvalue()
+        b.stream.truncate()
+
+        b.writeObject(obj)
+        self.assertEquals(b.getvalue(), bytes)
+
+    def test_context(self):
+        b = amf3.ByteArray()
+        c = b.context
+
+        obj = {'foo': 'bar'}
+
+        c.addObject(obj)
+
+        b.writeObject(obj)
+
+        self.assertEquals(b.getvalue(), '\n\x0b\x01\x07foo\x06\x07bar\x01')
+
+    def test_read_context(self):
+        """
+        @see: #695
+        """
+        obj = {'foo': 'bar'}
+        b = amf3.ByteArray()
+
+        b.stream.write('\n\x0b\x01\x07foo\x06\x07bar\x01\n\x00')
+        b.stream.seek(0)
+
+        self.assertEquals(obj, b.readObject())
+        self.assertRaises(pyamf.ReferenceError, b.readObject)
+
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -1800,7 +1846,8 @@ def suite():
         ClassInheritanceTestCase,
         HelperTestCase,
         ComplexEncodingTestCase,
-        ExceptionEncodingTestCase
+        ExceptionEncodingTestCase,
+        ByteArrayTestCase
     ]
 
     for tc in test_cases:

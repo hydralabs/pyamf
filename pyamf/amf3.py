@@ -511,13 +511,23 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
         amf3 = True
 
     def __init__(self, *args, **kwargs):
-        self.context = kwargs.pop('context', Context())
+        self.context = Context()
 
         util.BufferedByteStream.__init__(self, *args, **kwargs)
         DataInput.__init__(self, Decoder(self, self.context))
         DataOutput.__init__(self, Encoder(self, self.context))
 
         self.compressed = False
+
+    def readObject(self, *args, **kwargs):
+        self.context.clear()
+
+        return super(ByteArray, self).readObject(*args, **kwargs)
+
+    def writeObject(self, *args, **kwargs):
+        self.context.clear()
+
+        return super(ByteArray, self).writeObject(*args, **kwargs)
 
     def __cmp__(self, other):
         if isinstance(other, ByteArray):
@@ -999,6 +1009,9 @@ class Decoder(pyamf.BaseDecoder):
         if ref & REFERENCE_BIT == 0:
             obj = self.context.getObject(ref >> 1)
 
+            if obj is None:
+                raise pyamf.ReferenceError('Unknown reference %d' % (ref >> 1,))
+
             if use_proxies is True:
                 obj = self.readProxyObject(obj)
 
@@ -1106,7 +1119,7 @@ class Decoder(pyamf.BaseDecoder):
         except zlib.error:
             compressed = False
 
-        obj = ByteArray(buffer, context=self.context)
+        obj = ByteArray(buffer)
         obj.compressed = compressed
 
         self.context.addObject(obj)
