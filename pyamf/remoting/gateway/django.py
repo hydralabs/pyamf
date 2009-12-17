@@ -135,7 +135,7 @@ class DjangoGateway(gateway.BaseGateway):
                 content=response)
 
         if self.logger:
-            self.logger.info("AMF Request: %r" % request)
+            self.logger.debug("AMF Request: %r" % request)
 
         # Process the request
         try:
@@ -158,7 +158,7 @@ class DjangoGateway(gateway.BaseGateway):
                 content=response)
 
         if self.logger:
-            self.logger.info("AMF Response: %r" % response)
+            self.logger.debug("AMF Response: %r" % response)
 
         # Encode the response
         try:
