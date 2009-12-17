@@ -264,7 +264,7 @@ class RemotingService(object):
         location = '%s://%s:%s%s' % (self.url[0], hostname, port, self.url[2])
 
         if self.logger:
-            self.logger.info('Connecting to %s' % location)
+            self.logger.debug('Connecting to %s' % location)
             self.logger.debug('Referer: %s' % self.referer)
             self.logger.debug('User-Agent: %s' % self.user_agent)
 

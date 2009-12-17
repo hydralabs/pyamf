@@ -85,7 +85,7 @@ class WSGIGateway(gateway.BaseGateway):
                 logger=self.logger, timezone_offset=timezone_offset)
         except (pyamf.DecodeError, IOError):
             if self.logger:
-                self.logger.exception(gateway.format_exception())
+                self.logger.exception('Error decoding AMF request')
 
             response = "400 Bad Request\n\nThe request body was unable to " \
                 "be successfully decoded."
@@ -104,10 +104,10 @@ class WSGIGateway(gateway.BaseGateway):
             raise
         except:
             if self.logger:
-                self.logger.exception(gateway.format_exception())
+                self.logger.exception('Unexpected error decoding AMF request')
 
-            response = "500 Internal Server Error\n\nAn unexpected error " \
-                "occurred whilst decoding."
+            response = ("500 Internal Server Error\n\nAn unexpected error "
+                "occurred whilst decoding.")
 
             if self.debug:
                 response += "\n\nTraceback:\n\n%s" % gateway.format_exception()
@@ -130,10 +130,10 @@ class WSGIGateway(gateway.BaseGateway):
             raise
         except:
             if self.logger:
-                self.logger.exception(gateway.format_exception())
+                self.logger.exception('Error processing AMF request')
 
-            response = "500 Internal Server Error\n\nThe request was " \
-                "unable to be successfully processed."
+            response = ("500 Internal Server Error\n\nThe request was "
+                "unable to be successfully processed.")
 
             if self.debug:
                 response += "\n\nTraceback:\n\n%s" % gateway.format_exception()
@@ -155,10 +155,10 @@ class WSGIGateway(gateway.BaseGateway):
                 timezone_offset=timezone_offset)
         except:
             if self.logger:
-                self.logger.exception(gateway.format_exception())
+                self.logger.exception('Error encoding AMF request')
 
-            response = "500 Internal Server Error\n\nThe request was " \
-                "unable to be encoded."
+            response = ("500 Internal Server Error\n\nThe request was "
+                "unable to be encoded.")
 
             if self.debug:
                 response += "\n\nTraceback:\n\n%s" % gateway.format_exception()

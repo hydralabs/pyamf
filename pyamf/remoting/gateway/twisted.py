@@ -141,7 +141,7 @@ class AMF3RequestProcessor(amf3.RequestProcessor):
 
             if self.gateway.logger:
                 self.gateway.logger.error(errMesg)
-                self.gateway.logger.info(failure.getTraceback())
+                self.gateway.logger.error(failure.getTraceback())
 
             ro_response = self.buildErrorResponse(ro_request, (failure.type,
                                                   failure.value, failure.tb))
@@ -186,7 +186,7 @@ class AMF3RequestProcessor(amf3.RequestProcessor):
 
             if self.gateway.logger:
                 self.gateway.logger.error(errMesg)
-                self.gateway.logger.info(failure.getTraceback())
+                self.gateway.logger.error(failure.getTraceback())
 
             deferred_response.callback(self.buildErrorResponse(ro_request,
                 (failure.type, failure.value, failure.tb)))
@@ -252,7 +252,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
 
             if self.logger:
                 self.logger.error(errMesg)
-                self.logger.info(failure.getTraceback())
+                self.logger.error(failure.getTraceback())
 
             body = "400 Bad Request\n\nThe request body was unable to " \
                 "be successfully decoded."
@@ -295,7 +295,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
 
             if self.logger:
                 self.logger.error(errMesg)
-                self.logger.info(failure.getTraceback())
+                self.logger.error(failure.getTraceback())
 
             body = "500 Internal Server Error\n\nThere was an error encoding " \
                 "the response."
@@ -360,7 +360,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
 
             if self.logger:
                 self.logger.error(errMesg)
-                self.logger.info(failure.getTraceback())
+                self.logger.error(failure.getTraceback())
 
             body = "500 Internal Server Error\n\nThe request was unable to " \
                 "be successfully processed."

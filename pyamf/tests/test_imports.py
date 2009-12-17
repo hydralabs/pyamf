@@ -120,9 +120,6 @@ class WhenImportedTestCase(PostLoadHookClearingTestCase):
 
         imports.when_imported('spam', self._hook)
 
-        import logging
-        logging.debug(sys.meta_path)
-
         self.assertFalse(self.executed)
 
         import spam
