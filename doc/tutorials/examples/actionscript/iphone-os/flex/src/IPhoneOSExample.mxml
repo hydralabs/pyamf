@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml"
+				horizontalAlign="center" verticalAlign="middle"
+				initialize="initApp()">
+	
+	<mx:Style source="../style/style.css"/>
+	
+	<mx:Script>
+		<![CDATA[
+			import mx.utils.ObjectUtil;
+			import mx.controls.Alert;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			public function initApp(): void
+	        {
+	            // Call remote service to fetch data
+	            addressBook.getContacts();
+	        }
+	
+	        // Result handler method 
+	        private function onResult( re:ResultEvent ): void
+	        {
+	            var myData:Array = re.result as Array;
+	            trace( myData );
+	        }
+	        
+	        // Fault handler method displays error message 
+	        private function onFault( fault:FaultEvent ): void
+	        {
+	            // Notify the user of the problem
+	            Alert.show(fault.fault.faultDetail, 'Remoting error');
+	        }
+		]]>
+	</mx:Script>
+	
+	<mx:RemoteObject id="addressBook" destination="addressbook" endpoint="http://localhost:8000">
+    	<mx:method name="getContacts" result="onResult(event)" fault="onFault(event)"/>
+ 	</mx:RemoteObject>
+ 	
+	<mx:DataGrid width="300" height="400"/>
+	
+</mx:Application>

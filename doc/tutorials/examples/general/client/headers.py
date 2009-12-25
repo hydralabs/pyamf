@@ -1,5 +1,3 @@
-import base64
-
 from pyamf.remoting.client import RemotingService
 
 gw = RemotingService('http://demo.pyamf.org/gateway/recordset')
@@ -9,6 +7,9 @@ gw.removeHTTPHeader('Set-Cookie')
 
 username = 'admin'
 password = 'admin'
-auth = base64.encodestring('%s:%s' % (username, password))[:-1]
+auth = ('%s:%s' % (username, password)).encode('base64')[:-1]
 
 gw.addHTTPHeader("Authorization", "Basic %s" % auth)
+
+service = gw.getService('service')
+print service.getLanguages()

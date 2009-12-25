@@ -1,21 +1,32 @@
 # -*- coding: utf-8 -*-
 #
+# Copyright (c) 2009 The PyAMF Project.
+# See LICENSE.txt for details.
+#
 # PyAMF documentation build configuration file.
 #
 # This file is execfile()d with the current directory set to its containing dir.
 #
-# The contents of this file are pickled, so don't put values in the namespace
-# that aren't pickleable (module imports are okay, they're removed automatically).
+# Note that not all possible configuration values are present in this file.
 #
 # All configuration values have a default value; values that are commented out
 # serve to show the default value.
 
 import sys, os, time
+
+# If extensions (or modules to document with autodoc) are in another directory,
+# add these directories to sys.path here. If the directory is relative to the
+# documentation root, use os.path.abspath to make it absolute.
 sys.path.append(os.path.abspath('.'))
+sys.path.append(os.path.abspath('..'))
+sys.path.append(os.path.abspath('../pyamf'))
 sys.path.append(os.path.abspath('html'))
 
-# General configuration
-# ---------------------
+# -- General configuration -----------------------------------------------------
+
+# Add any Sphinx extension module names here, as strings. They can be extensions
+# coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx']
 
 # Paths that contain templates, relative to this directory.
 templates_path = ['html']
@@ -23,13 +34,16 @@ templates_path = ['html']
 # The suffix of source filenames.
 source_suffix = '.rst'
 
+# The encoding of source files.
+#source_encoding = 'utf-8'
+
 # The master toctree document.
 #master_doc = 'index'
 
 # create content template for the homepage
-from util import rst2html, copyrst
+from util import rst2html, copy_file
 readme = rst2html('../README.txt', 'html/intro.html')
-readme = copyrst('../CHANGES.txt', 'changelog.rst')
+readme = copy_file('../CHANGES.txt', 'changelog.rst')
 
 # Location of the PyAMF source root folder.
 sys.path.insert(0, os.path.abspath('../pyamf'))
@@ -44,7 +58,10 @@ copyright = "Copyright &#169; 2007-%s The <a href='%s'>%s</a> Project. All right
 
 # We look for the __init__.py file in the current PyAMF source tree
 # and replace the values accordingly.
+#
+# The short X.Y version.
 release = '.'.join(map(lambda x: str(x), pyamf.__version__))
+# The full version, including alpha/beta/rc tags.
 version = release[:3]
 
 # There are two options for replacing |today|: either, you set today to some
@@ -55,6 +72,11 @@ today_fmt = '%B %d, %Y'
 
 # List of documents that shouldn't be included in the build.
 #unused_docs = []
+
+# A list of directory paths, relative to the source directory, that are to
+# be recursively excluded from the search for source files, that is, their
+# subdirectories won’t be searched too.
+exclude_trees = ['_build', 'tutorials/examples']
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = True
@@ -68,11 +90,13 @@ add_module_names = True
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = 'trac'
+
+# A list of ignored prefixes for module index sorting.
+#modindex_common_prefix = []
 
 
-# Options for HTML output
-# -----------------------
+# -- Options for HTML output ---------------------------------------------------
 
 # The style sheet to use for HTML and HTML Help pages. A file of that name
 # must exist either in Sphinx' static/ path, or in one of the custom paths
@@ -128,3 +152,40 @@ htmlhelp_basename = 'pyamf' + release.replace('.', '')
 
 # Split the index
 html_split_index = True
+
+
+# -- Options for LaTeX output --------------------------------------------------
+
+# The paper size ('letter' or 'a4').
+#latex_paper_size = 'letter'
+
+# The font size ('10pt', '11pt' or '12pt').
+#latex_font_size = '10pt'
+
+# Grouping the document tree into LaTeX files. List of tuples
+# (source start file, target name, title, author, documentclass [howto/manual]).
+latex_documents = [
+  ('index', 'PyAMF.tex', html_title,
+   copyright, 'manual'),
+]
+
+# The name of an image file (relative to this directory) to place at the top of
+# the title page.
+#latex_logo = None
+
+# For "manual" documents, if this is true, then toplevel headings are parts,
+# not chapters.
+#latex_use_parts = False
+
+# Additional stuff for the LaTeX preamble.
+#latex_preamble = ''
+
+# Documents to append as an appendix to all manuals.
+#latex_appendices = []
+
+# If false, no module index is generated.
+#latex_use_modindex = True
+
+
+# Example configuration for intersphinx: refer to the Python standard library.
+intersphinx_mapping = {'http://docs.python.org/': None}

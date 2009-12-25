@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" 
+				horizontalAlign="center" verticalAlign="middle"
+				backgroundColor="#FFFFFF" backgroundAlpha="0">
+	 		
+	<mx:Script>
+	<![CDATA[
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			
+			// These vars hols the data we want to pass to the remote service.
+			private var a:int = 1;
+			private var b:int = 2;
+	
+	        public function login( event:MouseEvent ): void
+	        {
+		    	var username:String = username_txt.text;
+     		    var pass:String = password_txt.text;
+		    
+		    	// Authentication     
+       		    remoteObj.setCredentials( username, pass );
+	            remoteObj.addEventListener(NetStatusEvent.NET_STATUS, error);
+	            
+	            // Call remote service.method 'calc.sum' to fetch data
+	            remoteObj.sum( a, b );
+	        }
+	
+	        // Result handler method 
+	        private function onResult( result:ResultEvent ): void
+	        {
+	            var myData:String = result.result as String;
+	            trace( myData ); // prints "3"
+	            status_txt.text = a + "+" + b + "=" + myData;
+	        }
+	        
+	        // Fault handler method displays error message 
+	        private function onFault( error:FaultEvent ): void
+	        {
+	            // Notify the user of the problem
+	            status_txt.text = "Remoting error";
+	            
+	            for ( var d:String in error.fault ) {
+	               trace(error.fault[d]);
+	            }
+	        }
+	        
+	        private function error( error:NetStatusEvent ):void
+	        {
+	        	// Notify the user of the problem
+	        	status_txt.text = "Remoting error";
+	        }
+	]]>
+	</mx:Script>
+	
+	<mx:RemoteObject id="remoteObj" destination="calc" endpoint="http://localhost:8000">
+    	<mx:method name="sum" result="onResult(event)" fault="onFault(event)"/>
+ 	</mx:RemoteObject>
+ 	
+	<mx:Form label="Login">
+		<mx:FormItem label="Username">
+			<mx:TextInput id="username_txt"/>
+		</mx:FormItem>
+		<mx:FormItem label="Password">
+			<mx:TextInput id="password_txt" displayAsPassword="true"/>
+		</mx:FormItem>
+		<mx:FormItem horizontalAlign="right" paddingBottom="10">
+			<mx:Button label="Submit" click="login(event)"/>
+		</mx:FormItem>
+		
+		<mx:Text id="status_txt" textAlign="center" fontWeight="bold" 
+				 width="250" height="100"/>
+	</mx:Form>
+
+	
+</mx:Application>

@@ -7,6 +7,8 @@
 
   <table class="contentstable" align="center"><tr>
     <td width="50%">
+      <p ><a class="biglink" href="{{ pathto("whatsnew/" + version) }}">What's new in PyAMF {{ version }}?</a><br/>
+         <span class="linkdescr">Changes since the previous major release</span></p>
       <p><a class="biglink" href="{{ pathto("community/download") }}">Download</a><br/>
          <span class="linkdescr">Stable releases and source access</span></p>
       <p class="biglink"><a class="biglink" href="{{ pathto("architecture/overview") }}">Features</a><br/>
@@ -15,12 +17,14 @@
          <span class="linkdescr">Setting up your system</span></p>
 
       </td><td width="50%">
-      <p class="biglink"><a class="biglink" href="{{ pathto("community/mailinglist") }}">Mailing List</a><br/>
-         <span class="linkdescr">Get in touch</span></p>
-      <p class="biglink"><a class="biglink" href="{{ pathto("community/irc") }}">IRC Channel</a><br/>
-         <span class="linkdescr">Get in touch</span></p>
-      <p class="biglink"><a class="biglink" href="{{ pathto("license") }}">License</a><br/>
-         <span class="linkdescr">MIT Licensed</span></p>
+      <p class="biglink"><a class="biglink" href="{{ pathto("library/index") }}">Library Reference</a><br/>
+         <span class="linkdescr">Module documentation with examples</span></p>
+      <p class="biglink"><a class="biglink" href="{{ pathto("tutorials/index") }}">Tutorials</a><br/>
+         <span class="linkdescr">How to use PyAMF</span></p>
+      <p class="biglink"><a class="biglink" href="{{ pathto("architecture/index") }}">Architecture</a><br/>
+         <span class="linkdescr">The PyAMF internals</span></p>
+      <p class="biglink"><a class="biglink" href="{{ pathto("contents") }}">Complete Table of Contents</a><br/>
+         <span class="linkdescr">Lists all sections and subsections</span></p>
       </td></tr>
   </table>
 
@@ -28,28 +32,14 @@
 
   <table class="contentstable" align="center"><tr>
     <td width="50%">
-      <p ><a class="biglink" href="{{ pathto("whatsnew/" + version) }}">What's new in PyAMF {{ version }}?</a><br/>
-         <span class="linkdescr">Changes since the previous major release</span></p>
-      <p class="biglink"><a class="biglink" href="{{ pathto("tutorials/index") }}">Tutorials</a><br/>
-         <span class="linkdescr">How to use PyAMF</span></p>
-      <p class="biglink"><a class="biglink" href="{{ pathto("architecture/index") }}">Architecture</a><br/>
-         <span class="linkdescr">The PyAMF internals</span></p>
-
+      <p class="biglink"><a class="biglink" href="{{ pathto("community/mailinglist") }}">Mailing List</a></p>
+      <p class="biglink"><a class="biglink" href="{{ pathto("community/irc") }}">IRC Channel</a></p>
+      <p class="biglink"><a class="biglink" href="{{ pathto("bugs") }}">Reporting bugs</a></p>
       </td><td width="50%">
-      <p class="biglink"><a class="biglink" href="{{ pathto("api/index") }}">Global Module Index</a><br/>
-         <span class="linkdescr">Quick access to all modules</span></p>
-      <p class="biglink"><a class="biglink" href="{{ pathto("search") }}">Search page</a><br/>
-         <span class="linkdescr">Search this documentation</span></p>
-      <p class="biglink"><a class="biglink" href="{{ pathto("contents") }}">Complete Table of Contents</a><br/>
-         <span class="linkdescr">Lists all sections and subsections</span></p>
+      <p class="biglink"><a class="biglink" href="{{ pathto("search") }}">Search page</a></p>
+      <p class="biglink"><a class="biglink" href="{{ pathto("license") }}">License</a><br/>
+      <p class="biglink"><a class="biglink" href="{{ pathto("about") }}">About the documentation</a></p>
     </td></tr>
   </table>
 
-<hr/>
-
-  <table class="contentstable" align="center"><tr>
-    <td width="100%">
-      <p class="biglink"><a class="biglink" href="{{ pathto("bugs") }}">Reporting bugs</a></p>
-      <p class="biglink"><a class="biglink" href="{{ pathto("about") }}">About the documentation</a></p>
-  </table>
 {% endblock %}

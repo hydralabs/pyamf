@@ -80,11 +80,11 @@ Optional Extras
 PyAMF integrates with the following optional third-party Python
 libraries:
 
- - wsgiref_ 0.1.2 or newer (included in Python 2.5 and newer)
- - SQLAlchemy_ 0.4 or newer
- - Twisted_ 2.5 or newer
- - Django_ 0.97 or newer
- - `Google App Engine`_ 1.0 or newer
+- wsgiref_ 0.1.2 or newer (included in Python 2.5 and newer)
+- SQLAlchemy_ 0.4 or newer
+- Twisted_ 2.5 or newer
+- Django_ 0.97 or newer
+- `Google App Engine`_ 1.0 or newer
 
 
 C-Extension
@@ -92,7 +92,7 @@ C-Extension
 
 To modify the cPyAMF extension you need:
 
- - Cython_ 0.10 or newer
+- Cython_ 0.10 or newer
 
 And run the command below on the ``.pyx`` files to create the
 ``.c`` file, which contains the C source for the ``cPyAMF``

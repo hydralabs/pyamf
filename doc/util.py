@@ -1,17 +1,24 @@
+# Copyright (c) 2009 The PyAMF Project.
+# See LICENSE.txt for details.
+
 import os
 
-from docutils import core
-
-from genshi.input import HTML
+from docutils.core import publish_parts
 
 
 def rst2html( input, output ):
     """
-    Write rst to html.
+    Create html file from rst file.
+    
+    @param input: Path to rst source file
+    @type: C{str}
+    @param output: Path to html output file
+    @type: C{str}
     """
-    file = open(os.path.abspath(input), 'r')
-    html = HTML(core.publish_file(file, writer_name='html'))
-    body = html.select('body/div').render()
+    file = os.path.abspath(input)
+    rst = open(file, 'r').read()
+    html = publish_parts(rst, writer_name='html')
+    body = html['html_body']
 
     tmp = open(output, 'w')
     tmp.write(body)
@@ -19,11 +26,18 @@ def rst2html( input, output ):
     
     return body
 
-def copyrst( input, output ):
+
+def copy_file( input, output ):
     """
-    Write file to rst.
+    Copy file to folder.
+    
+    @param input: Path to source file
+    @type: C{str}
+    @param output: Path to output file
+    @type: C{str}
     """
-    file = open(os.path.abspath(input), 'r')
+    path = os.path.abspath(input)
+    file = open(path, 'r')
     tmp = open(output, 'w')
     tmp.write(file.read())
     tmp.close()
