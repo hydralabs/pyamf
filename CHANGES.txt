@@ -8,6 +8,8 @@ versions of PyAMF.
 
 0.6 (unreleased)
 ----------------
+- Django adapter now uses ``get_all_field_names`` to find model properties
+  (Ticket:625)
 - Added ``ClassAlias.bases`` and deep class tree support for typed classes
   (Ticket:715)
 - ``use_references`` keyword arg has been removed from ``amf3.Encoder.write*``
