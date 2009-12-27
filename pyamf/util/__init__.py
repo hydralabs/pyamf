@@ -1041,6 +1041,7 @@ def get_class_meta(klass):
         'static_attrs': None,
         'exclude_attrs': None,
         'readonly_attrs': None,
+        'proxy_attrs': None,
         'amf3': None,
         'dynamic': None,
         'alias': None,
@@ -1063,7 +1064,7 @@ def get_class_meta(klass):
         if in_func(prop):
             meta[prop] = get_func(prop)
 
-    for prop in ['static', 'exclude', 'readonly']:
+    for prop in ['static', 'exclude', 'readonly', 'proxy']:
         if in_func(prop):
             meta[prop + '_attrs'] = list(get_func(prop))
 

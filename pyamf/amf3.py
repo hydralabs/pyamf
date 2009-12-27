@@ -1045,12 +1045,9 @@ class Decoder(pyamf.BaseDecoder):
 
         @since: 0.4
         """
-        if isinstance(proxy, ArrayCollection):
-            return list(proxy)
-        elif isinstance(proxy, ObjectProxy):
-            return proxy._amf_object
+        from pyamf import flex
 
-        return proxy
+        return flex.unproxy_object(proxy)
 
     def _readXML(self, legacy=False):
         """
