@@ -1050,9 +1050,6 @@ class ObjectEncodingTestCase(_util.ClassCacheClearingTestCase):
         self.assertEquals(self.stream.getvalue(), '\x0a\x00')
         self.stream.truncate()
 
-        self.encoder.writeElement(obj, False)
-        self.assertNotEquals(self.stream.getvalue(), '\x0a\x00')
-
     def test_class_references(self):
         alias = pyamf.register_class(Spam, 'abc.xyz')
         class_defs = self.context.class_ref
@@ -1340,11 +1337,6 @@ class DataOutputTestCase(unittest.TestCase):
         x.writeObject(obj)
         self.assertEquals(self.stream.getvalue(), '\t\x00')
         self.stream.truncate()
-
-        # check force no references, should include class def ref and refs to
-        # string
-        x.writeObject(obj, False)
-        self.assertEquals(self.stream.getvalue(), '\t\x01\x00\x06\x02\x01')
 
     def test_object_proxy(self):
         self.encoder.use_proxies = True

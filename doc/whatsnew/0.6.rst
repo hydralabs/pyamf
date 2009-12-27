@@ -25,7 +25,7 @@ Backward Incompatible API Changes
 * ``exceptions`` attribute has been removed from ``Context`` objects and
   ``pyamf.util.IndexedCollection``. Any method that used to raise
   ``pyamf.ReferenceError`` will now return ``None`` for speed.
-
+* ``amf3.Encoder.write*`` methods no longer accept ``use_references``.
 
 Integration
 ===========

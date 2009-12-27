@@ -246,15 +246,13 @@ class DataOutput(object):
         """
         self.stream.write(unicode(value).encode(charset))
 
-    def writeObject(self, value, use_references=True, use_proxies=None):
+    def writeObject(self, value, use_proxies=None):
         """
         Writes an object to data stream in AMF serialized format.
 
         @param value: The object to be serialized.
-        @type use_references: C{bool}
-        @param use_references:
         """
-        self.encoder.writeElement(value, use_references, use_proxies)
+        self.encoder.writeElement(value, use_proxies)
 
     def writeShort(self, value):
         """
@@ -850,11 +848,9 @@ class Decoder(pyamf.BaseDecoder):
         """
         return decode_int(self.stream, signed)
 
-    def readString(self, use_references=True):
+    def readString(self):
         """
         Reads and returns a string from the stream.
-
-        @type use_references: C{bool}
         """
         def readLength():
             x = self.readUnsignedInteger()
@@ -863,7 +859,7 @@ class Decoder(pyamf.BaseDecoder):
 
         length, is_reference = readLength()
 
-        if use_references and is_reference:
+        if is_reference:
             return self.context.getString(length)
 
         if length == 0:
@@ -871,7 +867,7 @@ class Decoder(pyamf.BaseDecoder):
 
         result = self.stream.read_utf8_string(length)
 
-        if len(result) != 0 and use_references:
+        if len(result) != 0:
             self.context.addString(result)
 
         return result
@@ -1156,14 +1152,12 @@ class Encoder(pyamf.BaseEncoder):
 
         pyamf.BaseEncoder.__init__(self, *args, **kwargs)
 
-    def writeElement(self, data, use_references=True, use_proxies=None):
+    def writeElement(self, data, use_proxies=None):
         """
         Writes the data.
 
         @param data: The data to be encoded to the AMF3 data stream.
         @type data: C{mixed}
-        @param use_references: Default is C{True}.
-        @type use_references: C{bool}
         @raise EncodeError: Cannot find encoder func for C{data}.
         """
         func = self._writeElementFunc(data)
@@ -1171,7 +1165,7 @@ class Encoder(pyamf.BaseEncoder):
         if func is None:
             raise pyamf.EncodeError("Unknown type %r" % (data,))
 
-        func(data, use_references=use_references, use_proxies=use_proxies)
+        func(data, use_proxies=use_proxies)
 
     def writeClass(self, *args, **kwargs):
         """
@@ -1225,8 +1219,6 @@ class Encoder(pyamf.BaseEncoder):
 
         @type   n: integer data
         @param  n: The integer data to be encoded to the AMF3 data stream.
-        @type   use_references: C{bool}
-        @kwarg  use_references: Default is C{True}.
         """
         if n < MIN_29B_INT or n > MAX_29B_INT:
             self.writeNumber(float(n))
@@ -1293,14 +1285,12 @@ class Encoder(pyamf.BaseEncoder):
 
         self._writeString(n, **kwargs)
 
-    def writeDate(self, n, use_references=True, **kwargs):
+    def writeDate(self, n, **kwargs):
         """
         Writes a C{datetime} instance to the stream.
 
         @type n: L{datetime}
         @param n: The C{Date} data to be encoded to the AMF3 data stream.
-        @type use_references: C{bool}
-        @param use_references: Default is C{True}.
         """
         if isinstance(n, datetime.time):
             raise pyamf.EncodeError('A datetime.time instance was found but '
@@ -1309,15 +1299,14 @@ class Encoder(pyamf.BaseEncoder):
 
         self.stream.write(TYPE_DATE)
 
-        if use_references is True:
-            ref = self.context.getObjectReference(n)
+        ref = self.context.getObjectReference(n)
 
-            if ref is not None:
-                self._writeInteger(ref << 1)
+        if ref is not None:
+            self._writeInteger(ref << 1)
 
-                return
+            return
 
-            self.context.addObject(n)
+        self.context.addObject(n)
 
         self.stream.write_uchar(REFERENCE_BIT)
 
@@ -1327,15 +1316,13 @@ class Encoder(pyamf.BaseEncoder):
         ms = util.get_timestamp(n)
         self.stream.write_double(ms * 1000.0)
 
-    def writeList(self, n, use_references=True, use_proxies=None):
+    def writeList(self, n, use_proxies=None):
         """
         Writes a C{tuple}, C{set} or C{list} to the stream.
 
         @type n: One of C{__builtin__.tuple}, C{__builtin__.set}
             or C{__builtin__.list}
         @param n: The C{list} data to be encoded to the AMF3 data stream.
-        @type use_references: C{bool}
-        @param use_references: Default is C{True}.
         """
         # Encode lists as ArrayCollections
         if use_proxies is None:
@@ -1349,35 +1336,32 @@ class Encoder(pyamf.BaseEncoder):
                 self.context.setObjectAlias(n, proxy)
                 ref_obj = proxy
 
-            self.writeObject(ref_obj, use_references, use_proxies=False)
+            self.writeObject(ref_obj, use_proxies=False)
 
             return
 
         self.stream.write(TYPE_ARRAY)
 
-        if use_references:
-            ref = self.context.getObjectReference(n)
+        ref = self.context.getObjectReference(n)
 
-            if ref is not None:
-                self._writeInteger(ref << 1)
+        if ref is not None:
+            self._writeInteger(ref << 1)
 
-                return
+            return
 
-            self.context.addObject(n)
+        self.context.addObject(n)
 
         self._writeInteger((len(n) << 1) | REFERENCE_BIT)
         self.stream.write_uchar(0x01)
 
         [self.writeElement(x) for x in n]
 
-    def writeDict(self, n, use_references=True, use_proxies=None):
+    def writeDict(self, n, use_proxies=None):
         """
         Writes a C{dict} to the stream.
 
         @type n: C{__builtin__.dict}
         @param n: The C{dict} data to be encoded to the AMF3 data stream.
-        @type use_references: C{bool}
-        @param use_references: Default is C{True}.
         @raise ValueError: Non C{int}/C{str} key value found in the C{dict}
         @raise EncodeError: C{dict} contains empty string keys.
         """
@@ -1399,21 +1383,20 @@ class Encoder(pyamf.BaseEncoder):
                 self.context.setObjectAlias(n, proxy)
                 ref_obj = proxy
 
-            self.writeObject(ref_obj, use_references, use_proxies=False)
+            self.writeObject(ref_obj, use_proxies=False)
 
             return
 
         self.stream.write(TYPE_ARRAY)
 
-        if use_references:
-            ref = self.context.getObjectReference(n)
+        ref = self.context.getObjectReference(n)
 
-            if ref is not None:
-                self._writeInteger(ref << 1)
+        if ref is not None:
+            self._writeInteger(ref << 1)
 
-                return
+            return
 
-            self.context.addObject(n)
+        self.context.addObject(n)
 
         # The AMF3 spec demands that all str based indicies be listed first
         keys = n.keys()
@@ -1473,14 +1456,12 @@ class Encoder(pyamf.BaseEncoder):
 
         f(obj, **kwargs)
 
-    def writeObject(self, obj, use_references=True, use_proxies=None):
+    def writeObject(self, obj, use_proxies=None):
         """
         Writes an object to the stream.
 
         @param obj: The object data to be encoded to the AMF3 data stream.
         @type obj: object data
-        @param use_references: Default is C{True}.
-        @type use_references: C{bool}
         @raise EncodeError: Encoding an object in amf3 tagged as amf0 only.
         """
         if use_proxies is None:
@@ -1494,21 +1475,20 @@ class Encoder(pyamf.BaseEncoder):
                 self.context.setObjectAlias(obj, proxy)
                 ref_obj = proxy
 
-            self.writeObject(ref_obj, use_references, use_proxies=False)
+            self.writeObject(ref_obj, use_proxies=False)
 
             return
 
         self.stream.write(TYPE_OBJECT)
 
-        if use_references:
-            ref = self.context.getObjectReference(obj)
+        ref = self.context.getObjectReference(obj)
 
-            if ref is not None:
-                self._writeInteger(ref << 1)
+        if ref is not None:
+            self._writeInteger(ref << 1)
 
-                return
+            return
 
-            self.context.addObject(obj)
+        self.context.addObject(obj)
 
         # object is not referenced, serialise it
         kls = obj.__class__
@@ -1588,40 +1568,35 @@ class Encoder(pyamf.BaseEncoder):
 
             self.stream.write_uchar(0x01)
 
-    def writeByteArray(self, n, use_references=True, **kwargs):
+    def writeByteArray(self, n, **kwargs):
         """
         Writes a L{ByteArray} to the data stream.
 
         @param n: The L{ByteArray} data to be encoded to the AMF3 data stream.
         @type n: L{ByteArray}
-        @param use_references: Default is C{True}.
-        @type use_references: C{bool}
         """
         self.stream.write(TYPE_BYTEARRAY)
 
-        if use_references:
-            ref = self.context.getObjectReference(n)
+        ref = self.context.getObjectReference(n)
 
-            if ref is not None:
-                self._writeInteger(ref << 1)
+        if ref is not None:
+            self._writeInteger(ref << 1)
 
-                return
+            return
 
-            self.context.addObject(n)
+        self.context.addObject(n)
 
         buf = str(n)
         l = len(buf)
         self._writeInteger(l << 1 | REFERENCE_BIT)
         self.stream.write(buf)
 
-    def writeXML(self, n, use_references=True, use_proxies=None):
+    def writeXML(self, n, use_proxies=None):
         """
         Writes a XML string to the data stream.
 
         @type   n: L{ET<util.ET>}
         @param  n: The XML Document to be encoded to the AMF3 data stream.
-        @type   use_references: C{bool}
-        @param  use_references: Default is C{True}.
         """
         i = self.context.getLegacyXMLReference(n)
 
@@ -1635,15 +1610,14 @@ class Encoder(pyamf.BaseEncoder):
         else:
             self.stream.write(TYPE_XML)
 
-        if use_references:
-            ref = self.context.getObjectReference(n)
+        ref = self.context.getObjectReference(n)
 
-            if ref is not None:
-                self._writeInteger(ref << 1)
+        if ref is not None:
+            self._writeInteger(ref << 1)
 
-                return
+            return
 
-            self.context.addObject(n)
+        self.context.addObject(n)
 
         self._writeString(util.ET.tostring(n, 'utf-8'))
 
