@@ -8,6 +8,8 @@ versions of PyAMF.
 
 0.6 (unreleased)
 ----------------
+- Added ``ClassAlias.bases`` and deep class tree support for typed classes
+  (Ticket:715)
 - ``use_references`` keyword arg has been removed from ``amf3.Encoder.write*``
   (Ticket:713)
 - ``ClassAlias.getEncodableAttributes`` now will return a single dict of
@@ -62,7 +64,7 @@ versions of PyAMF.
   client (Ticket:556)
 - Added support for the ``collections`` module. (Ticket:474)
 - Added type checks for class objects. (Ticket:473)
-- GAE ``FloatProperty`` can now accept int's without issue (Ticket:609)
+- GAE ``FloatProperty`` can now accept int without issue (Ticket:609)
 - Revamped the lazy imports module to use ``sys.meta_path`` instead. Fixes
   all erroneous import errors (Ticket:485).
 - Django models will now accept dynamic properties (Ticket:575)

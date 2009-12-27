@@ -591,6 +591,37 @@ class CompilationInheritanceTestCase(ClassCacheClearingTestCase):
 
         return alias
 
+    def test_bases(self):
+        class A:
+            pass
+
+        class B(A):
+            pass
+
+        class C(B):
+            pass
+
+        a = self._register(ClassAlias(A, 'a', defer=True))
+        b = self._register(ClassAlias(B, 'b', defer=True))
+        c = self._register(ClassAlias(C, 'c', defer=True))
+
+        self.assertEquals(a.bases, None)
+        self.assertEquals(b.bases, None)
+        self.assertEquals(c.bases, None)
+
+        a.compile()
+        self.assertEquals(a.bases, [])
+
+        b.compile()
+        self.assertEquals(a.bases, [])
+        self.assertEquals(b.bases, [(A, a)])
+
+        c.compile()
+        self.assertEquals(a.bases, [])
+        self.assertEquals(b.bases, [(A, a)])
+        self.assertEquals(c.bases, [(B, b), (A, a)])
+
+
     def test_exclude_classic(self):
         class A:
             pass

@@ -251,6 +251,8 @@ class ClassAlias(object):
     """
     Class alias. Provides class/instance meta data to the En/Decoder to allow
     fine grain control and some performance increases.
+
+    @ivar bases: A list of (class, alias) for all bases of this alias.
     """
 
     def __init__(self, klass, alias=None, **kwargs):
@@ -273,6 +275,7 @@ class ClassAlias(object):
         self._compiled = False
         self.anonymous = False
         self.sealed = None
+        self.bases = None
 
         if self.alias is None:
             self.anonymous = True
@@ -315,6 +318,7 @@ class ClassAlias(object):
         self.encodable_properties = set()
         self.inherited_dynamic = None
         self.inherited_sealed = None
+        self.bases = []
 
         self.exclude_attrs = set(self.exclude_attrs or [])
         self.readonly_attrs = set(self.readonly_attrs or [])
@@ -348,10 +352,8 @@ class ClassAlias(object):
 
         mro = inspect.getmro(self.klass)[1:]
 
-        try:
-            self._compile_base_class(mro[0])
-        except IndexError:
-            pass
+        for c in mro:
+            self._compile_base_class(c)
 
         self.getCustomProperties()
 
@@ -367,6 +369,8 @@ class ClassAlias(object):
             alias = register_class(klass)
 
         alias.compile()
+
+        self.bases.append((klass, alias))
 
         if alias.exclude_attrs:
             self.exclude_attrs.update(alias.exclude_attrs)
