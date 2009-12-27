@@ -72,16 +72,19 @@ class DjangoClassAlias(pyamf.ClassAlias):
 
         self.meta = self.klass._meta
 
-        for x in self.meta.local_fields:
+        for name in self.meta.get_all_field_names():
+            x = self.meta.get_field_by_name(name)[0]
+
             if isinstance(x, files.FileField):
-                self.readonly_attrs.update([x.name])
+                self.readonly_attrs.update([name])
+
+            if isinstance(x, related.RelatedObject):
+                continue
 
             if not isinstance(x, related.ForeignKey):
-                self.fields[x.name] = x
+                self.fields[name] = x
             else:
-                self.relations[x.name] = x
-
-            self.columns.append(x.attname)
+                self.relations[name] = x
 
         for k, v in self.klass.__dict__.iteritems():
             if isinstance(v, related.ReverseManyRelatedObjectsDescriptor):
