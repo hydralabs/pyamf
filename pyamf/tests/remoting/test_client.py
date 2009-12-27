@@ -91,7 +91,7 @@ class ServiceProxyTestCase(unittest.TestCase):
             def execute_single(self, request):
                 self.tc.assertEquals(request, self.request)
 
-                return pyamf.ASObject(body=None)
+                return pyamf.ASObject(body=None, status=None)
 
         gw = DummyGateway(self)
         x = client.ServiceProxy(gw, 'test')
@@ -117,7 +117,7 @@ class ServiceProxyTestCase(unittest.TestCase):
                 return pyamf.ASObject(method_proxy=method_proxy, args=args)
 
             def execute_single(self, request):
-                return pyamf.ASObject(body=None)
+                return pyamf.ASObject(body=None, status=None)
 
         gw = DummyGateway(self)
         x = client.ServiceProxy(gw, 'test')
@@ -153,6 +153,27 @@ class ServiceProxyTestCase(unittest.TestCase):
         x = client.ServiceProxy(None, 'test')
 
         self.assertEquals(str(x), 'test')
+
+    def test_error(self):
+        class DummyGateway(object):
+            def __init__(self, tc):
+                self.tc = tc
+
+            def addRequest(self, method_proxy, *args):
+                self.request = pyamf.ASObject(method_proxy=method_proxy, args=args)
+
+                return self.request
+
+            def execute_single(self, request):
+                body = remoting.ErrorFault(code='TypeError', description='foobar')
+
+                return remoting.Response(status=remoting.STATUS_ERROR, body=body)
+
+        gw = DummyGateway(self)
+
+        proxy = client.ServiceProxy(gw, 'test')
+
+        self.assertRaises(TypeError, proxy)
 
 
 class RequestWrapperTestCase(unittest.TestCase):
@@ -424,9 +445,9 @@ class RemotingServiceTestCase(unittest.TestCase):
         response.tc = self
 
         dc.expected_url = '/x/y/z'
-        dc.expected_value = '\x00\x00\x00\x00\x00\x02\x00\x07baz.gak\x00\x02' + \
-            '/1\x00\x00\x00\x00\n\x00\x00\x00\x00\x00\tspam.eggs\x00\x02/2' + \
-            '\x00\x00\x00\x00\n\x00\x00\x00\x00'
+        dc.expected_value = ('\x00\x00\x00\x00\x00\x02\x00\x07baz.gak\x00\x02'
+            '/1\x00\x00\x00\x00\n\x00\x00\x00\x00\x00\tspam.eggs\x00\x02/2'
+            '\x00\x00\x00\x00\n\x00\x00\x00\x00')
         dc.response = response
 
         gw.execute()

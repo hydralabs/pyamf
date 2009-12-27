@@ -20,4 +20,4 @@ def echo(data):
 services = {'echo': echo}
 gw = WSGIGateway(services, logger=logging, debug=True)
 
-run_simple('localhost', 8000, gw, use_reloader=True)
+run_simple('localhost', 8080, gw, use_reloader=True)

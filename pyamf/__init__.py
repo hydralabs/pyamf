@@ -47,7 +47,13 @@ CLASS_LOADERS = []
 #: Custom type map.
 TYPE_MAP = {}
 #: Maps error classes to string codes.
-ERROR_CLASS_MAP = {}
+ERROR_CLASS_MAP = {
+    TypeError.__name__: TypeError,
+    KeyError.__name__: KeyError,
+    LookupError.__name__: LookupError,
+    IndexError.__name__: IndexError,
+    NameError.__name__: NameError
+}
 #: Alias mapping support
 ALIAS_TYPES = {}
 

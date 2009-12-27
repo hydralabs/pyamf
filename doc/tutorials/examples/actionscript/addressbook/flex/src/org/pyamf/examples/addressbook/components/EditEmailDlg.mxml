@@ -27,5 +27,4 @@
 			label="Close" click="close()"
 			toolTip="Close window" />
 	</mx:HBox>
-	
 </view:EditEmailDlgClass>

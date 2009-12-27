@@ -101,7 +101,15 @@ class ServiceProxy(object):
         if self._auto_execute:
             response = self._gw.execute_single(request)
 
-            # XXX nick: What to do about Fault objects here?
+            if response.status == remoting.STATUS_ERROR:
+                if hasattr(response.body, 'raiseException'):
+                    try:
+                        response.body.raiseException()
+                    except:
+                        raise
+                else:
+                    raise remoting.RemotingError
+
             return response.body
 
         return request
