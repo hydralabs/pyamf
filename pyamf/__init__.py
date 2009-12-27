@@ -547,28 +547,21 @@ class ClassAlias(object):
         if not self._compiled:
             self.compile()
 
-        static_attrs = {}
-        dynamic_attrs = {}
+        attrs = {}
 
         if self.static_attrs:
             for attr in self.static_attrs:
-                try:
-                    static_attrs[attr] = getattr(obj, attr)
-                except AttributeError:
-                    static_attrs[attr] = Undefined
+                attrs[attr] = getattr(obj, attr, Undefined)
 
         if not self.dynamic:
             if self.non_static_encodable_properties:
                 for attr in self.non_static_encodable_properties:
-                    dynamic_attrs[attr] = getattr(obj, attr)
+                    attrs[attr] = getattr(obj, attr)
 
-            if not static_attrs:
-                static_attrs = None
+            if not attrs:
+                attrs = None
 
-            if not dynamic_attrs:
-                dynamic_attrs = None
-
-            return static_attrs, dynamic_attrs
+            return attrs
 
         dynamic_props = util.get_properties(obj)
 
@@ -586,29 +579,20 @@ class ClassAlias(object):
 
         if self.klass is dict:
             for attr in dynamic_props:
-                dynamic_attrs[attr] = obj[attr]
+                attrs[attr] = obj[attr]
         else:
             for attr in dynamic_props:
-                dynamic_attrs[attr] = getattr(obj, attr)
+                attrs[attr] = getattr(obj, attr)
 
-        if self.proxy_attrs is not None:
-            if static_attrs:
-                for k, v in static_attrs.copy().iteritems():
-                    if k in self.proxy_attrs:
-                        static_attrs[k] = self.getProxiedAttribute(k, v)
+        if self.proxy_attrs is not None and attrs:
+            for k, v in attrs.copy().iteritems():
+                if k in self.proxy_attrs:
+                    attrs[k] = self.getProxiedAttribute(k, v)
 
-            if dynamic_attrs:
-                for k, v in dynamic_attrs.copy().iteritems():
-                    if k in self.proxy_attrs:
-                        dynamic_attrs[k] = self.getProxiedAttribute(k, v)
+        if not attrs:
+            attrs = None
 
-        if not static_attrs:
-            static_attrs = None
-
-        if not dynamic_attrs:
-            dynamic_attrs = None
-
-        return static_attrs, dynamic_attrs
+        return attrs
 
     def getDecodableAttributes(self, obj, attrs, codec=None):
         """
@@ -795,15 +779,15 @@ class ErrorAlias(ClassAlias):
         self.exclude_attrs.update(['args'])
 
     def getEncodableAttributes(self, obj, **kwargs):
-        sa, da = ClassAlias.getEncodableAttributes(self, obj, **kwargs)
+        attrs = ClassAlias.getEncodableAttributes(self, obj, **kwargs)
 
-        if not da:
-            da = {}
+        if not attrs:
+            attrs = {}
 
-        da['message'] = str(obj)
-        da['name'] = obj.__class__.__name__
+        attrs['message'] = str(obj)
+        attrs['name'] = obj.__class__.__name__
 
-        return sa, da
+        return attrs
 
 
 class BaseDecoder(object):

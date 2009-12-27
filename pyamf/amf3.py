@@ -1566,20 +1566,23 @@ class Encoder(pyamf.BaseEncoder):
 
             return
 
-        sa, da = alias.getEncodableAttributes(obj, codec=self)
+        attrs = alias.getEncodableAttributes(obj, codec=self)
 
-        if sa:
+        if alias.static_attrs:
             if not class_ref:
                 [self._writeString(attr) for attr in alias.static_attrs]
 
-            [self.writeElement(sa[attr]) for attr in alias.static_attrs]
+            for attr in alias.static_attrs:
+                value = attrs.pop(attr)
+
+                self.writeElement(value)
 
             if definition.encoding == ObjectEncoding.STATIC:
                 return
 
         if definition.encoding == ObjectEncoding.DYNAMIC:
-            if da:
-                for attr, value in da.iteritems():
+            if attrs:
+                for attr, value in attrs.iteritems():
                     self._writeString(attr)
                     self.writeElement(value)
 

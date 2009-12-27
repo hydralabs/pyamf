@@ -694,15 +694,17 @@ class Encoder(pyamf.BaseEncoder):
             self.writeType(TYPE_TYPEDOBJECT)
             self.writeString(alias.alias, False)
 
-        sa, da = alias.getEncodableAttributes(o, codec=self)
+        attrs = alias.getEncodableAttributes(o, codec=self)
 
-        if sa:
+        if alias.static_attrs and attrs:
             for key in alias.static_attrs:
-                self.writeString(key, False)
-                self.writeElement(sa[key])
+                value = attrs.pop(key)
 
-        if da:
-            for key, value in da.iteritems():
+                self.writeString(key, False)
+                self.writeElement(value)
+
+        if attrs:
+            for key, value in attrs.iteritems():
                 self.writeString(key, False)
                 self.writeElement(value)
 

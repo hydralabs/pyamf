@@ -59,24 +59,24 @@ class SaMappedClassAlias(pyamf.ClassAlias):
         Returns a C{tuple} containing a dict of static and dynamic attributes
         for C{obj}.
         """
-        sa, da = pyamf.ClassAlias.getEncodableAttributes(self, obj, **kwargs)
+        attrs = pyamf.ClassAlias.getEncodableAttributes(self, obj, **kwargs)
 
-        if not da:
-            da = {}
+        if not attrs:
+            attrs = {}
 
         lazy_attrs = []
 
         # primary_key_from_instance actually changes obj.__dict__ if
         # primary key properties do not already exist in obj.__dict__
-        da[self.KEY_ATTR] = self.mapper.primary_key_from_instance(obj)
+        attrs[self.KEY_ATTR] = self.mapper.primary_key_from_instance(obj)
 
         for attr in self.properties:
             if attr not in obj.__dict__:
                 lazy_attrs.append(attr)
 
-        da[self.LAZY_ATTR] = lazy_attrs
+        attrs[self.LAZY_ATTR] = lazy_attrs
 
-        return sa, da
+        return attrs
 
     def getDecodableAttributes(self, obj, attrs, **kwargs):
         """

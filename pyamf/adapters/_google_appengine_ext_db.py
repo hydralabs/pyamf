@@ -152,9 +152,12 @@ class DataStoreClassAlias(pyamf.ClassAlias):
             self.properties = None
 
     def getEncodableAttributes(self, obj, codec=None):
-        sa, da = pyamf.ClassAlias.getEncodableAttributes(self, obj, codec=codec)
+        attrs = pyamf.ClassAlias.getEncodableAttributes(self, obj, codec=codec)
 
-        sa[self.KEY_ATTR] = str(obj.key()) if obj.is_saved() else None
+        if not attrs:
+            attrs = {}
+
+        attrs[self.KEY_ATTR] = str(obj.key()) if obj.is_saved() else None
         gae_objects = getGAEObjects(codec.context) if codec else None
 
         if self.reference_properties and gae_objects:
@@ -168,27 +171,24 @@ class DataStoreClassAlias(pyamf.ClassAlias):
                 key = str(key)
 
                 try:
-                    sa[name] = gae_objects.getClassKey(klass, key)
+                    attrs[name] = gae_objects.getClassKey(klass, key)
                 except KeyError:
                     ref_obj = getattr(obj, name)
                     gae_objects.addClassKey(klass, key, ref_obj)
-                    sa[name] = ref_obj
+                    attrs[name] = ref_obj
 
-        if da:
-            for k, v in da.copy().iteritems():
+        if attrs:
+            for k, v in attrs.keys()[:]:
                 if k.startswith('_'):
-                    del da[k]
-
-        if not da:
-            da = {}
+                    del attrs[k]
 
         for attr in obj.dynamic_properties():
-            da[attr] = getattr(obj, attr)
+            attrs[attr] = getattr(obj, attr)
 
-        if not da:
-            da = None
+        if not attrs:
+            attrs = None
 
-        return sa, da
+        return attrs
 
     def createInstance(self, codec=None):
         return ModelStub(self.klass)

@@ -242,32 +242,34 @@ class ClassAliasTestCase(BaseClassAliasTestCase):
 
     def test_get_attrs(self):
         u = self._build_obj()
-        static, dynamic = self.alias.getEncodableAttributes(u)
+        attrs = self.alias.getEncodableAttributes(u)
 
-        self.assertEquals(static.keys(), [
+        self.assertEquals(sorted(attrs.keys()), [
+            'addresses',
+            'another_lazy_loaded',
             'id',
             'lazy_loaded',
-            'addresses',
             'name',
-            'another_lazy_loaded'
+            'sa_key',
+            'sa_lazy'
         ])
-        self.assertEquals(dynamic, {'sa_key': [None], 'sa_lazy': []})
+
+        self.assertEquals(attrs['sa_key'], [None])
+        self.assertEquals(attrs['sa_lazy'], [])
 
     def test_get_attributes(self):
         u = self._build_obj()
 
         self.assertFalse(u in self.session)
         self.assertEquals([None], self.mappers['user'].primary_key_from_instance(u))
-        static, dynamic = self.alias.getEncodableAttributes(u)
+        attrs = self.alias.getEncodableAttributes(u)
 
-        self.assertEquals(static, {
+        self.assertEquals(attrs, {
             'addresses': u.addresses,
             'lazy_loaded': u.lazy_loaded,
             'another_lazy_loaded': [],
             'id': None,
-            'name': 'test_user'
-        })
-        self.assertEquals(dynamic, {
+            'name': 'test_user',
             'sa_lazy': [],
             'sa_key': [None]
         })
@@ -295,11 +297,10 @@ class ClassAliasTestCase(BaseClassAliasTestCase):
 
         obj = Person()
 
-        sa, da = alias.getEncodableAttributes(obj)
-        self.assertEquals(sa, {
+        attrs = alias.getEncodableAttributes(obj)
+        self.assertEquals(attrs, {
             'id': None,
-            'name': None})
-        self.assertEquals(da, {
+            'name': None,
             'sa_key': [None],
             'sa_lazy': [],
             'rw': 'bar',

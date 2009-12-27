@@ -689,8 +689,8 @@ class ClassAliasTestCase(unittest.TestCase):
         self.assertFalse(hasattr(x, 'klass'))
 
     def test_get_attrs(self):
-        sa, da = self.alias.getEncodableAttributes(self.jessica)
-        self.assertEquals(sa, {
+        attrs = self.alias.getEncodableAttributes(self.jessica)
+        self.assertEquals(attrs, {
             '_key': None,
             'type': 'cat',
             'name': 'Jessica',
@@ -698,26 +698,23 @@ class ClassAliasTestCase(unittest.TestCase):
             'weight_in_pounds': None,
             'spayed_or_neutered': None
         })
-        self.assertEquals(da, None)
 
     def test_get_attrs_expando(self):
-        sa, da = self.alias.getEncodableAttributes(self.jessica_expando)
-        self.assertEquals(sa, {
+        attrs = self.alias.getEncodableAttributes(self.jessica_expando)
+        self.assertEquals(attrs, {
             '_key': None,
             'type': 'cat',
             'name': 'Jessica',
             'birthdate': None,
             'weight_in_pounds': None,
             'spayed_or_neutered': None,
-        })
-        self.assertEquals(da, {
             'foo': 'bar'
         })
 
     def test_get_attributes(self):
-        sa, da = self.alias.getEncodableAttributes(self.jessica)
+        attrs = self.alias.getEncodableAttributes(self.jessica)
 
-        self.assertEquals(sa, {
+        self.assertEquals(attrs, {
             '_key': None,
             'type': 'cat',
             'name': 'Jessica',
@@ -725,14 +722,13 @@ class ClassAliasTestCase(unittest.TestCase):
             'weight_in_pounds': None,
             'spayed_or_neutered': None
         })
-        self.assertEquals(da, None)
 
     def test_get_attributes_saved(self):
         self.jessica.put()
 
-        sa, da = self.alias.getEncodableAttributes(self.jessica)
+        attrs = self.alias.getEncodableAttributes(self.jessica)
 
-        self.assertEquals(sa, {
+        self.assertEquals(attrs, {
             'name': 'Jessica',
             '_key': str(self.jessica.key()),
             'type': 'cat',
@@ -740,10 +736,9 @@ class ClassAliasTestCase(unittest.TestCase):
             'weight_in_pounds': None,
             'spayed_or_neutered': None
         })
-        self.assertEquals(da, None)
 
     def test_get_attributes_expando(self):
-        sa, da = self.alias.getEncodableAttributes(self.jessica_expando)
+        attrs = self.alias.getEncodableAttributes(self.jessica_expando)
 
         self.assertEquals(sa, {
             'name': 'Jessica',
@@ -751,17 +746,14 @@ class ClassAliasTestCase(unittest.TestCase):
             'type': 'cat',
             'birthdate': None,
             'weight_in_pounds': None,
-            'spayed_or_neutered': None
-        })
-
-        self.assertEquals(da, {
+            'spayed_or_neutered': None,
             'foo': 'bar'
         })
 
     def test_get_attributes_saved_expando(self):
         self.jessica_expando.put()
 
-        sa, da = self.alias.getEncodableAttributes(self.jessica_expando)
+        attrs = self.alias.getEncodableAttributes(self.jessica_expando)
 
         self.assertEquals(sa, {
             'name': 'Jessica',
@@ -769,17 +761,14 @@ class ClassAliasTestCase(unittest.TestCase):
             'type': 'cat',
             'birthdate': None,
             'weight_in_pounds': None,
-            'spayed_or_neutered': None
-        })
-
-        self.assertEquals(da, {
+            'spayed_or_neutered': None,
             'foo': 'bar'
         })
 
     def test_arbitrary_properties(self):
         self.jessica.foo = 'bar'
 
-        sa, da = self.alias.getEncodableAttributes(self.jessica)
+        attrs = self.alias.getEncodableAttributes(self.jessica)
 
         self.assertEquals(sa, {
             '_key': None,
@@ -787,9 +776,7 @@ class ClassAliasTestCase(unittest.TestCase):
             'name': 'Jessica',
             'birthdate': None,
             'weight_in_pounds': None,
-            'spayed_or_neutered': None
-        })
-        self.assertEquals(da, {
+            'spayed_or_neutered': None,
             'foo': 'bar'
         })
 
@@ -811,9 +798,12 @@ class ClassAliasTestCase(unittest.TestCase):
 
         obj = PropertyTypeModel()
 
-        sa, da = alias.getEncodableAttributes(obj)
-        self.assertEquals(sa, {'_key': None})
-        self.assertEquals(da, {'read_write': False, 'readonly': True})
+        attrs = alias.getEncodableAttributes(obj)
+        self.assertEquals(attrs, {
+            '_key': None,
+            'read_write': False,
+            'readonly': True
+        })
 
         self.assertFalse(hasattr(obj, 'prop'))
 
@@ -990,14 +980,13 @@ class ReferencesTestCase(ClassCacheClearingTestCase):
             encoder = pyamf.get_encoder(encoding=pyamf.AMF3)
             alias = adapter_db.DataStoreClassAlias(Novel, None)
 
-            sa, da = alias.getEncodableAttributes(c, codec=encoder)
+            attrs = alias.getEncodableAttributes(c, codec=encoder)
 
-            self.assertEquals(sa, {
+            self.assertEquals(attrs, {
                 '_key': str(c.key()),
                 'title': 'Pride and Prejudice',
                 'author': None
             })
-            self.assertEquals(da, None)
         finally:
             c.delete()
 
@@ -1166,10 +1155,9 @@ class PolyModelTestCase(unittest.TestCase):
     def test_encode(self):
         self.p.s = 'foo'
 
-        sa, da = self.alias.getEncodableAttributes(self.p)
+        attrs = self.alias.getEncodableAttributes(self.p)
 
-        self.assertEquals(sa, {'_key': None, 's': 'foo'})
-        self.assertEquals(da, None)
+        self.assertEquals(attrs, {'_key': None, 's': 'foo'})
 
     def test_deep_inheritance(self):
         class DeepPoly(self.klass):
@@ -1180,14 +1168,13 @@ class PolyModelTestCase(unittest.TestCase):
         self.dp.s = 'bar'
         self.dp.d = 92
 
-        sa, da = self.alias.getEncodableAttributes(self.dp)
+        attrs = self.alias.getEncodableAttributes(self.dp)
 
-        self.assertEquals(sa, {
+        self.assertEquals(attrs, {
             '_key': None,
             's': 'bar',
             'd': 92
         })
-        self.assertEquals(da, None)
 
 
 def suite():

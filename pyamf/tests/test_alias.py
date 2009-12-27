@@ -149,9 +149,9 @@ class GetEncodableAttributesTestCase(unittest.TestCase):
         self.obj = Spam()
 
     def test_empty(self):
-        sa, da = self.alias.getEncodableAttributes(self.obj)
+        attrs = self.alias.getEncodableAttributes(self.obj)
 
-        self.assertEquals(sa, da, None)
+        self.assertEquals(attrs, None)
 
     def test_static(self):
         self.alias.static_attrs = ['foo', 'bar']
@@ -161,16 +161,15 @@ class GetEncodableAttributesTestCase(unittest.TestCase):
         # leave self.obj.bar
         self.assertFalse(hasattr(self.obj, 'bar'))
 
-        sa, da = self.alias.getEncodableAttributes(self.obj)
+        attrs = self.alias.getEncodableAttributes(self.obj)
 
-        self.assertEquals(sa, {'foo': 'bar', 'bar': pyamf.Undefined})
-        self.assertEquals(da, None)
+        self.assertEquals(attrs, {'foo': 'bar', 'bar': pyamf.Undefined})
 
     def test_not_dynamic(self):
         self.alias.compile()
         self.alias.dynamic = False
 
-        self.assertEquals(self.alias.getEncodableAttributes(self.obj), (None, None))
+        self.assertEquals(self.alias.getEncodableAttributes(self.obj), None)
 
     def test_dynamic(self):
         self.alias.compile()
@@ -179,9 +178,8 @@ class GetEncodableAttributesTestCase(unittest.TestCase):
         self.obj.foo = 'bar'
         self.obj.bar = 'foo'
 
-        sa, da = self.alias.getEncodableAttributes(self.obj)
-        self.assertEquals(sa, None)
-        self.assertEquals(da, {'foo': 'bar', 'bar': 'foo'})
+        attrs = self.alias.getEncodableAttributes(self.obj)
+        self.assertEquals(attrs, {'foo': 'bar', 'bar': 'foo'})
 
     def test_proxy(self):
         from pyamf import flex
@@ -195,15 +193,14 @@ class GetEncodableAttributesTestCase(unittest.TestCase):
         self.obj.foo = ['bar', 'baz']
         self.obj.bar = {'foo': 'gak'}
 
-        sa, da = self.alias.getEncodableAttributes(self.obj)
-        self.assertEquals(sa, None)
-        self.assertEquals(da.keys(), ['foo', 'bar'])
+        attrs = self.alias.getEncodableAttributes(self.obj)
+        self.assertEquals(sorted(attrs.keys()), ['bar', 'foo'])
 
-        self.assertTrue(isinstance(da['foo'], flex.ArrayCollection))
-        self.assertEquals(da['foo'], ['bar', 'baz'])
+        self.assertTrue(isinstance(attrs['foo'], flex.ArrayCollection))
+        self.assertEquals(attrs['foo'], ['bar', 'baz'])
 
-        self.assertTrue(isinstance(da['bar'], flex.ObjectProxy))
-        self.assertEquals(da['bar']._amf_object, {'foo': 'gak'})
+        self.assertTrue(isinstance(attrs['bar'], flex.ObjectProxy))
+        self.assertEquals(attrs['bar']._amf_object, {'foo': 'gak'})
 
 
 class GetDecodableAttributesTestCase(unittest.TestCase):

@@ -126,16 +126,14 @@ class ClassAliasTestCase(ModelsBaseTestCase):
 
         alias = self.adapter.DjangoClassAlias(TestClass, None)
 
-        sa, da = alias.getEncodableAttributes(x)
+        attrs = alias.getEncodableAttributes(x)
 
-        self.assertEquals(sa, {
+        self.assertEquals(attrs, {
             'id': None,
             'd': datetime.datetime(2008, 3, 12, 0, 0),
             'dt': datetime.datetime(2008, 3, 12, 12, 12, 12),
             't': datetime.datetime(1970, 1, 1, 12, 12, 12)
         })
-
-        self.assertEquals(da, None)
 
         y = TestClass()
 
@@ -184,10 +182,8 @@ class ClassAliasTestCase(ModelsBaseTestCase):
 
         x.id = fields.NOT_PROVIDED
 
-        sa, da = alias.getEncodableAttributes(x)
-
-        self.assertEquals(da, None)
-        self.assertEquals(sa, {'id': pyamf.Undefined})
+        attrs = alias.getEncodableAttributes(x)
+        self.assertEquals(attrs, {'id': pyamf.Undefined})
 
     def test_non_field_prop(self):
         from django.db import models
@@ -203,10 +199,8 @@ class ClassAliasTestCase(ModelsBaseTestCase):
 
         x = Book()
 
-        self.assertEquals(alias.getEncodableAttributes(x), (
-            {'id': None},
-            {'numberOfOddPages': 234}
-        ))
+        self.assertEquals(alias.getEncodableAttributes(x),
+            {'numberOfOddPages': 234, 'id': None})
 
         # now we test sending the numberOfOddPages attribute
         alias.applyAttributes(x, {'numberOfOddPages': 24, 'id': None})
@@ -228,10 +222,8 @@ class ClassAliasTestCase(ModelsBaseTestCase):
         x = Foo()
         x.spam = 'eggs'
 
-        self.assertEquals(alias.getEncodableAttributes(x), (
-            {'id': None},
-            {'spam': 'eggs'}
-        ))
+        self.assertEquals(alias.getEncodableAttributes(x),
+            {'spam': 'eggs', 'id': None})
 
         # now we test sending the numberOfOddPages attribute
         alias.applyAttributes(x, {'spam': 'foo', 'id': None})
@@ -288,14 +280,14 @@ class ForeignKeyTestCase(ModelsBaseTestCase):
         alias = self.adapter.DjangoClassAlias(Article, defer=True)
 
         self.assertFalse(hasattr(alias, 'fields'))
-        sa, da = alias.getEncodableAttributes(a)
-        self.assertEquals(sa, {
+        attrs = alias.getEncodableAttributes(a)
+
+        # note that the reporter attribute does not exist.
+        self.assertEquals(attrs, {
             'headline': u'This is a test',
             'pub_date': datetime.datetime(2005, 7, 27, 0, 0),
             'id': 1,
         })
-        # note that the reporter attribute does not exist.
-        self.assertEquals(da, None)
 
         self.assertFalse('_reporter_cache' in a.__dict__)
         self.assertEquals(pyamf.encode(a, encoding=pyamf.AMF3).getvalue(),
@@ -310,14 +302,12 @@ class ForeignKeyTestCase(ModelsBaseTestCase):
         alias = self.adapter.DjangoClassAlias(Article, defer=True)
 
         self.assertFalse(hasattr(alias, 'fields'))
-        self.assertEquals(alias.getEncodableAttributes(a), ({
+        self.assertEquals(alias.getEncodableAttributes(a), {
             'headline': u'This is a test',
             'pub_date': datetime.datetime(2005, 7, 27, 0, 0),
             'id': 1,
-        },
-        {
             'reporter': r,
-        }))
+        })
 
         self.assertTrue('_reporter_cache' in a.__dict__)
         self.assertEquals(pyamf.encode(a, encoding=pyamf.AMF3).getvalue(),
@@ -373,17 +363,15 @@ class ForeignKeyTestCase(ModelsBaseTestCase):
         test_publication = Publication.objects.filter(pk=1)[0]
         test_article = Article2.objects.filter(pk=1)[0]
 
-        sa, da = pub_alias.getEncodableAttributes(test_publication)
-        self.assertEquals(sa, {'id': 1, 'title': u'The Python Journal'})
-        self.assertEquals(da, None)
+        attrs = pub_alias.getEncodableAttributes(test_publication)
+        self.assertEquals(attrs, {'id': 1, 'title': u'The Python Journal'})
 
-        sa, da = art_alias.getEncodableAttributes(test_article)
-        self.assertEquals(sa, {
+        attrs = art_alias.getEncodableAttributes(test_article)
+        self.assertEquals(attrs, {
             'headline': u'Django lets you build Web apps easily',
             'id': 1,
             'publications': [p1]
         })
-        self.assertEquals(da, None)
 
         x = Article2()
         art_alias.applyAttributes(x, {
@@ -422,10 +410,9 @@ class ForeignKeyTestCase(ModelsBaseTestCase):
 
         nfk = NullForeignKey()
 
-        sa, da = nfk_alias.getEncodableAttributes(nfk)
+        attrs = nfk_alias.getEncodableAttributes(nfk)
 
-        self.assertEquals(sa, {'id': None})
-        self.assertEquals(da, None)
+        self.assertEquals(attrs, {'id': None})
 
     def test_static_relation(self):
         """
@@ -581,16 +568,14 @@ class ModelInheritanceTestCase(ModelsBaseTestCase):
 
         x = Student()
 
-        sa, da = alias.getEncodableAttributes(x)
+        attrs = alias.getEncodableAttributes(x)
 
-        self.assertEquals(sa, {
+        self.assertEquals(attrs, {
             'age': None,
             'home_group': '',
             'id': None,
             'name': ''
         })
-
-        self.assertEquals(da, None)
 
     def test_concrete(self):
         from django.db import models
@@ -608,30 +593,26 @@ class ModelInheritanceTestCase(ModelsBaseTestCase):
         alias = self.adapter.DjangoClassAlias(Place)
         x = Place()
 
-        sa, da = alias.getEncodableAttributes(x)
+        attrs = alias.getEncodableAttributes(x)
 
-        self.assertEquals(sa, {
+        self.assertEquals(attrs, {
             'id': None,
             'name': '',
             'address': ''
         })
 
-        self.assertEquals(da, None)
-
         alias = self.adapter.DjangoClassAlias(Restaurant)
         x = Restaurant()
 
-        sa, da = alias.getEncodableAttributes(x)
+        attrs = alias.getEncodableAttributes(x)
 
-        self.assertEquals(sa, {
+        self.assertEquals(attrs, {
             'id': None,
             'name': '',
             'address': '',
             'serves_hot_dogs': False,
             'serves_pizza': False
         })
-
-        self.assertEquals(da, None)
 
 
 class MockFile(object):
@@ -686,13 +667,12 @@ class FieldsTestCase(ModelsBaseTestCase):
 
         i.save()
 
-        sa, da = alias.getEncodableAttributes(i)
+        attrs = alias.getEncodableAttributes(i)
 
-        self.assertEquals(sa, {'text': '', 'id': 1, 'file': u'foo'})
-        self.assertEquals(da, None)
+        self.assertEquals(attrs, {'text': '', 'id': 1, 'file': u'foo'})
         self.assertTrue(self.executed)
 
-        attrs = alias.getDecodableAttributes(i, sa)
+        attrs = alias.getDecodableAttributes(i, attrs)
 
         self.assertEquals(attrs, {'text': ''})
 
@@ -725,13 +705,12 @@ class ImageTestCase(ModelsBaseTestCase):
 
         i.save()
 
-        sa, da = alias.getEncodableAttributes(i)
+        attrs = alias.getEncodableAttributes(i)
 
-        self.assertEquals(sa, {'text': '', 'id': 1, 'file': u'foo_'})
-        self.assertEquals(da, None)
+        self.assertEquals(attrs, {'text': '', 'id': 1, 'file': u'foo'})
         self.assertTrue(self.executed)
 
-        attrs = alias.getDecodableAttributes(i, sa)
+        attrs = alias.getDecodableAttributes(i, attrs)
 
         self.assertEquals(attrs, {'text': ''})
 
