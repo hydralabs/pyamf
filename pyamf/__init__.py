@@ -537,8 +537,7 @@ class ClassAlias(object):
 
     def getEncodableAttributes(self, obj, codec=None):
         """
-        Returns a C{tuple} containing a dict of static and dynamic attributes
-        for an object to encode.
+        Returns a dict of attributes to be encoded or None.
 
         @param codec: An optional argument that will contain the en/decoder
             instance calling this function.
