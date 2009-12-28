@@ -714,10 +714,7 @@ class IndexedCollection(object):
         @return: An C{int} representing the reference or C{None} is the object
             is not contained within the collection.
         """
-        try:
-            return self.dict[self.func(obj)]
-        except KeyError:
-            return None
+        return self.dict.get(self.func(obj), None)
 
     def append(self, obj):
         """

@@ -1204,11 +1204,7 @@ class Encoder(pyamf.BaseEncoder):
         <http://osflash.org/documentation/amf3/parsing_integers>}
         for more info.
         """
-        try:
-            self.stream.write(ENCODED_INT_CACHE[n])
-        except KeyError:
-            ENCODED_INT_CACHE[n] = encode_int(n)
-            self.stream.write(ENCODED_INT_CACHE[n])
+        self.stream.write(encode_int(n))
 
     def writeInteger(self, n, **kwargs):
         """
@@ -1667,6 +1663,13 @@ def encode_int(n):
     @rtype: C{str}
     @raise OverflowError: Out of range.
     """
+    global ENCODED_INT_CACHE
+
+    try:
+        return ENCODED_INT_CACHE[n]
+    except KeyError:
+        pass
+
     if n < MIN_29B_INT or n > MAX_29B_INT:
         raise OverflowError("Out of range")
 
