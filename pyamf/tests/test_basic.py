@@ -442,6 +442,21 @@ class RegisterAliasTypeTestCase(unittest.TestCase):
 
         self.assertRaises(RuntimeError, pyamf.register_alias_type, DummyAlias, A)
 
+    def test_unregister(self):
+        """
+        Tests for L{pyamf.unregister_alias_type}
+        """
+        class A(object):
+            pass
+
+        self.assertFalse(DummyAlias in pyamf.ALIAS_TYPES)
+        self.assertEquals(pyamf.unregister_alias_type(A), None)
+
+        pyamf.register_alias_type(DummyAlias, A)
+
+        self.assertTrue(DummyAlias in pyamf.ALIAS_TYPES.keys())
+        self.assertEquals(pyamf.unregister_alias_type(DummyAlias), (A,))
+
 
 class BaseContextTestCase(unittest.TestCase):
     def test_no_alias(self):

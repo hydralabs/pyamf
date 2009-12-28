@@ -7,10 +7,10 @@ Gateway for Google App Engine.
 This gateway allows you to expose functions in Google App Engine web
 applications to AMF clients and servers.
 
-@see: U{Google App Engine homepage (external)
-    <http://code.google.com/appengine>}
+*See*: `Google App Engine homepage (external)
+    <http://code.google.com/appengine>`_
 
-@since: 0.3.1
+*Since*: 0.3.1
 """
 
 import sys
@@ -24,7 +24,7 @@ except ValueError:
 google = __import__('google.appengine.ext.webapp')
 webapp = google.appengine.ext.webapp
 
-from pyamf import remoting
+from pyamf import remoting, DecodeError
 from pyamf.remoting import gateway
 
 __all__ = ['WebAppGateway']
@@ -76,7 +76,7 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
         try:
             request = remoting.decode(body, strict=self.strict,
                 logger=self.logger, timezone_offset=timezone_offset)
-        except (pyamf.DecodeError, IOError):
+        except (DecodeError, IOError):
             if self.logger:
                 self.logger.exception('Error decoding AMF request')
 
