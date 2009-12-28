@@ -126,6 +126,10 @@ class SaMappedClassAlias(pyamf.ClassAlias):
 
         return attrs
 
+    def createInstance(self, *args, **kwargs):
+        self.compile()
+
+        return self.mapper.class_manager.new_instance()
 
 def is_class_sa_mapped(klass):
     """

@@ -19,6 +19,7 @@ Highlighted Features
 Backward Incompatible API Changes
 =================================
 
+* ``__new__`` is used in favour of ``__init__``. See `#700 <http://pyamf.org/ticket/700>`_
 * ``pyamf.ClientTypes`` served no purpose and was not compliant with the AMF0
   specification. It has been removed. See `#651 <http://pyamf.org/ticket/651>`_
   for more information.

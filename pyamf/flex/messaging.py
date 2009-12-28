@@ -93,6 +93,13 @@ class AbstractMessage(object):
         ['clientId', 'messageId']
     ))
 
+    def __new__(cls, *args, **kwargs):
+        obj = object.__new__(cls)
+
+        obj.__init__(*args, **kwargs)
+
+        return obj
+
     def __init__(self, *args, **kwargs):
         self.body = kwargs.get('body', None)
         self.clientId = kwargs.get('clientId', None)

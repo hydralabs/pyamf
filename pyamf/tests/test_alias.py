@@ -106,7 +106,7 @@ class ClassAliasTestCase(ClassCacheClearingTestCase):
                 pass
 
         self.assertRaises(TypeError, ClassAlias, ClassicFoo)
-        self.assertRaises(TypeError, ClassAlias, NewFoo)
+        ClassAlias(NewFoo)
 
     def test_createInstance(self):
         x = ClassAlias(Spam, 'org.example.spam.Spam')

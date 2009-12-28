@@ -22,7 +22,6 @@ import inspect
 from pyamf import util
 from pyamf.adapters import register_adapters
 
-
 try:
     set
 except NameError:
@@ -514,36 +513,44 @@ class ClassAlias(object):
     def checkClass(self, klass):
         """
         This function is used to check if the class being aliased fits certain
-        criteria. The default is to check that the C{__init__} constructor does
-        not pass in arguments.
+        criteria. The default is to check that C{__new__} is available or the
+        C{__init__} constructor does not need additional arguments.
 
         @since: 0.4
-        @raise TypeError: C{__init__} doesn't support additional arguments
+        @raise TypeError: C{__new__} not available and C{__init__} requires
+            additional arguments
         """
+        # Check for __new__ support.
+        if hasattr(klass, '__new__') and callable(klass.__new__):
+            # Should be good to go.
+            return
+
         # Check that the constructor of the class doesn't require any additonal
         # arguments.
-        if not (hasattr(klass, '__init__') and hasattr(klass.__init__, 'im_func')):
+        if not (hasattr(klass, '__init__') and callable(klass.__init__)):
             return
 
         klass_func = klass.__init__.im_func
 
-        # built-in classes don't have func_code
-        if hasattr(klass_func, 'func_code') and (
-           klass_func.func_code.co_argcount - len(klass_func.func_defaults or []) > 1):
-            args = list(klass_func.func_code.co_varnames)
-            values = list(klass_func.func_defaults or [])
+        if not hasattr(klass_func, 'func_code'):
+            # Can't examine it, assume it's OK.
+            return
 
-            if not values:
-                sign = "%s.__init__(%s)" % (klass.__name__, ", ".join(args))
-            else:
-                named_args = zip(args[len(args) - len(values):], values)
-                sign = "%s.%s.__init__(%s, %s)" % (
-                    klass.__module__, klass.__name__,
-                    ", ".join(args[:0-len(values)]),
-                    ", ".join(map(lambda x: "%s=%s" % x, named_args)))
+        if klass_func.func_defaults:
+            available_arguments = len(klass_func.func_defaults) + 1
+        else:
+            available_arguments = 1
 
-            raise TypeError("__init__ doesn't support additional arguments: %s"
-                % sign)
+        needed_arguments = klass_func.func_code.co_argcount
+
+        if available_arguments >= needed_arguments:
+            # Looks good to me.
+            return
+
+        spec = inspect.getargspec(klass_func)
+
+        raise TypeError("__init__ doesn't support additional arguments: %s"
+            % inspect.formatargspec(*spec))
 
     def getEncodableAttributes(self, obj, codec=None):
         """
@@ -739,7 +746,10 @@ class ClassAlias(object):
 
         @return: Instance of C{self.klass}.
         """
-        return self.klass(*args, **kwargs)
+        if hasattr(self.klass, '__new__') and callable(self.klass.__new__):
+            return self.klass.__new__(self.klass)
+
+        return self.klass()
 
 
 class TypedObject(dict):
