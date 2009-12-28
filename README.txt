@@ -28,7 +28,7 @@ ArrayCollection_, ObjectProxy_ and IExternalizable_.
 .. _Twisted:	http://twistedmatrix.com
 .. _SQLAlchemy: http://sqlalchemy.org
 .. _web2py:	http://www.web2py.com
-.. _more:	http://pyamf.org/wiki/Examples#Python
+.. _more:	http://docs.pyamf.org/current/tutorials/index.html
 .. _Adobe Integrated Runtime: http://en.wikipedia.org/wiki/Adobe_AIR
 .. _RTMP/RTMPS:	http://en.wikipedia.org/wiki/Real_Time_Messaging_Protocol
 .. _ActionScript: http://pyamf.org/wiki/ActionScript

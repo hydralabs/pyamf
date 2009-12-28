@@ -47,8 +47,7 @@ Loading a Local Shared Object
 -----------------------------
 
 This file is located in the ``youtube.com`` directory, check it out on your
-own system (assuming you've visited `youtube.com <http://youtube.com>`_ at
-some point).
+own system (assuming you've visited youtube.com_ at some point).
 
 .. code-block:: python
    :linenos:
@@ -107,3 +106,6 @@ supplying the ``encoding`` keyword to the ``save`` function.
 
     file = 'highScores.sol'
     sol.save(lso, file, encoding=AMF3)
+
+
+.. _youtube.com: http://youtube.com

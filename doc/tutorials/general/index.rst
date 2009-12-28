@@ -7,4 +7,6 @@
 
    helloworld/index.rst
    client.rst
+   remoteobject.rst
+   authentication.rst
    sharedobject.rst

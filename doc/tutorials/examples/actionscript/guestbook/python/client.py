@@ -29,5 +29,6 @@ client = RemotingService(url, logger=logging)
 
 service = client.getService('guestbook')
 
-# print service.addMessage('Nick', 'http://boxdesign.co.uk', 'nick@pyamf.org', 'Hello World!')
+# print service.addMessage('Nick', 'http://boxdesign.co.uk',
+#                          'nick@pyamf.org', 'Hello World!')
 print service.getMessages()

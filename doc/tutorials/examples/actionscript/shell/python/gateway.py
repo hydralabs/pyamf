@@ -2,9 +2,7 @@
 # See LICENSE.txt for details.
 
 """
-Echo test core functionality. This module sets up the class
-mappings related to the echo_test.swf client on the
-U{EchoTest<http://pyamf.org/wiki/EchoTest>} wiki page.
+Shell example.
 
 @since: 0.3
 """
@@ -15,6 +13,7 @@ import StringIO
 
 import pyamf
 from pyamf.remoting.gateway.django import DjangoGateway
+
 
 # Types that can't be pickled.
 UNPICKLABLE_TYPES = (
@@ -30,6 +29,7 @@ INITIAL_UNPICKLABLES = [
   'import os',
   'import sys'
   ]
+
 
 class ShellSession(object):
   global_names = []
@@ -195,10 +195,12 @@ class ShellService:
     return buffer.getvalue()
 
   def startup(self, request):
+    pyamf_version = '.'.join([str(x) for x in pyamf.__version__])
+
     header = 'Welcome to the PyAMF %s Shell Demo!\n' \
            'Python %s on %s\n' \
            'Type "help", "copyright", "credits" or "license" for more information.' % \
-           (pyamf.version, sys.version, sys.platform)
+           (pyamf_version, sys.version, sys.platform)
 
     return header
 

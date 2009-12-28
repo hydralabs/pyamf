@@ -9,21 +9,18 @@
 .. topic:: Introduction
 
    This howto shows you how to easily publish your PyAMF applications with
-   Apache `Tomcat <http://tomcat.apache.org>`_ and
-   `modjy <http://opensource.xhaus.com/projects/modjy/wiki>`_. modjy is an
-   implementation of a WSGI compliant gateway/server for
-   `Jython <http://jython.org>`_, built on Java/J2EE servlets. This allows
-   you to run Jython WSGI applications inside a Java/J2EE servlet container,
-   e.g. Apache Tomcat. modjy is part of the Jython project.
+   `Apache Tomcat`_ and modjy_. modjy is an implementation of a WSGI
+   compliant gateway/server for Jython_, built on Java/J2EE servlets. This
+   allows you to run Jython WSGI applications inside a Java/J2EE servlet
+   container, e.g. Apache Tomcat. modjy is part of the Jython project.
 
    We're going to assume you downloaded Apache Tomcat and are able to run
    it on ``http://localhost:8080``, which is the default for Tomcat.
    Flash applications will be able to access your PyAMF remoting gateway
    on ``http://localhost:8080/pyamf/``.
 
-   This was tested with `Jython <http://jython.org>`_ 2.5, Apache
-   `Tomcat <http://tomcat.apache.org>`_ 6.0.20, and Java 1.6 on Mac OS X
-   10.5.7. 
+   This was tested with Jython_ 2.5, `Apache Tomcat`_ 6.0.20, and Java 1.6
+   on Mac OS X 10.5.7. 
 
 
 Deploying modjy
@@ -68,8 +65,15 @@ Modify the ``webapps/pyamf/WEB-INF/web.xml`` file so it contains:
 Make sure you replace ``python.home`` in the example ``web.xml`` above
 (see line 17) and point in to your local Jython installation.
 
-Now start Tomcat and browse to http://localhost:8080/pyamf/ and you
-should see Jython is up and running::
+Start Server
+============
+
+Now start Tomcat::
+  
+  bin/startup.sh
+
+Browse to http://localhost:8080/pyamf/ where you should see Jython
+is up and running::
 
  Modjy servlet running correctly: jython 2.5.0 (Release_2_5_0:6476, Jun 16 2009, 13:33:26)
  [Java HotSpot(TM) 64-Bit Server VM (Apple Inc.)] on java1.6.0_13
@@ -91,6 +95,9 @@ Open ``webapps/pyamf/demo_app.py`` and replace it's contents with:
 That's it! Your Adobe Flash Player and AMF clients will now be able to
 access your PyAMF application through http://localhost:8080/pyamf.
 
+You don't have to restart the Apache Tomcat server when you make changes
+to your application since the auto-reload mechanism is enabled by default.
+
 
 Client
 ======
@@ -99,3 +106,15 @@ You can test the application with this Python AMF client:
 
 .. literalinclude:: ../examples/jython/client.py
    :linenos:
+
+
+References
+==========
+
+http://opensource.xhaus.com/projects/1/wiki/ModjyDeployment
+  In-depth information about deploying modjy web applications
+
+
+.. _Apache Tomcat: http://tomcat.apache.org
+.. _modjy: http://opensource.xhaus.com/projects/modjy/wiki
+.. _Jython: http://jython.org

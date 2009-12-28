@@ -8,9 +8,9 @@
 
 .. topic:: Introduction
 
-    `SQLAlchemy <http://sqlalchemy.org>`_ is the Python SQL toolkit and
-    Object Relational Mapper that gives application developers the full
-    power and flexibility of SQL.
+    SQLAlchemy_ is the Python SQL toolkit and Object Relational Mapper
+    that gives application developers the full power and flexibility of
+    SQL.
 
 
 Overview
@@ -21,7 +21,7 @@ managed by SQLAlchemy. The adapter is enabled by default, and SQLAlchemy
 managed objects are transparently encoded/decoded by the adapter.
 
 To use the adapter, make sure any SQLAlchemy managed classes are mapped
-BEFORE assigning an AMF alias for the class.
+**before** assigning an AMF alias for the class.
 
 .. code-block:: python
 
@@ -47,8 +47,10 @@ The additional information contained in these attributes can be used to lazy loa
 Useful Resources
 ================
 
-http://pyamf.org/wiki/AddressBookExample
+:doc:`../actionscript/addressbook`
    Demonstrates the use of SQLAlchemy and Flex.
 
 http://api.pyamf.org/pyamf.adapters._sqlalchemy-module.html
    API documentation.
+
+.. _SQLAlchemy: http://sqlalchemy.org

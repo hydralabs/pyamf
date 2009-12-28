@@ -9,14 +9,12 @@
 .. topic:: Introduction
 
    This document describes how to setup the AMF gateway for
-   `Buildbot <http://buildbot.net>`_ that can be used by other programs
-   to query the build status.
+   Buildbot_ that can be used by other programs to query the
+   build status.
 
-   There will be live demo available on our BuildBot's
-   `homepage <http://buildbot.pyamf.org>`_.
+   There will be live demo available on our BuildBot's homepage_.
 
-   Note: this page is a work in progress (#298,
-   `#293 <http://buildbot.net/trac/ticket/293>`_)
+   **Note**: This document is a work in progress (#298, #293_)
 
 
 Download
@@ -26,11 +24,11 @@ Grab the Flex and Python example clients from SVN with:
 
 .. code-block:: bash
 
-   svn export http://svn.pyamf.org/examples/branches/buildbot-example-298/buildbot buildbot-example
+   svn export http://svn.pyamf.org/pyamf/branches/buildbot-example-298-2/doc/tutorials/actionscript/buildbot buildbot-example
+
 
 Alternatively, if you just want to have a look, you can
-`browse the example source online
-<http://pyamf.org/browser/examples/branches/buildbot-example-298/buildbot>`_.
+`browse the example source online`_.
 
 
 Buildbot configuration
@@ -50,8 +48,7 @@ Create a new buildmaster:
    buildbot create-master test
 
 
-`Download <http://buildbot.net/trac/raw-attachment/ticket/293/amf.py>`_
-the Buildbot AMF gateway and put it in your
+Download_ the Buildbot AMF gateway and put it in your
 buildmaster root folder:
 
 .. code-block:: bash
@@ -116,5 +113,12 @@ Flash Player
 ------------
 
 The easiest is to copy the contents of the Flex deploy folder
-into your <buildmaster home>/public_html folder. That allows
+into your `<buildmaster home>/public_html` folder. That allows
 you to run the application on http://localhost:8080/amf.html.
+
+
+.. _Buildbot: http://buildbot.net
+.. _homepage: http://buildbot.pyamf.org
+.. _#293: http://buildbot.net/trac/ticket/293
+.. _browse the example source online: http://pyamf.org/browser/pyamf/branches/buildbot-example-298-2/doc/tutorials/actionscript/buildbot
+.. _Download: http://buildbot.net/trac/raw-attachment/ticket/293/amf.py

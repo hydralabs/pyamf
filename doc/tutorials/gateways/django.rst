@@ -8,9 +8,8 @@
 
 .. topic:: Introduction
 
-   The `Django <http://djangoproject.com>`_ Remoting gateway included in
-   PyAMF allows you to expose functions in Django (0.96 or newer) to AMF
-   clients and servers.
+   The Django_ Remoting gateway included in PyAMF allows you to expose
+   functions in Django (0.96 or newer) to AMF clients and servers.
 
 
 Example
@@ -71,10 +70,10 @@ To test the gateway you can use a Python AMF client like this:
 Useful Resources
 ================
 
-http://pyamf.org/wiki/ByteArrayExample
+:doc:`../actionscript/bytearray`
    ByteArray example using Flex and Django.
 
-http://pyamf.org/wiki/ShellExample
+:doc:`../actionscript/shell`
    Python Shell example with Flex and Django.
 
 http://api.pyamf.org/pyamf.remoting.gateway.django.html
@@ -82,3 +81,6 @@ http://api.pyamf.org/pyamf.remoting.gateway.django.html
 
 http://joelhooks.com/2008/01/05/pyamf-communication-with-django-from-flex
    Joel Hooks - Communication with Django from Flex
+
+
+.. _Django: http://djangoproject.com

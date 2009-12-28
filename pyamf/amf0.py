@@ -6,17 +6,16 @@
 """
 AMF0 implementation.
 
-C{AMF0} supports the basic data types used for the NetConnection, NetStream,
+`AMF0` supports the basic data types used for the NetConnection, NetStream,
 LocalConnection, SharedObjects and other classes in the Adobe Flash Player.
 
-@see: U{Official AMF0 Specification in English (external)
-<http://opensource.adobe.com/wiki/download/attachments/1114283/amf0_spec_121207.pdf>}
-@see: U{Official AMF0 Specification in Japanese (external)
-<http://opensource.adobe.com/wiki/download/attachments/1114283/JP_amf0_spec_121207.pdf>}
-@see: U{AMF documentation on OSFlash (external)
-<http://osflash.org/documentation/amf>}
+**Since**: 0.1
 
-@since: 0.1
+.. seealso::
+
+  - `Official AMF0 Specification in English (external) <http://opensource.adobe.com/wiki/download/attachments/1114283/amf0_spec_121207.pdf>`_
+  - `Official AMF0 Specification in Japanese (external) <http://opensource.adobe.com/wiki/download/attachments/1114283/JP_amf0_spec_121207.pdf>`_
+  - `AMF documentation on OSFlash (external) <http://osflash.org/documentation/amf>`_
 """
 
 import datetime
@@ -25,6 +24,9 @@ import copy
 
 import pyamf
 from pyamf import util
+
+
+__docformat__ = "restructuredtext en"
 
 
 #: Represented as 9 bytes: 1 byte for C{0×00} and 8 bytes a double
@@ -101,9 +103,10 @@ class Context(pyamf.BaseContext):
 
     AMF0 object references start at index 1.
 
-    @ivar amf3_objs: A list of objects that have been decoded in
-        L{AMF3<pyamf.amf3>}.
-    @type amf3_objs: L{util.IndexedCollection}
+    :IVariables:
+      amf3_objs : `util.IndexedCollection`
+        A list of objects that have been decoded in
+        `AMF3 <pyamf.amf3>`_
     """
 
     def __init__(self, **kwargs):

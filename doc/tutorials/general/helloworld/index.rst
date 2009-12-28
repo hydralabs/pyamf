@@ -4,8 +4,8 @@
 
 .. topic:: Introduction
 
-   The basic `Hello World <http://http://en.wikipedia.org/wiki/Hello_world_program>`_
-   examples show how to use PyAMF with other AMF clients and servers.
+   The basic `Hello World`_ examples show how to use PyAMF with other
+   AMF clients and servers.
 
    - Connect to a remote PyAMF service
    - Invoke a Python function exposed by the service
@@ -15,7 +15,7 @@
 Python
 ------
 
-`Python <http://http:/python.org>`_ AMF examples are available for:
+Python_ AMF examples are available for:
 
 - `client <../../examples/general/helloworld/python/client.py>`_
 - `server <../../examples/general/helloworld/python/server.py>`_
@@ -47,3 +47,5 @@ You can use the examples below with the `helloworld example server
 
 
 .. |ActionScript (TM)| unicode:: ActionScript U+2122
+.. _Hello World: http://http://en.wikipedia.org/wiki/Hello_world_program
+.. _Python: http:/python.org

@@ -1,7 +1,7 @@
-:mod:`amf0` --- AMF0
+:mod:`pyamf.amf0` --- AMF0
 =============================================
 
-.. automodule:: amf0
+.. automodule:: pyamf.amf0
    :members:
    :synopsis: AMF0 encoder and decoder.
 
@@ -17,7 +17,7 @@ The :mod:`amf0` module exports the following constants:
 
 .. seealso::
 
-   Module :mod:`amf3`
+   Module :mod:`pyamf.amf3`
       AMF3 equivalent.
 
 

@@ -11,18 +11,14 @@
    This howto will show you how to use a PyAMF application (0.3.1 or newer)
    with Google App Engine.
 
-   `Google App Engine <http://code.google.com/appengine>`_ (GAE) lets you
-   run your web applications on Google's infrastructure for free. You can
-   serve your app using a free domain name on the appspot.com domain, or
-   use `Google Apps <http://www.google.com/a/help/intl/en/index.html>`_ to
-   serve it from your own domain.
+   `Google App Engine`_ (GAE) lets you run your web applications on Google's
+   infrastructure for free. You can serve your app using a free domain name
+   on the appspot.com domain, or use `Google Apps`_ to serve it from your
+   own domain.
 
    GAE applications are implemented using Python 2.5.2. The `runtime
-   environment <http://code.google.com/appengine/docs/python>`_ includes
-   the full Python language and
-   `most <http://code.google.com/appengine/docs/python/purepython.html>`_
-   of the Python standard library, including
-   `Django <http://djangoproject.com>`_.
+   environment`_ includes the full Python language and most_
+   of the Python standard library, including :doc:`django`.
 
 
 Prerequisites
@@ -30,11 +26,10 @@ Prerequisites
 
 Before you can start using GAE you need to download and install:
 
-- Python 2.5 or newer for your platform from
-  `the Python website <http://python.org/download>`_. Users of Mac OS X
-  10.5 or newer already have Python 2.5 installed.
-- `Google App Engine SDK <http://code.google.com/appengine/downloads.html>`_
-- PyAMF 0.3.1 or newer
+- Python 2.5 or newer for your platform from `the Python website`_. Users of
+  Mac OS X 10.5 or newer already have Python 2.5 or newer installed.
+- `Google App Engine SDK`_
+- :doc:`PyAMF 0.3.1 or newer</community/download>`
 
 
 Create Project
@@ -148,10 +143,10 @@ Useful Resources
 http://aralbalkan.com/1307
    Aral Balkan - Building Flash applications with Google App Engine.
 
-http://pyamf.org/wiki/DjangoHowto
+:doc:`../gateways/django`
    PyAMF integration with Django.
 
-http://pyamf.org/wiki/ByteArrayExample
+:doc:`../actionscript/bytearray`
    ByteArray example using Django and Flex.
 
 http://blog.pyamf.org/archives/pyamf-and-google-app-engine
@@ -160,3 +155,10 @@ http://blog.pyamf.org/archives/pyamf-and-google-app-engine
 http://pyamf.appspot.com/punit
    Run the PyAMF test suite on the Google App Engine.
 
+
+.. _Google App Engine: http://code.google.com/appengine
+.. _Google Apps: http://www.google.com/a/help/intl/en/index.html
+.. _runtime environment: http://code.google.com/appengine/docs/python
+.. _most: http://code.google.com/appengine/docs/python/purepython.html
+.. _the Python website: http://python.org/download
+.. _Google App Engine SDK: http://code.google.com/appengine/downloads.html

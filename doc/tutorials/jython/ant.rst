@@ -8,9 +8,8 @@
 
 .. topic:: Introduction
 
-    `Apache Ant <http://ant.apache.org>`_ is a Java-based build tool. Ant
-    build files are created using XML but it also support Python
-    scripts using `Jython <http://jython.org>`_.
+    `Apache Ant`_ is a Java-based build tool. Ant build files are created
+    using XML but it also support Python scripts using Jython_.
 
     This howto was created using Jython 2.5.0 standalone, PyAMF 0.5,
     Ant 1.7 and Java JDK 1.6.0_13 on Mac OSX 10.5.7.
@@ -21,9 +20,8 @@ About JSR-223
 
 There are 2 ways to execute Python scripts in Ant:
 
-- using `JSR-223 <http://jythonpodcast.hostjava.net/jythonbook/chapter10.html#jsr-223>`_
-- `utilizing <http://jythonpodcast.hostjava.net/jythonbook/chapter10.html#utilizing-pythoninterpreter>`_
-  the ``PythonInterpreter``
+- using JSR-223_
+- utilising_ the ``PythonInterpreter``
 
 JSR-223 enables dynamic languages to be callable via Java in a seamless
 manner, which is supported in Jython 2.2.1 and newer. This howto will
@@ -46,9 +44,7 @@ Start out with checking whether Apache Ant is working:
  
    ant -version
 
-Returns the version number:
-
-.. code-block:: bash
+Returns the version number::
 
   Apache Ant version 1.7.0 compiled on May 21 2009
 
@@ -104,10 +100,7 @@ Go to the project's base folder and run Ant:
   cd ../..
   ant
 
-This should print the build progress and application output:
-
-.. code-block:: bash
-
+This should print the build progress and application output::
   Buildfile: build.xml
 
   clean:
@@ -123,29 +116,7 @@ This should print the build progress and application output:
   run:
      [java] *sys-package-mgr*: processing new jar, '/path/to/jython-ant/jython/jython.jar'
      [java] *sys-package-mgr*: processing new jar, '/path/to/jython-ant/build/jar/HelloWorld.jar'
-     [java] *sys-package-mgr*: processing new jar, '/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar'
-     [java] *sys-package-mgr*: processing new jar, '/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/ui.jar'
-     [java] *sys-package-mgr*: processing new jar, '/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/laf.jar'
-     [java] *sys-package-mgr*: processing new jar, '/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/jsse.jar'
-     [java] *sys-package-mgr*: processing new jar, '/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/jce.jar'
-     [java] *sys-package-mgr*: processing new jar, '/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/charsets.jar'
-     [java] *sys-package-mgr*: processing new jar, '/System/Library/Java/Extensions/AppleScriptEngine.jar'
-     [java] *sys-package-mgr*: processing new jar, '/System/Library/Java/Extensions/CoreAudio.jar'
-     [java] *sys-package-mgr*: processing new jar, '/System/Library/Java/Extensions/dns_sd.jar'
-     [java] *sys-package-mgr*: processing new jar, '/System/Library/Java/Extensions/j3daudio.jar'
-     [java] *sys-package-mgr*: processing new jar, '/System/Library/Java/Extensions/j3dcore.jar'
-     [java] *sys-package-mgr*: processing new jar, '/System/Library/Java/Extensions/j3dutils.jar'
-     [java] *sys-package-mgr*: processing new jar, '/System/Library/Java/Extensions/jai_codec.jar'
-     [java] *sys-package-mgr*: processing new jar, '/System/Library/Java/Extensions/jai_core.jar'
-     [java] *sys-package-mgr*: processing new jar, '/System/Library/Java/Extensions/mlibwrapper_jai.jar'
-     [java] *sys-package-mgr*: processing new jar, '/System/Library/Java/Extensions/MRJToolkit.jar'
-     [java] *sys-package-mgr*: processing new jar, '/System/Library/Java/Extensions/QTJava.zip'
-     [java] *sys-package-mgr*: processing new jar, '/System/Library/Java/Extensions/vecmath.jar'
-     [java] *sys-package-mgr*: processing new jar, '/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Home/lib/ext/apple_provider.jar'
-     [java] *sys-package-mgr*: processing new jar, '/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Home/lib/ext/dnsns.jar'
-     [java] *sys-package-mgr*: processing new jar, '/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Home/lib/ext/localedata.jar'
-     [java] *sys-package-mgr*: processing new jar, '/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Home/lib/ext/sunjce_provider.jar'
-     [java] *sys-package-mgr*: processing new jar, '/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Home/lib/ext/sunpkcs11.jar'
+     ...
      [java] Running AMF gateway on http://localhost:8000
 
 
@@ -169,9 +140,7 @@ Run ``client.py`` in ``src/python/`` which should print:
    2009-07-20 00:00:32,669 INFO  [root] Connecting to http://localhost:8000
    2009-07-20 00:00:32,783 INFO  [root] Hello world!
 
-And the server running in Ant should show some debug information:
-
-.. code-block:: bash
+And the server running in Ant should show some debug information::
 
   [java] 2009-07-19 23:48:59,756 DEBUG [root] remoting.decode start
   [java] 2009-07-19 23:49:00,190 DEBUG [root] Remoting target: u'echo.echo'
@@ -187,4 +156,11 @@ And the server running in Ant should show some debug information:
 Flash
 -----
 
-The Hello World Flash examples should all work with this example's ``server.py``.
+The :doc:`Hello World <../general/helloworld/index>` Flash examples should all work with this
+example's ``server.py``.
+
+
+.. _Apache Ant: http://ant.apache.org
+.. _Jython: http://jython.org
+.. _JSR-223: http://jythonpodcast.hostjava.net/jythonbook/chapter10.html#jsr-223
+.. _utilising: http://jythonpodcast.hostjava.net/jythonbook/chapter10.html#utilizing-pythoninterpreter

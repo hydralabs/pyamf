@@ -47,7 +47,7 @@ You **don't** need these packages if you're using Python 2.5 or newer.
 Step 1
 ------
 
-Download_ and unpack the PyAMF archive of your choice::
+:doc:`community/download` and unpack the PyAMF archive of your choice::
 
     tar zxfv PyAMF-<version>.tar.gz
     cd PyAMF-<version>
@@ -121,11 +121,10 @@ To install PyAMF to a custom location::
 
 
 .. _Python: 	http://www.python.org
-.. _yet:	http://pyamf.org/milestone/Python%203000
+.. _yet:	http://pyamf.org/milestone/0.7
 .. _setuptools:	http://peak.telecommunity.com/DevCenter/setuptools
 .. _easy_install: http://peak.telecommunity.com/DevCenter/EasyInstall#installing-easy-install
 .. _ez_setup.py: http://svn.pyamf.org/pyamf/trunk/ez_setup.py
-.. _Download:	http://pyamf.org/wiki/Download
 .. _ElementTree: http://effbot.org/zone/element-index.htm
 .. _uuid:	http://pypi.python.org/pypi/uuid
 .. _wsgiref:	http://pypi.python.org/pypi/wsgiref

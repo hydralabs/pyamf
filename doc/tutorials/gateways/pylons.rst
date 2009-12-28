@@ -5,11 +5,9 @@
 .. topic:: Introduction
 
    The following tutorial describes how to set up a bare bones
-   `Pylons <http://pylonshq.com>`_ project with a gateway exposing a
-   method.
+   Pylons_ project with a gateway exposing a method.
 
-   Since Pylons `supports <http://wiki.pylonshq.com/display/pylonsdocs/Web+Server+Gateway+Interface+Support>`_
-   generic `WSGI <http://www.python.org/dev/peps/pep-0333>`_ apps as
+   Since Pylons supports_ generic WSGI (:pep:`333`) apps as
    controllers, setting up a remoting gateway is trivial using the WSGI
    gateway.
 
@@ -89,3 +87,6 @@ Example
   .. literalinclude:: ../examples/gateways/pylons/client.py
      :linenos:
 
+
+.. _Pylons: http://pylonshq.com
+.. _supports: http://wiki.pylonshq.com/display/pylonsdocs/Web+Server+Gateway+Interface+Support

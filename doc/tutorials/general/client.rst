@@ -7,9 +7,8 @@
    PyAMF isn't just about the Adobe Flash Player talking to a Python
    backend, oh no. We have put together a client module which allows
    you to make AMF calls to an HTTP Gateway, whether that be PyAMF or
-   `other AMF implementations <http://en.wikipedia.org/wiki/Action_Message_Format>`_.
-   If you come from a Adobe Flash background, this API will feel
-   very natural to you.
+   `other AMF implementations`_. If you come from a Adobe Flash
+   background, this API should feel very natural to you.
 
 
 Examples
@@ -77,5 +76,9 @@ exceptions are automatically mapped, ``TypeError``, ``LookupError``, ``KeyError`
 More
 ====
 
-Check the `API docs <http://api.pyamf.org>`_ for more information. The source
-for the RecordSet example is also available.
+Check the `API docs`_ for more information. The source for the
+:doc:`../actionscript/recordset` example is also available.
+
+
+.. _other AMF implementations: http://en.wikipedia.org/wiki/Action_Message_Format
+.. _API docs: http://api.pyamf.org

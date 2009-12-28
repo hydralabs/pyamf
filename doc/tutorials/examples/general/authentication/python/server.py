@@ -4,9 +4,6 @@
 """
 Authentication example server.
 
-@see: U{Authentication Howto<http://pyamf.org/wiki/AuthenticationHowto>}
-      wiki page.
-
 @since: 0.1
 """
 

@@ -4,10 +4,8 @@
 
 .. topic:: Introduction
 
-    This howto describes how to setup the 
-    `Swing <http://en.wikipedia.org/wiki/Swing_(Java)>`_
-    example application using `Jython <http://jython.org>`_ 2.5
-    and newer.
+    This howto describes how to setup the Swing_ example application
+    using Jython_ 2.5 and newer.
 
 
 Download
@@ -17,11 +15,11 @@ Grab the example from SVN with:
 
 .. code-block:: bash
  
-   svn export http://svn.pyamf.org/examples/trunk/jython jython-example
+   svn export http://svn.pyamf.org/pyamf/trunk/doc/tutorials/examples/jython jython-example
    cd jython-example
 
 Alternatively, if you just want to have a look, you can browse
-the example `online <http://pyamf.org/browser/examples/trunk/jython>`_.
+the example online_.
 
 
 Run Application
@@ -39,3 +37,41 @@ Use the ``Start Server`` button to launch the server and make
 AMF client calls using the ``Invoke Method`` button.
 
 .. image:: images/swing-example.png
+
+
+Client
+======
+
+The Python AMF client can be started by running the following from the `jython`
+folder:
+
+.. code-block:: bash
+
+    jython client.py
+
+You should see something like this for the client:
+
+.. code-block:: python
+
+    Hello World!
+
+
+Options
+_______
+
+When you run `jython client.py --help` it will display the various options available
+for this example client:
+
+.. code-block:: bash
+
+    Usage: client.py [options]
+
+    Options:
+      -h, --help            show this help message and exit
+      -p PORT, --port=PORT  port number [default: 8000]
+      --host=HOST           host address [default: localhost]
+
+
+.. _Swing: http://en.wikipedia.org/wiki/Swing_(Java)
+.. _Jython: http://jython.org
+.. _online: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/jython

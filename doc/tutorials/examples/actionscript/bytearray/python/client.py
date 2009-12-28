@@ -28,23 +28,27 @@ parser.add_option("--host", default="127.0.0.1",
 # define gateway
 url = 'http://%s:%d' % (options.host, int(options.port))
 server = RemotingService(url)
+service = server.getService('getSnapshots')()
 
 # get list of snapshots
-snapshots = server.getService('getSnapshots')()
+base_path = service[0]
+types = service[1]
+snapshots = service[2]
 
 print "Found %d snapshot(s):" % (len(snapshots))
 
 for snapshot in snapshots:
-    print "\t%s:\t%s" % (snapshot['name'], snapshot['url'])    
+    print "\t%s%s" % (base_path, snapshot['name'])    
 
 # save snapshot
-image = os.path.join(images_root, 'django-logo.jpg')
+path = 'django-logo.jpg'
+image = os.path.join(images_root, path)
 file = open(image, 'r').read()
 
 snapshot = ByteArray()
 snapshot.write(file)
 
 save_snapshot = server.getService('ByteArray.saveSnapshot')
-saved = save_snapshot(snapshot)
+saved = save_snapshot(snapshot, 'jpg')
 
 print "Saved snapshot:\n\t%s:\t%s" % (saved['name'], saved['url'])

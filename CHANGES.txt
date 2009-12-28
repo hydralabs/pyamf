@@ -315,7 +315,8 @@ versions of PyAMF.
 - IExternalizable now takes its methods from the class and fine grain control
   over attr encoding (Ticket:110)
 - Added an adapter framework that gets imported when the related module is
-  imported. See http://pyamf.org/wiki/AdapterFramework for more info
+  imported. See http://docs.pyamf.org/current/architecture/adapters.html for
+  more info
 - Added 'expose_environ' argument to WSGIGateway to expose the WSGI environ
   as the first arg in the called services.
 - Implemented Local Shared Object (LSO) support (Ticket:11)
