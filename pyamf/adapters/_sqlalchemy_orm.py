@@ -131,6 +131,7 @@ class SaMappedClassAlias(pyamf.ClassAlias):
 
         return self.mapper.class_manager.new_instance()
 
+
 def is_class_sa_mapped(klass):
     """
     @rtype: C{bool}

@@ -19,7 +19,7 @@ U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>}.
 import types
 import inspect
 
-from pyamf import util
+from pyamf import util, versions as v
 from pyamf.adapters import register_adapters
 
 try:
@@ -37,7 +37,7 @@ __all__ = [
 ]
 
 #: PyAMF version number.
-__version__ = (0, 6)
+__version__ = version = v.Version(0, 6)
 
 #: Class mapping support.
 CLASS_CACHE = {}
@@ -573,17 +573,10 @@ class ClassAlias(object):
             if self.non_static_encodable_properties:
                 for attr in self.non_static_encodable_properties:
                     attrs[attr] = getattr(obj, attr)
-<<<<<<< HEAD
 
             if not attrs:
                 attrs = None
 
-=======
-
-            if not attrs:
-                attrs = None
-
->>>>>>> master
             return attrs
 
         dynamic_props = util.get_properties(obj)
@@ -606,7 +599,6 @@ class ClassAlias(object):
         else:
             for attr in dynamic_props:
                 attrs[attr] = getattr(obj, attr)
-<<<<<<< HEAD
 
         if self.proxy_attrs is not None and attrs:
             for k, v in attrs.copy().iteritems():
@@ -616,17 +608,6 @@ class ClassAlias(object):
         if not attrs:
             attrs = None
 
-=======
-
-        if self.proxy_attrs is not None and attrs:
-            for k, v in attrs.copy().iteritems():
-                if k in self.proxy_attrs:
-                    attrs[k] = self.getProxiedAttribute(k, v)
-
-        if not attrs:
-            attrs = None
-
->>>>>>> master
         return attrs
 
     def getDecodableAttributes(self, obj, attrs, codec=None):

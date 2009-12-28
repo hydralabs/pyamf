@@ -14,9 +14,8 @@ import pyamf
 from pyamf import remoting
 
 
-#: Default user agent is C{PyAMF/x.x.x}.
-DEFAULT_USER_AGENT = 'PyAMF/%s' % '.'.join(map(lambda x: str(x),
-    pyamf.__version__))
+#: Default user agent is C{PyAMF/x.x(.x)}.
+DEFAULT_USER_AGENT = 'PyAMF/%s' % (pyamf.version,)
 
 HTTP_OK = 200
 

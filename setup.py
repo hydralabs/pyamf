@@ -15,6 +15,12 @@ except ImportError:
     from setuptools.command.build_ext import build_ext
 
 
+if __name__ == '__main__':
+    base_path = os.path.dirname(os.path.normpath(os.path.abspath(__file__)))
+
+    sys.path.insert(0, base_path)
+
+
 class TestCommand(test.test):
     def run_twisted(self):
         from twisted.trial import runner
@@ -45,26 +51,10 @@ def get_version():
 
     @since: 0.4
     """
-    # we read the file instead of importing it as root sometimes does not
-    # have the cwd as part of the PYTHONPATH
+    # since the basedir is set as the first option in sys.path, this works
+    import pyamf
 
-    fn = os.path.join(os.getcwd(), 'pyamf', '__init__.py')
-    lines = open(fn, 'rt').readlines()
-
-    version = None
-
-    for l in lines:
-        # include the ' =' as __version__ is a part of __all__
-        if l.startswith('__version__ =', ):
-            x = compile(l, fn, 'single')
-            eval(x)
-            version = locals()['__version__']
-            break
-
-    if version is None:
-        raise RuntimeError('Couldn\'t determine version number')
-
-    return '.'.join([str(x) for x in version])
+    return str(pyamf.version)
 
 
 def get_cpyamf_extensions():

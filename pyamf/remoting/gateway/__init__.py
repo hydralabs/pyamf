@@ -21,7 +21,7 @@ except ImportError:
     impl = 'Python'
 
 SERVER_NAME = 'PyAMF/%s %s/%s' % (
-    '.'.join(map(lambda x: str(x), pyamf.__version__)), impl,
+    pyamf.version, impl,
     '.'.join(map(lambda x: str(x), sys.version_info[0:3]))
 )
 

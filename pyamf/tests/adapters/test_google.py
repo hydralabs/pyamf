@@ -740,7 +740,7 @@ class ClassAliasTestCase(unittest.TestCase):
     def test_get_attributes_expando(self):
         attrs = self.alias.getEncodableAttributes(self.jessica_expando)
 
-        self.assertEquals(sa, {
+        self.assertEquals(attrs, {
             'name': 'Jessica',
             '_key': None,
             'type': 'cat',
@@ -755,7 +755,7 @@ class ClassAliasTestCase(unittest.TestCase):
 
         attrs = self.alias.getEncodableAttributes(self.jessica_expando)
 
-        self.assertEquals(sa, {
+        self.assertEquals(attrs, {
             'name': 'Jessica',
             '_key': str(self.jessica_expando.key()),
             'type': 'cat',
@@ -770,7 +770,7 @@ class ClassAliasTestCase(unittest.TestCase):
 
         attrs = self.alias.getEncodableAttributes(self.jessica)
 
-        self.assertEquals(sa, {
+        self.assertEquals(attrs, {
             '_key': None,
             'type': 'cat',
             'name': 'Jessica',
