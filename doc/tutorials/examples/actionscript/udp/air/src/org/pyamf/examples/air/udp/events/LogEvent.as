@@ -4,11 +4,11 @@ package org.pyamf.examples.air.udp.events
 
 	public class LogEvent extends Event
 	{
-		public static const UPDATE : String = "update";
+		public static const NETWORK_INFO	: String = "networkInfo";
+		public static const NETWORK_TRAFFIC : String = "networkTraffic";
 		
-		private var _msg			: String;
-		
-		public function get message() : String
+		private var _msg					: String;
+		public function get message() 		: String
 		{
 			return _msg;
 		}

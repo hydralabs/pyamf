@@ -10,19 +10,17 @@ Latest Stable Release - |version|
 
 :doc:`../whatsnew/0.6`
 
-The files below also include a copy of the
-`documentation <http://docs.pyamf.org>`_.
+The files below also include a copy of the documentation_.
 
-+-----------------+------------------------+
-| **Gzipped Tar** | `PyAMF-0.5.1.tar.gz`_  |
-+-----------------+------------------------+
-| **Bzipped Tar** | `PyAMF-0.5.1.tar.bz2`_ |
-+-----------------+------------------------+
-| **Zip**         | `PyAMF-0.5.1.zip`_     |
-+-----------------+------------------------+
++-----------------+-----------------------------------+
+| **Gzipped Tar** | `PyAMF-0.5.1.tar.gz`_             |
++-----------------+-----------------------------------+
+| **Bzipped Tar** | `PyAMF-0.5.1.tar.bz2`_            |
++-----------------+-----------------------------------+
+| **Zip**         | `PyAMF-0.5.1.zip`_                |
++-----------------+-----------------------------------+
 
-MD5 checksums for all releases can be found
-`here <http://download.pyamf.org/releases/MD5SUMS>`_.
+MD5 checksums for all releases can be found here_.
 
 Older releases
 --------------
@@ -32,6 +30,19 @@ Older releases are archived on http://download.pyamf.org/releases.
 Each release is also tagged in the Subversion repository:
 http://svn.pyamf.org/pyamf/tags.
 
+Documentation
+-------------
+
+To download an archive containing all the documents for the latest version of
+PyAMF in one of various formats, follow one of links in this table.
+
++-----------------+----------------------------------+
+| **Bzipped Tar** | `pyamf-0.5.1-html.tar.bz2`_      |
++-----------------+----------------------------------+
+| **Zip**         | `pyamf-0.5.1-html.zip`_          |
++-----------------+----------------------------------+
+
+These archives contain all the content in the documentation section.
 
 Latest Development Source Code
 ==============================
@@ -56,6 +67,10 @@ For installing this development version::
 
 
 .. _Subversion: 	http://subversion.tigris.org
+.. _documentation:	http://docs.pyamf.org
+.. _here:		http://download.pyamf.org/releases/MD5SUMS
 .. _PyAMF-0.5.1.tar.gz:	http://download.pyamf.org/releases/PyAMF-0.5.1.tar.gz
 .. _PyAMF-0.5.1.tar.bz2: http://download.pyamf.org/releases/PyAMF-0.5.1.tar.bz2
 .. _PyAMF-0.5.1.zip:	http://download.pyamf.org/releases/PyAMF-0.5.1.zip
+.. _pyamf-0.5.1-html.tar.bz2: http://docs.pyamf.org/0.5.1/pyamf-0.5.1-html.tar.bz2
+.. _pyamf-0.5.1-html.zip: http://docs.pyamf.org/0.5.1/pyamf-0.5.1-html.zip

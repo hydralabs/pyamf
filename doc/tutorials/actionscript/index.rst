@@ -11,6 +11,7 @@
    ohloh.rst
    geoip.rst
    socket.rst
+   udp.rst
    addressbook.rst
    guestbook.rst
    recordset.rst

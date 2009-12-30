@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<air:UDPApp xmlns:mx="http://www.adobe.com/2006/mxml"
-			xmlns:air="org.pyamf.examples.air.udp.*"
-			paddingBottom="0" paddingLeft="0"
-			paddingRight="0" paddingTop="0"/>

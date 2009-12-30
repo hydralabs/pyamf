@@ -57,10 +57,12 @@ copyright = "Copyright &#169; 2007-%s The <a href='%s'>%s</a> Project. All right
 # We look for the __init__.py file in the current PyAMF source tree
 # and replace the values accordingly.
 #
-# The short X.Y version.
-release = '.'.join(map(lambda x: str(x), pyamf.__version__))
 # The full version, including alpha/beta/rc tags.
-version = release[:3]
+version = str(pyamf.version)
+
+# The short X.Y version.
+release = version[:3]
+
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -129,7 +131,6 @@ html_sidebars = {
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
 html_additional_pages = {
-    'download': 'download.html',
     'index': 'indexcontent.html',
 }
 

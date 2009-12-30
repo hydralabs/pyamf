@@ -8,4 +8,5 @@ This reference manual describes the PyAMF library.
    :maxdepth: 2
    :numbered:
 
+   pyamf.rst
    datatypes.rst

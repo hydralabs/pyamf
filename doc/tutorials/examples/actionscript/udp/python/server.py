@@ -2,7 +2,7 @@
 # See LICENSE.txt for details.
 
 """
-Test server for Adobe AIR 2.0's UDP support.
+Test Twisted server for Adobe AIR 2.0's UDP support.
 
 Based on examples from http://twistedmatrix.com/projects/core/documentation/howto/udp.html
 """

@@ -2,6 +2,9 @@ package org.pyamf.examples.air.udp.vo
 {
 	import flash.utils.getQualifiedClassName;
 	
+	/**
+	 * Sample typed object for testing.
+	 */	
 	public class HelloWorld
 	{
 		public var msg			: String;
@@ -27,7 +30,7 @@ package org.pyamf.examples.air.udp.vo
 		
 		public function toString() : String
 		{
-			var className:String = getQualifiedClassName(this).split("::")[1];
+			var className:String = getQualifiedClassName( this ).split( "::" )[ 1 ];
 			
 			return "<class='" + className + "' msg='" + msg + "' time='" + time + "' />";
 		}
