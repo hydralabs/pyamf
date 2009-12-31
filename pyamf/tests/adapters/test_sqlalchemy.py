@@ -240,6 +240,8 @@ class ClassAliasTestCase(BaseClassAliasTestCase):
         self.assertTrue(hasattr(self.alias, 'mapper'))
         self.assertEquals(id(mapper), id(self.alias.mapper))
 
+        self.assertEquals(self.alias.static_attrs, None)
+
     def test_get_attrs(self):
         u = self._build_obj()
         attrs = self.alias.getEncodableAttributes(u)

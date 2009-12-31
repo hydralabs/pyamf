@@ -100,7 +100,6 @@ class DjangoClassAlias(pyamf.ClassAlias):
 
         props = self.fields.keys()
 
-        self.static_attrs.update(props)
         self.encodable_properties.update(props)
         self.decodable_properties.update(props)
 

@@ -291,8 +291,8 @@ class ForeignKeyTestCase(ModelsBaseTestCase):
 
         self.assertFalse('_reporter_cache' in a.__dict__)
         self.assertEquals(pyamf.encode(a, encoding=pyamf.AMF3).getvalue(),
-            '\n;\x01\x11headline\x05id\x11pub_date\x06\x1dThis is a test\x04'
-            '\x01\x08\x01BpUYj@\x00\x00\x01')
+            '\n\x0b\x01\x11headline\x06\x1dThis is a test\x11pub_date\x08\x01'
+            'BpUYj@\x00\x00\x05id\x04\x01\x01')
 
         del a
 
@@ -311,10 +311,10 @@ class ForeignKeyTestCase(ModelsBaseTestCase):
 
         self.assertTrue('_reporter_cache' in a.__dict__)
         self.assertEquals(pyamf.encode(a, encoding=pyamf.AMF3).getvalue(),
-            '\n;\x01\x11headline\x05id\x11pub_date\x06\x1dThis is a test\x04'
-            '\x01\x08\x01BpUYj@\x00\x00\x11reporter\nK\x01\x0bemail\x15'
-            'first_name\x02\x13last_name\x06!john@example.com\x06\tJohn\x04'
-            '\x01\x06\x0bSmith\x01\x01')
+            '\n\x0b\x01\x11reporter\n\x0b\x01\x15first_name\x06\tJohn\x13'
+            'last_name\x06\x0bSmith\x05id\x04\x01\x0bemail\x06!'
+            'john@example.com\x01\x11headline\x06\x1dThis is a test\x11'
+            'pub_date\x08\x01BpUYj@\x00\x00\n\x04\x01\x01')
 
     def test_many_to_many(self):
         from django.db import models
@@ -783,10 +783,10 @@ class ReferenceTestCase(ModelsBaseTestCase):
         # ensure the referenced attribute resolves
         foo.bar.foo
 
-        self.assertEquals(pyamf.encode(foo).getvalue(), '\x03\x00\x02id\x00'
-            '@\x00\x00\x00\x00\x00\x00\x00\x00\x04name\x02\x00\x03foo\x00'
-            '\x03bar\x03\x00\x02id\x00@\x00\x00\x00\x00\x00\x00\x00\x00\x04na'
-            'me\x02\x00\x03bar\x00\x03foo\x07\x00\x00\x00\x00\t\x00\x00\t')
+        self.assertEquals(pyamf.encode(foo).getvalue(), '\x03\x00\x03bar\x03'
+            '\x00\x03foo\x07\x00\x00\x00\x02id\x00@\x00\x00\x00\x00\x00\x00'
+            '\x00\x00\x04name\x02\x00\x03bar\x00\x00\t\x00\x02id\x00@\x00\x00'
+            '\x00\x00\x00\x00\x00\x00\x04name\x02\x00\x03foo\x00\x00\t')
 
 
 def suite():

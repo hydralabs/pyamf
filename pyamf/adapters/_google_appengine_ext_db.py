@@ -140,7 +140,6 @@ class DataStoreClassAlias(pyamf.ClassAlias):
             if isinstance(value, db._ReverseReferenceProperty):
                 reverse_props.append(name)
 
-        self.static_attrs.update(props)
         self.encodable_properties.update(self.properties.keys())
         self.decodable_properties.update(self.properties.keys())
         self.readonly_attrs.update(reverse_props)

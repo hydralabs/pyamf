@@ -31,8 +31,20 @@ Backward Incompatible API Changes
 Integration
 ===========
 
-
 Django
 ------
 
 * Empty relations are now encoded as ``None``, not ``pyamf.Undefined``.
+* All ``model.Model`` fields are now encoded dynamically. See
+  `#677 <http://pyamf.org/ticket/677>`_
+
+Google AppEngine
+----------------
+* All ``db.Model`` properties are now encoded dynamically. See
+  `#677 <http://pyamf.org/ticket/677>`_
+
+SQLAlchemy
+----------
+
+* All mapped properties are now encoded dynamically. See
+  `#677 <http://pyamf.org/ticket/677>`_

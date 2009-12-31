@@ -52,7 +52,6 @@ class SaMappedClassAlias(pyamf.ClassAlias):
 
         self.encodable_properties.update(self.properties)
         self.decodable_properties.update(self.properties)
-        self.static_attrs.update(self.properties)
 
     def getEncodableAttributes(self, obj, **kwargs):
         """
