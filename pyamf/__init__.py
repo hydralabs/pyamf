@@ -66,7 +66,7 @@ AMF3 = 3
 ENCODING_TYPES = (AMF0, AMF3)
 
 #: Default encoding
-DEFAULT_ENCODING = AMF0
+DEFAULT_ENCODING = AMF3
 
 
 class UndefinedType(object):

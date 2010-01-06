@@ -13,7 +13,7 @@ A description here of PyAMF 0.6 and how awesome it is..
 Highlighted Features
 ====================
 
-* None so far! :)
+* The default AMF version has been switched from `AMF0` to `AMF3`.
 
 
 Backward Incompatible API Changes
