@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+#
 # Copyright (c) 2007-2009 The PyAMF Project.
 # See LICENSE.txt for details.
 
@@ -220,6 +222,27 @@ class RequestProcessorTestCase(unittest.TestCase):
         self.assertTrue(isinstance(response, remoting.Response))
         self.assertEquals(response.status, remoting.STATUS_OK)
         self.assertTrue(isinstance(ack, messaging.AcknowledgeMessage))
+
+    def test_error_unicode_message(self):
+        """
+        See #727
+        """
+        def echo(x):
+            raise TypeError(u'ƒøø')
+
+        gw = gateway.BaseGateway({'echo': echo})
+        rp = amf3.RequestProcessor(gw)
+        message = messaging.RemotingMessage(body=['spam.eggs'], operation='echo')
+        request = remoting.Request('null', body=[message])
+
+        response = rp(request)
+        ack = response.body
+
+        self.assertFalse(gw.debug)
+        self.assertTrue(isinstance(response, remoting.Response))
+        self.assertEquals(response.status, remoting.STATUS_ERROR)
+        self.assertTrue(isinstance(ack, messaging.ErrorMessage))
+        self.assertEquals(ack.faultCode, 'TypeError')
 
 
 def suite():

@@ -74,8 +74,8 @@ def generate_error(request, cls, e, tb, include_traceback=False):
 
     return messaging.ErrorMessage(messageId=generate_random_id(),
         clientId=generate_random_id(), timestamp=calendar.timegm(time.gmtime()),
-        correlationId = request.messageId, faultCode=code, faultString=str(e),
-        faultDetail=str(detail), extendedData=detail, rootCause=rootCause)
+        correlationId = request.messageId, faultCode=code, faultString=unicode(e),
+        faultDetail=unicode(detail), extendedData=detail, rootCause=rootCause)
 
 
 class RequestProcessor(object):

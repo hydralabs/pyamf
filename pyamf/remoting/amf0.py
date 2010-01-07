@@ -132,4 +132,4 @@ def build_fault(cls, e, tb, include_traceback=False):
     if include_traceback:
         details = str(traceback.format_exception(cls, e, tb)).replace("\\n", '')
 
-    return remoting.ErrorFault(code=code, description=str(e), details=details)
+    return remoting.ErrorFault(code=code, description=unicode(e), details=details)
