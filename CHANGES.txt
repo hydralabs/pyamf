@@ -8,6 +8,8 @@ versions of PyAMF.
 
 0.6 (unreleased)
 ----------------
+- Non-ascii characters in the exception message would cause a ``UnicodeError``
+  (Ticket:727)
 - All ORM adapters will no longer set properties as static attributes
   (Ticket:677)
 - Default to using ``__new__`` for instance creation if available. (Ticket:700)
