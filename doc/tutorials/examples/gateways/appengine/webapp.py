@@ -22,7 +22,7 @@ services = {
 
 
 def main():
-    gateway = WebAppGateway(services, logging=logger, debug=True)
+    gateway = WebAppGateway(services, logger=logging, debug=True)
     application_paths = [('/', gateway), ('/helloworld', MainPage)]
     application = webapp.WSGIApplication(application_paths, debug=True)
 
