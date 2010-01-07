@@ -848,16 +848,16 @@ class Decoder(pyamf.BaseDecoder):
         """
         return decode_int(self.stream, signed)
 
-    def readString(self):
+    def _readLength(self):
+        x = decode_int(self.stream, False)
+
+        return (x >> 1, x & REFERENCE_BIT == 0)
+
+    def readString(self, unicode_=True):
         """
         Reads and returns a string from the stream.
         """
-        def readLength():
-            x = self.readUnsignedInteger()
-
-            return (x >> 1, x & REFERENCE_BIT == 0)
-
-        length, is_reference = readLength()
+        length, is_reference = self._readLength()
 
         if is_reference:
             return self.context.getString(length)
@@ -865,9 +865,12 @@ class Decoder(pyamf.BaseDecoder):
         if length == 0:
             return u''
 
-        result = self.stream.read_utf8_string(length)
+        if unicode_:
+            result = self.stream.read_utf8_string(length)
+        else:
+            result = self.stream.read(length)
 
-        if len(result) != 0:
+        if result:
             self.context.addString(result)
 
         return result
@@ -911,7 +914,7 @@ class Decoder(pyamf.BaseDecoder):
 
         size >>= 1
 
-        key = self.readString().encode('utf8')
+        key = self.readString(False)
 
         if key == '':
             # integer indexes only -> python list
@@ -926,9 +929,9 @@ class Decoder(pyamf.BaseDecoder):
         result = pyamf.MixedArray()
         self.context.addObject(result)
 
-        while key != "":
+        while key:
             result[key] = self.readElement()
-            key = self.readString().encode('utf8')
+            key = self.readString(False)
 
         for i in xrange(size):
             el = self.readElement()
@@ -970,13 +973,24 @@ class Decoder(pyamf.BaseDecoder):
 
         if class_def.attr_len > 0:
             for i in xrange(class_def.attr_len):
-                key = self.readString().encode('utf8')
+                key = self.readString(False)
 
                 class_def.static_properties.append(key)
 
         self.context.addClass(class_def, alias.klass)
 
         return class_def, alias
+
+    def _readStatic(self, class_def, obj):
+        for attr in class_def.static_properties:
+            obj[attr] = self.readElement()
+
+    def _readDynamic(self, class_def, obj):
+        attr = self.readString(False)
+
+        while attr:
+            obj[attr] = self.readElement()
+            attr = self.readString(False)
 
     def readObject(self, use_proxies=None):
         """
@@ -988,17 +1002,6 @@ class Decoder(pyamf.BaseDecoder):
         """
         if use_proxies is None:
             use_proxies = self.use_proxies
-
-        def readStatic(class_def, obj):
-            for attr in class_def.static_properties:
-                obj[attr] = self.readElement()
-
-        def readDynamic(class_def, obj):
-            attr = self.readString().encode('utf8')
-
-            while attr != '':
-                obj[attr] = self.readElement()
-                attr = self.readString().encode('utf8')
 
         ref = self.readUnsignedInteger()
 
@@ -1025,10 +1028,10 @@ class Decoder(pyamf.BaseDecoder):
         if class_def.encoding in (ObjectEncoding.EXTERNAL, ObjectEncoding.PROXY):
             obj.__readamf__(DataInput(self))
         elif class_def.encoding == ObjectEncoding.DYNAMIC:
-            readStatic(class_def, obj_attrs)
-            readDynamic(class_def, obj_attrs)
+            self._readStatic(class_def, obj_attrs)
+            self._readDynamic(class_def, obj_attrs)
         elif class_def.encoding == ObjectEncoding.STATIC:
-            readStatic(class_def, obj_attrs)
+            self._readStatic(class_def, obj_attrs)
         else:
             raise pyamf.DecodeError("Unknown object encoding")
 

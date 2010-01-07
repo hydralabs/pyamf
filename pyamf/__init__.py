@@ -481,9 +481,18 @@ class ClassAlias(object):
                 self.non_static_encodable_properties.difference_update(self.static_attrs)
 
         self.shortcut_encode = True
+        self.shortcut_decode = True
 
         if self.encodable_properties or self.static_attrs or self.exclude_attrs:
             self.shortcut_encode = False
+
+        if self.decodable_properties or self.static_attrs or self.exclude_attrs or self.readonly_attrs or not self.dynamic:
+            self.shortcut_decode = False
+
+        self.is_dict = False
+
+        if issubclass(self.klass, dict) or self.klass is dict:
+            self.is_dict = True
 
         self._compiled = True
 
@@ -709,7 +718,22 @@ class ClassAlias(object):
         @param codec: An optional argument that will contain the en/decoder
             instance calling this function.
         """
-        attrs = self.getDecodableAttributes(obj, attrs, codec=codec)
+        if not self._compiled:
+            self.compile()
+
+        if self.shortcut_decode:
+            if self.is_dict:
+                obj.update(attrs)
+
+                return
+
+            if not self.sealed:
+                obj.__dict__.update(attrs)
+
+                return
+
+        else:
+            attrs = self.getDecodableAttributes(obj, attrs, codec=codec)
 
         util.set_attrs(obj, attrs)
 
@@ -727,7 +751,7 @@ class ClassAlias(object):
 
         @return: Instance of C{self.klass}.
         """
-        if hasattr(self.klass, '__new__') and callable(self.klass.__new__):
+        if type(self.klass) is type:
             return self.klass.__new__(self.klass)
 
         return self.klass()
@@ -843,8 +867,9 @@ class BaseDecoder(object):
             self.context = context
 
         self.strict = strict
-
         self.timezone_offset = timezone_offset
+
+        self._func_cache = {}
 
     def readElement(self):
         """
@@ -861,9 +886,14 @@ class BaseDecoder(object):
             raise EOStream
 
         try:
-            func = getattr(self, self.type_map[t])
+            func = self._func_cache[t]
         except KeyError:
-            raise DecodeError("Unsupported ActionScript type %r" % (t,))
+            func = getattr(self, self.type_map[t])
+
+            if not func:
+                raise DecodeError("Unsupported ActionScript type %r" % (t,))
+
+            self._func_cache[t] = func
 
         try:
             return func()

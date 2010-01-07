@@ -8,6 +8,7 @@ versions of PyAMF.
 
 0.6 (unreleased)
 ----------------
+- Pure Python AMF3 Decoding performance improvements (Ticket:723)
 - Non-ascii characters in the exception message would cause a ``UnicodeError``
   (Ticket:727)
 - All ORM adapters will no longer set properties as static attributes

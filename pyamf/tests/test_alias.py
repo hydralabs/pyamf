@@ -362,7 +362,7 @@ class ApplyAttributesTestCase(unittest.TestCase):
     """
 
     def setUp(self):
-        self.alias = ClassAlias(Spam, 'foo')
+        self.alias = ClassAlias(Spam, 'foo', defer=True)
         self.obj = Spam()
 
     def test_object(self):
@@ -424,12 +424,12 @@ class ApplyAttributesTestCase(unittest.TestCase):
 
     def test_dict(self):
         attrs = {'foo': 'spam', 'bar': 'eggs'}
-        self.obj = {}
+        self.obj = Spam()
 
-        self.assertEquals(self.obj, {})
+        self.assertEquals(self.obj.__dict__, {})
         self.alias.applyAttributes(self.obj, attrs)
 
-        self.assertEquals(self.obj, {'foo': 'spam', 'bar': 'eggs'})
+        self.assertEquals(self.obj.__dict__, {'foo': 'spam', 'bar': 'eggs'})
 
 
 class SimpleCompliationTestCase(unittest.TestCase):

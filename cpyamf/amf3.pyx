@@ -15,6 +15,9 @@ cdef extern from "Python.h":
     object PyInt_FromLong(long v)
 
 
+from cpyamf.util cimport cBufferedByteStream
+
+
 cdef Py_ssize_t _encode_int(long i, char **buf) except? -1:
     # Use typecasting to get the twos complement representation of i
     cdef unsigned long n = (<unsigned long*>(<void *>(&i)))[0]
@@ -66,15 +69,21 @@ cdef Py_ssize_t _encode_int(long i, char **buf) except? -1:
 
     return size
 
-cdef long _decode_int(object stream, int sign=0) except? -1:
+cdef int _decode_int(cBufferedByteStream stream, long *ret, int sign=0) except? -1:
     cdef int n = 0
-    cdef long result = 0 
-    cdef unsigned char b = <unsigned char>stream.read_uchar()
+    cdef long result = 0
+    cdef unsigned char b
+
+    if stream.read_uchar(&b) == -1:
+        return -1
 
     while b & 0x80 != 0 and n < 3:
         result <<= 7
         result |= b & 0x7f
-        b = <unsigned char>stream.read_uchar()
+
+        if stream.read_uchar(&b) == -1:
+            return -1
+
         n += 1
 
     if n < 3:
@@ -91,7 +100,10 @@ cdef long _decode_int(object stream, int sign=0) except? -1:
                 result <<= 1
                 result += 1
 
-    return result
+    ret[0] = result
+
+    return 0
+
 
 def encode_int(long n):
     """
@@ -114,4 +126,22 @@ def decode_int(stream, sign=False):
     """
     Decode C{int}.
     """
-    return PyInt_FromLong(_decode_int(stream, <int>sign))
+    cdef long *result = NULL
+    cdef object ret
+
+    result = <long *>PyMem_Malloc(sizeof(long *))
+
+    if result == NULL:
+        raise MemoryError
+
+    if _decode_int(<cBufferedByteStream>stream, result, <int>sign) == -1:
+        PyMem_Free(result)
+
+        raise RuntimeError('Unable to decode int')
+
+    ret = PyInt_FromLong(result[0])
+
+    PyMem_Free(result)
+
+    return ret
+
