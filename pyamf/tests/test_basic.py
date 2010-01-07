@@ -139,12 +139,12 @@ class HelperTestCase(unittest.TestCase):
         self.assertTrue(encoder.strict)
 
     def test_encode(self):
-        self.assertEquals('\x02\x00\x07connect\x00?\xf0\x00\x00\x00\x00\x00\x00',
+        self.assertEquals('\x06\x0fconnect\x05?\xf0\x00\x00\x00\x00\x00\x00',
             pyamf.encode(u'connect', 1.0).getvalue())
 
     def test_decode(self):
         expected = [u'connect', 1.0]
-        bytes = '\x02\x00\x07connect\x00?\xf0\x00\x00\x00\x00\x00\x00'
+        bytes = '\x06\x0fconnect\x05?\xf0\x00\x00\x00\x00\x00\x00'
 
         returned = [x for x in pyamf.decode(bytes)]
 

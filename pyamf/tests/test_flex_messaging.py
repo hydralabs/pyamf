@@ -40,7 +40,7 @@ class EncodingTestCase(unittest.TestCase):
         m.correlationId = '1234'
 
         self.assertEquals(pyamf.encode(m).getvalue(),
-            '\x11\n\x81\x03Uflex.messaging.messages.AcknowledgeMessage\tbody'
+            '\n\x81\x03Uflex.messaging.messages.AcknowledgeMessage\tbody'
             '\x11clientId\x1bcorrelationId\x17destination\x0fheaders\x13'
             'messageId\x15timeToLive\x13timestamp\x01\x01\x06\t1234\x01\n\x0b'
             '\x01\x01\x01\x01\x01')
@@ -49,7 +49,7 @@ class EncodingTestCase(unittest.TestCase):
         m = messaging.CommandMessage(operation='foo.bar')
 
         self.assertEquals(pyamf.encode(m).getvalue(),
-            '\x11\n\x81\x13Mflex.messaging.messages.CommandMessage\tbody\x11'
+            '\n\x81\x13Mflex.messaging.messages.CommandMessage\tbody\x11'
             'clientId\x1bcorrelationId\x17destination\x0fheaders\x13messageId'
             '\x13operation\x15timeToLive\x13timestamp\x01\x01\x01\x01\n\x0b'
             '\x01\x01\x01\x06\x0ffoo.bar\x01\x01')
@@ -58,7 +58,7 @@ class EncodingTestCase(unittest.TestCase):
         m = messaging.ErrorMessage(faultString='ValueError')
 
         self.assertEquals(pyamf.encode(m).getvalue(),
-            '\x11\n\x81SIflex.messaging.messages.ErrorMessage\tbody\x11'
+            '\n\x81SIflex.messaging.messages.ErrorMessage\tbody\x11'
             'clientId\x1bcorrelationId\x17destination\x19extendedData\x13'
             'faultCode\x17faultDetail\x17faultString\x0fheaders\x13messageId'
             '\x13rootCause\x15timeToLive\x13timestamp\x01\x01\x01\x01\n\x0b'
@@ -69,7 +69,7 @@ class EncodingTestCase(unittest.TestCase):
         m = messaging.RemotingMessage(source='foo.bar')
 
         self.assertEquals(pyamf.encode(m).getvalue(),
-            '\x11\n\x81\x13Oflex.messaging.messages.RemotingMessage'
+            '\n\x81\x13Oflex.messaging.messages.RemotingMessage'
             '\tbody\x11clientId\x17destination\x0fheaders\x13messageId\x13'
             'operation\rsource\x15timeToLive\x13timestamp\x01\x01\x01\n\x0b'
             '\x01\x01\x01\x01\x06\x0ffoo.bar\x01\x01')
