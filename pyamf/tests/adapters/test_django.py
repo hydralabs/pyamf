@@ -450,7 +450,7 @@ class I18NTestCase(ModelsBaseTestCase):
         from django.utils.translation import ugettext_lazy
 
         self.assertEquals(pyamf.encode(ugettext_lazy('Hello')).getvalue(),
-            '\x02\x00\x05Hello')
+            '\x06\x0bHello')
 
 
 class PKTestCase(ModelsBaseTestCase):
@@ -783,10 +783,9 @@ class ReferenceTestCase(ModelsBaseTestCase):
         # ensure the referenced attribute resolves
         foo.bar.foo
 
-        self.assertEquals(pyamf.encode(foo).getvalue(), '\x03\x00\x03bar\x03'
-            '\x00\x03foo\x07\x00\x00\x00\x02id\x00@\x00\x00\x00\x00\x00\x00'
-            '\x00\x00\x04name\x02\x00\x03bar\x00\x00\t\x00\x02id\x00@\x00\x00'
-            '\x00\x00\x00\x00\x00\x00\x04name\x02\x00\x03foo\x00\x00\t')
+        self.assertEquals(pyamf.encode(foo).getvalue(), '\n\x0b\x01\x07bar\n'
+            '\x0b\x01\x07foo\n\x00\x05id\x04\x02\tname\x06\x00\x01\x04\x04'
+            '\x02\x06\x06\x02\x01')
 
 
 def suite():
