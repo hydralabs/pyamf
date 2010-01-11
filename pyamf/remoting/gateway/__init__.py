@@ -343,30 +343,17 @@ class BaseGateway(object):
         """
         Removes a service from the gateway.
 
-        @param service: The service to remove from the gateway.
+        @param service: Either the name or t of the service to remove from the
+                        gateway, or .
         @type service: C{callable} or a class instance
         @raise NameError: Service not found.
         """
-        if service not in self.services:
-            raise NameError("Service %s not found" % str(service))
-
         for name, wrapper in self.services.iteritems():
-            if isinstance(service, basestring) and service == name:
+            if service in (name, wrapper.service):
                 del self.services[name]
-
-                return
-            elif isinstance(service, ServiceWrapper) and wrapper == service:
-                del self.services[name]
-
-                return
-            elif isinstance(service, (type, types.ClassType,
-                types.FunctionType)) and wrapper.service == service:
-                del self.services[name]
-
                 return
 
-        # shouldn't ever get here
-        raise RuntimeError("Something went wrong ...")
+        raise NameError("Service %r not found" % (service,))
 
     def getServiceRequest(self, request, target):
         """

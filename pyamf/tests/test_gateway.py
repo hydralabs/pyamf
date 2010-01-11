@@ -283,6 +283,14 @@ class BaseGatewayTestCase(unittest.TestCase):
         self.assertFalse(wrapper in gw.services)
         self.assertEquals(gw.services, {})
 
+        x = TestService()
+        gw = gateway.BaseGateway({'test': x})
+
+        gw.removeService(x)
+
+        self.assertFalse('test' in gw.services)
+        self.assertEquals(gw.services, {})
+
         self.assertRaises(NameError, gw.removeService, 'test')
         self.assertRaises(NameError, gw.removeService, TestService)
         self.assertRaises(NameError, gw.removeService, wrapper)
