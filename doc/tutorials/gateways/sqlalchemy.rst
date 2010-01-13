@@ -41,7 +41,16 @@ managed by SQLAlchemy.
 - ``sa_lazy`` -- An Array of attribute names that have not yet been
    loaded from the database
 
-The additional information contained in these attributes can be used to lazy load attributes in the client.
+The additional information contained in these attributes can be used to lazy
+load attributes in the client.
+
+Third party packages
+====================
+
+PyAMF also provides support for the excellent Elixir_ library, a thin wrapper,
+which provides the ability to create simple Python classes that map directly
+to relational database tables (this pattern is often referred to as the
+Active Record design pattern)
 
 
 Useful Resources
@@ -54,3 +63,4 @@ http://api.pyamf.org/pyamf.adapters._sqlalchemy-module.html
    API documentation.
 
 .. _SQLAlchemy: http://sqlalchemy.org
+.. _Elixir: http://elixir.ematia.de

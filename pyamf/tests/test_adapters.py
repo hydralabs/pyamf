@@ -61,6 +61,11 @@ class AdapterHelperTestCase(PostLoadHookClearingTestCase):
         self.assertTrue(self.imported)
         self.assertEquals(self.foo, foo)
 
+    def test_get_adapter(self):
+        from pyamf.adapters import _decimal
+
+        self.assertTrue(adapters.get_adapter('decimal') is _decimal)
+
 
 def suite():
     import os.path

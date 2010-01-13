@@ -14,9 +14,13 @@ Adapters Overview
 
 We currently have adapters for the following packages:
 
-- Django
-- Google App Engine
-- SQLAlchemy
+- `Django <http://www.djangoproject.com>`_
+- `Google App Engine <http://appengine.google.com>`_
+- `SQLAlchemy <http://www.sqlalchemy.org>`_
+- `Elixir <http://www.elixir.ematia.de/>`_
+
+And support for the stdlib:
+
 - `sets <http://www.python.org/doc/2.5.2/lib/types-set.html>`_ module
 - `decimal <http://www.python.org/doc/2.5.2/lib/module-decimal.html>`_ module
 

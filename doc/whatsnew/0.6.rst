@@ -14,6 +14,7 @@ Highlighted Features
 ====================
 
 * The default AMF version has been switched from `AMF0` to `AMF3`.
+* Support for `Elixir <http://elixir.ematia.de>`_.
 
 
 Backward Incompatible API Changes

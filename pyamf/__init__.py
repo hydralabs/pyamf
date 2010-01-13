@@ -1016,11 +1016,11 @@ class BaseEncoder(object):
             return self._getWriteElementFunc(data)
 
         try:
-            return self._write_elem_func_cache[key]
+            t = self._write_elem_func_cache[key]
         except KeyError:
-            self._write_elem_func_cache[key] = self._getWriteElementFunc(data)
+            t = self._write_elem_func_cache[key] = self._getWriteElementFunc(data)
 
-        return self._write_elem_func_cache[key]
+        return t
 
     def writeElement(self, data):
         """

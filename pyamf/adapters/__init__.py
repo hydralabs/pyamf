@@ -74,3 +74,18 @@ def register_adapter(mod, func):
         raise TypeError('func must be callable')
 
     imports.when_imported(str(mod), func)
+
+
+def get_adapter(mod):
+    """
+    """
+    base_name = '_' + mod.replace('.', '_')
+
+    full_import = '%s.%s' % (__name__, base_name)
+
+    ret = __import__(full_import)
+
+    for attr in full_import.split('.')[1:]:
+        ret = getattr(ret, attr)
+
+    return ret
