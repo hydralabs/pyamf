@@ -266,4 +266,19 @@ def unproxy_object(obj):
     return obj
 
 
+def proxy_object(obj):
+    """
+    Returns a proxied representation of C{obj}
+
+    Conversion:
+        C{list}: L{ArrayCollection}
+        C{mixed}: L{ObjectProxy}
+    @since: 0.6
+    """
+    if type(obj) is list:
+        return ArrayCollection(obj)
+
+    return ObjectProxy(obj)
+
+
 pyamf.register_package(globals(), package='flex.messaging.io')

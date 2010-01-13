@@ -71,10 +71,3 @@ cdef class cIndexedCollection:
     cdef object getByReference(self, Py_ssize_t ref)
     cdef Py_ssize_t getReferenceTo(self, object obj) except? -1
     cdef Py_ssize_t append(self, object obj) except? -1
-
-
-cdef class cIndexedMap(cIndexedCollection):
-    cdef object mapped
-
-    cdef object getMappedByReference(self, Py_ssize_t ref)
-    cdef Py_ssize_t map(self, object obj, object mapped_obj) except? -1

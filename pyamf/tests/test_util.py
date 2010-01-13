@@ -921,40 +921,6 @@ class IndexedCollectionTestCase(unittest.TestCase):
         self.assertEquals(id(test_obj), id(self.collection.getByReference(idx)))
 
 
-class IndexedMapTestCase(unittest.TestCase):
-    """
-    Tests for L{util.IndexedMap}
-    """
-
-    class TestObject(object):
-        def __init__(self):
-            self.name = 'test'
-
-    def setUp(self):
-        self.collection = util.IndexedMap()
-
-    def test_map(self):
-        test_obj = TestObject()
-        test_map = TestObject()
-
-        self.assertEquals(sys.getrefcount(test_obj), 2)
-        self.assertEquals(sys.getrefcount(test_map), 2)
-
-        ref = self.collection.map(test_obj, test_map)
-
-        self.assertEquals(sys.getrefcount(test_obj), 3)
-        self.assertEquals(sys.getrefcount(test_map), 3)
-
-        self.assertEquals(test_obj, self.collection.getByReference(ref))
-        self.assertEquals(test_map, self.collection.getMappedByReference(ref))
-
-        ref = self.collection.getReferenceTo(test_obj)
-        self.assertEquals(test_obj, self.collection.getByReference(ref))
-        self.assertEquals(test_map, self.collection.getMappedByReference(ref))
-
-        self.assertEquals(None, self.collection.getMappedByReference(74))
-
-
 class IsClassSealedTestCase(unittest.TestCase):
     """
     Tests for L{util.is_class_sealed}
@@ -1263,7 +1229,6 @@ def suite():
         BufferedByteStreamTestCase,
         ClassAliasTestCase,
         IndexedCollectionTestCase,
-        IndexedMapTestCase,
         IsClassSealedTestCase,
         GetClassMetaTestCase
     ]

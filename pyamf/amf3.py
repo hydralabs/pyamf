@@ -28,8 +28,7 @@ import datetime
 import zlib
 
 import pyamf
-from pyamf import util
-from pyamf.flex import ObjectProxy, ArrayCollection
+from pyamf import util, flex
 
 #: If True encode/decode lists/tuples to L{ArrayCollections<ArrayCollection>}
 #: and dicts to L{ObjectProxy}
@@ -595,7 +594,6 @@ class Context(pyamf.BaseContext):
         self.classes = {}
         self.class_ref = {}
         self.legacy_xml = util.IndexedCollection()
-        self.object_aliases = util.IndexedMap() # Maps one object to another
 
         self.class_idx = 0
 
@@ -611,30 +609,8 @@ class Context(pyamf.BaseContext):
         self.classes = {}
         self.class_ref = {}
         self.legacy_xml.clear()
-        self.object_aliases.clear()
 
         self.class_idx = 0
-
-    def setObjectAlias(self, obj, alias):
-        """
-        Maps an object to an aliased object.
-
-        @since: 0.4
-        """
-        self.object_aliases.map(obj, alias)
-
-    def getObjectAlias(self, obj):
-        """
-        Get an alias of an object.
-
-        @since: 0.4
-        """
-        ref = self.object_aliases.getReferenceTo(obj)
-
-        if ref is None:
-            return None
-
-        return self.object_aliases.getMappedByReference(ref)
 
     def getString(self, ref):
         """
@@ -1012,7 +988,7 @@ class Decoder(pyamf.BaseDecoder):
                 raise pyamf.ReferenceError('Unknown reference %d' % (ref >> 1,))
 
             if use_proxies is True:
-                obj = self.readProxyObject(obj)
+                obj = self.readProxy(obj)
 
             return obj
 
@@ -1038,19 +1014,9 @@ class Decoder(pyamf.BaseDecoder):
         alias.applyAttributes(obj, obj_attrs, codec=self)
 
         if use_proxies is True:
-            obj = self.readProxyObject(obj)
+            obj = self.readProxy(obj)
 
         return obj
-
-    def readProxyObject(self, proxy):
-        """
-        Return the source object of a proxied object.
-
-        @since: 0.4
-        """
-        from pyamf import flex
-
-        return flex.unproxy_object(proxy)
 
     def _readXML(self, legacy=False):
         """
@@ -1320,19 +1286,12 @@ class Encoder(pyamf.BaseEncoder):
             or C{__builtin__.list}
         @param n: The C{list} data to be encoded to the AMF3 data stream.
         """
-        # Encode lists as ArrayCollections
         if use_proxies is None:
             use_proxies = self.use_proxies
 
-        if use_proxies:
-            ref_obj = self.context.getObjectAlias(n)
-
-            if ref_obj is None:
-                proxy = ArrayCollection(n)
-                self.context.setObjectAlias(n, proxy)
-                ref_obj = proxy
-
-            self.writeObject(ref_obj, use_proxies=False)
+        if use_proxies is True:
+            # Encode lists as ArrayCollections
+            self.writeProxy(n)
 
             return
 
@@ -1372,14 +1331,7 @@ class Encoder(pyamf.BaseEncoder):
             use_proxies = self.use_proxies
 
         if use_proxies is True:
-            ref_obj = self.context.getObjectAlias(n)
-
-            if ref_obj is None:
-                proxy = ObjectProxy(pyamf.ASObject(n))
-                self.context.setObjectAlias(n, proxy)
-                ref_obj = proxy
-
-            self.writeObject(ref_obj, use_proxies=False)
+            self.writeProxy(n)
 
             return
 
@@ -1463,15 +1415,8 @@ class Encoder(pyamf.BaseEncoder):
         if use_proxies is None:
             use_proxies = self.use_proxies
 
-        if use_proxies is True and obj.__class__ is dict:
-            ref_obj = self.context.getObjectAlias(obj)
-
-            if ref_obj is None:
-                proxy = ObjectProxy(obj)
-                self.context.setObjectAlias(obj, proxy)
-                ref_obj = proxy
-
-            self.writeObject(ref_obj, use_proxies=False)
+        if use_proxies is True:
+            self.writeProxy(obj)
 
             return
 

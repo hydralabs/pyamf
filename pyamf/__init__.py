@@ -51,7 +51,8 @@ ERROR_CLASS_MAP = {
     KeyError.__name__: KeyError,
     LookupError.__name__: LookupError,
     IndexError.__name__: IndexError,
-    NameError.__name__: NameError
+    NameError.__name__: NameError,
+    ValueError.__name__: ValueError
 }
 #: Alias mapping support
 ALIAS_TYPES = {}
@@ -142,6 +143,7 @@ class BaseContext(object):
 
     def __init__(self):
         self.objects = util.IndexedCollection()
+
         self.clear()
 
     def clear(self):
@@ -150,6 +152,7 @@ class BaseContext(object):
         """
         self.objects.clear()
         self.class_aliases = {}
+        self.proxied_objects = {}
 
     def getObject(self, ref):
         """
@@ -204,8 +207,53 @@ class BaseContext(object):
 
         return self.class_aliases[klass]
 
-    def __copy__(self):
-        raise NotImplementedError
+    def getProxyForObject(self, obj):
+        """
+        Returns the proxied version of C{obj} as stored in the context, or
+        creates a new proxied object and returns that.
+
+        @see: L{pyamf.flex.proxy_object}
+        @since: 0.6
+        """
+        proxied = self.proxied_objects.get(id(obj))
+
+        if proxied is None:
+            from pyamf import flex
+
+            proxied = flex.proxy_object(obj)
+
+            self.addProxyObject(obj, proxied)
+
+        return proxied
+
+    def getObjectForProxy(self, proxy):
+        """
+        Returns the unproxied version of C{proxy} as stored in the context, or
+        unproxies the proxy and returns that 'raw' object.
+
+        @see: L{pyamf.flex.unproxy_object}
+        @since: 0.6
+        """
+        obj = self.proxied_objects.get(id(proxy))
+
+        if obj is None:
+            from pyamf import flex
+
+            obj = flex.unproxy_object(proxy)
+
+            self.addProxyObject(obj, proxy)
+
+        return obj
+
+    def addProxyObject(self, obj, proxied):
+        """
+        Stores a reference to the unproxied and proxied versions of C{obj} for
+        later retrieval.
+
+        @since: 0.6
+        """
+        self.proxied_objects[id(obj)] = proxied
+        self.proxied_objects[id(proxied)] = obj
 
 
 class ASObject(dict):
@@ -452,11 +500,6 @@ class ClassAlias(object):
         if not self.proxy_attrs:
             self.proxy_attrs = None
         else:
-            if not self.amf3:
-                raise ClassAliasError('amf3 = True must be specified for '
-                    'classes with proxied attributes. Attribute = %r, '
-                    'Class = %r' % (self.proxy_attrs, self.klass,))
-
             self.proxy_attrs = list(self.proxy_attrs)
             self.proxy_attrs.sort()
 
@@ -609,10 +652,12 @@ class ClassAlias(object):
             for attr in dynamic_props:
                 attrs[attr] = getattr(obj, attr)
 
-        if self.proxy_attrs is not None and attrs:
+        if self.proxy_attrs is not None and attrs and codec:
+            context = codec.context
+
             for k, v in attrs.copy().iteritems():
                 if k in self.proxy_attrs:
-                    attrs[k] = self.getProxiedAttribute(k, v)
+                    attrs[k] = context.getProxyForObject(v)
 
         if not attrs:
             attrs = None
@@ -666,8 +711,8 @@ class ClassAlias(object):
             props.difference_update(self.exclude_attrs)
             changed = True
 
-        if self.proxy_attrs is not None:
-            from pyamf import flex
+        if self.proxy_attrs is not None and codec:
+            context = codec.context
 
             for k in self.proxy_attrs:
                 try:
@@ -675,7 +720,7 @@ class ClassAlias(object):
                 except KeyError:
                     continue
 
-                attrs[k] = flex.unproxy_object(v)
+                attrs[k] = context.getObjectForProxy(v)
 
         if not changed:
             return attrs
@@ -685,27 +730,6 @@ class ClassAlias(object):
         [a.__setitem__(p, attrs[p]) for p in props]
 
         return a
-
-    def getProxiedAttribute(self, attr, obj):
-        """
-        Returns the proxied equivalent for C{obj}.
-
-        @param attr: The attribute of the proxy request. Useful for class
-            introspection.
-        @type attr: C{str}
-        @param obj: The object to proxy.
-        @return: The proxied object or the original object if it cannot be
-            proxied.
-        """
-        # the default is to just check basic types
-        from pyamf import flex
-
-        if type(obj) is list:
-            return flex.ArrayCollection(obj)
-        elif type(obj) is dict:
-            return flex.ObjectProxy(obj)
-
-        return obj
 
     def applyAttributes(self, obj, attrs, codec=None):
         """
@@ -871,6 +895,14 @@ class BaseDecoder(object):
 
         self._func_cache = {}
 
+    def readProxy(self, obj, **kwargs):
+        """
+        Decodes a proxied object from the stream.
+
+        @since: 0.6
+        """
+        return self.context.getObjectForProxy(obj)
+
     def readElement(self):
         """
         Reads an AMF3 element from the data stream.
@@ -964,6 +996,16 @@ class BaseEncoder(object):
         self._write_elem_func_cache = {}
         self.strict = strict
         self.timezone_offset = timezone_offset
+
+    def writeProxy(self, obj, **kwargs):
+        """
+        Encodes a proxied object to the stream.
+
+        @since: 0.6
+        """
+        proxy = self.context.getProxyForObject(obj)
+
+        self.writeElement(proxy, use_proxies=False)
 
     def writeFunc(self, obj, **kwargs):
         """

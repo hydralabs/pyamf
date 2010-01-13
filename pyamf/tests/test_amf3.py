@@ -77,11 +77,9 @@ class ContextTestCase(_util.ClassCacheClearingTestCase):
         self.assertEquals(c.objects, [])
         self.assertEquals(c.classes, {})
         self.assertEquals(c.legacy_xml, [])
-        self.assertEquals(c.object_aliases, [])
         self.assertEquals(len(c.strings), 0)
         self.assertEquals(len(c.classes), 0)
         self.assertEquals(len(c.legacy_xml), 0)
-        self.assertEquals(len(c.object_aliases), 0)
 
     def test_add_object(self):
         x = amf3.Context()
@@ -121,25 +119,6 @@ class ContextTestCase(_util.ClassCacheClearingTestCase):
         self.assertEquals(x.addLegacyXML(y), 0)
         self.assertTrue(y in x.legacy_xml)
         self.assertEquals(len(x.legacy_xml), 1)
-
-    def test_set_object_alias(self):
-        x = amf3.Context()
-        obj = {'label': 'original'}
-        alias = {'label': 'aliased'}
-
-        x.setObjectAlias(obj, alias)
-        self.assertEquals(len(x.object_aliases), 1)
-
-    def test_get_object_alias(self):
-        x = amf3.Context()
-        obj = {'label': 'original'}
-        alias = {'label': 'aliased'}
-
-        x.setObjectAlias(obj, alias)
-        self.assertEquals(alias, x.getObjectAlias(obj))
-        self.assertEquals('aliased', x.getObjectAlias(obj)['label'])
-
-        self.assertEquals(x.getObjectAlias(object()), None)
 
     def test_clear(self):
         x = amf3.Context()
@@ -661,9 +640,10 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
         self.encoder.use_proxies = True
         self.encoder.writeElement(x)
 
-        self.assertEquals(self.buf.getvalue(), '\n\x0b\x01\x01')
+        self.assertEquals(self.buf.getvalue(), '\n\x07;flex.messaging.io.ObjectProxy\n\x0b\x01\x01')
 
         self.buf.truncate()
+        self.context.clear()
         x = dict()
 
         self.encoder.writeElement(x)
@@ -1360,7 +1340,7 @@ class DataOutputTestCase(unittest.TestCase):
 
         x.writeObject(obj)
         self.assertEquals(self.stream.getvalue(),
-            '\n\x07;flex.messaging.io.ObjectProxy\n\x0b\x01\tspam\x06\teggs\x01')
+            '\n\x07;flex.messaging.io.ObjectProxy\t\x01\tspam\x06\teggs\x01')
         self.stream.truncate()
 
         # check references

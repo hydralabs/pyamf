@@ -184,7 +184,8 @@ class GetEncodableAttributesTestCase(unittest.TestCase):
     def test_proxy(self):
         from pyamf import flex
 
-        self.alias.amf3 = True
+        codec = pyamf.BaseEncoder()
+
         self.alias.proxy_attrs = ('foo', 'bar')
         self.alias.compile()
 
@@ -193,7 +194,7 @@ class GetEncodableAttributesTestCase(unittest.TestCase):
         self.obj.foo = ['bar', 'baz']
         self.obj.bar = {'foo': 'gak'}
 
-        attrs = self.alias.getEncodableAttributes(self.obj)
+        attrs = self.alias.getEncodableAttributes(self.obj, codec)
         self.assertEquals(sorted(attrs.keys()), ['bar', 'foo'])
 
         self.assertTrue(isinstance(attrs['foo'], flex.ArrayCollection))
@@ -337,7 +338,8 @@ class GetDecodableAttributesTestCase(unittest.TestCase):
     def test_proxy(self):
         from pyamf import flex
 
-        self.alias.amf3 = True
+        codec = pyamf.BaseEncoder()
+
         self.alias.proxy_attrs = ('foo', 'bar')
         self.alias.compile()
 
@@ -348,7 +350,7 @@ class GetDecodableAttributesTestCase(unittest.TestCase):
             'bar': flex.ObjectProxy({'foo': 'gak'})
         }
 
-        ret = self.alias.getDecodableAttributes(self.obj, attrs)
+        ret = self.alias.getDecodableAttributes(self.obj, attrs, codec)
 
         self.assertEquals(ret, {
             'foo': ['bar', 'baz'],

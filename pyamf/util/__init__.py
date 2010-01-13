@@ -757,67 +757,6 @@ class IndexedCollection(object):
         return iter(self.list)
 
 
-class IndexedMap(IndexedCollection):
-    """
-    Like L{IndexedCollection}, but also maps to another object.
-
-    @since: 0.4
-    """
-
-    def __init__(self, use_hash=False):
-        IndexedCollection.__init__(self, use_hash)
-
-    def clear(self):
-        """
-        Clears the index and mapping.
-        """
-        IndexedCollection.clear(self)
-
-        self.mapped = []
-
-    def getMappedByReference(self, ref):
-        """
-        Returns the mapped object by reference.
-
-        @param ref: The reference to the object contained within the
-            collection.
-        @type ref: C{int}
-        @return: The referenced object or C{None} if not found within this
-            collection.
-        @raise TypeError: Bad reference type.
-        """
-        if not isinstance(ref, int_types):
-            raise TypeError("Bad reference type. Expected int, got %r" % (
-                type(ref),))
-
-        try:
-            return self.mapped[ref]
-        except IndexError:
-            return None
-
-    def append(self, obj):
-        """
-        Appends C{obj} to this index.
-
-        @return: The reference to C{obj} in this index.
-        """
-        idx = IndexedCollection.append(self, obj)
-        diff = idx + 1 - len(self.mapped)
-
-        [self.mapped.append(None) for i in range(0, diff)]
-
-        return idx
-
-    def map(self, obj, mapped_obj):
-        """
-        Maps an object so that L{getMappedByReference} will return C{obj}.
-        """
-        idx = self.append(obj)
-        self.mapped[idx] = mapped_obj
-
-        return idx
-
-
 def find_xml_lib():
     """
     Run through a predefined order looking through the various C{ElementTree}
