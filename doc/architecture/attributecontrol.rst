@@ -2,12 +2,12 @@
   Attribute Control 
 *********************
 
-
 .. topic:: Introduction
 
    This document explains how to have more fine grain control over what
    gets encoded by PyAMF 0.5 and newer.
 
+.. contents::
 
 Control What Gets Encoded
 =========================

@@ -2,9 +2,7 @@
   mod_python 
 **************
 
-
 .. image:: images/mod_python-logo.gif
-
 
 .. topic:: Introduction
 
@@ -19,6 +17,7 @@
    running (on 192.168.1.100). Flash applications will be able to access
    your PyAMF remoting gateway on http://192.168.1.100/flashservices/gateway.
 
+.. contents::
 
 Download WSGI gateway for mod_python
 ====================================

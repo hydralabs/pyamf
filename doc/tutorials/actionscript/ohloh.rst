@@ -14,11 +14,11 @@
    Ohloh open source directory. You can use the Ohloh API to create
    your own applications and web services based on Ohloh data.
 
+   There is a live demo available on the PyAMF blog_.
+
+.. contents::
 
 .. image:: images/ohloh-api-example.png
-
-
-There is a live demo available on the PyAMF blog_.
 
 
 Download
@@ -96,8 +96,8 @@ for that email address.
 .. _Ohloh API: http://www.ohloh.net/api/getting_started
 .. _Subversion repository: http://svn.pyamf.org/pyamf/trunk/doc/tutorials/examples/actionscript/ohloh
 .. _blog: http://blog.pyamf.org/archives/ohloh-api-and-python 
-.. _browse: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/ohloh
-.. _ohloh.py: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/ohloh/python/ohloh.py
-.. _development server: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/bytearray/python/manage.py
-.. _SWF file: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/ohloh/flex/deploy/ohloh.swf
+.. _browse: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/ohloh
+.. _ohloh.py: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/ohloh/python/ohloh.py
+.. _development server: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/bytearray/python/manage.py
+.. _SWF file: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/ohloh/flex/deploy/ohloh.swf
 .. _Ohloh website: http://www.ohloh.net/api/examples

@@ -2,9 +2,6 @@
   What's New in PyAMF 0.5
 **************************
 
-:Release: 0.5
-:Date: |today|
-
 PyAMF 0.5 is a cleanup of the internals of 0.4 and it provides some performance
 optimizations. In accomplishing this, a number of features were added:
 

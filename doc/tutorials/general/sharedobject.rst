@@ -5,10 +5,10 @@
 .. topic:: Introduction
 
    The Adobe Flash Player has the ability to store persistent data on
-   your computer, similar to a cookie, called a
-   `Local Shared Object <http://en.wikipedia.org/wiki/Local_Shared_Object>`_.
+   your computer, similar to a cookie, called a `Local Shared Object`_.
    PyAMF has the ability to read and write these ``.sol`` files.
 
+.. contents::
 
 Find the files
 ==============
@@ -17,22 +17,15 @@ The Local Shared Object files are not stored in the cookies folder of
 your browser and the location also differs depending on the operating
 system you are using.
 
-For the Windows user:
-
-.. code-block:: bash
+For the Windows user::
 
    C:\Documents and Settings\{Your User Name}\Application Data\Macromedia\Flash Player\#SharedObjects\
 
-
-On Linux:
-
-.. code-block:: bash
+On Linux::
 
    /home/{Your User Name}/.macromedia/Flash_Player/#SharedObjects/
 
-On Mac OS X:
-
-.. code-block:: bash
+On Mac OS X::
 
    /Users/{Your User Name}/Library/Preferences/Macromedia/Flash Player/#SharedObjects/
 
@@ -109,3 +102,4 @@ supplying the ``encoding`` keyword to the ``save`` function.
 
 
 .. _youtube.com: http://youtube.com
+.. _Local Shared Object: http://en.wikipedia.org/wiki/Local_Shared_Object

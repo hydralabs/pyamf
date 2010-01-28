@@ -5,5 +5,5 @@ Python Shell Example
 This example shows how to control a remote Python interpreter
 from a Flex client.
 
-See the http://pyamf.org/wiki/ShellExample wiki page for
-more info.
+More info can be found in the documentation:
+http://pyamf.org/tutorials/actionscript/shell.html

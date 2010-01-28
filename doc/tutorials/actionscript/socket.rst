@@ -14,10 +14,10 @@
    The example server shows how to setup a `Socket` connection with the
    `Flex SDK`_ and exchange AMF data with a :doc:`../gateways/twisted`
    server.
+   
+   A live demo can be found on the PyAMF blog_.
 
-
-A live demo can be found on the PyAMF blog_.
-
+.. contents::
 
 Download
 ========
@@ -125,6 +125,6 @@ for this example client:
 .. _Twisted: http://twistedmatrix.com
 .. _Python: http://python.org
 .. _blog: http://blog.pyamf.org/archives/socket-example
-.. _browse: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/socket
-.. _SWF file: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/socket/flex/deploy/socket.swf
-.. _client: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/socket/python/client.py
+.. _browse: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/socket
+.. _SWF file: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/socket/flex/deploy/socket.swf
+.. _client: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/socket/python/client.py

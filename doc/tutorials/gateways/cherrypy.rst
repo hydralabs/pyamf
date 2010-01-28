@@ -2,15 +2,15 @@
   CherryPy 
 *************
 
-
 .. image:: images/cherrypy-logo.jpg
-
 
 .. topic:: Introduction
 
   CherryPy_ 3.0+ allows you to *graft* any WSGI application as a
   controller. PyAMF's WSGI gateway can thus be used to easily
   expose a set of methods via AMF remoting.
+
+.. contents::
 
 Example
 =======

@@ -11,12 +11,10 @@ cookie-like data entity used by the Adobe Flash Player and Gnash. The players
 allow web content to read and write LSO data to the computer's local drive on
 a per-domain basis.
 
-@see: U{Local Shared Object on WikiPedia (external)
-<http://en.wikipedia.org/wiki/Local_Shared_Object>}
-@see: U{Local Shared Object envelope (external)
-<http://osflash.org/documentation/amf/envelopes/sharedobject>}
+:see: `Local Shared Object on WikiPedia (external) <http://en.wikipedia.org/wiki/Local_Shared_Object>`_
+:see: `Local Shared Object envelope (external) <http://osflash.org/documentation/amf/envelopes/sharedobject>`_
 
-@since: 0.1.0
+:since: 0.1.0
 """
 
 import pyamf
@@ -32,20 +30,20 @@ PADDING_BYTE = '\x00'
 
 def decode(stream, strict=True):
     """
-    Decodes a SOL stream. C{strict} mode ensures that the sol stream is as spec
+    Decodes a SOL stream. `strict` mode ensures that the sol stream is as spec
     compatible as possible.
 
-    @param strict: Ensure that the SOL stream is as spec compatible as possible.
-    @type strict: C{bool}
-    @return: A C{tuple} containing the C{root_name} and a C{dict} of name,
+    :param strict: Ensure that the SOL stream is as spec compatible as possible.
+    :type strict: `bool`
+    :return: A `tuple` containing the `root_name` and a `dict` of name,
         value pairs.
-    @rtype: C{tuple}
+    :rtype: `tuple`
 
-    @raise DecodeError: Unknown SOL version in header.
-    @raise DecodeError: Inconsistent stream header length.
-    @raise DecodeError: Invalid signature.
-    @raise DecodeError: Invalid padding read.
-    @raise DecodeError: Missing padding byte.
+    :raise DecodeError: Unknown SOL version in header.
+    :raise DecodeError: Inconsistent stream header length.
+    :raise DecodeError: Invalid signature.
+    :raise DecodeError: Invalid padding read.
+    :raise DecodeError: Missing padding byte.
     """
     if not isinstance(stream, util.BufferedByteStream):
         stream = util.BufferedByteStream(stream)
@@ -100,14 +98,14 @@ def encode(name, values, strict=True, encoding=pyamf.AMF0):
     """
     Produces a SharedObject encoded stream based on the name and values.
 
-    @param name: The root name of the SharedObject.
-    @type name: C{basestring}
-    @param values: A C{dict} of name value pairs to be encoded in the stream.
-    @type values: C{dict}
-    @param strict: Ensure that the SOL stream is as spec compatible as possible.
-    @type strict: C{bool}
-    @return: A SharedObject encoded stream.
-    @rtype: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
+    :param name: The root name of the SharedObject.
+    :type name: `basestring`
+    :param values: A `dict` of name value pairs to be encoded in the stream.
+    :type values: `dict`
+    :param strict: Ensure that the SOL stream is as spec compatible as possible.
+    :type strict: `bool`
+    :return: A SharedObject encoded stream.
+    :rtype: :class:`BufferedByteStream<pyamf.util.BufferedByteStream>`
     """
     encoder = pyamf.get_encoder(encoding)
     encoder.stream = stream = util.BufferedByteStream()
@@ -152,12 +150,12 @@ def encode(name, values, strict=True, encoding=pyamf.AMF0):
 
 def load(name_or_file):
     """
-    Loads a sol file and returns a L{SOL} object.
+    Loads a sol file and returns a :class:`SOL` object.
 
-    @param name_or_file: Name of file, or file-object.
-    @type name_or_file: C{str} or C{StringIO}
+    :param name_or_file: Name of file, or file-object.
+    :type name_or_file: `str` or `StringIO`
 
-    @raise ValueError: Readable stream expected.
+    :raise ValueError: Readable stream expected.
     """
     f = name_or_file
     opened = False
@@ -182,16 +180,16 @@ def load(name_or_file):
 
 def save(sol, name_or_file, encoding=pyamf.AMF0):
     """
-    Writes a L{SOL} object to C{name_or_file}.
+    Writes a :class:`SOL` object to `name_or_file`.
 
-    @param sol:
-    @type sol:
-    @param name_or_file: Name of file, or file-object.
-    @type name_or_file: C{str} or C{StringIO}
-    @param encoding: AMF encoding type.
-    @type encoding: C{int}
+    :param sol:
+    :type sol:
+    :param name_or_file: Name of file, or file-object.
+    :type name_or_file: `str` or `StringIO`
+    :param encoding: AMF encoding type.
+    :type encoding: `int`
 
-    @raise ValueError: Writable stream expected.
+    :raise ValueError: Writable stream expected.
     """
     f = name_or_file
     opened = False
@@ -211,7 +209,7 @@ def save(sol, name_or_file, encoding=pyamf.AMF0):
 class SOL(dict):
     """
     Local Shared Object class, allows easy manipulation of the internals of a
-    C{sol} file.
+    `sol` file.
     """
     def __init__(self, name):
         self.name = name

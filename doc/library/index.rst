@@ -10,3 +10,9 @@ This reference manual describes the PyAMF library.
 
    pyamf.rst
    datatypes.rst
+   flex.rst
+   remoting.rst
+   gateways/index.rst
+   adapters/index.rst
+   sol.rst
+   util.rst

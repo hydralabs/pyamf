@@ -1,7 +1,7 @@
 PyAMF_ provides Action Message Format (AMF_) support for Python_ that is
 compatible with the `Adobe Flash Player`_. It includes integration with
-Python web frameworks like Pylons_, Twisted_, SQLAlchemy_, web2py_ and
-more_.
+Python web frameworks like Django_, Pylons_, Twisted_, SQLAlchemy_,
+web2py_ and more_.
 
 The `Adobe Integrated Runtime`_ and `Adobe Flash Player`_ use AMF to
 communicate between an application and a remote server. AMF encodes
@@ -28,11 +28,11 @@ ArrayCollection_, ObjectProxy_ and IExternalizable_.
 .. _Twisted:	http://twistedmatrix.com
 .. _SQLAlchemy: http://sqlalchemy.org
 .. _web2py:	http://www.web2py.com
-.. _more:	http://docs.pyamf.org/current/tutorials/index.html
+.. _more:	http://pyamf.org/tutorials/index.html
 .. _Adobe Integrated Runtime: http://en.wikipedia.org/wiki/Adobe_AIR
 .. _RTMP/RTMPS:	http://en.wikipedia.org/wiki/Real_Time_Messaging_Protocol
-.. _ActionScript: http://pyamf.org/wiki/ActionScript
-.. _ByteArray:	http://pyamf.org/wiki/ByteArray
-.. _ArrayCollection: http://pyamf.org/wiki/ArrayCollection
-.. _ObjectProxy: http://pyamf.org/wiki/ObjectProxy
-.. _IExternalizable: http://pyamf.org/wiki/IExternalizable
+.. _ActionScript: http://dev.pyamf.org/wiki/ActionScript
+.. _ByteArray:	http://dev.pyamf.org/wiki/ByteArray
+.. _ArrayCollection: http://dev.pyamf.org/wiki/ArrayCollection
+.. _ObjectProxy: http://dev.pyamf.org/wiki/ObjectProxy
+.. _IExternalizable: http://dev.pyamf.org/wiki/IExternalizable

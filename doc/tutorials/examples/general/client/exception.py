@@ -1,8 +1,3 @@
-# service method
-def type_error():
-    raise TypeError('some useful message here')
-
-# from the console
 >>> from pyamf.remoting.client import RemotingService
 >>> gateway = RemotingService('http://example.org/gw')
 >>> service = gateway.getService('type_error')

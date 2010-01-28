@@ -12,10 +12,10 @@
 
    Check the :doc:`SQLAlchemy Adapter<../gateways/sqlalchemy>` page for
    more info on using SQLAlchemy with PyAMF.
+   
+   A live demo can be found on the PyAMF blog_.
 
-
-A live demo can be found on the PyAMF blog_.
-
+.. contents::
 
 Download
 ========
@@ -138,6 +138,6 @@ for this example client:
 .. _Flex SDK: http://opensource.adobe.com/wiki/display/flexsdk/Flex+SDK
 .. _SQLAlchemy: http://sqlalchemy.org
 .. _blog: http://blog.pyamf.org/archives/sqlalchemy-and-flash-addressbook-example
-.. _browse: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/addressbook
-.. _development server: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/addressbook/python/server.py
-.. _SWF file: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/addressbook/flex/deploy/sa_example.swf
+.. _browse: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/addressbook
+.. _development server: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/addressbook/python/server.py
+.. _SWF file: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/addressbook/flex/deploy/sa_example.swf

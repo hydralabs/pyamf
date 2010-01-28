@@ -2,9 +2,7 @@
   modjy 
 **********
 
-
 .. image:: images/modjy-pyamf.png
-
 
 .. topic:: Introduction
 
@@ -22,6 +20,7 @@
    This was tested with Jython_ 2.5, `Apache Tomcat`_ 6.0.20, and Java 1.6
    on Mac OS X 10.5.7. 
 
+.. contents::
 
 Deploying modjy
 ===============

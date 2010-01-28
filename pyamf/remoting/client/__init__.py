@@ -4,7 +4,7 @@
 """
 Remoting client implementation.
 
-@since: 0.1.0
+:since: 0.1.0
 """
 
 import httplib
@@ -14,7 +14,7 @@ import pyamf
 from pyamf import remoting
 
 
-#: Default user agent is C{PyAMF/x.x(.x)}.
+#: Default user agent is `PyAMF/x.x(.x)`.
 DEFAULT_USER_AGENT = 'PyAMF/%s' % (pyamf.version,)
 
 HTTP_OK = 200
@@ -31,12 +31,12 @@ class ServiceMethodProxy(object):
     """
     Serves as a proxy for calling a service method.
 
-    @ivar service: The parent service.
-    @type service: L{ServiceProxy}
-    @ivar name: The name of the method.
-    @type name: C{str} or C{None}
+    :ivar service: The parent service.
+    :type service: :class:`ServiceProxy`
+    :ivar name: The name of the method.
+    :type name: `str` or `None`
 
-    @see: L{ServiceProxy.__getattr__}
+    :see: :func:`ServiceProxy.__getattr__`
     """
 
     def __init__(self, service, name):
@@ -66,19 +66,19 @@ class ServiceMethodProxy(object):
 class ServiceProxy(object):
     """
     Serves as a service object proxy for RPC calls. Generates
-    L{ServiceMethodProxy} objects for method calls.
+    :class:`ServiceMethodProxy` objects for method calls.
 
-    @see: L{RequestWrapper} for more info.
+    :see: :class:`RequestWrapper` for more info.
 
-    @ivar _gw: The parent gateway
-    @type _gw: L{RemotingService}
-    @ivar _name: The name of the service
-    @type _name: C{str}
-    @ivar _auto_execute: If set to C{True}, when a service method is called,
+    :ivar _gw: The parent gateway
+    :type _gw: :class:`RemotingService`
+    :ivar _name: The name of the service
+    :type _name: `str`
+    :ivar _auto_execute: If set to `True`, when a service method is called,
         the AMF request is immediately sent to the remote gateway and a
-        response is returned. If set to C{False}, a L{RequestWrapper} is
-        returned, waiting for the underlying gateway to fire the
-        L{execute<RemotingService.execute>} method.
+        response is returned. If set to `False`, a :class:`RequestWrapper`
+        is returned, waiting for the underlying gateway to fire the
+        :func:`execute <RemotingService.execute>` method.
     """
 
     def __init__(self, gw, name, auto_execute=True):
@@ -91,8 +91,8 @@ class ServiceProxy(object):
 
     def _call(self, method_proxy, *args):
         """
-        Executed when a L{ServiceMethodProxy} is called. Adds a request to the
-        underlying gateway. If C{_auto_execute} is set to C{True}, then the
+        Executed when a :class:`ServiceMethodProxy` is called. Adds a request to the
+        underlying gateway. If `_auto_execute` is set to `True`, then the
         request is immediately called on the remote gateway.
         """
         request = self._gw.addRequest(method_proxy, *args)
@@ -130,14 +130,14 @@ class RequestWrapper(object):
     """
     A container object that wraps a service method request.
 
-    @ivar gw: The underlying gateway.
-    @type gw: L{RemotingService}
-    @ivar id: The id of the request.
-    @type id: C{str}
-    @ivar service: The service proxy.
-    @type service: L{ServiceProxy}
-    @ivar args: The args used to invoke the call.
-    @type args: C{list}
+    :ivar gw: The underlying gateway.
+    :type gw: :class:`RemotingService`
+    :ivar id: The id of the request.
+    :type id: `str`
+    :ivar service: The service proxy.
+    :type service: :class:`ServiceProxy`
+    :ivar args: The args used to invoke the call.
+    :type args: `list`
     """
 
     def __init__(self, gw, id_, service, *args):
@@ -163,7 +163,7 @@ class RequestWrapper(object):
     def _get_result(self):
         """
         Returns the result of the called remote request. If the request has not
-        yet been called, an C{AttributeError} exception is raised.
+        yet been called, an `AttributeError` exception is raised.
         """
         if not hasattr(self, '_result'):
             raise AttributeError("'RequestWrapper' object has no attribute 'result'")
@@ -180,31 +180,31 @@ class RemotingService(object):
     """
     Acts as a client for AMF calls.
 
-    @ivar url: The url of the remote gateway. Accepts C{http} or C{https}
+    :ivar url: The url of the remote gateway. Accepts `http` or `https`
         as valid schemes.
-    @type url: C{str}
-    @ivar requests: The list of pending requests to process.
-    @type requests: C{list}
-    @ivar request_number: A unique identifier for tracking the number of
+    :type url: `str`
+    :ivar requests: The list of pending requests to process.
+    :type requests: `list`
+    :ivar request_number: A unique identifier for tracking the number of
         requests.
-    @ivar amf_version: The AMF version to use.
-        See L{ENCODING_TYPES<pyamf.ENCODING_TYPES>}.
-    @type amf_version: C{int}
-    @ivar referer: The referer, or HTTP referer, identifies the address of the
+    :ivar amf_version: The AMF version to use.
+        See :const:`ENCODING_TYPES<pyamf.ENCODING_TYPES>`.
+    :type amf_version: `int`
+    :ivar referer: The referer, or HTTP referer, identifies the address of the
         client. Ignored by default.
-    @type referer: C{str}
-    @ivar user_agent: Contains information about the user agent (client)
-        originating the request. See L{DEFAULT_USER_AGENT}.
-    @type user_agent: C{str}
-    @ivar connection: The underlying connection to the remoting server.
-    @type connection: C{httplib.HTTPConnection} or C{httplib.HTTPSConnection}
-    @ivar headers: A list of persistent headers to send with each request.
-    @type headers: L{HeaderCollection<pyamf.remoting.HeaderCollection>}
-    @ivar http_headers: A dict of HTTP headers to apply to the underlying
+    :type referer: `str`
+    :ivar user_agent: Contains information about the user agent (client)
+        originating the request. See :const:`DEFAULT_USER_AGENT`.
+    :type user_agent: `str`
+    :ivar connection: The underlying connection to the remoting server.
+    :type connection: `httplib.HTTPConnection` or `httplib.HTTPSConnection`
+    :ivar headers: A list of persistent headers to send with each request.
+    :type headers: :class:`HeaderCollection<pyamf.remoting.HeaderCollection>`
+    :ivar http_headers: A dict of HTTP headers to apply to the underlying
         HTTP connection.
-    @type http_headers: L{dict}
-    @ivar strict: Whether to use strict AMF en/decoding or not.
-    @type strict: C{bool}
+    :type http_headers: `dict`
+    :ivar strict: Whether to use strict AMF en/decoding or not.
+    :type strict: `bool`
     """
 
     def __init__(self, url, amf_version=pyamf.AMF0, **kwargs):
@@ -228,9 +228,9 @@ class RemotingService(object):
 
     def _setUrl(self, url):
         """
-        @param url: Gateway URL.
-        @type url: C{str}
-        @raise ValueError: Unknown scheme.
+        :param url: Gateway URL.
+        :type url: `str`
+        :raise ValueError: Unknown scheme.
         """
         self.url = urlparse.urlparse(url)
         self._root_url = urlparse.urlunparse(['', ''] + list(self.url[2:]))
@@ -271,7 +271,7 @@ class RemotingService(object):
         location = '%s://%s:%s%s' % (self.url[0], hostname, port, self.url[2])
 
         if self.logger:
-            self.logger.debug('Connecting to %s' % location)
+            self.logger.info('Connecting to %s' % location)
             self.logger.debug('Referer: %s' % self.referer)
             self.logger.debug('User-Agent: %s' % self.user_agent)
 
@@ -279,10 +279,10 @@ class RemotingService(object):
         """
         Sets a persistent header to send with each request.
 
-        @param name: Header name.
-        @type name: C{str}
-        @param must_understand: Default is C{False}.
-        @type must_understand: C{bool}
+        :param name: Header name.
+        :type name: `str`
+        :param must_understand: Default is `False`.
+        :type must_understand: `bool`
         """
         self.headers[name] = value
         self.headers.set_required(name, must_understand)
@@ -301,13 +301,13 @@ class RemotingService(object):
 
     def getService(self, name, auto_execute=True):
         """
-        Returns a L{ServiceProxy} for the supplied name. Sets up an object that
+        Returns a :class:`ServiceProxy` for the supplied name. Sets up an object that
         can have method calls made to it that build the AMF requests.
 
-        @param auto_execute: Default is C{True}.
-        @type auto_execute: C{bool}
-        @raise TypeError: C{string} type required for C{name}.
-        @rtype: L{ServiceProxy}
+        :param auto_execute: Default is `True`.
+        :type auto_execute: `bool`
+        :raise TypeError: `string` type required for `name`.
+        :rtype: :class:`ServiceProxy`
         """
         if not isinstance(name, basestring):
             raise TypeError('string type required')
@@ -318,7 +318,7 @@ class RemotingService(object):
         """
         Gets a request based on the id.
 
-        @raise LookupError: Request not found.
+        :raise LookupError: Request not found.
         """
         for request in self.requests:
             if request.id == id_:
@@ -345,7 +345,7 @@ class RemotingService(object):
         """
         Removes a request from the pending request list.
 
-        @raise LookupError: Request not found.
+        :raise LookupError: Request not found.
         """
         if isinstance(service, RequestWrapper):
             if self.logger:
@@ -368,12 +368,12 @@ class RemotingService(object):
 
     def getAMFRequest(self, requests):
         """
-        Builds an AMF request L{Envelope<pyamf.remoting.Envelope>} from a
+        Builds an AMF request :class:`Envelope<pyamf.remoting.Envelope>` from a
         supplied list of requests.
 
-        @param requests: List of requests
-        @type requests: C{list}
-        @rtype: L{Envelope<pyamf.remoting.Envelope>}
+        :param requests: List of requests
+        :type requests: `list`
+        :rtype: :class:`Envelope<pyamf.remoting.Envelope>`
         """
         envelope = remoting.Envelope(self.amf_version)
 
@@ -408,9 +408,9 @@ class RemotingService(object):
         Builds, sends and handles the response to a single request, returning
         the response.
 
-        @param request:
-        @type request:
-        @rtype:
+        :param request:
+        :type request:
+        :rtype:
         """
         if self.logger:
             self.logger.debug('Executing single request: %s' % request)
@@ -431,7 +431,7 @@ class RemotingService(object):
     def execute(self):
         """
         Builds, sends and handles the responses to all requests listed in
-        C{self.requests}.
+        `self.requests`.
         """
         body = remoting.encode(self.getAMFRequest(self.requests), strict=self.strict)
 
@@ -457,8 +457,8 @@ class RemotingService(object):
         """
         Gets and handles the HTTP response from the remote gateway.
 
-        @raise RemotingError: HTTP Gateway reported error status.
-        @raise RemotingError: Incorrect MIME type received.
+        :raise RemotingError: HTTP Gateway reported error status.
+        :raise RemotingError: Incorrect MIME type received.
         """
         if self.logger:
             self.logger.debug('Waiting for response...')

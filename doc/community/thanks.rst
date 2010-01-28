@@ -7,12 +7,12 @@ should be on this list, please let us know (send email to the
 :doc:`users mailinglist <mailinglist>`), and we'll be glad to correct
 the problem.
 
-- `Evert Pot <evert@rooftopsolutions.nl>`_
-- `Bob Ippolito <bob@redivi.com>`_
-- `Joachim Bauch <jojo@struktur.de>`_
-- `Antti Kaihola <akaihol+pyamf@ambitone.com>`_
-- `Jacob Feisley <jacob.feisley@gmail.com>`_
-- `Gerard Escalante <gerard@saygo.ca>`_
+- Evert Pot
+- Bob Ippolito
+- Joachim Bauch
+- Antti Kaihola
+- Jacob Feisley
+- Gerard Escalante
 
 Thanks to Dave Thompson from the Arizona Research Laboratories (University of
 Arizona) for contributing (amongst other things) an adapter for SQLAlchemy.

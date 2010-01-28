@@ -7,6 +7,8 @@
    This page describes how to setup the `RecordSet` Adobe Flash (MX 2004)
    example application.
 
+.. contents::
+
 
 Installation
 ============
@@ -141,6 +143,6 @@ for this example client::
 .. _page: http://blog.vixiom.com/2007/04/17/actionscript-20-flash-remoting-with-flash-cs3/
 .. _SQLAlchemy: http://sqlalchemy.org
 .. _SQLite: http://sqlite.org
-.. _browse: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/recordset
-.. _development server: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/recordset/python/gateway.py
-.. _SWF file: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/recordset/flash/SoftwareInfoExample.swf
+.. _browse: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/recordset
+.. _development server: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/recordset/python/gateway.py
+.. _SWF file: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/recordset/flash/SoftwareInfoExample.swf

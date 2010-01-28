@@ -10,10 +10,11 @@
    the location of an IP address. The API includes support for lookup
    of country, region, city, latitude, and longitude.
 
+   A live demo can be found on the PyAMF blog_.
+
+.. contents::
+
 .. image:: images/geoip-example.jpg
-
-
-A live demo can be found on the PyAMF blog_.
 
 
 Download
@@ -127,6 +128,6 @@ for this example client:
 .. _GeoIP API for Python: http://www.maxmind.com/app/python
 .. _Python: http://python.org
 .. _blog: http://blog.pyamf.org/archives/geoip-example
-.. _browse: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/geoip
-.. _development server: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/geoip/python/server.py
-.. _SWF file: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/geoip/flex/deploy/geoip.swf
+.. _browse: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/geoip
+.. _development server: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/geoip/python/server.py
+.. _SWF file: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/geoip/flex/deploy/geoip.swf

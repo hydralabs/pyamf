@@ -2,8 +2,7 @@
   Type Map 
 ************
 
-
-.. topic:: Introduction
+.. topic:: Overview
 
    The following is a guide to the ActionScript to Python type
    mappings.
@@ -19,7 +18,7 @@ The following types are available in Adobe Flash Player 6 and newer:
 +=====================================+=================================+
 | ``null``          		      | ``None``    	                |
 +-------------------------------------+---------------------------------+
-| ``undefined``, ``void``             | ``pyamf.Undefined``             |
+| ``undefined``, ``void``             | :class:`pyamf.Undefined`        |
 +-------------------------------------+---------------------------------+
 | ``String``     	              | ``unicode``                     |
 +-------------------------------------+---------------------------------+
@@ -31,14 +30,14 @@ The following types are available in Adobe Flash Player 6 and newer:
 +-------------------------------------+---------------------------------+
 | ``XML``                             | ``ElementTree.Element``         |
 +-------------------------------------+---------------------------------+
-| ``Array``               	      | ``list, tuple``                 |
+| ``Array``               	      | ``list``, ``tuple``             |
 +-------------------------------------+---------------------------------+
 | ``Object``    		      |	``dict``		        |
 +-------------------------------------+---------------------------------+
-| ``RecordSet``                	      | ``pyamf.amf0.RecordSet``        |
+| ``RecordSet``                	      | :class:`pyamf.amf0.RecordSet`   |
 +-------------------------------------+---------------------------------+
 | Typed Object (other than the above) | class instance (registered via  |
-|				      | ``pyamf.register_class``)       |
+|				      | :func:`pyamf.register_class`)   |
 +-------------------------------------+---------------------------------+
 
 
@@ -52,44 +51,49 @@ The following types are available in the Adobe Flash Player 9 and newer:
 +=====================================+=================================+
 | ``int``, ``uint``          	      | ``int``    	                |
 +-------------------------------------+---------------------------------+
-| ``ByteArray``             	      | ``pyamf.amf3.ByteArray``        |
+| ``ByteArray``             	      | :class:`pyamf.amf3.ByteArray`   |
 +-------------------------------------+---------------------------------+
-| ``DataInput``     	              | ``pyamf.amf3.DataInput``        |
+| ``DataInput``     	              | :class:`pyamf.amf3.DataInput`   |
 +-------------------------------------+---------------------------------+
-| ``DataOutput``                      | ``pyamf.amf3.DataOutput``       |
+| ``DataOutput``                      | :class:`pyamf.amf3.DataOutput`  |
 +-------------------------------------+---------------------------------+
 
 
 Flex (AMF3)
 ===========
 
-The following types are available in `Adobe Flex 2
-<http://opensource.adobe.com/wiki/display/flexsdk/>`_ and newer:
+The following types are available in `Adobe Flex 2`_ and newer:
 
-+-------------------------------------+---------------------------------------------+
-| ActionScript Type                   | Python Type	                            |
-+=====================================+=============================================+
-| ``ObjectProxy``          	      | ``pyamf.flex.ObjectProxy``                  |
-+-------------------------------------+---------------------------------------------+
-| ``ArrayCollection``         	      | ``pyamf.flex.ArrayCollection``              |
-+-------------------------------------+---------------------------------------------+
-| ``AbstractMessage``     	      | ``pyamf.flex.messaging.AbstractMessage``    |
-+-------------------------------------+---------------------------------------------+
-| ``AcknowledgeMessage``              | ``pyamf.flex.messaging.AcknowledgeMessage`` |
-+-------------------------------------+---------------------------------------------+
-| ``AsyncMessage``                    | ``pyamf.flex.messaging.AsyncMessage``       |
-+-------------------------------------+---------------------------------------------+
-| ``CommandMessage``                  | ``pyamf.flex.messaging.CommandMessage``     |
-+-------------------------------------+---------------------------------------------+
-| ``ErrorMessage``                    | ``pyamf.flex.messaging.ErrorMessage``       |
-+-------------------------------------+---------------------------------------------+
-| ``RemotingMessage``                 | ``pyamf.flex.messaging.RemotingMessage``    |
-+-------------------------------------+---------------------------------------------+
-| ``DataMessage``                     | ``pyamf.flex.data.DataMessage``             |
-+-------------------------------------+---------------------------------------------+
-| ``SequencedMessage``                | ``pyamf.flex.data.SequencedMessage``        |
-+-------------------------------------+---------------------------------------------+
-| ``PagedMessage``                    | ``pyamf.flex.data.PagedMessage``            |
-+-------------------------------------+---------------------------------------------+
-| ``DataErrorMessage``                | ``pyamf.flex.data.DataErrorMessage``        |
-+-------------------------------------+---------------------------------------------+
++-------------------------------------+---------------------------------------------------+
+| ActionScript Type                   | Python Type	                                  |
++=====================================+===================================================+
+| ``ObjectProxy``          	      | :class:`pyamf.flex.ObjectProxy`                   |
++-------------------------------------+---------------------------------------------------+
+| ``ArrayCollection``         	      | :class:`pyamf.flex.ArrayCollection`               |
++-------------------------------------+---------------------------------------------------+
+| ``AbstractMessage``     	      | :class:`pyamf.flex.messaging.AbstractMessage`     |
++-------------------------------------+---------------------------------------------------+
+| ``AcknowledgeMessage``              | :class:`pyamf.flex.messaging.AcknowledgeMessage`  |
++-------------------------------------+---------------------------------------------------+
+| ``AsyncMessage``                    | :class:`pyamf.flex.messaging.AsyncMessage`        |
++-------------------------------------+---------------------------------------------------+
+| ``CommandMessage``                  | :class:`pyamf.flex.messaging.CommandMessage`      |
++-------------------------------------+---------------------------------------------------+
+| ``ErrorMessage``                    | :class:`pyamf.flex.messaging.ErrorMessage`        |
++-------------------------------------+---------------------------------------------------+
+| ``RemotingMessage``                 | :class:`pyamf.flex.messaging.RemotingMessage`     |
++-------------------------------------+---------------------------------------------------+
+| ``DataMessage``                     | :class:`pyamf.flex.data.DataMessage`              |
++-------------------------------------+---------------------------------------------------+
+| ``SequencedMessage``                | :class:`pyamf.flex.data.SequencedMessage`         |
++-------------------------------------+---------------------------------------------------+
+| ``PagedMessage``                    | :class:`pyamf.flex.data.PagedMessage`             |
++-------------------------------------+---------------------------------------------------+
+| ``DataErrorMessage``                | :class:`pyamf.flex.data.DataErrorMessage`         |
++-------------------------------------+---------------------------------------------------+
+
+**Note**: We plan to deprecate and move the Flex support into a new project_ before PyAMF 1.0 is released.
+
+
+.. _Adobe Flex 2: http://opensource.adobe.com/wiki/display/flexsdk
+.. _project: http://plasmads.org

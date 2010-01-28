@@ -7,10 +7,10 @@ Gateway for Google App Engine.
 This gateway allows you to expose functions in Google App Engine web
 applications to AMF clients and servers.
 
-*See*: `Google App Engine homepage (external)
+:See: `Google App Engine homepage (external)
     <http://code.google.com/appengine>`_
 
-*Since*: 0.3.1
+:Since: 0.3.1
 """
 
 import sys
@@ -44,10 +44,10 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
         """
         Processes the AMF request, returning an AMF response.
 
-        @param request: The AMF Request.
-        @type request: L{Envelope<pyamf.remoting.Envelope>}
-        @rtype: L{Envelope<pyamf.remoting.Envelope>}
-        @return: The AMF Response.
+        :param request: The AMF Request.
+        :type request: :class:`Envelope<pyamf.remoting.Envelope>`
+        :rtype: :class:`Envelope<pyamf.remoting.Envelope>`
+        :return: The AMF Response.
         """
         response = remoting.Envelope(request.amfVersion)
 

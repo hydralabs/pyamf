@@ -2,5 +2,5 @@
 
 This folder contains a basic example for PyAMF. 
 
-More info can be found on the wiki page:
-http://pyamf.org/wiki/SimpleExample
+More info can be found in the documentation:
+http://pyamf.org/tutorials/actionscript/simple.html

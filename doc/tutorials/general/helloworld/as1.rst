@@ -6,7 +6,8 @@
 
    This |ActionScript (TM)| 1.0 example can be used with
    the Flash MX or Flash MX 2004 authoring tool.
-   
+
+.. contents::
 
 Installation
 ============

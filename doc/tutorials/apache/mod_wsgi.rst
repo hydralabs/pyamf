@@ -13,6 +13,7 @@
    running (on 192.168.1.100). Flash applications will be able to access
    your PyAMF remoting gateway on http://192.168.1.100/flashservices/gateway.
 
+.. contents::
 
 Create your PyAMF application
 =============================

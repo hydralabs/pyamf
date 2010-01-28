@@ -12,6 +12,7 @@
    The example application also enumerates the list of hardware
    and software network interfaces available on the client computer.
 
+.. contents::
  
 Download
 ========
@@ -80,6 +81,6 @@ Right-click for the fullscreen and always on top options:
 .. _Adobe AIR 2 Runtime: http://labs.adobe.com/downloads/air2.html
 .. _Twisted: http://twistedmatrix.com
 .. _UDP sockets: http://help.adobe.com/en_US/FlashPlatform/beta/reference/actionscript/3/flash/net/DatagramSocket.html
-.. _browse: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/udp
-.. _development server: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/udp/python/server.py
-.. _AIR file: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/udp/air/deploy/udp.air
+.. _browse: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/udp
+.. _development server: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/udp/python/server.py
+.. _AIR file: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/udp/air/deploy/udp.air

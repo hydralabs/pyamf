@@ -2,9 +2,7 @@
   Ant 
 **********
 
-
 .. image:: images/ant-logo.gif
-
 
 .. topic:: Introduction
 
@@ -13,6 +11,8 @@
 
     This howto was created using Jython 2.5.0 standalone, PyAMF 0.5,
     Ant 1.7 and Java JDK 1.6.0_13 on Mac OSX 10.5.7.
+
+.. contents::
 
 
 About JSR-223

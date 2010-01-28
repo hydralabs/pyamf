@@ -10,6 +10,7 @@
    Since Werkzeug supports generic WSGI apps, setting up a
    remoting gateway is trivial using the WSGI gateway.
 
+.. contents::
 
 Example
 =======

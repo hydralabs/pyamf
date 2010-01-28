@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (c) 2009 The PyAMF Project.
+# Copyright (c) The PyAMF Project.
 # See LICENSE.txt for details.
 #
 # PyAMF documentation build configuration file.
@@ -132,6 +132,7 @@ html_sidebars = {
 # template names.
 html_additional_pages = {
     'index': 'indexcontent.html',
+    'tutorials/index': 'tutorials.html',
 }
 
 # Content template for the index page, filename relative to this file.
@@ -141,7 +142,7 @@ html_index = 'indexcontent.html'
 html_use_modindex = True
 
 # If true, the reST sources are included in the HTML build as _sources/<name>.
-html_copy_source = True
+html_copy_source = False
 
 # Output an OpenSearch description file.
 html_use_opensearch = 'http://docs.pyamf.org'

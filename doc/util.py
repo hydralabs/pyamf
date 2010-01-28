@@ -1,4 +1,4 @@
-# Copyright (c) 2009 The PyAMF Project.
+# Copyright (c) The PyAMF Project.
 # See LICENSE.txt for details.
 
 import os
@@ -10,10 +10,10 @@ def rst2html( input, output ):
     """
     Create html file from rst file.
     
-    @param input: Path to rst source file
-    @type: C{str}
-    @param output: Path to html output file
-    @type: C{str}
+    :param input: Path to rst source file
+    :type: `str`
+    :param output: Path to html output file
+    :type: `str`
     """
     file = os.path.abspath(input)
     rst = open(file, 'r').read()
@@ -31,10 +31,10 @@ def copy_file( input, output ):
     """
     Copy file to folder.
     
-    @param input: Path to source file
-    @type: C{str}
-    @param output: Path to output file
-    @type: C{str}
+    :param input: Path to source file
+    :type: `str`
+    :param output: Path to output file
+    :type: `str`
     """
     path = os.path.abspath(input)
     file = open(path, 'r')

@@ -8,6 +8,7 @@
    `Flex <http://opensource.adobe.com/wiki/display/flexsdk>`_ framework
    using MXML and |ActionScript (TM)| 3.0.
 
+.. contents::
 
 Source
 ======

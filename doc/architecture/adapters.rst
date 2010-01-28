@@ -2,7 +2,6 @@
   Adapter Framework 
 *********************
 
-
 .. topic:: Introduction
 
    The Adapter Framework allows PyAMF to integrate nicely with other Python
@@ -12,17 +11,14 @@
 Adapters Overview
 =================
 
-We currently have adapters for the following packages:
+We currently have adapters for the following libraries:
 
-- `Django <http://www.djangoproject.com>`_
-- `Google App Engine <http://appengine.google.com>`_
-- `SQLAlchemy <http://www.sqlalchemy.org>`_
-- `Elixir <http://www.elixir.ematia.de/>`_
-
-And support for the stdlib:
-
-- `sets <http://www.python.org/doc/2.5.2/lib/types-set.html>`_ module
-- `decimal <http://www.python.org/doc/2.5.2/lib/module-decimal.html>`_ module
+- :doc:`../tutorials/gateways/django`
+- :doc:`../tutorials/gateways/appengine`
+- :doc:`../tutorials/gateways/sqlalchemy`
+- Elixir_
+- sets_ module
+- decimal_ module
 
 
 How It Works
@@ -31,7 +27,7 @@ How It Works
 The adapter framework works silently in the background. This means that the user
 does not need to specifically import the Django adapter module within PyAMF, it
 is all handled in the background. It works by adding a module loader and finder
-to sys.meta_path so it can intercept import calls and) to fire a callback when,
+to ``sys.meta_path`` so it can intercept import calls and) to fire a callback when,
 for example the ``django`` module is imported and accessed.
 
 It is important to note that PyAMF does not load all the modules when
@@ -75,5 +71,9 @@ And you're done!
 What next?
 ==========
 
-`Contributions <http://pyamf.org/newticket>`_ (including unit tests) are always
-welcome!
+:doc:`Contributions</bugs>` (including unit tests) are always welcome!
+
+.. _Elixir: http://www.elixir.ematia.de
+.. _sets: http://www.python.org/doc/2.5.2/lib/types-set.html
+.. _Contributions: http://pyamf.org/newticket
+.. _decimal: http://www.python.org/doc/2.5.2/lib/module-decimal.html

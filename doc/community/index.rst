@@ -8,5 +8,6 @@
    download.rst
    mailinglist.rst
    irc.rst
+   team.rst
    thanks.rst
    maintainers.rst

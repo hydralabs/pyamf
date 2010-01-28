@@ -9,6 +9,7 @@
    :doc:`Google App Engine<../gateways/appengine>` and
    :doc:`Django <../gateways/django>`.
 
+.. contents::
 
 We recommend you **don't** run this example on a production server because
 it exposes major security risks. This example is for educational purposes ;)
@@ -135,7 +136,7 @@ for this example client:
 .. _Flex: http://opensource.adobe.com/wiki/display/flexsdk/Flex+SDK
 .. _Django: http://djangoproject.com
 .. _Google App Engine example page: http://pyamf.appspot.com/shell
-.. _browse: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/shell
-.. _development server: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/shell/python/manage.py
+.. _browse: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/shell
+.. _development server: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/shell/python/manage.py
 .. _SQLite: http://sqlite.org
-.. _SWF file: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/shell/flex/deploy/shell.swf
+.. _SWF file: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/shell/flex/deploy/shell.swf

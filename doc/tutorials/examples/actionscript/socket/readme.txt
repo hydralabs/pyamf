@@ -11,5 +11,5 @@ To run the example, you need to start the server
 where the SWF resides (in the example, localhost) 
 and listening on port 8000.
 
-See the http://pyamf.org/wiki/BinarySocket wiki page
-for more info.
+More info can be found in the documentation:
+http://pyamf.org/tutorials/actionscript/socket.html

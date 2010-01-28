@@ -11,6 +11,12 @@
    properties to optimize reading, writing, and working with binary
    data used in the Adobe Flash Player 9 and newer.
 
+.. contents::
+
+
+Overview
+========
+
 This example demonstrates how to:
 
 - Create a webcam snapshot by capturing the `BitmapData` using Flex
@@ -147,7 +153,7 @@ for this example client:
 .. _Django: http://djangoproject.com
 .. _Python: http://python.org
 .. _blog: http://blog.pyamf.org/archives/bytearray-example
-.. _browse: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/bytearray
-.. _development server: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/bytearray/python/manage.py
-.. _SWF file: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/bytearray/flex/deploy/bytearray.swf
+.. _browse: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/bytearray
+.. _development server: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/bytearray/python/manage.py
+.. _SWF file: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/bytearray/flex/deploy/bytearray.swf
 

@@ -10,6 +10,7 @@
   This example shows how to take advantage of Stackless Python with the
   :doc:`twisted` framework.
 
+.. contents::
 
 Example
 =======

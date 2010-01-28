@@ -10,6 +10,8 @@
   PyAMF features the ``TwistedGateway`` that allows you to bridge the gap
   between your Twisted application and AMF based programs.
 
+.. contents::
+
 Examples
 ========
 
@@ -94,14 +96,14 @@ To test the gateway you can use a Python AMF client like this:
 Other Twisted Examples
 ======================
 
-http://pyamf.org/wiki/BinarySocket
+:doc:`../actionscript/socket`
    Binary Socket using Twisted and Flex.
 
-http://pyamf.org/wiki/GuestbookExample
+:doc:`../actionscript/guestbook`
    Simple guestbook using Twisted and Flex.
 
 http://www.artima.com/weblogs/viewpost.jsp?thread=230001
    Concurrency with Python, Twisted, and Flex.
 
-http://pyamf.org/wiki/StacklessPythonTwisted
+:doc:`stackless`
    Using Stackless Python and Twisted.

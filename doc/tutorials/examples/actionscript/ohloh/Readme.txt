@@ -7,5 +7,5 @@ using a free API key you can get when you register on their
 site. This examples retrieves a account based on the user's
 email address and shows the profile associated.
 
-See the http://pyamf.org/wiki/OhlohExample wiki page for
-more info.
+More info can be found in the documentation:
+http://pyamf.org/tutorials/actionscript/ohloh.html

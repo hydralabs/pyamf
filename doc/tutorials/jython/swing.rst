@@ -7,6 +7,7 @@
     This howto describes how to setup the Swing_ example application
     using Jython_ 2.5 and newer.
 
+.. contents::
 
 Download
 ========

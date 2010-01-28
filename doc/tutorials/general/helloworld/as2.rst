@@ -8,6 +8,7 @@
    the Adobe Flash MX 2004 or Adobe Flash 8.0 authoring
    tool.
 
+.. contents::
 
 Installation
 ============

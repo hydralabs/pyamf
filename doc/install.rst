@@ -121,7 +121,7 @@ To install PyAMF to a custom location::
 
 
 .. _Python: 	http://www.python.org
-.. _yet:	http://pyamf.org/milestone/0.7
+.. _yet:	http://dev.pyamf.org/milestone/0.7
 .. _setuptools:	http://peak.telecommunity.com/DevCenter/setuptools
 .. _easy_install: http://peak.telecommunity.com/DevCenter/EasyInstall#installing-easy-install
 .. _ez_setup.py: http://svn.pyamf.org/pyamf/trunk/ez_setup.py

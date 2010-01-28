@@ -1,9 +1,11 @@
 ================
-  Mailing List
+  Mailing Lists
 ================
 
 Communication, discussion and decision making within the PyAMF
 project is primarily done through mailing lists.
+
+.. contents::
 
 Users
 =====

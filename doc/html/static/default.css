@@ -1,7 +1,4 @@
 body { 
-	margin-left: 30px; 
-	margin-right: 30px; 
-	margin-top: 20px;
 	padding: 0;
 	background: url(bg_gradient.jpg) repeat-x;
 	font: 12px/18px "Lucida Grande", "Lucida Sans Unicode", Arial, Verdana, sans-serif;
@@ -50,7 +47,7 @@ form p.hint, form span.hint { color: #666; font-size: 85%; margin: .5em 0;
 /* :::: LAYOUT :::: */
 
 div.document {
-    padding: 20px 20px 30px 20px;
+    padding: 10px 20px 0px 20px;
 }
 
 div.documentwrapper {
@@ -59,21 +56,21 @@ div.documentwrapper {
 }
 
 div.bodywrapper {
-    margin: 30px 0 0 230px;
+    margin: 0px 0px 0px 170px;
 }
 
 div.body {
     background-color: white;
-    padding: 0 20px 30px 20px;
+    padding: 0 10px 10px 10px;
 }
 
 div.sphinxsidebarwrapper {
-    padding: 30px 5px 0 10px;
+    padding: 0px 5px 0px 0px;
 }
 
 div.sphinxsidebar {
     float: left;
-    width: 230px;
+    width: 170px;
     margin-left: -100%;
     font-size: 90%;
 }
@@ -199,7 +196,7 @@ div.modulecloud a {
 
 /* :::: SEARCH :::: */
 ul.search {
-    margin: 10px 0 0 20px;
+    margin: 0px 0 0 0px;
     padding: 0;
 }
 
@@ -470,7 +467,6 @@ div.preview {
 
 table.contentstable {
     width: 90%;
-    padding-top: 12px;
 }
 
 table.contentstable p.biglink {
@@ -610,7 +606,7 @@ a.headerlink:hover {
 }
 
 div.body p, div.body dd, div.body li {
-    text-align: justify;
+    /*text-align: justify;*/
     line-height: 130%;
 }
 

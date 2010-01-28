@@ -4,7 +4,7 @@
 """
 Useful helpers for adapters.
 
-@since: 0.4
+:since: 0.4
 """
 
 import __builtin__
@@ -15,44 +15,44 @@ if not hasattr(__builtin__, 'set'):
 
 def to_list(obj, encoder):
     """
-    Converts an arbitrary object C{obj} to a list.
+    Converts an arbitrary object `obj` to a list.
 
-    @rtype: L{list}
+    :rtype: `list`
     """
     return list(obj)
 
 
 def to_dict(obj, encoder):
     """
-    Converts an arbitrary object C{obj} to a dict.
+    Converts an arbitrary object `obj` to a dict.
 
-    @rtype: L{dict}
+    :rtype: `dict`
     """
     return dict(obj)
 
 
 def to_set(obj, encoder):
     """
-    Converts an arbitrary object C{obj} to a set.
+    Converts an arbitrary object `obj` to a set.
 
-    @rtype: L{set}
+    :rtype: `set`
     """
     return set(obj)
 
 
 def to_tuple(x, encoder):
     """
-    Converts an arbitrary object C{obj} to a tuple.
+    Converts an arbitrary object `obj` to a tuple.
 
-    @rtype: L{tuple}
+    :rtype: `tuple`
     """
     return tuple(x)
 
 def to_string(x, encoder):
     """
-    Converts an arbitrary object C{obj} to a string.
+    Converts an arbitrary object `obj` to a string.
 
-    @rtype: L{tuple}
-    @since: 0.5
+    :rtype: `tuple`
+    :since: 0.5
     """
     return str(x)

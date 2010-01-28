@@ -1,12 +1,15 @@
+# Copyright (c) The PyAMF Project.
+# See LICENSE.txt for details.
+
 """
 Because there is disparity between Python packaging (and it is being sorted
 out ...) we currently provide our own way to get the string of a version tuple.
+
+:since: 0.6
 """
 
 
 class Version(tuple):
-    """
-    """
 
     _version = None
 

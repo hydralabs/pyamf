@@ -12,6 +12,7 @@
     TurboGears2_ supports WSGI from top-to-bottom, it's very simple to setup
     a TG2 app that contains web-services for your Flex and Flash applications.
 
+.. contents::
 
 Install TurboGears
 ==================

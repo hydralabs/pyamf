@@ -2,9 +2,7 @@
   Buildbot 
 ************
 
-
 .. image:: images/buildbot-logo.png
-
 
 .. topic:: Introduction
 
@@ -16,6 +14,7 @@
 
    **Note**: This document is a work in progress (#298, #293_)
 
+.. contents::
 
 Download
 ========
@@ -120,5 +119,5 @@ you to run the application on http://localhost:8080/amf.html.
 .. _Buildbot: http://buildbot.net
 .. _homepage: http://buildbot.pyamf.org
 .. _#293: http://buildbot.net/trac/ticket/293
-.. _browse the example source online: http://pyamf.org/browser/pyamf/branches/buildbot-example-298-2/doc/tutorials/actionscript/buildbot
+.. _browse the example source online: http://dev.pyamf.org/browser/pyamf/branches/buildbot-example-298-2/doc/tutorials/actionscript/buildbot
 .. _Download: http://buildbot.net/trac/raw-attachment/ticket/293/amf.py

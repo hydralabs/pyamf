@@ -1,22 +1,41 @@
 {% extends "!layout.html" %}
 {% block document %}
-<div>
-<a class="toplogo" href="{{ pathto('index') }}"><img src="{{ pathto('_static/logo.png', 1) }}" border="0"/></a>
+<table><tr>
+<td><a class="toplogo" href="{{ pathto('index') }}"><img src="{{ pathto('_static/logo.png', 1) }}" border="0"/></a>
+<td width="100%" align="right">
+<div id="searchbox" style="display: none">
+            <h3>{{ _('Quick search') }}</h3>
+              <form class="search" action="{{ pathto('search') }}" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="{{ _('Go') }}" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              {{ _('Enter search terms or a module, class or function name.') }}
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
 </div>
+</td></tr></table>
 {{ super() }}
 {% endblock %}
 {% block relbar1 %}
 {% endblock %}
 {% block relbar2 %}
+
 {% endblock %}
 {% block sidebartoc %}
 <h3>Download</h3>
 <ul>
 	<li><a href="{{ pathto('community/download') }}">Releases</a></li>
-	<li><a href="{{ pathto('community/download') }}#latest-development-source-code">Source</a> <font color='black'>|</font> <a href="http://pyamf.org/browser">Browse</a></li>
+	<li><a href="{{ pathto('community/download') }}#latest-development-source-code">Source</a> <font color='black'>|</font> <a href="http://dev.pyamf.org/browser">Browse</a></li>
 </ul>
 <h3>Documentation</h3>
 <ul>
+	{% if current_page_name != 'index' %}
+	<li><a href="{{ pathto('index') }}">Home</a></li>
+	{% endif %}
 	<li><a href="{{ pathto('architecture/overview') }}">Features</a></li>
         <li><a href="{{ pathto("install") }}">Installation</a></li>
 	<li><a href="{{ pathto('tutorials/index') }}">Tutorials</a></li>
@@ -29,10 +48,21 @@
 <ul>
 	<li><a href="{{ pathto('community/mailinglist') }}">Mailing Lists</a></li>
 	<li><a href="{{ pathto('community/irc') }}">IRC Channel</a></li>
-        <li><a href="{{ pathto('bugs') }}">Reporting bugs</a></li>
+	<li><a href="{{ pathto('community/team') }}">Team</a></li>
 	<li><a href="http://blog.pyamf.org">Weblog</a></li>
+        <li><a href="http://dev.pyamf.org/wiki/Logo">Logos</a></li>
+        <li><a href="http://dev.pyamf.org/wiki/SuccessStories">Success Stories</a></li>
 </ul>
-{{ super() }}
+
+<h3>Development</h3>
+<ul>
+	<li><a href="http://dev.pyamf.org/roadmap">Roadmap</a></li>
+	<li><a href="http://dev.pyamf.org/timeline">Timeline</a></li>
+        <li><a href="http://dev.pyamf.org/report">View Tickets</a></li>
+	<li><a href="{{ pathto('bugs') }}">Reporting bugs</a></li>
+	<li><a href="http://dev.pyamf.org/newticket">New Ticket</a></li>
+        <li><a href="http://dev.pyamf.org/buildbot">BuildBot</a></li>
+</ul>
 {% endblock %}
 {% block sidebarrel %}
 {% endblock %}

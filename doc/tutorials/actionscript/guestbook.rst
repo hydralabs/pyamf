@@ -7,9 +7,11 @@
    This example shows how to create a simple guestbook application using
    :doc:`../gateways/twisted` and the `Flex SDK`_.
 
-.. image:: images/guestbook-example.jpg
+   A live demo can be found on the PyAMF blog_.
 
-A live demo can be found on the PyAMF blog_.
+.. contents::
+
+.. image:: images/guestbook-example.jpg
 
 
 Download
@@ -94,10 +96,10 @@ for this example client:
 .. _Flex SDK: http://opensource.adobe.com/wiki/display/flexsdk/Flex+SDK
 .. _Twisted: http://twistedmatrix.com
 .. _blog: http://blog.pyamf.org/archives/twisted-guestbook
-.. _browse: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/guestbook
-.. _development server: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/guestbook/python/guestbook.tac
-.. _SWF file: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/guestbook/flex/deploy/guestbook.swf
-.. _schema file: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/guestbook/db/schema.sql
-.. _config file: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/guestbook/python/settings.cfg
+.. _browse: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/guestbook
+.. _development server: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/guestbook/python/guestbook.tac
+.. _SWF file: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/guestbook/flex/deploy/guestbook.swf
+.. _schema file: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/guestbook/db/schema.sql
+.. _config file: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/guestbook/python/settings.cfg
 .. _MySQL-Python: http://sourceforge.net/projects/mysql-python/
 .. _MySQL: http://mysql.org

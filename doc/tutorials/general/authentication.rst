@@ -10,6 +10,8 @@
    This approach to authentication will work because the PyAMF client
    is using "standard" remoting requests under the hood.
 
+.. contents::
+
 **Warning**: Authentication and authorization via RemoteObject will be
 supported through the Plasma_ project in the future, but till then
 requests can be made to your services without having the authenticator
@@ -20,8 +22,8 @@ Python
 
 Python_ AMF examples are available for:
 
-- `httplib <../../examples/general/authentication/python/client.py>`_ -- Python AMF client
-- `wsgiref <../../examples/general/authentication/python/server.py>`_ -- Python AMF server
+- `httplib <../examples/general/authentication/python/client.py>`_ -- Python AMF client
+- `wsgiref <../examples/general/authentication/python/server.py>`_ -- Python AMF server
 
 
 Actionscript

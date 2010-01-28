@@ -16,9 +16,15 @@ except ImportError:
 
 
 if __name__ == '__main__':
+    # add the path of the folder this file lives in
     base_path = os.path.dirname(os.path.normpath(os.path.abspath(__file__)))
 
+    # since the basedir is set as the first option in sys.path, this works
     sys.path.insert(0, base_path)
+
+    from pyamf import version
+
+    readme = os.path.join(base_path, 'README.txt')
 
 
 class TestCommand(test.test):
@@ -44,38 +50,28 @@ class TestCommand(test.test):
             return test.test.run_tests(self)
 
 
-def get_version():
-    """
-    Gets the version number. Pulls it from the source files rather than
-    duplicating it.
-
-    @since: 0.4
-    """
-    # since the basedir is set as the first option in sys.path, this works
-    import pyamf
-
-    return str(pyamf.version)
-
-
 def get_cpyamf_extensions():
     """
     Returns a list of all extensions for the cpyamf module. If for some reason
     cpyamf can't be built an empty list is returned.
 
-    @since: 0.4
+    :since: 0.4
     """
-    if '--disable-ext' in sys.argv:
-        sys.argv.remove('--disable-ext')
+    disable_ext = '--disable-ext'
+
+    if disable_ext in sys.argv:
+        sys.argv.remove(disable_ext)
 
         return []
 
     if sys.platform.startswith('java'):
-        print 80 * '*'
-        print 'WARNING:'
-        print '\tAn optional code optimization (C extension) could not be compiled.\n\n'
-        print '\tOptimizations for this package will not be available!\n\n'
-        print 'Compiling extensions is not supported on Jython'
-        print 80 * '*'
+        print(80 * '*')
+        print('WARNING:')
+        print('\tAn optional code optimization (C extension) could not be compiled.\n\n')
+        print('\tOptimizations for this package will not be available!\n\n')
+        print('Compiling extensions is not supported on Jython')
+        print(80 * '*')
+
         return []
 
     ext_modules = []
@@ -100,7 +96,7 @@ def get_extensions():
     """
     Returns a list of extensions to be built for PyAMF.
 
-    @since: 0.4
+    :since: 0.4
     """
     ext_modules = []
 
@@ -112,7 +108,7 @@ def get_extensions():
 def get_install_requirements():
     """
     Returns a list of dependancies for PyAMF to function correctly on the
-    target platform
+    target platform.
     """
     install_requires = []
 
@@ -127,10 +123,9 @@ amf amf0 amf3 flex flash remoting rpc http flashplayer air bytearray
 objectproxy arraycollection recordset actionscript decoder encoder
 gateway remoteobject twisted pylons django sharedobject lso sol"""
 
-readme = os.path.join(os.path.dirname(__file__), 'README.txt')
 
 setup(name = "PyAMF",
-    version = get_version(),
+    version = str(version),
     description = "AMF support for Python",
     long_description = open(readme, 'rt').read(),
     url = "http://pyamf.org",

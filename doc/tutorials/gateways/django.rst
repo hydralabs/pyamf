@@ -2,14 +2,14 @@
   Django 
 **********
 
-
 .. image:: images/django-logo.png
-
 
 .. topic:: Introduction
 
    The Django_ Remoting gateway included in PyAMF allows you to expose
    functions in Django (0.96 or newer) to AMF clients and servers.
+
+.. contents::
 
 
 Example

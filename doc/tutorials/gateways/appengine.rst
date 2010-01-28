@@ -2,9 +2,7 @@
   Google App Engine 
 **********************
 
-
 .. image:: images/appengine-logo.gif
-
 
 .. topic:: Introduction
 
@@ -20,6 +18,7 @@
    environment`_ includes the full Python language and most_
    of the Python standard library, including :doc:`django`.
 
+.. contents::
 
 Prerequisites
 =============

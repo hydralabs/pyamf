@@ -7,6 +7,7 @@
    This |ActionScript (TM)| 1.0 example can be used with
    Flash Media Server or Flash Communication Server MX.
 
+.. contents::
 
 What is Server-side ActionScript
 ================================

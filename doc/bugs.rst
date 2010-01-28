@@ -4,9 +4,9 @@
 Reporting Bugs in PyAMF
 ***********************
 
-Bug reports should be submitted via the PyAMF Bug Tracker
-(http://pyamf.org).  The bug tracker offers a Web form which allows
-pertinent information to be entered and submitted to the developers.
+Bug reports should be submitted via the PyAMF Bug Tracker on http://dev.pyamf.org.
+The bug tracker offers a Web form which allows pertinent information to be entered
+and submitted to the developers.
 
 The first step in filing a report is to determine whether the problem has
 already been reported.  The advantage in doing so, aside from saving the
@@ -17,12 +17,14 @@ To do this, search the bug database using the search box on the top of the page.
 
 If the problem you're reporting is not already in the bug tracker, go back to
 the PyAMF Bug Tracker.  If you don't already have a tracker account, select the
-"Register" link in the navigation bar and undergo the registration procedure.
-Otherwise, if you're not logged in, enter your credentials and select "Login".
-It is not possible to submit a bug report anonymously.
+`Register <http://dev.pyamf.org/register>`_ link in the navigation bar and
+undergo the registration procedure. Otherwise, if you're not logged in, enter
+your credentials and select "Login". It is not possible to submit a bug report
+anonymously.
 
-Being now logged in, you can submit a bug.  Select the "New Ticket" link in 
-the sidebar to open the bug reporting form.
+Being now logged in, you can submit a bug.  Select the
+`New Ticket <http://dev.pyamf.org/newticket>`_ link in the sidebar to open the
+bug reporting form.
 
 The submission form has a number of fields.  For the "Summary" field, enter a
 *very* short description of the problem; less than ten words is good.  In the
