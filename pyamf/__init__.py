@@ -372,14 +372,14 @@ class ClassAlias(object):
         self.static_attrs = set(self.static_attrs or [])
         self.proxy_attrs = set(self.proxy_attrs or [])
 
+        self.sealed = util.is_class_sealed(self.klass)
+
         if self.external:
             self._checkExternal()
             self._finalise_compile()
 
             # this class is external so no more compiling is necessary
             return
-
-        self.sealed = util.is_class_sealed(self.klass)
 
         if hasattr(self.klass, '__slots__'):
             self.decodable_properties.update(self.klass.__slots__)

@@ -582,6 +582,25 @@ class SimpleCompliationTestCase(unittest.TestCase):
         x = ClassAlias(Spam)
         self.assertTrue(x.dynamic)
 
+    def test_sealed_external(self):
+        class A(object):
+            __slots__ = ('foo',)
+
+            class __amf__:
+                external = True
+
+            def __readamf__(self, foo):
+                pass
+
+            def __writeamf__(self, foo):
+                pass
+
+        x = ClassAlias(A)
+
+        x.compile()
+
+        self.assertTrue(x.sealed)
+
 
 class CompilationInheritanceTestCase(ClassCacheClearingTestCase):
     """

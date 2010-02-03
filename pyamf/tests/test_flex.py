@@ -84,13 +84,18 @@ class ArrayCollectionTestCase(unittest.TestCase):
         self.assertEquals(x, ['eggs'])
 
     def test_source_attr(self):
-        s = '\n\x07Cflex.messaging.io.ArrayCollection\n\x0b\x01\rsource' \
-            '\t\x05\x01\x06\x07foo\x06\x07bar\x01'
+        s = ('\n\x07Cflex.messaging.io.ArrayCollection\n\x0b\x01\rsource'
+            '\t\x05\x01\x06\x07foo\x06\x07bar\x01')
 
         x = pyamf.decode(s, encoding=pyamf.AMF3).next()
 
         self.assertTrue(isinstance(x, flex.ArrayCollection))
         self.assertEquals(x, ['foo', 'bar'])
+
+    def test_readonly_length_property(self):
+        a = flex.ArrayCollection()
+
+        self.assertRaises(AttributeError, setattr, a, 'length', 3)
 
 
 class ArrayCollectionAPITestCase(unittest.TestCase):
@@ -210,6 +215,15 @@ class ObjectProxyTestCase(unittest.TestCase):
 
         x._amf_object = None
         self.assertEquals(x._amf_object, None)
+
+    def test_repr(self):
+        x = flex.ObjectProxy()
+
+        self.assertEqual(repr(x), '<flex.messaging.io.ObjectProxy {}>')
+
+        x = flex.ObjectProxy(u'ƒøø')
+
+        self.assertEqual(repr(x), "<flex.messaging.io.ObjectProxy u'\\u0192\\xf8\\xf8'>")
 
 
 def suite():

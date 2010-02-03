@@ -74,7 +74,7 @@ class ArrayCollection(list):
         return len(self)
 
     def _set_length(self, length):
-        raise RuntimeError("Property length is read-only")
+        raise AttributeError("Property length is read-only")
 
     length = property(_get_length, _set_length)
 
@@ -233,7 +233,7 @@ class ObjectProxy(object):
             self._amf_object = object
 
     def __repr__(self):
-        return "<flex.messaging.io.ObjectProxy %s>" % self._amf_object
+        return "<flex.messaging.io.ObjectProxy %r>" % self._amf_object
 
     def __getattr__(self, name):
         if name == '_amf_object':
