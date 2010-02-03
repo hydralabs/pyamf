@@ -26,7 +26,7 @@ Download
 
 Grab the example from SVN with::
 
-    svn export http://svn.pyamf.org/pyamf/trunk/doc/tutorials/examples/actionscript/recordset recordset-example
+    svn export http://svn.pyamf.org/trunk/doc/tutorials/examples/actionscript/recordset recordset-example
     cd recordset-example/python
 
 Alternatively, if you just want to have a look, you can browse_ the
@@ -143,6 +143,6 @@ for this example client::
 .. _page: http://blog.vixiom.com/2007/04/17/actionscript-20-flash-remoting-with-flash-cs3/
 .. _SQLAlchemy: http://sqlalchemy.org
 .. _SQLite: http://sqlite.org
-.. _browse: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/recordset
-.. _development server: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/recordset/python/gateway.py
-.. _SWF file: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/recordset/flash/SoftwareInfoExample.swf
+.. _browse: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/recordset
+.. _development server: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/recordset/python/gateway.py
+.. _SWF file: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/recordset/flash/SoftwareInfoExample.swf

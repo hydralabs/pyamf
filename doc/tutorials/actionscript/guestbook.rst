@@ -21,7 +21,7 @@ Grab the example from SVN with:
 
 .. code-block:: bash
 
-    svn export http://svn.pyamf.org/pyamf/trunk/doc/tutorials/examples/actionscript/guestbook guestbook-example
+    svn export http://svn.pyamf.org/trunk/doc/tutorials/examples/actionscript/guestbook guestbook-example
     cd guestbook-example/python
 
 Alternatively, if you just want to have a look, you can browse_ the example online.
@@ -96,10 +96,10 @@ for this example client:
 .. _Flex SDK: http://opensource.adobe.com/wiki/display/flexsdk/Flex+SDK
 .. _Twisted: http://twistedmatrix.com
 .. _blog: http://blog.pyamf.org/archives/twisted-guestbook
-.. _browse: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/guestbook
-.. _development server: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/guestbook/python/guestbook.tac
-.. _SWF file: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/guestbook/flex/deploy/guestbook.swf
-.. _schema file: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/guestbook/db/schema.sql
-.. _config file: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/guestbook/python/settings.cfg
+.. _browse: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/guestbook
+.. _development server: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/guestbook/python/guestbook.tac
+.. _SWF file: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/guestbook/flex/deploy/guestbook.swf
+.. _schema file: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/guestbook/db/schema.sql
+.. _config file: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/guestbook/python/settings.cfg
 .. _MySQL-Python: http://sourceforge.net/projects/mysql-python/
 .. _MySQL: http://mysql.org

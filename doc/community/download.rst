@@ -35,7 +35,7 @@ http://svn.pyamf.org.
 The latest revision of PyAMF can be checked out with the
 following command::
 
-    svn co http://svn.pyamf.org/pyamf/trunk pyamf
+    svn co http://svn.pyamf.org/trunk pyamf
 
 For installing this development version::
 
@@ -48,7 +48,7 @@ Older releases
 Older releases are archived on http://download.pyamf.org/releases.
 
 Each release is also tagged in the Subversion repository:
-http://svn.pyamf.org/pyamf/tags.
+http://svn.pyamf.org/tags.
 
 Documentation
 =============

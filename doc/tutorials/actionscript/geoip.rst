@@ -23,7 +23,7 @@ Grab the example from SVN with:
 
 .. code-block:: bash
 
-    svn export http://svn.pyamf.org/pyamf/trunk/doc/tutorials/examples/actionscript/geoip geoip-example
+    svn export http://svn.pyamf.org/trunk/doc/tutorials/examples/actionscript/geoip geoip-example
     cd geoip-example/python
 
 Alternatively, if you just want to have a look, you can browse_ the example online.
@@ -128,6 +128,6 @@ for this example client:
 .. _GeoIP API for Python: http://www.maxmind.com/app/python
 .. _Python: http://python.org
 .. _blog: http://blog.pyamf.org/archives/geoip-example
-.. _browse: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/geoip
-.. _development server: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/geoip/python/server.py
-.. _SWF file: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/geoip/flex/deploy/geoip.swf
+.. _browse: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/geoip
+.. _development server: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/geoip/python/server.py
+.. _SWF file: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/geoip/flex/deploy/geoip.swf

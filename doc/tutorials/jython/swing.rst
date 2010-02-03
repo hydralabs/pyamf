@@ -16,7 +16,7 @@ Grab the example from SVN with:
 
 .. code-block:: bash
  
-   svn export http://svn.pyamf.org/pyamf/trunk/doc/tutorials/examples/jython jython-example
+   svn export http://svn.pyamf.org/trunk/doc/tutorials/examples/jython jython-example
    cd jython-example
 
 Alternatively, if you just want to have a look, you can browse
@@ -75,4 +75,4 @@ for this example client:
 
 .. _Swing: http://en.wikipedia.org/wiki/Swing_(Java)
 .. _Jython: http://jython.org
-.. _online: http://pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/jython
+.. _online: http://pyamf.org/browser/trunk/doc/tutorials/examples/jython

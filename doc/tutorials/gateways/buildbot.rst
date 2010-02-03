@@ -23,7 +23,7 @@ Grab the Flex and Python example clients from SVN with:
 
 .. code-block:: bash
 
-   svn export http://svn.pyamf.org/pyamf/branches/buildbot-example-298-2/doc/tutorials/actionscript/buildbot buildbot-example
+   svn export http://svn.pyamf.org/branches/buildbot-example-298-2/doc/tutorials/actionscript/buildbot buildbot-example
 
 
 Alternatively, if you just want to have a look, you can

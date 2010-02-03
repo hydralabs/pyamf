@@ -35,7 +35,7 @@ Grab the example from SVN with:
 
 .. code-block:: bash
 
-    svn export http://svn.pyamf.org/pyamf/trunk/doc/tutorials/examples/actionscript/bytearray bytearray-example
+    svn export http://svn.pyamf.org/trunk/doc/tutorials/examples/actionscript/bytearray bytearray-example
     cd bytearray-example/python
 
 Alternatively, if you just want to have a look, you can browse_ the example online.
@@ -153,7 +153,7 @@ for this example client:
 .. _Django: http://djangoproject.com
 .. _Python: http://python.org
 .. _blog: http://blog.pyamf.org/archives/bytearray-example
-.. _browse: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/bytearray
-.. _development server: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/bytearray/python/manage.py
-.. _SWF file: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/bytearray/flex/deploy/bytearray.swf
+.. _browse: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/bytearray
+.. _development server: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/bytearray/python/manage.py
+.. _SWF file: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/bytearray/flex/deploy/bytearray.swf
 

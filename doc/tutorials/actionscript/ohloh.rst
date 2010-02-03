@@ -28,7 +28,7 @@ Grab the example from the `Subversion repository`_ with:
 
 .. code-block:: bash
 
-    svn export http://svn.pyamf.org/pyamf/trunk/doc/tutorials/examples/actionscript/ohloh ohloh-example
+    svn export http://svn.pyamf.org/trunk/doc/tutorials/examples/actionscript/ohloh ohloh-example
     cd ohloh-example/python
 
 Alternatively, if you just want to have a look at the source, you can
@@ -94,10 +94,10 @@ for that email address.
 
 .. _Ohloh: http://www.ohloh.net
 .. _Ohloh API: http://www.ohloh.net/api/getting_started
-.. _Subversion repository: http://svn.pyamf.org/pyamf/trunk/doc/tutorials/examples/actionscript/ohloh
+.. _Subversion repository: http://svn.pyamf.org/trunk/doc/tutorials/examples/actionscript/ohloh
 .. _blog: http://blog.pyamf.org/archives/ohloh-api-and-python 
-.. _browse: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/ohloh
-.. _ohloh.py: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/ohloh/python/ohloh.py
-.. _development server: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/bytearray/python/manage.py
-.. _SWF file: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/ohloh/flex/deploy/ohloh.swf
+.. _browse: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/ohloh
+.. _ohloh.py: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/ohloh/python/ohloh.py
+.. _development server: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/bytearray/python/manage.py
+.. _SWF file: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/ohloh/flex/deploy/ohloh.swf
 .. _Ohloh website: http://www.ohloh.net/api/examples

@@ -22,7 +22,7 @@ Download
 
 #. Grab the example from SVN with::
 
-     svn export http://svn.pyamf.org/pyamf/trunk/doc/tutorials/examples/actionscript/udp udp-example
+     svn export http://svn.pyamf.org/trunk/doc/tutorials/examples/actionscript/udp udp-example
      cd udp-example/python
 
    Alternatively, if you just want to have a look, you can browse_ the example online.
@@ -81,6 +81,6 @@ Right-click for the fullscreen and always on top options:
 .. _Adobe AIR 2 Runtime: http://labs.adobe.com/downloads/air2.html
 .. _Twisted: http://twistedmatrix.com
 .. _UDP sockets: http://help.adobe.com/en_US/FlashPlatform/beta/reference/actionscript/3/flash/net/DatagramSocket.html
-.. _browse: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/udp
-.. _development server: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/udp/python/server.py
-.. _AIR file: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/udp/air/deploy/udp.air
+.. _browse: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/udp
+.. _development server: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/udp/python/server.py
+.. _AIR file: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/udp/air/deploy/udp.air

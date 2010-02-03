@@ -26,7 +26,7 @@ Grab the example from SVN with:
 
 .. code-block:: bash
 
-    svn export http://svn.pyamf.org/pyamf/trunk/doc/tutorials/examples/actionscript/socket socket-example
+    svn export http://svn.pyamf.org/trunk/doc/tutorials/examples/actionscript/socket socket-example
     cd socket-example/python
 
 Alternatively, if you just want to take a look at the source, you can
@@ -125,6 +125,6 @@ for this example client:
 .. _Twisted: http://twistedmatrix.com
 .. _Python: http://python.org
 .. _blog: http://blog.pyamf.org/archives/socket-example
-.. _browse: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/socket
-.. _SWF file: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/socket/flex/deploy/socket.swf
-.. _client: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/socket/python/client.py
+.. _browse: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/socket
+.. _SWF file: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/socket/flex/deploy/socket.swf
+.. _client: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/socket/python/client.py

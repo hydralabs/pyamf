@@ -24,7 +24,7 @@ Grab the example from SVN with:
 
 .. code-block:: bash
 
-    svn export http://svn.pyamf.org/pyamf/trunk/doc/tutorials/examples/actionscript/addressbook addressbook-example
+    svn export http://svn.pyamf.org/trunk/doc/tutorials/examples/actionscript/addressbook addressbook-example
     cd addressbook-example/python
 
 Alternatively, if you just want to have a look, you can browse_ the example online.
@@ -138,6 +138,6 @@ for this example client:
 .. _Flex SDK: http://opensource.adobe.com/wiki/display/flexsdk/Flex+SDK
 .. _SQLAlchemy: http://sqlalchemy.org
 .. _blog: http://blog.pyamf.org/archives/sqlalchemy-and-flash-addressbook-example
-.. _browse: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/addressbook
-.. _development server: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/addressbook/python/server.py
-.. _SWF file: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/addressbook/flex/deploy/sa_example.swf
+.. _browse: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/addressbook
+.. _development server: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/addressbook/python/server.py
+.. _SWF file: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/addressbook/flex/deploy/sa_example.swf

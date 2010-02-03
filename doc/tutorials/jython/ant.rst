@@ -52,7 +52,7 @@ Grab the example project from SVN:
 
 .. code-block:: bash
 
-  svn export http://svn.pyamf.org/pyamf/sandbox/thijs/jython-ant/2.5.0/embedded jython-ant
+  svn export http://svn.pyamf.org/sandbox/thijs/jython-ant/2.5.0/embedded jython-ant
 
 Copy ``jython.jar`` from your Jython 2.5 distribution folder
 into the project's ``jython`` folder. Make sure you installed
@@ -74,7 +74,7 @@ folder:
 .. code-block:: bash
 
   cd Lib
-  svn export http://svn.pyamf.org/pyamf/trunk/pyamf
+  svn export http://svn.pyamf.org/trunk/pyamf
 
 
 Run Application

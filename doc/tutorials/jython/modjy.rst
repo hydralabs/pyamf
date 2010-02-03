@@ -84,7 +84,7 @@ Create your PyAMF application
 First drop a copy of the ``pyamf`` source folder in
 ``webapps/pyamf/WEB-INF/lib-python``::
 
-  cp -R /path/to/pyamf/trunk/pyamf webapps/pyamf/WEB-INF/lib-python
+  cp -R /path/to/trunk/pyamf webapps/pyamf/WEB-INF/lib-python
 
 Open ``webapps/pyamf/demo_app.py`` and replace it's contents with:
 
