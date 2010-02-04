@@ -32,8 +32,18 @@ class ElixirAdapter(adapter.SaMappedClassAlias):
         if self.descriptor.parent:
             self.parent_descriptor = self.descriptor.parent._descriptor
 
+        foreign_constraints = []
+
+        for constraint in self.descriptor.constraints:
+            for col in constraint.columns:
+                col = str(col)
+                if col.startswith(self.descriptor.tablename + '.'):
+                    foreign_constraints.append(col[len(self.descriptor.tablename) + 1:])
+
         if self.descriptor.polymorphic:
             self.exclude_attrs.update([self.descriptor.polymorphic])
+
+        self.exclude_attrs.update(foreign_constraints)
 
     def _compile_base_class(self, klass):
         if klass is elixir.EntityBase or klass is elixir.Entity:
