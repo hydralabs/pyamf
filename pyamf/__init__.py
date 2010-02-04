@@ -260,6 +260,8 @@ class BaseContext(object):
         """
         Returns the corresponding unicode object for a given string. If there
         is no unicode object, one is created.
+
+        :since: 0.6
         """
         h = hash(s)
         u = self.unicodes.get(h, None)
@@ -275,6 +277,8 @@ class BaseContext(object):
         """
         Returns the corresponding utf-8 encoded string for a given unicode
         object. If there is no string, one is encoded.
+
+        :since: 0.6
         """
         h = hash(u)
         s = self.unicodes.get(h, None)

@@ -748,7 +748,7 @@ class Decoder(pyamf.BaseDecoder):
         TYPE_BOOL_TRUE:  'readBoolTrue',
         TYPE_INTEGER:    'readSignedInteger',
         TYPE_NUMBER:     'readNumber',
-        TYPE_STRING:     'readString',
+        TYPE_STRING:     'readUnicode',
         TYPE_XML:        'readXML',
         TYPE_DATE:       'readDate',
         TYPE_ARRAY:      'readArray',
@@ -829,7 +829,24 @@ class Decoder(pyamf.BaseDecoder):
 
         return (x >> 1, x & REFERENCE_BIT == 0)
 
-    def readString(self, unicode_=True):
+    def readUnicode(self):
+        """
+        Reads and returns a decoded utf-u unicode from the stream.
+        """
+        length, is_reference = self._readLength()
+
+        if is_reference:
+            return self.context.getUnicodeForString(self.context.getString(length))
+
+        if length == 0:
+            return u''
+
+        result = self.stream.read(length)
+        self.context.addString(result)
+
+        return self.context.getUnicodeForString(result)
+
+    def readString(self):
         """
         Reads and returns a string from the stream.
         """
@@ -839,15 +856,10 @@ class Decoder(pyamf.BaseDecoder):
             return self.context.getString(length)
 
         if length == 0:
-            return u''
+            return ''
 
-        if unicode_:
-            result = self.stream.read_utf8_string(length)
-        else:
-            result = self.stream.read(length)
-
-        if result:
-            self.context.addString(result)
+        result = self.stream.read(length)
+        self.context.addString(result)
 
         return result
 
@@ -890,7 +902,7 @@ class Decoder(pyamf.BaseDecoder):
 
         size >>= 1
 
-        key = self.readString(False)
+        key = self.readString()
 
         if key == '':
             # integer indexes only -> python list
@@ -907,7 +919,7 @@ class Decoder(pyamf.BaseDecoder):
 
         while key:
             result[key] = self.readElement()
-            key = self.readString(False)
+            key = self.readString()
 
         for i in xrange(size):
             el = self.readElement()
@@ -949,7 +961,7 @@ class Decoder(pyamf.BaseDecoder):
 
         if class_def.attr_len > 0:
             for i in xrange(class_def.attr_len):
-                key = self.readString(False)
+                key = self.readString()
 
                 class_def.static_properties.append(key)
 
@@ -962,11 +974,11 @@ class Decoder(pyamf.BaseDecoder):
             obj[attr] = self.readElement()
 
     def _readDynamic(self, class_def, obj):
-        attr = self.readString(False)
+        attr = self.readString()
 
         while attr:
             obj[attr] = self.readElement()
-            attr = self.readString(False)
+            attr = self.readString()
 
     def readObject(self, use_proxies=None):
         """
@@ -1103,7 +1115,8 @@ class Encoder(pyamf.BaseEncoder):
         ((types.NoneType,), "writeNull"),
         ((int,long), "writeInteger"),
         ((float,), "writeNumber"),
-        (types.StringTypes, "writeString"),
+        ((str,), "writeString"),
+        ((unicode,), "writeUnicode"),
         ((ByteArray,), "writeByteArray"),
         ((datetime.date, datetime.datetime, datetime.time), "writeDate"),
         ((util.is_ET_element,), "writeXML"),
@@ -1199,42 +1212,43 @@ class Encoder(pyamf.BaseEncoder):
         self.stream.write(TYPE_NUMBER)
         self.stream.write_double(n)
 
-    def _writeString(self, n, **kwargs):
+    def _writeString(self, s):
         """
         Writes a raw string to the stream.
 
-        @type   n: C{str} or C{unicode}
-        @param  n: The string data to be encoded to the AMF3 data stream.
+        @type   s: C{str}
+        @param  s: The string data to be encoded to the AMF3 data stream.
         """
-        if n == '':
-            self.stream.write_uchar(REFERENCE_BIT)
-
-            return
-
-        t = type(n)
-
-        if t is str:
-            bytes = n
-        elif t is unicode:
-            bytes = n.encode('utf8')
-        else:
-            bytes = unicode(n).encode('utf8')
-            n = bytes
-
         if self.string_references:
-            ref = self.context.getStringReference(n)
+            ref = self.context.getStringReference(s)
 
             if ref is not None:
                 self._writeInteger(ref << 1)
 
                 return
 
-            self.context.addString(n)
+            self.context.addString(s)
 
-        self._writeInteger((len(bytes) << 1) | REFERENCE_BIT)
-        self.stream.write(bytes)
+        self._writeInteger((len(s) << 1) | REFERENCE_BIT)
+        self.stream.write(s)
 
-    def writeString(self, n, writeType=True, **kwargs):
+    def writeUnicode(self, u, writeType=True, **kwargs):
+        """
+        Writes a unicode object to the stream.
+        """
+        if writeType:
+            self.stream.write(TYPE_STRING)
+
+        if u == u'':
+            self.stream.write_uchar(REFERENCE_BIT)
+
+            return
+
+        s = self.context.getStringForUnicode(u)
+
+        self._writeString(s)
+
+    def writeString(self, s, writeType=True, **kwargs):
         """
         Writes a string to the stream. If C{n} is not a unicode string, an
         attempt will be made to convert it.
@@ -1245,7 +1259,7 @@ class Encoder(pyamf.BaseEncoder):
         if writeType:
             self.stream.write(TYPE_STRING)
 
-        self._writeString(n, **kwargs)
+        self._writeString(s)
 
     def writeDate(self, n, **kwargs):
         """

@@ -24,6 +24,12 @@ Backward Incompatible API Changes
   :class:`pyamf.util.IndexedCollection`. Any method that used to raise
   :class:`pyamf.ReferenceError` will now return ``None`` for speed.
 * ``amf3.Encoder.write*`` methods no longer accept ``use_references``.
+* Added two new Context methods to help handling ``unicode`` vs ``string``.
+  See ``pyamf.BaseContext.getStringForUnicode`` and
+  ``pyamf.BaseContext.getUnicodeForString``. Also
+  ``amf*.Encoder.writeUnicode`` and ``amf*.Decoder.readUnicode`` methods have
+  been introduced.
+
 
 Integration
 ===========
