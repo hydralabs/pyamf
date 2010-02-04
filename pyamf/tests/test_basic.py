@@ -508,6 +508,42 @@ class BaseContextTestCase(unittest.TestCase):
         self.assertEquals(x.getObject(62), None)
         self.assertEquals(x.getObjectReference(object()), None)
 
+    def test_unicode(self):
+        x = pyamf.BaseContext()
+
+        u = x.getUnicodeForString('foo')
+
+        self.assertTrue(type(u) is unicode)
+        self.assertEquals(u, u'foo')
+
+        i = x.getUnicodeForString('foo')
+
+        self.assertTrue(u is i)
+
+        x.clear()
+
+        i = x.getUnicodeForString('foo')
+
+        self.assertFalse(u is i)
+
+    def test_string(self):
+        x = pyamf.BaseContext()
+
+        s = x.getStringForUnicode(u'foo')
+
+        self.assertTrue(type(s) is str)
+        self.assertEquals(s, 'foo')
+
+        i = x.getStringForUnicode(u'f' + u'oo')
+
+        self.assertTrue(s is i)
+
+        x.clear()
+
+        i = x.getStringForUnicode(u'fo' + u'o')
+
+        self.assertFalse(s is i)
+
 
 class TypedObjectTestCase(unittest.TestCase):
     def test_externalised(self):

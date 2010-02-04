@@ -153,6 +153,7 @@ class BaseContext(object):
         self.objects.clear()
         self.class_aliases = {}
         self.proxied_objects = {}
+        self.unicodes = {}
 
     def getObject(self, ref):
         """
@@ -254,6 +255,36 @@ class BaseContext(object):
         """
         self.proxied_objects[id(obj)] = proxied
         self.proxied_objects[id(proxied)] = obj
+
+    def getUnicodeForString(self, s):
+        """
+        Returns the corresponding unicode object for a given string. If there
+        is no unicode object, one is created.
+        """
+        h = hash(s)
+        u = self.unicodes.get(h, None)
+
+        if u is not None:
+            return u
+
+        u = self.unicodes[h] = unicode(s, 'utf-8')
+
+        return u
+
+    def getStringForUnicode(self, u):
+        """
+        Returns the corresponding utf-8 encoded string for a given unicode
+        object. If there is no string, one is encoded.
+        """
+        h = hash(u)
+        s = self.unicodes.get(h, None)
+
+        if s is not None:
+            return s
+
+        s = self.unicodes[h] = u.encode('utf-8')
+
+        return s
 
 
 class ASObject(dict):
