@@ -161,7 +161,7 @@ class Decoder(pyamf.BaseDecoder):
     type_map = {
         TYPE_NUMBER:     'readNumber',
         TYPE_BOOL:       'readBoolean',
-        TYPE_STRING:     'readString',
+        TYPE_STRING:     'readUnicode',
         TYPE_OBJECT:     'readObject',
         TYPE_NULL:       'readNull',
         TYPE_UNDEFINED:  'readUndefined',
@@ -304,22 +304,30 @@ class Decoder(pyamf.BaseDecoder):
 
     def readString(self):
         """
-        Reads a string from the data stream.
-
-        @rtype: C{str}
-        @return: string
+        Reads a C{string} from the stream.
         """
-        len = self.stream.read_ushort()
-        return self.stream.read_utf8_string(len)
+        l = self.stream.read_ushort()
+
+        return self.stream.read(l)
+
+    def readUnicode(self):
+        """
+        Reads a C{unicode} from the data stream.
+        """
+        l = self.stream.read_ushort()
+
+        bytes = self.stream.read(l)
+
+        return self.context.getUnicodeForString(bytes)
 
     def _readObject(self, obj, alias=None):
         obj_attrs = dict()
 
-        key = self.readString().encode('utf8')
+        key = self.readString()
 
         while self.stream.peek() != TYPE_OBJECTTERM:
             obj_attrs[key] = self.readElement()
-            key = self.readString().encode('utf8')
+            key = self.readString()
 
         # discard the end marker (TYPE_OBJECTTERM)
         self.stream.read(1)
@@ -386,9 +394,11 @@ class Decoder(pyamf.BaseDecoder):
         """
         Read UTF8 string.
         """
-        len = self.stream.read_ulong()
+        l = self.stream.read_ulong()
 
-        return self.stream.read_utf8_string(len)
+        bytes = self.stream.read(l)
+
+        return self.context.getUnicodeForString(bytes)
 
     def readXML(self):
         """
@@ -418,7 +428,8 @@ class Encoder(pyamf.BaseEncoder):
         ((types.NoneType,), "writeNull"),
         ((bool,), "writeBoolean"),
         ((int,long,float), "writeNumber"),
-        ((types.StringTypes,), "writeString"),
+        ((str,), "writeString"),
+        ((unicode,), "writeUnicode"),
         ((pyamf.ASObject,), "writeObject"),
         ((pyamf.MixedArray,), "writeMixedArray"),
         ((types.ListType, types.TupleType,), "writeArray"),
@@ -577,15 +588,6 @@ class Encoder(pyamf.BaseEncoder):
         @type writeType: C{bool}
         @param writeType: Write data type.
         """
-        t = type(s)
-
-        if t is str:
-            pass
-        elif isinstance(s, unicode):
-            s = s.encode('utf8')
-        elif not isinstance(s, basestring):
-            s = unicode(s).encode('utf8')
-
         l = len(s)
 
         if writeType:
@@ -600,6 +602,14 @@ class Encoder(pyamf.BaseEncoder):
             self.stream.write_ushort(l)
 
         self.stream.write(s)
+
+    def writeUnicode(self, u, writeType=True):
+        """
+        Write a unicode to the data stream.
+        """
+        s = self.context.getStringForUnicode(u)
+
+        self.writeString(s, writeType)
 
     def writeReference(self, o):
         """
