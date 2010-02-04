@@ -79,14 +79,12 @@ class DjangoClassAlias(pyamf.ClassAlias):
             if isinstance(x, related.RelatedObject):
                 continue
 
-            if not isinstance(x, related.ForeignKey):
+            if isinstance(x, related.ManyToManyField):
+                self.relations[name] = x
+            elif not isinstance(x, related.ForeignKey):
                 self.fields[name] = x
             else:
                 self.relations[name] = x
-
-        for k, v in self.klass.__dict__.iteritems():
-            if isinstance(v, related.ReverseManyRelatedObjectsDescriptor):
-                self.fields[k] = v.field
 
         parent_fields = []
 
@@ -159,10 +157,7 @@ class DjangoClassAlias(pyamf.ClassAlias):
             if name not in attrs.keys():
                 continue
 
-            if isinstance(prop, related.ManyToManyField):
-                attrs[name] = [x for x in getattr(obj, name).all()]
-            else:
-                attrs[name] = self._encodeValue(prop, getattr(obj, name))
+            attrs[name] = self._encodeValue(prop, getattr(obj, name))
 
         keys = attrs.keys()
 
@@ -174,7 +169,10 @@ class DjangoClassAlias(pyamf.ClassAlias):
             if '_%s_cache' % name in obj.__dict__:
                 attrs[name] = getattr(obj, name)
 
-            del attrs[relation.column]
+            if isinstance(relation, related.ManyToManyField):
+                attrs[name] = [x for x in getattr(obj, name).all()]
+            else:
+                del attrs[relation.column]
 
         if not attrs:
             attrs = None
@@ -198,11 +196,22 @@ class DjangoClassAlias(pyamf.ClassAlias):
         #
         # django also forces the use only one attribute as primary key, so
         # our obj._meta.pk.attname check is sufficient)
+        pk_attr = obj._meta.pk.attname
+
         try:
-            setattr(obj, obj._meta.pk.attname, attrs[obj._meta.pk.attname])
-            del attrs[obj._meta.pk.attname]
+            setattr(obj, pk_attr, attrs[pk_attr])
+            del attrs[pk_attr]
         except KeyError:
             pass
+
+        if not getattr(obj, pk_attr):
+            for name, relation in self.relations.iteritems():
+                if isinstance(relation, related.ManyToManyField):
+                    try:
+                        if len(attrs[name]) == 0:
+                            del attrs[name]
+                    except KeyError:
+                        pass
 
         return attrs
 

@@ -388,6 +388,15 @@ class ForeignKeyTestCase(ModelsBaseTestCase):
         self.assertEquals(len(p), 1)
         self.assertEquals(p[0], p1)
 
+        y = Article2()
+        attrs = art_alias.getDecodableAttributes(y, {
+            'headline': u'Django lets you build Web apps easily',
+            'id': 0,
+            'publications': []
+        })
+
+        self.assertEqual(attrs, {'headline': u'Django lets you build Web apps easily'})
+
     def test_nullable_foreign_keys(self):
         from django.db import models
 
