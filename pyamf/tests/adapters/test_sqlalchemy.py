@@ -340,7 +340,7 @@ class ApplyAttributesTestCase(BaseClassAliasTestCase):
         if sqlalchemy.__version__.startswith('0.4'):
             self.assertTrue('_state' in d)
             del d['_state']
-        elif sqlalchemy.__version__.startswith('0.5'):
+        else:
             self.assertTrue('_sa_instance_state' in d)
             del d['_sa_instance_state']
 
