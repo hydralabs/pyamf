@@ -99,6 +99,7 @@ is there?
 - Static Attributes
 - Proxied attributes
 - ``IExternalizable`` classes
+- Attribute whitelisting (aka public/private attributes)
 
 
 Static Attributes
@@ -145,3 +146,24 @@ To implement ``IExternalizable``:
 .. literalinclude:: examples/attribute-control/iexternalizable.py
    :linenos:
 
+
+Attribute whitelisting
+----------------------
+
+Sometimes it becomes necessary to ensure that when de/encoding instance
+only a specified list of attributes is used. This could be for performance
+or privacy reasons (there is no need to expose more than you have to).
+
+Extending our ``User`` class from above:
+
+.. literalinclude:: examples/attribute-control/whitelist.py
+   :linenos:
+
+Notice the new `dynamic` property in the `__amf__` meta declaration. This
+instructs PyAMF to create an aggregated whitelist of attributes based on the
+class and other instructions (as defined above) and restrict the encodable
+and decodable attributes to within that list. Any attribute that is on the
+instance that is not on the list is ignored.
+
+**Note:** The ``dynamic`` property works for all types of Python classes, not
+just Google AppEngine.
