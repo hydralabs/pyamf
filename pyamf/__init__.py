@@ -18,6 +18,7 @@ U{Flash Player<http://en.wikipedia.org/wiki/Flash_Player>}.
 
 import types
 import inspect
+import datetime
 
 from pyamf import util, versions as v
 from pyamf.adapters import register_adapters
@@ -193,10 +194,10 @@ class BaseContext(object):
         @param klass: The class object.
         @return: The L{ClassAlias} that is linked to C{klass}
         """
-        try:
-            return self.class_aliases[klass]
-        except KeyError:
-            pass
+        alias = self.class_aliases.get(klass)
+
+        if alias is not None:
+            return alias
 
         try:
             self.class_aliases[klass] = get_class_alias(klass)
@@ -561,10 +562,10 @@ class ClassAlias(object):
         self.shortcut_encode = True
         self.shortcut_decode = True
 
-        if self.encodable_properties or self.static_attrs or self.exclude_attrs:
+        if self.encodable_properties or self.static_attrs or self.exclude_attrs or self.proxy_attrs or self.external:
             self.shortcut_encode = False
 
-        if self.decodable_properties or self.static_attrs or self.exclude_attrs or self.readonly_attrs or not self.dynamic:
+        if self.decodable_properties or self.static_attrs or self.exclude_attrs or self.readonly_attrs or not self.dynamic or self.external:
             self.shortcut_decode = False
 
         self.is_dict = False
@@ -650,6 +651,12 @@ class ClassAlias(object):
         if not self._compiled:
             self.compile()
 
+        if self.is_dict:
+            return obj
+
+        if self.shortcut_encode and self.dynamic:
+            return obj.__dict__
+
         attrs = {}
 
         if self.static_attrs:
@@ -660,9 +667,6 @@ class ClassAlias(object):
             if self.non_static_encodable_properties:
                 for attr in self.non_static_encodable_properties:
                     attrs[attr] = getattr(obj, attr)
-
-            if not attrs:
-                attrs = None
 
             return attrs
 
@@ -680,7 +684,7 @@ class ClassAlias(object):
             if self.exclude_attrs:
                 dynamic_props.difference_update(self.exclude_attrs)
 
-        if self.klass is dict:
+        if self.is_dict:
             for attr in dynamic_props:
                 attrs[attr] = obj[attr]
         else:
@@ -693,9 +697,6 @@ class ClassAlias(object):
             for k, v in attrs.copy().iteritems():
                 if k in self.proxy_attrs:
                     attrs[k] = context.getProxyForObject(v)
-
-        if not attrs:
-            attrs = None
 
         return attrs
 
@@ -979,15 +980,15 @@ class BaseDecoder(object):
 
 class CustomTypeFunc(object):
     """
-    Custom type mappings.
+    Support for custom type mappings when encoding.
     """
 
     def __init__(self, encoder, func):
         self.encoder = encoder
         self.func = func
 
-    def __call__(self, data, *args, **kwargs):
-        self.encoder.writeElement(self.func(data, encoder=self.encoder))
+    def __call__(self, data, **kwargs):
+        self.encoder.writeElement(self.func(data, encoder=self.encoder), **kwargs)
 
 
 class BaseEncoder(object):
@@ -1015,7 +1016,10 @@ class BaseEncoder(object):
     """
 
     context_class = BaseContext
-    type_map = []
+
+    type_map = {
+        util.xml_types: 'writeXML'
+    }
 
     def __init__(self, stream=None, context=None, strict=False, timezone_offset=None):
         if isinstance(stream, util.BufferedByteStream):
@@ -1028,7 +1032,7 @@ class BaseEncoder(object):
         else:
             self.context = context
 
-        self._write_elem_func_cache = {}
+        self._func_cache = {}
         self.strict = strict
         self.timezone_offset = timezone_offset
 
@@ -1042,23 +1046,19 @@ class BaseEncoder(object):
 
         self.writeElement(proxy, use_proxies=False)
 
-    def writeFunc(self, obj, **kwargs):
-        """
-        Not possible to encode functions.
+    def writeNull(self, obj, **kwargs):
+        raise NotImplementedError
 
-        @raise EncodeError: Unable to encode function/methods.
-        """
-        raise EncodeError("Unable to encode function/methods")
+    writeString = writeNull
+    writeBoolean = writeNull
+    writeNumber = writeNull
+    writeList = writeNull
+    writeUndefined = writeNull
+    writeDate = writeNull
+    writeXML = writeNull
+    writeObject = writeNull
 
-    def _getWriteElementFunc(self, data):
-        """
-        Gets a function used to encode the data.
-
-        @type   data: C{mixed}
-        @param  data: Python data.
-        @rtype: callable or C{None}.
-        @return: The function used to encode data to the stream.
-        """
+    def getCustomTypeFunc(self, data):
         for type_, func in TYPE_MAP.iteritems():
             try:
                 if isinstance(data, type_):
@@ -1067,18 +1067,7 @@ class BaseEncoder(object):
                 if callable(type_) and type_(data):
                     return CustomTypeFunc(self, func)
 
-        for tlist, method in self.type_map:
-            for t in tlist:
-                try:
-                    if isinstance(data, t):
-                        return getattr(self, method)
-                except TypeError:
-                    if callable(t) and t(data):
-                        return getattr(self, method)
-
-        return None
-
-    def _writeElementFunc(self, data):
+    def getTypeFunc(self, data):
         """
         Gets a function used to encode the data.
 
@@ -1087,26 +1076,65 @@ class BaseEncoder(object):
         @rtype: callable or C{None}.
         @return: The function used to encode data to the stream.
         """
-        try:
-            key = data.__class__
-        except AttributeError:
-            return self._getWriteElementFunc(data)
+        t = type(data)
 
-        try:
-            t = self._write_elem_func_cache[key]
-        except KeyError:
-            t = self._write_elem_func_cache[key] = self._getWriteElementFunc(data)
+        if data is None:
+            return self.writeNull
+        elif t is str:
+            return self.writeString
+        elif t is unicode:
+            return self.writeUnicode
+        elif t is bool:
+            return self.writeBoolean
+        elif t in (int, long, float):
+            return self.writeNumber
+        elif isinstance(data, (list, tuple)):
+            return self.writeList
+        elif t is UndefinedType:
+            return self.writeUndefined
+        elif t in (types.ClassType, types.TypeType):
+            # can't encode classes
+            raise EncodeError("Cannot encode %r" % (data,))
+        elif t in (datetime.date, datetime.datetime, datetime.time):
+            return self.writeDate
+        elif t in (types.BuiltinFunctionType, types.BuiltinMethodType,
+                types.FunctionType, types.GeneratorType, types.ModuleType,
+                types.LambdaType, types.MethodType):
+            # can't encode code objects
+            raise EncodeError("Cannot encode %r" % (data,))
 
-        return t
+        for t, method in self.type_map.iteritems():
+            if not isinstance(data, t):
+                continue
 
-    def writeElement(self, data):
+            if callable(method):
+                return lambda *args, **kwargs: method(self, *args, **kwargs)
+
+            return getattr(self, method)
+
+        return self.writeObject
+
+    def writeElement(self, data, **kwargs):
         """
         Writes the data. Overridden in subclass.
 
         @type   data: C{mixed}
         @param  data: The data to be encoded to the data stream.
         """
-        raise NotImplementedError
+        key = type(data)
+        func = None
+
+        try:
+            func = self._func_cache[key]
+        except KeyError:
+            func = self.getCustomTypeFunc(data)
+
+            if not func:
+                func = self.getTypeFunc(data)
+
+            self._func_cache[key] = func
+
+        func(data, **kwargs)
 
 
 def register_class(klass, alias=None):

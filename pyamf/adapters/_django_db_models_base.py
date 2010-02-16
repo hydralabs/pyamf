@@ -233,7 +233,7 @@ def getDjangoObjects(context):
     return context.django_objects
 
 
-def writeDjangoObject(self, obj, *args, **kwargs):
+def writeDjangoObject(encoder, obj, **kwargs):
     """
     The Django ORM creates new instances of objects for each db request.
     This is a problem for PyAMF as it uses the id(obj) of the object to do
@@ -249,22 +249,15 @@ def writeDjangoObject(self, obj, *args, **kwargs):
 
     :since: 0.5
     """
-    if not isinstance(obj, Model):
-        self.writeNonDjangoObject(obj, *args, **kwargs)
-
-        return
-
-    context = self.context
-    kls = obj.__class__
-
     s = obj.pk
 
     if s is None:
-        self.writeNonDjangoObject(obj, *args, **kwargs)
+        encoder.writeObject(obj)
 
         return
 
-    django_objects = getDjangoObjects(context)
+    django_objects = getDjangoObjects(encoder.context)
+    kls = obj.__class__
 
     try:
         referenced_object = django_objects.getClassKey(kls, s)
@@ -272,7 +265,7 @@ def writeDjangoObject(self, obj, *args, **kwargs):
         referenced_object = obj
         django_objects.addClassKey(kls, s, obj)
 
-    self.writeNonDjangoObject(referenced_object, *args, **kwargs)
+    encoder.writeObject(referenced_object)
 
 
 def install_django_reference_model_hook(mod):
@@ -283,13 +276,10 @@ def install_django_reference_model_hook(mod):
     :param mod: The module imported.
     :since: 0.4.1
     """
-    if not hasattr(mod.Encoder, 'writeNonDjangoObject'):
-        mod.Encoder.writeNonDjangoObject = mod.Encoder.writeObject
-        mod.Encoder.writeObject = writeDjangoObject
+    mod.Encoder.type_map[Model] = writeDjangoObject
 
 
 # initialise the module here: hook into pyamf
-
 pyamf.register_alias_type(DjangoClassAlias, Model)
 
 # hook the L{writeDjangobject} method to the Encoder class on import

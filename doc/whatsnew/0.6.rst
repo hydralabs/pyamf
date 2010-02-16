@@ -29,6 +29,8 @@ Backward Incompatible API Changes
   ``pyamf.BaseContext.getUnicodeForString``. Also
   ``amf*.Encoder.writeUnicode`` and ``amf*.Decoder.readUnicode`` methods have
   been introduced.
+* ``amf*.Encoder.type_map`` has been changed to support custom types only.
+  Standard types (e.g. ``str``, ``unicode``) are hardcoded.
 
 
 Integration

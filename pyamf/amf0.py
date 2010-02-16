@@ -421,29 +421,25 @@ class Encoder(pyamf.BaseEncoder):
 
     context_class = Context
 
-    type_map = [
-        ((types.BuiltinFunctionType, types.BuiltinMethodType,
-            types.FunctionType, types.GeneratorType, types.ModuleType,
-            types.LambdaType, types.MethodType), "writeFunc"),
-        ((types.NoneType,), "writeNull"),
-        ((bool,), "writeBoolean"),
-        ((int,long,float), "writeNumber"),
-        ((str,), "writeString"),
-        ((unicode,), "writeUnicode"),
-        ((pyamf.ASObject,), "writeObject"),
-        ((pyamf.MixedArray,), "writeMixedArray"),
-        ((types.ListType, types.TupleType,), "writeArray"),
-        ((datetime.date, datetime.datetime, datetime.time), "writeDate"),
-        ((util.is_ET_element,), "writeXML"),
-        ((lambda x: x is pyamf.Undefined,), "writeUndefined"),
-        ((types.ClassType, types.TypeType), "writeClass"),
-        ((types.InstanceType,types.ObjectType,), "writeObject"),
-    ]
-
     def __init__(self, *args, **kwargs):
         self.use_amf3 = kwargs.pop('use_amf3', False)
 
         pyamf.BaseEncoder.__init__(self, *args, **kwargs)
+
+    def getTypeFunc(self, data):
+        t = type(data)
+
+        if t is pyamf.MixedArray:
+            return self.writeMixedArray
+
+        # There is a very specific use case that we must check for.
+        # In the context there is an array of amf3_objs that contain
+        # references to objects that are to be encoded in amf3.
+
+        if self.use_amf3 and self.context.hasAMF3ObjectReference(data):
+            return self.writeAMF3
+
+        return pyamf.BaseEncoder.getTypeFunc(self, data)
 
     def writeType(self, t):
         """
@@ -466,18 +462,6 @@ class Encoder(pyamf.BaseEncoder):
         """
         self.writeType(TYPE_UNDEFINED)
 
-    def writeClass(self, *args, **kwargs):
-        """
-        Classes cannot be serialised.
-        """
-        raise pyamf.EncodeError("Class objects cannot be serialised")
-
-    def writeFunc(self, *args, **kwargs):
-        """
-        Functions cannot be serialised.
-        """
-        raise pyamf.EncodeError("Callables cannot be serialised")
-
     def writeUnsupported(self, data):
         """
         Writes L{unsupported<TYPE_UNSUPPORTED>} data type to the
@@ -489,36 +473,6 @@ class Encoder(pyamf.BaseEncoder):
         """
         self.writeType(TYPE_UNSUPPORTED)
 
-    def _writeElementFunc(self, data):
-        """
-        Gets a function based on the type of data.
-
-        @see: L{pyamf.BaseEncoder._writeElementFunc}
-        """
-        # There is a very specific use case that we must check for.
-        # In the context there is an array of amf3_objs that contain
-        # references to objects that are to be encoded in amf3.
-
-        if self.use_amf3 and self.context.hasAMF3ObjectReference(data):
-            return self.writeAMF3
-
-        return pyamf.BaseEncoder._writeElementFunc(self, data)
-
-    def writeElement(self, data):
-        """
-        Writes the data.
-
-        @type data: C{mixed}
-        @param data: The data to be encoded to the AMF0 data stream.
-        @raise EncodeError: Cannot find encoder func.
-        """
-        func = self._writeElementFunc(data)
-
-        if func is None:
-            raise pyamf.EncodeError("Cannot find encoder func for %r" % (data,))
-
-        func(data)
-
     def writeNull(self, n):
         """
         Write null type to data stream.
@@ -528,7 +482,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         self.writeType(TYPE_NULL)
 
-    def writeArray(self, a):
+    def writeList(self, a):
         """
         Write array to the stream.
 
@@ -621,7 +575,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         idx = self.context.getObjectReference(o)
 
-        if idx is None:
+        if idx is None or idx > 65535:
             return None
 
         self.writeType(TYPE_REFERENCE)

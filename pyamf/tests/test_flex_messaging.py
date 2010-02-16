@@ -117,7 +117,9 @@ class SmallMessageTestCase(unittest.TestCase):
         self.assertEquals(buffer, bytes)
 
     def test_command(self):
-        bytes = ('\n\x07\x07DSC\x88\x02\n\x0b\x01\tDSId\x06IEE0D161D-C11D-25CB-8DBE-3B77B54B55D9\x01\x0c!\xc0\xdf\xb7|\xd6\xee$1s\x152f\xe11\xa8f\x01\x06\x01\x01\x04\x02')
+        bytes = ('\n\x07\x07DSC\x88\x02\n\x0b\x01\tDSId\x06IEE0D161D-C11D-'
+            '25CB-8DBE-3B77B54B55D9\x01\x0c!\xc0\xdf\xb7|\xd6\xee$1s\x152f'
+            '\xe11\xa8f\x01\x06\x01\x01\x04\x02')
 
         self.buffer.write(bytes)
         self.buffer.seek(0)

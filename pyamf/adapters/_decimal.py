@@ -24,9 +24,8 @@ def convert_Decimal(x, encoder):
         a float. Otherwise an L{pyamf.EncodeError} with a friendly message is
         raised.
     """
-    if encoder is not None and isinstance(encoder, pyamf.BaseEncoder):
-        if encoder.strict is False:
-            return float(x)
+    if encoder.strict is False:
+        return float(x)
 
     raise pyamf.EncodeError('Unable to encode decimal.Decimal instances as '
         'there is no way to guarantee exact conversion. Use strict=False to '

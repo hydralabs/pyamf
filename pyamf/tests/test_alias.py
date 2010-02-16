@@ -151,7 +151,7 @@ class GetEncodableAttributesTestCase(unittest.TestCase):
     def test_empty(self):
         attrs = self.alias.getEncodableAttributes(self.obj)
 
-        self.assertEquals(attrs, None)
+        self.assertEquals(attrs, {})
 
     def test_static(self):
         self.alias.static_attrs = ['foo', 'bar']
@@ -169,7 +169,7 @@ class GetEncodableAttributesTestCase(unittest.TestCase):
         self.alias.compile()
         self.alias.dynamic = False
 
-        self.assertEquals(self.alias.getEncodableAttributes(self.obj), None)
+        self.assertEquals(self.alias.getEncodableAttributes(self.obj), {})
 
     def test_dynamic(self):
         self.alias.compile()
@@ -195,7 +195,12 @@ class GetEncodableAttributesTestCase(unittest.TestCase):
         self.obj.bar = {'foo': 'gak'}
 
         attrs = self.alias.getEncodableAttributes(self.obj, codec)
-        self.assertEquals(sorted(attrs.keys()), ['bar', 'foo'])
+
+        k = attrs.keys()
+
+        k.sort()
+
+        self.assertEquals(k, ['bar', 'foo'])
 
         self.assertTrue(isinstance(attrs['foo'], flex.ArrayCollection))
         self.assertEquals(attrs['foo'], ['bar', 'baz'])

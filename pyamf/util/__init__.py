@@ -895,11 +895,11 @@ def get_properties(obj):
     @since: 0.5
     """
     if hasattr(obj, 'keys'):
-        return set(obj.keys())
+        return obj.keys()
     elif hasattr(obj, '__dict__'):
-        return set(obj.__dict__.keys())
+        return obj.__dict__.keys()
 
-    return set()
+    return []
 
 
 def set_attrs(obj, attrs):

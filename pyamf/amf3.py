@@ -251,7 +251,7 @@ class DataOutput(object):
 
         @param value: The object to be serialized.
         """
-        self.encoder.writeElement(value, use_proxies)
+        self.encoder.writeElement(value, use_proxies=use_proxies)
 
     def writeShort(self, value):
         """
@@ -661,10 +661,7 @@ class Context(pyamf.BaseContext):
 
         @return: Class reference.
         """
-        try:
-            return self.class_ref[ref]
-        except KeyError:
-            return None
+        return self.class_ref.get(ref)
 
     def getClass(self, klass):
         """
@@ -672,10 +669,7 @@ class Context(pyamf.BaseContext):
 
         @return: Class reference.
         """
-        try:
-            return self.classes[klass]
-        except KeyError:
-            return None
+        return self.classes.get(klass)
 
     def addClass(self, alias, klass):
         """
@@ -1107,50 +1101,33 @@ class Encoder(pyamf.BaseEncoder):
     """
     context_class = Context
 
-    type_map = [
-        ((types.BuiltinFunctionType, types.BuiltinMethodType,
-            types.FunctionType, types.GeneratorType, types.ModuleType,
-            types.LambdaType, types.MethodType), "writeFunc"),
-        ((bool,), "writeBoolean"),
-        ((types.NoneType,), "writeNull"),
-        ((int,long), "writeInteger"),
-        ((float,), "writeNumber"),
-        ((str,), "writeString"),
-        ((unicode,), "writeUnicode"),
-        ((ByteArray,), "writeByteArray"),
-        ((datetime.date, datetime.datetime, datetime.time), "writeDate"),
-        ((util.is_ET_element,), "writeXML"),
-        ((pyamf.UndefinedType,), "writeUndefined"),
-        ((types.ClassType, types.TypeType), "writeClass"),
-        ((types.InstanceType, types.ObjectType,), "writeInstance"),
-    ]
-
     def __init__(self, *args, **kwargs):
         self.use_proxies = kwargs.pop('use_proxies', use_proxies_default)
         self.string_references = kwargs.pop('string_references', True)
 
         pyamf.BaseEncoder.__init__(self, *args, **kwargs)
 
-    def writeElement(self, data, use_proxies=None):
-        """
-        Writes the data.
+    def getTypeFunc(self, data):
+        t = type(data)
 
-        @param data: The data to be encoded to the AMF3 data stream.
-        @type data: C{mixed}
-        @raise EncodeError: Cannot find encoder func for C{data}.
-        """
-        func = self._writeElementFunc(data)
+        if t in (int, long):
+            return self.writeInteger
+        if isinstance(data, (list, tuple)):
+            try:
+                alias = self.context.getClassAlias(data.__class__)
+            except AttributeError:
+                return self.writeList
 
-        if func is None:
-            raise pyamf.EncodeError("Unknown type %r" % (data,))
+            alias.compile()
 
-        func(data, use_proxies=use_proxies)
+            if alias.external:
+                return self.writeObject
+        elif t is ByteArray:
+            return self.writeByteArray
+        elif t is pyamf.MixedArray:
+            return self.writeDict
 
-    def writeClass(self, *args, **kwargs):
-        """
-        Classes cannot be serialised.
-        """
-        raise pyamf.EncodeError("Class objects cannot be serialised")
+        return pyamf.BaseEncoder.getTypeFunc(self, data)
 
     def writeUndefined(self, *args, **kwargs):
         """
@@ -1400,23 +1377,6 @@ class Encoder(pyamf.BaseEncoder):
 
         for k in int_keys:
             self.writeElement(n[k])
-
-    def writeInstance(self, obj, **kwargs):
-        """
-        Read class definition.
-
-        @param obj: The class instance to be encoded.
-        """
-        kls = obj.__class__
-
-        if kls is pyamf.MixedArray:
-            f = self._write_elem_func_cache[kls] = self.writeDict
-        elif kls in (list, set, tuple):
-            f = self._write_elem_func_cache[kls] = self.writeList
-        else:
-            f = self._write_elem_func_cache[kls] = self.writeObject
-
-        f(obj, **kwargs)
 
     def writeObject(self, obj, use_proxies=None):
         """

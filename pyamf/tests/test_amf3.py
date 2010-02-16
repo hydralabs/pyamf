@@ -563,11 +563,6 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
             '\x07tag\x06\x07foo'
         ), '\x01')))
 
-    def test_unknown_func(self):
-        self.encoder._writeElementFunc = lambda x: None
-
-        self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, None)
-
     def test_funcs(self):
         def x():
             yield 2
@@ -1670,7 +1665,7 @@ class ComplexEncodingTestCase(unittest.TestCase, _util.BaseEncoderMixIn):
         a = self.TestSubObject()
         b = self.TestSubObject()
 
-        self.encoder.writeInstance(a)
+        self.encoder.writeObject(a)
 
         cd = class_defs[0]
 
