@@ -37,8 +37,12 @@ class ElixirAdapter(adapter.SaMappedClassAlias):
         for constraint in self.descriptor.constraints:
             for col in constraint.columns:
                 col = str(col)
-                if col.startswith(self.descriptor.tablename + '.'):
-                    foreign_constraints.append(col[len(self.descriptor.tablename) + 1:])
+
+                if adapter.__version__.startswith('0.6'):
+                    foreign_constraints.append(col)
+                else:
+                    if col.startswith(self.descriptor.tablename + '.'):
+                        foreign_constraints.append(col[len(self.descriptor.tablename) + 1:])
 
         if self.descriptor.polymorphic:
             self.exclude_attrs.update([self.descriptor.polymorphic])
