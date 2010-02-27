@@ -13,7 +13,7 @@
 .. contents::
 
 **Warning**: Authentication and authorization via RemoteObject will be
-supported through the Plasma_ project in the future, but till then
+supported through the Plasma_ project in the future, but until then
 requests can be made to your services without having the authenticator
 called.
 
