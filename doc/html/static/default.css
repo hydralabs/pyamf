@@ -772,9 +772,9 @@ th {
 
 pre {
     padding: 5px;
-    background-color: #efc;
+    background-color: #FAFAFA;
     color: #333;
-    border: 1px solid #ac9;
+    border: 1px solid #999999;
     border-left: none;
     border-right: none;
     overflow: auto;

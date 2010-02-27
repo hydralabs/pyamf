@@ -1,6 +1,6 @@
-==========================
- PyAMF Installation Guide
-==========================
+=====================
+ Installation Guide
+=====================
 
 .. contents::
 
@@ -120,6 +120,33 @@ To install PyAMF to a custom location::
     easy_install --prefix=/path/to/installdir
 
 
+Documentation
+=============
+
+To build the documentation you need:
+
+- Sphinx_ 0.6.3 or newer
+- a :doc:`copy <community/download>` of the PyAMF source distribution
+
+Unix users run the command below in the ``pyamf/doc`` directory to create the
+HTML version of the PyAMF documentation::
+
+    make html
+
+Windows users can run the make.bat file instead::
+
+    make.bat
+
+This will generate the HTML documentation in the ``pyamf/doc/_build/html``
+folder. This documentation is identical to the content on the main PyAMF
+website_.
+
+**Note**: if you don't have the `make` tool installed then you can invoke
+Sphinx from the ``pyamf/doc`` directory directly like this::
+
+    sphinx-build -b html . _build
+
+
 .. _Python: 	http://www.python.org
 .. _yet:	http://dev.pyamf.org/milestone/0.7
 .. _setuptools:	http://peak.telecommunity.com/DevCenter/setuptools
@@ -133,4 +160,6 @@ To install PyAMF to a custom location::
 .. _Django:	http://djangoproject.com
 .. _Google App Engine: http://code.google.com/appengine
 .. _Cython:	http://cython.org
+.. _Sphinx:     http://sphinx.pocoo.org
+.. _website:    http://pyamf.org
 .. _Installing Python Modules: http://docs.python.org/inst/inst.html

@@ -44,9 +44,6 @@ from util import rst2html, copy_file
 readme = rst2html('../README.txt', 'html/intro.html')
 readme = copy_file('../CHANGES.txt', 'changelog.rst')
 
-# Location of the PyAMF source root folder.
-import pyamf
-
 # General substitutions.
 project = 'PyAMF'
 url = 'http://pyamf.org'
@@ -56,7 +53,8 @@ copyright = "Copyright &#169; 2007-%s The <a href='%s'>%s</a> Project. All right
 
 # We look for the __init__.py file in the current PyAMF source tree
 # and replace the values accordingly.
-#
+import pyamf
+
 # The full version, including alpha/beta/rc tags.
 version = str(pyamf.version)
 
