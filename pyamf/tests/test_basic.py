@@ -1,346 +1,187 @@
-# -*- encoding: utf-8 -*-
-#
-# Copyright (c) 2007 The PyAMF Project. All rights reserved.
-# 
-# Permission is hereby granted, free of charge, to any person obtaining
-# a copy of this software and associated documentation files (the
-# "Software"), to deal in the Software without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish,
-# distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so, subject to
-# the following conditions:
-# 
-# The above copyright notice and this permission notice shall be
-# included in all copies or substantial portions of the Software.
-# 
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-# LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-# WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# Copyright (c) 2007-2009 The PyAMF Project.
+# See LICENSE.txt for details.
 
 """
 General tests.
-
-@author: U{Nick Joyce<mailto:nick@boxdesign.co.uk>}
 
 @since: 0.1.0
 """
 
 import unittest
+import new
 
 import pyamf
+from pyamf.tests.util import ClassCacheClearingTestCase, replace_dict, Spam
 
-class Foo(object):
-    """
-    A generic class used in class registering etc.
-    """
 
-class BagTestCase(unittest.TestCase):
+class ASObjectTestCase(unittest.TestCase):
     """
-    I exercise all functionality relating to the L{Bag} class.
+    I exercise all functionality relating to the L{ASObject<pyamf.ASObject>}
+    class.
     """
 
     def test_init(self):
-        bag = pyamf.Bag(dict(foo='bar', baz='foo'))
+        bag = pyamf.ASObject(spam='eggs', baz='spam')
 
-        self.assertEquals(bag, dict(foo='bar', baz='foo'))
-        self.assertEquals(bag.foo, 'bar')
-        self.assertEquals(bag.baz, 'foo')
+        self.assertEquals(bag, dict(spam='eggs', baz='spam'))
+        self.assertEquals(bag.spam, 'eggs')
+        self.assertEquals(bag.baz, 'spam')
 
     def test_eq(self):
-        bag = pyamf.Bag()
+        bag = pyamf.ASObject()
 
         self.assertEquals(bag, {})
-        self.assertNotEquals(bag, {'foo': 'bar'})
+        self.assertNotEquals(bag, {'spam': 'eggs'})
 
-        bag2 = pyamf.Bag()
+        bag2 = pyamf.ASObject()
 
         self.assertEquals(bag2, {})
         self.assertEquals(bag, bag2)
         self.assertNotEquals(bag, None)
 
     def test_setitem(self):
-        bag = pyamf.Bag()
+        bag = pyamf.ASObject()
 
         self.assertEquals(bag, {})
-        
-        bag['foo'] = 'bar'
 
-        self.assertEquals(bag.foo, 'bar')
+        bag['spam'] = 'eggs'
+
+        self.assertEquals(bag.spam, 'eggs')
 
     def test_delitem(self):
-        bag = pyamf.Bag({'foo': 'bar'})
+        bag = pyamf.ASObject({'spam': 'eggs'})
 
-        self.assertEquals(bag.foo, 'bar')
-        del bag['foo']
+        self.assertEquals(bag.spam, 'eggs')
+        del bag['spam']
 
-        self.assertRaises(AttributeError, lambda: bag.foo)
-    
+        self.assertRaises(AttributeError, lambda: bag.spam)
+
     def test_getitem(self):
-        bag = pyamf.Bag({'foo': 'bar'})
+        bag = pyamf.ASObject({'spam': 'eggs'})
 
-        self.assertEquals(bag['foo'], 'bar')
+        self.assertEquals(bag['spam'], 'eggs')
 
     def test_iter(self):
-        bag = pyamf.Bag({'foo': 'bar'})
+        bag = pyamf.ASObject({'spam': 'eggs'})
 
         x = []
 
         for k, v in bag.iteritems():
             x.append((k, v))
 
-        self.assertEquals(x, [('foo', 'bar')])
+        self.assertEquals(x, [('spam', 'eggs')])
 
-class ClassMetaDataTestCase(unittest.TestCase):
-    def test_create(self):
-        x = pyamf.ClassMetaData()
+    def test_hash(self):
+        bag = pyamf.ASObject({'spam': 'eggs'})
 
-        self.assertEquals(x, [])
-        self.assertEquals(len(x), 0)
+        self.assertNotEquals(None, hash(bag))
 
-        x = pyamf.ClassMetaData('dynamic')
-
-        self.assertEquals(x, ['dynamic'])
-        self.assertEquals(len(x), 1)
-
-        x = pyamf.ClassMetaData(['static'])
-
-        self.assertEquals(x, ['static'])
-        self.assertEquals(len(x), 1)
-
-        self.assertRaises(ValueError, pyamf.ClassMetaData, ['foo'])
-        self.assertRaises(ValueError, pyamf.ClassMetaData, 'foo')
-
-    def test_append(self):
-        x = pyamf.ClassMetaData()
-
-        x.append('dynamic')
-
-        self.assertEquals(x, ['dynamic'])
-        self.assertEquals(len(x), 1)
-
-        x.append('dynamic')
-
-        self.assertEquals(x, ['dynamic'])
-        self.assertEquals(len(x), 1)
-
-        #x.append('static')
-        # XXX nick: how to trap the warning?
-
-        self.assertRaises(ValueError, x.append, 'foo')
-
-    def test_contains(self):
-        x = pyamf.ClassMetaData()
-
-        self.assertFalse('dynamic' in x)
-        x.append('dynamic')
-        self.assertTrue('dynamic' in x)
-
-class ClassAliasTestCase(unittest.TestCase):
-    """
-    Test all functionality relating to the class L{ClassAlias}.
-    """
-
-    def test_init(self):
-        x = pyamf.ClassAlias(Foo, 'org.example.foo.Foo')
-
-        self.assertEquals(x.klass, Foo)
-        self.assertEquals(x.alias, 'org.example.foo.Foo')
-        self.assertEquals(x.read_func, None)
-        self.assertEquals(x.write_func, None)
-        self.assertEquals(x.attrs, None)
-        self.assertEquals(x.metadata, [])
-
-        x = pyamf.ClassAlias(Foo, 'org.example.foo.Foo', read_func=ord,
-            write_func=str)
-
-        self.assertEquals(x.klass, Foo)
-        self.assertEquals(x.alias, 'org.example.foo.Foo')
-        self.assertEquals(x.read_func, ord)
-        self.assertEquals(x.write_func, str)
-        self.assertEquals(x.attrs, None)
-        self.assertEquals(x.metadata, ['external'])
-
-        x = pyamf.ClassAlias(Foo, 'org.example.foo.Foo', attrs=['foo', 'bar'],
-            metadata=['dynamic'])
-
-        self.assertEquals(x.klass, Foo)
-        self.assertEquals(x.alias, 'org.example.foo.Foo')
-        self.assertEquals(x.read_func, None)
-        self.assertEquals(x.write_func, None)
-        self.assertEquals(x.attrs, ['foo', 'bar'])
-        self.assertEquals(x.metadata, ['dynamic'])
-
-    def test_bad_class(self):
-        self.assertRaises(TypeError, pyamf.ClassAlias, 'bar', 'blah')
-
-    def test_bad_read_func(self):
-        self.assertRaises(TypeError, pyamf.ClassAlias, 'bar', 'blah',
-            read_func='asdfasdf')
-
-    def test_bad_write_func(self):
-        self.assertRaises(TypeError, pyamf.ClassAlias, 'bar', 'blah',
-            write_func='asdfasdf')
-
-    def test_call(self):
-        x = pyamf.ClassAlias(Foo, 'org.example.foo.Foo')
-
-        y = x()
-
-        self.assertTrue(isinstance(y, Foo))
-
-    def test_str(self):
-        class Bar(object):
-            pass
-
-        x = pyamf.ClassAlias(Bar, 'org.example.bar.Bar')
-
-        self.assertEquals(str(x), 'org.example.bar.Bar')
-
-    def test_eq(self):
-        class A(object):
-            pass
-
-        class B(object):
-            pass
-
-        x = pyamf.ClassAlias(A, 'org.example.A')
-        y = pyamf.ClassAlias(A, 'org.example.A')
-        z = pyamf.ClassAlias(B, 'org.example.B')
-
-        self.assertEquals(x, A)
-        self.assertEquals(x, y)
-        self.assertNotEquals(x, z)
-
-    def test_get_class_alias(self):
-        self.assertTrue(Foo not in pyamf.CLASS_CACHE)
-
-        self.assertRaises(pyamf.UnknownClassAlias, pyamf.get_class_alias,
-            'foo.bar')
-
-        pyamf.register_class(Foo, 'foo.bar')
-        x = pyamf.get_class_alias('foo.bar')
-
-        self.assertTrue(isinstance(x, pyamf.ClassAlias))
-        self.assertEquals(x.klass, Foo)
-        self.assertEquals(x.alias, 'foo.bar')
-
-        x = pyamf.get_class_alias(Foo)
-
-        self.assertTrue(isinstance(x, pyamf.ClassAlias))
-        self.assertEquals(x.klass, Foo)
-        self.assertEquals(x.alias, 'foo.bar')
-
-        pyamf.unregister_class(Foo)
 
 class HelperTestCase(unittest.TestCase):
     """
-    Tests all helper functions in pyamf.__init__
+    Tests all helper functions in C{pyamf.__init__}
     """
+
+    def setUp(self):
+        self.default_encoding = pyamf.DEFAULT_ENCODING
+
+    def tearDown(self):
+        pyamf.DEFAULT_ENCODING = self.default_encoding
 
     def test_get_decoder(self):
         from pyamf import amf0, amf3
 
         self.assertEquals(pyamf._get_decoder_class(pyamf.AMF0), amf0.Decoder)
         self.assertEquals(pyamf._get_decoder_class(pyamf.AMF3), amf3.Decoder)
-        self.assertRaises(ValueError, pyamf._get_decoder_class, 'foo')
+        self.assertRaises(ValueError, pyamf._get_decoder_class, 'spam')
 
         self.assertTrue(isinstance(pyamf.get_decoder(pyamf.AMF0), amf0.Decoder))
         self.assertTrue(isinstance(pyamf.get_decoder(pyamf.AMF3), amf3.Decoder))
-        self.assertRaises(ValueError, pyamf.get_decoder, 'foo')
+        self.assertRaises(ValueError, pyamf.get_decoder, 'spam')
+
+        context = amf0.Context()
+        decoder = pyamf.get_decoder(pyamf.AMF0, stream='123', context=context, strict=True)
+        self.assertEquals(decoder.stream.getvalue(), '123')
+        self.assertEquals(decoder.context, context)
+        self.assertTrue(decoder.strict)
+
+        context = amf3.Context()
+        decoder = pyamf.get_decoder(pyamf.AMF3, stream='456', context=context, strict=True)
+        self.assertEquals(decoder.stream.getvalue(), '456')
+        self.assertEquals(decoder.context, context)
+        self.assertTrue(decoder.strict)
 
     def test_get_encoder(self):
         from pyamf import amf0, amf3
 
         self.assertEquals(pyamf._get_encoder_class(pyamf.AMF0), amf0.Encoder)
         self.assertEquals(pyamf._get_encoder_class(pyamf.AMF3), amf3.Encoder)
-        self.assertRaises(ValueError, pyamf._get_encoder_class, 'foo')
+        self.assertRaises(ValueError, pyamf._get_encoder_class, 'spam')
 
         self.assertTrue(isinstance(pyamf.get_encoder(pyamf.AMF0), amf0.Encoder))
         self.assertTrue(isinstance(pyamf.get_encoder(pyamf.AMF3), amf3.Encoder))
-        self.assertRaises(ValueError, pyamf.get_encoder, 'foo')
+        self.assertRaises(ValueError, pyamf.get_encoder, 'spam')
 
-class RegisterClassTestCase(unittest.TestCase):
-    def setUp(self):
-        import copy
+        context = amf0.Context()
+        encoder = pyamf.get_encoder(pyamf.AMF0, stream='spam', context=context)
+        self.assertEquals(encoder.stream.getvalue(), 'spam')
+        self.assertEquals(encoder.context, context)
+        self.assertFalse(encoder.strict)
 
-        self.copy = copy.copy(pyamf.CLASS_CACHE)
-        self.unregister = True
+        context = amf3.Context()
+        encoder = pyamf.get_encoder(pyamf.AMF3, stream='eggs', context=context)
+        self.assertFalse(encoder.strict)
 
-    def tearDown(self):
-        if self.unregister:
-            pyamf.unregister_class(Foo)
+        encoder = pyamf.get_encoder(pyamf.AMF0, strict=True)
+        self.assertTrue(encoder.strict)
 
-    def test_simple(self):
-        self.assertTrue('foo.bar' not in pyamf.CLASS_CACHE.keys())
-        alias = pyamf.register_class(Foo, 'foo.bar')
+        encoder = pyamf.get_encoder(pyamf.AMF3, strict=True)
+        self.assertTrue(encoder.strict)
 
-        self.assertTrue('foo.bar' in pyamf.CLASS_CACHE.keys())
-        self.assertEquals(pyamf.CLASS_CACHE['foo.bar'], alias)
+    def test_encode(self):
+        self.assertEquals('\x06\x0fconnect\x05?\xf0\x00\x00\x00\x00\x00\x00',
+            pyamf.encode(u'connect', 1.0).getvalue())
 
-        self.assertTrue(isinstance(alias, pyamf.ClassAlias))
-        self.assertEquals(alias.klass, Foo)
-        self.assertEquals(alias.alias, 'foo.bar')
-        self.assertEquals(alias.attrs, None)
-        self.assertEquals(alias.metadata, [])
-        self.assertEquals(alias.read_func, None)
-        self.assertEquals(alias.write_func, None)
+    def test_decode(self):
+        expected = [u'connect', 1.0]
+        bytes = '\x06\x0fconnect\x05?\xf0\x00\x00\x00\x00\x00\x00'
 
-    def test_attrs(self):
-        pyamf.register_class(Foo, 'foo.bar', attrs=['x', 'y', 'z'])
-        alias = pyamf.CLASS_CACHE['foo.bar']
+        returned = [x for x in pyamf.decode(bytes)]
 
-        self.assertEquals(alias.attrs, ['x', 'y', 'z'])
+        self.assertEquals(expected, returned)
 
-    def test_funcs(self):
-        pyamf.register_class(Foo, 'foo.bar', read_func=ord, write_func=chr)
-        alias = pyamf.CLASS_CACHE['foo.bar']
+    def test_default_encoding(self):
+        pyamf.DEFAULT_ENCODING = pyamf.AMF3
 
-        self.assertEquals(alias.read_func, ord)
-        self.assertEquals(alias.write_func, chr)
+        x = pyamf.encode('foo').getvalue()
 
-    def test_metadata(self):
-        pyamf.register_class(Foo, 'foo.bar', metadata=['static'])
-        alias = pyamf.CLASS_CACHE['foo.bar']
+        self.assertEquals(x, '\x06\x07foo')
 
-        self.assertEquals(alias.metadata, ['static'])
-        self.assertTrue(isinstance(alias.metadata, pyamf.ClassMetaData))
+        pyamf.DEFAULT_ENCODING = pyamf.AMF0
 
-    def test_bad_metadata(self):
-        self.assertRaises(ValueError, pyamf.register_class, Foo, 'foo.bar',
-            metadata=['blah'])
+        x = pyamf.encode('foo').getvalue()
 
-        self.unregister = False
+        self.assertEquals(x, '\x02\x00\x03foo')
 
-class UnregisterClassTestCase(unittest.TestCase):
+
+class UnregisterClassTestCase(ClassCacheClearingTestCase):
     def test_klass(self):
-        alias = pyamf.register_class(Foo, 'foo.bar')
+        alias = pyamf.register_class(Spam, 'spam.eggs')
 
-        pyamf.unregister_class(Foo)
-        self.assertTrue('foo.bar' not in pyamf.CLASS_CACHE.keys())
+        pyamf.unregister_class(Spam)
+        self.assertTrue('spam.eggs' not in pyamf.CLASS_CACHE.keys())
+        self.assertTrue(Spam not in pyamf.CLASS_CACHE.keys())
         self.assertTrue(alias not in pyamf.CLASS_CACHE)
 
     def test_alias(self):
-        alias = pyamf.register_class(Foo, 'foo.bar')
+        alias = pyamf.register_class(Spam, 'spam.eggs')
 
-        pyamf.unregister_class('foo.bar')
-        self.assertTrue('foo.bar' not in pyamf.CLASS_CACHE.keys())
+        pyamf.unregister_class('spam.eggs')
+        self.assertTrue('spam.eggs' not in pyamf.CLASS_CACHE.keys())
         self.assertTrue(alias not in pyamf.CLASS_CACHE)
 
-class ClassLoaderTestCase(unittest.TestCase):
-    def setUp(self):
-        import copy
 
-        self.cl = copy.copy(pyamf.CLASS_LOADERS)
-
-        pyamf.CLASS_LOADERS = []
-
-    def tearDown(self):
-        pyamf.CLASS_LOADERS = self.cl
-
+class ClassLoaderTestCase(ClassCacheClearingTestCase):
     def test_register(self):
         self.assertTrue(chr not in pyamf.CLASS_LOADERS)
         pyamf.register_class_loader(chr)
@@ -352,6 +193,7 @@ class ClassLoaderTestCase(unittest.TestCase):
         self.assertRaises(ValueError, pyamf.register_class_loader, ord)
 
     def test_unregister(self):
+        self.assertTrue(chr not in pyamf.CLASS_LOADERS)
         pyamf.register_class_loader(chr)
         self.assertTrue(chr in pyamf.CLASS_LOADERS)
 
@@ -362,17 +204,15 @@ class ClassLoaderTestCase(unittest.TestCase):
 
     def test_load_class(self):
         def class_loader(x):
-            self.assertEquals(x, 'foo.bar')
-            
-            return Foo
+            self.assertEquals(x, 'spam.eggs')
+
+            return Spam
 
         pyamf.register_class_loader(class_loader)
 
-        self.assertTrue('foo.bar' not in pyamf.CLASS_CACHE.keys())
-        pyamf.load_class('foo.bar')
-        self.assertTrue('foo.bar' in pyamf.CLASS_CACHE.keys())
-
-        pyamf.unregister_class('foo.bar')
+        self.assertTrue('spam.eggs' not in pyamf.CLASS_CACHE.keys())
+        pyamf.load_class('spam.eggs')
+        self.assertTrue('spam.eggs' in pyamf.CLASS_CACHE.keys())
 
     def test_load_unknown_class(self):
         def class_loader(x):
@@ -380,20 +220,18 @@ class ClassLoaderTestCase(unittest.TestCase):
 
         pyamf.register_class_loader(class_loader)
 
-        self.assertRaises(pyamf.UnknownClassAlias, pyamf.load_class, 'foo.bar')
+        self.assertRaises(pyamf.UnknownClassAlias, pyamf.load_class, 'spam.eggs')
 
     def test_load_class_by_alias(self):
         def class_loader(x):
-            self.assertEquals(x, 'foo.bar')
-            return pyamf.ClassAlias(Foo, 'foo.bar')
+            self.assertEquals(x, 'spam.eggs')
+            return pyamf.ClassAlias(Spam, 'spam.eggs')
 
         pyamf.register_class_loader(class_loader)
 
-        self.assertTrue('foo.bar' not in pyamf.CLASS_CACHE.keys())
-        pyamf.load_class('foo.bar')
-        self.assertTrue('foo.bar' in pyamf.CLASS_CACHE.keys())
-
-        pyamf.unregister_class('foo.bar')
+        self.assertTrue('spam.eggs' not in pyamf.CLASS_CACHE.keys())
+        pyamf.load_class('spam.eggs')
+        self.assertTrue('spam.eggs' in pyamf.CLASS_CACHE.keys())
 
     def test_load_class_bad_return(self):
         def class_loader(x):
@@ -401,27 +239,502 @@ class ClassLoaderTestCase(unittest.TestCase):
 
         pyamf.register_class_loader(class_loader)
 
-        self.assertRaises(TypeError, pyamf.load_class, 'foo.bar')
+        self.assertRaises(TypeError, pyamf.load_class, 'spam.eggs')
 
     def test_load_class_by_module(self):
         pyamf.load_class('__builtin__.tuple')
-
-        pyamf.unregister_class('__builtin__.tuple')
 
     def test_load_class_by_module_bad(self):
         self.assertRaises(pyamf.UnknownClassAlias, pyamf.load_class,
             '__builtin__.tuple.')
 
+
+class TypeMapTestCase(unittest.TestCase):
+    def setUp(self):
+        self.tm = dict(pyamf.TYPE_MAP)
+
+    def tearDown(self):
+        pyamf.TYPE_MAP = self.tm
+
+    def test_add_invalid(self):
+        mod = new.module('spam')
+        self.assertRaises(TypeError, pyamf.add_type, mod)
+        self.assertRaises(TypeError, pyamf.add_type, {})
+        self.assertRaises(TypeError, pyamf.add_type, 'spam')
+        self.assertRaises(TypeError, pyamf.add_type, u'eggs')
+        self.assertRaises(TypeError, pyamf.add_type, 1)
+        self.assertRaises(TypeError, pyamf.add_type, 234234L)
+        self.assertRaises(TypeError, pyamf.add_type, 34.23)
+        self.assertRaises(TypeError, pyamf.add_type, None)
+        self.assertRaises(TypeError, pyamf.add_type, object())
+
+        class A:
+            pass
+
+        self.assertRaises(TypeError, pyamf.add_type, A())
+
+    def test_add_same(self):
+        td = pyamf.add_type(chr)
+        self.assertRaises(KeyError, pyamf.add_type, chr)
+
+    def test_add_class(self):
+        class A:
+            pass
+
+        class B(object):
+            pass
+
+        pyamf.add_type(A)
+        self.assertTrue(A in pyamf.TYPE_MAP)
+
+        td2 = pyamf.add_type(B)
+        self.assertTrue(B in pyamf.TYPE_MAP)
+
+    def test_add_callable(self):
+        td = pyamf.add_type(ord)
+
+        self.assertTrue(ord in pyamf.TYPE_MAP)
+        self.assertTrue(td in pyamf.TYPE_MAP.values())
+
+    def test_add_multiple(self):
+        td = pyamf.add_type((chr,))
+
+        class A(object):
+            pass
+
+        class B(object):
+            pass
+
+        class C(object):
+            pass
+
+        td = pyamf.add_type([A, B, C])
+
+    def test_get_type(self):
+        self.assertRaises(KeyError, pyamf.get_type, chr)
+        td = pyamf.add_type((chr,))
+        self.assertRaises(KeyError, pyamf.get_type, chr)
+
+        td2 = pyamf.get_type((chr,))
+        self.assertEquals(td, td2)
+
+        td2 = pyamf.get_type([chr,])
+        self.assertEquals(td, td2)
+
+    def test_remove(self):
+        self.assertRaises(KeyError, pyamf.remove_type, chr)
+        td = pyamf.add_type((chr,))
+
+        self.assertRaises(KeyError, pyamf.remove_type, chr)
+        td2 = pyamf.remove_type((chr,))
+
+        self.assertEquals(td, td2)
+
+
+class ErrorClassMapTestCase(unittest.TestCase):
+    """
+    I test all functionality related to manipulating L{pyamf.ERROR_CLASS_MAP}
+    """
+
+    def setUp(self):
+        self.map_copy = pyamf.ERROR_CLASS_MAP.copy()
+
+    def tearDown(self):
+        pyamf.ERROR_CLASS_MAP = self.map_copy
+
+    def test_add(self):
+        class A:
+            pass
+
+        class B(Exception):
+            pass
+
+        self.assertRaises(TypeError, pyamf.add_error_class, None, 'a')
+
+        # class A does not sub-class Exception
+        self.assertRaises(TypeError, pyamf.add_error_class, A, 'a')
+
+        pyamf.add_error_class(B, 'b')
+        self.assertEquals(pyamf.ERROR_CLASS_MAP['b'], B)
+
+        pyamf.add_error_class(B, 'a')
+        self.assertEquals(pyamf.ERROR_CLASS_MAP['a'], B)
+
+        class C(Exception):
+            pass
+
+        self.assertRaises(ValueError, pyamf.add_error_class, C, 'b')
+
+    def test_remove(self):
+        class B(Exception):
+            pass
+
+        pyamf.ERROR_CLASS_MAP['abc'] = B
+
+        self.assertRaises(TypeError, pyamf.remove_error_class, None)
+
+        pyamf.remove_error_class('abc')
+        self.assertFalse('abc' in pyamf.ERROR_CLASS_MAP.keys())
+        self.assertRaises(KeyError, pyamf.ERROR_CLASS_MAP.__getitem__, 'abc')
+
+        pyamf.ERROR_CLASS_MAP['abc'] = B
+
+        pyamf.remove_error_class(B)
+
+        self.assertRaises(KeyError, pyamf.ERROR_CLASS_MAP.__getitem__, 'abc')
+        self.assertRaises(ValueError, pyamf.remove_error_class, B)
+        self.assertRaises(ValueError, pyamf.remove_error_class, 'abc')
+
+
+class DummyAlias(pyamf.ClassAlias):
+    pass
+
+
+class RegisterAliasTypeTestCase(unittest.TestCase):
+    def setUp(self):
+        self.old_aliases = pyamf.ALIAS_TYPES.copy()
+
+    def tearDown(self):
+        replace_dict(self.old_aliases, pyamf.ALIAS_TYPES)
+
+    def test_bad_klass(self):
+        self.assertRaises(TypeError, pyamf.register_alias_type, 1)
+
+    def test_subclass(self):
+        self.assertFalse(issubclass(self.__class__, pyamf.ClassAlias))
+        self.assertRaises(ValueError, pyamf.register_alias_type, self.__class__)
+
+    def test_no_args(self):
+        self.assertTrue(issubclass(DummyAlias, pyamf.ClassAlias))
+        self.assertRaises(ValueError, pyamf.register_alias_type, DummyAlias)
+
+    def test_type_args(self):
+        self.assertTrue(issubclass(DummyAlias, pyamf.ClassAlias))
+        self.assertRaises(TypeError, pyamf.register_alias_type, DummyAlias, 1)
+
+    def test_single(self):
+        class A(object):
+            pass
+
+        pyamf.register_alias_type(DummyAlias, A)
+
+        self.assertTrue(DummyAlias in pyamf.ALIAS_TYPES.keys())
+        self.assertEquals(pyamf.ALIAS_TYPES[DummyAlias], (A,))
+
+    def test_multiple(self):
+        class A(object):
+            pass
+
+        class B(object):
+            pass
+
+        self.assertRaises(TypeError, pyamf.register_alias_type, DummyAlias, A, 'hello')
+
+        pyamf.register_alias_type(DummyAlias, A, B)
+        self.assertTrue(DummyAlias in pyamf.ALIAS_TYPES.keys())
+        self.assertEquals(pyamf.ALIAS_TYPES[DummyAlias], (A, B))
+
+    def test_duplicate(self):
+        class A(object):
+            pass
+
+        pyamf.register_alias_type(DummyAlias, A)
+
+        self.assertRaises(RuntimeError, pyamf.register_alias_type, DummyAlias, A)
+
+    def test_unregister(self):
+        """
+        Tests for L{pyamf.unregister_alias_type}
+        """
+        class A(object):
+            pass
+
+        self.assertFalse(DummyAlias in pyamf.ALIAS_TYPES)
+        self.assertEquals(pyamf.unregister_alias_type(A), None)
+
+        pyamf.register_alias_type(DummyAlias, A)
+
+        self.assertTrue(DummyAlias in pyamf.ALIAS_TYPES.keys())
+        self.assertEquals(pyamf.unregister_alias_type(DummyAlias), (A,))
+
+
+class BaseContextTestCase(unittest.TestCase):
+    def test_no_alias(self):
+        x = pyamf.BaseContext()
+
+        self.assertEquals(x.class_aliases, {})
+
+        class A:
+            pass
+
+        self.assertNotEquals(x.getClassAlias(A), None)
+
+    def test_registered_alias(self):
+        x = pyamf.BaseContext()
+
+        self.assertEquals(x.class_aliases, {})
+
+        class A:
+            pass
+
+        pyamf.register_class(A)
+        alias = x.getClassAlias(A)
+
+        self.assertTrue(isinstance(alias, pyamf.ClassAlias))
+        self.assertEquals(alias.__class__, pyamf.ClassAlias)
+        self.assertEquals(alias.klass, A)
+
+    def test_registered_deep(self):
+        x = pyamf.BaseContext()
+
+        self.assertEquals(x.class_aliases, {})
+
+        class A:
+            pass
+
+        class B(A):
+            pass
+
+        pyamf.register_alias_type(DummyAlias, A)
+        alias = x.getClassAlias(B)
+
+        self.assertTrue(isinstance(alias, pyamf.ClassAlias))
+        self.assertEquals(alias.__class__, DummyAlias)
+        self.assertEquals(alias.klass, B)
+
+    def test_object_references(self):
+        x = pyamf.BaseContext()
+
+        self.assertEquals(x.getObject(62), None)
+        self.assertEquals(x.getObjectReference(object()), None)
+
+    def test_unicode(self):
+        x = pyamf.BaseContext()
+
+        u = x.getUnicodeForString('foo')
+
+        self.assertTrue(type(u) is unicode)
+        self.assertEquals(u, u'foo')
+
+        i = x.getUnicodeForString('foo')
+
+        self.assertTrue(u is i)
+
+        x.clear()
+
+        i = x.getUnicodeForString('foo')
+
+        self.assertFalse(u is i)
+
+    def test_string(self):
+        x = pyamf.BaseContext()
+
+        s = x.getStringForUnicode(u'foo')
+
+        self.assertTrue(type(s) is str)
+        self.assertEquals(s, 'foo')
+
+        i = x.getStringForUnicode(u'f' + u'oo')
+
+        self.assertTrue(s is i)
+
+        x.clear()
+
+        i = x.getStringForUnicode(u'fo' + u'o')
+
+        self.assertFalse(s is i)
+
+
+class TypedObjectTestCase(unittest.TestCase):
+    def test_externalised(self):
+        o = pyamf.TypedObject(None)
+
+        self.assertRaises(pyamf.DecodeError, o.__readamf__, None)
+        self.assertRaises(pyamf.EncodeError, o.__writeamf__, None)
+
+    def test_alias(self):
+        class Foo:
+            pass
+
+        alias = pyamf.TypedObjectClassAlias(Foo, 'bar')
+
+        self.assertEquals(alias.klass, pyamf.TypedObject)
+        self.assertNotEqual(alias.klass, Foo)
+
+
+class PackageTestCase(ClassCacheClearingTestCase):
+    """
+    Tests for L{pyamf.register_package}
+    """
+
+    class NewType(object):
+        pass
+
+    class ClassicType:
+        pass
+
+    def setUp(self):
+        ClassCacheClearingTestCase.setUp(self)
+
+        self.module = new.module('foo')
+
+        self.module.Classic = self.ClassicType
+        self.module.New = self.NewType
+        self.module.s = 'str'
+        self.module.i = 12323
+        self.module.f = 345.234
+        self.module.u = u'unicode'
+        self.module.l = ['list', 'of', 'junk']
+        self.module.d = {'foo': 'bar', 'baz': 'gak'}
+        self.module.obj = object()
+        self.module.mod = self.module
+        self.module.lam = lambda _: None
+
+        self.NewType.__module__ = 'foo'
+        self.ClassicType.__module__ = 'foo'
+
+        self.spam_module = Spam.__module__
+        Spam.__module__ = 'foo'
+
+        self.names = (self.module.__name__,)
+
+    def tearDown(self):
+        ClassCacheClearingTestCase.tearDown(self)
+
+        Spam.__module__ = self.spam_module
+
+        self.module.__name__ = self.names
+
+    def check_module(self, r, base_package):
+        self.assertEquals(len(r), 2)
+
+        for c in [self.NewType, self.ClassicType]:
+            alias = r[c]
+
+            self.assertTrue(isinstance(alias, pyamf.ClassAlias))
+            self.assertEquals(alias.klass, c)
+            self.assertEquals(alias.alias, base_package + c.__name__)
+
+    def test_module(self):
+        r = pyamf.register_package(self.module, 'com.example')
+        self.check_module(r, 'com.example.')
+
+    def test_all(self):
+        self.module.Spam = Spam
+
+        self.module.__all__ = ['Classic', 'New']
+
+        r = pyamf.register_package(self.module, 'com.example')
+        self.check_module(r, 'com.example.')
+
+    def test_ignore(self):
+        self.module.Spam = Spam
+
+        r = pyamf.register_package(self.module, 'com.example', ignore=['Spam'])
+        self.check_module(r, 'com.example.')
+
+    def test_separator(self):
+        r = pyamf.register_package(self.module, 'com.example', separator='/')
+
+        self.ClassicType.__module__ = 'com.example'
+        self.NewType.__module__ = 'com.example'
+        self.check_module(r, 'com.example/')
+
+    def test_name(self):
+        self.module.__name__ = 'spam.eggs'
+        self.ClassicType.__module__ = 'spam.eggs'
+        self.NewType.__module__ = 'spam.eggs'
+
+        r = pyamf.register_package(self.module)
+        self.check_module(r, 'spam.eggs.')
+
+    def test_dict(self):
+        """
+        @see: #585
+        """
+        d = dict()
+        d['Spam'] = Spam
+
+        r = pyamf.register_package(d, 'com.example', strict=False)
+
+        self.assertEquals(len(r), 1)
+
+        alias = r[Spam]
+
+        self.assertTrue(isinstance(alias, pyamf.ClassAlias))
+        self.assertEquals(alias.klass, Spam)
+        self.assertEquals(alias.alias, 'com.example.Spam')
+
+    def test_odd(self):
+        self.assertRaises(TypeError, pyamf.register_package, object())
+        self.assertRaises(TypeError, pyamf.register_package, 1)
+        self.assertRaises(TypeError, pyamf.register_package, 1.2)
+        self.assertRaises(TypeError, pyamf.register_package, 23897492834L)
+        self.assertRaises(TypeError, pyamf.register_package, [])
+        self.assertRaises(TypeError, pyamf.register_package, '')
+        self.assertRaises(TypeError, pyamf.register_package, u'')
+
+    def test_strict(self):
+        self.module.Spam = Spam
+
+        Spam.__module__ = self.spam_module
+
+        r = pyamf.register_package(self.module, 'com.example', strict=True)
+        self.check_module(r, 'com.example.')
+
+    def test_not_strict(self):
+        self.module.Spam = Spam
+
+        Spam.__module__ = self.spam_module
+
+        r = pyamf.register_package(self.module, 'com.example', strict=False)
+
+        self.assertEquals(len(r), 3)
+
+        for c in [self.NewType, self.ClassicType, Spam]:
+            alias = r[c]
+
+            self.assertTrue(isinstance(alias, pyamf.ClassAlias))
+            self.assertEquals(alias.klass, c)
+            self.assertEquals(alias.alias, 'com.example.' + c.__name__)
+
+    def test_list(self):
+        class Foo:
+            pass
+
+        class Bar:
+            pass
+
+        ret = pyamf.register_package([Foo, Bar], 'spam.eggs')
+
+        self.assertEquals(len(ret), 2)
+
+        for c in [Foo, Bar]:
+            alias = ret[c]
+
+            self.assertTrue(isinstance(alias, pyamf.ClassAlias))
+            self.assertEquals(alias.klass, c)
+            self.assertEquals(alias.alias, 'spam.eggs.' + c.__name__)
+
+
 def suite():
     suite = unittest.TestSuite()
 
-    suite.addTest(unittest.makeSuite(BagTestCase))
-    suite.addTest(unittest.makeSuite(ClassMetaDataTestCase))
-    suite.addTest(unittest.makeSuite(ClassAliasTestCase))
-    suite.addTest(unittest.makeSuite(HelperTestCase))
-    suite.addTest(unittest.makeSuite(RegisterClassTestCase))
-    suite.addTest(unittest.makeSuite(UnregisterClassTestCase))
-    suite.addTest(unittest.makeSuite(ClassLoaderTestCase))
+    test_cases = [
+        ASObjectTestCase,
+        HelperTestCase,
+        UnregisterClassTestCase,
+        ClassLoaderTestCase,
+        TypeMapTestCase,
+        ErrorClassMapTestCase,
+        RegisterAliasTypeTestCase,
+        BaseContextTestCase,
+        TypedObjectTestCase,
+        PackageTestCase
+    ]
+
+    for tc in test_cases:
+        suite.addTest(unittest.makeSuite(tc))
 
     return suite
 

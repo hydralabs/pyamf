@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+
+{% block head %}
+<script type="text/javascript" src="/assets/mootools.js"></script>
+<script type="text/javascript">
+    var tests = {};
+    var expected = [];
+	var skipped = [];
+
+	var testRunner = {
+		'path': '/punit/run',
+		'results': null,
+		'running': false,
+		'_index': null,
+		'current_module': null,
+		'current_testCase': null,
+		'tests': [],
+		'run': function() {
+			if (!this.running)
+				this.running = true;
+
+			this._runNextTest();
+		},
+		'pause': function() {
+			if (this.running)
+				this.running = false;
+		},
+		'start': function() {
+			$('results').empty();
+			$('log').empty();
+			$('test_complete').setText('0');
+			$('test_passed').setText('0');
+			$('test_failed').setText('0');
+			$('test_expected_failed').setText('0');
+			$('test_expected_skipped').setText('0');
+			$('log-wrapper').addClass('hide');
+
+			this._index = null;
+			this.run();
+		},
+		'stop': function() {
+			this.running = false;
+			this._index = null;
+
+			$('run_tests').setProperty('value', 'Restart Tests');
+		},
+		'addTest': function(module, test_case, method) {
+			this.tests.push([module, test_case, method]);
+		},
+		'_clean': function (x) {
+			x = x.replace('.', '_');
+
+			return x
+		},
+		'_runNextTest': function () {
+			if (!this.running)
+				return;
+
+			if (this._index == null)
+				this._index = 0;
+			else
+				this._index += 1
+
+			if (this._index >= this.tests.length) {
+				this.stop();
+				return;
+			}
+
+			var test_case = this.tests[this._index];
+
+			if (this.current_module != test_case[0]) {
+				var mod = new Element('div', {'class': 'module', 'id': 'module_' + this._clean(test_case[0])});
+				mod.appendText(test_case[0]);
+
+				new Element('ul', {'class': 'testcases'}).injectInside(mod);
+				mod.injectInside($('results'));
+ 				this.current_module = test_case[0];
+
+				this.current_testCase = null;
+			}
+
+			if (this.current_testCase != test_case[1]) {
+				var testcases = $$('#module_' + this._clean(test_case[0]) + ' ul.testcases')[0];
+				var tc = new Element('li', {'id': this._clean(test_case[0]) + '-' + this._clean(test_case[1])});
+
+				tc.appendText(test_case[1]);
+				tc.injectInside(testcases);
+
+				new Element('ul', {'class': 'methods'}).injectInside(tc);
+				this.current_testCase = test_case[1];
+			}
+
+			var tc = $$('#' + this._clean(test_case[0]) + '-' + this._clean(test_case[1]) + ' ul.methods')[0];
+			var method = new Element('li', {'id': 'index' + this._index, 'class': 'pending'});
+
+			method.appendText(test_case[2]);
+			var result = new Element('span', {'class': 'result'});
+			result.appendText('[ PENDING ]');
+
+			result.injectInside(method);
+			method.injectInside(tc);
+
+			var full_name = test_case.join('.');
+			var skip = false;
+
+			for (var i = 0; i < skipped.length; i++) {
+				if (full_name == skipped[i]) {
+					skip = true;
+
+					break;
+				}
+			}
+
+			if (skip) {
+				testRunner.skipTest({
+					'test': test_case[0] + '.' + test_case[1] + '.' + test_case[2]
+				});
+				$('test_complete').setText(parseInt($('test_complete').getText()) + 1);
+				testRunner._runNextTest();
+			} else {
+				var request = new Json.Remote('http://' + window.location.hostname + ':' + window.location.port + this.path + '/' + test_case[0] + '/' + test_case[1] + '/' + test_case[2] + '/', {
+					onFailure: function(ev) {
+						$('test_complete').setText(parseInt($('test_complete').getText()) + 1);
+
+						testRunner.errorTest(ev);
+						testRunner._runNextTest();
+					},
+					onComplete: function(result) {
+						$('test_complete').setText(parseInt($('test_complete').getText()) + 1);
+
+						if (result.test != test_case[0] + '.' + test_case[1] + '.' + test_case[2]) {
+							testRunner.errorTest(result);
+						} else {
+							if (result.passed)
+								testRunner.passTest(result);
+							else
+								testRunner.failTest(result);
+						}
+
+						testRunner._runNextTest();
+					}
+				}).send({});
+
+			}
+
+			var res = $('results');
+			var size = res.getSize();
+
+			var D=res.getSize();
+			var C={x:false,y:'full'};
+			for(var E in D.size) {
+				var A=D.scrollSize[E] - D.size[E];
+				
+				if ($chk(C[E])) {
+					C[E] = ($type(C[E])=="number") ? C[E].limit(0,A) : A;
+				} else {
+					C[E] = D.scroll[E];
+				}
+				
+			}
+			
+			document.getElementById('results').scrollTop = C.y + 5;
+
+		},
+		'passTest': function(result) {
+			var test = $('index' + testRunner._index);
+			test.removeClass('pending');
+
+			$('index' + testRunner._index).addClass('success');
+			$E('span.result', test).setText('[ OK ]');
+			$('test_passed').setText(parseInt($('test_passed').getText()) + 1);
+		},
+		'failTest': function(result) {
+			var test = $('index' + testRunner._index);
+			test.removeClass('pending');
+
+			test.addClass('error');
+			$E('span.result', test).setText('[ ERROR ]');
+			$('log-wrapper').removeClass('hide');
+
+			var log = $('log');
+
+			var item = new Element('div', {'class': 'test'});
+			item.setText(result.test);
+
+			if (result.expected_failure) {
+				$('test_expected_failed').setText(parseInt($('test_expected_failed').getText()) + 1);
+				test.addClass('expected');
+				item.addClass('expected');
+			} else {
+				$('test_failed').setText(parseInt($('test_failed').getText()) + 1);
+
+			}
+
+			if (result.errors.length > 0) {
+				var errors = new Element('div', {'class': 'errors'});
+				errors.setText('Errors:');
+
+				for (var i = 0; i < result.errors.length; i++) {
+					var tb = new Element('div', {'class': 'traceback'});
+
+					tb.injectInside(errors);
+					tb.setText(result.errors[i]);
+				}
+
+				errors.injectInside(item);
+			}
+
+			if (result.failures.length > 0) {
+				var failures = new Element('div', {'class': 'failures'});
+				failures.setText('Failures:');
+
+				for (var i = 0; i < result.failures.length; i++) {
+					var tb = new Element('div', {'class': 'traceback'});
+
+					tb.injectInside(failures);
+					tb.setText(result.failures[i]);
+				}
+
+				failures.injectInside(item);
+			}
+
+			item.injectInside(log);
+
+			var res = $('log');
+			var size = res.getSize();
+
+			var D=res.getSize();
+			var C={x:false,y:'full'};
+			for(var E in D.size) {
+				var A=D.scrollSize[E] - D.size[E];
+				
+				if ($chk(C[E])) {
+					C[E] = ($type(C[E])=="number") ? C[E].limit(0,A) : A;
+				} else {
+					C[E] = D.scroll[E];
+				}
+				
+			}
+			
+			document.getElementById('log').scrollTop = C.y + 5;
+		},
+		'errorTest': function(ev) {
+			var test = $('index' + testRunner._index);
+			test.removeClass('pending');
+
+			test.addClass('error');
+			$E('span.result', test).setText('[ FAILURE ]');
+			$('test_failed').setText(parseInt($('test_failed').getText()) + 1);
+
+			alert('failure: ' + ev);
+		},
+		'skipTest': function(result) {
+			var test = $('index' + testRunner._index);
+			test.removeClass('pending');
+
+			test.addClass('skip');
+			$E('span.result', test).setText('[ SKIPPED ]');
+			$('test_expected_skipped').setText(parseInt($('test_expected_skipped').getText()) + 1);
+		}
+	};
+</script>
+<script type="text/javascript">
+	window.addEvent('domready', function() {
+		new Json.Remote('http://' + window.location.hostname + ':' + window.location.port + '/punit/tests/', {
+			onComplete: function(result) {
+				tests = result.tests;
+				expected = result.expected;
+				skipped = result.skipped;
+
+				for (var module in tests) {
+					for (var test_case in tests[module]) {
+						for (var i = 0; i < tests[module][test_case].length; i++) {
+							var method = tests[module][test_case][i];
+							testRunner.addTest(module, test_case, method);
+						}
+					}
+				}
+				$('number_tests').setText(testRunner.tests.length);
+				$('number_tests_expected_failed').setText(expected.length);
+				$('number_tests_expected_skipped').setText(skipped.length);
+			}
+		}).send({});
+
+		testRunner.results = $('results');
+
+		$('run_tests').addEvent('click', function() {
+			if (testRunner.running == false) {
+				if (testRunner._index == null)
+					testRunner.start();
+				else
+					testRunner.run();
+
+				$('run_tests').setProperty('value', 'Pause Tests');
+			} else {
+				testRunner.pause();
+				$('run_tests').setProperty('value', 'Resume Tests');
+			}
+		})
+	});
+</script>
+<style type="text/css" media="screen">
+	body {
+		font-family: "Trebuchet MS",sans-serif;
+		line-height: 1.2em;
+		font-size: small;
+	}
+	#results {
+		font-family: Monospace;
+		height: 25em;
+		overflow: auto;
+		border: 2px solid gray;
+		width: 45em;
+	}
+	#results div.module {
+		font-weight: bold;
+	}
+	#results div.module ul.testcases {
+		list-style-type: none;
+		margin: 0 0 0 1.2em;
+		padding: 0;
+		font-weight: normal;
+	}
+	#results ul.methods {
+		list-style-type: none;
+		margin: 0 0 0 1.2em;
+		padding: 0;
+	}
+	#results ul.methods li {
+		position: relative;
+	}
+	#results ul.methods span.result {
+		position: absolute;
+		left: 33em;
+		font-weight: bold;
+	}
+	#results ul.methods li.pending span.result {
+		color: orange;
+	}
+	#results ul.methods li.error span.result {
+		color: red;
+	}
+	#results ul.methods li.success span.result {
+		color: green;
+	}
+	#results ul.methods li.expected span.result {
+		color: purple !important;
+	}
+	#panel-wrapper {
+		float: left;
+	}
+	#status {
+		width: 13em;
+	}
+	#results-wrapper {
+		float: left;
+	}
+	#log-wrapper {
+		clear: both;
+	}
+	.hide {
+		display: none;
+	}
+	#log div.test {
+		font-weight: bold;
+		margin-bottom: 0.6em;
+	}
+	#log div.traceback {
+		white-space: pre;
+		font-family: Monospace;
+		font-weight: normal;
+	}
+	#log {
+		height: 30em;
+		overflow: auto;
+		border: 1px solid red;
+	}
+	#test_failed {
+		font-weight: bold;
+		color: #cc0000;
+	}
+	#test_passed {
+		font-weight: bold;
+		color: green;
+	}
+</style>
+{% endblock %}
+
+{% block body %}
+<h1>PUnit - PyAMF Unit Tests, run on Google App Engine</h1>
+<p>
+	Run the <a href="http://pyamf.org">PyAMF</a> test suite in the <a href="http://appengine.google.com">Google App Engine</a> environment from
+	the comfort of your own browser. Click on the 'Start Tests' button on the control panel to get started. This will iterate through all
+	the available tests and run the appropriate unit test on the server.
+</p>
+<p>
+	<strong>Expected failures:</strong><br />
+	There are a number of tests in the PyAMF suite that rely on certain core functions being available in the Python environment. Google is
+	understandably restrictive in the environment that is exposed (for reasons of security and how the server 'cloud' infrastructure
+	fundamentally works). Therefore we have a number of tests that fail in the PyAMF suite but we have provided the ability to see which tests
+	are expected and which aren't. If the number of expected tests that fail does not match the test run then there is a problem and a <a href="http://pyamf.org/newticket">bug should
+	be filed</a>.
+</p>
+<div id="panel-wrapper">
+	<h2>Control Panel</h2>
+	<div id="panel">
+		<div id="info">
+			<p>PyAMF version: {{ pyamf_version }}</p>
+		</div>
+		<form action="" method="get" accept-charset="utf-8">
+			<input type="button" value="Start Tests" id="run_tests" />
+		</form>
+		<div id="status">
+			<p class="complete">Tests complete <span id="test_complete">0</span>/<span id="number_tests"></span></p>
+			<p class="expected">Expected failures <span id="test_expected_failed">0</span>/<span id="number_tests_expected_failed"></span></p>
+			<p class="expected">Expected skipped <span id="test_expected_skipped">0</span>/<span id="number_tests_expected_skipped"></span></p>
+			<p class="passed">Tests passed <span id="test_passed">0</span></p>
+			<p class="failed">Tests failed <span id="test_failed">0</span></p>
+		</div>
+	</div>
+</div>
+<div id="results-wrapper">
+	<h2>Results</h2>
+	<div id="results"></div>
+</div>
+<div id="log-wrapper" class="hide">
+	<h2>Log</h2>
+	<div id="log"></div>
+</div>
+{% endblock %}
