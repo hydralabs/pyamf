@@ -1,7 +1,7 @@
 import logging
-import wsgiref.handlers
 
 from google.appengine.ext import webapp
+from google.appengine.ext.webapp.util import run_wsgi_app
 
 from pyamf.remoting.gateway.google import WebAppGateway
 
@@ -16,14 +16,20 @@ def echo(data):
     return data
 
 
-services = {
-    'myservice.echo': echo,
-}
-
-
 def main():
-    gateway = WebAppGateway(services, logger=logging, debug=True)
-    application_paths = [('/', gateway), ('/helloworld', MainPage)]
-    application = webapp.WSGIApplication(application_paths, debug=True)
+    debug_enabled = True
 
-    wsgiref.handlers.CGIHandler().run(application)
+    services = {
+        'myservice.echo': echo,
+    }
+
+    gateway = WebAppGateway(services, logger=logging, debug=debug_enabled)
+
+    application_paths = [('/', gateway), ('/helloworld', MainPage)]
+    application = webapp.WSGIApplication(application_paths, debug=debug_enabled)
+
+    run_wsgi_app(application)
+
+
+if __name__ == '__main__':
+  main()

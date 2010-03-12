@@ -8,12 +8,11 @@ def echo(data):
     return data
 
 
-services = {
-    'myservice.echo': echo,
-}
-
-
 def main():
+    services = {
+        'myservice.echo': echo,
+    }
+
     gateway = WSGIGateway(services, logger=logging, debug=True)
     wsgiref.handlers.CGIHandler().run(gateway)
 
