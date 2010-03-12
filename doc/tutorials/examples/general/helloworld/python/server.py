@@ -1,10 +1,10 @@
-# Copyright (c) 2007-2009 The PyAMF Project.
+# Copyright (c) The PyAMF Project.
 # See LICENSE.txt for details.
 
 """
 Hello world example server.
 
-@see: U{HelloWorld<http://pyamf.org/wiki/HelloWorld>} wiki page.
+@see: U{HelloWorld<http://pyamf.org/tutorials/general/helloworld/index.html>} wiki page.
 
 @since: 0.1.0
 """

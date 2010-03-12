@@ -1,3 +1,6 @@
+# Copyright (c) The PyAMF Project.
+# See LICENSE.txt for details.
+
 """
 Index page for GAE echo example.
 

@@ -1,12 +1,12 @@
-# Copyright (c) 2007-2009 The PyAMF Project.
+# Copyright (c) The PyAMF Project.
 # See LICENSE.txt for details.
 
 import sys, os.path, operator
 import logging
 
-
 import pyamf
 from pyamf import sol
+
 
 def default_folder():
     """

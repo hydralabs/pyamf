@@ -1,3 +1,6 @@
+# Copyright (c) The PyAMF Project.
+# See LICENSE.txt for details.
+
 """
 Tests for L{pyamf.version}
 """

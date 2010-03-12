@@ -1,10 +1,10 @@
-# Copyright (c) 2009 The PyAMF Project.
+# Copyright (c) The PyAMF Project.
 # See LICENSE.txt for details.
 
 """
 Simple PyAMF server.
 
-@see: U{Simple Example<http://pyamf.org/wiki/SimpleExample>} wiki page.
+@see: U{Simple Example<http://pyamf.org/tutorials/actionscript/simple.html>} documentation.
 @since: 0.5
 """
 

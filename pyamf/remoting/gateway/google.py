@@ -1,4 +1,4 @@
-# Copyright (c) 2007-2009 The PyAMF Project.
+# Copyright (c) The PyAMF Project.
 # See LICENSE.txt for details.
 
 """
@@ -8,7 +8,7 @@ This gateway allows you to expose functions in Google App Engine web
 applications to AMF clients and servers.
 
 :See: `Google App Engine homepage (external)
-    <http://code.google.com/appengine>`_
+    <http://code.google.com/appengine/docs/python/overview.html>`_
 
 :Since: 0.3.1
 """

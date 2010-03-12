@@ -1,7 +1,8 @@
+# Copyright (c) The PyAMF Project.
+# See LICENSE.txt for details.
+
 """
-Echo test core functionality. This module sets up the class
-mappings related to the echo_test.swf client on the
-U{EchoTest<http://pyamf.org/wiki/EchoTest>} wiki page.
+Interactive Python shell for Flex example.
 
 @since: 0.3
 """
