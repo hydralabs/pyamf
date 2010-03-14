@@ -22,12 +22,6 @@
 .. autofunction:: add_type
 .. autofunction:: remove_type
 .. autofunction:: register_package
-
-    For example `mymodule.py`::        class User(object):            pass        class Permission(object):            pass    Register it like this::
-
-        >>> import mymodule
-        >>> pyamf.register_package(mymodule, 'com.example.app')    Now all instances of `mymodule.User` will appear in Actionscript under the    alias `'com.example.app.User'`. Same goes for `mymodule.Permission` - the    Actionscript alias is `'com.example.app.Permission'`. The reverse is also    true, any objects with the correct aliases will now be instances of the    relevant Python class.    This function respects the `__all__` attribute of the module but you can    have further control of what not to auto alias by populating the `ignore`    argument.    This function provides the ability to register the module it is being    called in, an example::        >>> class Foo:        ...     pass        ...        >>> class Bar:        ...     pass        ...        >>> pyamf.register_package('foo')    You can also supply a list of classes to register. An example, taking the    above classes::        >>> pyamf.register_package([Foo, Bar], 'foo')
-
 .. autodata:: AMF0
 .. autodata:: AMF3
 .. autodata:: DEFAULT_ENCODING
