@@ -1,6 +1,6 @@
 #!/usr/bin/env jython
 #
-# Copyright (c) 2009 The PyAMF Project.
+# Copyright (c) The PyAMF Project.
 # See LICENSE for details.
 
 """

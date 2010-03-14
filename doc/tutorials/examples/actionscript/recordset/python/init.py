@@ -1,8 +1,8 @@
-# Copyright (c) 2007-2009 The PyAMF Project.
+# Copyright (c) The PyAMF Project.
 # See LICENSE.txt for details.
 
 """
-Creates the database.
+Creates the database for the RecordSet example.
 
 @since: 0.1.0
 """

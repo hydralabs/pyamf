@@ -1,4 +1,4 @@
-# Copyright (c) 2007-2009 The PyAMF Project.
+# Copyright (c) The PyAMF Project.
 # See LICENSE.txt for details.
 
 """
@@ -8,7 +8,7 @@ Sets up basic type mapping and class mappings for using the Datastore API
 in Google App Engine.
 
 @see: U{Datastore API on Google App Engine (external)
-<http://code.google.com/appengine/docs/datastore>}
+<http://code.google.com/appengine/docs/python/datastore>}
 
 @since: 0.3.1
 """

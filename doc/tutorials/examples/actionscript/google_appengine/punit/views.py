@@ -1,3 +1,6 @@
+# Copyright (c) The PyAMF Project.
+# See LICENSE.txt for details.
+
 """
 Views for the PyAMF web based unit test runner.
 """

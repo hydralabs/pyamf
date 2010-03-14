@@ -1,3 +1,6 @@
+# Copyright (c) The PyAMF Project.
+# See LICENSE.txt for details.
+
 from google.appengine.ext.webapp import template
 
 print "Content-Type: text/html"

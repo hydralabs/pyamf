@@ -1,10 +1,10 @@
-# Copyright (c) 2007-2009 The PyAMF Project.
+# Copyright (c) The PyAMF Project.
 # See LICENSE.txt for details.
 
 """
 Example socket server using Twisted.
 
-@see: U{Wiki page for this example<http://pyamf.org/wiki/BinarySocket>}
+@see: U{Documentation for this example<http://pyamf.org/tutorials/actionscript/socket.html>}
 
 @since: 0.1
 """

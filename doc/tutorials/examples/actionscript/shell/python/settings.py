@@ -1,4 +1,4 @@
-# Django settings for test2 project.
+# Django settings for shell project.
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG

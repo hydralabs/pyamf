@@ -1,3 +1,5 @@
+# Copyright (c) The PyAMF Project.
+# See LICENSE.txt for details.
 
 import unittest, sys, logging, time, os.path
 from StringIO import StringIO

@@ -1,10 +1,10 @@
-# Copyright (c) 2009 The PyAMF Project.
+# Copyright (c) The PyAMF Project.
 # See LICENSE.txt for details.
 
 """
 Test Twisted server for Adobe AIR 2.0's UDP support.
 
-Based on examples from http://twistedmatrix.com/projects/core/documentation/howto/udp.html
+Based on examples from http://twistedmatrix.com/documents/current/core/howto/udp.html
 """
 
 from pyamf import register_class
