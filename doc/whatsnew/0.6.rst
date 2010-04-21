@@ -31,7 +31,11 @@ Backward Incompatible API Changes
   been introduced.
 * ``amf*.Encoder.type_map`` has been changed to support custom types only.
   Standard types (e.g. ``str``, ``unicode``) are hardcoded.
-
+* ``django.contrib.auth.models.User`` is now strongly typed, with the alias
+  ``django.contrib.auth.models.User`` with the password and all messages
+  excluded from the instance. In addition, the ``username`` is now set to
+  readonly which means that a separate (read:deliberate) service method will
+  be required to update this directly (or you can override these defaults)
 
 Integration
 ===========
@@ -41,6 +45,7 @@ Django
 
 * Empty relations are now encoded as ``None``, not :class:`pyamf.Undefined`.
 * All ``model.Model`` fields are now encoded dynamically. See `#677`_
+* Django 1.2 supported, including the new CSRF middleware.
 
 Google AppEngine
 ----------------

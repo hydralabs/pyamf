@@ -99,6 +99,8 @@ class DjangoClassAlias(pyamf.ClassAlias):
         self.encodable_properties.update(props)
         self.decodable_properties.update(props)
 
+        self.exclude_attrs.update(['_state'])
+
     def _compile_base_class(self, klass):
         if klass is Model:
             return
@@ -173,9 +175,6 @@ class DjangoClassAlias(pyamf.ClassAlias):
                 attrs[name] = [x for x in getattr(obj, name).all()]
             else:
                 del attrs[relation.column]
-
-        if not attrs:
-            attrs = None
 
         return attrs
 

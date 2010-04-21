@@ -49,6 +49,11 @@ class DjangoGatewayTestCase(unittest.TestCase):
 
         del sys.modules[self.mod_name]
 
+    def test_csrf(self):
+        gw = _django.DjangoGateway()
+
+        self.assertTrue(gw.csrf_exempt)
+
     def test_settings(self):
         from django import conf
 

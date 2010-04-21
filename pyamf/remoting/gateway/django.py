@@ -45,6 +45,8 @@ class DjangoGateway(gateway.BaseGateway):
     :type expose_request: `bool`
     """
 
+    csrf_exempt = True
+
     def __init__(self, *args, **kwargs):
         kwargs['expose_request'] = kwargs.get('expose_request', True)
 

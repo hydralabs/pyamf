@@ -797,6 +797,24 @@ class ReferenceTestCase(ModelsBaseTestCase):
             '\x02\x06\x06\x02\x01')
 
 
+class AuthTestCase(ModelsBaseTestCase):
+
+    def setUp(self):
+        ModelsBaseTestCase.setUp(self)
+
+        from django.contrib.auth import models
+
+        self.models = models
+
+    def test_user(self):
+        alias = pyamf.get_class_alias(self.models.User)
+        self.resetDB()
+
+        self.assertEqual(alias, 'django.contrib.auth.models.User')
+        self.assertEqual(alias.exclude_attrs, ['message_set', 'password'])
+        self.assertEqual(alias.readonly_attrs, ['username'])
+
+
 def suite():
     suite = unittest.TestSuite()
 
@@ -813,7 +831,8 @@ def suite():
         PKTestCase,
         ModelInheritanceTestCase,
         FieldsTestCase,
-        ReferenceTestCase
+        ReferenceTestCase,
+        AuthTestCase
     ]
 
     try:
