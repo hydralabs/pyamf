@@ -10,9 +10,10 @@ Tests for Remoting client.
 """
 
 import unittest
+import urllib2
 
 import pyamf
-from pyamf import remoting
+from pyamf import remoting, util
 from pyamf.remoting import client
 
 
@@ -206,79 +207,116 @@ class RequestWrapperTestCase(unittest.TestCase):
         self.assertEquals(x.result, 'spam.eggs')
 
 
-class DummyResponse(object):
-    tc = None
-    closed = False
+class MockOpener(object):
+    """
+    opener for urllib2.install_opener
+    """
 
-    def __init__(self, status, body, headers=()):
-        self.status = status
-        self.body = body
-        self.headers = headers
+    def __init__(self, test, response=None):
+        self.test = test
+        self.response = response
 
-    def getheader(self, header):
-        if header in self.headers:
-            return self.headers[header]
+    def open(self, request, data=None):
+        if self.response.code != 200:
+            raise urllib2.URLError(self.response.code)
 
-        return None
+        self.request = request
+        self.data = data
 
-    def read(self, x=None):
-        if x is None:
-            return self.body
-
-        return self.body[:x]
-
-    def close(self):
-        self.closed = True
-
-
-class DummyConnection(object):
-    tc = None
-    expected_value = None
-    expected_url = None
-    expected_headers = None
-    response = None
-
-    def request(self, method, url, value, headers=None):
-        self.tc.assertEquals(method, 'POST')
-        self.tc.assertEquals(url, self.expected_url)
-        self.tc.assertEquals(value, self.expected_value)
-        self.tc.assertEquals(headers, self.expected_headers)
-
-    def getresponse(self):
         return self.response
 
 
-class RemotingServiceTestCase(unittest.TestCase):
+class MockHeaderCollection(object):
+
+    def __init__(self, headers):
+        self.headers = headers
+
+    def getheader(self, name):
+        return self.headers.get(name, None)
+
+
+class MockResponse(object):
+    """
+    """
+
+    headers = None
+    body = None
+
+    def info(self):
+        return MockHeaderCollection(self.headers)
+
+    def read(self, amount):
+        return self.body[0:amount]
+
+
+class BaseServiceTestCase(unittest.TestCase):
+    """
+    """
+
+    canned_response = ('\x00\x00\x00\x00\x00\x01\x00\x0b/1/onResult\x00'
+        '\x04null\x00\x00\x00\x00\n\x00\x00\x00\x03\x00?\xf0\x00\x00'
+        '\x00\x00\x00\x00\x00@\x00\x00\x00\x00\x00\x00\x00\x00@\x08\x00'
+        '\x00\x00\x00\x00\x00')
+
+    headers = {
+        'Content-Type': 'application/x-amf',
+    }
+
+    def setUp(self):
+        unittest.TestCase.setUp(self)
+
+        self.response = MockResponse()
+        self.opener = MockOpener(self, self.response)
+
+        urllib2.install_opener(self.opener)
+
+        self.gw = client.RemotingService('http://example.org/amf-gateway')
+
+        self.headers['Content-Length'] = len(self.canned_response)
+
+        self.setResponse(200, self.canned_response, self.headers)
+
+    def tearDown(self):
+        unittest.TestCase.tearDown(self)
+
+        urllib2.install_opener(urllib2.build_opener())
+
+    def setResponse(self, status, body, headers=None):
+        self.response.code = status
+        self.response.body = body
+        self.response.headers = headers or {
+            'Content-Type': remoting.CONTENT_TYPE
+        }
+
+
+class RemotingServiceTestCase(BaseServiceTestCase):
+    """
+    """
+
     def test_create(self):
         self.assertRaises(TypeError, client.RemotingService)
         x = client.RemotingService('http://example.org')
 
         self.assertEquals(x.url, ('http', 'example.org', '', '', '', ''))
 
-        self.assertEquals(x.connection.host, 'example.org')
-        self.assertEquals(x.connection.port, 80)
-
         # amf version
         x = client.RemotingService('http://example.org', pyamf.AMF3)
         self.assertEquals(x.amf_version, pyamf.AMF3)
 
-        # client type
-        x = client.RemotingService('http://example.org', pyamf.AMF3)
-
     def test_schemes(self):
         x = client.RemotingService('http://example.org')
-        self.assertEquals(x.connection.port, 80)
+        self.assertEquals(x.url, ('http', 'example.org', '', '', '', ''))
 
         x = client.RemotingService('https://example.org')
-        self.assertEquals(x.connection.port, 443)
+        self.assertEquals(x.url, ('https', 'example.org', '', '', '', ''))
 
         self.assertRaises(ValueError, client.RemotingService,
             'ftp://example.org')
 
     def test_port(self):
         x = client.RemotingService('http://example.org:8080')
-        self.assertEquals(x.connection.host, 'example.org')
-        self.assertEquals(x.connection.port, 8080)
+
+        self.assertEqual(x.url, ('http', 'example.org:8080', '', '', '', ''))
 
     def test_get_service(self):
         x = client.RemotingService('http://example.org')
@@ -386,229 +424,179 @@ class RemotingServiceTestCase(unittest.TestCase):
         self.assertEquals(request.body, [1, 2, 3])
 
     def test_execute_single(self):
-        gw = client.RemotingService('http://example.org/x/y/z')
-        dc = DummyConnection()
-        gw.connection = dc
-
-        dc.tc = self
-        dc.expected_headers = {'Content-Type': remoting.CONTENT_TYPE,
-                               'User-Agent': client.DEFAULT_USER_AGENT}
-
-        service = gw.getService('baz', auto_execute=False)
+        service = self.gw.getService('baz', auto_execute=False)
         wrapper = service.gak()
 
-        response = DummyResponse(200, '\x00\x00\x00\x00\x00\x01\x00\x0b/1/onRe'
-            'sult\x00\x04null\x00\x00\x00\x00\x00\x02\x00\x05hello', {
-            'Content-Type': 'application/x-amf', 'Content-Length': 50})
-        response.tc = self
+        response = self.gw.execute_single(wrapper)
+        self.assertEquals(self.gw.requests, [])
 
-        dc.expected_url = '/x/y/z'
-        dc.expected_value = '\x00\x00\x00\x00\x00\x01\x00\x07baz.gak\x00' + \
-            '\x02/1\x00\x00\x00\x00\x0a\x00\x00\x00\x00'
-        dc.response = response
+        r = self.opener.request
 
-        gw.execute_single(wrapper)
-        self.assertEquals(gw.requests, [])
+        self.assertEqual(r.headers, {
+            'Content-type': remoting.CONTENT_TYPE,
+            'User-agent': client.DEFAULT_USER_AGENT
+        })
+        self.assertEqual(r.get_method(), 'POST')
+        self.assertEqual(r.get_full_url(), 'http://example.org/amf-gateway')
 
-        wrapper = service.gak()
+        self.assertEqual(r.get_data(), '\x00\x00\x00\x00\x00\x01\x00\x07'
+            'baz.gak\x00\x02/1\x00\x00\x00\x00\x0a\x00\x00\x00\x00')
 
-        response = DummyResponse(200, '\x00\x00\x00\x00\x00\x01\x00\x0b/2/onRe'
-            'sult\x00\x04null\x00\x00\x00\x00\x00\x02\x00\x05hello', {
-            'Content-Type': 'application/x-amf'})
-        response.tc = self
-
-        dc.expected_url = '/x/y/z'
-        dc.expected_value = '\x00\x00\x00\x00\x00\x01\x00\x07baz.gak\x00' + \
-            '\x02/2\x00\x00\x00\x00\n\x00\x00\x00\x00'
-        dc.response = response
-
-        gw.execute_single(wrapper)
+        self.assertEqual(response.status, remoting.STATUS_OK)
+        self.assertEqual(response.body, [1, 2, 3])
 
     def test_execute(self):
-        gw = client.RemotingService('http://example.org/x/y/z')
-        dc = DummyConnection()
-        gw.connection = dc
-
-        dc.tc = self
-        dc.expected_headers = {'Content-Type': 'application/x-amf',
-                               'User-Agent': client.DEFAULT_USER_AGENT}
-
-        baz = gw.getService('baz', auto_execute=False)
-        spam = gw.getService('spam', auto_execute=False)
+        baz = self.gw.getService('baz', auto_execute=False)
+        spam = self.gw.getService('spam', auto_execute=False)
         wrapper = baz.gak()
         wrapper2 = spam.eggs()
 
-        response = DummyResponse(200, '\x00\x00\x00\x00\x00\x02\x00\x0b/1/onRe'
-            'sult\x00\x04null\x00\x00\x00\x00\x00\x02\x00\x05hello\x00\x0b/2/o'
-            'nResult\x00\x04null\x00\x00\x00\x00\x00\x02\x00\x05hello', {
-                'Content-Type': 'application/x-amf'})
-        response.tc = self
+        response = self.gw.execute()
+        self.assertEquals(self.gw.requests, [])
 
-        dc.expected_url = '/x/y/z'
-        dc.expected_value = ('\x00\x00\x00\x00\x00\x02\x00\x07baz.gak\x00\x02'
-            '/1\x00\x00\x00\x00\n\x00\x00\x00\x00\x00\tspam.eggs\x00\x02/2'
-            '\x00\x00\x00\x00\n\x00\x00\x00\x00')
-        dc.response = response
+        r = self.opener.request
 
-        gw.execute()
-        self.assertEquals(gw.requests, [])
+        self.assertEqual(r.headers, {
+            'Content-type': remoting.CONTENT_TYPE,
+            'User-agent': client.DEFAULT_USER_AGENT
+        })
+        self.assertEqual(r.get_method(), 'POST')
+        self.assertEqual(r.get_full_url(), 'http://example.org/amf-gateway')
+
+        self.assertEqual(r.get_data(), '\x00\x00\x00\x00\x00\x02\x00\x07'
+            'baz.gak\x00\x02/1\x00\x00\x00\x00\n\x00\x00\x00\x00\x00\tspam.'
+            'eggs\x00\x02/2\x00\x00\x00\x00\n\x00\x00\x00\x00')
 
     def test_get_response(self):
-        gw = client.RemotingService('http://example.org/amf-gateway')
-        dc = DummyConnection()
-        gw.connection = dc
+        self.setResponse(200, '\x00\x00\x00\x00\x00\x00\x00\x00')
 
-        response = DummyResponse(200, '\x00\x00\x00\x00\x00\x00', {
-            'Content-Type': 'application/x-amf'
-        })
+        self.gw._getResponse(None)
 
-        dc.response = response
+        self.setResponse(404, '', {})
 
-        gw._getResponse()
-
-        response = DummyResponse(404, '', {})
-        dc.response = response
-
-        self.assertRaises(remoting.RemotingError, gw._getResponse)
+        self.assertRaises(remoting.RemotingError, self.gw._getResponse, None)
 
         # bad content type
-        response = DummyResponse(200, '\x00\x00\x00\x00\x00\x00',
-            {'Content-Type': 'text/html'})
-        dc.response = response
+        self.setResponse(200, '<html></html>', {'Content-Type': 'text/html'})
 
-        self.assertRaises(remoting.RemotingError, gw._getResponse)
+        self.assertRaises(remoting.RemotingError, self.gw._getResponse, None)
 
     def test_credentials(self):
-        gw = client.RemotingService('http://example.org/amf-gateway')
-
-        self.assertFalse('Credentials' in gw.headers)
-        gw.setCredentials('spam', 'eggs')
-        self.assertTrue('Credentials' in gw.headers)
-        self.assertEquals(gw.headers['Credentials'],
+        self.assertFalse('Credentials' in self.gw.headers)
+        self.gw.setCredentials('spam', 'eggs')
+        self.assertTrue('Credentials' in self.gw.headers)
+        self.assertEquals(self.gw.headers['Credentials'],
             {'userid': u'spam', 'password': u'eggs'})
 
-        envelope = gw.getAMFRequest([])
+        envelope = self.gw.getAMFRequest([])
         self.assertTrue('Credentials' in envelope.headers)
 
         cred = envelope.headers['Credentials']
 
-        self.assertEquals(cred, gw.headers['Credentials'])
+        self.assertEquals(cred, self.gw.headers['Credentials'])
 
     def test_append_url_header(self):
-        gw = client.RemotingService('http://example.org/amf-gateway')
-        dc = DummyConnection()
-        gw.connection = dc
-
-        response = DummyResponse(200, '\x00\x00\x00\x01\x00\x12AppendToGatewayUrl'
-            '\x01\x00\x00\x00\x00\x02\x00\x05hello\x00\x00', {
+        self.setResponse(200, '\x00\x00\x00\x01\x00\x12AppendToGatewayUrl'
+            '\x01\x00\x00\x00\x00\x02\x00\x05hello\x00\x00\x00\x00', {
             'Content-Type': 'application/x-amf'})
 
-        dc.response = response
+        response = self.gw._getResponse(None)
 
-        response = gw._getResponse()
-        self.assertEquals(gw.original_url, 'http://example.org/amf-gatewayhello')
+        self.assertEquals(self.gw.original_url,
+            'http://example.org/amf-gatewayhello')
 
     def test_replace_url_header(self):
-        gw = client.RemotingService('http://example.org/amf-gateway')
-        dc = DummyConnection()
-        gw.connection = dc
+        self.setResponse(200, '\x00\x00\x00\x01\x00\x11ReplaceGatewayUrl\x01'
+            '\x00\x00\x00\x00\x02\x00\x10http://spam.eggs\x00\x00\x00\x00',
+            {'Content-Type': 'application/x-amf'})
 
-        response = DummyResponse(200, '\x00\x00\x00\x01\x00\x11ReplaceGatewayUrl'
-            '\x01\x00\x00\x00\x00\x02\x00\x10http://spam.eggs\x00\x00', {
-            'Content-Type': 'application/x-amf'})
-
-        dc.response = response
-
-        response = gw._getResponse()
-        self.assertEquals(gw.original_url, 'http://spam.eggs')
-
-    def test_close_http_response(self):
-        gw = client.RemotingService('http://example.org/amf-gateway')
-        dc = DummyConnection()
-        gw.connection = dc
-        dc.response = DummyResponse(200, '\x00\x00\x00\x01\x00\x11ReplaceGatewayUrl'
-            '\x01\x00\x00\x00\x00\x02\x00\x10http://spam.eggs\x00\x00', {
-            'Content-Type': 'application/x-amf'})
-
-        gw._getResponse()
-        self.assertTrue(dc.response.closed, True)
+        response = self.gw._getResponse(None)
+        self.assertEquals(self.gw.original_url, 'http://spam.eggs')
 
     def test_add_http_header(self):
-        gw = client.RemotingService('http://example.org/amf-gateway')
+        self.assertEquals(self.gw.http_headers, {})
 
-        self.assertEquals(gw.http_headers, {})
+        self.gw.addHTTPHeader('ETag', '29083457239804752309485')
 
-        gw.addHTTPHeader('ETag', '29083457239804752309485')
-
-        self.assertEquals(gw.http_headers, {
+        self.assertEquals(self.gw.http_headers, {
             'ETag': '29083457239804752309485'
         })
 
     def test_remove_http_header(self):
-        gw = client.RemotingService('http://example.org/amf-gateway')
-
-        gw.http_headers = {
+        self.gw.http_headers = {
             'Set-Cookie': 'foo-bar'
         }
 
-        gw.removeHTTPHeader('Set-Cookie')
+        self.gw.removeHTTPHeader('Set-Cookie')
 
-        self.assertEquals(gw.http_headers, {})
-        self.assertRaises(KeyError, gw.removeHTTPHeader, 'foo-bar')
+        self.assertEquals(self.gw.http_headers, {})
+        self.assertRaises(KeyError, self.gw.removeHTTPHeader, 'foo-bar')
 
     def test_http_request_headers(self):
-        gw = client.RemotingService('http://example.org/amf-gateway')
-        dc = DummyConnection()
-        gw.connection = dc
-        dc.tc = self
-        dc.expected_url = '/amf-gateway'
-        dc.expected_value = '\x00\x00\x00\x00\x00\x00'
+        self.gw.addHTTPHeader('ETag', '29083457239804752309485')
 
-        gw.addHTTPHeader('ETag', '29083457239804752309485')
-        dc.expected_headers = {
-            'ETag': '29083457239804752309485',
-            'Content-Type': 'application/x-amf',
-            'User-Agent': gw.user_agent
+        expected_headers = {
+            'Etag': '29083457239804752309485',
+            'Content-type': 'application/x-amf',
+            'User-agent': self.gw.user_agent
         }
 
-        dc.response = DummyResponse(200, '\x00\x00\x00\x01\x00\x11ReplaceGatewayUrl'
-            '\x01\x00\x00\x00\x00\x02\x00\x10http://spam.eggs\x00\x00', {
-            'Content-Type': 'application/x-amf'
-        })
+        self.setResponse(200, '\x00\x00\x00\x01\x00\x11ReplaceGatewayUrl'
+            '\x01\x00\x00\x00\x00\x02\x00\x10http://spam.eggs\x00\x00\x00\x00')
 
-        gw.execute()
-        self.assertTrue(dc.response.closed, True)
+        self.gw.execute()
+
+        request = self.opener.request
+
+        self.assertEqual(expected_headers, request.headers)
 
     def test_empty_content_length(self):
-        gw = client.RemotingService('http://example.org/amf-gateway')
-        dc = DummyConnection()
-        gw.connection = dc
-
-        http_response = DummyResponse(200, '\x00\x00\x00\x01\x00\x11ReplaceGatewayUrl'
-            '\x01\x00\x00\x00\x00\x02\x00\x10http://spam.eggs\x00\x00', {
+        self.setResponse(200, '\x00\x00\x00\x01\x00\x11ReplaceGatewayUrl\x01'
+            '\x00\x00\x00\x00\x02\x00\x10http://spam.eggs\x00\x00\x00\x00', {
             'Content-Type': 'application/x-amf',
             'Content-Length': ''
         })
 
-        dc.response = http_response
-        gw._getResponse()
-
-        self.assertTrue(http_response.closed)
+        response = self.gw._getResponse(None)
 
     def test_bad_content_length(self):
-        gw = client.RemotingService('http://example.org/amf-gateway')
-        dc = DummyConnection()
-        gw.connection = dc
-
         # test a really borked content-length header
-        http_response = DummyResponse(200, '\x00\x00\x00\x01\x00\x11ReplaceGatewayUrl'
-            '\x01\x00\x00\x00\x00\x02\x00\x10http://spam.eggs\x00\x00', {
+        self.setResponse(200, self.canned_response, {
             'Content-Type': 'application/x-amf',
             'Content-Length': 'asdfasdf'
         })
 
-        dc.response = http_response
-        self.assertRaises(ValueError, gw._getResponse)
+        self.assertRaises(ValueError, self.gw._getResponse, None)
+
+
+class GZipTestCase(BaseServiceTestCase):
+    """
+    Tests for gzipping responses
+    """
+
+    def setUp(self):
+        import gzip
+
+        buf = util.BufferedByteStream()
+        x = gzip.GzipFile(fileobj=buf, mode='wb')
+
+        x.write(self.canned_response)
+
+        x.close()
+
+        self.canned_response = buf.getvalue()
+        self.headers['Content-Encoding'] = 'gzip'
+
+        BaseServiceTestCase.setUp(self)
+
+    def test_good_response(self):
+        self.gw._getResponse(None)
+
+    def test_bad_response(self):
+        self.headers['Content-Length'] = len('foobar')
+        self.setResponse(200, 'foobar', self.headers)
+
+        self.assertRaises(IOError, self.gw._getResponse, None)
 
 
 def suite():
@@ -618,6 +606,13 @@ def suite():
     suite.addTest(unittest.makeSuite(ServiceProxyTestCase))
     suite.addTest(unittest.makeSuite(RequestWrapperTestCase))
     suite.addTest(unittest.makeSuite(RemotingServiceTestCase))
+
+    try:
+        import gzip
+    except:
+        pass
+    else:
+        suite.addTest(unittest.makeSuite(GZipTestCase))
 
     return suite
 

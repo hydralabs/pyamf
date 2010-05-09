@@ -7,24 +7,25 @@ Remoting client implementation.
 :since: 0.1.0
 """
 
-import httplib
+import urllib2
 import urlparse
 
 import pyamf
 from pyamf import remoting
 
+try:
+    from gzip import GzipFile
+except ImportError:
+    GzipFile = False
+
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
+
 
 #: Default user agent is `PyAMF/x.x(.x)`.
 DEFAULT_USER_AGENT = 'PyAMF/%s' % (pyamf.version,)
-
-HTTP_OK = 200
-
-
-def convert_args(args):
-    if args == (tuple(),):
-        return []
-    else:
-        return [x for x in args]
 
 
 class ServiceMethodProxy(object):
@@ -91,9 +92,9 @@ class ServiceProxy(object):
 
     def _call(self, method_proxy, *args):
         """
-        Executed when a :class:`ServiceMethodProxy` is called. Adds a request to the
-        underlying gateway. If `_auto_execute` is set to `True`, then the
-        request is immediately called on the remote gateway.
+        Executed when a :class:`ServiceMethodProxy` is called. Adds a request
+        to the underlying gateway. If `_auto_execute` is set to `True`, then
+        the request is immediately called on the remote gateway.
         """
         request = self._gw.addRequest(method_proxy, *args)
 
@@ -196,8 +197,6 @@ class RemotingService(object):
     :ivar user_agent: Contains information about the user agent (client)
         originating the request. See :const:`DEFAULT_USER_AGENT`.
     :type user_agent: `str`
-    :ivar connection: The underlying connection to the remoting server.
-    :type connection: `httplib.HTTPConnection` or `httplib.HTTPSConnection`
     :ivar headers: A list of persistent headers to send with each request.
     :type headers: :class:`HeaderCollection<pyamf.remoting.HeaderCollection>`
     :ivar http_headers: A dict of HTTP headers to apply to the underlying
@@ -235,45 +234,13 @@ class RemotingService(object):
         self.url = urlparse.urlparse(url)
         self._root_url = urlparse.urlunparse(['', ''] + list(self.url[2:]))
 
-        port = None
-        hostname = None
-
-        if hasattr(self.url, 'port'):
-            if self.url.port is not None:
-                port = self.url.port
-        else:
-            if ':' not in self.url[1]:
-                hostname = self.url[1]
-                port = None
-            else:
-                sp = self.url[1].split(':')
-
-                hostname, port = sp[0], sp[1]
-                port = int(port)
-
-        if hostname is None:
-            if hasattr(self.url, 'hostname'):
-                hostname = self.url.hostname
-
-        if self.url[0] == 'http':
-            if port is None:
-                port = httplib.HTTP_PORT
-
-            self.connection = httplib.HTTPConnection(hostname, port)
-        elif self.url[0] == 'https':
-            if port is None:
-                port = httplib.HTTPS_PORT
-
-            self.connection = httplib.HTTPSConnection(hostname, port)
-        else:
-            raise ValueError('Unknown scheme')
-
-        location = '%s://%s:%s%s' % (self.url[0], hostname, port, self.url[2])
+        if not self.url[0] in ('http', 'https'):
+            raise ValueError('Unknown scheme %r' % (self.url[0],))
 
         if self.logger:
-            self.logger.info('Connecting to %s' % location)
-            self.logger.debug('Referer: %s' % self.referer)
-            self.logger.debug('User-Agent: %s' % self.user_agent)
+            self.logger.info('Connecting to %r', self._root_url)
+            self.logger.debug('Referer: %r', self.referer)
+            self.logger.debug('User-Agent: %r', self.user_agent)
 
     def addHeader(self, name, value, must_understand=False):
         """
@@ -324,7 +291,7 @@ class RemotingService(object):
             if request.id == id_:
                 return request
 
-        raise LookupError("Request %s not found" % id_)
+        raise LookupError("Request %s not found" % (id_,))
 
     def addRequest(self, service, *args):
         """
@@ -337,7 +304,7 @@ class RemotingService(object):
         self.requests.append(wrapper)
 
         if self.logger:
-            self.logger.debug('Adding request %s%r' % (wrapper.service, args))
+            self.logger.debug('Adding request %s%r', wrapper.service, args)
 
         return wrapper
 
@@ -349,8 +316,8 @@ class RemotingService(object):
         """
         if isinstance(service, RequestWrapper):
             if self.logger:
-                self.logger.debug('Removing request: %s' % (
-                    self.requests[self.requests.index(service)]))
+                self.logger.debug('Removing request: %s',
+                    self.requests[self.requests.index(service)])
             del self.requests[self.requests.index(service)]
 
             return
@@ -358,8 +325,8 @@ class RemotingService(object):
         for request in self.requests:
             if request.service == service and request.args == args:
                 if self.logger:
-                    self.logger.debug('Removing request: %s' % (
-                        self.requests[self.requests.index(request)]))
+                    self.logger.debug('Removing request: %s',
+                        self.requests[self.requests.index(request)])
                 del self.requests[self.requests.index(request)]
 
                 return
@@ -413,18 +380,16 @@ class RemotingService(object):
         :rtype:
         """
         if self.logger:
-            self.logger.debug('Executing single request: %s' % request)
+            self.logger.debug('Executing single request: %s', request)
+
+        self.removeRequest(request)
+
         body = remoting.encode(self.getAMFRequest([request]), strict=self.strict)
 
-        if self.logger:
-            self.logger.debug('Sending POST request to %s' % self._root_url)
-        self.connection.request('POST', self._root_url,
-            body.getvalue(),
-            self._get_execute_headers()
-        )
+        http_request = urllib2.Request(self.url.geturl(), body.getvalue(),
+            self._get_execute_headers())
 
-        envelope = self._getResponse()
-        self.removeRequest(request)
+        envelope = self._getResponse(http_request)
 
         return envelope[request.id]
 
@@ -433,80 +398,81 @@ class RemotingService(object):
         Builds, sends and handles the responses to all requests listed in
         `self.requests`.
         """
-        body = remoting.encode(self.getAMFRequest(self.requests), strict=self.strict)
+        requests = self.requests[:]
 
-        if self.logger:
-            self.logger.debug('Sending POST request to %s' % self._root_url)
+        for r in requests:
+            self.removeRequest(r)
 
-        self.connection.request('POST', self._root_url,
-            body.getvalue(),
-            self._get_execute_headers()
-        )
+        body = remoting.encode(self.getAMFRequest(requests),
+            strict=self.strict)
 
-        envelope = self._getResponse()
+        http_request = urllib2.Request(self.url.geturl(), body.getvalue(),
+            self._get_execute_headers())
 
-        for response in envelope:
-            request = self.getRequest(response[0])
-            response = response[1]
+        envelope = self._getResponse(http_request)
 
-            request.setResponse(response)
+        return envelope
 
-            self.removeRequest(request)
-
-    def _getResponse(self):
+    def _getResponse(self, http_request):
         """
         Gets and handles the HTTP response from the remote gateway.
 
         :raise RemotingError: HTTP Gateway reported error status.
         :raise RemotingError: Incorrect MIME type received.
+        :raise RemotingError: Decompression not available.
         """
         if self.logger:
-            self.logger.debug('Waiting for response...')
+            self.logger.debug('Sending POST request to %s', self.url.geturl())
 
-        http_response = self.connection.getresponse()
+        try:
+            fbh = urllib2.urlopen(http_request)
+        except urllib2.URLError, e:
+            if self.logger:
+                self.logger.exception('Failed request for %s',
+                    self.url.geturl())
+
+            raise remoting.RemotingError(str(e))
+
+        http_message = fbh.info()
+
+        content_encoding = http_message.getheader('Content-Encoding')
+        content_length = http_message.getheader('Content-Length') or -1
+        content_type = http_message.getheader('Content-Type')
+        server = http_message.getheader('Server')
 
         if self.logger:
-            self.logger.debug('Got response status: %s' % http_response.status)
-            self.logger.debug('Content-Type: %s' % http_response.getheader('Content-Type'))
-
-        if http_response.status != HTTP_OK:
-            if self.logger:
-                self.logger.debug('Body: %s' % http_response.read())
-
-            if hasattr(httplib, 'responses'):
-                raise remoting.RemotingError("HTTP Gateway reported status %d %s" % (
-                    http_response.status, httplib.responses[http_response.status]))
-
-            raise remoting.RemotingError("HTTP Gateway reported status %d" % (
-                http_response.status,))
-
-        content_type = http_response.getheader('Content-Type')
+            self.logger.debug('Content-Type: %r', content_type)
+            self.logger.debug('Content-Encoding: %r', content_encoding)
+            self.logger.debug('Content-Length: %r', content_length)
+            self.logger.debug('Server: %r', server)
 
         if content_type != remoting.CONTENT_TYPE:
             if self.logger:
-                self.logger.debug('Body = %s' % http_response.read())
+                self.logger.debug('Body = %s', fbh.read())
 
-            raise remoting.RemotingError("Incorrect MIME type received. (got: %s)" % content_type)
+            raise remoting.RemotingError('Incorrect MIME type received. '
+                '(got: %s)' % (content_type,))
 
-        content_length = http_response.getheader('Content-Length')
-        bytes = ''
-
-        if self.logger:
-            self.logger.debug('Content-Length: %s' % content_length)
-            self.logger.debug('Server: %s' % http_response.getheader('Server'))
-
-        if content_length in (None, ''):
-            bytes = http_response.read()
-        else:
-            bytes = http_response.read(int(content_length))
+        bytes = fbh.read(int(content_length))
 
         if self.logger:
-            self.logger.debug('Read %d bytes for the response' % len(bytes))
+            self.logger.debug('Read %d bytes for the response', len(bytes))
+
+        if content_encoding and content_encoding.strip().lower() == 'gzip':
+            if not GzipFile:
+                raise remoting.RemotingError(
+                    'Decompression of Content-Encoding: %s not available.' % (
+                        content_encoding,))
+
+            compressedstream = StringIO(bytes)
+            gzipper = GzipFile(fileobj=compressedstream)
+            bytes = gzipper.read(len(bytes))
+            gzipper.close()
 
         response = remoting.decode(bytes, strict=self.strict)
 
         if self.logger:
-            self.logger.debug('Response: %s' % response)
+            self.logger.debug('Response: %s', response)
 
         if remoting.APPEND_TO_GATEWAY_URL in response.headers:
             self.original_url += response.headers[remoting.APPEND_TO_GATEWAY_URL]
@@ -522,8 +488,6 @@ class RemotingService(object):
 
             for k, v in data.iteritems():
                 self.headers[k] = v
-
-        http_response.close()
 
         return response
 
