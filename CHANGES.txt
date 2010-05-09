@@ -8,6 +8,8 @@ versions of PyAMF.
 
 0.6 (unreleased)
 ----------------
+- AMF0 Remoting error tracebacks will be a list rather than a string
+  (Ticket:767)
 - Switch the PyAMF client to use urllib2. Provides support for proxying and
   gzipped responses. Thanks to @PaulWinkeler for the heavy lifting.
   (Ticket:751)

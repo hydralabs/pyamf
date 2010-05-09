@@ -7,6 +7,7 @@ AMF0 Remoting support.
 @since: 0.1.0
 """
 
+import os
 import traceback
 import sys
 
@@ -130,6 +131,6 @@ def build_fault(cls, e, tb, include_traceback=False):
     details = None
 
     if include_traceback:
-        details = str(traceback.format_exception(cls, e, tb)).replace("\\n", '')
+        details = traceback.format_exception(cls, e, tb)
 
     return remoting.ErrorFault(code=code, description=unicode(e), details=details)

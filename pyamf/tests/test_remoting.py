@@ -421,10 +421,11 @@ def suite():
     for tc in test_cases:
         suite.addTest(unittest.makeSuite(tc))
 
-    from pyamf.tests.remoting import test_client, test_remoteobject
+    from pyamf.tests.remoting import test_client, test_remoteobject, test_amf0
 
     suite.addTest(test_client.suite())
     suite.addTest(test_remoteobject.suite())
+    suite.addTest(test_amf0.suite())
 
     return suite
 
