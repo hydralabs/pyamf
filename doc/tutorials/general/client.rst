@@ -46,7 +46,18 @@ Logging
 Enable logging with a ``DEBUG`` level to log messages including the timestamp
 and level name.
 
-.. literalinclude:: ../examples/general/client/logging.py
+.. literalinclude:: ../examples/general/client/logger.py
+    :linenos:
+
+
+AMF Version
+-----------
+
+:data:`AMF0 <pyamf.AMF0>` is the default AMF encoding used by the client. You can force it to use AMF3 by
+supplying the `amf_version` keyword to the :class:`RemotingService <pyamf.remoting.client.RemotingService>`.
+See :data:`pyamf.ENCODING_TYPES` for more info.
+
+.. literalinclude:: ../examples/general/client/amf_version.py
     :linenos:
 
 
@@ -54,8 +65,8 @@ User-Agent
 ----------
 
 By default the client identifies itself with a 'PyAMF/x.x' user agent header. You can modify
-this by providing a custom `user_agent` keyword to your `RemotingService`. The example client
-below will be seen as 'MyApp/0.1.0' by the server.
+this by providing a custom `user_agent` keyword to your :class:`RemotingService <pyamf.remoting.client.RemotingService>`.
+The example client below will be seen as 'MyApp/0.1.0' by the server.
 
 .. literalinclude:: ../examples/general/client/user_agent.py
     :linenos:
@@ -66,8 +77,8 @@ Referer
 
 The referer also provides the client a way to identify itself, similar to the `user_agent` in
 the previous example. You can modify this by providing a custom `referrer` keyword to your
-`RemotingService`. The example client below will be seen as 'client.py' by the server. The
-default is `None`.
+:class:`RemotingService <pyamf.remoting.client.RemotingService>`. The example client below will
+be seen as 'client.py' by the server. The default is `None`.
 
 .. literalinclude:: ../examples/general/client/referer.py
     :linenos:
@@ -86,8 +97,8 @@ Exception Handling
 ------------------
 
 As of PyAMF 0.6, the client will now raise an appropriate error if remoting
-call returns an error. The default behaviour is to raise a ``pyamf.remoting.RemotingError``
-but this behaviour can be modified:
+call returns an error. The default behaviour is to raise a
+:class:`RemotingError <pyamf.remoting.RemotingError>` but this behaviour can be modified:
 
 .. code-block:: python
 
