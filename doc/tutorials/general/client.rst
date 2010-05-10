@@ -50,6 +50,29 @@ and level name.
     :linenos:
 
 
+User-Agent
+----------
+
+By default the client identifies itself with a 'PyAMF/x.x' user agent header. You can modify
+this by providing a custom `user_agent` keyword to your `RemotingService`. The example client
+below will be seen as 'MyApp/0.1.0' by the server.
+
+.. literalinclude:: ../examples/general/client/user_agent.py
+    :linenos:
+
+
+Referer
+-------
+
+The referer also provides the client a way to identify itself, similar to the `user_agent` in
+the previous example. You can modify this by providing a custom `referrer` keyword to your
+`RemotingService`. The example client below will be seen as 'client.py' by the server. The
+default is `None`.
+
+.. literalinclude:: ../examples/general/client/referer.py
+    :linenos:
+
+
 HTTP Headers
 ------------
 
@@ -75,12 +98,17 @@ And from the console:
 .. literalinclude:: ../examples/general/client/exception.py
 
 
-The gateway returns an error code which is mapped to an exception class.
+The gateway returns an error code which is mapped to an exception class. A number of built-in
+exceptions are automatically mapped:
 
-Use :func:`pyamf.add_error_class` to add new code/class combos. A number of built-in
-exceptions are automatically mapped: ``TypeError``, ``LookupError``, ``KeyError``,
-``IndexError``, ``NameError``. :func:`pyamf.remove_error_class` is used for removing
-classes.
+- ``TypeError``
+- ``LookupError``
+- ``KeyError``
+- ``IndexError``
+- ``NameError``
+
+Use :func:`pyamf.add_error_class` to add new code/class combos and
+:func:`pyamf.remove_error_class` to remove classes.
 
 
 More
