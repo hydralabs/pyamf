@@ -440,9 +440,21 @@ def _read_body(stream, decoder, strict=False, logger=None):
         """
         :raise pyamf.DecodeError: Array type required for request body.
         """
-        if stream.read(1) != '\x0a':
+        # we have to go through this insanity because it seems that amf0
+        # does not keep the array of args in the object references lookup
+        type_byte = stream.peek(1)
+
+        if type_byte == '\x11':
+            if not decoder.use_amf3:
+                raise pyamf.DecodeError(
+                    "Unexpected AMF3 type with incorrect message type")
+
+            return decoder.readElement()
+
+        if type_byte != '\x0a':
             raise pyamf.DecodeError("Array type required for request body")
 
+        stream.read(1)
         x = stream.read_ulong()
 
         return [decoder.readElement() for i in xrange(x)]
@@ -640,6 +652,8 @@ def decode(stream, context=None, strict=False, logger=None, timezone_offset=None
 
     decoder = pyamf.get_decoder(pyamf.AMF0, stream, context=context,
         strict=strict, timezone_offset=timezone_offset)
+
+    decoder.use_amf3 = msg.amfVersion == pyamf.AMF3
 
     header_count = stream.read_ushort()
 
