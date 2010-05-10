@@ -9,7 +9,7 @@ versions of PyAMF.
 0.6 (unreleased)
 ----------------
 - Provide support for AMF3 remoting packets (BlazeDS acting as a client)
-  (Ticket:737)
+  (Ticket:737,766)
 - AMF0 Remoting error tracebacks will be a list rather than a string
   (Ticket:767)
 - Switch the PyAMF client to use urllib2. Provides support for proxying and
