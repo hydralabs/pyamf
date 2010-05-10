@@ -2,6 +2,7 @@ from pyamf.remoting.client import RemotingService
 
 gw = RemotingService('http://demo.pyamf.org/gateway/recordset')
 
+gw.addHTTPHeader("Accept-encoding", "gzip")
 gw.addHTTPHeader('Set-Cookie', 'sessionid=QT3cUmACNeKQo5oPeM0')
 gw.removeHTTPHeader('Set-Cookie')
 
