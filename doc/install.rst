@@ -126,7 +126,7 @@ Advanced Options
 Because of setuptools_ you can do, with the release tag, as well
 as with trunk::
     
-    easy_install http://svn.pyamf.org/tags/release-0.5.1
+    easy_install http://svn.pyamf.org/tags/release-0.6b1
 
 To find out about other advanced installation options, run::
     

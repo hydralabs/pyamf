@@ -143,7 +143,7 @@ html_use_modindex = True
 html_copy_source = False
 
 # Output an OpenSearch description file.
-html_use_opensearch = 'http://docs.pyamf.org'
+html_use_opensearch = 'http://pyamf.org'
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'pyamf' + release.replace('.', '')
@@ -186,4 +186,4 @@ latex_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'http://docs.python.org/': None}
+intersphinx_mapping = {'http://python.org/': None}
