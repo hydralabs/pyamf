@@ -185,7 +185,10 @@ class DjangoClassAlias(pyamf.ClassAlias):
             if n in self.relations:
                 continue
 
-            f = self.fields[n]
+            try:
+                f = self.fields[n]
+            except KeyError:
+                continue
 
             attrs[f.attname] = self._decodeValue(f, attrs[n])
 

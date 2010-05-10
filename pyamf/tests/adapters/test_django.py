@@ -231,6 +231,33 @@ class ClassAliasTestCase(ModelsBaseTestCase):
         # test it has been set
         self.assertEquals(x.spam, 'foo')
 
+    def test_properties(self):
+        """
+        See #764
+        """
+        from django.db import models
+
+        class Foob(models.Model):
+            def _get_days(self):
+                return 1
+
+            def _set_days(self, val):
+                assert 1 == val
+
+            days = property(_get_days, _set_days)
+
+        alias = self.adapter.DjangoClassAlias(Foob, 'Bar')
+
+        x = Foob()
+
+        self.assertEqual(x.days, 1)
+
+        self.assertEquals(alias.getEncodableAttributes(x),
+            {'days': 1, 'id': None})
+
+        # now we test sending the numberOfOddPages attribute
+        alias.applyAttributes(x, {'id': None})
+
 
 class ForeignKeyTestCase(ModelsBaseTestCase):
     def test_one_to_many(self):
