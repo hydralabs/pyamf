@@ -216,7 +216,7 @@ class MockOpener(object):
         self.test = test
         self.response = response
 
-    def open(self, request, data=None):
+    def open(self, request, data=None, timeout=None):
         if self.response.code != 200:
             raise urllib2.URLError(self.response.code)
 
