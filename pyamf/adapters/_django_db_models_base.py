@@ -229,10 +229,15 @@ def getDjangoObjects(context):
     :rtype: Instance of :class:`DjangoReferenceCollection`
     :since: 0.5
     """
-    if not hasattr(context, 'django_objects'):
-        context.django_objects = DjangoReferenceCollection()
+    c = context.extra_context
+    k = 'django_objects'
 
-    return context.django_objects
+    try:
+        return c[k]
+    except KeyError:
+        c[k] = DjangoReferenceCollection()
+
+    return c[k]
 
 
 def writeDjangoObject(encoder, obj, **kwargs):

@@ -133,7 +133,7 @@ def encode(name, values, strict=True, encoding=pyamf.AMF0):
     stream.write_uchar(encoding)
 
     for n, v in values.iteritems():
-        encoder.writeString(n, writeType=False)
+        encoder.writeLabel(str(n))
         encoder.writeElement(v)
 
         # write the padding

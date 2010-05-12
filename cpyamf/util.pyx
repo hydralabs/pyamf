@@ -1,13 +1,15 @@
-# Copyright (c) 2007-2009 The PyAMF Project.
-# See LICENSE for details.
+# Copyright (c) The PyAMF Project.
+# See LICENSE.txt for details.
 
 """
 C-extension for L{pyamf.util} Python module in L{PyAMF<pyamf>}.
 
-@since: 0.4
+:since: 0.4
 """
 
-cdef extern from "stdlib.h":
+from python cimport *
+
+cdef extern from "stdlib.h" nogil:
     ctypedef unsigned long size_t
 
     int memcmp(void *dest, void *src, size_t)
@@ -17,55 +19,10 @@ cdef extern from "stdio.h":
     int SIZEOF_LONG
 
 cdef extern from "Python.h":
-    ctypedef struct PyObject:
-        pass
-
-    PyObject *PyErr_Occurred()
-    object PyObject_Repr(PyObject *)
-
-    void Py_INCREF(PyObject *)
-    void Py_DECREF(PyObject *)
-
-    void *PyMem_Malloc(size_t)
-    void *PyMem_Realloc(void *, size_t)
-    void *PyMem_Free(void *)
-
-    void PyErr_SetNone(object)
-    void PyErr_SetString(object,char *)
-    void PyErr_Clear()
-
-    int PyUnicode_Check(object)
-    int PyString_Check(object)
-    int PyList_Check(object)
-    int PyDict_Check(object)
-    int PyInt_Check(object)
-    int PyFloat_Check(object)
-    int PyLong_Check(object)
-
-    object PyString_FromStringAndSize(char *buf, Py_ssize_t size)
-    int PyString_AsStringAndSize(object, char **buf, Py_ssize_t *size)
-
-    object PyString_AsEncodedObject(object, char *, char *)
-    object PyUnicode_DecodeUTF8(char *, Py_ssize_t, char *)
-    object PyUnicode_AsUTF8String(object)
-    char *PyString_AsString(object)
-
-    int _PyFloat_Pack4(float, unsigned char *, int)
-    int _PyFloat_Pack8(double, unsigned char *, int)
-    float _PyFloat_Unpack4(unsigned char *, int)
-    double _PyFloat_Unpack8(unsigned char *, int)
-    object PyFloat_FromDouble(double)
-    double PyFloat_AsDouble(object)
-
-    PyObject *PyDict_GetItem(object, object)
-    int PyDict_SetItem(object, object, object)
-    long PyInt_AS_LONG(object)
-    PyObject *PyList_GetItem(object, Py_ssize_t)
-    Py_ssize_t PyList_GET_SIZE(object)
-    int PyList_Append(object, object)
-    int PyDict_DelItem(object, objec)
-    object PyInt_FromSsize_t(Py_ssize_t)
-    object PyList_GET_ITEM(object, Py_ssize_t)
+    int _PyFloat_Pack4(float, unsigned char *, int) except? -1
+    int _PyFloat_Pack8(double, unsigned char *, int) except? -1
+    float _PyFloat_Unpack4(unsigned char *, int) except? -1.0
+    double _PyFloat_Unpack8(unsigned char *, int) except? -1.0
 
 
 # module constant declarations
@@ -95,6 +52,7 @@ cdef double platform_neginf
 cdef object pyamf_NaN
 cdef object pyamf_NegInf
 cdef object pyamf_PosInf
+cdef object empty_unicode = unicode('')
 
 
 cdef int build_platform_exceptional_floats() except? -1:
@@ -128,31 +86,24 @@ cdef int build_platform_exceptional_floats() except? -1:
     memcpy(&system_posinf, buf, 8)
 
     if float_broken == 1:
-        if _PyFloat_Unpack8(<unsigned char *>&NaN, not is_big_endian(SYSTEM_ENDIAN)) == -1:
+        try:
+            _PyFloat_Unpack8(<unsigned char *>&NaN, not is_big_endian(SYSTEM_ENDIAN))
+            memcpy(&platform_nan, buf, 8)
+
+            _PyFloat_Unpack8(<unsigned char *>&PosInf, not is_big_endian(SYSTEM_ENDIAN))
+            memcpy(&platform_posinf, buf, 8)
+
+            _PyFloat_Unpack8(<unsigned char *>&NegInf, not is_big_endian(SYSTEM_ENDIAN))
+            memcpy(&platform_neginf, buf, 8)
+        except:
             PyMem_Free(buf)
 
-            return -1
-
-        memcpy(&platform_nan, buf, 8)
-
-        if _PyFloat_Unpack8(<unsigned char *>&PosInf, not is_big_endian(SYSTEM_ENDIAN)) == -1:
-            PyMem_Free(buf)
-
-            return -1
-
-        memcpy(&platform_posinf, buf, 8)
-
-        if _PyFloat_Unpack8(<unsigned char *>&NegInf, not is_big_endian(SYSTEM_ENDIAN)) == -1:
-            PyMem_Free(buf)
-
-            return -1
-
-        memcpy(&platform_neginf, buf, 8)
+            raise
 
     PyMem_Free(buf)
 
 
-cdef int complete_import() except? -1:
+cdef int complete_import() except -1:
     """
     This function is internal - do not call it yourself. It is used to
     finalise the cpyamf.util module to improve startup time.
@@ -178,7 +129,7 @@ cdef int complete_import() except? -1:
     return 0
 
 
-cdef char get_native_endian():
+cdef char get_native_endian() nogil:
     """
     A quick hack to determine the system's endian-ness ...
 
@@ -193,7 +144,7 @@ cdef char get_native_endian():
         return ENDIAN_LITTLE
 
 
-cdef inline int is_big_endian(char endian):
+cdef inline bint is_big_endian(char endian) nogil:
     """
     Returns a boolean value whether the supplied C{endian} is big.
     """
@@ -203,7 +154,7 @@ cdef inline int is_big_endian(char endian):
     return endian == ENDIAN_NETWORK or endian == ENDIAN_BIG
 
 
-cdef inline int is_native_endian(char endian):
+cdef inline int is_native_endian(char endian) nogil:
     if endian == ENDIAN_NATIVE:
         return 1
 
@@ -213,7 +164,7 @@ cdef inline int is_native_endian(char endian):
     return endian == SYSTEM_ENDIAN
 
 
-cdef inline int swap_bytes(unsigned char *buffer, Py_ssize_t size) except? -1:
+cdef inline int swap_bytes(unsigned char *buffer, Py_ssize_t size) except -1:
     cdef unsigned char *buf = <unsigned char *>PyMem_Malloc(sizeof(unsigned char *) * size)
 
     if buf == NULL:
@@ -230,7 +181,7 @@ cdef inline int swap_bytes(unsigned char *buffer, Py_ssize_t size) except? -1:
     return 0
 
 
-cdef int is_broken_float() except? -1:
+cdef bint is_broken_float() except -1:
     cdef double test = _PyFloat_Unpack8(NaN, 0)
 
     cdef int result
@@ -244,7 +195,14 @@ cdef int is_broken_float() except? -1:
     return result != 0
 
 
-cdef class cBufferedByteStream:
+cdef class cBufferedByteStream(object):
+    """
+    A file like object that can be read/written to. Supports data type
+    specific reads/writes (e.g. ints, longs, floats etc.)
+
+    Endian aware.
+    """
+
     def __cinit__(self):
         if complete_init == 0:
             complete_import()
@@ -266,52 +224,63 @@ cdef class cBufferedByteStream:
 
         self.buffer = NULL
 
-    cdef int close(self) except? -1:
+    cpdef int close(self) except? -1:
         self.closed = 1
 
         return 0
 
-    cdef inline int complain_if_closed(self) except? -1:
+    cdef inline int complain_if_closed(self) except -1:
         if self.closed == 1:
             raise IOError('Buffer closed')
 
         return 0
 
-    cdef inline Py_ssize_t tell(self) except? -1:
+    cpdef inline Py_ssize_t tell(self):
         """
         Returns the position of the stream pointer.
         """
         return self.pos
 
-    cdef int _increase_buffer(self, Py_ssize_t size) except? -1:
-        cdef unsigned long new_len = self.length + size
-        cdef unsigned long current_size = self.size
+    cdef int _actually_increase_buffer(self, Py_ssize_t new_size) except -1:
+        cdef Py_ssize_t requested_size = self.size
+        cdef char *buf
 
-        while new_len > current_size:
-            current_size *= 2
+        while new_size > requested_size:
+            requested_size *= 2
 
-        if current_size != self.size:
-            self.size = current_size
+        buf = <char *>PyMem_Realloc(self.buffer, sizeof(char *) * requested_size)
 
-            self.buffer = <char *>PyMem_Realloc(self.buffer, sizeof(char *) * self.size)
+        if buf == NULL:
+            raise MemoryError
 
-            if self.buffer == NULL:
-                raise MemoryError
+        self.buffer = buf
+        self.size = requested_size
 
         return 0
 
-    cdef int write(self, char *buf, Py_ssize_t size) except? -1:
+    cdef inline int _increase_buffer(self, Py_ssize_t size) except -1:
+        """
+        Request to increase the buffer by C{size}
+        """
+        cdef Py_ssize_t new_len = self.length + size
+
+        if new_len <= self.size:
+            return 0
+
+        return self._actually_increase_buffer(new_len)
+
+    cdef int write(self, char *buf, Py_ssize_t size) except -1:
         """
         Writes the content of the specified C{buf} into this buffer.
         """
-        if self.complain_if_closed() == -1:
-            return -1
+        self.complain_if_closed()
+
+        assert buf != NULL, 'buf cannot be NULL'
 
         if size == 0:
             return 0
 
-        if self._increase_buffer(size) == -1:
-            return -1
+        self._increase_buffer(size)
 
         memcpy(self.buffer + self.pos, buf, size)
 
@@ -322,7 +291,7 @@ cdef class cBufferedByteStream:
 
         return 0
 
-    cdef inline int has_available(self, Py_ssize_t size) except? -1:
+    cdef inline int has_available(self, Py_ssize_t size) except -1:
         if size == 0:
             return 0
 
@@ -337,13 +306,12 @@ cdef class cBufferedByteStream:
 
         return 0
 
-    cdef int read(self, char **buf, Py_ssize_t size) except? -1:
+    cdef int read(self, char **buf, Py_ssize_t size) except -1:
         """
         Reads up to the specified number of bytes from the stream into
         the specified byte array of specified length.
         """
-        if self.complain_if_closed() == -1:
-            return -1
+        self.complain_if_closed()
 
         if size == -1:
             size = self.remaining()
@@ -351,42 +319,37 @@ cdef class cBufferedByteStream:
             if size == 0:
                 size = 1
 
-        if self.has_available(size) == -1:
-            return -1
+        self.has_available(size)
 
         buf[0] = <char *>PyMem_Malloc(sizeof(char *) * size)
 
         if buf[0] == NULL:
             raise MemoryError
 
-            return -1
-
         memcpy(buf[0], self.buffer + self.pos, size)
         self.pos += size
 
         return 0
 
-    cdef inline int at_eof(self) except? -1:
+    cpdef inline bint at_eof(self) except -1:
         """
         Returns C{True} if the internal pointer is at the end of the stream.
 
         @rtype: C{bool}
         """
-        if self.complain_if_closed() == -1:
-            return -1
+        self.complain_if_closed()
 
         return self.length == self.pos
 
-    cdef inline Py_ssize_t remaining(self) except? -1:
+    cpdef inline Py_ssize_t remaining(self) except -1:
         """
         Returns number of remaining bytes.
         """
-        if self.complain_if_closed() == -1:
-            return -1
+        self.complain_if_closed()
 
         return self.length - self.pos
 
-    cdef int seek(self, Py_ssize_t pos, int mode=0) except? -1:
+    cpdef int seek(self, Py_ssize_t pos, int mode=0) except -1:
         """
         Sets the file-pointer offset, measured from the beginning of this stream,
         at which the next write operation will occur.
@@ -396,22 +359,21 @@ cdef class cBufferedByteStream:
         @param mode: mode 0: absolute; 1: relative; 2: relative to EOF
         @type mode: C{int}
         """
-        if self.complain_if_closed() == -1:
-            return -1
+        self.complain_if_closed()
 
         if mode == 0:
             if pos < 0 or pos > self.length:
-                raise IOError()
+                raise IOError
 
             self.pos = pos
         elif mode == 1:
             if pos + self.pos < 0 or pos + self.pos > self.length:
-                raise IOError()
+                raise IOError
 
             self.pos += pos
         elif mode == 2:
             if pos + self.length < 0 or pos + self.length > self.length:
-                raise IOError()
+                raise IOError
 
             self.pos = self.length + pos
         else:
@@ -419,44 +381,39 @@ cdef class cBufferedByteStream:
 
         return 0
 
-    cdef object getvalue(self):
+    cpdef object getvalue(self):
         """
         Get raw data from buffer.
         """
-        if self.complain_if_closed() == -1:
-            return None
+        self.complain_if_closed()
 
         return PyString_FromStringAndSize(self.buffer, self.length)
 
-    cdef int peek(self, char **buf, Py_ssize_t size) except? -1:
+    cdef int peek(self, char **buf, Py_ssize_t size) except -1:
         """
         Looks C{size} bytes ahead in the stream, returning what it finds,
         returning the stream pointer to its initial position.
         """
-        if self.complain_if_closed() == -1:
-            return -1
+        self.complain_if_closed()
 
         cdef Py_ssize_t cur_pos = self.pos
 
-        if self.read(buf, size) == -1:
-            return -1
-
+        self.read(buf, size)
         self.pos = cur_pos
 
         return 0
 
-    cdef int truncate(self, Py_ssize_t size) except? -1:
+    cpdef int truncate(self, Py_ssize_t size=0) except -1:
         """
         Truncates the stream to the specified length.
 
         @param size: The length of the stream, in bytes.
         @type size: C{int}
         """
-        if self.complain_if_closed() == -1:
-            return -1
+        self.complain_if_closed()
 
         if size > self.length:
-            raise IOError()
+            raise IOError
 
         if size == 0:
             PyMem_Free(self.buffer)
@@ -468,54 +425,64 @@ cdef class cBufferedByteStream:
             self.buffer = <char *>PyMem_Malloc(sizeof(char *) * self.size)
 
             if self.buffer == NULL:
-                raise MemoryError()
+                raise MemoryError
 
             return 0
 
         cdef char *buf = NULL
         cdef Py_ssize_t cur_pos = self.pos
 
-        if self.seek(0) == -1:
-            return -1
+        self.seek(0)
 
-        if self.peek(&buf, size) == -1:
-            return -1
+        try:
+            self.peek(&buf, size)
+        except:
+            if buf != NULL:
+                PyMem_Free(buf)
+
+            raise
 
         PyMem_Free(self.buffer)
         self.size = 1024
         self.length = 0
+
         self.buffer = <char *>PyMem_Malloc(sizeof(char *) * self.size)
 
         if self.buffer == NULL:
+            PyMem_Free(buf)
+
             raise MemoryError
 
-        if self.write(buf, size) == -1:
-            return -1
-
-        PyMem_Free(buf)
+        try:
+            self.write(buf, size)
+        finally:
+            PyMem_Free(buf)
 
         if self.length > cur_pos:
             self.pos = self.length
         else:
-            if self.seek(cur_pos, 0) == -1:
-                return -1
+            self.seek(cur_pos, 0)
 
         return 0
 
-    cdef int consume(self) except? -1:
+    cpdef int consume(self) except -1:
         """
         Chops the tail off the stream starting at 0 and ending at C{tell()}.
         The stream pointer is set to 0 at the end of this function.
         """
-        if self.complain_if_closed() == -1:
-            return -1
+        self.complain_if_closed()
 
         cdef char *buf = NULL
         cdef Py_ssize_t size = self.remaining()
 
         if size > 0:
-            if self.peek(&buf, size) == -1:
-                return -1
+            try:
+                self.peek(&buf, size)
+            except:
+                if buf != NULL:
+                    PyMem_Free(buf)
+
+                raise
 
         PyMem_Free(self.buffer)
         self.size = 1024
@@ -524,24 +491,25 @@ cdef class cBufferedByteStream:
         self.pos = 0
 
         if self.buffer == NULL:
+            PyMem_Free(buf)
+
             raise MemoryError
 
         if size > 0:
-            if self.write(buf, size) == -1:
-                return -1
-
-            PyMem_Free(buf)
+            try:
+                self.write(buf, size)
+            finally:
+                PyMem_Free(buf)
 
         self.pos = 0
 
         return 0
 
-    cdef int unpack_int(self, int num_bytes, long *ret) except? -1:
+    cdef int unpack_int(self, int num_bytes, long *ret) except -1:
         """
         Unpacks a long from C{buf}.
         """
-        if self.has_available(num_bytes) == -1:
-            return -1
+        self.has_available(num_bytes)
 
         cdef int nb = num_bytes
         cdef long x = 0
@@ -562,20 +530,17 @@ cdef class cBufferedByteStream:
             x |= -(x & (1L << ((8 * num_bytes) - 1)))
 
         self.pos += nb
-
         ret[0] = x
 
         return 0
 
-    cdef int unpack_uint(self, int num_bytes, unsigned long *ret) except? -1:
+    cdef int unpack_uint(self, int num_bytes, unsigned long *ret) except -1:
         """
         Unpacks an unsigned long from C{buf}.
         """
+        self.has_available(num_bytes)
+
         cdef int nb = num_bytes
-
-        if self.has_available(num_bytes) == -1:
-            return -1
-
         cdef unsigned long x = 0
         cdef unsigned char *bytes = <unsigned char *>(self.buffer + self.pos)
 
@@ -595,7 +560,7 @@ cdef class cBufferedByteStream:
 
         return 0
 
-    cdef int pack_int(self, int num_bytes, long x) except? -1:
+    cdef int pack_int(self, int num_bytes, long x) except -1:
         """
         Packs a long.
 
@@ -629,12 +594,14 @@ cdef class cBufferedByteStream:
                 i -= 1
                 x >>= 8
 
-        self.write(buf, num_bytes)
-        PyMem_Free(buf)
+        try:
+            self.write(buf, num_bytes)
+        finally:
+            PyMem_Free(buf)
 
         return 0
 
-    cdef int pack_uint(self, int num_bytes, unsigned long x) except? -1:
+    cdef int pack_uint(self, int num_bytes, unsigned long x) except -1:
         """
         Packs an unsigned long into a buffer.
 
@@ -666,60 +633,62 @@ cdef class cBufferedByteStream:
                 i -= 1
                 x >>= 8
 
-        self.write(buf, num_bytes)
-        PyMem_Free(buf)
+        try:
+            self.write(buf, num_bytes)
+        finally:
+            PyMem_Free(buf)
 
         return 0
 
-    cdef int read_uchar(self, unsigned char *ret) except? -1:
+    cdef int read_uchar(self, unsigned char *ret) except -1:
         """
         Reads an C{unsigned char} from the stream.
         """
         return self.unpack_uint(1, <unsigned long *>ret)
 
-    cdef int read_char(self, char *ret) except? -1:
+    cdef int read_char(self, char *ret) except -1:
         """
         Reads a C{char} from the stream.
         """
         return self.unpack_int(1, <long *>ret)
 
-    cdef int read_ushort(self, unsigned short *ret) except? -1:
+    cdef int read_ushort(self, unsigned short *ret) except -1:
         """
         Reads a 2 byte unsigned integer from the stream.
         """
         return self.unpack_uint(2, <unsigned long *>ret)
 
-    cdef int read_short(self, short *ret) except? -1:
+    cdef int read_short(self, short *ret) except -1:
         """
         Reads a 2 byte integer from the stream.
         """
         return self.unpack_int(2, <long *>ret)
 
-    cdef int read_ulong(self, unsigned long *ret) except? -1:
+    cdef int read_ulong(self, unsigned long *ret) except -1:
         """
         Reads a 4 byte unsigned integer from the stream.
         """
         return self.unpack_uint(4, ret)
 
-    cdef int read_long(self, long *ret) except? -1:
+    cdef int read_long(self, long *ret) except -1:
         """
         Reads a 4 byte integer from the stream.
         """
         return self.unpack_int(4, ret)
 
-    cdef int read_24bit_uint(self, unsigned long *ret) except? -1:
+    cdef int read_24bit_uint(self, unsigned long *ret) except -1:
         """
         Reads a 24 bit unsigned integer from the stream.
         """
         return self.unpack_uint(3, <unsigned long *>ret)
 
-    cdef int read_24bit_int(self, long *ret) except? -1:
+    cdef int read_24bit_int(self, long *ret) except -1:
         """
         Reads a 24 bit integer from the stream.
         """
         return self.unpack_int(3, <long *>ret)
 
-    cdef int write_uchar(self, unsigned char ret) except? -1:
+    cpdef int write_uchar(self, unsigned char ret) except -1:
         """
         Writes an C{unsigned char} to the stream.
 
@@ -728,7 +697,7 @@ cdef class cBufferedByteStream:
         """
         return self.pack_uint(1, <unsigned long>ret)
 
-    cdef int write_char(self, char ret) except? -1:
+    cpdef int write_char(self, char ret) except -1:
         """
         Write a C{char} to the stream.
 
@@ -737,7 +706,7 @@ cdef class cBufferedByteStream:
         """
         return self.pack_int(1, <long>ret)
 
-    cdef int write_ushort(self, unsigned short ret) except? -1:
+    cpdef int write_ushort(self, unsigned short ret) except -1:
         """
         Writes a 2 byte unsigned integer to the stream.
 
@@ -746,7 +715,7 @@ cdef class cBufferedByteStream:
         """
         return self.pack_uint(2, <unsigned long>ret)
 
-    cdef int write_short(self, short ret) except? -1:
+    cpdef int write_short(self, short ret) except -1:
         """
         Writes a 2 byte integer to the stream.
 
@@ -755,7 +724,7 @@ cdef class cBufferedByteStream:
         """
         return self.pack_int(2, <long>ret)
 
-    cdef int write_ulong(self, unsigned long ret) except? -1:
+    cpdef int write_ulong(self, unsigned long ret) except -1:
         """
         Writes a 4 byte unsigned integer to the stream.
 
@@ -764,7 +733,7 @@ cdef class cBufferedByteStream:
         """
         return self.pack_uint(4, ret)
 
-    cdef int write_long(self, long ret) except? -1:
+    cpdef int write_long(self, long ret) except -1:
         """
         Writes a 4 byte integer to the stream.
 
@@ -773,7 +742,7 @@ cdef class cBufferedByteStream:
         """
         return self.pack_int(4, ret)
 
-    cdef int write_24bit_uint(self, unsigned long ret) except? -1:
+    cpdef int write_24bit_uint(self, unsigned long ret) except -1:
         """
         Writes a 24 bit unsigned integer to the stream.
 
@@ -782,7 +751,7 @@ cdef class cBufferedByteStream:
         """
         return self.pack_uint(3, ret)
 
-    cdef int write_24bit_int(self, long ret) except? -1:
+    cpdef int write_24bit_int(self, long ret) except -1:
         """
         Writes a 24 bit integer to the stream.
 
@@ -791,7 +760,7 @@ cdef class cBufferedByteStream:
         """
         return self.pack_int(3, ret)
 
-    cdef object read_utf8_string(self, unsigned int l):
+    cpdef object read_utf8_string(self, unsigned int l):
         """
         Reads a UTF-8 string from the stream.
 
@@ -801,20 +770,18 @@ cdef class cBufferedByteStream:
         cdef object ret
 
         if l == 0:
-            return unicode('')
+            return empty_unicode
 
-        if self.read(&buf, l) == -1:
+        try:
+            self.read(&buf, l)
+            ret = PyUnicode_DecodeUTF8(buf, l, 'strict')
+        finally:
             if buf != NULL:
                 PyMem_Free(buf)
 
-            return
-
-        ret = PyUnicode_DecodeUTF8(buf, l, 'strict')
-        PyMem_Free(buf)
-
         return ret
 
-    cdef int write_utf8_string(self, object obj) except? -1:
+    cpdef int write_utf8_string(self, object obj) except -1:
         """
         Writes a unicode object to the stream in UTF-8.
 
@@ -832,69 +799,60 @@ cdef class cBufferedByteStream:
         else:
             raise TypeError('value must be Unicode or str')
 
-        if <PyObject *>encoded_string == NULL:
-            return -1
-
-        if PyString_AsStringAndSize(encoded_string, &buf, &l) == -1:
-            return -1
-
-        if self.write(buf, l) == -1:
-            return -1
+        PyString_AsStringAndSize(encoded_string, &buf, &l)
+        self.write(buf, l)
 
         return 0
 
-    cdef int read_double(self, double *obj) except? -1:
+    cdef int read_double(self, double *obj) except -1:
         """
         Reads an 8 byte float from the stream.
         """
         cdef unsigned char *buf = NULL
         cdef int done = 0
 
-        if self.read(<char **>&buf, 8) == -1:
+        try:
+            self.read(<char **>&buf, 8)
+
+            if float_broken == 1:
+                if is_big_endian(SYSTEM_ENDIAN):
+                    if not is_big_endian(self._endian):
+                        swap_bytes(buf, 8)
+                else:
+                    if is_big_endian(self._endian):
+                        swap_bytes(buf, 8)
+
+                if memcmp(buf, &system_nan, 8) == 0:
+                    memcpy(obj, &system_nan, 8)
+
+                    done = 1
+                elif memcmp(buf, &system_posinf, 8) == 0:
+                    memcpy(obj, &system_posinf, 8)
+
+                    done = 1
+                elif memcmp(buf, &system_neginf, 8) == 0:
+                    memcpy(obj, &system_neginf, 8)
+
+                    done = 1
+
+                if done == 1:
+                    return 0
+
+                if is_big_endian(SYSTEM_ENDIAN):
+                    if not is_big_endian(self._endian):
+                        swap_bytes(buf, 8)
+                else:
+                    if is_big_endian(self._endian):
+                        swap_bytes(buf, 8)
+
+            obj[0] = _PyFloat_Unpack8(buf, not is_big_endian(self._endian))
+        finally:
             if buf != NULL:
                 PyMem_Free(buf)
 
-            return -1
-
-        if float_broken == 1:
-            if is_big_endian(SYSTEM_ENDIAN):
-                if not is_big_endian(self._endian):
-                    swap_bytes(buf, 8)
-            else:
-                if is_big_endian(self._endian):
-                    swap_bytes(buf, 8)
-
-            if memcmp(buf, &system_nan, 8) == 0:
-                memcpy(obj, &system_nan, 8)
-
-                done = 1
-            elif memcmp(buf, &system_posinf, 8) == 0:
-                memcpy(obj, &system_posinf, 8)
-
-                done = 1
-            elif memcmp(buf, &system_neginf, 8) == 0:
-                memcpy(obj, &system_neginf, 8)
-
-                done = 1
-
-            if done == 1:
-                PyMem_Free(buf)
-
-                return 0
-
-            if is_big_endian(SYSTEM_ENDIAN):
-                if not is_big_endian(self._endian):
-                    swap_bytes(buf, 8)
-            else:
-                if is_big_endian(self._endian):
-                    swap_bytes(buf, 8)
-
-        obj[0] = _PyFloat_Unpack8(buf, not is_big_endian(self._endian))
-        PyMem_Free(buf)
-
         return 0
 
-    cdef int write_double(self, double val) except? -1:
+    cpdef int write_double(self, double val) except -1:
         """
         Writes an 8 byte float to the stream.
 
@@ -905,70 +863,61 @@ cdef class cBufferedByteStream:
         cdef unsigned char *foo
         cdef int done = 0
 
-        buf = <unsigned char *>PyMem_Malloc(sizeof(unsigned char *) * 8)
+        buf = <unsigned char *>PyMem_Malloc(sizeof(unsigned char *) * sizeof(double))
 
         if buf == NULL:
             raise MemoryError
 
-        if float_broken == 1:
-            if memcmp(&val, &system_nan, 8) == 0:
-                memcpy(buf, &val, 8)
+        try:
+            if float_broken == 1:
+                if memcmp(&val, &system_nan, 8) == 0:
+                    memcpy(buf, &val, 8)
 
-                done = 1
-            elif memcmp(&val, &system_posinf, 8) == 0:
-                memcpy(buf, &val, 8)
+                    done = 1
+                elif memcmp(&val, &system_posinf, 8) == 0:
+                    memcpy(buf, &val, 8)
 
-                done = 1
-            elif memcmp(&val, &system_neginf, 8) == 0:
-                memcpy(buf, &val, 8)
+                    done = 1
+                elif memcmp(&val, &system_neginf, 8) == 0:
+                    memcpy(buf, &val, 8)
 
-                done = 1
+                    done = 1
 
-            if done == 1:
-                if is_big_endian(SYSTEM_ENDIAN):
-                    if not is_big_endian(self._endian):
-                        swap_bytes(buf, 8)
-                else:
-                    if is_big_endian(self._endian):
-                        swap_bytes(buf, 8)
+                if done == 1:
+                    if is_big_endian(SYSTEM_ENDIAN):
+                        if not is_big_endian(self._endian):
+                            swap_bytes(buf, 8)
+                    else:
+                        if is_big_endian(self._endian):
+                            swap_bytes(buf, 8)
 
-        if done == 0:
-            if _PyFloat_Pack8(val, <unsigned char *>buf, not is_big_endian(self._endian)) == -1:
-                PyMem_Free(buf)
+            if done == 0:
+                _PyFloat_Pack8(val, <unsigned char *>buf, not is_big_endian(self._endian))
 
-                return -1
-
-        if self.write(<char *>buf, 8) == -1:
+            self.write(<char *>buf, 8)
+        finally:
             PyMem_Free(buf)
-
-            return -1
-
-        PyMem_Free(buf)
 
         return 0
 
-    cdef int read_float(self, float *x):
+    cdef int read_float(self, float *x) except -1:
         """
         Reads a 4 byte float from the stream.
         """
         cdef char *buf = NULL
-        cdef unsigned char le = 0
+        cdef unsigned char le = not is_big_endian(self._endian)
 
-        if self.read(&buf, 4) == -1:
+        try:
+            self.read(&buf, 4)
+
+            x[0] = _PyFloat_Unpack4(<unsigned char *>buf, le)
+        finally:
             if buf != NULL:
                 PyMem_Free(buf)
 
-            return -1
-
-        if not is_big_endian(self._endian):
-            le = 1
-
-        x[0] = _PyFloat_Unpack4(<unsigned char *>buf, le)
-        PyMem_Free(buf)
-
         return 0
 
-    cdef int write_float(self, float c):
+    cpdef int write_float(self, float c) except -1:
         """
         Writes a 4 byte float to the stream.
 
@@ -976,29 +925,23 @@ cdef class cBufferedByteStream:
         @type c: C{float}
         """
         cdef unsigned char *buf
-        cdef unsigned char le = 1
+        cdef unsigned char le = not is_big_endian(self._endian)
 
         buf = <unsigned char *>PyMem_Malloc(sizeof(unsigned char *) * 4)
 
         if buf == NULL:
-            raise MemoryError()
+            raise MemoryError
 
-        if is_big_endian(self._endian):
-            le = 0
+        try:
+            _PyFloat_Pack4(c, <unsigned char *>buf, le)
 
-        if _PyFloat_Pack4(c, <unsigned char *>buf, le) == -1:
+            self.write(<char *>buf, 4)
+        finally:
             PyMem_Free(buf)
-
-            return -1
-
-        if self.write(<char *>buf, 4) == -1:
-            return -1
-
-        PyMem_Free(buf)
 
         return 0
 
-    cdef int append(self, object obj) except? -1:
+    cpdef int append(self, object obj) except -1:
         cdef int i = self.pos
 
         self.pos = self.length
@@ -1010,12 +953,13 @@ cdef class cBufferedByteStream:
 
         self.pos = i
 
+        return 0
+
 
 cdef class BufferedByteStream(cBufferedByteStream):
     """
-    An extension of C{StringIO}.
-
-    @see: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
+    A Python exposed version of cBufferedByteStream. This exists because of
+    various intricacies of Cythons cpdef (probably just user stupidity tho)
     """
 
     def __init__(self, buf=None):
@@ -1067,17 +1011,20 @@ cdef class BufferedByteStream(cBufferedByteStream):
         if size != -1:
             s = <Py_ssize_t>size
         else:
-            s = cBufferedByteStream.remaining(self)
+            s = self.remaining()
 
             if s == 0:
                 s = 1
 
         cdef char *buf = NULL
 
-        cBufferedByteStream.read(self, &buf, s)
+        try:
+            cBufferedByteStream.read(self, &buf, s)
 
-        r = PyString_FromStringAndSize(buf, s)
-        PyMem_Free(buf)
+            r = PyString_FromStringAndSize(buf, s)
+        finally:
+            if buf != NULL:
+                PyMem_Free(buf)
 
         return r
 
@@ -1090,61 +1037,12 @@ cdef class BufferedByteStream(cBufferedByteStream):
         """
         cBufferedByteStream.write_utf8_string(self, x)
 
-    def close(self):
-        """
-        Close the stream.
-        """
-        cBufferedByteStream.close(self)
-
     def flush(self):
         # no-op
         pass
 
-    def tell(self):
-        """
-        Returns the position of the stream pointer.
-        """
-        return self.pos
-
-    def remaining(self):
-        """
-        Returns number of remaining bytes.
-
-        @rtype: C{number}
-        @return: Number of remaining bytes.
-        """
-        return cBufferedByteStream.remaining(self)
-
     def __len__(self):
         return self.length
-
-    def getvalue(self):
-        """
-        Get raw data from buffer.
-        """
-        return cBufferedByteStream.getvalue(self)
-
-    def at_eof(self):
-        """
-        Returns C{True} if the internal pointer is at the end of the stream.
-
-        @rtype: C{bool}
-        """
-        cdef int result = cBufferedByteStream.at_eof(self)
-
-        return (result == 1)
-
-    def seek(self, pos, mode=0):
-        """
-        Sets the file-pointer offset, measured from the beginning of this stream,
-        at which the next write operation will occur.
-
-        @param pos:
-        @type pos: C{int}
-        @param mode:
-        @type mode: C{int}
-        """
-        cBufferedByteStream.seek(self, pos, mode)
 
     def peek(self, size=1):
         """
@@ -1165,28 +1063,15 @@ cdef class BufferedByteStream(cBufferedByteStream):
         else:
             l = <int>size
 
-        cBufferedByteStream.peek(self, &buf, l)
+        try:
+            cBufferedByteStream.peek(self, &buf, l)
 
-        r = PyString_FromStringAndSize(buf, l)
-        PyMem_Free(buf)
+            r = PyString_FromStringAndSize(buf, l)
+        finally:
+            if buf != NULL:
+                PyMem_Free(buf)
 
         return r
-
-    def truncate(self, int size=0):
-        """
-        Truncates the stream to the specified length.
-
-        @param size: The length of the stream, in bytes.
-        @type size: C{int}
-        """
-        cBufferedByteStream.truncate(self, size)
-
-    def consume(self):
-        """
-        Chops the tail off the stream starting at 0 and ending at C{tell()}.
-        The stream pointer is set to 0 at the end of this function.
-        """
-        cBufferedByteStream.consume(self)
 
     def read_uchar(self):
         """
@@ -1200,10 +1085,12 @@ cdef class BufferedByteStream(cBufferedByteStream):
         if i == NULL:
             raise MemoryError
 
-        cBufferedByteStream.read_uchar(self, i)
+        try:
+            cBufferedByteStream.read_uchar(self, i)
 
-        ret = <unsigned char>(i[0])
-        PyMem_Free(i)
+            ret = <unsigned char>(i[0])
+        finally:
+            PyMem_Free(i)
 
         return ret
 
@@ -1219,10 +1106,12 @@ cdef class BufferedByteStream(cBufferedByteStream):
         if i == NULL:
             raise MemoryError
 
-        cBufferedByteStream.read_char(self, i)
+        try:
+            cBufferedByteStream.read_char(self, i)
 
-        ret = <char>(i[0])
-        PyMem_Free(i)
+            ret = <char>(i[0])
+        finally:
+            PyMem_Free(i)
 
         return ret
 
@@ -1238,10 +1127,12 @@ cdef class BufferedByteStream(cBufferedByteStream):
         if i == NULL:
             raise MemoryError
 
-        cBufferedByteStream.read_ushort(self, i)
+        try:
+            cBufferedByteStream.read_ushort(self, i)
 
-        ret = <unsigned short>(i[0])
-        PyMem_Free(i)
+            ret = <unsigned short>(i[0])
+        finally:
+            PyMem_Free(i)
 
         return ret
 
@@ -1257,10 +1148,12 @@ cdef class BufferedByteStream(cBufferedByteStream):
         if i == NULL:
             raise MemoryError
 
-        cBufferedByteStream.read_short(self, i)
+        try:
+            cBufferedByteStream.read_short(self, i)
 
-        ret = <short>(i[0])
-        PyMem_Free(i)
+            ret = <short>(i[0])
+        finally:
+            PyMem_Free(i)
 
         return ret
 
@@ -1276,10 +1169,12 @@ cdef class BufferedByteStream(cBufferedByteStream):
         if i == NULL:
             raise MemoryError
 
-        cBufferedByteStream.read_ulong(self, i)
+        try:
+            cBufferedByteStream.read_ulong(self, i)
 
-        ret = <unsigned long>(i[0])
-        PyMem_Free(i)
+            ret = <unsigned long>(i[0])
+        finally:
+            PyMem_Free(i)
 
         return ret
 
@@ -1295,10 +1190,12 @@ cdef class BufferedByteStream(cBufferedByteStream):
         if i == NULL:
             raise MemoryError
 
-        cBufferedByteStream.read_long(self, i)
+        try:
+            cBufferedByteStream.read_long(self, i)
 
-        ret = <long>(i[0])
-        PyMem_Free(i)
+            ret = <long>(i[0])
+        finally:
+            PyMem_Free(i)
 
         return ret
 
@@ -1314,10 +1211,12 @@ cdef class BufferedByteStream(cBufferedByteStream):
         if i == NULL:
             raise MemoryError
 
-        cBufferedByteStream.read_24bit_uint(self, i)
+        try:
+            cBufferedByteStream.read_24bit_uint(self, i)
 
-        ret = <long>(i[0])
-        PyMem_Free(i)
+            ret = <long>(i[0])
+        finally:
+            PyMem_Free(i)
 
         return ret
 
@@ -1333,25 +1232,14 @@ cdef class BufferedByteStream(cBufferedByteStream):
         if i == NULL:
             raise MemoryError
 
-        cBufferedByteStream.read_24bit_int(self, i)
+        try:
+            cBufferedByteStream.read_24bit_int(self, i)
 
-        ret = <long>(i[0])
-        PyMem_Free(i)
+            ret = <long>(i[0])
+        finally:
+            PyMem_Free(i)
 
         return ret
-
-    def write_uchar(self, x):
-        """
-        Writes an C{unsigned char} to the stream.
-
-        @param x: Unsigned char
-        @type x: C{int}
-        @raise TypeError: Unexpected type for int C{x}.
-        """
-        if PyInt_Check(x) == 0 and PyLong_Check(x) == 0:
-            raise TypeError('expected int for x')
-
-        cBufferedByteStream.write_uchar(self, <unsigned char>x)
 
     def write_char(self, x):
         """
@@ -1408,57 +1296,13 @@ cdef class BufferedByteStream(cBufferedByteStream):
 
         cBufferedByteStream.write_ulong(self, <unsigned long>x)
 
-    def write_long(self, long x):
-        """
-        Writes a 4 byte integer to the stream.
-
-        @param x: 4 byte integer
-        @type x: C{int}
-        """
-        cBufferedByteStream.write_long(self, x)
-
-    def write_24bit_uint(self, unsigned long x):
-        """
-        Writes a 24 bit unsigned integer to the stream.
-
-        @param x: 24 bit unsigned integer
-        @type x: C{int}
-        """
-        cBufferedByteStream.write_24bit_uint(self, x)
-
-    def write_24bit_int(self, long x):
-        """
-        Writes a 24 bit integer to the stream.
-
-        @param x: 24 bit integer
-        @type x: C{int}
-        """
-        cBufferedByteStream.write_24bit_int(self, x)
-
-    def read_utf8_string(self, unsigned int size):
-        """
-        Reads a UTF-8 string from the stream.
-
-        @rtype: C{unicode}
-        """
-        return cBufferedByteStream.read_utf8_string(self, size)
-
-    def write_utf8_string(self, obj):
-        """
-        Writes a unicode object to the stream in UTF-8.
-
-        @param obj: unicode object
-        """
-        cBufferedByteStream.write_utf8_string(self, obj)
-
     def read_double(self):
         """
         Reads an 8 byte float from the stream.
         """
         cdef double x
 
-        if cBufferedByteStream.read_double(self, &x) == -1:
-            return
+        cBufferedByteStream.read_double(self, &x)
 
         if float_broken == 1:
             if memcmp(&x, &system_nan, 8) == 0:
@@ -1511,33 +1355,9 @@ cdef class BufferedByteStream(cBufferedByteStream):
         """
         cdef float x
 
-        if cBufferedByteStream.read_float(self, &x) == -1:
-            return
+        cBufferedByteStream.read_float(self, &x)
 
         return PyFloat_FromDouble(x)
-
-    def write_float(self, x):
-        """
-        Writes a 4 byte float to the stream.
-
-        @param x: 4 byte float
-        @type x: C{float}
-        """
-        if PyFloat_Check(x) == 0:
-            raise TypeError('Expecting float for val')
-
-        cBufferedByteStream.write_float(self, <float>x)
-
-    def append(self, data):
-        """
-        Append data to the end of the stream. The pointer will not move if
-        this operation is successful.
-
-        @param data: The data to append to the stream.
-        @type data: C{str} or C{unicode}
-        @raise TypeError: data is not C{str} or C{unicode}
-        """
-        cBufferedByteStream.append(self, data)
 
     def __add__(self, other):
         cdef long old_pos = <long>self.tell()
@@ -1556,11 +1376,14 @@ cdef class BufferedByteStream(cBufferedByteStream):
         return new
 
     def __str__(self):
-        return cBufferedByteStream.getvalue(self)
+        return self.getvalue()
 
 
-cdef class cIndexedCollection:
+cdef class IndexedCollection(object):
     """
+    Provides reference functionality for amf contexts.
+
+    :see: ``pyamf.util.pure.IndexedCollection`` for proper documentation.
     """
 
     def __cinit__(self, int use_hash=0):
@@ -1570,155 +1393,6 @@ cdef class cIndexedCollection:
         self.use_hash = use_hash
 
         self.clear()
-
-    cdef void _clear(self):
-        cdef Py_ssize_t i
-
-        if self.data != NULL:
-            for i from 0 <= i < self.length:
-                Py_DECREF(self.data[i])
-
-            PyMem_Free(self.data)
-            self.data = NULL
-
-    def __dealloc__(self):
-        self._clear()
-
-    cdef int _increase_size(self) except? -1:
-        cdef Py_ssize_t new_len = self.length
-        cdef Py_ssize_t current_size = self.size
-        cdef PyObject **cpy
-
-        while new_len >= current_size:
-            current_size *= 2
-
-        if current_size != self.size:
-            self.size = current_size
-
-            cpy = <PyObject **>PyMem_Realloc(self.data, sizeof(PyObject *) * self.size)
-
-            if cpy == NULL:
-                PyMem_Free(self.data)
-                self.data = NULL
-
-                raise MemoryError
-
-            self.data = cpy
-
-        return 0
-
-    cdef int clear(self) except? -1:
-        self._clear()
-
-        self.length = 0
-        self.size = 64
-
-        self.data = <PyObject **>PyMem_Malloc(sizeof(PyObject *) * self.size)
-
-        if self.data == NULL:
-            raise MemoryError
-
-        self.refs = {}
-
-        return 0
-
-    cdef object getByReference(self, Py_ssize_t ref):
-        """
-        """
-        if ref < 0 or ref >= self.length:
-            return None
-
-        Py_INCREF(self.data[ref])
-
-        return <object>self.data[ref]
-
-    cdef inline object _ref(self, object obj):
-        if self.use_hash == 1:
-            return hash(obj)
-
-        return id(obj)
-
-    cdef Py_ssize_t getReferenceTo(self, object obj) except? -1:
-        cdef PyObject *p = <PyObject *>PyDict_GetItem(self.refs, self._ref(obj))
-
-        if p == NULL:
-            return -1
-
-        return <Py_ssize_t>PyInt_AS_LONG(<object>p)
-
-    cdef Py_ssize_t append(self, object obj) except? -1:
-        if self._increase_size() == -1:
-            return -1
-
-        cdef object h = self._ref(obj)
-
-        if PyDict_SetItem(self.refs, h, <object>self.length) == -1:
-            return -1
-
-        self.data[self.length] = <PyObject *>obj
-        Py_INCREF(<PyObject *>obj)
-
-        self.length += 1
-
-        return self.length - 1
-
-    def __iter__(self):
-        cdef object x = []
-        cdef Py_ssize_t idx
-
-        for idx from 0 <= idx < self.length:
-            x.append(<object>self.data[idx])
-
-        return iter(x)
-
-    def __len__(self):
-        return self.length
-
-    def __richcmp__(self, object other, int op):
-        cdef int equal
-        cdef Py_ssize_t i
-        cdef cIndexedCollection s = self # this is necessary because cython does not see the c-space vars of the class for this func
-
-        if PyDict_Check(other) == 1:
-            equal = s.refs == other
-        elif PyList_Check(other) != 1:
-            equal = 0
-        else:
-            equal = 0
-
-            if PyList_GET_SIZE(other) == s.length:
-                equal = 1
-
-                for i from 0 <= i < s.length:
-                    if PyList_GET_ITEM(other, i) != <object>s.data[i]:
-                        equal = 0
-
-                        break
-
-        if op == 2: # ==
-            return equal
-        elif op == 3: # !=
-            return not equal
-        else:
-            raise NotImplementedError
-
-    def __getitem__(self, idx):
-        return self.getByReference(idx)
-
-    def __copy__(self):
-        cdef cIndexedCollection n = cIndexedCollection(self.use_hash)
-
-        return n
-
-        for x in self:
-            n.append(x)
-
-        return n
-
-
-cdef class IndexedCollection(cIndexedCollection):
-    """
-    """
 
     def __init__(self, use_hash=False):
         if use_hash:
@@ -1739,22 +1413,141 @@ cdef class IndexedCollection(cIndexedCollection):
             else:
                 self.use_hash = 0
 
-    def getByReference(self, ref):
-        if PyInt_Check(ref) == 0 and PyLong_Check(ref) == 0:
-            raise TypeError("Bad reference type")
+    cdef void _clear(self):
+        cdef Py_ssize_t i
 
-        return cIndexedCollection.getByReference(self, <Py_ssize_t>ref)
+        if self.data != NULL:
+            for i from 0 <= i < self.length:
+                Py_DECREF(<object>self.data[i])
 
-    def getReferenceTo(self, object obj):
-        cdef int i = cIndexedCollection.getReferenceTo(self, obj)
+            PyMem_Free(self.data)
+            self.data = NULL
 
-        if i == -1:
+    def __dealloc__(self):
+        self._clear()
+
+    cdef int _actually_increase_size(self) except? -1:
+        cdef Py_ssize_t new_len = self.length
+        cdef Py_ssize_t current_size = self.size
+        cdef PyObject **cpy
+
+        while new_len >= current_size:
+            current_size *= 2
+
+        if current_size != self.size:
+            self.size = current_size
+
+            cpy = <PyObject **>PyMem_Realloc(self.data, sizeof(PyObject *) * self.size)
+
+            if cpy == NULL:
+                self._clear()
+
+                raise MemoryError
+
+            self.data = cpy
+
+        return 0
+
+    cdef inline int _increase_size(self) except -1:
+        if self.length < self.size:
+            return 0
+
+        return self._actually_increase_size()
+
+    cpdef int clear(self) except? -1:
+        self._clear()
+
+        self.length = 0
+        self.size = 64
+
+        self.data = <PyObject **>PyMem_Malloc(sizeof(PyObject *) * self.size)
+
+        if self.data == NULL:
+            raise MemoryError
+
+        self.refs = {}
+
+        return 0
+
+    cpdef object getByReference(self, Py_ssize_t ref):
+        """
+        """
+        if ref < 0 or ref >= self.length:
             return None
 
-        return i
+        return <object>self.data[ref]
 
-    def append(self, object obj):
-        return cIndexedCollection.append(self, obj)
+    cdef inline object _ref(self, object obj):
+        if self.use_hash:
+            return hash(obj)
 
-    def clear(self):
-         cIndexedCollection.clear(self)
+        return PyLong_FromVoidPtr(<void *>obj)
+
+    cpdef Py_ssize_t getReferenceTo(self, object obj) except -2:
+        cdef PyObject *p = <PyObject *>PyDict_GetItem(self.refs, self._ref(obj))
+
+        if p == NULL:
+            return -1
+
+        return <Py_ssize_t>PyInt_AS_LONG(<object>p)
+
+    cpdef Py_ssize_t append(self, object obj) except -1:
+        self._increase_size()
+
+        cdef object h = self._ref(obj)
+
+        self.refs[h] = <object>self.length
+        self.data[self.length] = <PyObject *>obj
+        Py_INCREF(obj)
+
+        self.length += 1
+
+        return self.length - 1
+
+    def __iter__(self):
+        cdef list x = []
+        cdef Py_ssize_t idx
+
+        for idx from 0 <= idx < self.length:
+            x.append(<object>self.data[idx])
+
+        return iter(x)
+
+    def __len__(self):
+        return self.length
+
+    def __richcmp__(self, object other, int op):
+        cdef int equal
+        cdef Py_ssize_t i
+        cdef IndexedCollection s = self # this is necessary because cython does not see the c-space vars of the class for this func
+
+        if PyDict_Check(other) == 1:
+            equal = s.refs == other
+        elif PyList_Check(other) != 1:
+            equal = 0
+        else:
+            equal = 0
+
+            if PyList_GET_SIZE(other) == s.length:
+                equal = 1
+
+                for i from 0 <= i < s.length:
+                    if <object>PyList_GET_ITEM(other, i) != <object>s.data[i]:
+                        equal = 0
+
+                        break
+
+        if op == 2: # ==
+            return equal
+        elif op == 3: # !=
+            return not equal
+        else:
+            raise NotImplementedError
+
+    def __getitem__(self, idx):
+        return self.getByReference(idx)
+
+    def __copy__(self):
+        cdef IndexedCollection n = IndexedCollection(self.use_hash)
+
+        return n

@@ -14,6 +14,8 @@ import os.path
 import warnings
 import tempfile
 
+from StringIO import StringIO
+
 import pyamf
 from pyamf import sol
 from pyamf.tests.util import check_buffer
@@ -63,9 +65,9 @@ class DecoderTestCase(unittest.TestCase):
         self.assertRaises(ValueError, sol.decode, bytes)
 
     def test_amf3(self):
-        bytes = '\x00\xbf\x00\x00\x00aTCSO\x00\x04\x00\x00\x00\x00\x00\x08' + \
-            'EchoTest\x00\x00\x00\x03\x0fhttpUri\x06=http://localhost:8000' + \
-            '/gateway/\x00\x0frtmpUri\x06+rtmp://localhost/echo\x00'
+        bytes = ('\x00\xbf\x00\x00\x00aTCSO\x00\x04\x00\x00\x00\x00\x00\x08'
+            'EchoTest\x00\x00\x00\x03\x0fhttpUri\x06=http://localhost:8000'
+            '/gateway/\x00\x0frtmpUri\x06+rtmp://localhost/echo\x00')
 
         self.assertEquals(sol.decode(bytes), (u'EchoTest',
             {u'httpUri': u'http://localhost:8000/gateway/', u'rtmpUri': u'rtmp://localhost/echo'}))
@@ -155,10 +157,8 @@ class HelperTestCase(unittest.TestCase):
 
         try:
             self.assertTrue(check_buffer(fp.read(), self.contents))
-        except:
+        finally:
             fp.close()
-
-            raise
 
     def test_save_file(self):
         fp = open(self.file_name, 'wb+')
@@ -185,17 +185,11 @@ class SOLTestCase(unittest.TestCase):
         s = sol.SOL('hello')
         s.update({'name': 'value', 'spam': 'eggs'})
 
-        x = tempfile.mkstemp()[1]
+        x = StringIO()
 
-        try:
-            s.save(x)
+        s.save(x)
 
-            self.assertTrue(check_buffer(open(x, 'rb').read(), HelperTestCase.contents))
-        except:
-            if os.path.isfile(x):
-                os.unlink(x)
-
-            raise
+        self.assertTrue(check_buffer(x.getvalue(), HelperTestCase.contents))
 
         x = tempfile.mkstemp()[1]
 

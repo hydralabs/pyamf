@@ -33,11 +33,12 @@ __all__ = [
     'register_class_loader',
     'encode',
     'decode',
-    '__version__'
+    '__version__',
+    'version'
 ]
 
 #: PyAMF version number.
-__version__ = version = v.Version(0, 6)
+__version__ = version = v.Version(0, 6, 'b1')
 
 #: Class mapping support.
 CLASS_CACHE = {}
@@ -155,6 +156,7 @@ class BaseContext(object):
         self.class_aliases = {}
         self.proxied_objects = {}
         self.unicodes = {}
+        self.extra_context = {}
 
     def getObject(self, ref):
         """
@@ -514,6 +516,8 @@ class ClassAlias(object):
             self.static_attrs = list(self.static_attrs)
             self.static_attrs.sort()
 
+        self.static_attrs_set = set(self.static_attrs or [])
+
         if not self.exclude_attrs:
             self.exclude_attrs = None
         else:
@@ -652,7 +656,7 @@ class ClassAlias(object):
             self.compile()
 
         if self.is_dict:
-            return obj
+            return dict(obj)
 
         if self.shortcut_encode and self.dynamic:
             return obj.__dict__
@@ -721,15 +725,16 @@ class ClassAlias(object):
         props = set(attrs.keys())
 
         if self.static_attrs:
-            missing_attrs = []
-
-            for p in self.static_attrs:
-                if p not in props:
-                    missing_attrs.append(p)
+            missing_attrs = self.static_attrs_set.difference(props)
 
             if missing_attrs:
                 raise AttributeError('Static attributes %r expected '
                     'when decoding %r' % (missing_attrs, self.klass))
+
+            props.difference_update(self.static_attrs)
+
+        if not props:
+            return attrs
 
         if not self.dynamic:
             if not self.decodable_properties:
@@ -1048,6 +1053,9 @@ class BaseEncoder(object):
         self.writeElement(proxy, use_proxies=False)
 
     def writeNull(self, obj, **kwargs):
+        """
+        Subclasses should override this and all write[type] functions
+        """
         raise NotImplementedError
 
     writeString = writeNull
@@ -1076,6 +1084,8 @@ class BaseEncoder(object):
         :param  data: Python data.
         :rtype: callable or `None`.
         :return: The function used to encode data to the stream.
+        :raise EncodeError: Unable to find a corresponding function that will
+            encode `data`.
         """
         t = type(data)
 
@@ -1789,7 +1799,7 @@ def register_package(module=None, package=None, separator='.', ignore=[],
     return registered
 
 
-# init module here
+#: setup some some standard class registrations and class loaders.
 register_class(ASObject)
 register_class_loader(flex_loader)
 register_class_loader(blaze_loader)

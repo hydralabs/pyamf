@@ -1,0 +1,5 @@
+PyAMF.egg-info/
+_trial_temp/
+build/
+cpyamf/*.so
+doc/_build/

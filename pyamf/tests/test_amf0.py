@@ -117,7 +117,7 @@ class ContextTestCase(unittest.TestCase):
 
         self.assertEquals(x.getObjectReference(y), ref1)
         self.assertEquals(x.getObjectReference(z), ref2)
-        self.assertEquals(x.getObjectReference({}), None)
+        self.assertEquals(x.getObjectReference({}), -1)
 
 
 class EncoderTestCase(ClassCacheClearingTestCase):

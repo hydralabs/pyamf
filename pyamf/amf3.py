@@ -336,8 +336,6 @@ class DataInput(object):
         @param decoder: AMF3 decoder containing the stream.
         @type decoder: L{amf3.Decoder<pyamf.amf3.Decoder>}
         """
-        assert isinstance(decoder, Decoder)
-
         self.decoder = decoder
         self.stream = decoder.stream
 
@@ -535,12 +533,12 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
     def __str__(self):
         buf = self.getvalue()
 
-        if self.compressed:
-            buf = zlib.compress(buf)
-            #FIXME nick: hacked
-            buf = buf[0] + '\xda' + buf[2:]
+        if not self.compressed:
+            return buf
 
-        return buf
+        buf = zlib.compress(buf)
+        #FIXME nick: hacked
+        return buf[0] + '\xda' + buf[2:]
 
     def compress(self):
         """
@@ -551,6 +549,8 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
 
 class ClassDefinition(object):
     """
+    This is an internal class used by ``Encoder``/``Decoder`` to hold details
+    about transient class trait definitions.
     """
 
     def __init__(self, alias):
@@ -651,7 +651,7 @@ class Context(pyamf.BaseContext):
             raise TypeError
 
         if len(s) == 0:
-            return None
+            return -1
 
         return self.strings.append(s)
 
@@ -740,7 +740,7 @@ class Decoder(pyamf.BaseDecoder):
         TYPE_NULL:       'readNull',
         TYPE_BOOL_FALSE: 'readBoolFalse',
         TYPE_BOOL_TRUE:  'readBoolTrue',
-        TYPE_INTEGER:    'readSignedInteger',
+        TYPE_INTEGER:    'readInteger',
         TYPE_NUMBER:     'readNumber',
         TYPE_STRING:     'readUnicode',
         TYPE_XML:        'readXML',
@@ -795,19 +795,7 @@ class Decoder(pyamf.BaseDecoder):
         """
         return self.stream.read_double()
 
-    def readUnsignedInteger(self):
-        """
-        Reads and returns an unsigned integer from the stream.
-        """
-        return self.readInteger(False)
-
-    def readSignedInteger(self):
-        """
-        Reads and returns a signed integer from the stream.
-        """
-        return self.readInteger(True)
-
-    def readInteger(self, signed=False):
+    def readInteger(self, signed=True):
         """
         Reads and returns an integer from the stream.
 
@@ -863,7 +851,7 @@ class Decoder(pyamf.BaseDecoder):
 
         The timezone is ignored as the date is always in UTC.
         """
-        ref = self.readUnsignedInteger()
+        ref = self.readInteger(False)
 
         if ref & REFERENCE_BIT == 0:
             return self.context.getObject(ref >> 1)
@@ -889,7 +877,7 @@ class Decoder(pyamf.BaseDecoder):
         @see: U{Docuverse blog (external)
         <http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug>}
         """
-        size = self.readUnsignedInteger()
+        size = self.readInteger(False)
 
         if size & REFERENCE_BIT == 0:
             return self.context.getObject(size >> 1)
@@ -931,7 +919,7 @@ class Decoder(pyamf.BaseDecoder):
         if is_ref:
             class_def = self.context.getClassByReference(ref)
 
-            return class_def, class_def.alias
+            return class_def
 
         name = self.readString()
         alias = None
@@ -961,7 +949,7 @@ class Decoder(pyamf.BaseDecoder):
 
         self.context.addClass(class_def, alias.klass)
 
-        return class_def, alias
+        return class_def
 
     def _readStatic(self, class_def, obj):
         for attr in class_def.static_properties:
@@ -978,14 +966,15 @@ class Decoder(pyamf.BaseDecoder):
         """
         Reads an object from the stream.
 
-        @raise pyamf.EncodeError: Decoding an object in amf3 tagged as amf0
+        :raise pyamf.EncodeError: Decoding an object in amf3 tagged as amf0
             only is not allowed.
-        @raise pyamf.DecodeError: Unknown object encoding.
+        :raise pyamf.DecodeError: Unknown object encoding.
+        :raise pyamf.ReferenceError: Bad object reference given.
         """
         if use_proxies is None:
             use_proxies = self.use_proxies
 
-        ref = self.readUnsignedInteger()
+        ref = self.readInteger(False)
 
         if ref & REFERENCE_BIT == 0:
             obj = self.context.getObject(ref >> 1)
@@ -1000,7 +989,8 @@ class Decoder(pyamf.BaseDecoder):
 
         ref >>= 1
 
-        class_def, alias = self._getClassDefinition(ref)
+        class_def = self._getClassDefinition(ref)
+        alias = class_def.alias
 
         obj = alias.createInstance(codec=self)
         obj_attrs = dict()
@@ -1009,6 +999,11 @@ class Decoder(pyamf.BaseDecoder):
 
         if class_def.encoding in (ObjectEncoding.EXTERNAL, ObjectEncoding.PROXY):
             obj.__readamf__(DataInput(self))
+
+            if use_proxies is True:
+                obj = self.readProxy(obj)
+
+            return obj
         elif class_def.encoding == ObjectEncoding.DYNAMIC:
             self._readStatic(class_def, obj_attrs)
             self._readDynamic(class_def, obj_attrs)
@@ -1031,7 +1026,7 @@ class Decoder(pyamf.BaseDecoder):
         @type legacy: C{bool}
         @param legacy: The read XML is in 'legacy' format.
         """
-        ref = self.readUnsignedInteger()
+        ref = self.readInteger(False)
 
         if ref & REFERENCE_BIT == 0:
             return self.context.getObject(ref >> 1)
@@ -1074,7 +1069,7 @@ class Decoder(pyamf.BaseDecoder):
         @see: L{ByteArray}
         @note: This is not supported in ActionScript 1.0 and 2.0.
         """
-        ref = self.readUnsignedInteger()
+        ref = self.readInteger(False)
 
         if ref & REFERENCE_BIT == 0:
             return self.context.getObject(ref >> 1)
@@ -1108,10 +1103,14 @@ class Encoder(pyamf.BaseEncoder):
         pyamf.BaseEncoder.__init__(self, *args, **kwargs)
 
     def getTypeFunc(self, data):
+        """
+        Returns a function object that will encode `data`.
+        """
         t = type(data)
 
         if t in (int, long):
             return self.writeInteger
+
         if isinstance(data, (list, tuple)):
             try:
                 alias = self.context.getClassAlias(data.__class__)
@@ -1199,7 +1198,7 @@ class Encoder(pyamf.BaseEncoder):
         if self.string_references:
             ref = self.context.getStringReference(s)
 
-            if ref is not None:
+            if ref != -1:
                 self._writeInteger(ref << 1)
 
                 return
@@ -1238,6 +1237,9 @@ class Encoder(pyamf.BaseEncoder):
 
         self._writeString(s)
 
+    def writeLabel(self, s):
+        self._writeString(s)
+
     def writeDate(self, n, **kwargs):
         """
         Writes a C{datetime} instance to the stream.
@@ -1254,7 +1256,7 @@ class Encoder(pyamf.BaseEncoder):
 
         ref = self.context.getObjectReference(n)
 
-        if ref is not None:
+        if ref != -1:
             self._writeInteger(ref << 1)
 
             return
@@ -1290,7 +1292,7 @@ class Encoder(pyamf.BaseEncoder):
 
         ref = self.context.getObjectReference(n)
 
-        if ref is not None:
+        if ref != -1:
             self._writeInteger(ref << 1)
 
             return
@@ -1330,7 +1332,7 @@ class Encoder(pyamf.BaseEncoder):
 
         ref = self.context.getObjectReference(n)
 
-        if ref is not None:
+        if ref != -1:
             self._writeInteger(ref << 1)
 
             return
@@ -1382,9 +1384,7 @@ class Encoder(pyamf.BaseEncoder):
         """
         Writes an object to the stream.
 
-        @param obj: The object data to be encoded to the AMF3 data stream.
-        @type obj: object data
-        @raise EncodeError: Encoding an object in amf3 tagged as amf0 only.
+        :param obj: The object data to be encoded to the AMF3 data stream.
         """
         if use_proxies is None:
             use_proxies = self.use_proxies
@@ -1398,7 +1398,7 @@ class Encoder(pyamf.BaseEncoder):
 
         ref = self.context.getObjectReference(obj)
 
-        if ref is not None:
+        if ref != -1:
             self._writeInteger(ref << 1)
 
             return
@@ -1481,7 +1481,7 @@ class Encoder(pyamf.BaseEncoder):
                     self._writeString(attr)
                     self.writeElement(value)
 
-            self.stream.write_uchar(0x01)
+            self.stream.write('\x01')
 
     def writeByteArray(self, n, **kwargs):
         """
@@ -1494,7 +1494,7 @@ class Encoder(pyamf.BaseEncoder):
 
         ref = self.context.getObjectReference(n)
 
-        if ref is not None:
+        if ref != -1:
             self._writeInteger(ref << 1)
 
             return
@@ -1515,19 +1515,14 @@ class Encoder(pyamf.BaseEncoder):
         """
         i = self.context.getLegacyXMLReference(n)
 
-        if i is None:
-            is_legacy = True
-        else:
-            is_legacy = False
-
-        if is_legacy is True:
+        if i == -1:
             self.stream.write(TYPE_XMLSTRING)
         else:
             self.stream.write(TYPE_XML)
 
         ref = self.context.getObjectReference(n)
 
-        if ref is not None:
+        if ref != -1:
             self._writeInteger(ref << 1)
 
             return
@@ -1653,13 +1648,12 @@ def decode_int(stream, signed=False):
     return result
 
 try:
-    from cpyamf.amf3 import encode_int, decode_int
+    from cpyamf.amf3 import Encoder, Decoder, Context, ClassDefinition
 except ImportError:
-    pass
+    for x in range(0, 20):
+        ENCODED_INT_CACHE[x] = encode_int(x)
+    del x
 
 
 pyamf.register_class(ByteArray)
 
-for x in range(0, 20):
-    ENCODED_INT_CACHE[x] = encode_int(x)
-del x

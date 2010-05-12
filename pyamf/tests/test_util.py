@@ -40,54 +40,43 @@ class TimestampTestCase(unittest.TestCase):
         self.assertEqual(util.get_datetime(ts), dt)
 
 
-class StringIOProxyTestCase(unittest.TestCase):
-
-    def setUp(self):
-        self.previous = util.StringIOProxy._wrapped_class
-        util.StringIOProxy._wrapped_class = StringIO
-
-    def tearDown(self):
-        util.StringIOProxy._wrapped_class = self.previous
+class StringIOTestCase(unittest.TestCase):
 
     def test_create(self):
-        sp = util.StringIOProxy()
+        sp = util.BufferedByteStream()
 
-        self.assertEquals(sp._buffer.tell(), 0)
-        self.assertEquals(sp._buffer.getvalue(), '')
+        self.assertEquals(sp.tell(), 0)
+        self.assertEquals(sp.getvalue(), '')
         self.assertEquals(len(sp), 0)
         self.assertEquals(sp.getvalue(), '')
 
-        sp = util.StringIOProxy(None)
+        sp = util.BufferedByteStream(None)
 
-        self.assertEquals(sp._buffer.tell(), 0)
-        self.assertEquals(sp._buffer.getvalue(), '')
-        self.assertEquals(len(sp), 0)
+        self.assertEquals(sp.tell(), 0)
         self.assertEquals(sp.getvalue(), '')
-
-        sp = util.StringIOProxy('')
-
-        self.assertEquals(sp._buffer.tell(), 0)
-        self.assertEquals(sp._buffer.getvalue(), '')
         self.assertEquals(len(sp), 0)
+
+        sp = util.BufferedByteStream('')
+
+        self.assertEquals(sp.tell(), 0)
         self.assertEquals(sp.getvalue(), '')
+        self.assertEquals(len(sp), 0)
 
-        sp = util.StringIOProxy('spam')
+        sp = util.BufferedByteStream('spam')
 
-        self.assertEquals(sp._buffer.tell(), 0)
-        self.assertEquals(sp._buffer.getvalue(), 'spam')
-        self.assertEquals(len(sp), 4)
+        self.assertEquals(sp.tell(), 0)
         self.assertEquals(sp.getvalue(), 'spam')
+        self.assertEquals(len(sp), 4)
 
-        sp = util.StringIOProxy(StringIO('this is a test'))
-        self.assertEquals(sp._buffer.tell(), 0)
-        self.assertEquals(sp._buffer.getvalue(), 'this is a test')
-        self.assertEquals(len(sp), 14)
+        sp = util.BufferedByteStream(StringIO('this is a test'))
+        self.assertEquals(sp.tell(), 0)
         self.assertEquals(sp.getvalue(), 'this is a test')
+        self.assertEquals(len(sp), 14)
 
-        self.assertRaises(TypeError, util.StringIOProxy, self)
+        self.assertRaises(TypeError, util.BufferedByteStream, self)
 
     def test_getvalue(self):
-        sp = util.StringIOProxy()
+        sp = util.BufferedByteStream()
 
         sp.write('asdfasdf')
         self.assertEquals(sp.getvalue(), 'asdfasdf')
@@ -95,7 +84,7 @@ class StringIOProxyTestCase(unittest.TestCase):
         self.assertEquals(sp.getvalue(), 'asdfasdfspam')
 
     def test_read(self):
-        sp = util.StringIOProxy('this is a test')
+        sp = util.BufferedByteStream('this is a test')
 
         self.assertEquals(len(sp), 14)
         self.assertEquals(sp.read(1), 't')
@@ -105,7 +94,7 @@ class StringIOProxyTestCase(unittest.TestCase):
         self.assertEquals(sp.read(), 'est')
 
     def test_seek(self):
-        sp = util.StringIOProxy('abcdefghijklmnopqrstuvwxyz')
+        sp = util.BufferedByteStream('abcdefghijklmnopqrstuvwxyz')
 
         self.assertEquals(sp.getvalue(), 'abcdefghijklmnopqrstuvwxyz')
         self.assertEquals(sp.tell(), 0)
@@ -136,7 +125,7 @@ class StringIOProxyTestCase(unittest.TestCase):
         self.assertEquals(len(sp), 26)
 
     def test_tell(self):
-        sp = util.StringIOProxy('abcdefghijklmnopqrstuvwxyz')
+        sp = util.BufferedByteStream('abcdefghijklmnopqrstuvwxyz')
 
         self.assertEquals(sp.getvalue(), 'abcdefghijklmnopqrstuvwxyz')
         self.assertEquals(len(sp), 26)
@@ -152,7 +141,7 @@ class StringIOProxyTestCase(unittest.TestCase):
         self.assertEquals(sp.tell(), 6)
 
     def test_truncate(self):
-        sp = util.StringIOProxy('abcdef')
+        sp = util.BufferedByteStream('abcdef')
 
         self.assertEquals(sp.getvalue(), 'abcdef')
         self.assertEquals(len(sp), 6)
@@ -161,7 +150,7 @@ class StringIOProxyTestCase(unittest.TestCase):
         self.assertEquals(sp.getvalue(), '')
         self.assertEquals(len(sp), 0)
 
-        sp = util.StringIOProxy('hello')
+        sp = util.BufferedByteStream('hello')
 
         self.assertEquals(sp.getvalue(), 'hello')
         self.assertEquals(len(sp), 5)
@@ -172,7 +161,7 @@ class StringIOProxyTestCase(unittest.TestCase):
         self.assertEquals(len(sp), 3)
 
     def test_write(self):
-        sp = util.StringIOProxy()
+        sp = util.BufferedByteStream()
 
         self.assertEquals(sp.getvalue(), '')
         self.assertEquals(len(sp), 0)
@@ -183,7 +172,7 @@ class StringIOProxyTestCase(unittest.TestCase):
         self.assertEquals(len(sp), 5)
         self.assertEquals(sp.tell(), 5)
 
-        sp = util.StringIOProxy('xyz')
+        sp = util.BufferedByteStream('xyz')
 
         self.assertEquals(sp.getvalue(), 'xyz')
         self.assertEquals(len(sp), 3)
@@ -195,7 +184,7 @@ class StringIOProxyTestCase(unittest.TestCase):
         self.assertEquals(sp.tell(), 3)
 
     def test_len(self):
-        sp = util.StringIOProxy()
+        sp = util.BufferedByteStream()
 
         self.assertEquals(sp.getvalue(), '')
         self.assertEquals(len(sp), 0)
@@ -205,7 +194,7 @@ class StringIOProxyTestCase(unittest.TestCase):
 
         self.assertEquals(len(sp), 3)
 
-        sp = util.StringIOProxy('foo')
+        sp = util.BufferedByteStream('foo')
 
         self.assertEquals(len(sp), 3)
 
@@ -215,7 +204,7 @@ class StringIOProxyTestCase(unittest.TestCase):
         self.assertEquals(len(sp), 6)
 
     def test_consume(self):
-        sp = util.StringIOProxy()
+        sp = util.BufferedByteStream()
 
         self.assertEquals(sp.getvalue(), '')
         self.assertEquals(sp.tell(), 0)
@@ -225,7 +214,7 @@ class StringIOProxyTestCase(unittest.TestCase):
         self.assertEquals(sp.getvalue(), '')
         self.assertEquals(sp.tell(), 0)
 
-        sp = util.StringIOProxy('foobar')
+        sp = util.BufferedByteStream('foobar')
 
         self.assertEquals(sp.getvalue(), 'foobar')
         self.assertEquals(sp.tell(), 0)
@@ -239,7 +228,7 @@ class StringIOProxyTestCase(unittest.TestCase):
         self.assertEquals(sp.tell(), 0)
 
         # from ticket 451 - http://pyamf.org/ticket/451
-        sp = util.StringIOProxy('abcdef')
+        sp = util.BufferedByteStream('abcdef')
         # move the stream pos to the end
         sp.read()
 
@@ -247,26 +236,14 @@ class StringIOProxyTestCase(unittest.TestCase):
         sp.consume()
         self.assertEquals(len(sp), 0)
 
-        sp = util.StringIOProxy('abcdef')
+        sp = util.BufferedByteStream('abcdef')
         sp.seek(6)
         sp.consume()
         self.assertEquals(sp.getvalue(), '')
 
 
-class cStringIOProxyTestCase(StringIOProxyTestCase):
-    def setUp(self):
-        from cStringIO import StringIO
-
-        self.previous = util.StringIOProxy._wrapped_class
-        util.StringIOProxy._wrapped_class = StringIO
-
-
-class ByteStream(util.StringIOProxy, util.DataTypeMixIn):
-    pass
-
-
 class DataTypeMixInTestCase(unittest.TestCase):
-    endians = (util.DataTypeMixIn.ENDIAN_BIG, util.DataTypeMixIn.ENDIAN_LITTLE)
+    endians = ('>', '<') # big, little
 
     def _write_endian(self, obj, func, args, expected):
         old_endian = obj.endian
@@ -283,7 +260,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
 
     def _read_endian(self, data, func, args, expected):
         for x in range(2):
-            obj = ByteStream(data[x])
+            obj = util.BufferedByteStream(data[x])
             obj.endian = self.endians[x]
 
             result = getattr(obj, func)(*args)
@@ -291,13 +268,13 @@ class DataTypeMixInTestCase(unittest.TestCase):
             self.assertEquals(result, expected)
 
     def test_read_uchar(self):
-        x = ByteStream('\x00\xff')
+        x = util.BufferedByteStream('\x00\xff')
 
         self.assertEquals(x.read_uchar(), 0)
         self.assertEquals(x.read_uchar(), 255)
 
     def test_write_uchar(self):
-        x = ByteStream()
+        x = util.BufferedByteStream()
 
         x.write_uchar(0)
         self.assertEquals(x.getvalue(), '\x00')
@@ -309,7 +286,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
         self.assertRaises(TypeError, x.write_uchar, 'f')
 
     def test_read_char(self):
-        x = ByteStream('\x00\x7f\xff\x80')
+        x = util.BufferedByteStream('\x00\x7f\xff\x80')
 
         self.assertEquals(x.read_char(), 0)
         self.assertEquals(x.read_char(), 127)
@@ -317,7 +294,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
         self.assertEquals(x.read_char(), -128)
 
     def test_write_char(self):
-        x = ByteStream()
+        x = util.BufferedByteStream()
 
         x.write_char(0)
         x.write_char(-128)
@@ -330,7 +307,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
         self.assertRaises(TypeError, x.write_char, 'f')
 
     def test_write_ushort(self):
-        x = ByteStream()
+        x = util.BufferedByteStream()
 
         self._write_endian(x, x.write_ushort, (0,), ('\x00\x00', '\x00\x00'))
         self._write_endian(x, x.write_ushort, (12345,), ('09', '90'))
@@ -346,7 +323,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
         self._read_endian(['\xff\xff', '\xff\xff'], 'read_ushort', (), 65535)
 
     def test_write_short(self):
-        x = ByteStream()
+        x = util.BufferedByteStream()
 
         self._write_endian(x, x.write_short, (-5673,), ('\xe9\xd7', '\xd7\xe9'))
         self._write_endian(x, x.write_short, (32767,), ('\x7f\xff', '\xff\x7f'))
@@ -360,7 +337,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
         self._read_endian(['\x7f\xff', '\xff\x7f'], 'read_short', (), 32767)
 
     def test_write_ulong(self):
-        x = ByteStream()
+        x = util.BufferedByteStream()
 
         self._write_endian(x, x.write_ulong, (0,), ('\x00\x00\x00\x00', '\x00\x00\x00\x00'))
         self._write_endian(x, x.write_ulong, (16810049,), ('\x01\x00\x80A', 'A\x80\x00\x01'))
@@ -376,7 +353,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
         self._read_endian(['\xff\xff\xff\xff', '\xff\xff\xff\xff'], 'read_ulong', (), 4294967295L)
 
     def test_write_long(self):
-        x = ByteStream()
+        x = util.BufferedByteStream()
 
         self._write_endian(x, x.write_long, (0,), ('\x00\x00\x00\x00', '\x00\x00\x00\x00'))
         self._write_endian(x, x.write_long, (16810049,), ('\x01\x00\x80A', 'A\x80\x00\x01'))
@@ -393,7 +370,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
         self._read_endian(['\x7f\xff\xff\xff', '\xff\xff\xff\x7f'], 'read_long', (), 2147483647L)
 
     def test_write_u24bit(self):
-        x = ByteStream()
+        x = util.BufferedByteStream()
 
         self._write_endian(x, x.write_24bit_uint, (0,), ('\x00\x00\x00', '\x00\x00\x00'))
         self._write_endian(x, x.write_24bit_uint, (4292609,), ('A\x80\x01', '\x01\x80A'))
@@ -411,7 +388,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
         self._read_endian(['\x7f\xff\xff', '\xff\xff\x7f'], 'read_24bit_uint', (), 8388607)
 
     def test_write_24bit(self):
-        x = ByteStream()
+        x = util.BufferedByteStream()
 
         self._write_endian(x, x.write_24bit_int, (0,), ('\x00\x00\x00', '\x00\x00\x00'))
         self._write_endian(x, x.write_24bit_int, (128,), ('\x00\x00\x80', '\x80\x00\x00'))
@@ -431,7 +408,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
         self._read_endian(['\x7f\xff\xff', '\xff\xff\x7f'], 'read_24bit_int', (), 8388607)
 
     def test_write_float(self):
-        x = ByteStream()
+        x = util.BufferedByteStream()
 
         self._write_endian(x, x.write_float, (0.2,), ('>L\xcc\xcd', '\xcd\xccL>'))
         self.assertRaises(TypeError, x.write_float, 'foo')
@@ -440,7 +417,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
         self._read_endian(['?\x00\x00\x00', '\x00\x00\x00?'], 'read_float', (), 0.5)
 
     def test_write_double(self):
-        x = ByteStream()
+        x = util.BufferedByteStream()
 
         self._write_endian(x, x.write_double, (0.2,), ('?\xc9\x99\x99\x99\x99\x99\x9a', '\x9a\x99\x99\x99\x99\x99\xc9?'))
         self.assertRaises(TypeError, x.write_double, 'foo')
@@ -449,7 +426,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
         self._read_endian(['?\xc9\x99\x99\x99\x99\x99\x9a', '\x9a\x99\x99\x99\x99\x99\xc9?'], 'read_double', (), 0.2)
 
     def test_write_utf8_string(self):
-        x = ByteStream()
+        x = util.BufferedByteStream()
 
         self._write_endian(x, x.write_utf8_string, (u'ᚠᛇᚻ',), ['\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb'] * 2)
         self.assertRaises(TypeError, x.write_utf8_string, 1)
@@ -460,26 +437,26 @@ class DataTypeMixInTestCase(unittest.TestCase):
         self._read_endian(['\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb'] * 2, 'read_utf8_string', (9,), u'ᚠᛇᚻ')
 
     def test_nan(self):
-        x = ByteStream('\xff\xf8\x00\x00\x00\x00\x00\x00')
+        x = util.BufferedByteStream('\xff\xf8\x00\x00\x00\x00\x00\x00')
         self.assertTrue(_util.isNaN(x.read_double()))
 
-        x = ByteStream('\xff\xf0\x00\x00\x00\x00\x00\x00')
+        x = util.BufferedByteStream('\xff\xf0\x00\x00\x00\x00\x00\x00')
         self.assertTrue(_util.isNegInf(x.read_double()))
 
-        x = ByteStream('\x7f\xf0\x00\x00\x00\x00\x00\x00')
+        x = util.BufferedByteStream('\x7f\xf0\x00\x00\x00\x00\x00\x00')
         self.assertTrue(_util.isPosInf(x.read_double()))
 
         # now test little endian
-        x = ByteStream('\x00\x00\x00\x00\x00\x00\xf8\xff')
-        x.endian = ByteStream.ENDIAN_LITTLE
+        x = util.BufferedByteStream('\x00\x00\x00\x00\x00\x00\xf8\xff')
+        x.endian = '<'
         self.assertTrue(_util.isNaN(x.read_double()))
 
-        x = ByteStream('\x00\x00\x00\x00\x00\x00\xf0\xff')
-        x.endian = ByteStream.ENDIAN_LITTLE
+        x = util.BufferedByteStream('\x00\x00\x00\x00\x00\x00\xf0\xff')
+        x.endian = '<'
         self.assertTrue(_util.isNegInf(x.read_double()))
 
-        x = ByteStream('\x00\x00\x00\x00\x00\x00\xf0\x7f')
-        x.endian = ByteStream.ENDIAN_LITTLE
+        x = util.BufferedByteStream('\x00\x00\x00\x00\x00\x00\xf0\x7f')
+        x.endian = '<'
         self.assertTrue(_util.isPosInf(x.read_double()))
 
     def test_write_infinites(self):
@@ -487,7 +464,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
         pos_inf = 1e3000000
         neg_inf = -1e3000000
 
-        x = ByteStream()
+        x = util.BufferedByteStream()
 
         self._write_endian(x, x.write_double, (nan,), (
             '\xff\xf8\x00\x00\x00\x00\x00\x00',
@@ -894,7 +871,7 @@ class IndexedCollectionTestCase(unittest.TestCase):
         self.assertEquals(sys.getrefcount(test_obj), 3)
 
         self.assertEquals(0, idx)
-        self.assertEquals(None, self.collection.getReferenceTo(TestObject()))
+        self.assertEquals(-1, self.collection.getReferenceTo(TestObject()))
 
     def test_get_by_reference(self):
         test_obj = TestObject()
@@ -1224,7 +1201,7 @@ def suite():
 
     test_cases = [
         TimestampTestCase,
-        StringIOProxyTestCase,
+        StringIOTestCase,
         DataTypeMixInTestCase,
         BufferedByteStreamTestCase,
         ClassAliasTestCase,
@@ -1233,11 +1210,6 @@ def suite():
         GetClassMetaTestCase
     ]
 
-    try:
-        import cStringIO
-        test_cases.append(cStringIOProxyTestCase)
-    except ImportError:
-        pass
 
     for tc in test_cases:
         suite.addTest(unittest.makeSuite(tc))

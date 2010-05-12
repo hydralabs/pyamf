@@ -498,7 +498,7 @@ class Encoder(pyamf.BaseEncoder):
 
             return
 
-        if self.writeReference(a) is not None:
+        if self.writeReference(a) != -1:
             return
 
         self.context.addObject(a)
@@ -557,6 +557,9 @@ class Encoder(pyamf.BaseEncoder):
 
         self.stream.write(s)
 
+    def writeLabel(self, s):
+        self.writeString(s, False)
+
     def writeUnicode(self, u, writeType=True):
         """
         Write a unicode to the data stream.
@@ -575,10 +578,11 @@ class Encoder(pyamf.BaseEncoder):
         """
         idx = self.context.getObjectReference(o)
 
-        if idx is None or idx > 65535:
-            return None
+        if idx == -1 or idx > 65535:
+            return -1
 
         self.writeType(TYPE_REFERENCE)
+
         self.stream.write_ushort(idx)
 
         return idx
@@ -603,7 +607,7 @@ class Encoder(pyamf.BaseEncoder):
         @param o: The mixed array data to be encoded to the AMF0
             data stream.
         """
-        if self.writeReference(o) is not None:
+        if self.writeReference(o) != -1:
             return
 
         self.context.addObject(o)
@@ -642,7 +646,7 @@ class Encoder(pyamf.BaseEncoder):
 
             return
 
-        if self.writeReference(o) is not None:
+        if self.writeReference(o) != -1:
             return
 
         self.context.addObject(o)

@@ -81,12 +81,14 @@ def get_cpyamf_extensions():
 
         ext_modules.extend([
             Extension('cpyamf.util', ['cpyamf/util.pyx']),
-            Extension('cpyamf.amf3', ['cpyamf/amf3.pyx'])
+            Extension('cpyamf.amf3', ['cpyamf/amf3.pyx']),
+            Extension('cpyamf.context', ['cpyamf/context.pyx'])
         ])
     except ImportError:
         ext_modules.extend([
             Extension('cpyamf.util', ['cpyamf/util.c']),
-            Extension('cpyamf.amf3', ['cpyamf/amf3.c'])
+            Extension('cpyamf.amf3', ['cpyamf/amf3.c']),
+            Extension('cpyamf.context', ['cpyamf/context.c'])
         ])
 
     return ext_modules

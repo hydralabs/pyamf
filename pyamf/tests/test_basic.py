@@ -506,7 +506,7 @@ class BaseContextTestCase(unittest.TestCase):
         x = pyamf.BaseContext()
 
         self.assertEquals(x.getObject(62), None)
-        self.assertEquals(x.getObjectReference(object()), None)
+        self.assertEquals(x.getObjectReference(object()), -1)
 
     def test_unicode(self):
         x = pyamf.BaseContext()

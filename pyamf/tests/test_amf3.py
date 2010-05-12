@@ -97,7 +97,7 @@ class ContextTestCase(_util.ClassCacheClearingTestCase):
         self.assertTrue(y in x.strings)
         self.assertEquals(len(x.strings), 1)
 
-        self.assertEquals(x.addString(''), None)
+        self.assertEquals(x.addString(''), -1)
 
         self.assertRaises(TypeError, x.addString, 132)
 
@@ -198,7 +198,7 @@ class ContextTestCase(_util.ClassCacheClearingTestCase):
         self.assertEquals(x.getClass(2), None)
         self.assertEquals(x.getLegacyXML(2), None)
         self.assertEquals(x.getClassByReference(2), None)
-        self.assertEquals(x.getLegacyXMLReference(object()), None)
+        self.assertEquals(x.getLegacyXMLReference(object()), -1)
 
     def test_get_reference(self):
         x = amf3.Context()
@@ -226,15 +226,15 @@ class ContextTestCase(_util.ClassCacheClearingTestCase):
 
         self.assertEquals(x.getObjectReference(y), ref1)
         self.assertEquals(x.getObjectReference(z), ref2)
-        self.assertEquals(x.getObjectReference({}), None)
+        self.assertEquals(x.getObjectReference({}), -1)
 
         self.assertEquals(x.getStringReference('abc'), 0)
         self.assertEquals(x.getStringReference('def'), 1)
-        self.assertEquals(x.getStringReference('asdfas'), None)
+        self.assertEquals(x.getStringReference('asdfas'), -1)
 
         self.assertEquals(x.getLegacyXMLReference('<a></a>'), 0)
         self.assertEquals(x.getLegacyXMLReference('<b></b>'), 1)
-        self.assertEquals(x.getLegacyXMLReference('<c/>'), None)
+        self.assertEquals(x.getLegacyXMLReference('<c/>'), -1)
 
         self.assertEquals(x.getClass(Spam), a)
         self.assertEquals(x.getClass(Foo), b)
@@ -276,7 +276,6 @@ class ClassDefinitionTestCase(_util.ClassCacheClearingTestCase):
 
         self.assertTrue(x.alias is self.alias)
         self.assertEquals(x.encoding, 2)
-        self.assertEquals(x.reference, None)
         self.assertEquals(x.attr_len, 0)
 
         self.assertTrue(self.alias.is_compiled())
@@ -289,7 +288,6 @@ class ClassDefinitionTestCase(_util.ClassCacheClearingTestCase):
 
         self.assertTrue(x.alias is self.alias)
         self.assertEquals(x.encoding, 0)
-        self.assertEquals(x.reference, None)
         self.assertEquals(x.attr_len, 2)
 
     def test_mixed(self):
@@ -299,7 +297,6 @@ class ClassDefinitionTestCase(_util.ClassCacheClearingTestCase):
 
         self.assertTrue(x.alias is self.alias)
         self.assertEquals(x.encoding, 2)
-        self.assertEquals(x.reference, None)
         self.assertEquals(x.attr_len, 2)
 
     def test_external(self):
@@ -309,7 +306,6 @@ class ClassDefinitionTestCase(_util.ClassCacheClearingTestCase):
 
         self.assertTrue(x.alias is self.alias)
         self.assertEquals(x.encoding, 1)
-        self.assertEquals(x.reference, None)
         self.assertEquals(x.attr_len, 0)
 
 
@@ -430,12 +426,11 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
         try:
             self._run([(datetime.time(22, 3), '')])
         except pyamf.EncodeError, e:
-            self.assertEquals(str(e), 'A datetime.time instance was found but '
+            self.assertTrue(str(e).startswith('A datetime.time instance was found but '
                 'AMF3 has no way to encode time objects. Please use '
-                'datetime.datetime instead (got:datetime.time(22, 3))')
+                'datetime.datetime instead'))
         else:
             self.fail('pyamf.EncodeError not raised when encoding datetime.time')
-
 
     def test_byte_array(self):
         self._run([(amf3.ByteArray('hello'), '\x0c\x0bhello')])
@@ -608,7 +603,7 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
             (amf3.MIN_29B_INT, '\x04\xc0\x80\x80\x00'),
             (amf3.MAX_29B_INT, '\x04\xbf\xff\xff\xff'),
             (1.23456789, '\x05\x3f\xf3\xc0\xca\x42\x83\xde\x1b')
-	]
+        ]
 
         for i, val in vals:
             self.buf.truncate()
@@ -702,24 +697,6 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
         self._run([(0xfffffff, '\x04\xbf\xff\xff\xff')])
         self._run([(-0x10000000, '\x04\xc0\x80\x80\x00')])
 
-    def test_unsignedInteger(self):
-        tests = [
-            (0, '\x00'),
-            (0x7f, '\x7f'),
-            (0x80, '\x81\x00'),
-            (0x3fff, '\xff\x7f'),
-            (0x4000, '\x81\x80\x00'),
-            (0x1fffff, '\xff\xff\x7f'),
-            (0x200000, '\x80\xc0\x80\x00'),
-            (0x3fffffff, '\xff\xff\xff\xff')
-        ]
-
-        for n, s in tests:
-            self.buf.truncate(0)
-            self.buf.write(s)
-            self.buf.seek(0)
-            self.assertEqual(self.decoder.readUnsignedInteger(), n)
-
     def test_infinites(self):
         self.buf.truncate()
         self.buf.write('\x05\xff\xf8\x00\x00\x00\x00\x00\x00')
@@ -764,8 +741,6 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
                 )])
 
     def test_string_references(self):
-        self.decoder.str_refs = []
-
         self._run([
             ('hello', '\x06\x0bhello'),
             ('hello', '\x06\x00'),
@@ -792,7 +767,7 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
         x = self.decoder.readElement()
 
         self.assertEquals(util.ET.tostring(x), '<a><b>hello world</b></a>')
-        self.assertEquals(self.context.getLegacyXMLReference(x), None)
+        self.assertEquals(self.context.getLegacyXMLReference(x), -1)
 
         self.buf.truncate()
         self.buf.write('\x0b\x00')
@@ -888,7 +863,8 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
         self.buf.write('\x0fabc.xyz')
         self.buf.seek(0, 0)
 
-        class_def, alias = self.decoder._getClassDefinition(0x01)
+        class_def = self.decoder._getClassDefinition(0x01)
+        alias = class_def.alias
 
         self.assertTrue(isinstance(class_def, amf3.ClassDefinition))
         self.assertTrue(alias.klass, Spam)
@@ -902,7 +878,8 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
         self.buf.write('\x0fabc.xyz')
         self.buf.seek(0, 0)
 
-        class_def, alias = self.decoder._getClassDefinition(0x03)
+        class_def = self.decoder._getClassDefinition(0x03)
+        alias = class_def.alias
 
         self.assertTrue(isinstance(class_def, amf3.ClassDefinition))
         self.assertTrue(alias.klass, Spam)
@@ -915,7 +892,8 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
         self.buf.write('\x0fabc.xyz')
         self.buf.seek(0, 0)
 
-        class_def, alias = self.decoder._getClassDefinition(0x05)
+        class_def = self.decoder._getClassDefinition(0x05)
+        alias = class_def.alias
 
         self.assertTrue(isinstance(class_def, amf3.ClassDefinition))
         self.assertTrue(alias.klass, Spam)
@@ -1123,7 +1101,9 @@ class ObjectEncodingTestCase(_util.ClassCacheClearingTestCase):
 
         self.encoder.writeElement([x, y])
 
-        self.assertEquals(self.stream.getvalue(), '\t\x05\x01\n;\x01\x17description\x05id\tname\x01\x04\x01\x06\x07foo\x01\n\x01\x01\x04\x02\x06\x07bar\x01')
+        self.assertEquals(self.stream.getvalue(),
+            '\t\x05\x01\n;\x01\x17description\x05id\tname\x01\x04\x01\x06\x07'
+            'foo\x01\n\x01\x01\x04\x02\x06\x07bar\x01')
 
 
 class ObjectDecodingTestCase(_util.ClassCacheClearingTestCase):
@@ -1669,7 +1649,6 @@ class ComplexEncodingTestCase(unittest.TestCase, _util.BaseEncoderMixIn):
 
         cd = class_defs[0]
 
-        self.assertEqual(cd.reference, '\x01')
         self.assertEquals(class_defs, {0: cd})
         self.assertEquals(classes, {self.TestSubObject: cd})
 
@@ -1679,7 +1658,6 @@ class ComplexEncodingTestCase(unittest.TestCase, _util.BaseEncoderMixIn):
 
         self.assertEquals(class_defs, {0: cd, 1: cd2})
         self.assertEquals(classes, {self.TestSubObject: cd, dict: cd2})
-        self.assertEquals(cd2.reference, '\x05')
 
         self.encoder.writeElement({})
 
@@ -1700,8 +1678,6 @@ class ComplexEncodingTestCase(unittest.TestCase, _util.BaseEncoderMixIn):
         self.assertEquals(class_defs, {0: cd, 1: cd2, 2: cd3})
         self.assertEquals(classes,
             {self.TestSubObject: cd, dict: cd2, self.TestObject: cd3})
-
-        self.assertEquals(cd3.reference, '\x09')
 
 
 class ExceptionEncodingTestCase(_util.ClassCacheClearingTestCase):
