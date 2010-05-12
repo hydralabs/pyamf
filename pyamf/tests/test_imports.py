@@ -174,6 +174,11 @@ class ModuleFinderFindModuleTestCase(BaseModuleFinderTestCase):
 
         self.assertEquals(None, self.finder.find_module('foo', None))
 
+    def test_no_path(self):
+        self.assertFalse('foo' in imports.post_load_hooks)
+
+        self.assertEquals(None, self.finder.find_module('foo'))
+
 
 class ModuleFinderLoadModuleTestCase(BaseModuleFinderTestCase):
     """

@@ -29,7 +29,7 @@ class ModuleFinder(object):
     @since: 0.5
     """
 
-    def find_module(self, name, path):
+    def find_module(self, name, path=None):
         """
         Called when an import is made. If there are hooks waiting for this
         module to be imported then we stop the normal import process and
