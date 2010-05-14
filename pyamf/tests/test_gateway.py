@@ -456,6 +456,18 @@ class BaseGatewayTestCase(unittest.TestCase):
 
         self.assertTrue(isinstance(processor, amf3.RequestProcessor))
 
+    def test_empty_target(self):
+        gw = gateway.BaseGateway({})
+
+        envelope = remoting.Envelope()
+        request = remoting.Request('')
+
+        processor = gw.getProcessor(request)
+
+        from pyamf.remoting import amf3
+
+        self.assertTrue(isinstance(processor, amf3.RequestProcessor))
+
 
 class QueryBrowserTestCase(unittest.TestCase):
     def test_request(self):

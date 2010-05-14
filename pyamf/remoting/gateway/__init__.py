@@ -388,7 +388,7 @@ class BaseGateway(object):
         @param request: The AMF message.
         @type request: L{Request<remoting.Request>}
         """
-        if request.target == 'null' or request.target is None:
+        if request.target == 'null' or not request.target:
             from pyamf.remoting import amf3
 
             return amf3.RequestProcessor(self)
