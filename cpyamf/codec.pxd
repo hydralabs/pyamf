@@ -65,3 +65,5 @@ cdef class Codec(object):
     cdef object timezone_offset
 
     cdef Context buildContext(self)
+    cdef PyObject *getCustomTypeFunc(self, data)
+    cdef object getTypeMapFunc(self, data)

@@ -13,7 +13,7 @@ from cpyamf.util cimport cBufferedByteStream, BufferedByteStream
 
 
 import pyamf
-from pyamf import util
+from pyamf import util, codec
 
 
 cdef class IndexedCollection(object):
@@ -400,10 +400,63 @@ cdef class Codec:
             context = self.buildContext()
 
         self.stream = <cBufferedByteStream>stream
-        self.context = context or self.buildContext()
+        self.context = context
         self.strict = strict
 
         self.timezone_offset = timezone_offset
 
     cdef Context buildContext(self):
         return Context()
+
+    cdef PyObject *getCustomTypeFunc(self, data):
+        cdef object ret = None
+
+        for type_, func in pyamf.TYPE_MAP.iteritems():
+            try:
+                if isinstance(data, type_):
+                    ret = codec._CustomTypeFunc(self, func)
+
+                    break
+            except TypeError:
+                if callable(type_) and type_(data):
+                    ret = codec._CustomTypeFunc(self, func)
+
+                    break
+
+        if ret is None:
+            return NULL
+
+        Py_INCREF(ret)
+
+        return <PyObject *>ret
+
+    cdef object getTypeMapFunc(self, data):
+        cdef char *buf
+
+        for t, method in self.type_map.iteritems():
+            if not isinstance(data, t):
+                continue
+
+            if callable(method):
+                return TypeMappedCallable(self, method)
+
+            return getattr(self, method)
+
+        return None
+
+
+cdef class TypeMappedCallable:
+    """
+    A convienience class that provides the encoder instance to the typed
+    callable.
+    """
+
+    cdef Codec encoder
+    cdef object method
+
+    def __init__(self, Codec dec, method):
+        self.codec = dec
+        self.method = method
+
+    def __call__(self, *args, **kwargs):
+        self.method(self.codec, *args, **kwargs)

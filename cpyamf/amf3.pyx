@@ -71,7 +71,6 @@ cdef PyObject *BuiltinFunctionType = <PyObject *>types.BuiltinFunctionType
 cdef PyObject *GeneratorType = <PyObject *>types.GeneratorType
 cdef object empty_string = str('')
 
-
 PyDateTime_IMPORT
 
 
@@ -1123,43 +1122,6 @@ cdef class Encoder(Codec):
 
         return self.writeObject(proxy, 0)
 
-    cdef PyObject *getCustomTypeFunc(self, data):
-        cdef object ret = None
-
-        for type_, func in pyamf.TYPE_MAP.iteritems():
-            try:
-                if isinstance(data, type_):
-                    ret = codec._CustomTypeFunc(self, func)
-
-                    break
-            except TypeError:
-                if callable(type_) and type_(data):
-                    ret = codec._CustomTypeFunc(self, func)
-
-                    break
-
-        if ret is None:
-            return NULL
-
-        Py_INCREF(ret)
-
-        return <PyObject *>ret
-
-    cdef object _getTypeMapFunc(self, data):
-        cdef object c
-        cdef char *buf
-
-        for t, method in self.type_map.iteritems():
-            if not isinstance(data, t):
-                continue
-
-            if callable(method):
-                return TypeMappedCallable(self, method)
-
-            return getattr(self, method)
-
-        return None
-
     cpdef int writeElement(self, object element, use_proxies=None) except -1:
         cdef int ret = 0
         cdef object py_type = type(element)
@@ -1211,7 +1173,7 @@ cdef class Encoder(Codec):
                 func = self.getCustomTypeFunc(element)
 
                 if func == NULL:
-                    f = self._getTypeMapFunc(element)
+                    f = self.getTypeMapFunc(element)
 
                     if f is None:
                         if PyModule_CheckExact(element):
@@ -1240,23 +1202,6 @@ cdef class Encoder(Codec):
             (<object>func)(element, use_proxies=use_proxy)
 
         return ret
-
-
-cdef class TypeMappedCallable(object):
-    """
-    A convienience class that provides the encoder instance to the typed
-    callable.
-    """
-
-    cdef Encoder encoder
-    cdef object method
-
-    def __init__(self, Encoder encoder, method):
-        self.encoder = encoder
-        self.method = method
-
-    def __call__(self, *args, **kwargs):
-        self.method(self.encoder, *args, **kwargs)
 
 
 cdef int encode_int(long i, char **buf) except -1:
