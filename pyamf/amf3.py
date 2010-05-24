@@ -27,7 +27,7 @@ import datetime
 import zlib
 
 import pyamf
-from pyamf import codec, util, flex
+from pyamf import codec, util
 
 #: If True encode/decode lists/tuples to L{ArrayCollections<ArrayCollection>}
 #: and dicts to L{ObjectProxy}
@@ -584,10 +584,10 @@ class Context(codec.Context):
     """
 
     def __init__(self):
-        self.strings = util.IndexedCollection(use_hash=True)
+        self.strings = codec.IndexedCollection(use_hash=True)
         self.classes = {}
         self.class_ref = {}
-        self.legacy_xml = util.IndexedCollection()
+        self.legacy_xml = codec.IndexedCollection()
 
         self.class_idx = 0
 

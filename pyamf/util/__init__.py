@@ -17,9 +17,9 @@ import inspect
 import pyamf
 
 try:
-    from cpyamf.util import BufferedByteStream, IndexedCollection
+    from cpyamf.util import BufferedByteStream
 except ImportError:
-    from pyamf.util.pure import BufferedByteStream, IndexedCollection
+    from pyamf.util.pure import BufferedByteStream
 
 # Required for backwards compatibility
 from pyamf.python import (
@@ -321,4 +321,4 @@ else:
 
             return f2
 
-        _check_for_int = check_nan(_check_for_int)
+        check_for_int = check_nan(check_for_int)

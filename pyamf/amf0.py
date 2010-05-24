@@ -19,7 +19,6 @@ LocalConnection, SharedObjects and other classes in the Adobe Flash Player.
 """
 
 import datetime
-import types
 
 import pyamf
 from pyamf import util, codec
@@ -101,11 +100,6 @@ class Context(codec.Context):
     I hold the AMF0 context for en/decoding streams.
 
     AMF0 object references start at index 1.
-
-    :IVariables:
-      amf3_objs : `util.IndexedCollection`
-        A list of objects that have been decoded in
-        `AMF3 <pyamf.amf3>`_
     """
 
     def clear(self):

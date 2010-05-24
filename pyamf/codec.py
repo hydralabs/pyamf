@@ -5,6 +5,95 @@ import pyamf
 from pyamf import util
 
 
+class IndexedCollection(object):
+    """
+    A class that provides a quick and clean way to store references and
+    referenced objects.
+
+    @note: All attributes on the instance are private.
+    """
+
+    def __init__(self, use_hash=False):
+        if use_hash is True:
+            self.func = hash
+        else:
+            self.func = id
+
+        self.clear()
+
+    def clear(self):
+        """
+        Clears the index.
+        """
+        self.list = []
+        self.dict = {}
+
+    def getByReference(self, ref):
+        """
+        Returns an object based on the reference.
+
+        If the reference is not found, C{None} will be returned.
+
+        @raise TypeError: Bad reference type.
+        """
+        try:
+            return self.list[ref]
+        except IndexError:
+            return None
+
+    def getReferenceTo(self, obj):
+        """
+        Returns a reference to C{obj} if it is contained within this index.
+
+        If the object is not contained within the collection, C{None} will be
+        returned.
+
+        @param obj: The object to find the reference to
+        @return: An C{int} representing the reference or C{None} is the object
+            is not contained within the collection.
+        """
+        return self.dict.get(self.func(obj), -1)
+
+    def append(self, obj):
+        """
+        Appends C{obj} to this index.
+
+        @note: Uniqueness is not checked
+        @return: The reference to C{obj} in this index.
+        """
+        h = self.func(obj)
+
+        self.list.append(obj)
+        idx = len(self.list) - 1
+        self.dict[h] = idx
+
+        return idx
+
+    def __eq__(self, other):
+        if isinstance(other, list):
+            return self.list == other
+        elif isinstance(other, dict):
+            return self.dict == other
+
+        return False
+
+    def __len__(self):
+        return len(self.list)
+
+    def __getitem__(self, idx):
+        return self.getByReference(idx)
+
+    def __contains__(self, obj):
+        r = self.getReferenceTo(obj)
+
+        return r != -1
+
+    def __repr__(self):
+        return '<%s list=%r dict=%r>' % (self.__class__.__name__, self.list, self.dict)
+
+    def __iter__(self):
+        return iter(self.list)
+
 
 class Context(object):
     """
@@ -17,7 +106,7 @@ class Context(object):
     """
 
     def __init__(self):
-        self.objects = util.IndexedCollection()
+        self.objects = IndexedCollection()
 
         self.clear()
 

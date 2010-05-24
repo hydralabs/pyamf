@@ -17,7 +17,6 @@ compatible with the Adobe `Flash Player`_.
 
 import types
 import inspect
-import datetime
 
 from pyamf import util, versions as v
 from pyamf.adapters import register_adapters
