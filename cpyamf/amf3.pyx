@@ -22,8 +22,8 @@ cdef extern from "Python.h":
     bint PyType_CheckExact(object)
 
 
-from cpyamf.util cimport IndexedCollection, cBufferedByteStream, BufferedByteStream
-from cpyamf.context cimport BaseContext
+from cpyamf.util cimport cBufferedByteStream, BufferedByteStream
+from cpyamf.codec cimport BaseContext, IndexedCollection
 import pyamf
 from pyamf import util, amf3, codec
 import types

@@ -10,9 +10,179 @@ C-extension for L{pyamf.amf3} Python module in L{PyAMF<pyamf>}.
 from python cimport *
 
 
-from cpyamf.util cimport IndexedCollection
 import pyamf
 from pyamf import util
+
+
+cdef class IndexedCollection(object):
+    """
+    Provides reference functionality for amf contexts.
+
+    :see: ``pyamf.util.pure.IndexedCollection`` for proper documentation.
+    """
+
+    def __cinit__(self, int use_hash=0):
+        self.use_hash = use_hash
+
+        self.clear()
+
+    def __init__(self, use_hash=False):
+        if use_hash:
+            self.use_hash = 1
+        else:
+            self.use_hash = 0
+
+    property use_hash:
+        def __get__(self):
+            if self.use_hash == 1:
+                return True
+
+            return False
+
+        def __set__(self, value):
+            if value is True:
+                self.use_hash = 1
+            else:
+                self.use_hash = 0
+
+    cdef void _clear(self):
+        cdef Py_ssize_t i
+
+        if self.data != NULL:
+            for i from 0 <= i < self.length:
+                Py_DECREF(<object>self.data[i])
+
+            PyMem_Free(self.data)
+            self.data = NULL
+
+    def __dealloc__(self):
+        self._clear()
+
+    cdef int _actually_increase_size(self) except? -1:
+        cdef Py_ssize_t new_len = self.length
+        cdef Py_ssize_t current_size = self.size
+        cdef PyObject **cpy
+
+        while new_len >= current_size:
+            current_size *= 2
+
+        if current_size != self.size:
+            self.size = current_size
+
+            cpy = <PyObject **>PyMem_Realloc(self.data, sizeof(PyObject *) * self.size)
+
+            if cpy == NULL:
+                self._clear()
+
+                raise MemoryError
+
+            self.data = cpy
+
+        return 0
+
+    cdef inline int _increase_size(self) except -1:
+        if self.length < self.size:
+            return 0
+
+        return self._actually_increase_size()
+
+    cpdef int clear(self) except? -1:
+        self._clear()
+
+        self.length = 0
+        self.size = 64
+
+        self.data = <PyObject **>PyMem_Malloc(sizeof(PyObject *) * self.size)
+
+        if self.data == NULL:
+            raise MemoryError
+
+        self.refs = {}
+
+        return 0
+
+    cpdef object getByReference(self, Py_ssize_t ref):
+        """
+        """
+        if ref < 0 or ref >= self.length:
+            return None
+
+        return <object>self.data[ref]
+
+    cdef inline object _ref(self, object obj):
+        if self.use_hash:
+            return hash(obj)
+
+        return PyLong_FromVoidPtr(<void *>obj)
+
+    cpdef Py_ssize_t getReferenceTo(self, object obj) except -2:
+        cdef PyObject *p = <PyObject *>PyDict_GetItem(self.refs, self._ref(obj))
+
+        if p == NULL:
+            return -1
+
+        return <Py_ssize_t>PyInt_AS_LONG(<object>p)
+
+    cpdef Py_ssize_t append(self, object obj) except -1:
+        self._increase_size()
+
+        cdef object h = self._ref(obj)
+
+        self.refs[h] = <object>self.length
+        self.data[self.length] = <PyObject *>obj
+        Py_INCREF(obj)
+
+        self.length += 1
+
+        return self.length - 1
+
+    def __iter__(self):
+        cdef list x = []
+        cdef Py_ssize_t idx
+
+        for idx from 0 <= idx < self.length:
+            x.append(<object>self.data[idx])
+
+        return iter(x)
+
+    def __len__(self):
+        return self.length
+
+    def __richcmp__(self, object other, int op):
+        cdef int equal
+        cdef Py_ssize_t i
+        cdef IndexedCollection s = self # this is necessary because cython does not see the c-space vars of the class for this func
+
+        if PyDict_Check(other) == 1:
+            equal = s.refs == other
+        elif PyList_Check(other) != 1:
+            equal = 0
+        else:
+            equal = 0
+
+            if PyList_GET_SIZE(other) == s.length:
+                equal = 1
+
+                for i from 0 <= i < s.length:
+                    if <object>PyList_GET_ITEM(other, i) != <object>s.data[i]:
+                        equal = 0
+
+                        break
+
+        if op == 2: # ==
+            return equal
+        elif op == 3: # !=
+            return not equal
+        else:
+            raise NotImplementedError
+
+    def __getitem__(self, idx):
+        return self.getByReference(idx)
+
+    def __copy__(self):
+        cdef IndexedCollection n = IndexedCollection(self.use_hash)
+
+        return n
 
 
 cdef class BaseContext:
