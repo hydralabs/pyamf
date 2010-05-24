@@ -9,6 +9,8 @@ C-extension for L{pyamf.amf3} Python module in L{PyAMF<pyamf>}.
 
 from python cimport *
 
+from cpyamf.util cimport cBufferedByteStream, BufferedByteStream
+
 
 import pyamf
 from pyamf import util
@@ -185,7 +187,7 @@ cdef class IndexedCollection(object):
         return n
 
 
-cdef class BaseContext:
+cdef class Context(object):
     """
     I hold the AMF context for en/decoding streams.
 
@@ -354,3 +356,54 @@ cdef class BaseContext:
         self.unicodes[h] = s
 
         return s
+
+
+cdef class Codec:
+    """
+    Base class for Encoder/Decoder classes. Provides base functionality for
+    managing codecs.
+    """
+
+    property stream:
+        def __get__(self):
+            return <BufferedByteStream>self.stream
+
+        def __set__(self, value):
+            if not isinstance(value, BufferedByteStream):
+                value = BufferedByteStream(value)
+
+            self.stream = <cBufferedByteStream>value
+
+    property strict:
+        def __get__(self):
+            return self.strict
+
+        def __set__(self, value):
+            self.strict = value
+
+    property timezone_offset:
+        def __get__(self):
+            return self.timezone_offset
+
+        def __set__(self, value):
+            self.timezone_offset = value
+
+    property context:
+        def __get__(self):
+            return self.context
+
+    def __init__(self, stream=None, context=None, strict=False, timezone_offset=None):
+        if not isinstance(stream, BufferedByteStream):
+            stream = BufferedByteStream(stream)
+
+        if context is None:
+            context = self.buildContext()
+
+        self.stream = <cBufferedByteStream>stream
+        self.context = context or self.buildContext()
+        self.strict = strict
+
+        self.timezone_offset = timezone_offset
+
+    cdef Context buildContext(self):
+        return Context()

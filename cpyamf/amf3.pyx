@@ -23,7 +23,7 @@ cdef extern from "Python.h":
 
 
 from cpyamf.util cimport cBufferedByteStream, BufferedByteStream
-from cpyamf.codec cimport BaseContext, IndexedCollection
+from cpyamf cimport codec
 import pyamf
 from pyamf import util, amf3, codec
 import types
@@ -140,7 +140,7 @@ cdef class ClassDefinition(object):
             self.encoded_ref = NULL
 
 
-cdef class Context(BaseContext):
+cdef class Context(codec.Context):
     """
     I hold the AMF3 context for en/decoding streams.
 
@@ -152,18 +152,18 @@ cdef class Context(BaseContext):
     :type legacy_xml: C{list}
     """
 
-    cdef IndexedCollection strings
-    cdef IndexedCollection legacy_xml
+    cdef codec.IndexedCollection strings
+    cdef codec.IndexedCollection legacy_xml
     cdef dict classes
     cdef dict class_ref
 
     cdef int class_idx
 
     def __cinit__(self):
-        self.strings = IndexedCollection(use_hash=1)
+        self.strings = codec.IndexedCollection(use_hash=1)
         self.classes = {}
         self.class_ref = {}
-        self.legacy_xml = IndexedCollection()
+        self.legacy_xml = codec.IndexedCollection()
 
         self.class_idx = 0
 
@@ -171,7 +171,7 @@ cdef class Context(BaseContext):
         """
         Clears the context.
         """
-        BaseContext.clear(self)
+        codec.Context.clear(self)
 
         self.strings.clear()
         self.legacy_xml.clear()
@@ -274,40 +274,16 @@ cdef class Context(BaseContext):
         return self.legacy_xml.append(doc)
 
 
-cdef class Codec(object):
-    """
-    Base class for Encoder/Decoder classes. Provides base functionality for
-    managing codecs.
-    """
-    cdef cBufferedByteStream stream
-    cdef Context context
-    cdef bint strict
-    cdef object timezone_offset
+cdef class Codec(codec.Codec):
     cdef bint use_proxies
 
-    property stream:
-        def __get__(self):
-            return <BufferedByteStream>self.stream
+    def __init__(self, stream=None, context=None, strict=False, timezone_offset=None, use_proxies=False):
+        codec.Codec.__init__(self, stream, context, strict, timezone_offset)
 
-        def __set__(self, value):
-            if not isinstance(value, BufferedByteStream):
-                value = BufferedByteStream(value)
+        self.use_proxies = use_proxies
 
-            self.stream = <cBufferedByteStream>value
-
-    property strict:
-        def __get__(self):
-            return self.strict
-
-        def __set__(self, value):
-            self.strict = value
-
-    property timezone_offset:
-        def __get__(self):
-            return self.timezone_offset
-
-        def __set__(self, value):
-            self.timezone_offset = value
+    cdef Context buildContext(self):
+        return Context()
 
     property use_proxies:
         def __get__(self):
@@ -315,28 +291,6 @@ cdef class Codec(object):
 
         def __set__(self, value):
             self.use_proxies = value
-
-    property context:
-        def __get__(self):
-            return self.context
-
-    def __init__(self, stream=None, context=None, strict=False, timezone_offset=None, use_proxies=None):
-        if not isinstance(stream, BufferedByteStream):
-            stream = BufferedByteStream(stream)
-
-        if context is None:
-            context = Context()
-
-        self.stream = <cBufferedByteStream>stream
-        self.context = context
-        self.strict = strict
-
-        if use_proxies is None:
-            use_proxies = amf3.use_proxies_default
-
-        self.use_proxies = use_proxies
-
-        self.timezone_offset = timezone_offset
 
 
 cdef class Decoder(Codec):

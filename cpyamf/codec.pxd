@@ -6,7 +6,9 @@ cdef extern from "Python.h":
         pass
 
 
-cdef class IndexedCollection:
+from cpyamf cimport util
+
+cdef class IndexedCollection(object):
     """
     Provides reference functionality for amf contexts.
     """
@@ -27,7 +29,7 @@ cdef class IndexedCollection:
     cpdef Py_ssize_t append(self, object obj) except -1
 
 
-cdef class BaseContext:
+cdef class Context(object):
     """
     C based version of ``pyamf.BaseContext``
     """
@@ -50,3 +52,16 @@ cdef class BaseContext:
 
     cpdef object getUnicodeForString(self, object s)
     cpdef object getStringForUnicode(self, object u)
+
+
+cdef class Codec(object):
+    """
+    Base class for Encoder/Decoder classes. Provides base functionality for
+    managing codecs.
+    """
+    cdef util.cBufferedByteStream stream
+    cdef Context context
+    cdef bint strict
+    cdef object timezone_offset
+
+    cdef Context buildContext(self)
