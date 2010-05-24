@@ -36,6 +36,9 @@ cdef class BaseContext:
         self.unicodes = {}
         self.extra_context = {}
 
+    def __init__(self):
+        self.clear()
+
     property extra_context:
         def __get__(self):
             return self.extra_context
@@ -70,7 +73,7 @@ cdef class BaseContext:
         @return: The L{ClassAlias} that is linked to C{klass}
         """
         cdef PyObject *ret
-        cdef object alias
+        cdef object alias, x
 
         ret = PyDict_GetItem(self.class_aliases, klass)
 
@@ -83,7 +86,10 @@ cdef class BaseContext:
             # no alias has been found yet .. check subclasses
             alias = util.get_class_alias(klass)
 
-        self.class_aliases[klass] = alias(klass)
+            x = alias(klass)
+            alias = x
+
+            self.class_aliases[klass] = alias
 
         return alias
 
