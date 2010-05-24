@@ -653,6 +653,8 @@ def decode(stream, context=None, strict=False, logger=None, timezone_offset=None
     if context is None:
         context = pyamf.get_context(pyamf.AMF0)
 
+    context.clear()
+
     decoder = pyamf.get_decoder(pyamf.AMF0, stream, context=context,
         strict=strict, timezone_offset=timezone_offset)
 

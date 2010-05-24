@@ -19,7 +19,7 @@ LocalConnection, SharedObjects and other classes in the Adobe Flash Player.
 """
 
 import datetime
-import copy
+import types
 
 import pyamf
 from pyamf import util
@@ -108,11 +108,6 @@ class Context(pyamf.BaseContext):
         `AMF3 <pyamf.amf3>`_
     """
 
-    def __init__(self, **kwargs):
-        self.amf3_objs = []
-
-        pyamf.BaseContext.__init__(self, **kwargs)
-
     def clear(self):
         """
         Clears the context.
@@ -120,9 +115,6 @@ class Context(pyamf.BaseContext):
         pyamf.BaseContext.clear(self)
 
         self.amf3_objs = []
-
-        if hasattr(self, 'amf3_context'):
-            self.amf3_context.clear()
 
     def hasAMF3ObjectReference(self, obj):
         """
@@ -135,18 +127,12 @@ class Context(pyamf.BaseContext):
         """
         Adds an AMF3 reference to C{obj}.
 
-        @type obj: C{mixed}
-        @param obj: The object to add to the context.
-        @rtype: C{int}
-        @return: Reference to C{obj}.
+        :type obj: C{mixed}
+        :param obj: The object to add to the context.
+        :rtype: C{int}
+        :return: Reference to C{obj}.
         """
         return self.amf3_objs.append(obj)
-
-    def __copy__(self):
-        cpy = self.__class__()
-        cpy.amf3_objs = copy.copy(self.amf3_objs)
-
-        return cpy
 
 
 class Decoder(pyamf.BaseDecoder):
@@ -185,7 +171,7 @@ class Decoder(pyamf.BaseDecoder):
 
         @rtype: C{int} or C{float}
         """
-        return _check_for_int(self.stream.read_double())
+        return util.check_for_int(self.stream.read_double())
 
     def readBoolean(self):
         """
@@ -281,6 +267,14 @@ class Decoder(pyamf.BaseDecoder):
 
         return ret
 
+    def _getAMF3Decoder(self):
+        decoder = getattr(self, 'amf3_decoder', None)
+
+        if not decoder:
+            decoder = pyamf.get_decoder(pyamf.AMF3, stream=self.stream)
+
+        return decoder
+
     def readAMF3(self):
         """
         Read AMF3 elements from the data stream.
@@ -288,14 +282,8 @@ class Decoder(pyamf.BaseDecoder):
         @rtype: C{mixed}
         @return: The AMF3 element read from the stream
         """
-        if not hasattr(self.context, 'amf3_context'):
-            self.context.amf3_context = pyamf.get_context(pyamf.AMF3)
+        decoder = self._getAMF3Decoder()
 
-        if not hasattr(self.context, 'amf3_decoder'):
-            self.context.amf3_decoder = pyamf.get_decoder(
-                pyamf.AMF3, self.stream, self.context.amf3_context)
-
-        decoder = self.context.amf3_decoder
         element = decoder.readElement()
         self.context.addAMF3Object(element)
 
@@ -722,6 +710,14 @@ class Encoder(pyamf.BaseEncoder):
         self.stream.write_ulong(len(data))
         self.stream.write(data)
 
+    def _getAMF3Encoder(self):
+        encoder = getattr(self, 'amf3_encoder', None)
+
+        if not encoder:
+            encoder = pyamf.get_encoder(pyamf.AMF3, stream=self.stream)
+
+        return encoder
+
     def writeAMF3(self, data):
         """
         Writes an element to the datastream in L{AMF3<pyamf.amf3>} format.
@@ -729,15 +725,9 @@ class Encoder(pyamf.BaseEncoder):
         @type data: C{mixed}
         @param data: The data to be encoded to the AMF0 data stream.
         """
-        if not hasattr(self.context, 'amf3_context'):
-            self.context.amf3_context = pyamf.get_context(pyamf.AMF3)
-
-        if not hasattr(self.context, 'amf3_encoder'):
-            self.context.amf3_encoder = pyamf.get_encoder(
-                pyamf.AMF3, self.stream, self.context.amf3_context)
+        encoder = self._getAMF3Encoder()
 
         self.context.addAMF3Object(data)
-        encoder = self.context.amf3_encoder
 
         self.writeType(TYPE_AMF3)
         encoder.writeElement(data)
@@ -843,38 +833,7 @@ class RecordSet(object):
 
 pyamf.register_class(RecordSet)
 
-
-def _check_for_int(x):
-    """
-    This is a compatibility function that takes a C{float} and converts it to an
-    C{int} if the values are equal.
-    """
-    try:
-        y = int(x)
-    except (OverflowError, ValueError):
-        pass
-    else:
-        # There is no way in AMF0 to distinguish between integers and floats
-        if x == x and y == x:
-            return y
-
-    return x
-
-# check for some Python 2.3 problems with floats
 try:
-    float('nan')
-except ValueError:
+    from cpyamf.amf0 import Context
+except ImportError:
     pass
-else:
-    if float('nan') == 0:
-        def check_nan(func):
-            def f2(x):
-                if str(x).lower().find('nan') >= 0:
-                    return x
-
-                return f2.func(x)
-            f2.func = func
-
-            return f2
-
-        _check_for_int = check_nan(_check_for_int)

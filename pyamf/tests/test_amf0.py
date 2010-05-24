@@ -49,25 +49,8 @@ class ContextTestCase(unittest.TestCase):
     def test_create(self):
         c = amf0.Context()
 
-        self.assertEqual(c.objects, [])
-        self.assertEqual(len(c.objects), 0)
-        self.assertEqual(c.amf3_objs, [])
-        self.assertEqual(len(c.amf3_objs), 0)
-
-    def test_copy(self):
-        import copy
-
-        orig = amf0.Context()
-
-        orig.addObject({'spam': 'eggs'})
-        orig.amf3_objs.append([1, 2, 3])
-
-        new = copy.copy(orig)
-
-        self.assertEqual(new.objects, [])
-        self.assertEqual(len(new.objects), 0)
-        self.assertEqual(new.amf3_objs, [[1, 2, 3]])
-        self.assertEqual(len(new.amf3_objs), 1)
+        self.assertEquals(c.objects, [])
+        self.assertEquals(len(c.objects), 0)
 
     def test_add(self):
         x = amf0.Context()
@@ -79,19 +62,19 @@ class ContextTestCase(unittest.TestCase):
 
     def test_clear(self):
         x = amf0.Context()
+        x.clear()
+
         y = [1, 2, 3]
 
         x.addObject(y)
-        x.amf3_objs.append({})
+        x.addAMF3Object({})
         x.clear()
 
         self.assertEqual(x.objects, [])
         self.assertEqual(len(x.objects), 0)
         self.assertFalse(y in x.objects)
 
-        self.assertEqual(x.amf3_objs, [])
-        self.assertEqual(len(x.amf3_objs), 0)
-        self.assertFalse({} in x.amf3_objs)
+        self.assertFalse(x.hasAMF3ObjectReference({}))
 
     def test_get_by_reference(self):
         x = amf0.Context()
@@ -663,11 +646,7 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         self.buf.write('\x11\x04\x01')
         self.buf.seek(0)
 
-        self.assertFalse(hasattr(self.decoder, '_amf3_context'))
         self.assertEqual(self.decoder.readElement(), 1)
-
-        self.assertTrue(x in self.context.amf3_objs)
-        self.assertTrue(hasattr(self.context, 'amf3_context'))
 
     def test_dynamic(self):
         class Foo(pyamf.ASObject):
