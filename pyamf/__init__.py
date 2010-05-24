@@ -203,14 +203,14 @@ class BaseContext(object):
             return alias
 
         try:
-            self.class_aliases[klass] = get_class_alias(klass)
+            alias = self.class_aliases[klass] = get_class_alias(klass)
         except UnknownClassAlias:
             # no alias has been found yet .. check subclasses
             alias = util.get_class_alias(klass)
 
-            self.class_aliases[klass] = alias(klass)
+            alias = self.class_aliases[klass] = alias(klass)
 
-        return self.class_aliases[klass]
+        return alias
 
     def getProxyForObject(self, obj):
         """
