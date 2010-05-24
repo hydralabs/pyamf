@@ -27,7 +27,7 @@ import datetime
 import zlib
 
 import pyamf
-from pyamf import util
+from pyamf import codec, util, flex
 
 #: If True encode/decode lists/tuples to L{ArrayCollections<ArrayCollection>}
 #: and dicts to L{ObjectProxy}
@@ -571,7 +571,7 @@ class ClassDefinition(object):
             self.__class__.__module__, self.reference, self.encoding, self.alias, id(self))
 
 
-class Context(pyamf.BaseContext):
+class Context(codec.Context):
     """
     I hold the AMF3 context for en/decoding streams.
 
@@ -591,13 +591,13 @@ class Context(pyamf.BaseContext):
 
         self.class_idx = 0
 
-        pyamf.BaseContext.__init__(self)
+        codec.Context.__init__(self)
 
     def clear(self):
         """
         Clears the context.
         """
-        pyamf.BaseContext.clear(self)
+        codec.Context.clear(self)
 
         self.strings.clear()
         self.classes = {}
@@ -719,14 +719,12 @@ class Context(pyamf.BaseContext):
         """
         return self.legacy_xml.append(doc)
 
-    def __copy__(self):
-        return self.__class__()
 
-
-class Decoder(pyamf.BaseDecoder):
+class Decoder(codec.Decoder):
     """
     Decodes an AMF3 data stream.
     """
+
     context_class = Context
 
     type_map = {
@@ -748,7 +746,7 @@ class Decoder(pyamf.BaseDecoder):
     def __init__(self, *args, **kwargs):
         self.use_proxies = kwargs.pop('use_proxies', use_proxies_default)
 
-        pyamf.BaseDecoder.__init__(self, *args, **kwargs)
+        codec.Decoder.__init__(self, *args, **kwargs)
 
     def readUndefined(self):
         """
@@ -1084,7 +1082,7 @@ class Decoder(pyamf.BaseDecoder):
         return obj
 
 
-class Encoder(pyamf.BaseEncoder):
+class Encoder(codec.Encoder):
     """
     Encodes an AMF3 data stream.
     """
@@ -1094,9 +1092,9 @@ class Encoder(pyamf.BaseEncoder):
         self.use_proxies = kwargs.pop('use_proxies', use_proxies_default)
         self.string_references = kwargs.pop('string_references', True)
 
-        pyamf.BaseEncoder.__init__(self, *args, **kwargs)
+        codec.Encoder.__init__(self, *args, **kwargs)
 
-    def getTypeFunc(self, data):
+    def getCustomTypeFunc(self, data):
         """
         Returns a function object that will encode `data`.
         """
@@ -1120,7 +1118,7 @@ class Encoder(pyamf.BaseEncoder):
         elif t is pyamf.MixedArray:
             return self.writeDict
 
-        return pyamf.BaseEncoder.getTypeFunc(self, data)
+        return codec.Encoder.getCustomTypeFunc(self, data)
 
     def writeUndefined(self, *args, **kwargs):
         """

@@ -255,6 +255,28 @@ def get_class_meta(klass):
     return meta
 
 
+def get_module(mod_name):
+    """
+    Load a module based on `mod_name`.
+
+    :type mod_name: `str`
+    :param mod_name: The module name.
+    :return: Module.
+
+    :raise ImportError: Unable to import an empty module.
+    """
+    if mod_name is '':
+        raise ImportError("Unable to import empty module")
+
+    mod = __import__(mod_name)
+    components = mod_name.split('.')
+
+    for comp in components[1:]:
+        mod = getattr(mod, comp)
+
+    return mod
+
+
 def is_ET_element(obj):
     """
     Determines if the supplied C{obj} param is a valid ElementTree element.

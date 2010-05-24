@@ -22,7 +22,7 @@ import datetime
 import types
 
 import pyamf
-from pyamf import util
+from pyamf import util, codec
 
 
 __docformat__ = "restructuredtext en"
@@ -96,7 +96,7 @@ TYPE_TYPEDOBJECT = '\x10'
 TYPE_AMF3        = '\x11'
 
 
-class Context(pyamf.BaseContext):
+class Context(codec.Context):
     """
     I hold the AMF0 context for en/decoding streams.
 
@@ -112,7 +112,7 @@ class Context(pyamf.BaseContext):
         """
         Clears the context.
         """
-        pyamf.BaseContext.clear(self)
+        codec.Context.clear(self)
 
         self.amf3_objs = []
 
@@ -135,12 +135,10 @@ class Context(pyamf.BaseContext):
         return self.amf3_objs.append(obj)
 
 
-class Decoder(pyamf.BaseDecoder):
+class Decoder(codec.Decoder):
     """
     Decodes an AMF0 stream.
     """
-
-    context_class = Context
 
     # XXX nick: Do we need to support TYPE_MOVIECLIP here?
     type_map = {
@@ -161,6 +159,9 @@ class Decoder(pyamf.BaseDecoder):
         TYPE_TYPEDOBJECT:'readTypedObject',
         TYPE_AMF3:       'readAMF3'
     }
+
+    def buildContext(self):
+        return Context()
 
     def readNumber(self):
         """
@@ -398,7 +399,7 @@ class Decoder(pyamf.BaseDecoder):
         return xml
 
 
-class Encoder(pyamf.BaseEncoder):
+class Encoder(codec.Encoder):
     """
     Encodes an AMF0 stream.
 
@@ -411,9 +412,12 @@ class Encoder(pyamf.BaseEncoder):
     def __init__(self, *args, **kwargs):
         self.use_amf3 = kwargs.pop('use_amf3', False)
 
-        pyamf.BaseEncoder.__init__(self, *args, **kwargs)
+        codec.Encoder.__init__(self, *args, **kwargs)
 
-    def getTypeFunc(self, data):
+    def buildContext(self):
+        return Context()
+
+    def getCustomTypeFunc(self, data):
         t = type(data)
 
         if t is pyamf.MixedArray:
@@ -426,7 +430,7 @@ class Encoder(pyamf.BaseEncoder):
         if self.use_amf3 and self.context.hasAMF3ObjectReference(data):
             return self.writeAMF3
 
-        return pyamf.BaseEncoder.getTypeFunc(self, data)
+        return codec.Encoder.getCustomTypeFunc(self, data)
 
     def writeType(self, t):
         """
@@ -833,7 +837,3 @@ class RecordSet(object):
 
 pyamf.register_class(RecordSet)
 
-try:
-    from cpyamf.amf0 import Context
-except ImportError:
-    pass
