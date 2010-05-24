@@ -11,6 +11,7 @@ import unittest
 import new
 
 import pyamf
+from pyamf import codec
 from pyamf.tests.util import ClassCacheClearingTestCase, replace_dict, Spam
 
 
@@ -89,46 +90,32 @@ class HelperTestCase(unittest.TestCase):
         pyamf.DEFAULT_ENCODING = self.default_encoding
 
     def test_get_decoder(self):
-        from pyamf import amf0, amf3
-
-        self.assertEqual(pyamf._get_decoder_class(pyamf.AMF0), amf0.Decoder)
-        self.assertEqual(pyamf._get_decoder_class(pyamf.AMF3), amf3.Decoder)
-        self.assertRaises(ValueError, pyamf._get_decoder_class, 'spam')
-
-        self.assertTrue(isinstance(pyamf.get_decoder(pyamf.AMF0), amf0.Decoder))
-        self.assertTrue(isinstance(pyamf.get_decoder(pyamf.AMF3), amf3.Decoder))
         self.assertRaises(ValueError, pyamf.get_decoder, 'spam')
 
-        context = amf0.Context()
+        context = pyamf.get_context(pyamf.AMF0)
         decoder = pyamf.get_decoder(pyamf.AMF0, stream='123', context=context, strict=True)
         self.assertEqual(decoder.stream.getvalue(), '123')
         self.assertEqual(decoder.context, context)
         self.assertTrue(decoder.strict)
 
-        context = amf3.Context()
+        context = pyamf.get_context(pyamf.AMF3)
         decoder = pyamf.get_decoder(pyamf.AMF3, stream='456', context=context, strict=True)
         self.assertEqual(decoder.stream.getvalue(), '456')
         self.assertEqual(decoder.context, context)
         self.assertTrue(decoder.strict)
 
     def test_get_encoder(self):
-        from pyamf import amf0, amf3
-
-        self.assertEqual(pyamf._get_encoder_class(pyamf.AMF0), amf0.Encoder)
-        self.assertEqual(pyamf._get_encoder_class(pyamf.AMF3), amf3.Encoder)
-        self.assertRaises(ValueError, pyamf._get_encoder_class, 'spam')
-
-        self.assertTrue(isinstance(pyamf.get_encoder(pyamf.AMF0), amf0.Encoder))
-        self.assertTrue(isinstance(pyamf.get_encoder(pyamf.AMF3), amf3.Encoder))
+        pyamf.get_encoder(pyamf.AMF0)
+        pyamf.get_encoder(pyamf.AMF3)
         self.assertRaises(ValueError, pyamf.get_encoder, 'spam')
 
-        context = amf0.Context()
+        context = pyamf.get_context(pyamf.AMF0)
         encoder = pyamf.get_encoder(pyamf.AMF0, stream='spam', context=context)
         self.assertEqual(encoder.stream.getvalue(), 'spam')
         self.assertEqual(encoder.context, context)
         self.assertFalse(encoder.strict)
 
-        context = amf3.Context()
+        context = pyamf.get_context(pyamf.AMF3)
         encoder = pyamf.get_encoder(pyamf.AMF3, stream='eggs', context=context)
         self.assertFalse(encoder.strict)
 
@@ -456,7 +443,7 @@ class RegisterAliasTypeTestCase(unittest.TestCase):
 
 class BaseContextTestCase(unittest.TestCase):
     def test_no_alias(self):
-        x = pyamf.BaseContext()
+        x = codec.Context()
 
         self.assertEqual(x.class_aliases, {})
 
@@ -466,7 +453,7 @@ class BaseContextTestCase(unittest.TestCase):
         self.assertNotEquals(x.getClassAlias(A), None)
 
     def test_registered_alias(self):
-        x = pyamf.BaseContext()
+        x = codec.Context()
 
         self.assertEqual(x.class_aliases, {})
 
@@ -481,7 +468,7 @@ class BaseContextTestCase(unittest.TestCase):
         self.assertEqual(alias.klass, A)
 
     def test_registered_deep(self):
-        x = pyamf.BaseContext()
+        x = codec.Context()
 
         self.assertEqual(x.class_aliases, {})
 
@@ -500,13 +487,13 @@ class BaseContextTestCase(unittest.TestCase):
         self.assertEqual(alias.klass, B)
 
     def test_object_references(self):
-        x = pyamf.BaseContext()
+        x = codec.Context()
 
         self.assertEqual(x.getObject(62), None)
         self.assertEqual(x.getObjectReference(object()), -1)
 
     def test_unicode(self):
-        x = pyamf.BaseContext()
+        x = codec.Context()
 
         u = x.getUnicodeForString('foo')
 
@@ -524,7 +511,7 @@ class BaseContextTestCase(unittest.TestCase):
         self.assertFalse(u is i)
 
     def test_string(self):
-        x = pyamf.BaseContext()
+        x = codec.Context()
 
         s = x.getStringForUnicode(u'foo')
 

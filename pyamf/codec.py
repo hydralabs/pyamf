@@ -183,8 +183,7 @@ class Codec(object):
     @type timezone_offset: C{datetime.timedelta} or C{int} or C{None}
     """
 
-    context_class = None
-
+    context_class = Context
 
     def __init__(self, stream=None, context=None, strict=False, timezone_offset=None):
         if isinstance(stream, util.BufferedByteStream):
@@ -207,10 +206,6 @@ class Decoder(Codec):
     """
     Base AMF decoder.
 
-    :ivar context_class: The context for the decoding.
-    :type context_class: An instance of :func:`BaseDecoder.context_class`
-    :ivar type_map:
-    :type type_map: `list`
     :ivar stream: The underlying data stream.
     :type stream: :class:`BufferedByteStream<pyamf.util.BufferedByteStream>`
     :ivar strict: Defines how strict the decoding should be. For the time

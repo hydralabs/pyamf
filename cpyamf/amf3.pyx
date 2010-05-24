@@ -25,15 +25,15 @@ cdef extern from "Python.h":
 from cpyamf.util cimport IndexedCollection, cBufferedByteStream, BufferedByteStream
 from cpyamf.context cimport BaseContext
 import pyamf
-from pyamf import util
+from pyamf import util, amf3, codec
 import types
+
 
 try:
     import zlib
 except ImportError:
     zlib = None
 
-cdef int complete_init = 0
 
 cdef char TYPE_UNDEFINED = '\x00'
 cdef char TYPE_NULL = '\x01'
@@ -63,40 +63,17 @@ cdef int OBJECT_ENCODING_EXTERNAL = 0x01
 cdef int OBJECT_ENCODING_DYNAMIC = 0x02
 cdef int OBJECT_ENCODING_PROXY = 0x03
 
-cdef PyObject *ByteArrayType
-cdef object DataInput
-cdef object DataOutput
-cdef PyObject *Undefined
+cdef PyObject *ByteArrayType = <PyObject *>amf3.ByteArray
+cdef object DataInput = amf3.DataInput
+cdef object DataOutput = amf3.DataOutput
+cdef PyObject *Undefined = <PyObject *>pyamf.Undefined
 cdef PyObject *BuiltinFunctionType = <PyObject *>types.BuiltinFunctionType
 cdef PyObject *GeneratorType = <PyObject *>types.GeneratorType
-cdef object encoder_type_map = {}
 cdef object empty_string = str('')
-cdef object amf3
 
 
-cdef int complete_import() except -1:
-    """
-    This function is internal - do not call it yourself. It is used to
-    finalise the cpyamf.util module to improve startup time.
-    """
-    global complete_init, amf3
-    global ByteArrayType, Undefined, DataInput, DataOutput
+PyDateTime_IMPORT
 
-    import pyamf.amf3 as amf3_module
-
-    amf3 = amf3_module
-
-    DataInput = pyamf.amf3.DataInput
-    DataOutput = pyamf.amf3.DataOutput
-    ByteArrayType = <PyObject *>pyamf.amf3.ByteArray
-    Undefined = <PyObject *>pyamf.Undefined
-
-    complete_init = 1
-    PyDateTime_IMPORT
-    encoder_type_map[util.xml_types] = 'writeXML'
-    encoder_type_map[pyamf.MixedArray] = 'writeMixedArray'
-
-    return 0
 
 cdef class ClassDefinition(object):
     """
@@ -183,9 +160,6 @@ cdef class Context(BaseContext):
     cdef int class_idx
 
     def __cinit__(self):
-        if complete_init == 0:
-            complete_import()
-
         self.strings = IndexedCollection(use_hash=1)
         self.classes = {}
         self.class_ref = {}
@@ -345,10 +319,6 @@ cdef class Codec(object):
     property context:
         def __get__(self):
             return self.context
-
-    def __cinit__(self):
-        if complete_init == 0:
-            complete_import()
 
     def __init__(self, stream=None, context=None, strict=False, timezone_offset=None, use_proxies=None):
         if not isinstance(stream, BufferedByteStream):
@@ -755,7 +725,11 @@ cdef class Encoder(Codec):
 
     cdef object _func_cache
     cdef object _use_write_object # list of types that are okay to short circuit to writeObject
-    type_map = encoder_type_map
+
+    type_map = {
+        util.xml_types: 'writeXML',
+        pyamf.MixedArray: 'writeMixedArray'
+    }
 
     def __init__(self, stream=None, context=None, strict=False, timezone_offset=None, use_proxies=False):
         Codec.__init__(self, stream, context, strict, timezone_offset, use_proxies)
@@ -1201,12 +1175,12 @@ cdef class Encoder(Codec):
         for type_, func in pyamf.TYPE_MAP.iteritems():
             try:
                 if isinstance(data, type_):
-                    ret = pyamf.CustomTypeFunc(self, func)
+                    ret = codec._CustomTypeFunc(self, func)
 
                     break
             except TypeError:
                 if callable(type_) and type_(data):
-                    ret = pyamf.CustomTypeFunc(self, func)
+                    ret = codec._CustomTypeFunc(self, func)
 
                     break
 
@@ -1221,7 +1195,7 @@ cdef class Encoder(Codec):
         cdef object c
         cdef char *buf
 
-        for t, method in encoder_type_map.iteritems():
+        for t, method in self.type_map.iteritems():
             if not isinstance(data, t):
                 continue
 

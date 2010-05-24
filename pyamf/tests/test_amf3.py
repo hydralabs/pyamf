@@ -240,27 +240,6 @@ class ContextTestCase(ClassCacheClearingTestCase):
         self.assertEqual(x.getClass(Foo), b)
         self.assertEqual(x.getClass(object()), None)
 
-    def test_copy(self):
-        import copy
-
-        old = amf3.Context()
-
-        old.addObject([1, 2, 3])
-        old.addString('asdfasdf')
-
-        new = copy.copy(old)
-
-        self.assertEqual(new.objects, [])
-        self.assertEqual(len(new.objects), 0)
-
-        self.assertEqual(new.strings, [])
-        self.assertEqual(len(new.strings), 0)
-
-        self.assertEqual(new.classes, {})
-
-        self.assertEqual(new.legacy_xml, [])
-        self.assertEqual(len(new.legacy_xml), 0)
-
 
 class ClassDefinitionTestCase(ClassCacheClearingTestCase):
 
@@ -1448,7 +1427,7 @@ class HelperTestCase(unittest.TestCase):
         self.assertEqual(amf3.encode('foo', 'bar').getvalue(), '\x06\x07foo\x06\x07bar')
 
     def test_encode_with_context(self):
-        context = amf3.Context()
+        context = pyamf.get_context(pyamf.AMF3)
 
         obj = object()
         context.addObject(obj)
@@ -1464,7 +1443,7 @@ class HelperTestCase(unittest.TestCase):
         self.assertEqual([x for x in amf3.decode('\x06\x07foo\x06\x07bar')], ['foo', 'bar'])
 
     def test_decode_with_context(self):
-        context = amf3.Context()
+        context = pyamf.get_context(pyamf.AMF3)
 
         obj = object()
         context.addObject(obj)

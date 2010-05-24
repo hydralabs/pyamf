@@ -12,7 +12,7 @@ to have them in one file.
 import unittest
 
 import pyamf
-from pyamf import ClassAlias
+from pyamf import ClassAlias, codec
 from pyamf.tests.util import ClassCacheClearingTestCase, Spam, get_fqcn
 
 try:
@@ -184,7 +184,7 @@ class GetEncodableAttributesTestCase(unittest.TestCase):
     def test_proxy(self):
         from pyamf import flex
 
-        codec = pyamf.BaseEncoder()
+        c = codec.Encoder()
 
         self.alias.proxy_attrs = ('foo', 'bar')
         self.alias.compile()
@@ -194,7 +194,7 @@ class GetEncodableAttributesTestCase(unittest.TestCase):
         self.obj.foo = ['bar', 'baz']
         self.obj.bar = {'foo': 'gak'}
 
-        attrs = self.alias.getEncodableAttributes(self.obj, codec)
+        attrs = self.alias.getEncodableAttributes(self.obj, c)
 
         k = attrs.keys()
 
@@ -362,7 +362,7 @@ class GetDecodableAttributesTestCase(unittest.TestCase):
     def test_proxy(self):
         from pyamf import flex
 
-        codec = pyamf.BaseEncoder()
+        c = codec.Encoder()
 
         self.alias.proxy_attrs = ('foo', 'bar')
         self.alias.compile()
@@ -374,7 +374,7 @@ class GetDecodableAttributesTestCase(unittest.TestCase):
             'bar': flex.ObjectProxy({'foo': 'gak'})
         }
 
-        ret = self.alias.getDecodableAttributes(self.obj, attrs, codec)
+        ret = self.alias.getDecodableAttributes(self.obj, attrs, c)
 
         self.assertEqual(ret, {
             'foo': ['bar', 'baz'],

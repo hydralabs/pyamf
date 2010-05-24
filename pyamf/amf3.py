@@ -1086,6 +1086,7 @@ class Encoder(codec.Encoder):
     """
     Encodes an AMF3 data stream.
     """
+
     context_class = Context
 
     def __init__(self, *args, **kwargs):
@@ -1524,16 +1525,16 @@ class Encoder(codec.Encoder):
         self._writeString(util.ET.tostring(n, 'utf-8'))
 
 
-def decode(stream, context=None, strict=False):
+def decode(*args, **kwargs):
     """
-    A helper function to decode an AMF3 datastream.
+    A helper function to decode an AMF0 datastream.
+    """
+    try:
+        from cpyamf import amf3
 
-    @type   stream: L{BufferedByteStream<util.BufferedByteStream>}
-    @param  stream: AMF3 data.
-    @type   context: L{Context}
-    @param  context: Context.
-    """
-    decoder = Decoder(stream, context, strict)
+        decoder = amf3.Decoder(*args, **kwargs)
+    except ImportError:
+        decoder = Decoder(*args, **kwargs)
 
     while 1:
         try:
@@ -1544,22 +1545,19 @@ def decode(stream, context=None, strict=False):
 
 def encode(*args, **kwargs):
     """
-    A helper function to encode an element into AMF3 format.
-
-    @type args: List of args to encode.
-    @keyword context: Any initial context to use.
-    @type context: L{Context}
-    @return: C{StringIO} type object containing the encoded AMF3 data.
-    @rtype: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
+    A helper function to encode an element into the AMF3 format.
     """
-    context = kwargs.get('context', None)
-    buf = util.BufferedByteStream()
-    encoder = Encoder(buf, context)
+    try:
+        from cpyamf import amf3
+
+        encoder = amf3.Encoder(**kwargs)
+    except ImportError:
+        encoder = Encoder(**kwargs)
 
     for element in args:
         encoder.writeElement(element)
 
-    return buf
+    return encoder.stream
 
 
 def encode_int(n):
@@ -1639,13 +1637,5 @@ def decode_int(stream, signed=False):
 
     return result
 
-try:
-    from cpyamf.amf3 import Encoder, Decoder, Context, ClassDefinition
-except ImportError:
-    for x in range(0, 20):
-        ENCODED_INT_CACHE[x] = encode_int(x)
-    del x
-
 
 pyamf.register_class(ByteArray)
-

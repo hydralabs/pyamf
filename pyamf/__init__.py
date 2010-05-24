@@ -959,9 +959,9 @@ def decode(*args, **kwargs):
     :return: Each element in the stream.
     """
     encoding = kwargs.pop('encoding', DEFAULT_ENCODING)
-    decoder = _get_decoder_class(encoding)(*args, **kwargs)
+    decoder = get_decoder(encoding, *args, **kwargs)
 
-    while 1:
+    while True:
         try:
             yield decoder.readElement()
         except EOStream:
@@ -984,13 +984,12 @@ def encode(*args, **kwargs):
     :return: File-like object.
     """
     encoding = kwargs.pop('encoding', DEFAULT_ENCODING)
-
-    encoder = _get_encoder_class(encoding)(**kwargs)
-    stream = encoder.stream
+    encoder = get_encoder(encoding, **kwargs)
 
     for el in args:
         encoder.writeElement(el)
 
+    stream = encoder.stream
     stream.seek(0)
 
     return stream
@@ -1017,11 +1016,17 @@ def _get_decoder_class(encoding):
     :return: AMF0 or AMF3 decoder.
     """
     if encoding == AMF0:
-        from pyamf import amf0
+        try:
+            from cpyamf import amf0
+        except ImportError:
+            from pyamf import amf0
 
         return amf0.Decoder
     elif encoding == AMF3:
-        from pyamf import amf3
+        try:
+            from cpyamf import amf3
+        except ImportError:
+            from pyamf import amf3
 
         return amf3.Decoder
 
@@ -1049,11 +1054,17 @@ def _get_encoder_class(encoding):
     :return: AMF0 or AMF3 encoder.
     """
     if encoding == AMF0:
-        from pyamf import amf0
+        try:
+            from cpyamf import amf0
+        except ImportError:
+            from pyamf import amf0
 
         return amf0.Encoder
     elif encoding == AMF3:
-        from pyamf import amf3
+        try:
+            from cpyamf import amf3
+        except ImportError:
+            from pyamf import amf3
 
         return amf3.Encoder
 
@@ -1077,11 +1088,17 @@ def _get_context_class(encoding):
     :return: AMF0 or AMF3 context class.
     """
     if encoding == AMF0:
-        from pyamf import amf0
+        try:
+            from cpyamf import amf0
+        except ImportError:
+            from pyamf import amf0
 
         return amf0.Context
     elif encoding == AMF3:
-        from pyamf import amf3
+        try:
+            from cpyamf import amf3
+        except ImportError:
+            from pyamf import amf3
 
         return amf3.Context
 

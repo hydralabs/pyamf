@@ -277,13 +277,6 @@ def get_module(mod_name):
     return mod
 
 
-def is_ET_element(obj):
-    """
-    Determines if the supplied C{obj} param is a valid ElementTree element.
-    """
-    return isinstance(obj, xml_types)
-
-
 def check_for_int(x):
     """
     This is a compatibility function that takes a C{float} and converts it to an
