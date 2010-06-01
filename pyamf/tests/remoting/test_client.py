@@ -268,18 +268,11 @@ class BaseServiceTestCase(unittest.TestCase):
         self.response = MockResponse()
         self.opener = MockOpener(self, self.response)
 
-        urllib2.install_opener(self.opener)
-
-        self.gw = client.RemotingService('http://example.org/amf-gateway')
+        self.gw = client.RemotingService('http://example.org/amf-gateway', opener=self.opener.open)
 
         self.headers['Content-Length'] = len(self.canned_response)
 
         self.setResponse(200, self.canned_response, self.headers)
-
-    def tearDown(self):
-        unittest.TestCase.tearDown(self)
-
-        urllib2.install_opener(urllib2.build_opener())
 
     def setResponse(self, status, body, headers=None):
         self.response.code = status

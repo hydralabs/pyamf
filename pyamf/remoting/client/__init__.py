@@ -204,6 +204,8 @@ class RemotingService(object):
     :type http_headers: `dict`
     :ivar strict: Whether to use strict AMF en/decoding or not.
     :type strict: `bool`
+    :ivar opener: The function used to power the connection to the remote
+        server. Defaults to `urllib2.urlopen`.
     """
 
     def __init__(self, url, amf_version=pyamf.AMF0, **kwargs):
@@ -219,6 +221,7 @@ class RemotingService(object):
         self.referer = kwargs.pop('referer', None)
         self.strict = kwargs.pop('strict', False)
         self.logger = kwargs.pop('logger', None)
+        self.opener = kwargs.pop('opener', urllib2.urlopen)
 
         if kwargs:
             raise TypeError('Unexpected keyword arguments %r' % (kwargs,))
@@ -425,7 +428,7 @@ class RemotingService(object):
             self.logger.debug('Sending POST request to %s', self.url.geturl())
 
         try:
-            fbh = urllib2.urlopen(http_request)
+            fbh = self.opener(http_request)
         except urllib2.URLError, e:
             if self.logger:
                 self.logger.exception('Failed request for %s',

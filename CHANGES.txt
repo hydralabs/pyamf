@@ -14,7 +14,7 @@ versions of PyAMF.
   (Ticket:767)
 - Switch the PyAMF client to use urllib2. Provides support for proxying and
   gzipped responses. Thanks to @PaulWinkeler for the heavy lifting.
-  (Ticket:751)
+  (Ticket:751,777)
 - Added support for SQLAlchemy 0.6beta1 (Ticket:747,748)
 - Simplified ``type_map`` in ``Encoder`` classes (Ticket:746)
 - Fixed a small bug when handling empty M2M relationships with unpersisted
