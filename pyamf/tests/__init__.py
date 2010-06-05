@@ -9,12 +9,18 @@ Unit tests.
 
 import os.path
 
-import unittest
+try:
+    import unittest2 as unittest
+    import sys
+
+    sys.modules['unittest'] = unittest
+except ImportError:
+    pass
 
 
 def get_suite():
     """
-    Return a unittest.TestSuite.
+    Discover the entire test suite.
     """
     loader = unittest.TestLoader()
 
