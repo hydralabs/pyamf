@@ -23,16 +23,18 @@ cdef class IndexedCollection(object):
     :see: ``pyamf.util.pure.IndexedCollection`` for proper documentation.
     """
 
-    def __cinit__(self, int use_hash=0):
+    def __cinit__(self, bint use_hash=0):
+        self.use_hash = use_hash
+
+        self.data = NULL
+        self.refs = {}
+        self.size = -1
+        self.length = -1
+
+    def __init__(self, use_hash=False):
         self.use_hash = use_hash
 
         self.clear()
-
-    def __init__(self, use_hash=False):
-        if use_hash:
-            self.use_hash = 1
-        else:
-            self.use_hash = 0
 
     property use_hash:
         def __get__(self):
