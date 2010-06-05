@@ -21,7 +21,7 @@ LocalConnection, SharedObjects and other classes in the Adobe Flash Player.
 import datetime
 
 import pyamf
-from pyamf import util, codec
+from pyamf import util, codec, python
 
 
 __docformat__ = "restructuredtext en"
@@ -166,7 +166,7 @@ class Decoder(codec.Decoder):
 
         @rtype: C{int} or C{float}
         """
-        return util.check_for_int(self.stream.read_double())
+        return python.check_for_int(self.stream.read_double())
 
     def readBoolean(self):
         """

@@ -20,7 +20,7 @@ try:
 except ImportError:
     from StringIO import StringIO
 
-from pyamf.util.python import int_types, str_types
+from pyamf.python import int_types, str_types
 
 
 class StringIOProxy(object):
@@ -627,7 +627,6 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
         return new
 
 
-# init the module from here ..
 def is_float_broken():
     """
     Older versions of Python (<=2.5) and the Windows platform are renowned for
@@ -637,10 +636,12 @@ def is_float_broken():
     @since: 0.4
     @rtype: C{bool}
     """
-    from pyamf.util.python import NaN
+    from pyamf.python import NaN
 
     return str(NaN) != str(struct.unpack("!d", '\xff\xf8\x00\x00\x00\x00\x00\x00')[0])
 
+
+# init the module from here ..
 
 if is_float_broken():
     def read_double_workaround(self):
@@ -648,7 +649,7 @@ if is_float_broken():
         Override the L{DataTypeMixIn.read_double} method to fix problems
         with doubles by using the third-party C{fpconst} library.
         """
-        from pyamf.util.python import PosInf, NegInf, NaN
+        from pyamf.python import PosInf, NegInf, NaN
 
         bytes = self.read(8)
 

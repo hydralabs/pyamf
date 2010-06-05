@@ -27,7 +27,6 @@ from pyamf.python import (
     PosInf, NegInf, NaN,
     isNaN, isPosInf, isNegInf)
 
-
 #: XML types.
 xml_types = None
 ET = None
@@ -277,23 +276,6 @@ def get_module(mod_name):
     return mod
 
 
-def check_for_int(x):
-    """
-    This is a compatibility function that takes a C{float} and converts it to an
-    C{int} if the values are equal.
-    """
-    try:
-        y = int(x)
-    except (OverflowError, ValueError):
-        pass
-    else:
-        # There is no way in AMF0 to distinguish between integers and floats
-        if x == x and y == x:
-            return y
-
-    return x
-
-
 # init the module from here
 
 find_xml_lib()
@@ -302,23 +284,3 @@ try:
     datetime.datetime.utcfromtimestamp(-31536000.0)
 except ValueError:
     negative_timestamp_broken = True
-
-
-# check for some Python 2.3 problems with floats
-try:
-    float('nan')
-except ValueError:
-    pass
-else:
-    if float('nan') == 0:
-        def check_nan(func):
-            def f2(x):
-                if str(x).lower().find('nan') >= 0:
-                    return x
-
-                return f2.func(x)
-            f2.func = func
-
-            return f2
-
-        check_for_int = check_nan(check_for_int)

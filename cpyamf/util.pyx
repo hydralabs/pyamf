@@ -14,6 +14,9 @@ cdef extern from "stdlib.h" nogil:
 
     int memcmp(void *dest, void *src, size_t)
     void *memcpy(void *, void *, size_t)
+    void *malloc(size_t)
+    void free(void *)
+
 
 cdef extern from "stdio.h":
     int SIZEOF_LONG
@@ -21,9 +24,10 @@ cdef extern from "stdio.h":
 cdef extern from "Python.h":
     int _PyFloat_Pack4(float, unsigned char *, int) except? -1
     int _PyFloat_Pack8(double, unsigned char *, int) except? -1
-    float _PyFloat_Unpack4(unsigned char *, int) except? -1.0
+    double _PyFloat_Unpack4(unsigned char *, int) except? -1.0
     double _PyFloat_Unpack8(unsigned char *, int) except? -1.0
 
+from pyamf import python
 
 # module constant declarations
 DEF ENDIAN_NETWORK = "!"
@@ -35,96 +39,81 @@ cdef char SYSTEM_ENDIAN
 
 cdef int float_broken = -1
 
-cdef int complete_init = 0
-
 cdef unsigned char *NaN = <unsigned char *>'\xff\xf8\x00\x00\x00\x00\x00\x00'
 cdef unsigned char *NegInf = <unsigned char *>'\xff\xf0\x00\x00\x00\x00\x00\x00'
 cdef unsigned char *PosInf = <unsigned char *>'\x7f\xf0\x00\x00\x00\x00\x00\x00'
-
-cdef double system_nan
-cdef double system_posinf
-cdef double system_neginf
 
 cdef double platform_nan
 cdef double platform_posinf
 cdef double platform_neginf
 
-cdef object pyamf_NaN
-cdef object pyamf_NegInf
-cdef object pyamf_PosInf
+cdef double system_nan
+cdef double system_posinf
+cdef double system_neginf
+
+
+cdef object pyamf_NaN = python.NaN
+cdef object pyamf_NegInf = python.NegInf
+cdef object pyamf_PosInf = python.PosInf
 cdef object empty_unicode = unicode('')
 
 
-cdef int build_platform_exceptional_floats() except? -1:
+cdef int _memcpy_ensure_endian(void *src, void *dest, unsigned int size) nogil:
+    """
+    """
+    cdef unsigned char *buf = <unsigned char *>malloc(sizeof(unsigned char *) * sizeof(double))
+
+    if buf == NULL:
+        return -1
+
+    memcpy(buf, src, size)
+
+    if is_big_endian(SYSTEM_ENDIAN):
+        if swap_bytes(buf, size) == -1:
+            free(buf)
+
+            return -1
+
+    memcpy(dest, buf, size)
+    free(buf)
+
+    return 0
+
+
+cdef int build_platform_exceptional_floats():
     global platform_nan, platform_posinf, platform_neginf
     global system_nan, system_posinf, system_neginf
 
-    cdef unsigned char *buf = <unsigned char *>PyMem_Malloc(sizeof(unsigned char *) * sizeof(double))
+    if _memcpy_ensure_endian(NaN, &system_nan, 8) == -1:
+        return -1
 
-    if buf == NULL:
-        raise MemoryError
+    if _memcpy_ensure_endian(NegInf, &system_neginf, 8) == -1:
+        return -1
 
-    memcpy(buf, NaN, 8)
-
-    if not is_big_endian(SYSTEM_ENDIAN):
-        swap_bytes(buf, 8)
-
-    memcpy(&system_nan, buf, 8)
-
-    memcpy(buf, NegInf, 8)
-
-    if not is_big_endian(SYSTEM_ENDIAN):
-        swap_bytes(buf, 8)
-
-    memcpy(&system_neginf, buf, 8)
-
-    memcpy(buf, PosInf, 8)
-
-    if not is_big_endian(SYSTEM_ENDIAN):
-        swap_bytes(buf, 8)
-
-    memcpy(&system_posinf, buf, 8)
+    if _memcpy_ensure_endian(PosInf, &system_posinf, 8) == -1:
+        return -1
 
     if float_broken == 1:
         try:
             _PyFloat_Unpack8(<unsigned char *>&NaN, not is_big_endian(SYSTEM_ENDIAN))
-            memcpy(&platform_nan, buf, 8)
-
-            _PyFloat_Unpack8(<unsigned char *>&PosInf, not is_big_endian(SYSTEM_ENDIAN))
-            memcpy(&platform_posinf, buf, 8)
-
-            _PyFloat_Unpack8(<unsigned char *>&NegInf, not is_big_endian(SYSTEM_ENDIAN))
-            memcpy(&platform_neginf, buf, 8)
         except:
-            PyMem_Free(buf)
+            pass
+        else:
+            memcpy(&platform_nan, &system_nan, 8)
 
-            raise
+        try:
+            _PyFloat_Unpack8(<unsigned char *>&PosInf, not is_big_endian(SYSTEM_ENDIAN))
+        except:
+            pass
+        else:
+            memcpy(&platform_posinf, &system_posinf, 8)
 
-    PyMem_Free(buf)
-
-
-cdef int complete_import() except -1:
-    """
-    This function is internal - do not call it yourself. It is used to
-    finalise the cpyamf.util module to improve startup time.
-    """
-    global complete_init, float_broken
-    global pyamf_NaN, pyamf_NegInf, pyamf_PosInf
-
-    complete_init = 1
-
-    SYSTEM_ENDIAN = get_native_endian()
-
-    if is_broken_float():
-        float_broken = 1
-
-    build_platform_exceptional_floats()
-
-    import pyamf.util
-
-    pyamf_NaN = pyamf.util.NaN
-    pyamf_NegInf = pyamf.util.NegInf
-    pyamf_PosInf = pyamf.util.PosInf
+        try:
+            _PyFloat_Unpack8(<unsigned char *>&NegInf, not is_big_endian(SYSTEM_ENDIAN))
+        except:
+            pass
+        else:
+            memcpy(&platform_neginf, &system_neginf, 8)
 
     return 0
 
@@ -164,11 +153,11 @@ cdef inline int is_native_endian(char endian) nogil:
     return endian == SYSTEM_ENDIAN
 
 
-cdef inline int swap_bytes(unsigned char *buffer, Py_ssize_t size) except -1:
-    cdef unsigned char *buf = <unsigned char *>PyMem_Malloc(sizeof(unsigned char *) * size)
+cdef inline int swap_bytes(unsigned char *buffer, Py_ssize_t size) nogil:
+    cdef unsigned char *buf = <unsigned char *>malloc(sizeof(unsigned char *) * size)
 
     if buf == NULL:
-        raise MemoryError
+        return -1
 
     cdef Py_ssize_t i
 
@@ -176,19 +165,20 @@ cdef inline int swap_bytes(unsigned char *buffer, Py_ssize_t size) except -1:
         buf[i] = buffer[size - i - 1]
 
     memcpy(buffer, buf, size)
-    PyMem_Free(buf)
+    free(buf)
 
     return 0
 
 
-cdef bint is_broken_float() except -1:
+cdef bint is_broken_float():
     cdef double test = _PyFloat_Unpack8(NaN, 0)
 
     cdef int result
     cdef unsigned char *buf = <unsigned char *>&test
 
     if is_big_endian(SYSTEM_ENDIAN):
-        swap_bytes(buf, 8)
+        if swap_bytes(buf, 8) == -1:
+            return -1
 
     result = memcmp(NaN, buf, 8)
 
@@ -204,23 +194,20 @@ cdef class cBufferedByteStream(object):
     """
 
     def __cinit__(self):
-        if complete_init == 0:
-            complete_import()
-
         self._endian = ENDIAN_NETWORK
         self.pos = 0
         self.length = 0
         self.size = 1024
         self.closed = 0
 
-        self.buffer = <char *>PyMem_Malloc(sizeof(char *) * self.size)
+        self.buffer = <char *>malloc(sizeof(char *) * self.size)
 
         if self.buffer == NULL:
             raise MemoryError
 
     def __dealloc__(self):
         if self.buffer != NULL:
-            PyMem_Free(self.buffer)
+            free(self.buffer)
 
         self.buffer = NULL
 
@@ -321,7 +308,7 @@ cdef class cBufferedByteStream(object):
 
         self.has_available(size)
 
-        buf[0] = <char *>PyMem_Malloc(sizeof(char *) * size)
+        buf[0] = <char *>malloc(sizeof(char *) * size)
 
         if buf[0] == NULL:
             raise MemoryError
@@ -416,13 +403,13 @@ cdef class cBufferedByteStream(object):
             raise IOError
 
         if size == 0:
-            PyMem_Free(self.buffer)
+            free(self.buffer)
 
             self.pos = 0
             self.length = 0
             self.size = 1024
 
-            self.buffer = <char *>PyMem_Malloc(sizeof(char *) * self.size)
+            self.buffer = <char *>malloc(sizeof(char *) * self.size)
 
             if self.buffer == NULL:
                 raise MemoryError
@@ -438,25 +425,25 @@ cdef class cBufferedByteStream(object):
             self.peek(&buf, size)
         except:
             if buf != NULL:
-                PyMem_Free(buf)
+                free(buf)
 
             raise
 
-        PyMem_Free(self.buffer)
+        free(self.buffer)
         self.size = 1024
         self.length = 0
 
-        self.buffer = <char *>PyMem_Malloc(sizeof(char *) * self.size)
+        self.buffer = <char *>malloc(sizeof(char *) * self.size)
 
         if self.buffer == NULL:
-            PyMem_Free(buf)
+            free(buf)
 
             raise MemoryError
 
         try:
             self.write(buf, size)
         finally:
-            PyMem_Free(buf)
+            free(buf)
 
         if self.length > cur_pos:
             self.pos = self.length
@@ -480,18 +467,18 @@ cdef class cBufferedByteStream(object):
                 self.peek(&buf, size)
             except:
                 if buf != NULL:
-                    PyMem_Free(buf)
+                    free(buf)
 
                 raise
 
-        PyMem_Free(self.buffer)
+        free(self.buffer)
         self.size = 1024
         self.length = 0
-        self.buffer = <char *>PyMem_Malloc(sizeof(char *) * self.size)
+        self.buffer = <char *>malloc(sizeof(char *) * self.size)
         self.pos = 0
 
         if self.buffer == NULL:
-            PyMem_Free(buf)
+            free(buf)
 
             raise MemoryError
 
@@ -499,7 +486,7 @@ cdef class cBufferedByteStream(object):
             try:
                 self.write(buf, size)
             finally:
-                PyMem_Free(buf)
+                free(buf)
 
         self.pos = 0
 
@@ -576,7 +563,7 @@ cdef class cBufferedByteStream(object):
             if x > maxint or x < minint:
                 raise OverflowError('integer out of range')
 
-        cdef char *buf = <char *>PyMem_Malloc(num_bytes)
+        cdef char *buf = <char *>malloc(num_bytes)
 
         if buf == NULL:
             raise MemoryError
@@ -597,7 +584,7 @@ cdef class cBufferedByteStream(object):
         try:
             self.write(buf, num_bytes)
         finally:
-            PyMem_Free(buf)
+            free(buf)
 
         return 0
 
@@ -615,7 +602,7 @@ cdef class cBufferedByteStream(object):
             if x >= maxint:
                 raise OverflowError('integer out of range')
 
-        cdef char *buf = <char *>PyMem_Malloc(sizeof(char *) * num_bytes)
+        cdef char *buf = <char *>malloc(sizeof(char *) * num_bytes)
 
         if not buf:
             raise MemoryError
@@ -636,7 +623,7 @@ cdef class cBufferedByteStream(object):
         try:
             self.write(buf, num_bytes)
         finally:
-            PyMem_Free(buf)
+            free(buf)
 
         return 0
 
@@ -777,7 +764,7 @@ cdef class cBufferedByteStream(object):
             ret = PyUnicode_DecodeUTF8(buf, l, 'strict')
         finally:
             if buf != NULL:
-                PyMem_Free(buf)
+                free(buf)
 
         return ret
 
@@ -848,7 +835,7 @@ cdef class cBufferedByteStream(object):
             obj[0] = _PyFloat_Unpack8(buf, not is_big_endian(self._endian))
         finally:
             if buf != NULL:
-                PyMem_Free(buf)
+                free(buf)
 
         return 0
 
@@ -863,7 +850,7 @@ cdef class cBufferedByteStream(object):
         cdef unsigned char *foo
         cdef int done = 0
 
-        buf = <unsigned char *>PyMem_Malloc(sizeof(unsigned char *) * sizeof(double))
+        buf = <unsigned char *>malloc(sizeof(unsigned char *) * sizeof(double))
 
         if buf == NULL:
             raise MemoryError
@@ -896,7 +883,7 @@ cdef class cBufferedByteStream(object):
 
             self.write(<char *>buf, 8)
         finally:
-            PyMem_Free(buf)
+            free(buf)
 
         return 0
 
@@ -913,7 +900,7 @@ cdef class cBufferedByteStream(object):
             x[0] = _PyFloat_Unpack4(<unsigned char *>buf, le)
         finally:
             if buf != NULL:
-                PyMem_Free(buf)
+                free(buf)
 
         return 0
 
@@ -927,7 +914,7 @@ cdef class cBufferedByteStream(object):
         cdef unsigned char *buf
         cdef unsigned char le = not is_big_endian(self._endian)
 
-        buf = <unsigned char *>PyMem_Malloc(sizeof(unsigned char *) * 4)
+        buf = <unsigned char *>malloc(sizeof(unsigned char *) * 4)
 
         if buf == NULL:
             raise MemoryError
@@ -937,7 +924,7 @@ cdef class cBufferedByteStream(object):
 
             self.write(<char *>buf, 4)
         finally:
-            PyMem_Free(buf)
+            free(buf)
 
         return 0
 
@@ -963,9 +950,6 @@ cdef class BufferedByteStream(cBufferedByteStream):
     """
 
     def __init__(self, buf=None):
-        """
-        @raise TypeError: Unable to coerce buf -> StringIO
-        """
         cdef Py_ssize_t i
         cdef cBufferedByteStream x
 
@@ -1024,7 +1008,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
             r = PyString_FromStringAndSize(buf, s)
         finally:
             if buf != NULL:
-                PyMem_Free(buf)
+                free(buf)
 
         return r
 
@@ -1069,7 +1053,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
             r = PyString_FromStringAndSize(buf, l)
         finally:
             if buf != NULL:
-                PyMem_Free(buf)
+                free(buf)
 
         return r
 
@@ -1080,7 +1064,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         cdef unsigned char *i = NULL
         cdef object ret
 
-        i = <unsigned char *>PyMem_Malloc(1 * sizeof(unsigned char))
+        i = <unsigned char *>malloc(1 * sizeof(unsigned char))
 
         if i == NULL:
             raise MemoryError
@@ -1090,7 +1074,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
 
             ret = <unsigned char>(i[0])
         finally:
-            PyMem_Free(i)
+            free(i)
 
         return ret
 
@@ -1101,7 +1085,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         cdef char *i = NULL
         cdef object ret
 
-        i = <char *>PyMem_Malloc(1 * sizeof(char))
+        i = <char *>malloc(1 * sizeof(char))
 
         if i == NULL:
             raise MemoryError
@@ -1111,7 +1095,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
 
             ret = <char>(i[0])
         finally:
-            PyMem_Free(i)
+            free(i)
 
         return ret
 
@@ -1122,7 +1106,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         cdef unsigned short *i = NULL
         cdef object ret
 
-        i = <unsigned short *>PyMem_Malloc(1 * sizeof(unsigned short))
+        i = <unsigned short *>malloc(1 * sizeof(unsigned short))
 
         if i == NULL:
             raise MemoryError
@@ -1132,7 +1116,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
 
             ret = <unsigned short>(i[0])
         finally:
-            PyMem_Free(i)
+            free(i)
 
         return ret
 
@@ -1143,7 +1127,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         cdef short *i = NULL
         cdef object ret
 
-        i = <short *>PyMem_Malloc(1 * sizeof(short))
+        i = <short *>malloc(1 * sizeof(short))
 
         if i == NULL:
             raise MemoryError
@@ -1153,7 +1137,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
 
             ret = <short>(i[0])
         finally:
-            PyMem_Free(i)
+            free(i)
 
         return ret
 
@@ -1164,7 +1148,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         cdef unsigned long *i = NULL
         cdef object ret
 
-        i = <unsigned long *>PyMem_Malloc(1 * sizeof(unsigned long))
+        i = <unsigned long *>malloc(1 * sizeof(unsigned long))
 
         if i == NULL:
             raise MemoryError
@@ -1174,7 +1158,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
 
             ret = <unsigned long>(i[0])
         finally:
-            PyMem_Free(i)
+            free(i)
 
         return ret
 
@@ -1185,7 +1169,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         cdef long *i = NULL
         cdef object ret
 
-        i = <long *>PyMem_Malloc(1 * sizeof(long))
+        i = <long *>malloc(1 * sizeof(long))
 
         if i == NULL:
             raise MemoryError
@@ -1195,7 +1179,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
 
             ret = <long>(i[0])
         finally:
-            PyMem_Free(i)
+            free(i)
 
         return ret
 
@@ -1206,7 +1190,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         cdef unsigned long *i = NULL
         cdef object ret
 
-        i = <unsigned long *>PyMem_Malloc(1 * sizeof(unsigned long))
+        i = <unsigned long *>malloc(1 * sizeof(unsigned long))
 
         if i == NULL:
             raise MemoryError
@@ -1216,7 +1200,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
 
             ret = <long>(i[0])
         finally:
-            PyMem_Free(i)
+            free(i)
 
         return ret
 
@@ -1227,7 +1211,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         cdef long *i = NULL
         cdef object ret
 
-        i = <long *>PyMem_Malloc(1 * sizeof(long))
+        i = <long *>malloc(1 * sizeof(long))
 
         if i == NULL:
             raise MemoryError
@@ -1237,7 +1221,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
 
             ret = <long>(i[0])
         finally:
-            PyMem_Free(i)
+            free(i)
 
         return ret
 
@@ -1377,3 +1361,14 @@ cdef class BufferedByteStream(cBufferedByteStream):
 
     def __str__(self):
         return self.getvalue()
+
+
+# init the module from here
+
+SYSTEM_ENDIAN = get_native_endian()
+
+if is_broken_float():
+    float_broken = 1
+
+if build_platform_exceptional_floats() == -1:
+    raise SystemError('Unable to initialise cpyamf.util')
