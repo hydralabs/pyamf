@@ -25,6 +25,13 @@ sys.path.insert(0, base_path)
 
 readme = os.path.join(base_path, 'README.txt')
 
+    # need to remove all references to imported pyamf modules, as building
+    # the c extensions change pyamf.util.BufferedByteStream, which blow up
+    # the tests
+    for k, v in sys.modules.copy().iteritems():
+        if k and k.startswith('pyamf'):
+            del sys.modules[k]
+
 
 class TestCommand(test.test):
     """
