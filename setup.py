@@ -76,11 +76,6 @@ def get_extensions():
 
     :since: 0.4
     """
-    if '--disable-ext' in sys.argv:
-        sys.argv.remove('--disable-ext')
-
-        return []
-
     if sys.platform.startswith('java'):
         print(80 * '*')
         print('WARNING:')
@@ -88,6 +83,11 @@ def get_extensions():
         print('\tOptimizations for this package will not be available!\n\n')
         print('Compiling extensions is not supported on Jython')
         print(80 * '*')
+
+        return []
+
+    if '--disable-ext' in sys.argv:
+        sys.argv.remove('--disable-ext')
 
         return []
 

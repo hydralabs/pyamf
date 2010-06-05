@@ -274,7 +274,6 @@ cdef class Context(codec.Context):
 
 
 cdef class Codec(codec.Codec):
-    cdef bint use_proxies
 
     def __init__(self, stream=None, context=None, strict=False, timezone_offset=None, use_proxies=False):
         codec.Codec.__init__(self, stream, context, strict, timezone_offset)
@@ -676,9 +675,6 @@ cdef class Encoder(Codec):
     The AMF3 Encoder.
     """
 
-    cdef object _func_cache
-    cdef object _use_write_object # list of types that are okay to short circuit to writeObject
-
     type_map = {
         util.xml_types: 'writeXML',
         pyamf.MixedArray: 'writeMixedArray'
@@ -689,17 +685,6 @@ cdef class Encoder(Codec):
 
         self._func_cache = {}
         self._use_write_object = []
-
-    cdef inline int _writeInteger(self, long i) except -1:
-        cdef char *buf = NULL
-        cdef int size = 0
-
-        try:
-            size = encode_int(i, &buf)
-
-            return self.stream.write(buf, size)
-        finally:
-            PyMem_Free(buf)
 
     cpdef int writeString(self, object s, int writeType=1) except -1:
         cdef Py_ssize_t l
@@ -721,13 +706,13 @@ cdef class Encoder(Codec):
         if r != -1:
             # we have a reference
 
-            self._writeInteger(r << 1)
+            _encode_integer(self, r << 1)
 
             return 0
 
         self.context.addString(s)
 
-        self._writeInteger((l << 1) | REFERENCE_BIT)
+        _encode_integer(self, (l << 1) | REFERENCE_BIT)
         self.stream.write(PyString_AS_STRING(s), l)
 
         return 0
@@ -758,7 +743,7 @@ cdef class Encoder(Codec):
             return self.writeNumber(float(n))
 
         self.writeType(TYPE_INTEGER)
-        self._writeInteger(x)
+        _encode_integer(self, x)
 
     cdef int writeLong(self, object n) except -1:
         cdef long x
@@ -772,7 +757,7 @@ cdef class Encoder(Codec):
             return self.writeNumber(float(n))
 
         self.writeType(TYPE_INTEGER)
-        self._writeInteger(x)
+        _encode_integer(self, x)
 
     cdef int writeNumber(self, object n) except -1:
         cdef double x = PyFloat_AS_DOUBLE(n)
@@ -797,13 +782,13 @@ cdef class Encoder(Codec):
         self.writeType(TYPE_ARRAY)
 
         if ref != -1:
-            return self._writeInteger(ref << 1)
+            return _encode_integer(self, ref << 1)
 
         self.context.addObject(n)
 
         ref = PyList_GET_SIZE(n)
 
-        self._writeInteger((ref << 1) | REFERENCE_BIT)
+        _encode_integer(self, (ref << 1) | REFERENCE_BIT)
 
         self.writeType('\x01')
 
@@ -822,13 +807,13 @@ cdef class Encoder(Codec):
         self.writeType(TYPE_ARRAY)
 
         if ref != -1:
-            return self._writeInteger(ref << 1)
+            return _encode_integer(self, ref << 1)
 
         self.context.addObject(n)
 
         ref = PyTuple_GET_SIZE(n)
 
-        self._writeInteger((ref << 1) | REFERENCE_BIT)
+        _encode_integer(self, (ref << 1) | REFERENCE_BIT)
         self.writeType('\x01')
 
         for i from 0 <= i < ref:
@@ -859,7 +844,7 @@ cdef class Encoder(Codec):
         ref = self.context.getObjectReference(n)
 
         if ref != -1:
-            return self._writeInteger(ref << 1)
+            return _encode_integer(self, ref << 1)
 
         self.context.addObject(n)
 
@@ -893,7 +878,7 @@ cdef class Encoder(Codec):
                 str_keys.append(str(x))
                 del int_keys[int_keys.index(x)]
 
-        self._writeInteger(len(int_keys) << 1 | REFERENCE_BIT)
+        _encode_integer(self, len(int_keys) << 1 | REFERENCE_BIT)
 
         for x in str_keys:
             self.writeLabel(x)
@@ -927,7 +912,7 @@ cdef class Encoder(Codec):
         ref = self.context.getObjectReference(obj)
 
         if ref != -1:
-            self._writeInteger(ref << 1)
+            _encode_integer(self, ref << 1)
 
             return 0
 
@@ -1047,7 +1032,7 @@ cdef class Encoder(Codec):
         ref = self.context.getObjectReference(obj)
 
         if ref != -1:
-            self._writeInteger(ref << 1)
+            _encode_integer(self, ref << 1)
 
             return 0
 
@@ -1056,7 +1041,7 @@ cdef class Encoder(Codec):
         buf = str(obj)
         l = PyString_GET_SIZE(buf)
 
-        self._writeInteger((l << 1) | REFERENCE_BIT)
+        _encode_integer(self, (l << 1) | REFERENCE_BIT)
         self.stream.write(PyString_AS_STRING(buf), l)
 
         return 0
@@ -1072,7 +1057,7 @@ cdef class Encoder(Codec):
         i = self.context.getObjectReference(obj)
 
         if i != -1:
-            self._writeInteger(i << 1)
+            _encode_integer(self, i << 1)
 
             return 0
 
@@ -1085,7 +1070,7 @@ cdef class Encoder(Codec):
 
         i = PyString_GET_SIZE(s)
 
-        self._writeInteger((i << 1) | REFERENCE_BIT)
+        _encode_integer(self, (i << 1) | REFERENCE_BIT)
         self.stream.write(PyString_AS_STRING(s), i)
 
         return 0
@@ -1099,7 +1084,7 @@ cdef class Encoder(Codec):
         self.writeType(TYPE_DATE)
 
         if ref != -1:
-            self._writeInteger(ref << 1)
+            _encode_integer(self, ref << 1)
 
             return 0
 
@@ -1301,3 +1286,15 @@ cdef int decode_int(cBufferedByteStream stream, long *ret, int sign=0) except -1
     ret[0] = result
 
     return 0
+
+
+cdef inline int _encode_integer(Encoder self, long i) except -1:
+    cdef char *buf = NULL
+    cdef int size = 0
+
+    try:
+        size = encode_int(i, &buf)
+
+        return self.stream.write(buf, size)
+    finally:
+        PyMem_Free(buf)
