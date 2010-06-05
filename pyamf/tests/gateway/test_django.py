@@ -67,7 +67,7 @@ class DjangoGatewayTestCase(unittest.TestCase):
         gw = _django.DjangoGateway()
 
         self.assertTrue(gw.debug)
-        self.assertEquals(gw.timezone_offset, 1000)
+        self.assertEqual(gw.timezone_offset, 1000)
 
     def test_request_method(self):
         gw = _django.DjangoGateway()
@@ -76,7 +76,7 @@ class DjangoGatewayTestCase(unittest.TestCase):
         http_request.method = 'GET'
 
         http_response = gw(http_request)
-        self.assertEquals(http_response.status_code, 405)
+        self.assertEqual(http_response.status_code, 405)
 
     def test_bad_request(self):
         gw = _django.DjangoGateway()
@@ -90,7 +90,7 @@ class DjangoGatewayTestCase(unittest.TestCase):
         http_request.raw_post_data = request.getvalue()
 
         http_response = gw(http_request)
-        self.assertEquals(http_response.status_code, 400)
+        self.assertEqual(http_response.status_code, 400)
 
     def test_unknown_request(self):
         gw = _django.DjangoGateway()
@@ -110,18 +110,18 @@ class DjangoGatewayTestCase(unittest.TestCase):
 
         message = envelope['/1']
 
-        self.assertEquals(message.status, remoting.STATUS_ERROR)
+        self.assertEqual(message.status, remoting.STATUS_ERROR)
         body = message.body
 
         self.assertTrue(isinstance(body, remoting.ErrorFault))
-        self.assertEquals(body.code, 'Service.ResourceNotFound')
+        self.assertEqual(body.code, 'Service.ResourceNotFound')
 
     def test_expose_request(self):
         http_request = HttpRequest()
         self.executed = False
 
         def test(request):
-            self.assertEquals(http_request, request)
+            self.assertEqual(http_request, request)
             self.assertTrue(hasattr(request, 'amf_request'))
             self.executed = True
 
@@ -162,8 +162,8 @@ class DjangoGatewayTestCase(unittest.TestCase):
         remoting.decode = self.old_method
 
         self.assertTrue(isinstance(http_response, http.HttpResponseServerError))
-        self.assertEquals(http_response.status_code, 500)
-        self.assertEquals(http_response.content, '500 Internal Server Error\n\nAn unexpected error occurred.')
+        self.assertEqual(http_response.status_code, 500)
+        self.assertEqual(http_response.content, '500 Internal Server Error\n\nAn unexpected error occurred.')
 
     def test_expected_exceptions_decode(self):
         self.old_method = remoting.decode
@@ -195,7 +195,7 @@ class DjangoGatewayTestCase(unittest.TestCase):
         now = datetime.datetime.utcnow()
 
         def echo(d):
-            self.assertEquals(d, now + td)
+            self.assertEqual(d, now + td)
             self.executed = True
 
             return d
@@ -212,7 +212,7 @@ class DjangoGatewayTestCase(unittest.TestCase):
         res = remoting.decode(gw(http_request).content)
         self.assertTrue(self.executed)
 
-        self.assertEquals(res['/1'].body, now)
+        self.assertEqual(res['/1'].body, now)
 
 
 def suite():

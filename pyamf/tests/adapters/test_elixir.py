@@ -98,7 +98,7 @@ class ClassAliasTestCase(BaseTestCase):
 
         attrs = self.movie_alias.getEncodableAttributes(m)
 
-        self.assertEquals(attrs, {
+        self.assertEqual(attrs, {
             'genres': [g],
             'description': None,
             'title': u'Blade Runner',
@@ -113,7 +113,7 @@ class ClassAliasTestCase(BaseTestCase):
 
         attrs = self.director_alias.getEncodableAttributes(d)
 
-        self.assertEquals(attrs, {
+        self.assertEqual(attrs, {
             'movies': d.movies,
             'sa_key': [u'Ridley Scott'],
             'person_name': u'Ridley Scott',

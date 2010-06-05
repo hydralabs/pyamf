@@ -9,10 +9,7 @@ Unit tests.
 
 import os.path
 
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
+import unittest
 
 
 def get_suite():

@@ -31,10 +31,10 @@ class ArrayTestCase(unittest.TestCase):
             encoding=encoding).next()
 
     def test_amf0(self):
-        self.assertEquals(self.encdec(pyamf.AMF0), self.orig)
+        self.assertEqual(self.encdec(pyamf.AMF0), self.orig)
 
     def test_amf3(self):
-        self.assertEquals(self.encdec(pyamf.AMF3), self.orig)
+        self.assertEqual(self.encdec(pyamf.AMF3), self.orig)
 
 
 def suite():

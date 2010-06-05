@@ -60,10 +60,10 @@ class EncodingModelTestCase(ClassCacheClearingTestCase):
         context = encoder.context
 
         alias = context.getClassAlias(PetModel)
-        self.assertEquals(alias.__class__, adapter_db.DataStoreClassAlias)
+        self.assertEqual(alias.__class__, adapter_db.DataStoreClassAlias)
 
         encoder.writeElement(self.jessica)
-        self.assertEquals(encoder.stream.getvalue(),
+        self.assertEqual(encoder.stream.getvalue(),
             '\x03\x00\x04_key\x05\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00'
             '\x00\x00\x00\x00\x04name\x02\x00\x07Jessica\x00\x12'
             'spayed_or_neutered\x01\x00\x00\x04type\x02\x00\x03cat\x00\x10'
@@ -72,7 +72,7 @@ class EncodingModelTestCase(ClassCacheClearingTestCase):
     def test_amf3(self):
         encoder = pyamf.get_encoder(pyamf.AMF3)
         encoder.writeElement(self.jessica)
-        self.assertEquals(encoder.stream.getvalue(),
+        self.assertEqual(encoder.stream.getvalue(),
             '\nk\x01\t_key\x13birthdate\tname%spayed_or_neutered\ttype!'
             'weight_in_pounds\x01\x08\x01B^\xc4\xae\xaa\x00\x00\x00\x06\x0f'
             'Jessica\x02\x06\x07cat\x04\x05\x01')
@@ -84,7 +84,7 @@ class EncodingModelTestCase(ClassCacheClearingTestCase):
         encoder = pyamf.get_encoder(pyamf.AMF0)
         encoder.writeElement(self.jessica)
 
-        self.assertEquals(encoder.stream.getvalue(),
+        self.assertEqual(encoder.stream.getvalue(),
             '\x03\x00\x04_key\x02%s%s\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00'
             '\x00\x00\x00\x00\x00\x04name\x02\x00\x07Jessica\x00\x12'
             'spayed_or_neutered\x01\x00\x00\x04type\x02\x00\x03cat\x00\x10'
@@ -98,7 +98,7 @@ class EncodingModelTestCase(ClassCacheClearingTestCase):
         encoder = pyamf.get_encoder(pyamf.AMF3)
         encoder.writeElement(self.jessica)
 
-        self.assertEquals(encoder.stream.getvalue(),
+        self.assertEqual(encoder.stream.getvalue(),
             '\nk\x01\t_key\x13birthdate\tname%%spayed_or_neutered\ttype!'
             'weight_in_pounds\x06%s%s\x08\x01B^\xc4\xae\xaa\x00\x00\x00\x06'
             '\x0fJessica\x02\x06\x07cat\x04\x05\x01' % (
@@ -109,7 +109,7 @@ class EncodingModelTestCase(ClassCacheClearingTestCase):
         encoder = pyamf.get_encoder(pyamf.AMF0)
 
         encoder.writeElement(self.jessica)
-        self.assertEquals(encoder.stream.getvalue(),
+        self.assertEqual(encoder.stream.getvalue(),
             '\x10\x00\x03Pet\x00\x04_key\x05\x00\tbirthdate\x0bB^\xc4\xae\xaa'
             '\x00\x00\x00\x00\x00\x00\x04name\x02\x00\x07Jessica\x00\x12'
             'spayed_or_neutered\x01\x00\x00\x04type\x02\x00\x03cat\x00\x10'
@@ -120,7 +120,7 @@ class EncodingModelTestCase(ClassCacheClearingTestCase):
         encoder = pyamf.get_encoder(pyamf.AMF3)
         encoder.writeElement(self.jessica)
 
-        self.assertEquals(encoder.stream.getvalue(),
+        self.assertEqual(encoder.stream.getvalue(),
             '\nk\x07Pet\t_key\x13birthdate\tname%spayed_or_neutered\ttype!'
             'weight_in_pounds\x01\x08\x01B^\xc4\xae\xaa\x00\x00\x00\x06\x0f'
             'Jessica\x02\x06\x07cat\x04\x05\x01')
@@ -148,7 +148,7 @@ class EncodingExpandoTestCase(ClassCacheClearingTestCase):
         encoder = pyamf.get_encoder(pyamf.AMF0)
         encoder.writeElement(self.jessica)
 
-        self.assertEquals(encoder.stream.getvalue(),
+        self.assertEqual(encoder.stream.getvalue(),
             '\x03\x00\x04_key\x05\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00'
             '\x00\x00\x00\x00\x04name\x02\x00\x07Jessica\x00\x12'
             'spayed_or_neutered\x01\x00\x00\x04type\x02\x00\x03cat\x00\x10'
@@ -159,7 +159,7 @@ class EncodingExpandoTestCase(ClassCacheClearingTestCase):
         encoder = pyamf.get_encoder(pyamf.AMF3)
         encoder.writeElement(self.jessica)
 
-        self.assertEquals(encoder.stream.getvalue(),
+        self.assertEqual(encoder.stream.getvalue(),
             '\nk\x01\t_key\x13birthdate\tname%spayed_or_neutered\ttype!'
             'weight_in_pounds\x01\x08\x01B^\xc4\xae\xaa\x00\x00\x00\x06\x0f'
             'Jessica\x02\x06\x07cat\x04\x05\x07foo\x06\x07bar\x01')
@@ -171,7 +171,7 @@ class EncodingExpandoTestCase(ClassCacheClearingTestCase):
         encoder = pyamf.get_encoder(pyamf.AMF0)
         encoder.writeElement(self.jessica)
 
-        self.assertEquals(encoder.stream.getvalue(),
+        self.assertEqual(encoder.stream.getvalue(),
             '\x03\x00\x04_key\x02%s%s\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00'
             '\x00\x00\x00\x00\x00\x04name\x02\x00\x07Jessica\x00\x12'
             'spayed_or_neutered\x01\x00\x00\x04type\x02\x00\x03cat\x00\x10'
@@ -185,7 +185,7 @@ class EncodingExpandoTestCase(ClassCacheClearingTestCase):
         encoder = pyamf.get_encoder(pyamf.AMF3)
         encoder.writeElement(self.jessica)
 
-        self.assertEquals(encoder.stream.getvalue(),
+        self.assertEqual(encoder.stream.getvalue(),
             '\nk\x01\t_key\x13birthdate\tname%%spayed_or_neutered\ttype!'
             'weight_in_pounds\x06%s%s\x08\x01B^\xc4\xae\xaa\x00\x00\x00\x06'
             '\x0fJessica\x02\x06\x07cat\x04\x05\x07foo\x06\x07bar\x01' % (
@@ -196,7 +196,7 @@ class EncodingExpandoTestCase(ClassCacheClearingTestCase):
         encoder = pyamf.get_encoder(pyamf.AMF0)
 
         encoder.writeElement(self.jessica)
-        self.assertEquals(encoder.stream.getvalue(),
+        self.assertEqual(encoder.stream.getvalue(),
             '\x10\x00\x03Pet\x00\x04_key\x05\x00\tbirthdate\x0bB^\xc4\xae\xaa'
             '\x00\x00\x00\x00\x00\x00\x04name\x02\x00\x07Jessica\x00\x12'
             'spayed_or_neutered\x01\x00\x00\x04type\x02\x00\x03cat\x00\x10'
@@ -208,7 +208,7 @@ class EncodingExpandoTestCase(ClassCacheClearingTestCase):
         encoder = pyamf.get_encoder(pyamf.AMF3)
         encoder.writeElement(self.jessica)
 
-        self.assertEquals(encoder.stream.getvalue(),
+        self.assertEqual(encoder.stream.getvalue(),
             '\nk\x07Pet\t_key\x13birthdate\tname%spayed_or_neutered\ttype!'
             'weight_in_pounds\x01\x08\x01B^\xc4\xae\xaa\x00\x00\x00\x06\x0f'
             'Jessica\x02\x06\x07cat\x04\x05\x07foo\x06\x07bar\x01')
@@ -235,13 +235,13 @@ class EncodingReferencesTestCase(ClassCacheClearingTestCase):
 
         b = Novel(title='Sense and Sensibility', author=a)
 
-        self.assertEquals(b.author, a)
+        self.assertEqual(b.author, a)
 
         try:
             encoder = pyamf.get_encoder(pyamf.AMF0)
 
             encoder.writeElement(b)
-            self.assertEquals(encoder.stream.getvalue(),
+            self.assertEqual(encoder.stream.getvalue(),
                 '\x03\x00\x04_key\x05\x00\x06author\x03\x00\x04_key\x02%s%s'
                 '\x00\x04name\x02\x00\x0bJane Austen\x00\x00\t\x00\x05title'
                 '\x02\x00\x15Sense and Sensibility\x00\x00\t' % (
@@ -250,7 +250,7 @@ class EncodingReferencesTestCase(ClassCacheClearingTestCase):
             encoder = pyamf.get_encoder(pyamf.AMF3)
 
             encoder.writeElement(b)
-            self.assertEquals(encoder.stream.getvalue(),
+            self.assertEqual(encoder.stream.getvalue(),
                 '\n;\x01\t_key\rauthor\x0btitle\x01\n+\x01\x00\tname\x06%s%s'
                 '\x06\x17Jane Austen\x01\x06+Sense and Sensibility\x01' % (
                     amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k))
@@ -262,7 +262,7 @@ class EncodingReferencesTestCase(ClassCacheClearingTestCase):
             encoder = pyamf.get_encoder(pyamf.AMF0)
 
             encoder.writeElement(b)
-            self.assertEquals(encoder.stream.getvalue(), '\x10\x00\x05Novel'
+            self.assertEqual(encoder.stream.getvalue(), '\x10\x00\x05Novel'
                 '\x00\x04_key\x05\x00\x06author\x10\x00\x06Author\x00\x04_key'
                 '\x02%s%s\x00\x04name\x02\x00\x0bJane Austen\x00\x00\t\x00'
                 '\x05title\x02\x00\x15Sense and Sensibility\x00\x00\t' % (
@@ -271,7 +271,7 @@ class EncodingReferencesTestCase(ClassCacheClearingTestCase):
             encoder = pyamf.get_encoder(pyamf.AMF3)
 
             encoder.writeElement(b)
-            self.assertEquals(encoder.stream.getvalue(), '\n;\x0bNovel\t_key'
+            self.assertEqual(encoder.stream.getvalue(), '\n;\x0bNovel\t_key'
                 '\rauthor\x0btitle\x01\n+\rAuthor\x02\tname\x06%s%s\x06\x17'
                 'Jane Austen\x01\x06+Sense and Sensibility\x01' % (
                     amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k))
@@ -292,13 +292,13 @@ class EncodingReferencesTestCase(ClassCacheClearingTestCase):
 
         b = Novel(title='Sense and Sensibility', author=a)
 
-        self.assertEquals(b.author, a)
+        self.assertEqual(b.author, a)
 
         try:
             encoder = pyamf.get_encoder(pyamf.AMF0)
 
             encoder.writeElement(b)
-            self.assertEquals(encoder.stream.getvalue(),
+            self.assertEqual(encoder.stream.getvalue(),
                 '\x03\x00\x04_key\x05\x00\x06author\x03\x00\x04_key\x02%s%s'
                 '\x00\x04name\x02\x00\x0bJane Austen\x00\x00\t\x00\x05title'
                 '\x02\x00\x15Sense and Sensibility\x00\x00\t' % (
@@ -307,7 +307,7 @@ class EncodingReferencesTestCase(ClassCacheClearingTestCase):
             encoder = pyamf.get_encoder(pyamf.AMF3)
 
             encoder.writeElement(b)
-            self.assertEquals(encoder.stream.getvalue(),
+            self.assertEqual(encoder.stream.getvalue(),
                 '\n;\x01\t_key\rauthor\x0btitle\x01\n+\x01\x00\tname\x06%s%s'
                 '\x06\x17Jane Austen\x01\x06+Sense and Sensibility\x01' % (
                     amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k))
@@ -319,7 +319,7 @@ class EncodingReferencesTestCase(ClassCacheClearingTestCase):
             encoder = pyamf.get_encoder(pyamf.AMF0)
 
             encoder.writeElement(b)
-            self.assertEquals(encoder.stream.getvalue(), '\x10\x00\x05Novel'
+            self.assertEqual(encoder.stream.getvalue(), '\x10\x00\x05Novel'
                 '\x00\x04_key\x05\x00\x06author\x10\x00\x06Author\x00\x04_key'
                 '\x02%s%s\x00\x04name\x02\x00\x0bJane Austen\x00\x00\t\x00'
                 '\x05title\x02\x00\x15Sense and Sensibility\x00\x00\t' % (
@@ -328,7 +328,7 @@ class EncodingReferencesTestCase(ClassCacheClearingTestCase):
             encoder = pyamf.get_encoder(pyamf.AMF3)
 
             encoder.writeElement(b)
-            self.assertEquals(encoder.stream.getvalue(),
+            self.assertEqual(encoder.stream.getvalue(),
                 '\n;\x0bNovel\t_key\rauthor\x0btitle\x01\n+\rAuthor\x02\tname'
                 '\x06%s%s\x06\x17Jane Austen\x01\x06+Sense and Sensibility'
                 '\x01' % (amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k))
@@ -359,7 +359,7 @@ class EncodingReferencesTestCase(ClassCacheClearingTestCase):
 
             stream = pyamf.encode(x)
 
-            self.assertEquals(stream.getvalue(), '\x03\x00\x04_key\x02%s%s'
+            self.assertEqual(stream.getvalue(), '\x03\x00\x04_key\x02%s%s'
                 '\x00\x06author\x03\x00\x04_key\x02%s%s\x00\x04name\x02\x00'
                 '\x0bJane Austen\x00\x03bar\n\x00\x00\x00\x03\x00?\xf0\x00'
                 '\x00\x00\x00\x00\x00\x00@\x00\x00\x00\x00\x00\x00\x00\x00@'
@@ -384,7 +384,7 @@ class ListPropertyTestCase(ClassCacheClearingTestCase):
         encoder = pyamf.get_encoder(pyamf.AMF0)
 
         encoder.writeElement(obj)
-        self.assertEquals(encoder.stream.getvalue(),
+        self.assertEqual(encoder.stream.getvalue(),
             '\x03\x00\x04_key\x05\x00\x07numbers\n\x00\x00\x00\x05\x00@'
             '\x00\x00\x00\x00\x00\x00\x00\x00@\x10\x00\x00\x00\x00\x00\x00'
             '\x00@\x18\x00\x00\x00\x00\x00\x00\x00@ \x00\x00\x00\x00\x00\x00'
@@ -393,7 +393,7 @@ class ListPropertyTestCase(ClassCacheClearingTestCase):
         encoder = pyamf.get_encoder(pyamf.AMF3)
 
         encoder.writeElement(obj)
-        self.assertEquals(encoder.stream.getvalue(),
+        self.assertEqual(encoder.stream.getvalue(),
             '\n+\x01\t_key\x0fnumbers\x01\t\x0b\x01\x04\x02\x04\x04\x04\x06'
             '\x04\x08\x04\n\x01')
 
@@ -402,7 +402,7 @@ class ListPropertyTestCase(ClassCacheClearingTestCase):
         encoder = pyamf.get_encoder(pyamf.AMF0)
 
         encoder.writeElement(obj)
-        self.assertEquals(encoder.stream.getvalue(),
+        self.assertEqual(encoder.stream.getvalue(),
             '\x10\x00\nlist-model\x00\x04_key\x05\x00\x07numbers\n\x00\x00'
             '\x00\x05\x00@\x00\x00\x00\x00\x00\x00\x00\x00@\x10\x00\x00\x00'
             '\x00\x00\x00\x00@\x18\x00\x00\x00\x00\x00\x00\x00@ \x00\x00\x00'
@@ -411,7 +411,7 @@ class ListPropertyTestCase(ClassCacheClearingTestCase):
         encoder = pyamf.get_encoder(pyamf.AMF3)
 
         encoder.writeElement(obj)
-        self.assertEquals(encoder.stream.getvalue(),
+        self.assertEqual(encoder.stream.getvalue(),
             '\n+\x15list-model\t_key\x0fnumbers\x01\t\x0b\x01\x04\x02\x04\x04'
             '\x04\x06\x04\x08\x04\n\x01')
 
@@ -430,7 +430,7 @@ class ListPropertyTestCase(ClassCacheClearingTestCase):
 
         self.assertTrue(isinstance(x, ListModel))
         self.assertTrue(hasattr(x, 'numbers'))
-        self.assertEquals(x.numbers, [2, 4, 6, 8, 10])
+        self.assertEqual(x.numbers, [2, 4, 6, 8, 10])
 
         decoder = pyamf.get_decoder(pyamf.AMF3)
         decoder.stream.write(
@@ -442,7 +442,7 @@ class ListPropertyTestCase(ClassCacheClearingTestCase):
 
         self.assertTrue(isinstance(x, ListModel))
         self.assertTrue(hasattr(x, 'numbers'))
-        self.assertEquals(x.numbers, [2, 4, 6, 8, 10])
+        self.assertEqual(x.numbers, [2, 4, 6, 8, 10])
 
     def test_none(self):
         pyamf.register_class(ListModel, 'list-model')
@@ -454,7 +454,7 @@ class ListPropertyTestCase(ClassCacheClearingTestCase):
 
         x = decoder.readElement()
 
-        self.assertEquals(x.numbers, [])
+        self.assertEqual(x.numbers, [])
 
 
 class DecodingModelTestCase(ClassCacheClearingTestCase):
@@ -490,18 +490,18 @@ class DecodingModelTestCase(ClassCacheClearingTestCase):
         x = d.readElement()
 
         self.assertTrue(isinstance(x, PetModel))
-        self.assertEquals(x.__class__, PetModel)
+        self.assertEqual(x.__class__, PetModel)
 
-        self.assertEquals(x.type, self.jessica.type)
-        self.assertEquals(x.weight_in_pounds, self.jessica.weight_in_pounds)
-        self.assertEquals(x.birthdate, self.jessica.birthdate)
-        self.assertEquals(x.spayed_or_neutered, self.jessica.spayed_or_neutered)
+        self.assertEqual(x.type, self.jessica.type)
+        self.assertEqual(x.weight_in_pounds, self.jessica.weight_in_pounds)
+        self.assertEqual(x.birthdate, self.jessica.birthdate)
+        self.assertEqual(x.spayed_or_neutered, self.jessica.spayed_or_neutered)
 
         # now check db.Model internals
-        self.assertEquals(x.key(), self.jessica.key())
-        self.assertEquals(x.kind(), self.jessica.kind())
-        self.assertEquals(x.parent(), self.jessica.parent())
-        self.assertEquals(x.parent_key(), self.jessica.parent_key())
+        self.assertEqual(x.key(), self.jessica.key())
+        self.assertEqual(x.kind(), self.jessica.kind())
+        self.assertEqual(x.parent(), self.jessica.parent())
+        self.assertEqual(x.parent_key(), self.jessica.parent_key())
         self.assertTrue(x.is_saved())
 
     def test_amf3(self):
@@ -517,18 +517,18 @@ class DecodingModelTestCase(ClassCacheClearingTestCase):
         x = d.readElement()
 
         self.assertTrue(isinstance(x, PetModel))
-        self.assertEquals(x.__class__, PetModel)
+        self.assertEqual(x.__class__, PetModel)
 
-        self.assertEquals(x.type, self.jessica.type)
-        self.assertEquals(x.weight_in_pounds, self.jessica.weight_in_pounds)
-        self.assertEquals(x.birthdate, self.jessica.birthdate)
-        self.assertEquals(x.spayed_or_neutered, self.jessica.spayed_or_neutered)
+        self.assertEqual(x.type, self.jessica.type)
+        self.assertEqual(x.weight_in_pounds, self.jessica.weight_in_pounds)
+        self.assertEqual(x.birthdate, self.jessica.birthdate)
+        self.assertEqual(x.spayed_or_neutered, self.jessica.spayed_or_neutered)
 
         # now check db.Model internals
-        self.assertEquals(x.key(), self.jessica.key())
-        self.assertEquals(x.kind(), self.jessica.kind())
-        self.assertEquals(x.parent(), self.jessica.parent())
-        self.assertEquals(x.parent_key(), self.jessica.parent_key())
+        self.assertEqual(x.key(), self.jessica.key())
+        self.assertEqual(x.kind(), self.jessica.kind())
+        self.assertEqual(x.parent(), self.jessica.parent())
+        self.assertEqual(x.parent_key(), self.jessica.parent_key())
         self.assertTrue(x.is_saved())
 
 
@@ -566,18 +566,18 @@ class DecodingExpandoTestCase(ClassCacheClearingTestCase):
         x = d.readElement()
 
         self.assertTrue(isinstance(x, PetExpando))
-        self.assertEquals(x.__class__, PetExpando)
+        self.assertEqual(x.__class__, PetExpando)
 
-        self.assertEquals(x.type, self.jessica.type)
-        self.assertEquals(x.weight_in_pounds, self.jessica.weight_in_pounds)
-        self.assertEquals(x.birthdate, datetime.date(1986, 10, 2))
-        self.assertEquals(x.spayed_or_neutered, self.jessica.spayed_or_neutered)
+        self.assertEqual(x.type, self.jessica.type)
+        self.assertEqual(x.weight_in_pounds, self.jessica.weight_in_pounds)
+        self.assertEqual(x.birthdate, datetime.date(1986, 10, 2))
+        self.assertEqual(x.spayed_or_neutered, self.jessica.spayed_or_neutered)
 
         # now check db.Expando internals
-        self.assertEquals(x.key(), self.jessica.key())
-        self.assertEquals(x.kind(), self.jessica.kind())
-        self.assertEquals(x.parent(), self.jessica.parent())
-        self.assertEquals(x.parent_key(), self.jessica.parent_key())
+        self.assertEqual(x.key(), self.jessica.key())
+        self.assertEqual(x.kind(), self.jessica.kind())
+        self.assertEqual(x.parent(), self.jessica.parent())
+        self.assertEqual(x.parent_key(), self.jessica.parent_key())
         self.assertTrue(x.is_saved())
 
     def test_amf3(self):
@@ -593,18 +593,18 @@ class DecodingExpandoTestCase(ClassCacheClearingTestCase):
         x = d.readElement()
 
         self.assertTrue(isinstance(x, PetExpando))
-        self.assertEquals(x.__class__, PetExpando)
+        self.assertEqual(x.__class__, PetExpando)
 
-        self.assertEquals(x.type, self.jessica.type)
-        self.assertEquals(x.weight_in_pounds, self.jessica.weight_in_pounds)
-        self.assertEquals(x.birthdate, datetime.date(1986, 10, 2))
-        self.assertEquals(x.spayed_or_neutered, self.jessica.spayed_or_neutered)
+        self.assertEqual(x.type, self.jessica.type)
+        self.assertEqual(x.weight_in_pounds, self.jessica.weight_in_pounds)
+        self.assertEqual(x.birthdate, datetime.date(1986, 10, 2))
+        self.assertEqual(x.spayed_or_neutered, self.jessica.spayed_or_neutered)
 
         # now check db.Expando internals
-        self.assertEquals(x.key(), self.jessica.key())
-        self.assertEquals(x.kind(), self.jessica.kind())
-        self.assertEquals(x.parent(), self.jessica.parent())
-        self.assertEquals(x.parent_key(), self.jessica.parent_key())
+        self.assertEqual(x.key(), self.jessica.key())
+        self.assertEqual(x.kind(), self.jessica.kind())
+        self.assertEqual(x.parent(), self.jessica.parent())
+        self.assertEqual(x.parent_key(), self.jessica.parent_key())
         self.assertTrue(x.is_saved())
 
 
@@ -638,7 +638,7 @@ class ClassAliasTestCase(unittest.TestCase):
     def test_alias(self):
         self.alias.compile()
 
-        self.assertEquals(self.alias.decodable_properties, [
+        self.assertEqual(self.alias.decodable_properties, [
             '_key',
             'birthdate',
             'name',
@@ -646,7 +646,7 @@ class ClassAliasTestCase(unittest.TestCase):
             'type',
             'weight_in_pounds'
         ])
-        self.assertEquals(self.alias.encodable_properties, [
+        self.assertEqual(self.alias.encodable_properties, [
             '_key',
             'birthdate',
             'name',
@@ -654,11 +654,11 @@ class ClassAliasTestCase(unittest.TestCase):
             'type',
             'weight_in_pounds'
         ])
-        self.assertEquals(self.alias.static_attrs,
+        self.assertEqual(self.alias.static_attrs,
             ['_key', 'birthdate', 'name', 'spayed_or_neutered', 'type', 'weight_in_pounds'])
-        self.assertEquals(self.alias.readonly_attrs, None)
-        self.assertEquals(self.alias.exclude_attrs, None)
-        self.assertEquals(self.alias.reference_properties, None)
+        self.assertEqual(self.alias.readonly_attrs, None)
+        self.assertEqual(self.alias.exclude_attrs, None)
+        self.assertEqual(self.alias.reference_properties, None)
 
     def test_create_instance(self):
         x = self.alias.createInstance()
@@ -666,11 +666,11 @@ class ClassAliasTestCase(unittest.TestCase):
         self.assertTrue(isinstance(x, adapter_db.ModelStub))
 
         self.assertTrue(hasattr(x, 'klass'))
-        self.assertEquals(x.klass, self.alias.klass)
+        self.assertEqual(x.klass, self.alias.klass)
 
         # test some stub functions
-        self.assertEquals(x.properties(), self.alias.klass.properties())
-        self.assertEquals(x.dynamic_properties(), [])
+        self.assertEqual(x.properties(), self.alias.klass.properties())
+        self.assertEqual(x.dynamic_properties(), [])
 
     def test_apply(self):
         x = self.alias.createInstance()
@@ -690,7 +690,7 @@ class ClassAliasTestCase(unittest.TestCase):
 
     def test_get_attrs(self):
         attrs = self.alias.getEncodableAttributes(self.jessica)
-        self.assertEquals(attrs, {
+        self.assertEqual(attrs, {
             '_key': None,
             'type': 'cat',
             'name': 'Jessica',
@@ -701,7 +701,7 @@ class ClassAliasTestCase(unittest.TestCase):
 
     def test_get_attrs_expando(self):
         attrs = self.alias.getEncodableAttributes(self.jessica_expando)
-        self.assertEquals(attrs, {
+        self.assertEqual(attrs, {
             '_key': None,
             'type': 'cat',
             'name': 'Jessica',
@@ -714,7 +714,7 @@ class ClassAliasTestCase(unittest.TestCase):
     def test_get_attributes(self):
         attrs = self.alias.getEncodableAttributes(self.jessica)
 
-        self.assertEquals(attrs, {
+        self.assertEqual(attrs, {
             '_key': None,
             'type': 'cat',
             'name': 'Jessica',
@@ -728,7 +728,7 @@ class ClassAliasTestCase(unittest.TestCase):
 
         attrs = self.alias.getEncodableAttributes(self.jessica)
 
-        self.assertEquals(attrs, {
+        self.assertEqual(attrs, {
             'name': 'Jessica',
             '_key': str(self.jessica.key()),
             'type': 'cat',
@@ -740,7 +740,7 @@ class ClassAliasTestCase(unittest.TestCase):
     def test_get_attributes_expando(self):
         attrs = self.alias.getEncodableAttributes(self.jessica_expando)
 
-        self.assertEquals(attrs, {
+        self.assertEqual(attrs, {
             'name': 'Jessica',
             '_key': None,
             'type': 'cat',
@@ -755,7 +755,7 @@ class ClassAliasTestCase(unittest.TestCase):
 
         attrs = self.alias.getEncodableAttributes(self.jessica_expando)
 
-        self.assertEquals(attrs, {
+        self.assertEqual(attrs, {
             'name': 'Jessica',
             '_key': str(self.jessica_expando.key()),
             'type': 'cat',
@@ -770,7 +770,7 @@ class ClassAliasTestCase(unittest.TestCase):
 
         attrs = self.alias.getEncodableAttributes(self.jessica)
 
-        self.assertEquals(attrs, {
+        self.assertEqual(attrs, {
             '_key': None,
             'type': 'cat',
             'name': 'Jessica',
@@ -799,7 +799,7 @@ class ClassAliasTestCase(unittest.TestCase):
         obj = PropertyTypeModel()
 
         attrs = alias.getEncodableAttributes(obj)
-        self.assertEquals(attrs, {
+        self.assertEqual(attrs, {
             '_key': None,
             'read_write': False,
             'readonly': True
@@ -813,7 +813,7 @@ class ClassAliasTestCase(unittest.TestCase):
             'read_write': 'foo'
         })
 
-        self.assertEquals(obj.prop, 'foo')
+        self.assertEqual(obj.prop, 'foo')
 
 
 class ReferencesTestCase(ClassCacheClearingTestCase):
@@ -830,7 +830,7 @@ class ReferencesTestCase(ClassCacheClearingTestCase):
         self.jessica2 = PetModel.all().filter('name', 'Jessica').get()
 
         self.assertNotEquals(id(self.jessica), id(self.jessica2))
-        self.assertEquals(str(self.jessica.key()), str(self.jessica2.key()))
+        self.assertEqual(str(self.jessica.key()), str(self.jessica2.key()))
 
     def tearDown(self):
         ClassCacheClearingTestCase.tearDown(self)
@@ -847,8 +847,8 @@ class ReferencesTestCase(ClassCacheClearingTestCase):
         encoder.writeObject(self.jessica)
 
         self.assertTrue(hasattr(context, 'gae_objects'))
-        self.assertEquals(context.gae_objects, {PetModel: {s: self.jessica}})
-        self.assertEquals(stream.getvalue(), '\x03\x00\x04_key\x02%s%s\x00'
+        self.assertEqual(context.gae_objects, {PetModel: {s: self.jessica}})
+        self.assertEqual(stream.getvalue(), '\x03\x00\x04_key\x02%s%s\x00'
             '\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00\x00\x04name'
             '\x02\x00\x07Jessica\x00\x12spayed_or_neutered\x01\x00\x00\x04'
             'type\x02\x00\x03cat\x00\x10weight_in_pounds\x00@\x14\x00\x00\x00'
@@ -858,8 +858,8 @@ class ReferencesTestCase(ClassCacheClearingTestCase):
         encoder.writeObject(self.jessica2)
 
         self.assertTrue(hasattr(context, 'gae_objects'))
-        self.assertEquals(context.gae_objects, {PetModel: {s: self.jessica}})
-        self.assertEquals(stream.getvalue(), '\x07\x00\x00')
+        self.assertEqual(context.gae_objects, {PetModel: {s: self.jessica}})
+        self.assertEqual(stream.getvalue(), '\x07\x00\x00')
         stream.truncate()
 
         # check a non referenced object
@@ -882,8 +882,8 @@ class ReferencesTestCase(ClassCacheClearingTestCase):
         encoder.writeObject(self.jessica)
 
         self.assertTrue(hasattr(context, 'gae_objects'))
-        self.assertEquals(context.gae_objects, {PetModel: {s: self.jessica}})
-        self.assertEquals(stream.getvalue(), '\nk\x01\t_key\x13birthdate\t'
+        self.assertEqual(context.gae_objects, {PetModel: {s: self.jessica}})
+        self.assertEqual(stream.getvalue(), '\nk\x01\t_key\x13birthdate\t'
             'name%%spayed_or_neutered\ttype!weight_in_pounds\x06%s%s\x08\x01'
             'B^\xc4\xae\xaa\x00\x00\x00\x06\x0fJessica\x02\x06\x07cat\x04'
             '\x05\x01' % (amf3.encode_int(len(s) << 1 | amf3.REFERENCE_BIT), s))
@@ -892,8 +892,8 @@ class ReferencesTestCase(ClassCacheClearingTestCase):
         encoder.writeObject(self.jessica2)
 
         self.assertTrue(hasattr(context, 'gae_objects'))
-        self.assertEquals(context.gae_objects, {PetModel: {s: self.jessica}})
-        self.assertEquals(stream.getvalue(), '\n\x00')
+        self.assertEqual(context.gae_objects, {PetModel: {s: self.jessica}})
+        self.assertEqual(stream.getvalue(), '\n\x00')
 
     def test_decode(self):
         pyamf.register_class(PetModel, 'Pet')
@@ -919,12 +919,12 @@ class ReferencesTestCase(ClassCacheClearingTestCase):
         self.assertTrue(isinstance(j, PetModel))
         self.assertTrue(isinstance(alias, adapter_db.DataStoreClassAlias))
 
-        self.assertEquals(context.gae_objects, {PetModel: {k: j}})
+        self.assertEqual(context.gae_objects, {PetModel: {k: j}})
 
         j2 = decoder.readElement()
 
         self.assertTrue(isinstance(j2, PetModel))
-        self.assertEquals(context.gae_objects, {PetModel: {k: j}})
+        self.assertEqual(context.gae_objects, {PetModel: {k: j}})
 
     def test_cached_reference_properties(self):
         class Author(db.Model):
@@ -954,14 +954,14 @@ class ReferencesTestCase(ClassCacheClearingTestCase):
             encoder.writeElement(s)
 
             self.assertTrue(hasattr(context, 'gae_objects'))
-            self.assertEquals(context.gae_objects, {
+            self.assertEqual(context.gae_objects, {
                 Novel: {str(s.key()): s},
                 Author: {k: a}
             })
 
             encoder.writeElement(p)
 
-            self.assertEquals(context.gae_objects, {
+            self.assertEqual(context.gae_objects, {
                 Novel: {
                     str(s.key()): s,
                     str(p.key()): p,
@@ -982,7 +982,7 @@ class ReferencesTestCase(ClassCacheClearingTestCase):
 
             attrs = alias.getEncodableAttributes(c, codec=encoder)
 
-            self.assertEquals(attrs, {
+            self.assertEqual(attrs, {
                 '_key': str(c.key()),
                 'title': 'Pride and Prejudice',
                 'author': None
@@ -998,7 +998,7 @@ class GAEReferenceCollectionTestCase(unittest.TestCase):
     def test_init(self):
         x = self.klass()
 
-        self.assertEquals(x, {})
+        self.assertEqual(x, {})
 
     def test_get(self):
         x = self.klass()
@@ -1013,7 +1013,7 @@ class GAEReferenceCollectionTestCase(unittest.TestCase):
         x = self.klass()
 
         self.assertRaises(KeyError, x.getClassKey, PetModel, 'foo')
-        self.assertEquals(x, {PetModel: {}})
+        self.assertEqual(x, {PetModel: {}})
 
         obj = object()
 
@@ -1021,8 +1021,8 @@ class GAEReferenceCollectionTestCase(unittest.TestCase):
 
         obj2 = x.getClassKey(PetModel, 'foo')
 
-        self.assertEquals(id(obj), id(obj2))
-        self.assertEquals(x, {PetModel: {'foo': obj}})
+        self.assertEqual(id(obj), id(obj2))
+        self.assertEqual(x, {PetModel: {'foo': obj}})
 
     def test_add(self):
         x = self.klass()
@@ -1039,14 +1039,14 @@ class GAEReferenceCollectionTestCase(unittest.TestCase):
         pm2 = PetModel(type='dog', name='Sam')
         pe1 = PetExpando(type='cat', name='Toby')
 
-        self.assertEquals(x, {})
+        self.assertEqual(x, {})
 
         x.addClassKey(PetModel, 'foo', pm1)
-        self.assertEquals(x, {PetModel: {'foo': pm1}})
+        self.assertEqual(x, {PetModel: {'foo': pm1}})
         x.addClassKey(PetModel, 'bar', pm2)
-        self.assertEquals(x, {PetModel: {'foo': pm1, 'bar': pm2}})
+        self.assertEqual(x, {PetModel: {'foo': pm1, 'bar': pm2}})
         x.addClassKey(PetExpando, 'baz', pe1)
-        self.assertEquals(x, {
+        self.assertEqual(x, {
             PetModel: {'foo': pm1, 'bar': pm2},
             PetExpando: {'baz': pe1}
         })
@@ -1069,7 +1069,7 @@ class HelperTestCase(unittest.TestCase):
         x = adapter_db.getGAEObjects(context)
         self.assertTrue(isinstance(x, adapter_db.GAEReferenceCollection))
         self.assertTrue(hasattr(context, 'gae_objects'))
-        self.assertEquals(id(x), id(context.gae_objects))
+        self.assertEqual(id(x), id(context.gae_objects))
 
     def test_loadInstanceFromDatastore(self):
         # not a class type
@@ -1079,9 +1079,9 @@ class HelperTestCase(unittest.TestCase):
         # not a valid key type
         self.assertRaises(TypeError, adapter_db.loadInstanceFromDatastore, GettableModelStub, 2)
 
-        self.assertEquals(GettableModelStub.gets, [])
+        self.assertEqual(GettableModelStub.gets, [])
         adapter_db.loadInstanceFromDatastore(GettableModelStub, 'foo', codec=None)
-        self.assertEquals(GettableModelStub.gets, [[('foo',), {}]])
+        self.assertEqual(GettableModelStub.gets, [[('foo',), {}]])
 
         codec = Spam()
         codec.context = Spam()
@@ -1090,11 +1090,11 @@ class HelperTestCase(unittest.TestCase):
         self.assertFalse(hasattr(codec.context, 'gae_objects'))
         adapter_db.loadInstanceFromDatastore(GettableModelStub, 'foo', codec=codec)
         self.assertTrue(hasattr(codec.context, 'gae_objects'))
-        self.assertEquals(GettableModelStub.gets, [[('foo',), {}]])
+        self.assertEqual(GettableModelStub.gets, [[('foo',), {}]])
 
         gae_objects = codec.context.gae_objects
         self.assertTrue(isinstance(gae_objects, adapter_db.GAEReferenceCollection))
-        self.assertEquals(gae_objects, {GettableModelStub: {'foo': None}})
+        self.assertEqual(gae_objects, {GettableModelStub: {'foo': None}})
 
     def test_Query_type(self):
         """
@@ -1103,7 +1103,7 @@ class HelperTestCase(unittest.TestCase):
         q = PetModel.all()
 
         self.assertTrue(isinstance(q, db.Query))
-        self.assertEquals(pyamf.encode(q).getvalue(), '\n\x00\x00\x00\x00')
+        self.assertEqual(pyamf.encode(q).getvalue(), '\n\x00\x00\x00\x00')
 
 
 class FloatPropertyTestCase(unittest.TestCase):
@@ -1131,12 +1131,12 @@ class FloatPropertyTestCase(unittest.TestCase):
 
         self.f.f = 3.0
 
-        self.assertEquals(self.f.f, 3.0)
+        self.assertEqual(self.f.f, 3.0)
 
     def test_apply_attributes(self):
         self.alias.applyAttributes(self.f, {'f': 3})
 
-        self.assertEquals(self.f.f, 3.0)
+        self.assertEqual(self.f.f, 3.0)
 
 
 class PolyModelTestCase(unittest.TestCase):
@@ -1157,7 +1157,7 @@ class PolyModelTestCase(unittest.TestCase):
 
         attrs = self.alias.getEncodableAttributes(self.p)
 
-        self.assertEquals(attrs, {'_key': None, 's': 'foo'})
+        self.assertEqual(attrs, {'_key': None, 's': 'foo'})
 
     def test_deep_inheritance(self):
         class DeepPoly(self.klass):
@@ -1170,7 +1170,7 @@ class PolyModelTestCase(unittest.TestCase):
 
         attrs = self.alias.getEncodableAttributes(self.dp)
 
-        self.assertEquals(attrs, {
+        self.assertEqual(attrs, {
             '_key': None,
             's': 'bar',
             'd': 92

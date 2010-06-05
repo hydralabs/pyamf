@@ -33,7 +33,7 @@ class ElementTreeTestCase(unittest.TestCase):
     def test_cElementTree(self):
         import cElementTree
 
-        self.assertEquals(self._encode(cElementTree), (
+        self.assertEqual(self._encode(cElementTree), (
             ElementTreeTestCase.amf0_encoding,
             ElementTreeTestCase.amf3_encoding
         ))
@@ -41,7 +41,7 @@ class ElementTreeTestCase(unittest.TestCase):
     def test_xe_cElementTree(self):
         from xml.etree import cElementTree
 
-        self.assertEquals(self._encode(cElementTree), (
+        self.assertEqual(self._encode(cElementTree), (
             ElementTreeTestCase.amf0_encoding,
             ElementTreeTestCase.amf3_encoding
         ))
@@ -49,7 +49,7 @@ class ElementTreeTestCase(unittest.TestCase):
     def test_xe_ElementTree(self):
         from xml.etree import ElementTree
 
-        self.assertEquals(self._encode(ElementTree), (
+        self.assertEqual(self._encode(ElementTree), (
             ElementTreeTestCase.amf0_encoding,
             ElementTreeTestCase.amf3_encoding
         ))
@@ -57,7 +57,7 @@ class ElementTreeTestCase(unittest.TestCase):
     def test_ElementTree(self):
         from elementtree import ElementTree
 
-        self.assertEquals(self._encode(ElementTree), (
+        self.assertEqual(self._encode(ElementTree), (
             ElementTreeTestCase.amf0_encoding,
             ElementTreeTestCase.amf3_encoding
         ))

@@ -44,13 +44,13 @@ class SplitModuleTestCase(unittest.TestCase):
     """
 
     def test_no_parent(self):
-        self.assertEquals(imports.split_module('foo'), (None, 'foo'))
+        self.assertEqual(imports.split_module('foo'), (None, 'foo'))
 
     def test_one_parent(self):
-        self.assertEquals(imports.split_module('foo.bar'), ('foo', 'bar'))
+        self.assertEqual(imports.split_module('foo.bar'), ('foo', 'bar'))
 
     def test_deep(self):
-        self.assertEquals(imports.split_module('foo.bar.baz.gak'),
+        self.assertEqual(imports.split_module('foo.bar.baz.gak'),
             ('foo.bar.baz', 'gak'))
 
 
@@ -75,7 +75,7 @@ class RunHooksTestCase(PostLoadHookClearingTestCase):
 
         imports.run_hooks('foo', module)
 
-        self.assertEquals(self.executed, ['foo', 'bar'])
+        self.assertEqual(self.executed, ['foo', 'bar'])
 
     def test_clear(self):
         module = object()
@@ -125,13 +125,13 @@ class WhenImportedTestCase(PostLoadHookClearingTestCase):
         import spam
 
         self.assertTrue(self.executed)
-        self.assertEquals(imports.loaded_modules, ['spam'])
+        self.assertEqual(imports.loaded_modules, ['spam'])
 
     def test_register(self):
         imports.when_imported('spam', self._hook)
 
         self.assertTrue('spam' in imports.post_load_hooks)
-        self.assertEquals(imports.post_load_hooks['spam'], [self._hook])
+        self.assertEqual(imports.post_load_hooks['spam'], [self._hook])
 
     def test_already_imported(self):
         import spam
@@ -172,12 +172,12 @@ class ModuleFinderFindModuleTestCase(BaseModuleFinderTestCase):
     def test_not_found(self):
         self.assertFalse('foo' in imports.post_load_hooks)
 
-        self.assertEquals(None, self.finder.find_module('foo', None))
+        self.assertEqual(None, self.finder.find_module('foo', None))
 
     def test_no_path(self):
         self.assertFalse('foo' in imports.post_load_hooks)
 
-        self.assertEquals(None, self.finder.find_module('foo'))
+        self.assertEqual(None, self.finder.find_module('foo'))
 
 
 class ModuleFinderLoadModuleTestCase(BaseModuleFinderTestCase):
@@ -197,7 +197,7 @@ class ModuleFinderLoadModuleTestCase(BaseModuleFinderTestCase):
         mod = self.finder.load_module('spam')
 
         self.assertTrue(mod is sys.modules['spam'])
-        self.assertEquals(imports.loaded_modules, ['spam'])
+        self.assertEqual(imports.loaded_modules, ['spam'])
 
     def test_package(self):
         self.assertFalse('foo' in sys.modules)
@@ -206,7 +206,7 @@ class ModuleFinderLoadModuleTestCase(BaseModuleFinderTestCase):
         mod = self.finder.load_module('foo')
 
         self.assertTrue(mod is sys.modules['foo'])
-        self.assertEquals(imports.loaded_modules, ['foo'])
+        self.assertEqual(imports.loaded_modules, ['foo'])
 
     def test_package_child(self):
         self.assertFalse('foo.bar' in sys.modules)
@@ -217,7 +217,7 @@ class ModuleFinderLoadModuleTestCase(BaseModuleFinderTestCase):
         mod = self.finder.load_module('foo.bar')
 
         self.assertTrue(mod is sys.modules['foo.bar'])
-        self.assertEquals(imports.loaded_modules, ['foo.bar'])
+        self.assertEqual(imports.loaded_modules, ['foo.bar'])
 
         self.assertTrue(sys.modules['foo'].bar is mod)
 

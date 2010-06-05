@@ -46,7 +46,7 @@ class TwistedServerTestCase(unittest.TestCase):
         d = client.getPage("http://127.0.0.1:%d/" % (self.port,))
         d = self.assertFailure(d, error.Error)
         d.addCallback(
-            lambda exc: self.assertEquals(int(exc.args[0]), http.NOT_ALLOWED))
+            lambda exc: self.assertEqual(int(exc.args[0]), http.NOT_ALLOWED))
 
         return d
 
@@ -55,7 +55,7 @@ class TwistedServerTestCase(unittest.TestCase):
                 method="POST", postdata="spamandeggs")
         d = self.assertFailure(d, error.Error)
         d.addCallback(
-            lambda exc: self.assertEquals(int(exc.args[0]), http.BAD_REQUEST))
+            lambda exc: self.assertEqual(int(exc.args[0]), http.BAD_REQUEST))
 
         return d
 
@@ -75,13 +75,13 @@ class TwistedServerTestCase(unittest.TestCase):
         def cb(result):
             response = remoting.decode(result)
 
-            self.assertEquals(response.amfVersion, pyamf.AMF3)
+            self.assertEqual(response.amfVersion, pyamf.AMF3)
 
             self.assertTrue('/1' in response)
             body_response = response['/1']
 
-            self.assertEquals(body_response.status, remoting.STATUS_OK)
-            self.assertEquals(body_response.body, 'hello')
+            self.assertEqual(body_response.status, remoting.STATUS_OK)
+            self.assertEqual(body_response.body, 'hello')
 
         return d.addCallback(cb)
 
@@ -104,13 +104,13 @@ class TwistedServerTestCase(unittest.TestCase):
         def cb(result):
             response = remoting.decode(result)
 
-            self.assertEquals(response.amfVersion, pyamf.AMF3)
+            self.assertEqual(response.amfVersion, pyamf.AMF3)
 
             self.assertTrue('/1' in response)
             body_response = response['/1']
 
-            self.assertEquals(body_response.status, remoting.STATUS_OK)
-            self.assertEquals(body_response.body, 'hello')
+            self.assertEqual(body_response.status, remoting.STATUS_OK)
+            self.assertEqual(body_response.body, 'hello')
 
         return d.addCallback(cb)
 
@@ -127,11 +127,11 @@ class TwistedServerTestCase(unittest.TestCase):
 
             message = response['/1']
 
-            self.assertEquals(message.status, remoting.STATUS_ERROR)
+            self.assertEqual(message.status, remoting.STATUS_ERROR)
             body = message.body
 
             self.assertTrue(isinstance(body, remoting.ErrorFault))
-            self.assertEquals(body.code, 'Service.ResourceNotFound')
+            self.assertEqual(body.code, 'Service.ResourceNotFound')
 
         return d.addCallback(cb)
 
@@ -149,8 +149,8 @@ class TwistedServerTestCase(unittest.TestCase):
             self.assertTrue(hasattr(http_request, 'amf_request'))
             amf_request = http_request.amf_request
 
-            self.assertEquals(request.target, 'echo')
-            self.assertEquals(request.body, ['hello'])
+            self.assertEqual(request.target, 'echo')
+            self.assertEqual(request.body, ['hello'])
             self.executed = True
 
             return data
@@ -180,7 +180,7 @@ class TwistedServerTestCase(unittest.TestCase):
         d = defer.Deferred()
 
         def pp(hr, sr):
-            self.assertEquals(hr, 'hello')
+            self.assertEqual(hr, 'hello')
             self.assertIdentical(sr, self.service_request)
             d.callback(None)
 
@@ -197,7 +197,7 @@ class TwistedServerTestCase(unittest.TestCase):
         d = defer.Deferred()
 
         def pp(hr, sr):
-            self.assertEquals(hr, None)
+            self.assertEqual(hr, None)
             self.assertIdentical(sr, self.service_request)
             d.callback(None)
 
@@ -215,8 +215,8 @@ class TwistedServerTestCase(unittest.TestCase):
 
         def auth(u, p):
             try:
-                self.assertEquals(u, 'u')
-                self.assertEquals(p, 'p')
+                self.assertEqual(u, 'u')
+                self.assertEqual(p, 'p')
             except:
                 d.errback(failure.Failure())
             else:
@@ -234,9 +234,9 @@ class TwistedServerTestCase(unittest.TestCase):
 
         def auth(request, u, p):
             try:
-                self.assertEquals(request, 'foo')
-                self.assertEquals(u, 'u')
-                self.assertEquals(p, 'p')
+                self.assertEqual(request, 'foo')
+                self.assertEqual(u, 'u')
+                self.assertEqual(p, 'p')
             except:
                 d.errback(failure.Failure())
             else:
@@ -276,7 +276,7 @@ class TwistedServerTestCase(unittest.TestCase):
         d = self.assertFailure(d, error.Error)
 
         def check(exc):
-            self.assertEquals(int(exc.args[0]), http.INTERNAL_SERVER_ERROR)
+            self.assertEqual(int(exc.args[0]), http.INTERNAL_SERVER_ERROR)
             self.assertTrue(exc.args[1].startswith('500 Internal Server Error'))
 
         d.addCallback(check)
@@ -300,8 +300,8 @@ class TwistedServerTestCase(unittest.TestCase):
             response = remoting.decode(result)
             body_response = response['/1']
 
-            self.assertEquals(body_response.status, remoting.STATUS_OK)
-            self.assertEquals(body_response.body, ['Hi', 'Mom'])
+            self.assertEqual(body_response.status, remoting.STATUS_OK)
+            self.assertEqual(body_response.body, ['Hi', 'Mom'])
 
         return d.addCallback(cb)
 
@@ -314,7 +314,7 @@ class TwistedServerTestCase(unittest.TestCase):
         now = datetime.datetime.utcnow()
 
         def echo(d):
-            self.assertEquals(d, now + td)
+            self.assertEqual(d, now + td)
             self.executed = True
 
             return d
@@ -334,8 +334,8 @@ class TwistedServerTestCase(unittest.TestCase):
             envelope = remoting.decode(''.join(response))
             message = envelope['/1']
 
-            self.assertEquals(message.status, remoting.STATUS_OK)
-            self.assertEquals(message.body, now)
+            self.assertEqual(message.status, remoting.STATUS_OK)
+            self.assertEqual(message.body, now)
 
         return d.addCallback(cb)
 
@@ -358,7 +358,7 @@ class TwistedServerTestCase(unittest.TestCase):
                 method="POST", postdata=remoting.encode(env).getvalue())
 
         def cb(result):
-            self.assertEquals(self.counter, 1)
+            self.assertEqual(self.counter, 1)
 
         return d.addCallback(cb)
 
@@ -388,13 +388,13 @@ class TwistedGatewayTestCase(unittest.TestCase):
 
         gw._finaliseRequest(request, 200, 'xyz', 'text/plain')
 
-        self.assertEquals(request.status, 200)
-        self.assertEquals(request.content, 'xyz')
+        self.assertEqual(request.status, 200)
+        self.assertEqual(request.content, 'xyz')
 
         self.assertTrue('Content-Type' in request.headers)
-        self.assertEquals(request.headers['Content-Type'], 'text/plain')
+        self.assertEqual(request.headers['Content-Type'], 'text/plain')
         self.assertTrue('Content-Length' in request.headers)
-        self.assertEquals(request.headers['Content-Length'], '3')
+        self.assertEqual(request.headers['Content-Length'], '3')
 
         self.assertTrue(request.finished)
 
@@ -439,7 +439,7 @@ class AMF0RequestProcessorTestCase(unittest.TestCase):
         self.assertTrue(isinstance(response, remoting.Response))
         self.assertTrue(response.status, remoting.STATUS_ERROR)
         self.assertTrue(isinstance(response.body, remoting.ErrorFault))
-        self.assertEquals(response.body.code, 'IndexError')
+        self.assertEqual(response.body.code, 'IndexError')
 
     def test_auth_fail(self):
         def auth(u, p):
@@ -457,7 +457,7 @@ class AMF0RequestProcessorTestCase(unittest.TestCase):
         self.assertTrue(isinstance(response, remoting.Response))
         self.assertTrue(response.status, remoting.STATUS_ERROR)
         self.assertTrue(isinstance(response.body, remoting.ErrorFault))
-        self.assertEquals(response.body.code, 'AuthenticationError')
+        self.assertEqual(response.body.code, 'AuthenticationError')
 
     def test_deferred_auth(self):
         d = defer.Deferred()
@@ -494,7 +494,7 @@ class AMF0RequestProcessorTestCase(unittest.TestCase):
         self.assertTrue(isinstance(response, remoting.Response))
         self.assertTrue(response.status, remoting.STATUS_ERROR)
         self.assertTrue(isinstance(response.body, remoting.ErrorFault))
-        self.assertEquals(response.body.code, 'IndexError')
+        self.assertEqual(response.body.code, 'IndexError')
 
     def test_deferred_preprocessor(self):
         d = defer.Deferred()
@@ -566,7 +566,7 @@ class AMF0RequestProcessorTestCase(unittest.TestCase):
         self.assertTrue(isinstance(response, remoting.Response))
         self.assertTrue(response.status, remoting.STATUS_ERROR)
         self.assertTrue(isinstance(response.body, remoting.ErrorFault))
-        self.assertEquals(response.body.code, 'KeyError')
+        self.assertEqual(response.body.code, 'KeyError')
 
     def test_error_deferred_body(self):
         d = defer.Deferred()
@@ -593,7 +593,7 @@ class AMF0RequestProcessorTestCase(unittest.TestCase):
                 self.assertTrue(isinstance(result, remoting.Response))
                 self.assertTrue(result.status, remoting.STATUS_ERROR)
                 self.assertTrue(isinstance(result.body, remoting.ErrorFault))
-                self.assertEquals(result.body.code, 'IndexError')
+                self.assertEqual(result.body.code, 'IndexError')
             except:
                 d.errback()
             else:
@@ -636,7 +636,7 @@ class AMF3RequestProcessorTestCase(unittest.TestCase):
         self.assertTrue(isinstance(response, remoting.Response))
         self.assertTrue(response.status, remoting.STATUS_ERROR)
         self.assertTrue(isinstance(response.body, messaging.ErrorMessage))
-        self.assertEquals(response.body.faultCode, 'IndexError')
+        self.assertEqual(response.body.faultCode, 'IndexError')
 
     def test_deferred_preprocessor(self):
         d = defer.Deferred()
@@ -715,7 +715,7 @@ class AMF3RequestProcessorTestCase(unittest.TestCase):
         self.assertTrue(isinstance(response, remoting.Response))
         self.assertTrue(response.status, remoting.STATUS_ERROR)
         self.assertTrue(isinstance(response.body, messaging.ErrorMessage))
-        self.assertEquals(response.body.faultCode, 'KeyError')
+        self.assertEqual(response.body.faultCode, 'KeyError')
 
     def test_error_deferred_body(self):
         d = defer.Deferred()
@@ -741,7 +741,7 @@ class AMF3RequestProcessorTestCase(unittest.TestCase):
                 self.assertTrue(isinstance(result, remoting.Response))
                 self.assertTrue(result.status, remoting.STATUS_ERROR)
                 self.assertTrue(isinstance(result.body, messaging.ErrorMessage))
-                self.assertEquals(result.body.faultCode, 'IndexError')
+                self.assertEqual(result.body.faultCode, 'IndexError')
             except:
                 d.errback()
             else:
