@@ -25,7 +25,7 @@ cdef extern from "Python.h":
 from cpyamf.util cimport cBufferedByteStream, BufferedByteStream
 from cpyamf cimport codec
 import pyamf
-from pyamf import util, amf3, codec
+from pyamf import util, amf3
 import types
 
 
@@ -628,12 +628,12 @@ cdef class Decoder(Codec):
         """
         cdef Py_ssize_t pos = self.stream.tell()
 
-        cdef char t
+        cdef unsigned char t
 
         if self.stream.at_eof():
             raise pyamf.EOStream
 
-        self.stream.read_char(&t)
+        self.stream.read_uchar(&t)
 
         try:
             if t == TYPE_STRING:
