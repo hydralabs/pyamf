@@ -764,7 +764,6 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         class_def = self.decoder._getClassDefinition(0x01)
         alias = class_def.alias
 
-        self.assertTrue(isinstance(class_def, amf3.ClassDefinition))
         self.assertTrue(alias.klass, Spam)
         self.assertTrue(alias.alias, 'abc.xyz')
         self.assertEqual(class_def.encoding, amf3.ObjectEncoding.STATIC)
@@ -779,7 +778,6 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         class_def = self.decoder._getClassDefinition(0x03)
         alias = class_def.alias
 
-        self.assertTrue(isinstance(class_def, amf3.ClassDefinition))
         self.assertTrue(alias.klass, Spam)
         self.assertTrue(alias.alias, 'abc.xyz')
         self.assertEqual(class_def.encoding, amf3.ObjectEncoding.EXTERNAL)
@@ -793,7 +791,6 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         class_def = self.decoder._getClassDefinition(0x05)
         alias = class_def.alias
 
-        self.assertTrue(isinstance(class_def, amf3.ClassDefinition))
         self.assertTrue(alias.klass, Spam)
         self.assertTrue(alias.alias, 'abc.xyz')
         self.assertEqual(class_def.encoding, amf3.ObjectEncoding.DYNAMIC)
