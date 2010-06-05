@@ -14,6 +14,15 @@ cdef extern from "datetime.h":
     int PyDateTime_Check(object)
     int PyTime_Check(object)
 
+cdef extern from "math.h":
+    float floor(float)
+
+cdef extern from "stdlib.h" nogil:
+    ctypedef unsigned long size_t
+
+    int memcmp(void *dest, void *src, size_t)
+    void *memcpy(void *, void *, size_t)
+
 cdef extern from "Python.h":
     PyObject* Py_True
     PyObject *Py_None
@@ -22,8 +31,7 @@ cdef extern from "Python.h":
     bint PyType_CheckExact(object)
 
 
-from cpyamf.util cimport cBufferedByteStream, BufferedByteStream
-from cpyamf cimport codec, amf3
+from cpyamf cimport codec, amf3, util
 import pyamf
 from pyamf import util
 import types
@@ -87,6 +95,333 @@ cdef class Context(codec.Context):
         @return: Reference to C{obj}.
         """
         return self.amf3_objs.append(obj)
+
+
+cdef class Decoder(codec.Codec):
+    """
+    Decodes an AMF0 stream.
+    """
+
+    cdef Context buildContext(self):
+        return Context()
+
+    cdef object readNumber(self):
+        """
+        Reads a ActionScript C{Number} value.
+
+        In ActionScript 1 and 2 the C{NumberASTypes} type represents all numbers,
+        both floats and integers.
+
+        @rtype: C{int} or C{float}
+        """
+        cdef double number
+        cdef int done = 0
+        cdef unsigned char *buf
+
+        self.stream.read_double(&number)
+        buf = <unsigned char *>&number
+
+        if floor(number) == number:
+            if memcmp(buf, &util.system_nan, 8) == 0:
+                done = 1
+            elif memcmp(buf, &util.system_posinf, 8) == 0:
+                done = 1
+            elif memcmp(buf, &util.system_neginf, 8) == 0:
+                done = 1
+
+            if done == 0:
+                return int(number)
+
+        return number
+
+    def readBoolean(self):
+        """
+        Reads a ActionScript C{Boolean} value.
+
+        @rtype: C{bool}
+        @return: Boolean.
+        """
+        return bool(self.stream.read_uchar())
+
+    def readNull(self):
+        """
+        Reads a ActionScript C{null} value.
+
+        @return: C{None}
+        @rtype: C{None}
+        """
+        return None
+
+    def readUndefined(self):
+        """
+        Reads an ActionScript C{undefined} value.
+
+        @return: L{Undefined<pyamf.Undefined>}
+        """
+        return pyamf.Undefined
+
+    def readMixedArray(self):
+        """
+        Read mixed array.
+
+        @rtype: C{dict}
+        @return: C{dict} read from the stream
+        """
+        self.stream.read_ulong()
+        obj = pyamf.MixedArray()
+        self.context.addObject(obj)
+        self._readObject(obj)
+        ikeys = []
+
+        for key in obj.keys():
+            try:
+                ikey = int(key)
+                ikeys.append((key, ikey))
+                obj[ikey] = obj[key]
+                del obj[key]
+            except ValueError:
+                # XXX: do we want to ignore this?
+                pass
+
+        ikeys.sort()
+
+        return obj
+
+    def readList(self):
+        """
+        Read a C{list} from the data stream.
+
+        @rtype: C{list}
+        @return: C{list}
+        """
+        obj = []
+        self.context.addObject(obj)
+        len = self.stream.read_ulong()
+
+        for i in xrange(len):
+            obj.append(self.readElement())
+
+        return obj
+
+    def readTypedObject(self):
+        """
+        Reads an ActionScript object from the stream and attempts to
+        'cast' it.
+
+        @see: L{load_class<pyamf.load_class>}
+        """
+        classname = self.readString()
+        alias = None
+
+        try:
+            alias = pyamf.get_class_alias(classname)
+
+            ret = alias.createInstance(codec=self)
+        except pyamf.UnknownClassAlias:
+            if self.strict:
+                raise
+
+            ret = pyamf.TypedObject(classname)
+
+        self.context.addObject(ret)
+        self._readObject(ret, alias)
+
+        return ret
+
+    def _getAMF3Decoder(self):
+        decoder = getattr(self, 'amf3_decoder', None)
+
+        if not decoder:
+            decoder = pyamf.get_decoder(pyamf.AMF3, stream=self.stream)
+
+        return decoder
+
+    def readAMF3(self):
+        """
+        Read AMF3 elements from the data stream.
+
+        @rtype: C{mixed}
+        @return: The AMF3 element read from the stream
+        """
+        decoder = self._getAMF3Decoder()
+
+        element = decoder.readElement()
+        self.context.addAMF3Object(element)
+
+        return element
+
+    def readString(self):
+        """
+        Reads a C{string} from the stream.
+        """
+        l = self.stream.read_ushort()
+
+        return self.stream.read(l)
+
+    cdef object readUnicode(self):
+        """
+        Reads a C{unicode} from the data stream.
+        """
+        cdef unsigned short l
+        cdef char *bytes = NULL
+
+        self.stream.read_ushort(&l)
+
+        try:
+            self.stream.read(&bytes, l)
+        except:
+            if bytes != NULL:
+                PyMem_Free(bytes)
+
+        return self.context.getUnicodeForString(bytes)
+
+    cdef int _readObject(self, obj, alias=None) except -1:
+        cdef dictobj_attrs = dict()
+
+        key = self.readString()
+
+        while self.stream.peek() != TYPE_OBJECTTERM:
+            obj_attrs[key] = self.readElement()
+            key = self.readString()
+
+        # discard the end marker (TYPE_OBJECTTERM)
+        self.stream.read(1)
+
+        if alias:
+            alias.applyAttributes(obj, obj_attrs, codec=self)
+        else:
+            util.set_attrs(obj, obj_attrs)
+
+    cdef object readObject(self):
+        """
+        Reads an object from the data stream.
+
+        @rtype: L{ASObject<pyamf.ASObject>}
+        """
+        obj = pyamf.ASObject()
+        self.context.addObject(obj)
+
+        self._readObject(obj)
+
+        return obj
+
+    cdef object readReference(self):
+        """
+        Reads a reference from the data stream.
+
+        @raise pyamf.ReferenceError: Unknown reference.
+        """
+        cdef unsigned short idx
+
+        self.stream.read_ushort(&idx)
+        o = self.context.getObject(idx)
+
+        if o is None:
+            raise pyamf.ReferenceError('Unknown reference %d' % (idx,))
+
+        return o
+
+    cdef object readDate(self):
+        """
+        Reads a UTC date from the data stream. Client and servers are
+        responsible for applying their own timezones.
+
+        Date: C{0x0B T7 T6} .. C{T0 Z1 Z2 T7} to C{T0} form a 64 bit
+        Big Endian number that specifies the number of nanoseconds
+        that have passed since 1/1/1970 0:00 to the specified time.
+        This format is UTC 1970. C{Z1} and C{Z0} for a 16 bit Big
+        Endian number indicating the indicated time's timezone in
+        minutes.
+        """
+        cdef double ms
+        cdef short s
+
+        self.stream.read_double(&ms)
+        self.stream.read_short(&s)
+
+        # Timezones are ignored
+        d = util.get_datetime(ms / 1000.0)
+
+        if self.timezone_offset:
+            d = d + self.timezone_offset
+
+        self.context.addObject(d)
+
+        return d
+
+    cdef char *readLongString(self) except NULL:
+        """
+        Read UTF8 string.
+        """
+        cdef unsigned long l
+        cdef char *buf
+        cdef object s
+
+        self.stream.read_ulong(&l)
+
+        try:
+            self.stream.read(&buf, l)
+        except:
+            if buf != NULL:
+                PyMem_Free(buf)
+
+        return buf
+
+    def readXML(self):
+        """
+        Read XML.
+        """
+        cdef char *data = self.readLongString()
+
+        try:
+            xml = util.ET.fromstring(data)
+            self.context.addObject(xml)
+        finally:
+            if data != NULL:
+                PyMem_Free(data)
+
+        return xml
+
+    cpdef object readElement(self):
+        """
+        Reads an AMF3 element from the data stream.
+
+        @raise DecodeError: The ActionScript type is unsupported.
+        @raise EOStream: No more data left to decode.
+        """
+        cdef Py_ssize_t pos = self.stream.tell()
+        cdef char t
+
+        if self.stream.at_eof():
+            raise pyamf.EOStream
+
+        self.stream.read_char(&t)
+
+        try:
+            if t == TYPE_NUMBER:
+                return self.readNumber()
+            elif t == TYPE_BOOL:
+                return self.readBoolean()
+            elif t == TYPE_STRING:
+                return self.readUnicode()
+            elif t == TYPE_OBJECT:
+                return self.readObject()
+            elif t == TYPE_ARRAY:
+                return self.readArray()
+            elif t == TYPE_NULL:
+                return None
+            elif t == TYPE_UNDEFINED:
+                return pyamf.Undefined
+            elif t == TYPE_DATE:
+                return self.readDate()
+            elif t == TYPE_XML:
+                return self.readXML()
+        except IOError:
+            self.stream.seek(pos)
+
+            raise
+
+        raise pyamf.DecodeError("Unsupported ActionScript type")
 
 
 cdef class Encoder(codec.Codec):

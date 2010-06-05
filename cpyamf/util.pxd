@@ -1,16 +1,12 @@
 # Copyright (c) The PyAMF Project.
 # See LICENSE.txt for details.
 
-cdef extern from "Python.h":
-    ctypedef struct PyObject:
-        pass
-
 
 cdef class cBufferedByteStream:
     """
     The c version of BufferedByteStream.
 
-    :todo: Need to spend some time marrying these two up at some point.
+    :todo: Need to spend some time marrying these two up.
     """
     cdef char endian
     cdef char *buffer
