@@ -609,15 +609,12 @@ def get_fault(data):
     return get_fault_class(level, **e)(**e)
 
 
-def decode(stream, context=None, strict=False, logger=None, timezone_offset=None):
+def decode(stream, strict=False, logger=None, timezone_offset=None):
     """
     Decodes the incoming stream as a remoting message.
 
     :param stream: AMF data.
     :type stream: :class:`BufferedByteStream<pyamf.util.BufferedByteStream>`
-    :param context: Context.
-    :type context: :class:`amf0.Context<pyamf.amf0.Context>` or
-                   :class:`amf3.Context<pyamf.amf3.Context>`
     :param strict: Enforce strict decoding. Default is `False`.
     :type strict: `bool`
     :param logger: Used to log interesting events whilst decoding a remoting
@@ -650,16 +647,11 @@ def decode(stream, context=None, strict=False, logger=None, timezone_offset=None
         raise pyamf.DecodeError("Malformed stream (amfVersion=%d)" %
             msg.amfVersion)
 
-    if context is None:
-        context = pyamf.get_context(pyamf.AMF0)
-
-    context.clear()
-
-    decoder = pyamf.get_decoder(pyamf.AMF0, stream, context=context,
-        strict=strict, timezone_offset=timezone_offset)
+    decoder = pyamf.get_decoder(pyamf.AMF0, stream, strict=strict,
+        timezone_offset=timezone_offset)
+    context = decoder.context
 
     decoder.use_amf3 = msg.amfVersion == pyamf.AMF3
-
     header_count = stream.read_ushort()
 
     for i in xrange(header_count):
@@ -686,7 +678,7 @@ def decode(stream, context=None, strict=False, logger=None, timezone_offset=None
     return msg
 
 
-def encode(msg, context=None, strict=False, logger=None, timezone_offset=None):
+def encode(msg, strict=False, logger=None, timezone_offset=None):
     """
     Encodes AMF stream and returns file object.
 
@@ -708,10 +700,7 @@ def encode(msg, context=None, strict=False, logger=None, timezone_offset=None):
     """
     stream = util.BufferedByteStream()
 
-    if context is None:
-        context = pyamf.get_context(pyamf.AMF0)
-
-    encoder = pyamf.get_encoder(pyamf.AMF0, stream, context=context,
+    encoder = pyamf.get_encoder(pyamf.AMF0, stream,
         timezone_offset=timezone_offset, strict=strict)
 
     if msg.amfVersion == pyamf.AMF3:
@@ -739,14 +728,8 @@ def encode(msg, context=None, strict=False, logger=None, timezone_offset=None):
 
 def get_exception_from_fault(fault):
     """
-    :raise RemotingError: Default exception from fault.
     """
-    # XXX nick: threading problems here?
-    try:
-        return pyamf.ERROR_CLASS_MAP[fault.code]
-    except KeyError:
-        # default to RemotingError
-        return RemotingError
+    return pyamf.ERROR_CLASS_MAP.get(fault.code, RemotingError)
 
 
 pyamf.register_class(ErrorFault)
