@@ -12,7 +12,7 @@ cdef class cBufferedByteStream:
 
     :todo: Need to spend some time marrying these two up at some point.
     """
-    cdef char _endian
+    cdef char endian
     cdef char *buffer
     cdef int closed
     cdef Py_ssize_t pos
