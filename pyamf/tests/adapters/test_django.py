@@ -799,10 +799,13 @@ class ReferenceTestCase(ModelsBaseTestCase):
         b.name = 'bar'
 
         f.save()
+        self.addCleanup(f.delete)
         b.foo = f
         b.save()
+        self.addCleanup(b.delete)
         f.bar = b
         f.save()
+        self.addCleanup(f.delete)
 
         self.assertEqual(f.id, 1)
         foo = self.ParentReference.objects.select_related().get(id=1)
@@ -817,20 +820,23 @@ class ReferenceTestCase(ModelsBaseTestCase):
         b.name = 'bar'
 
         f.save()
+        self.addCleanup(f.delete)
         b.foo = f
         b.save()
+        self.addCleanup(b.delete)
         f.bar = b
         f.save()
+        self.addCleanup(f.delete)
 
-        self.assertEqual(f.id, 2)
-        foo = self.ParentReference.objects.select_related().get(id=2)
+        self.assertEqual(f.id, 1)
+        foo = self.ParentReference.objects.select_related().get(id=1)
 
         # ensure the referenced attribute resolves
         foo.bar.foo
 
         self.assertEqual(pyamf.encode(foo).getvalue(), '\n\x0b\x01\x07bar\n'
-            '\x0b\x01\x07foo\n\x00\x05id\x04\x02\tname\x06\x00\x01\x04\x04'
-            '\x02\x06\x06\x02\x01')
+            '\x0b\x01\x07foo\n\x00\x05id\x04\x01\tname\x06\x00\x01\x04\x04'
+            '\x01\x06\x06\x02\x01')
 
 
 class AuthTestCase(ModelsBaseTestCase):

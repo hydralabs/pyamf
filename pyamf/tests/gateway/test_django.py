@@ -64,12 +64,16 @@ class DjangoGatewayTestCase(BaseTestCase):
         settings_mod.DEBUG = True
         settings_mod.AMF_TIME_OFFSET = 1000
 
+        old_settings = conf.settings
         conf.settings = conf.Settings(self.mod_name)
 
         gw = django.DjangoGateway()
 
-        self.assertTrue(gw.debug)
-        self.assertEqual(gw.timezone_offset, 1000)
+        try:
+            self.assertTrue(gw.debug)
+            self.assertEqual(gw.timezone_offset, 1000)
+        finally:
+            conf.settings = old_settings
 
     def test_request_method(self):
         gw = django.DjangoGateway()

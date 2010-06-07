@@ -48,7 +48,6 @@ if e:
 
     # set up
     e.metadata.bind = "sqlite://"
-    e.setup_all()
 
 
 class BaseTestCase(unittest.TestCase):
@@ -60,6 +59,7 @@ class BaseTestCase(unittest.TestCase):
         if not e:
             self.skipTest("'elixir' is not available")
 
+        e.setup_all()
         e.create_all()
 
         self.movie_alias = pyamf.register_class(Movie, 'movie')
