@@ -349,13 +349,14 @@ class ClassAlias(object):
         self.klass = klass
         self.alias = alias
 
-        self.static_attrs = kwargs.get('static_attrs', None)
-        self.exclude_attrs = kwargs.get('exclude_attrs', None)
-        self.readonly_attrs = kwargs.get('readonly_attrs', None)
-        self.proxy_attrs = kwargs.get('proxy_attrs', None)
-        self.amf3 = kwargs.get('amf3', None)
-        self.external = kwargs.get('external', None)
-        self.dynamic = kwargs.get('dynamic', None)
+        self.static_attrs = kwargs.pop('static_attrs', None)
+        self.exclude_attrs = kwargs.pop('exclude_attrs', None)
+        self.readonly_attrs = kwargs.pop('readonly_attrs', None)
+        self.proxy_attrs = kwargs.pop('proxy_attrs', None)
+        self.amf3 = kwargs.pop('amf3', None)
+        self.external = kwargs.pop('external', None)
+        self.dynamic = kwargs.pop('dynamic', None)
+        self.synonym = kwargs.pop('synonym', {})
 
         self._compiled = False
         self.anonymous = False
@@ -371,8 +372,11 @@ class ClassAlias(object):
             if self.alias == '':
                 raise ValueError('Cannot set class alias as \'\'')
 
-        if not kwargs.get('defer', False):
+        if not kwargs.pop('defer', False):
             self.compile()
+
+        if kwargs:
+            raise TypeError('Unexpected keyword arguments %r' % (kwargs,))
 
     def _checkExternal(self):
         if not hasattr(self.klass, '__readamf__'):
@@ -483,6 +487,10 @@ class ClassAlias(object):
 
         if alias.sealed is not None:
             self.inherited_sealed = alias.sealed
+
+        if alias.synonym:
+            self.synonym, x = alias.synonym.copy(), self.synonym
+            self.synonym.update(x)
 
     def _finalise_compile(self):
         if self.dynamic is None:

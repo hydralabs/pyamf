@@ -606,6 +606,15 @@ class SimpleCompliationTestCase(unittest.TestCase):
 
         self.assertTrue(x.sealed)
 
+    def test_synonym(self):
+        x = ClassAlias(Spam, synonym={'foo': 'bar'}, defer=True)
+
+        self.assertEquals(x.synonym, {'foo': 'bar'})
+
+        x.compile()
+
+        self.assertEquals(x.synonym, {'foo': 'bar'})
+
 
 class CompilationInheritanceTestCase(ClassCacheClearingTestCase):
     """
@@ -871,6 +880,35 @@ class CompilationInheritanceTestCase(ClassCacheClearingTestCase):
         self.assertFalse(a.dynamic)
         self.assertFalse(b.dynamic)
         self.assertTrue(c.dynamic)
+
+
+    def test_synonym(self):
+        class A(object):
+            pass
+
+        class B(A):
+            pass
+
+        class C(B):
+            pass
+
+        a = self._register(ClassAlias(A, 'a', synonym={'foo': 'bar', 'bar': 'baz'}, defer=True))
+        b = self._register(ClassAlias(B, 'b', defer=True))
+        c = self._register(ClassAlias(C, 'c', synonym={'bar': 'spam'}, defer=True))
+
+        self.assertFalse(a._compiled)
+        self.assertFalse(b._compiled)
+        self.assertFalse(c._compiled)
+
+        c.compile()
+
+        self.assertTrue(a._compiled)
+        self.assertTrue(b._compiled)
+        self.assertTrue(c._compiled)
+
+        self.assertEquals(a.synonym, {'foo': 'bar', 'bar': 'baz'})
+        self.assertEquals(b.synonym, {'foo': 'bar', 'bar': 'baz'})
+        self.assertEquals(c.synonym, {'foo': 'bar', 'bar': 'spam'})
 
 
 class CompilationIntegrationTestCase(unittest.TestCase):
