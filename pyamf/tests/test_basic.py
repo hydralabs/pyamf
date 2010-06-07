@@ -338,9 +338,7 @@ class ErrorClassMapTestCase(unittest.TestCase):
 
     def setUp(self):
         self.map_copy = pyamf.ERROR_CLASS_MAP.copy()
-
-    def tearDown(self):
-        pyamf.ERROR_CLASS_MAP = self.map_copy
+        self.addCleanup(replace_dict, self.map_copy, pyamf.ERROR_CLASS_MAP)
 
     def test_add(self):
         class A:
@@ -393,9 +391,7 @@ class DummyAlias(pyamf.ClassAlias):
 class RegisterAliasTypeTestCase(unittest.TestCase):
     def setUp(self):
         self.old_aliases = pyamf.ALIAS_TYPES.copy()
-
-    def tearDown(self):
-        replace_dict(self.old_aliases, pyamf.ALIAS_TYPES)
+        self.addCleanup(replace_dict, self.old_aliases, pyamf.ALIAS_TYPES)
 
     def test_bad_klass(self):
         self.assertRaises(TypeError, pyamf.register_alias_type, 1)
@@ -431,7 +427,7 @@ class RegisterAliasTypeTestCase(unittest.TestCase):
         self.assertRaises(TypeError, pyamf.register_alias_type, DummyAlias, A, 'hello')
 
         pyamf.register_alias_type(DummyAlias, A, B)
-        self.assertTrue(DummyAlias in pyamf.ALIAS_TYPES.keys())
+        self.assertTrue(DummyAlias in pyamf.ALIAS_TYPES)
         self.assertEqual(pyamf.ALIAS_TYPES[DummyAlias], (A, B))
 
     def test_duplicate(self):
@@ -496,6 +492,7 @@ class BaseContextTestCase(unittest.TestCase):
             pass
 
         pyamf.register_alias_type(DummyAlias, A)
+        self.addCleanup(pyamf.unregister_alias_type, DummyAlias)
         alias = x.getClassAlias(B)
 
         self.assertTrue(isinstance(alias, pyamf.ClassAlias))
