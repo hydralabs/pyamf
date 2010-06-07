@@ -384,6 +384,7 @@ class ForeignKeyTestCase(ModelsBaseTestCase):
         # Create an Article.
         a1 = Article2(id=None, headline='Django lets you build Web apps easily')
         a1.save()
+        self.addCleanup(a1.delete)
         self.assertEqual(a1.id, 1)
 
         # Associate the Article with a Publication.
@@ -531,16 +532,18 @@ class PKTestCase(ModelsBaseTestCase):
         self.assertRaises(ValueError, lambda a, p: a.publications.add(p), a, p)
 
         p.save()
+        self.addCleanup(p.delete)
         a.save()
+        self.addCleanup(a.delete)
 
-        self.assertEqual(a.id, 2)
+        self.assertEqual(a.id, 1)
 
         article_alias = self.adapter.DjangoClassAlias(Article2, None)
         x = Article2()
 
         article_alias.applyAttributes(x, {
             'headline': 'Foo bar!',
-            'id': 2,
+            'id': 1,
             'publications': [p]
         })
 
