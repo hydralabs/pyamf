@@ -40,7 +40,7 @@ class ModelsBaseTestCase(unittest.TestCase):
 
             import django
         except ImportError:
-            raise unittest.SkipTest("'django' is not available")
+            self.skipTest("'django' is not available")
 
         app = new.module('adapters')
 
@@ -719,7 +719,7 @@ class ImageTestCase(ModelsBaseTestCase):
         try:
             import PIL
         except ImportError:
-            raise unittest.SkipTest("'PIL' is not available")
+            self.skipTest("'PIL' is not available")
 
         ModelsBaseTestCase.setUp(self)
 

@@ -54,7 +54,7 @@ class BaseTestCase(unittest.TestCase):
 
     def setUp(self):
         if not sqlalchemy:
-            raise unittest.SkipTest("'sqlalchemy' is not available")
+            self.skipTest("'sqlalchemy' is not available")
 
         # Create DB and map objects
         self.metadata = MetaData()

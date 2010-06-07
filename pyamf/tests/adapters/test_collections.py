@@ -23,7 +23,7 @@ class CollectionsTestCase(unittest.TestCase):
 
     def setUp(self):
         if not collections:
-            raise unittest.SkipTest("'collections' not available")
+            self.skipTest("'collections' not available")
 
     def encdec(self, encoding):
         return pyamf.decode(pyamf.encode(self.obj, encoding=encoding),

@@ -23,7 +23,7 @@ class ArrayTestCase(unittest.TestCase):
 
     def setUp(self):
         if not array:
-            raise unittest.SkipTest("'array' not available")
+            self.skipTest("'array' not available")
 
         self.orig = ['f', 'o', 'o']
 

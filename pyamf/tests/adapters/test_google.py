@@ -60,7 +60,7 @@ class BaseTestCase(unittest.TestCase):
 
     def setUp(self):
         if not db:
-            raise unittest.SkipTest("'google.appengine.ext.db' not available")
+            self.skipTest("'google.appengine.ext.db' not available")
 
 
 class EncodingModelTestCase(BaseTestCase, ClassCacheClearingTestCase):

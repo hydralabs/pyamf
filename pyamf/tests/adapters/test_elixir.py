@@ -58,7 +58,7 @@ class BaseTestCase(unittest.TestCase):
 
     def setUp(self):
         if not e:
-            raise unittest.SkipTest("'elixir' is not available")
+            self.skipTest("'elixir' is not available")
 
         e.create_all()
 

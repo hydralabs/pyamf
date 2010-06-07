@@ -39,7 +39,7 @@ class BaseTestCase(unittest.TestCase):
 
     def setUp(self):
         if not twisted:
-            raise unittest.SkipTest("'twisted' is not available")
+            self.skipTest("'twisted' is not available")
 
 
 class TwistedServerTestCase(BaseTestCase):

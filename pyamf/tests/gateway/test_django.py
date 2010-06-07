@@ -29,7 +29,7 @@ class BaseTestCase(unittest.TestCase):
 
     def setUp(self):
         if not django:
-            raise unittest.SkipTest("'django' not available")
+            self.skipTest("'django' not available")
 
 
 class DjangoGatewayTestCase(BaseTestCase):

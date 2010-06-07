@@ -34,7 +34,7 @@ class ElementTreeTestCase(unittest.TestCase):
         try:
             import cElementTree
         except ImportError:
-            raise unittest.SkipTest("'cElementTree' is not available")
+            self.skipTest("'cElementTree' is not available")
 
         self.assertEqual(self._encode(cElementTree), (
             ElementTreeTestCase.amf0_encoding,
@@ -45,7 +45,7 @@ class ElementTreeTestCase(unittest.TestCase):
         try:
             from xml.etree import cElementTree
         except ImportError:
-            raise unittest.SkipTest("'xml.etree.cElementTree' is not available")
+            self.skipTest("'xml.etree.cElementTree' is not available")
 
         self.assertEqual(self._encode(cElementTree), (
             ElementTreeTestCase.amf0_encoding,
@@ -56,7 +56,7 @@ class ElementTreeTestCase(unittest.TestCase):
         try:
             from xml.etree import ElementTree
         except ImportError:
-            raise unittest.SkipTest("'xml.etree.ElementTree' is not available")
+            self.skipTest("'xml.etree.ElementTree' is not available")
 
         self.assertEqual(self._encode(ElementTree), (
             ElementTreeTestCase.amf0_encoding,
@@ -67,7 +67,7 @@ class ElementTreeTestCase(unittest.TestCase):
         try:
             from elementtree import ElementTree
         except ImportError:
-            raise unittest.SkipTest("'elementtree.cElementTree' is not available")
+            self.skipTest("'elementtree.cElementTree' is not available")
 
         self.assertEqual(self._encode(ElementTree), (
             ElementTreeTestCase.amf0_encoding,

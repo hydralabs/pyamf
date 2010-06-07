@@ -29,7 +29,7 @@ class BaseTestCase(unittest.TestCase):
 
     def setUp(self):
         if not webapp:
-            raise unittest.SkipTest("'google' is not available")
+            self.skipTest("'google' is not available")
 
 
 class WebAppGatewayTestCase(BaseTestCase):
