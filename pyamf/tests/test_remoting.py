@@ -400,34 +400,3 @@ class ReprTestCase(unittest.TestCase):
 
         self.assertEqual(repr(r),
             "BaseFault level=None code=u'\\xe5' type=u'\\xe5' description=u'\\xe5'\nTraceback:\nu'\\xe5'")
-
-
-def suite():
-    """
-    Add tests.
-    """
-    suite = unittest.TestSuite()
-
-    test_cases = [
-        DecoderTestCase,
-        EncoderTestCase,
-        StrictEncodingTestCase,
-        FaultTestCase,
-        ContextTextCase,
-        FunctionalTestCase,
-        ReprTestCase
-    ]
-
-    for tc in test_cases:
-        suite.addTest(unittest.makeSuite(tc))
-
-    from pyamf.tests.remoting import test_client, test_remoteobject, test_amf0
-
-    suite.addTest(test_client.suite())
-    suite.addTest(test_remoteobject.suite())
-    suite.addTest(test_amf0.suite())
-
-    return suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

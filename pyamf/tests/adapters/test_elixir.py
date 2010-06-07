@@ -9,41 +9,46 @@ PyAMF Elixir adapter tests.
 
 import unittest
 
-import elixir as e
+try:
+    import elixir as e
+    from pyamf.adapters import _elixir as adapter
+
+except ImportError:
+    e = None
 
 import pyamf
-from pyamf.adapters import _elixir as adapter
 from pyamf.tests.util import Spam
 
 
-class Genre(e.Entity):
-    name = e.Field(e.Unicode(15), primary_key=True)
-    movies = e.ManyToMany('Movie')
+if e:
+    class Genre(e.Entity):
+        name = e.Field(e.Unicode(15), primary_key=True)
+        movies = e.ManyToMany('Movie')
 
-    def __repr__(self):
-        return '<Genre "%s">' % self.name
-
-
-class Movie(e.Entity):
-    title = e.Field(e.Unicode(30), primary_key=True)
-    year = e.Field(e.Integer, primary_key=True)
-    description = e.Field(e.UnicodeText, deferred=True)
-    director = e.ManyToOne('Director')
-    genres = e.ManyToMany('Genre')
+        def __repr__(self):
+            return '<Genre "%s">' % self.name
 
 
-class Person(e.Entity):
-    name = e.Field(e.Unicode(60), primary_key=True)
+    class Movie(e.Entity):
+        title = e.Field(e.Unicode(30), primary_key=True)
+        year = e.Field(e.Integer, primary_key=True)
+        description = e.Field(e.UnicodeText, deferred=True)
+        director = e.ManyToOne('Director')
+        genres = e.ManyToMany('Genre')
 
 
-class Director(Person):
-    movies = e.OneToMany('Movie')
-    e.using_options(inheritance='multi')
+    class Person(e.Entity):
+        name = e.Field(e.Unicode(60), primary_key=True)
 
 
-# set up
-e.metadata.bind = "sqlite://"
-e.setup_all()
+    class Director(Person):
+        movies = e.OneToMany('Movie')
+        e.using_options(inheritance='multi')
+
+
+    # set up
+    e.metadata.bind = "sqlite://"
+    e.setup_all()
 
 
 class BaseTestCase(unittest.TestCase):
@@ -52,6 +57,9 @@ class BaseTestCase(unittest.TestCase):
     """
 
     def setUp(self):
+        if not e:
+            raise unittest.SkipTest("'elixir' is not available")
+
         e.create_all()
 
         self.movie_alias = pyamf.register_class(Movie, 'movie')
@@ -120,24 +128,3 @@ class ClassAliasTestCase(BaseTestCase):
             'name': u'Ridley Scott',
             'sa_lazy': []
         })
-
-
-def suite():
-    suite = unittest.TestSuite()
-
-    try:
-        import pysqlite2
-    except ImportError:
-        return suite
-
-    classes = [
-        ClassAliasTestCase,
-    ]
-
-    for x in classes:
-        suite.addTest(unittest.makeSuite(x))
-
-    return suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

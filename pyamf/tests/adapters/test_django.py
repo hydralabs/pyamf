@@ -22,20 +22,25 @@ class ModelsBaseTestCase(unittest.TestCase):
         self.old_env = os.environ.copy()
         self.mods = sys.modules.copy()
 
-        if 'DJANGO_SETTINGS_MODULE' in os.environ.keys():
-            from django import conf
-            import copy
+        try:
+            if 'DJANGO_SETTINGS_MODULE' in os.environ.keys():
+                from django import conf
+                import copy
 
-            self.mod = copy.deepcopy(conf.settings)
-            mod = conf.settings
-            self.existing = True
-        else:
-            os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
-            mod = new.module('settings')
+                self.mod = copy.deepcopy(conf.settings)
+                mod = conf.settings
+                self.existing = True
+            else:
+                os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+                mod = new.module('settings')
 
-            sys.modules['settings'] = mod
+                sys.modules['settings'] = mod
 
-            self.existing = False
+                self.existing = False
+
+            import django
+        except ImportError:
+            raise unittest.SkipTest("'django' is not available")
 
         app = new.module('adapters')
 
@@ -717,6 +722,14 @@ class ImageTestCase(ModelsBaseTestCase):
     """
     Tests for L{fields}
     """
+
+    def setUp(self):
+        try:
+            import PIL
+        except ImportError:
+            raise unittest.SkipTest("'PIL' is not available")
+
+        ModelsBaseTestCase.setUp(self)
 
     def test_image(self):
         from django.db import models

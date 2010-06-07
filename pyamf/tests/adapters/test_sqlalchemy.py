@@ -9,14 +9,18 @@ PyAMF SQLAlchemy adapter tests.
 
 import unittest
 
-import sqlalchemy
-from sqlalchemy import MetaData, Table, Column, Integer, String, ForeignKey, \
-    create_engine
-from sqlalchemy.orm import mapper, relation, sessionmaker, clear_mappers
+try:
+    import sqlalchemy
+    from sqlalchemy import MetaData, Table, Column, Integer, String, ForeignKey, \
+        create_engine
+    from sqlalchemy.orm import mapper, relation, sessionmaker, clear_mappers
+
+    from pyamf.adapters import _sqlalchemy_orm as adapter
+except ImportError:
+    sqlalchemy = None
 
 import pyamf.flex
 from pyamf.tests.util import Spam
-from pyamf.adapters import _sqlalchemy_orm as adapter
 
 
 class BaseObject(object):
@@ -49,6 +53,9 @@ class BaseTestCase(unittest.TestCase):
     """
 
     def setUp(self):
+        if not sqlalchemy:
+            raise unittest.SkipTest("'sqlalchemy' is not available")
+
         # Create DB and map objects
         self.metadata = MetaData()
         self.engine = create_engine('sqlite:///:memory:', echo=False)

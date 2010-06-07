@@ -31,7 +31,10 @@ class ElementTreeTestCase(unittest.TestCase):
         )
 
     def test_cElementTree(self):
-        import cElementTree
+        try:
+            import cElementTree
+        except ImportError:
+            raise unittest.SkipTest("'cElementTree' is not available")
 
         self.assertEqual(self._encode(cElementTree), (
             ElementTreeTestCase.amf0_encoding,
@@ -39,7 +42,10 @@ class ElementTreeTestCase(unittest.TestCase):
         ))
 
     def test_xe_cElementTree(self):
-        from xml.etree import cElementTree
+        try:
+            from xml.etree import cElementTree
+        except ImportError:
+            raise unittest.SkipTest("'xml.etree.cElementTree' is not available")
 
         self.assertEqual(self._encode(cElementTree), (
             ElementTreeTestCase.amf0_encoding,
@@ -47,7 +53,10 @@ class ElementTreeTestCase(unittest.TestCase):
         ))
 
     def test_xe_ElementTree(self):
-        from xml.etree import ElementTree
+        try:
+            from xml.etree import ElementTree
+        except ImportError:
+            raise unittest.SkipTest("'xml.etree.ElementTree' is not available")
 
         self.assertEqual(self._encode(ElementTree), (
             ElementTreeTestCase.amf0_encoding,
@@ -55,40 +64,12 @@ class ElementTreeTestCase(unittest.TestCase):
         ))
 
     def test_ElementTree(self):
-        from elementtree import ElementTree
+        try:
+            from elementtree import ElementTree
+        except ImportError:
+            raise unittest.SkipTest("'elementtree.cElementTree' is not available")
 
         self.assertEqual(self._encode(ElementTree), (
             ElementTreeTestCase.amf0_encoding,
             ElementTreeTestCase.amf3_encoding
         ))
-
-try:
-    from xml.etree import cElementTree
-except ImportError:
-    del ElementTreeTestCase.test_xe_cElementTree
-
-try:
-    import cElementTree
-except ImportError:
-    del ElementTreeTestCase.test_cElementTree
-
-try:
-    from xml.etree import ElementTree
-except ImportError:
-    del ElementTreeTestCase.test_xe_ElementTree
-
-try:
-    from elementtree import ElementTree
-except ImportError:
-    del ElementTreeTestCase.test_ElementTree
-
-
-def suite():
-    suite = unittest.TestSuite()
-
-    suite.addTest(unittest.makeSuite(ElementTreeTestCase))
-
-    return suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

@@ -590,24 +590,3 @@ class GZipTestCase(BaseServiceTestCase):
         self.setResponse(200, 'foobar', self.headers)
 
         self.assertRaises(IOError, self.gw._getResponse, None)
-
-
-def suite():
-    suite = unittest.TestSuite()
-
-    suite.addTest(unittest.makeSuite(ServiceMethodProxyTestCase))
-    suite.addTest(unittest.makeSuite(ServiceProxyTestCase))
-    suite.addTest(unittest.makeSuite(RequestWrapperTestCase))
-    suite.addTest(unittest.makeSuite(RemotingServiceTestCase))
-
-    try:
-        import gzip
-    except:
-        pass
-    else:
-        suite.addTest(unittest.makeSuite(GZipTestCase))
-
-    return suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

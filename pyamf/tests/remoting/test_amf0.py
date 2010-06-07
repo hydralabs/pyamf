@@ -75,19 +75,3 @@ class ExceptionTestCase(BaseTestCase):
         self.assertEqual(error.code, 'NameError')
         self.assertEqual(error.description, 'foobar')
         self.assertEqual(error.details, None)
-
-
-def suite():
-    """
-    Add tests.
-    """
-    suite = unittest.TestSuite()
-
-    test_cases = [
-        ExceptionTestCase,
-    ]
-
-    for tc in test_cases:
-        suite.addTest(unittest.makeSuite(tc))
-
-    return suite

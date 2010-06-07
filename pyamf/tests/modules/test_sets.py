@@ -36,14 +36,3 @@ class ImmutableSetTestCase(unittest.TestCase):
                 '\x06\x032'
             ))
         ))
-
-
-def suite():
-    suite = unittest.TestSuite()
-
-    suite.addTest(unittest.makeSuite(ImmutableSetTestCase))
-
-    return suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

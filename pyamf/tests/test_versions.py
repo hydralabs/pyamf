@@ -41,19 +41,3 @@ class VersionTestCase(unittest.TestCase):
         self.assertEqual(str(v2), '3.2.1final')
 
         self.assertTrue(v2 > v1)
-
-
-def suite():
-    suite = unittest.TestSuite()
-
-    test_cases = [
-        VersionTestCase,
-    ]
-
-    for tc in test_cases:
-        suite.addTest(unittest.makeSuite(tc))
-
-    return suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

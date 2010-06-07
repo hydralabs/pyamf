@@ -1192,29 +1192,3 @@ class GetClassMetaTestCase(unittest.TestCase):
         self.assertEqual(util.get_class_meta(A), meta)
         self.assertEqual(util.get_class_meta(B), meta)
 
-
-def suite():
-    """
-    Unit tests for AMF utilities.
-    """
-    suite = unittest.TestSuite()
-
-    test_cases = [
-        TimestampTestCase,
-        StringIOTestCase,
-        DataTypeMixInTestCase,
-        BufferedByteStreamTestCase,
-        ClassAliasTestCase,
-        IndexedCollectionTestCase,
-        IsClassSealedTestCase,
-        GetClassMetaTestCase
-    ]
-
-
-    for tc in test_cases:
-        suite.addTest(unittest.makeSuite(tc))
-
-    return suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

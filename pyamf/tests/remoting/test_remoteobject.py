@@ -243,16 +243,3 @@ class RequestProcessorTestCase(unittest.TestCase):
         self.assertEqual(response.status, remoting.STATUS_ERROR)
         self.assertTrue(isinstance(ack, messaging.ErrorMessage))
         self.assertEqual(ack.faultCode, 'TypeError')
-
-
-def suite():
-    suite = unittest.TestSuite()
-
-    suite.addTest(unittest.makeSuite(RandomIdGeneratorTestCase))
-    suite.addTest(unittest.makeSuite(AcknowlegdementGeneratorTestCase))
-    suite.addTest(unittest.makeSuite(RequestProcessorTestCase))
-
-    return suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

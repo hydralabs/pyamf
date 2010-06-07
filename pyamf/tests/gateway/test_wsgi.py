@@ -219,14 +219,3 @@ class WSGIServerTestCase(unittest.TestCase):
         message = envelope['/1']
 
         self.assertEqual(message.body, now)
-
-
-def suite():
-    suite = unittest.TestSuite()
-
-    suite.addTest(unittest.makeSuite(WSGIServerTestCase))
-
-    return suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
