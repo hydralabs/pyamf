@@ -676,15 +676,6 @@ class FieldsTestCase(ModelsBaseTestCase):
     Tests for L{fields}
     """
 
-    def tearDown(self):
-        ModelsBaseTestCase.tearDown(self)
-
-        try:
-            os.unlink(os.path.join(os.getcwd(), 'foo'))
-        except OSError:
-            raise
-            pass
-
     def test_file(self):
         from django.db import models
 
@@ -705,6 +696,7 @@ class FieldsTestCase(ModelsBaseTestCase):
 
         i = Image()
         i.file.save('bar', MockFile())
+        self.addCleanup(i.file.delete)
 
         i.save()
 
@@ -751,6 +743,7 @@ class ImageTestCase(ModelsBaseTestCase):
 
         i = Profile()
         i.file.save('bar', MockFile())
+        self.addCleanup(i.file.delete)
 
         i.save()
 
@@ -853,39 +846,3 @@ class AuthTestCase(ModelsBaseTestCase):
         self.assertEqual(alias, 'django.contrib.auth.models.User')
         self.assertEqual(alias.exclude_attrs, ['message_set', 'password'])
         self.assertEqual(alias.readonly_attrs, ['username'])
-
-
-def suite():
-    suite = unittest.TestSuite()
-
-    try:
-        import django
-    except ImportError:
-        return suite
-
-    test_cases = [
-        TypeMapTestCase,
-        ClassAliasTestCase,
-        ForeignKeyTestCase,
-        I18NTestCase,
-        PKTestCase,
-        ModelInheritanceTestCase,
-        FieldsTestCase,
-        ReferenceTestCase,
-        AuthTestCase
-    ]
-
-    try:
-        import PIL
-    except:
-        pass
-    else:
-        test_cases.append(ImageTestCase)
-
-    for tc in test_cases:
-        suite.addTest(unittest.makeSuite(tc))
-
-    return suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
