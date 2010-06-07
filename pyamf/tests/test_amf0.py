@@ -1136,26 +1136,3 @@ class ExceptionEncodingTestCase(ClassCacheClearingTestCase):
 
         self.assertEqual(self.buffer.getvalue(), '\x10\x00\x07foo.bar\x00'
             '\x07message\x02\x00\x05blarg\x00\x04name\x02\x00\x03XYZ\x00\x00\t')
-
-
-def suite():
-    suite = unittest.TestSuite()
-
-    test_cases = [
-        TypesTestCase,
-        ContextTestCase,
-        EncoderTestCase,
-        DecoderTestCase,
-        RecordSetTestCase,
-        HelperTestCase,
-        ClassInheritanceTestCase,
-        ExceptionEncodingTestCase
-    ]
-
-    for tc in test_cases:
-        suite.addTest(unittest.makeSuite(tc))
-
-    return suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

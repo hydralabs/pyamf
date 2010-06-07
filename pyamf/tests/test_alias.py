@@ -1067,28 +1067,3 @@ class UnregisterClassTestCase(ClassCacheClearingTestCase):
         self.assertTrue('foo' in pyamf.CLASS_CACHE)
         self.assertFalse(Spam in pyamf.CLASS_CACHE)
         self.assertTrue(ret is alias)
-
-
-def suite():
-    suite = unittest.TestSuite()
-
-    test_cases = [
-        ClassAliasTestCase,
-        GetDecodableAttributesTestCase,
-        GetEncodableAttributesTestCase,
-        ApplyAttributesTestCase,
-        SimpleCompliationTestCase,
-        CompilationIntegrationTestCase,
-        CompilationInheritanceTestCase,
-        RegisterClassTestCase,
-        UnregisterClassTestCase
-    ]
-
-    for tc in test_cases:
-        suite.addTest(unittest.makeSuite(tc))
-
-    return suite
-
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

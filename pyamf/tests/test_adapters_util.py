@@ -70,18 +70,3 @@ class HelperTestCase(unittest.TestCase):
 
         obj = object()
         self.assertRaises(TypeError, util.to_tuple, obj, self.encoder)
-
-
-def suite():
-    suite = unittest.TestSuite()
-
-    suite.addTest(unittest.makeSuite(HelperTestCase))
-
-    return suite
-
-
-def main():
-    unittest.main(defaultTest='suite')
-
-if __name__ == '__main__':
-    main()

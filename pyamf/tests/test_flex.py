@@ -224,16 +224,3 @@ class ObjectProxyTestCase(unittest.TestCase):
         x = flex.ObjectProxy(u'ƒøø')
 
         self.assertEqual(repr(x), "<flex.messaging.io.ObjectProxy u'\\u0192\\xf8\\xf8'>")
-
-
-def suite():
-    suite = unittest.TestSuite()
-
-    suite.addTest(unittest.makeSuite(ArrayCollectionTestCase))
-    suite.addTest(unittest.makeSuite(ArrayCollectionAPITestCase))
-    suite.addTest(unittest.makeSuite(ObjectProxyTestCase))
-
-    return suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

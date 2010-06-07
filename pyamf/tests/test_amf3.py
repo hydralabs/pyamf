@@ -1771,32 +1771,3 @@ class ByteArrayTestCase(unittest.TestCase):
 
         self.assertEqual(obj, b.readObject())
         self.assertRaises(pyamf.ReferenceError, b.readObject)
-
-
-def suite():
-    suite = unittest.TestSuite()
-
-    test_cases = [
-        TypesTestCase,
-        ClassDefinitionTestCase,
-        ContextTestCase,
-        EncoderTestCase,
-        DecoderTestCase,
-        ObjectEncodingTestCase,
-        ObjectDecodingTestCase,
-        DataOutputTestCase,
-        DataInputTestCase,
-        ClassInheritanceTestCase,
-        HelperTestCase,
-        ComplexEncodingTestCase,
-        ExceptionEncodingTestCase,
-        ByteArrayTestCase
-    ]
-
-    for tc in test_cases:
-        suite.addTest(unittest.makeSuite(tc))
-
-    return suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

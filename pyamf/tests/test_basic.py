@@ -715,28 +715,3 @@ class PackageTestCase(ClassCacheClearingTestCase):
             self.assertTrue(isinstance(alias, pyamf.ClassAlias))
             self.assertEqual(alias.klass, c)
             self.assertEqual(alias.alias, 'spam.eggs.' + c.__name__)
-
-
-def suite():
-    suite = unittest.TestSuite()
-
-    test_cases = [
-        ASObjectTestCase,
-        HelperTestCase,
-        UnregisterClassTestCase,
-        ClassLoaderTestCase,
-        TypeMapTestCase,
-        ErrorClassMapTestCase,
-        RegisterAliasTypeTestCase,
-        BaseContextTestCase,
-        TypedObjectTestCase,
-        PackageTestCase
-    ]
-
-    for tc in test_cases:
-        suite.addTest(unittest.makeSuite(tc))
-
-    return suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

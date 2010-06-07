@@ -9,14 +9,7 @@ Unit tests.
 
 import os.path
 
-try:
-    import unittest2 as unittest
-    import sys
-
-    sys.modules['unittest'] = unittest
-except ImportError:
-    pass
-
+import unittest
 
 def get_suite():
     """
@@ -24,7 +17,7 @@ def get_suite():
     """
     loader = unittest.TestLoader()
 
-    return loader.discover(os.path.dirname(__file__))
+    return loader.discover(os.path.dirname(__file__), top_level_dir='../pyamf')
 
 
 def main():

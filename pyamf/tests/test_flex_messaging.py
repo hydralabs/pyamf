@@ -195,21 +195,3 @@ class SmallMessageTestCase(unittest.TestCase):
 
         self.assertTrue(isinstance(m, messaging.AcknowledgeMessageExt))
         self.assertEqual(m.__dict__, k)
-
-
-def suite():
-    suite = unittest.TestSuite()
-
-    test_cases = [
-        AbstractMessageTestCase,
-        EncodingTestCase,
-        SmallMessageTestCase
-    ]
-
-    for tc in test_cases:
-        suite.addTest(unittest.makeSuite(tc))
-
-    return suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

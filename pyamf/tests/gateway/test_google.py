@@ -13,18 +13,30 @@ import unittest
 
 from StringIO import StringIO
 
-from google.appengine.ext import webapp
+try:
+    from google.appengine.ext import webapp
+    from pyamf.remoting.gateway import google as google
+except ImportError:
+    webapp = None
 
 import pyamf
 from pyamf import remoting
-from pyamf.remoting.gateway import google as _google
 
 
-class WebAppGatewayTestCase(unittest.TestCase):
+class BaseTestCase(unittest.TestCase):
+    """
+    """
+
     def setUp(self):
-        unittest.TestCase.setUp(self)
+        if not webapp:
+            raise unittest.SkipTest("'google' is not available")
 
-        self.gw = _google.WebAppGateway()
+
+class WebAppGatewayTestCase(BaseTestCase):
+    def setUp(self):
+        BaseTestCase.setUp(self)
+
+        self.gw = google.WebAppGateway()
 
         self.environ = {
             'wsgi.input': StringIO(),
@@ -117,14 +129,3 @@ class WebAppGatewayTestCase(unittest.TestCase):
 
         self.assertEqual(message.body, now)
         self.assertTrue(self.executed)
-
-
-def suite():
-    suite = unittest.TestSuite()
-
-    suite.addTest(unittest.makeSuite(WebAppGatewayTestCase))
-
-    return suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
