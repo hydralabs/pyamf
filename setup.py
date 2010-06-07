@@ -8,6 +8,7 @@ use_setuptools(download_delay=3)
 import sys, os.path
 
 from setuptools import setup, find_packages, Extension
+from setuptools.command import test
 
 try:
     from Cython.Distutils import build_ext
@@ -32,6 +33,24 @@ readme = os.path.join(base_path, 'README.txt')
 for k, v in sys.modules.copy().iteritems():
     if k and k.startswith('pyamf'):
         del sys.modules[k]
+
+
+class TestCommand(test.test):
+    """
+    Ensures that unittest2 is imported if required and replaces the old
+    unittest module.
+    """
+
+    def run_tests(self):
+        try:
+            import unittest2
+            import sys
+
+            sys.modules['unittest'] = unittest2
+        except ImportError:
+            pass
+
+        return test.test.run_tests(self)
 
 
 def get_cpyamf_extensions():
@@ -139,6 +158,7 @@ setup(name = "PyAMF",
     platforms = ["any"],
     cmdclass = {
         'build_ext': build_ext,
+       'test': TestCommand
     },
     extras_require = {
         'wsgi': ['wsgiref'],

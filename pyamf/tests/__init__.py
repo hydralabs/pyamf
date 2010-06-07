@@ -9,7 +9,14 @@ Unit tests.
 
 import os.path
 
-import unittest
+try:
+    import unittest2 as unittest
+    import sys
+
+    sys.modules['unittest'] = unittest
+except ImportError:
+    import unittest
+
 
 def get_suite():
     """
