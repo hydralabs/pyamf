@@ -606,14 +606,14 @@ class SimpleCompliationTestCase(unittest.TestCase):
 
         self.assertTrue(x.sealed)
 
-    def test_synonym(self):
-        x = ClassAlias(Spam, synonym={'foo': 'bar'}, defer=True)
+    def test_synonym_attrs(self):
+        x = ClassAlias(Spam, synonym_attrs={'foo': 'bar'}, defer=True)
 
-        self.assertEquals(x.synonym, {'foo': 'bar'})
+        self.assertEquals(x.synonym_attrs, {'foo': 'bar'})
 
         x.compile()
 
-        self.assertEquals(x.synonym, {'foo': 'bar'})
+        self.assertEquals(x.synonym_attrs, {'foo': 'bar'})
 
 
 class CompilationInheritanceTestCase(ClassCacheClearingTestCase):
@@ -882,7 +882,7 @@ class CompilationInheritanceTestCase(ClassCacheClearingTestCase):
         self.assertTrue(c.dynamic)
 
 
-    def test_synonym(self):
+    def test_synonym_attrs(self):
         class A(object):
             pass
 
@@ -892,9 +892,9 @@ class CompilationInheritanceTestCase(ClassCacheClearingTestCase):
         class C(B):
             pass
 
-        a = self._register(ClassAlias(A, 'a', synonym={'foo': 'bar', 'bar': 'baz'}, defer=True))
+        a = self._register(ClassAlias(A, 'a', synonym_attrs={'foo': 'bar', 'bar': 'baz'}, defer=True))
         b = self._register(ClassAlias(B, 'b', defer=True))
-        c = self._register(ClassAlias(C, 'c', synonym={'bar': 'spam'}, defer=True))
+        c = self._register(ClassAlias(C, 'c', synonym_attrs={'bar': 'spam'}, defer=True))
 
         self.assertFalse(a._compiled)
         self.assertFalse(b._compiled)
@@ -906,9 +906,9 @@ class CompilationInheritanceTestCase(ClassCacheClearingTestCase):
         self.assertTrue(b._compiled)
         self.assertTrue(c._compiled)
 
-        self.assertEquals(a.synonym, {'foo': 'bar', 'bar': 'baz'})
-        self.assertEquals(b.synonym, {'foo': 'bar', 'bar': 'baz'})
-        self.assertEquals(c.synonym, {'foo': 'bar', 'bar': 'spam'})
+        self.assertEquals(a.synonym_attrs, {'foo': 'bar', 'bar': 'baz'})
+        self.assertEquals(b.synonym_attrs, {'foo': 'bar', 'bar': 'baz'})
+        self.assertEquals(c.synonym_attrs, {'foo': 'bar', 'bar': 'spam'})
 
 
 class CompilationIntegrationTestCase(unittest.TestCase):

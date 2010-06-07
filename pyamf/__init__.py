@@ -356,7 +356,7 @@ class ClassAlias(object):
         self.amf3 = kwargs.pop('amf3', None)
         self.external = kwargs.pop('external', None)
         self.dynamic = kwargs.pop('dynamic', None)
-        self.synonym = kwargs.pop('synonym', {})
+        self.synonym_attrs = kwargs.pop('synonym_attrs', {})
 
         self._compiled = False
         self.anonymous = False
@@ -488,9 +488,9 @@ class ClassAlias(object):
         if alias.sealed is not None:
             self.inherited_sealed = alias.sealed
 
-        if alias.synonym:
-            self.synonym, x = alias.synonym.copy(), self.synonym
-            self.synonym.update(x)
+        if alias.synonym_attrs:
+            self.synonym_attrs, x = alias.synonym_attrs.copy(), self.synonym_attrs
+            self.synonym_attrs.update(x)
 
     def _finalise_compile(self):
         if self.dynamic is None:

@@ -838,8 +838,8 @@ class AuthTestCase(ModelsBaseTestCase):
         self.resetDB()
 
         self.assertEqual(alias, 'django.contrib.auth.models.User')
-        self.assertEqual(alias.exclude_attrs, ['message_set', 'password'])
-        self.assertEqual(alias.readonly_attrs, ['username'])
+        self.assertEqual(alias.exclude_attrs, ('message_set', 'password'))
+        self.assertEqual(alias.readonly_attrs, ('username',))
 
 
 def suite():

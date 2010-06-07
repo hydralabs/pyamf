@@ -905,7 +905,7 @@ class IsClassSealedTestCase(unittest.TestCase):
 
     def test_new_mixed(self):
         class A(object):
-            __slots__ = ('foo', 'bar')
+            __slots__ = ['foo', 'bar']
 
         class B(A):
             pass
@@ -919,7 +919,7 @@ class IsClassSealedTestCase(unittest.TestCase):
 
     def test_deep(self):
         class A(object):
-            __slots__ = ('foo', 'bar')
+            __slots__ = ['foo', 'bar']
 
         class B(A):
             __slots__ = ('gak',)
@@ -957,6 +957,7 @@ class GetClassMetaTestCase(unittest.TestCase):
         empty = {
             'readonly_attrs': None,
             'static_attrs': None,
+            'synonym_attrs': None,
             'proxy_attrs': None,
             'dynamic': None,
             'alias': None,
@@ -981,6 +982,7 @@ class GetClassMetaTestCase(unittest.TestCase):
         meta = {
             'readonly_attrs': None,
             'static_attrs': None,
+            'synonym_attrs': None,
             'proxy_attrs': None,
             'dynamic': None,
             'alias': 'foo.bar.Spam',
@@ -996,15 +998,16 @@ class GetClassMetaTestCase(unittest.TestCase):
     def test_static(self):
         class A:
             class __amf__:
-                static = ('foo', 'bar')
+                static = ['foo', 'bar']
 
         class B(object):
             class __amf__:
-                static = ('foo', 'bar')
+                static = ['foo', 'bar']
 
         meta = {
             'readonly_attrs': None,
             'static_attrs': ['foo', 'bar'],
+            'synonym_attrs': None,
             'proxy_attrs': None,
             'dynamic': None,
             'alias': None,
@@ -1019,15 +1022,16 @@ class GetClassMetaTestCase(unittest.TestCase):
     def test_exclude(self):
         class A:
             class __amf__:
-                exclude = ('foo', 'bar')
+                exclude = ['foo', 'bar']
 
         class B(object):
             class __amf__:
-                exclude = ('foo', 'bar')
+                exclude = ['foo', 'bar']
 
         meta = {
             'readonly_attrs': None,
             'exclude_attrs': ['foo', 'bar'],
+            'synonym_attrs': None,
             'proxy_attrs': None,
             'dynamic': None,
             'alias': None,
@@ -1043,15 +1047,16 @@ class GetClassMetaTestCase(unittest.TestCase):
     def test_readonly(self):
         class A:
             class __amf__:
-                readonly = ('foo', 'bar')
+                readonly = ['foo', 'bar']
 
         class B(object):
             class __amf__:
-                readonly = ('foo', 'bar')
+                readonly = ['foo', 'bar']
 
         meta = {
             'exclude_attrs': None,
             'readonly_attrs': ['foo', 'bar'],
+            'synonym_attrs': None,
             'proxy_attrs': None,
             'dynamic': None,
             'alias': None,
@@ -1076,6 +1081,7 @@ class GetClassMetaTestCase(unittest.TestCase):
         meta = {
             'exclude_attrs': None,
             'proxy_attrs': None,
+            'synonym_attrs': None,
             'readonly_attrs': None,
             'proxy_attrs': None,
             'dynamic': None,
@@ -1100,6 +1106,7 @@ class GetClassMetaTestCase(unittest.TestCase):
         meta = {
             'exclude_attrs': None,
             'proxy_attrs': None,
+            'synonym_attrs': None,
             'readonly_attrs': None,
             'proxy_attrs': None,
             'dynamic': False,
@@ -1124,6 +1131,7 @@ class GetClassMetaTestCase(unittest.TestCase):
         meta = {
             'exclude_attrs': None,
             'proxy_attrs': None,
+            'synonym_attrs': None,
             'readonly_attrs': None,
             'proxy_attrs': None,
             'dynamic': None,
@@ -1143,6 +1151,7 @@ class GetClassMetaTestCase(unittest.TestCase):
             'dynamic': False,
             'alias': 'spam.eggs',
             'proxy_attrs': None,
+            'synonym_attrs': None,
             'amf3': True,
             'static': ['baz'],
             'external': True
@@ -1162,6 +1171,7 @@ class GetClassMetaTestCase(unittest.TestCase):
             'alias': 'spam.eggs',
             'amf3': True,
             'exclude_attrs': ['foo'],
+            'synonym_attrs': None,
             'proxy_attrs': None,
             'external': True
         }
@@ -1172,16 +1182,41 @@ class GetClassMetaTestCase(unittest.TestCase):
     def test_proxy(self):
         class A:
             class __amf__:
-                proxy = ('foo', 'bar')
+                proxy = ['foo', 'bar']
 
         class B(object):
             class __amf__:
-                proxy = ('foo', 'bar')
+                proxy = ['foo', 'bar']
 
         meta = {
             'exclude_attrs': None,
             'readonly_attrs': None,
             'proxy_attrs': ['foo', 'bar'],
+            'synonym_attrs': None,
+            'dynamic': None,
+            'alias': None,
+            'amf3': None,
+            'static_attrs': None,
+            'external': None
+        }
+
+        self.assertEquals(util.get_class_meta(A), meta)
+        self.assertEquals(util.get_class_meta(B), meta)
+
+    def test_synonym(self):
+        class A:
+            class __amf__:
+                synonym = {'foo': 'bar'}
+
+        class B(object):
+            class __amf__:
+                synonym = {'foo': 'bar'}
+
+        meta = {
+            'exclude_attrs': None,
+            'readonly_attrs': None,
+            'proxy_attrs': None,
+            'synonym_attrs': {'foo': 'bar'},
             'dynamic': None,
             'alias': None,
             'amf3': None,
