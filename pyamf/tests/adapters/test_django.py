@@ -5,6 +5,8 @@
 PyAMF Django adapter tests.
 
 @since: 0.3.1
+
+@todo: This whole module needs to be refactored into something sane.
 """
 
 import unittest
@@ -407,6 +409,10 @@ class ForeignKeyTestCase(ModelsBaseTestCase):
         })
 
         x = Article2()
+
+        if hasattr(x, '_state'):
+            x._state.db = p1._state.db
+
         art_alias.applyAttributes(x, {
             'headline': u'Test',
             'id': 1,
@@ -540,6 +546,9 @@ class PKTestCase(ModelsBaseTestCase):
 
         article_alias = self.adapter.DjangoClassAlias(Article2, None)
         x = Article2()
+
+        if hasattr(x, '_state'):
+            x._state.db = p._state.db
 
         article_alias.applyAttributes(x, {
             'headline': 'Foo bar!',
