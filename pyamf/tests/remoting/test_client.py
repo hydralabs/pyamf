@@ -234,6 +234,9 @@ class MockHeaderCollection(object):
     def getheader(self, name):
         return self.headers.get(name, None)
 
+    def __repr__(self):
+        return repr(self.headers)
+
 
 class MockResponse(object):
     """
@@ -270,6 +273,7 @@ class BaseServiceTestCase(unittest.TestCase):
 
         self.gw = client.RemotingService('http://example.org/amf-gateway', opener=self.opener.open)
 
+        self.headers = self.__class__.headers.copy()
         self.headers['Content-Length'] = len(self.canned_response)
 
         self.setResponse(200, self.canned_response, self.headers)
@@ -578,9 +582,10 @@ class GZipTestCase(BaseServiceTestCase):
         x.close()
 
         self.canned_response = buf.getvalue()
-        self.headers['Content-Encoding'] = 'gzip'
 
         BaseServiceTestCase.setUp(self)
+
+        self.headers['Content-Encoding'] = 'gzip'
 
     def test_good_response(self):
         self.gw._getResponse(None)
