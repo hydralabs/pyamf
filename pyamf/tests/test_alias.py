@@ -208,6 +208,20 @@ class GetEncodableAttributesTestCase(unittest.TestCase):
         self.assertTrue(isinstance(attrs['bar'], flex.ObjectProxy))
         self.assertEquals(attrs['bar']._amf_object, {'foo': 'gak'})
 
+    def test_synonym(self):
+        self.alias.synonym_attrs = {'foo': 'bar'}
+        self.alias.compile()
+
+        self.assertFalse(self.alias.shortcut_encode)
+        self.assertFalse(self.alias.shortcut_decode)
+
+        self.obj.foo = 'bar'
+        self.obj.spam = 'eggs'
+
+        ret = self.alias.getEncodableAttributes(self.obj)
+
+        self.assertEquals(ret, {'bar': 'bar', 'spam': 'eggs'})
+
 
 class GetDecodableAttributesTestCase(unittest.TestCase):
     """

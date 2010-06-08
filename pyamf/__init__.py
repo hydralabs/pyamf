@@ -714,6 +714,17 @@ class ClassAlias(object):
                 if k in self.proxy_attrs:
                     attrs[k] = context.getProxyForObject(v)
 
+        if self.synonym_attrs:
+            missing = object()
+
+            for k, v in self.synonym_attrs.iteritems():
+                value = attrs.pop(k, missing)
+
+                if value is missing:
+                    continue
+
+                attrs[v] = value
+
         return attrs
 
     def getDecodableAttributes(self, obj, attrs, codec=None):
