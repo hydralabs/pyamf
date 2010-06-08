@@ -69,7 +69,7 @@ class DecoderTestCase(unittest.TestCase):
             'EchoTest\x00\x00\x00\x03\x0fhttpUri\x06=http://localhost:8000'
             '/gateway/\x00\x0frtmpUri\x06+rtmp://localhost/echo\x00')
 
-        self.assertEquals(sol.decode(bytes), (u'EchoTest',
+        self.assertEqual(sol.decode(bytes), (u'EchoTest',
             {u'httpUri': u'http://localhost:8000/gateway/', u'rtmpUri': u'rtmp://localhost/echo'}))
 
 
@@ -77,7 +77,7 @@ class EncoderTestCase(unittest.TestCase):
     def test_encode_header(self):
         stream = sol.encode('hello', {})
 
-        self.assertEquals(stream.getvalue(),
+        self.assertEqual(stream.getvalue(),
             '\x00\xbf\x00\x00\x00\x15TCSO\x00\x04\x00\x00\x00\x00\x00\x05hello\x00\x00\x00\x00')
 
     def test_multiple_values(self):
@@ -133,8 +133,8 @@ class HelperTestCase(unittest.TestCase):
 
         s = sol.load(self.file_name)
 
-        self.assertEquals(s.name, 'hello')
-        self.assertEquals(s, {'name': 'value', 'spam': 'eggs'})
+        self.assertEqual(s.name, 'hello')
+        self.assertEqual(s, {'name': 'value', 'spam': 'eggs'})
 
     def test_load_file(self):
         fp = self._load()
@@ -143,9 +143,9 @@ class HelperTestCase(unittest.TestCase):
 
         s = sol.load(fp)
 
-        self.assertEquals(s.name, 'hello')
-        self.assertEquals(s, {'name': 'value', 'spam': 'eggs'})
-        self.assertEquals(y, fp.tell())
+        self.assertEqual(s.name, 'hello')
+        self.assertEqual(s, {'name': 'value', 'spam': 'eggs'})
+        self.assertEqual(y, fp.tell())
 
     def test_save_name(self):
         s = sol.SOL('hello')
@@ -178,8 +178,8 @@ class SOLTestCase(unittest.TestCase):
     def test_create(self):
         s = sol.SOL('eggs')
 
-        self.assertEquals(s, {})
-        self.assertEquals(s.name, 'eggs')
+        self.assertEqual(s, {})
+        self.assertEqual(s.name, 'eggs')
 
     def test_save(self):
         s = sol.SOL('hello')
@@ -196,7 +196,7 @@ class SOLTestCase(unittest.TestCase):
         try:
             fp = open(x, 'wb+')
 
-            self.assertEquals(fp.closed, False)
+            self.assertEqual(fp.closed, False)
 
             s.save(fp)
             self.assertNotEquals(fp.tell(), 0)
@@ -204,7 +204,7 @@ class SOLTestCase(unittest.TestCase):
             fp.seek(0)
 
             self.assertTrue(check_buffer(fp.read(), HelperTestCase.contents))
-            self.assertEquals(fp.closed, False)
+            self.assertEqual(fp.closed, False)
 
             self.assertTrue(check_buffer(open(x, 'rb').read(), HelperTestCase.contents))
         except:
@@ -212,17 +212,3 @@ class SOLTestCase(unittest.TestCase):
                 os.unlink(x)
 
             raise
-
-
-def suite():
-    suite = unittest.TestSuite()
-
-    suite.addTest(unittest.makeSuite(EncoderTestCase))
-    suite.addTest(unittest.makeSuite(DecoderTestCase))
-    suite.addTest(unittest.makeSuite(HelperTestCase))
-    suite.addTest(unittest.makeSuite(SOLTestCase))
-
-    return suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

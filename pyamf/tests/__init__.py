@@ -7,39 +7,67 @@ Unit tests.
 @since: 0.1.0
 """
 
-import unittest
+import os.path
 
-# some Python 2.3 unittest compatibility fixes
-if not hasattr(unittest.TestCase, 'assertTrue'):
-    unittest.TestCase.assertTrue = unittest.TestCase.failUnless
-if not hasattr(unittest.TestCase, 'assertFalse'):
-    unittest.TestCase.assertFalse = unittest.TestCase.failIf
+try:
+    import unittest2 as unittest
+    import sys
 
-mod_base = 'pyamf.tests'
+    sys.modules['unittest'] = unittest
+except ImportError:
+    import unittest
 
 
-def suite():
-    import os.path
-    from glob import glob
+if not hasattr(unittest.TestCase, 'assertIdentical'):
+    def assertIdentical(self, first, second, msg=None):
+        """
+        Fail the test if C{first} is not C{second}.  This is an
+        obect-identity-equality test, not an object equality (i.e. C{__eq__}) test.
 
-    suite = unittest.TestSuite()
+        @param msg: if msg is None, then the failure message will be
+            '%r is not %r' % (first, second)
+        """
+        if first is not second:
+            raise AssertionError(msg or '%r is not %r' % (first, second))
 
-    for testcase in glob(os.path.join(os.path.dirname(__file__), 'test_*.py')):
-        mod_name = os.path.basename(testcase).split('.')[0]
-        full_name = '%s.%s' % (mod_base, mod_name)
+        return first
 
-        mod = __import__(full_name)
+    unittest.TestCase.assertIdentical = assertIdentical
 
-        for part in full_name.split('.')[1:]:
-            mod = getattr(mod, part)
+if not hasattr(unittest.TestCase, 'assertNotIdentical'):
+    def assertNotIdentical(self, first, second, msg=None):
+        """
+        Fail the test if C{first} is C{second}.  This is an
+        object-identity-equality test, not an object equality
+        (i.e. C{__eq__}) test.
 
-        suite.addTest(mod.suite())
+        @param msg: if msg is None, then the failure message will be
+            '%r is %r' % (first, second)
+        """
+        if first is second:
+            raise AssertionError(msg or '%r is %r' % (first, second))
 
-    return suite
+        return first
+
+    unittest.TestCase.assertNotIdentical = assertNotIdentical
+
+
+def get_suite():
+    """
+    Discover the entire test suite.
+    """
+    loader = unittest.TestLoader()
+
+    return loader.discover(os.path.dirname(__file__), top_level_dir='../pyamf')
 
 
 def main():
-    unittest.main(defaultTest='suite')
+    """
+    Run all of the tests when run as a module with -m.
+    """
+    runner = unittest.TextTestRunner()
+    runner.run(get_suite())
+
 
 if __name__ == '__main__':
     main()

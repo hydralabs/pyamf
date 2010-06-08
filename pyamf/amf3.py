@@ -23,21 +23,15 @@ L{ByteArray} and L{ArrayCollection}.
 @since: 0.1
 """
 
-import types
 import datetime
 import zlib
 
 import pyamf
-from pyamf import util, flex
+from pyamf import util
 
 #: If True encode/decode lists/tuples to L{ArrayCollections<ArrayCollection>}
 #: and dicts to L{ObjectProxy}
 use_proxies_default = False
-
-try:
-    set()
-except NameError:
-    from sets import Set as set
 
 
 #: The undefined type is represented by the undefined type marker. No further

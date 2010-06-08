@@ -119,7 +119,6 @@ class AMF3RequestProcessor(amf3.RequestProcessor):
 
     def _processRemotingMessage(self, amf_request, ro_request, **kwargs):
         ro_response = amf3.generate_acknowledgement(ro_request)
-        amf_response = remoting.Response(ro_response, status=remoting.STATUS_OK)
 
         try:
             service_name = ro_request.operation

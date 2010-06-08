@@ -13,27 +13,29 @@ import unittest
 import sys
 import os
 
-from django import http
+try:
+    from django import http
+    from pyamf.remoting.gateway import django
+except ImportError:
+    django = None
 
 import pyamf
 from pyamf import remoting, util
-from pyamf.remoting.gateway import django as _django
 
 
-class HttpRequest(http.HttpRequest):
+class BaseTestCase(unittest.TestCase):
     """
-    Custom C{HttpRequest} to support raw_post_data provided by
-    C{django.core.handlers.*}
     """
 
-    def __init__(self, *args, **kwargs):
-        http.HttpRequest.__init__(self, *args, **kwargs)
-
-        self.raw_post_data = ''
-
-
-class DjangoGatewayTestCase(unittest.TestCase):
     def setUp(self):
+        if not django:
+            self.skipTest("'django' not available")
+
+
+class DjangoGatewayTestCase(BaseTestCase):
+    def setUp(self):
+        BaseTestCase.setUp(self)
+
         import new
 
         self.mod_name = '%s.%s' % (__name__, 'settings')
@@ -50,7 +52,7 @@ class DjangoGatewayTestCase(unittest.TestCase):
         del sys.modules[self.mod_name]
 
     def test_csrf(self):
-        gw = _django.DjangoGateway()
+        gw = django.DjangoGateway()
 
         self.assertTrue(gw.csrf_exempt)
 
@@ -62,38 +64,42 @@ class DjangoGatewayTestCase(unittest.TestCase):
         settings_mod.DEBUG = True
         settings_mod.AMF_TIME_OFFSET = 1000
 
+        old_settings = conf.settings
         conf.settings = conf.Settings(self.mod_name)
 
-        gw = _django.DjangoGateway()
+        gw = django.DjangoGateway()
 
-        self.assertTrue(gw.debug)
-        self.assertEquals(gw.timezone_offset, 1000)
+        try:
+            self.assertTrue(gw.debug)
+            self.assertEqual(gw.timezone_offset, 1000)
+        finally:
+            conf.settings = old_settings
 
     def test_request_method(self):
-        gw = _django.DjangoGateway()
+        gw = django.DjangoGateway()
 
-        http_request = HttpRequest()
+        http_request = http.HttpRequest()
         http_request.method = 'GET'
 
         http_response = gw(http_request)
-        self.assertEquals(http_response.status_code, 405)
+        self.assertEqual(http_response.status_code, 405)
 
     def test_bad_request(self):
-        gw = _django.DjangoGateway()
+        gw = django.DjangoGateway()
 
         request = util.BufferedByteStream()
         request.write('Bad request')
         request.seek(0, 0)
 
-        http_request = HttpRequest()
+        http_request = http.HttpRequest()
         http_request.method = 'POST'
         http_request.raw_post_data = request.getvalue()
 
         http_response = gw(http_request)
-        self.assertEquals(http_response.status_code, 400)
+        self.assertEqual(http_response.status_code, 400)
 
     def test_unknown_request(self):
-        gw = _django.DjangoGateway()
+        gw = django.DjangoGateway()
 
         request = util.BufferedByteStream()
         request.write('\x00\x00\x00\x00\x00\x01\x00\x09test.test\x00'
@@ -101,7 +107,7 @@ class DjangoGatewayTestCase(unittest.TestCase):
             '\x00\x01\x61\x02\x00\x01\x61\x00\x00\x09')
         request.seek(0, 0)
 
-        http_request = HttpRequest()
+        http_request = http.HttpRequest()
         http_request.method = 'POST'
         http_request.raw_post_data = request.getvalue()
 
@@ -110,22 +116,22 @@ class DjangoGatewayTestCase(unittest.TestCase):
 
         message = envelope['/1']
 
-        self.assertEquals(message.status, remoting.STATUS_ERROR)
+        self.assertEqual(message.status, remoting.STATUS_ERROR)
         body = message.body
 
         self.assertTrue(isinstance(body, remoting.ErrorFault))
-        self.assertEquals(body.code, 'Service.ResourceNotFound')
+        self.assertEqual(body.code, 'Service.ResourceNotFound')
 
     def test_expose_request(self):
-        http_request = HttpRequest()
+        http_request = http.HttpRequest()
         self.executed = False
 
         def test(request):
-            self.assertEquals(http_request, request)
+            self.assertEqual(http_request, request)
             self.assertTrue(hasattr(request, 'amf_request'))
             self.executed = True
 
-        gw = _django.DjangoGateway({'test.test': test}, expose_request=True)
+        gw = django.DjangoGateway({'test.test': test}, expose_request=True)
 
         request = util.BufferedByteStream()
         request.write('\x00\x00\x00\x00\x00\x01\x00\x09test.test\x00'
@@ -146,11 +152,11 @@ class DjangoGatewayTestCase(unittest.TestCase):
         self.old_method = remoting.decode
         remoting.decode = lambda *args, **kwargs: self._raiseException(Exception, *args, **kwargs)
 
-        http_request = HttpRequest()
+        http_request = http.HttpRequest()
         http_request.method = 'POST'
         http_request.raw_post_data = ''
 
-        gw = _django.DjangoGateway()
+        gw = django.DjangoGateway()
 
         try:
             http_response = gw(http_request)
@@ -162,15 +168,15 @@ class DjangoGatewayTestCase(unittest.TestCase):
         remoting.decode = self.old_method
 
         self.assertTrue(isinstance(http_response, http.HttpResponseServerError))
-        self.assertEquals(http_response.status_code, 500)
-        self.assertEquals(http_response.content, '500 Internal Server Error\n\nAn unexpected error occurred.')
+        self.assertEqual(http_response.status_code, 500)
+        self.assertEqual(http_response.content, '500 Internal Server Error\n\nAn unexpected error occurred.')
 
     def test_expected_exceptions_decode(self):
         self.old_method = remoting.decode
 
-        gw = _django.DjangoGateway()
+        gw = django.DjangoGateway()
 
-        http_request = HttpRequest()
+        http_request = http.HttpRequest()
         http_request.method = 'POST'
         http_request.raw_post_data = ''
 
@@ -188,19 +194,19 @@ class DjangoGatewayTestCase(unittest.TestCase):
     def test_timezone(self):
         import datetime
 
-        http_request = HttpRequest()
+        http_request = http.HttpRequest()
         self.executed = False
 
         td = datetime.timedelta(hours=-5)
         now = datetime.datetime.utcnow()
 
         def echo(d):
-            self.assertEquals(d, now + td)
+            self.assertEqual(d, now + td)
             self.executed = True
 
             return d
 
-        gw = _django.DjangoGateway({'test.test': echo}, timezone_offset=-18000,
+        gw = django.DjangoGateway({'test.test': echo}, timezone_offset=-18000,
             expose_request=False)
 
         msg = remoting.Envelope(amfVersion=pyamf.AMF0)
@@ -212,15 +218,4 @@ class DjangoGatewayTestCase(unittest.TestCase):
         res = remoting.decode(gw(http_request).content)
         self.assertTrue(self.executed)
 
-        self.assertEquals(res['/1'].body, now)
-
-
-def suite():
-    suite = unittest.TestSuite()
-
-    suite.addTest(unittest.makeSuite(DjangoGatewayTestCase))
-
-    return suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+        self.assertEqual(res['/1'].body, now)

@@ -131,8 +131,6 @@ def isNegInf(val):
 def check_buffer(buf, parts, inner=False):
     assert isinstance(parts, (tuple, list))
 
-    orig = buf
-
     parts = [p for p in parts]
 
     for part in parts:
@@ -165,7 +163,11 @@ def assert_buffer(testcase, val, s):
 
 
 def replace_dict(src, dest):
-    for name in dest.keys():
+    seen = []
+
+    for name in dest.copy().keys():
+        seen.append(name)
+
         if name not in src:
             del dest[name]
 
@@ -174,6 +176,13 @@ def replace_dict(src, dest):
         if dest[name] is not src[name]:
             dest[name] = src[name]
 
+    for name in src.keys():
+        if name in seen:
+            continue
+
+        dest[name] = src[name]
+
+    assert src == dest
 
 class BaseCodecMixIn(object):
     amf_version = pyamf.AMF0

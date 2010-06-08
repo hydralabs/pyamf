@@ -39,7 +39,7 @@ class EncodingTestCase(unittest.TestCase):
         m = messaging.AcknowledgeMessage()
         m.correlationId = '1234'
 
-        self.assertEquals(pyamf.encode(m).getvalue(),
+        self.assertEqual(pyamf.encode(m).getvalue(),
             '\n\x81\x03Uflex.messaging.messages.AcknowledgeMessage\tbody'
             '\x11clientId\x1bcorrelationId\x17destination\x0fheaders\x13'
             'messageId\x15timeToLive\x13timestamp\x01\x01\x06\t1234\x01\n\x0b'
@@ -48,7 +48,7 @@ class EncodingTestCase(unittest.TestCase):
     def test_CommandMessage(self):
         m = messaging.CommandMessage(operation='foo.bar')
 
-        self.assertEquals(pyamf.encode(m).getvalue(),
+        self.assertEqual(pyamf.encode(m).getvalue(),
             '\n\x81\x13Mflex.messaging.messages.CommandMessage\tbody\x11'
             'clientId\x1bcorrelationId\x17destination\x0fheaders\x13messageId'
             '\x13operation\x15timeToLive\x13timestamp\x01\x01\x01\x01\n\x0b'
@@ -57,7 +57,7 @@ class EncodingTestCase(unittest.TestCase):
     def test_ErrorMessage(self):
         m = messaging.ErrorMessage(faultString='ValueError')
 
-        self.assertEquals(pyamf.encode(m).getvalue(),
+        self.assertEqual(pyamf.encode(m).getvalue(),
             '\n\x81SIflex.messaging.messages.ErrorMessage\tbody\x11'
             'clientId\x1bcorrelationId\x17destination\x19extendedData\x13'
             'faultCode\x17faultDetail\x17faultString\x0fheaders\x13messageId'
@@ -68,7 +68,7 @@ class EncodingTestCase(unittest.TestCase):
     def test_RemotingMessage(self):
         m = messaging.RemotingMessage(source='foo.bar')
 
-        self.assertEquals(pyamf.encode(m).getvalue(),
+        self.assertEqual(pyamf.encode(m).getvalue(),
             '\n\x81\x13Oflex.messaging.messages.RemotingMessage'
             '\tbody\x11clientId\x17destination\x0fheaders\x13messageId\x13'
             'operation\rsource\x15timeToLive\x13timestamp\x01\x01\x01\n\x0b'
@@ -97,24 +97,24 @@ class SmallMessageTestCase(unittest.TestCase):
         msg = self.decoder.readElement()
 
         self.assertTrue(isinstance(msg, messaging.AcknowledgeMessageExt))
-        self.assertEquals(msg.body, None)
-        self.assertEquals(msg.destination, None)
-        self.assertEquals(msg.timeToLive, None)
+        self.assertEqual(msg.body, None)
+        self.assertEqual(msg.destination, None)
+        self.assertEqual(msg.timeToLive, None)
 
-        self.assertEquals(msg.timestamp, datetime.datetime(2009, 8, 19, 11, 24, 43, 985000))
-        self.assertEquals(msg.headers, {
+        self.assertEqual(msg.timestamp, datetime.datetime(2009, 8, 19, 11, 24, 43, 985000))
+        self.assertEqual(msg.headers, {
             'DSMessagingVersion': 1.0,
             'DSId': u'EE0D161D-C11D-25CB-8DBE-3B77B54B55D9'
         })
-        self.assertEquals(msg.clientId, uuid.UUID('ee0d161d-c128-265b-c980-524b9b45c6c4'))
-        self.assertEquals(msg.messageId, uuid.UUID('ee0d161d-c13d-8ea3-e010-efad3be5c56a'))
-        self.assertEquals(msg.correlationId, uuid.UUID('538483db-a9c8-ca4d-6095-3266db51c93c'))
-        self.assertEquals(self.buffer.remaining(), 0)
+        self.assertEqual(msg.clientId, uuid.UUID('ee0d161d-c128-265b-c980-524b9b45c6c4'))
+        self.assertEqual(msg.messageId, uuid.UUID('ee0d161d-c13d-8ea3-e010-efad3be5c56a'))
+        self.assertEqual(msg.correlationId, uuid.UUID('538483db-a9c8-ca4d-6095-3266db51c93c'))
+        self.assertEqual(self.buffer.remaining(), 0)
 
         # now encode the msg to check that encoding is byte for byte the same
         buffer = pyamf.encode(msg, encoding=pyamf.AMF3).getvalue()
 
-        self.assertEquals(buffer, bytes)
+        self.assertEqual(buffer, bytes)
 
     def test_command(self):
         bytes = ('\n\x07\x07DSC\x88\x02\n\x0b\x01\tDSId\x06IEE0D161D-C11D-'
@@ -127,23 +127,23 @@ class SmallMessageTestCase(unittest.TestCase):
         msg = self.decoder.readElement()
 
         self.assertTrue(isinstance(msg, messaging.CommandMessageExt))
-        self.assertEquals(msg.body, None)
-        self.assertEquals(msg.destination, None)
-        self.assertEquals(msg.timeToLive, None)
+        self.assertEqual(msg.body, None)
+        self.assertEqual(msg.destination, None)
+        self.assertEqual(msg.timeToLive, None)
 
-        self.assertEquals(msg.timestamp, None)
-        self.assertEquals(msg.headers, {
+        self.assertEqual(msg.timestamp, None)
+        self.assertEqual(msg.headers, {
             'DSId': u'EE0D161D-C11D-25CB-8DBE-3B77B54B55D9'
         })
-        self.assertEquals(msg.clientId, None)
-        self.assertEquals(msg.messageId, uuid.UUID('c0dfb77c-d6ee-2431-7315-3266e131a866'))
-        self.assertEquals(msg.correlationId, u'')
-        self.assertEquals(self.buffer.remaining(), 0)
+        self.assertEqual(msg.clientId, None)
+        self.assertEqual(msg.messageId, uuid.UUID('c0dfb77c-d6ee-2431-7315-3266e131a866'))
+        self.assertEqual(msg.correlationId, u'')
+        self.assertEqual(self.buffer.remaining(), 0)
 
         # now encode the msg to check that encoding is byte for byte the same
         buffer = pyamf.encode(msg, encoding=pyamf.AMF3).getvalue()
 
-        self.assertEquals(buffer, bytes)
+        self.assertEqual(buffer, bytes)
 
     def test_async(self):
         pass
@@ -174,7 +174,7 @@ class SmallMessageTestCase(unittest.TestCase):
         k.update({'correlationId': 'yay'})
 
         self.assertTrue(isinstance(m, messaging.AsyncMessageExt))
-        self.assertEquals(m.__dict__, k)
+        self.assertEqual(m.__dict__, k)
 
         # test command
         a = messaging.CommandMessage(operation='yay', **kwargs)
@@ -184,7 +184,7 @@ class SmallMessageTestCase(unittest.TestCase):
         k.update({'operation': 'yay', 'correlationId': None, 'messageRefType': None})
 
         self.assertTrue(isinstance(m, messaging.CommandMessageExt))
-        self.assertEquals(m.__dict__, k)
+        self.assertEqual(m.__dict__, k)
 
         # test ack
         a = messaging.AcknowledgeMessage(**kwargs)
@@ -194,22 +194,4 @@ class SmallMessageTestCase(unittest.TestCase):
         k.update({'correlationId': None})
 
         self.assertTrue(isinstance(m, messaging.AcknowledgeMessageExt))
-        self.assertEquals(m.__dict__, k)
-
-
-def suite():
-    suite = unittest.TestSuite()
-
-    test_cases = [
-        AbstractMessageTestCase,
-        EncodingTestCase,
-        SmallMessageTestCase
-    ]
-
-    for tc in test_cases:
-        suite.addTest(unittest.makeSuite(tc))
-
-    return suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+        self.assertEqual(m.__dict__, k)

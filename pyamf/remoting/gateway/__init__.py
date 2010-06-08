@@ -587,7 +587,7 @@ def preprocess(func, c, expose_request=False):
 def format_exception():
     import traceback
 
-    f = util.StringIO()
+    f = util.BufferedByteStream()
 
     traceback.print_exc(file=f)
 

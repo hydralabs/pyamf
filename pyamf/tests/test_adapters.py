@@ -7,7 +7,6 @@ Tests for the adapters module.
 @since: 0.3.1
 """
 
-import unittest
 import os
 import sys
 
@@ -59,42 +58,9 @@ class AdapterHelperTestCase(PostLoadHookClearingTestCase):
         import foo
 
         self.assertTrue(self.imported)
-        self.assertEquals(self.foo, foo)
+        self.assertEqual(self.foo, foo)
 
     def test_get_adapter(self):
         from pyamf.adapters import _decimal
 
         self.assertTrue(adapters.get_adapter('decimal') is _decimal)
-
-
-def suite():
-    import os.path
-    from glob import glob
-
-    suite = unittest.TestSuite()
-
-    suite.addTest(unittest.makeSuite(AdapterHelperTestCase))
-
-    for testcase in glob(os.path.join(os.path.dirname(__file__), 'adapters', 'test_*.py')):
-        name = os.path.basename(testcase).split('.')[0]
-        base_mod = ['pyamf', 'tests', 'adapters', name]
-
-        try:
-            __import__(name[5:])
-            mod = __import__('.'.join(base_mod))
-
-            for x in base_mod[1:]:
-                mod = getattr(mod, x)
-
-            suite.addTest(mod.suite())
-        except ImportError:
-            continue
-
-    return suite
-
-
-def main():
-    unittest.main(defaultTest='suite')
-
-if __name__ == '__main__':
-    main()

@@ -13,18 +13,30 @@ import unittest
 
 from StringIO import StringIO
 
-from google.appengine.ext import webapp
+try:
+    from google.appengine.ext import webapp
+    from pyamf.remoting.gateway import google as google
+except ImportError:
+    webapp = None
 
 import pyamf
 from pyamf import remoting
-from pyamf.remoting.gateway import google as _google
 
 
-class WebAppGatewayTestCase(unittest.TestCase):
+class BaseTestCase(unittest.TestCase):
+    """
+    """
+
     def setUp(self):
-        unittest.TestCase.setUp(self)
+        if not webapp:
+            self.skipTest("'google' is not available")
 
-        self.gw = _google.WebAppGateway()
+
+class WebAppGatewayTestCase(BaseTestCase):
+    def setUp(self):
+        BaseTestCase.setUp(self)
+
+        self.gw = google.WebAppGateway()
 
         self.environ = {
             'wsgi.input': StringIO(),
@@ -39,14 +51,14 @@ class WebAppGatewayTestCase(unittest.TestCase):
     def test_get(self):
         self.gw.get()
 
-        self.assertEquals(self.response.__dict__['_Response__status'][0], 405)
+        self.assertEqual(self.response.__dict__['_Response__status'][0], 405)
 
     def test_bad_request(self):
         self.environ['wsgi.input'].write('Bad request')
         self.environ['wsgi.input'].seek(0, 0)
 
         self.gw.post()
-        self.assertEquals(self.response.__dict__['_Response__status'][0], 400)
+        self.assertEqual(self.response.__dict__['_Response__status'][0], 400)
 
     def test_unknown_request(self):
         self.environ['wsgi.input'].write(
@@ -57,22 +69,22 @@ class WebAppGatewayTestCase(unittest.TestCase):
 
         self.gw.post()
 
-        self.assertEquals(self.response.__dict__['_Response__status'][0], 200)
+        self.assertEqual(self.response.__dict__['_Response__status'][0], 200)
 
         envelope = remoting.decode(self.response.out.getvalue())
         message = envelope['/1']
 
-        self.assertEquals(message.status, remoting.STATUS_ERROR)
+        self.assertEqual(message.status, remoting.STATUS_ERROR)
         body = message.body
 
         self.assertTrue(isinstance(body, remoting.ErrorFault))
-        self.assertEquals(body.code, 'Service.ResourceNotFound')
+        self.assertEqual(body.code, 'Service.ResourceNotFound')
 
     def test_expose_request(self):
         self.executed = False
 
         def test(request):
-            self.assertEquals(self.request, request)
+            self.assertEqual(self.request, request)
             self.assertTrue(hasattr(self.request, 'amf_request'))
 
             self.executed = True
@@ -97,7 +109,7 @@ class WebAppGatewayTestCase(unittest.TestCase):
         now = datetime.datetime.utcnow()
 
         def echo(d):
-            self.assertEquals(d, now + td)
+            self.assertEqual(d, now + td)
             self.executed = True
 
             return d
@@ -115,16 +127,5 @@ class WebAppGatewayTestCase(unittest.TestCase):
         envelope = remoting.decode(self.response.out.getvalue())
         message = envelope['/1']
 
-        self.assertEquals(message.body, now)
+        self.assertEqual(message.body, now)
         self.assertTrue(self.executed)
-
-
-def suite():
-    suite = unittest.TestSuite()
-
-    suite.addTest(unittest.makeSuite(WebAppGatewayTestCase))
-
-    return suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

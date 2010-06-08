@@ -44,44 +44,29 @@ class HelperTestCase(unittest.TestCase):
         self.encoder = object()
 
     def test_to_list(self):
-        self.assertEquals(util.to_list(Iterable([1, 2, 3]), self.encoder), [1, 2, 3])
-        self.assertEquals(util.to_list(['a', 'b'], self.encoder), ['a', 'b'])
-        self.assertEquals(util.to_list('a', self.encoder), ['a'])
+        self.assertEqual(util.to_list(Iterable([1, 2, 3]), self.encoder), [1, 2, 3])
+        self.assertEqual(util.to_list(['a', 'b'], self.encoder), ['a', 'b'])
+        self.assertEqual(util.to_list('a', self.encoder), ['a'])
 
         obj = object()
         self.assertRaises(TypeError, util.to_list, obj, self.encoder)
 
     def test_to_set(self):
-        self.assertEquals(util.to_set(Iterable([1, 2, 3]), self.encoder), set([1, 2, 3]))
-        self.assertEquals(util.to_set(['a', 'b'], self.encoder), set(['a', 'b']))
-        self.assertEquals(util.to_set('a', self.encoder), set('a'))
+        self.assertEqual(util.to_set(Iterable([1, 2, 3]), self.encoder), set([1, 2, 3]))
+        self.assertEqual(util.to_set(['a', 'b'], self.encoder), set(['a', 'b']))
+        self.assertEqual(util.to_set('a', self.encoder), set('a'))
 
         obj = object()
         self.assertRaises(TypeError, util.to_set, obj, self.encoder)
 
     def test_to_dict(self):
-        self.assertEquals(util.to_dict(Iterable({'a': 'b'}), self.encoder), {'a': 'b'})
+        self.assertEqual(util.to_dict(Iterable({'a': 'b'}), self.encoder), {'a': 'b'})
 
         obj = object()
         self.assertRaises(TypeError, util.to_dict, obj, self.encoder)
 
     def test_to_tuple(self):
-        self.assertEquals(util.to_tuple(Iterable((1, 2, 3)), self.encoder), (1, 2, 3))
+        self.assertEqual(util.to_tuple(Iterable((1, 2, 3)), self.encoder), (1, 2, 3))
 
         obj = object()
         self.assertRaises(TypeError, util.to_tuple, obj, self.encoder)
-
-
-def suite():
-    suite = unittest.TestSuite()
-
-    suite.addTest(unittest.makeSuite(HelperTestCase))
-
-    return suite
-
-
-def main():
-    unittest.main(defaultTest='suite')
-
-if __name__ == '__main__':
-    main()

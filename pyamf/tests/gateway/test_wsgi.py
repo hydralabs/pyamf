@@ -24,7 +24,7 @@ class WSGIServerTestCase(unittest.TestCase):
     def test_request_method(self):
         def bad_response(status, headers):
             self.executed = True
-            self.assertEquals(status, '400 Bad Request')
+            self.assertEqual(status, '400 Bad Request')
 
         self.gw({'REQUEST_METHOD': 'GET'}, bad_response)
         self.assertTrue(self.executed)
@@ -44,7 +44,7 @@ class WSGIServerTestCase(unittest.TestCase):
         }
 
         def start_response(status, headers):
-            self.assertEquals(status, '400 Bad Request')
+            self.assertEqual(status, '400 Bad Request')
             self.executed = True
 
         self.gw(env, start_response)
@@ -65,7 +65,7 @@ class WSGIServerTestCase(unittest.TestCase):
 
         def start_response(status, headers):
             self.executed = True
-            self.assertEquals(status, '200 OK')
+            self.assertEqual(status, '200 OK')
             self.assertTrue(('Content-Type', 'application/x-amf') in headers)
 
         response = self.gw(env, start_response)
@@ -73,11 +73,11 @@ class WSGIServerTestCase(unittest.TestCase):
 
         message = envelope['/1']
 
-        self.assertEquals(message.status, remoting.STATUS_ERROR)
+        self.assertEqual(message.status, remoting.STATUS_ERROR)
         body = message.body
 
         self.assertTrue(isinstance(body, remoting.ErrorFault))
-        self.assertEquals(body.code, 'Service.ResourceNotFound')
+        self.assertEqual(body.code, 'Service.ResourceNotFound')
         self.assertTrue(self.executed)
 
     def test_eof_decode(self):
@@ -91,12 +91,12 @@ class WSGIServerTestCase(unittest.TestCase):
 
         def start_response(status, headers):
             self.executed = True
-            self.assertEquals(status, '400 Bad Request')
+            self.assertEqual(status, '400 Bad Request')
             self.assertTrue(('Content-Type', 'text/plain') in headers)
 
         response = self.gw(env, start_response)
 
-        self.assertEquals(response, ['400 Bad Request\n\nThe request body was unable to be successfully decoded.'])
+        self.assertEqual(response, ['400 Bad Request\n\nThe request body was unable to be successfully decoded.'])
         self.assertTrue(self.executed)
 
     def _raiseException(self, e, *args, **kwargs):
@@ -116,7 +116,7 @@ class WSGIServerTestCase(unittest.TestCase):
 
         def start_response(status, headers):
             self.executed = True
-            self.assertEquals(status, '500 Internal Server Error')
+            self.assertEqual(status, '500 Internal Server Error')
             self.assertTrue(('Content-Type', 'text/plain') in headers)
 
         try:
@@ -128,7 +128,7 @@ class WSGIServerTestCase(unittest.TestCase):
 
         remoting.decode = self.old_method
 
-        self.assertEquals(response, ['500 Internal Server Error\n\nAn unexpec'
+        self.assertEqual(response, ['500 Internal Server Error\n\nAn unexpec'
             'ted error occurred whilst decoding.'])
         self.assertTrue(self.executed)
 
@@ -174,15 +174,15 @@ class WSGIServerTestCase(unittest.TestCase):
 
             self.assertTrue(isinstance(request, remoting.Request))
 
-            self.assertEquals(request.target, 'echo')
-            self.assertEquals(request.body, ['hello'])
+            self.assertEqual(request.target, 'echo')
+            self.assertEqual(request.body, ['hello'])
             self.executed = True
 
             return data
 
         self.gw.addService(echo)
 
-        response = self.gw(env, lambda *args: None)
+        self.gw(env, lambda *args: None)
 
         self.assertTrue(self.executed)
 
@@ -195,7 +195,7 @@ class WSGIServerTestCase(unittest.TestCase):
         now = datetime.datetime.utcnow()
 
         def echo(d):
-            self.assertEquals(d, now + td)
+            self.assertEqual(d, now + td)
             self.executed = True
 
             return d
@@ -218,15 +218,4 @@ class WSGIServerTestCase(unittest.TestCase):
         envelope = remoting.decode(''.join(response))
         message = envelope['/1']
 
-        self.assertEquals(message.body, now)
-
-
-def suite():
-    suite = unittest.TestSuite()
-
-    suite.addTest(unittest.makeSuite(WSGIServerTestCase))
-
-    return suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
+        self.assertEqual(message.body, now)

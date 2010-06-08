@@ -33,13 +33,13 @@ class DecoderTestCase(unittest.TestCase):
     def test_null_msg(self):
         msg = remoting.decode('\x00\x00\x00\x00\x00\x00')
 
-        self.assertEquals(msg.amfVersion, 0)
-        self.assertEquals(msg.headers, {})
-        self.assertEquals(msg, {})
+        self.assertEqual(msg.amfVersion, 0)
+        self.assertEqual(msg.headers, {})
+        self.assertEqual(msg, {})
 
         y = [x for x in msg]
 
-        self.assertEquals(y, [])
+        self.assertEqual(y, [])
 
     def test_simple_header(self):
         """
@@ -48,16 +48,16 @@ class DecoderTestCase(unittest.TestCase):
         msg = remoting.decode('\x00\x00\x00\x01\x00\x04name\x00\x00\x00\x00'
             '\x05\x0a\x00\x00\x00\x00\x00\x00')
 
-        self.assertEquals(msg.amfVersion, 0)
-        self.assertEquals(len(msg.headers), 1)
-        self.assertEquals('name' in msg.headers, True)
-        self.assertEquals(msg.headers['name'], [])
+        self.assertEqual(msg.amfVersion, 0)
+        self.assertEqual(len(msg.headers), 1)
+        self.assertEqual('name' in msg.headers, True)
+        self.assertEqual(msg.headers['name'], [])
         self.assertFalse(msg.headers.is_required('name'))
-        self.assertEquals(msg, {})
+        self.assertEqual(msg, {})
 
         y = [x for x in msg]
 
-        self.assertEquals(y, [])
+        self.assertEqual(y, [])
 
     def test_required_header(self):
         msg = remoting.decode('\x00\x00\x00\x01\x00\x04name\x01\x00\x00\x00'
@@ -78,19 +78,19 @@ class DecoderTestCase(unittest.TestCase):
             '\x05\x0a\x00\x00\x00\x00\x00\x04spam\x01\x00\x00\x00\x01\x05\x00'
             '\x00')
 
-        self.assertEquals(msg.amfVersion, 0)
-        self.assertEquals(len(msg.headers), 2)
-        self.assertEquals('name' in msg.headers, True)
-        self.assertEquals('spam' in msg.headers, True)
-        self.assertEquals(msg.headers['name'], [])
+        self.assertEqual(msg.amfVersion, 0)
+        self.assertEqual(len(msg.headers), 2)
+        self.assertEqual('name' in msg.headers, True)
+        self.assertEqual('spam' in msg.headers, True)
+        self.assertEqual(msg.headers['name'], [])
         self.assertFalse(msg.headers.is_required('name'))
-        self.assertEquals(msg.headers['spam'], None)
+        self.assertEqual(msg.headers['spam'], None)
         self.assertTrue(msg.headers.is_required('spam'))
-        self.assertEquals(msg, {})
+        self.assertEqual(msg, {})
 
         y = [x for x in msg]
 
-        self.assertEquals(y, [])
+        self.assertEqual(y, [])
 
     def test_simple_body(self):
         self.failUnlessRaises(IOError, remoting.decode,
@@ -100,22 +100,22 @@ class DecoderTestCase(unittest.TestCase):
             '\x02/1\x00\x00\x00\x14\x0a\x00\x00\x00\x01\x08\x00\x00\x00\x00'
             '\x00\x01\x61\x02\x00\x01\x61\x00\x00\x09')
 
-        self.assertEquals(msg.amfVersion, 0)
-        self.assertEquals(len(msg.headers), 0)
-        self.assertEquals(len(msg), 1)
+        self.assertEqual(msg.amfVersion, 0)
+        self.assertEqual(len(msg.headers), 0)
+        self.assertEqual(len(msg), 1)
         self.assertTrue('/1' in msg)
 
         m = msg['/1']
 
-        self.assertEquals(m.target, 'test.test')
-        self.assertEquals(m.body, [{'a': 'a'}])
+        self.assertEqual(m.target, 'test.test')
+        self.assertEqual(m.body, [{'a': 'a'}])
 
         y = [x for x in msg]
 
-        self.assertEquals(len(y), 1)
+        self.assertEqual(len(y), 1)
 
         x = y[0]
-        self.assertEquals(('/1', m), x)
+        self.assertEqual(('/1', m), x)
 
     def test_invalid_body_data_length(self):
         remoting.decode('\x00\x00\x00\x00\x00\x01\x00\x09test.test\x00\x02/1'
@@ -137,8 +137,8 @@ class DecoderTestCase(unittest.TestCase):
         request_envelope = remoting.decode(request)
         it = iter(request_envelope)
 
-        self.assertEquals(it.next()[0], '/2')
-        self.assertEquals(it.next()[0], '/1')
+        self.assertEqual(it.next()[0], '/2')
+        self.assertEqual(it.next()[0], '/1')
 
         self.assertRaises(StopIteration, it.next)
 
@@ -153,17 +153,17 @@ class DecoderTestCase(unittest.TestCase):
             '\x0b\x01\x09\x73\x74\x72\x41\x06\x09\x74\x65\x73\x74\x09\x73\x74'
             '\x72\x42\x06\x02\x01')
 
-        self.assertEquals(msg.amfVersion, 0)
-        self.assertEquals(len(msg.headers), 1)
-        self.assertEquals(msg.headers['Credentials'],
+        self.assertEqual(msg.amfVersion, 0)
+        self.assertEqual(len(msg.headers), 1)
+        self.assertEqual(msg.headers['Credentials'],
             {'password': 'gggg', 'userid':'genopro\\@gerard'})
-        self.assertEquals(len(msg), 1)
+        self.assertEqual(len(msg), 1)
         self.assertTrue('/1' in msg)
 
         m = msg['/1']
 
-        self.assertEquals(m.target, 'createGroup')
-        self.assertEquals(m.body, [{'strB':'test', 'strA':'test'}])
+        self.assertEqual(m.target, 'createGroup')
+        self.assertEqual(m.body, [{'strB':'test', 'strA':'test'}])
 
     def test_timezone(self):
         """
@@ -178,7 +178,7 @@ class DecoderTestCase(unittest.TestCase):
             '\x00\x00\n\x00\x00\x00\x01\x0bBr>\xcc\n~\x00\x00\x00\x00',
             timezone_offset=td)
 
-        self.assertEquals(msg['/1'].body[0],
+        self.assertEqual(msg['/1'].body[0],
             datetime.datetime(2009, 9, 24, 10, 52, 12))
 
 
@@ -190,10 +190,10 @@ class EncoderTestCase(unittest.TestCase):
         """
         """
         msg = remoting.Envelope(pyamf.AMF0)
-        self.assertEquals(remoting.encode(msg).getvalue(), '\x00' * 6)
+        self.assertEqual(remoting.encode(msg).getvalue(), '\x00' * 6)
 
         msg = remoting.Envelope(pyamf.AMF3)
-        self.assertEquals(remoting.encode(msg).getvalue(),
+        self.assertEqual(remoting.encode(msg).getvalue(),
             '\x00\x03' + '\x00' * 4)
 
     def test_header(self):
@@ -203,14 +203,14 @@ class EncoderTestCase(unittest.TestCase):
         msg = remoting.Envelope(pyamf.AMF0)
 
         msg.headers['spam'] = (False, 'eggs')
-        self.assertEquals(remoting.encode(msg).getvalue(),
+        self.assertEqual(remoting.encode(msg).getvalue(),
             '\x00\x00\x00\x01\x00\x04spam\x00\x00\x00\x00\x00\n\x00\x00\x00\x02'
             '\x01\x00\x02\x00\x04eggs\x00\x00')
 
         msg = remoting.Envelope(pyamf.AMF0)
 
         msg.headers['spam'] = (True, ['a', 'b', 'c'])
-        self.assertEquals(remoting.encode(msg).getvalue(),
+        self.assertEqual(remoting.encode(msg).getvalue(),
             '\x00\x00\x00\x01\x00\x04spam\x00\x00\x00\x00\x00\n\x00\x00\x00\x02'
             '\x01\x01\n\x00\x00\x00\x03\x02\x00\x01a\x02\x00\x01b\x02\x00\x01c'
             '\x00\x00')
@@ -223,17 +223,17 @@ class EncoderTestCase(unittest.TestCase):
 
         msg['/1'] = remoting.Request('test.test', body=['hello'])
 
-        self.assertEquals(len(msg), 1)
+        self.assertEqual(len(msg), 1)
 
         x = msg['/1']
 
         self.assertTrue(isinstance(x, remoting.Request))
-        self.assertEquals(x.envelope, msg)
-        self.assertEquals(x.target, 'test.test')
-        self.assertEquals(x.body, ['hello'])
-        self.assertEquals(x.headers, msg.headers)
+        self.assertEqual(x.envelope, msg)
+        self.assertEqual(x.target, 'test.test')
+        self.assertEqual(x.body, ['hello'])
+        self.assertEqual(x.headers, msg.headers)
 
-        self.assertEquals(remoting.encode(msg).getvalue(),
+        self.assertEqual(remoting.encode(msg).getvalue(),
             '\x00\x00\x00\x00\x00\x01\x00\ttest.test\x00\x02/1\x00\x00\x00'
             '\x00\n\x00\x00\x00\x01\x02\x00\x05hello')
 
@@ -245,17 +245,17 @@ class EncoderTestCase(unittest.TestCase):
 
         msg['/1'] = remoting.Response(body=[1, 2, 3])
 
-        self.assertEquals(len(msg), 1)
+        self.assertEqual(len(msg), 1)
 
         x = msg['/1']
 
         self.assertTrue(isinstance(x, remoting.Response))
-        self.assertEquals(x.envelope, msg)
-        self.assertEquals(x.body, [1, 2, 3])
-        self.assertEquals(x.status, 0)
-        self.assertEquals(x.headers, msg.headers)
+        self.assertEqual(x.envelope, msg)
+        self.assertEqual(x.body, [1, 2, 3])
+        self.assertEqual(x.status, 0)
+        self.assertEqual(x.headers, msg.headers)
 
-        self.assertEquals(remoting.encode(msg).getvalue(), '\x00\x00\x00\x00'
+        self.assertEqual(remoting.encode(msg).getvalue(), '\x00\x00\x00\x00'
             '\x00\x01\x00\x0b/1/onResult\x00\x04null\x00\x00\x00\x00\n\x00\x00'
             '\x00\x03\x00?\xf0\x00\x00\x00\x00\x00\x00\x00@\x00\x00\x00\x00'
             '\x00\x00\x00\x00@\x08\x00\x00\x00\x00\x00\x00')
@@ -269,9 +269,9 @@ class EncoderTestCase(unittest.TestCase):
 
         it = iter(msg)
 
-        self.assertEquals(it.next()[0], '/3')
-        self.assertEquals(it.next()[0], '/1')
-        self.assertEquals(it.next()[0], '/2')
+        self.assertEqual(it.next()[0], '/3')
+        self.assertEqual(it.next()[0], '/1')
+        self.assertEqual(it.next()[0], '/2')
 
         self.assertRaises(StopIteration, it.next)
 
@@ -285,7 +285,7 @@ class EncoderTestCase(unittest.TestCase):
 
         buf = remoting.encode(msg)
 
-        self.assertEquals(buf.getvalue(), '\x00\x03\x00\x00\x00\x01\x00\x0b/1'
+        self.assertEqual(buf.getvalue(), '\x00\x03\x00\x00\x00\x01\x00\x0b/1'
             '/onResult\x00\x04null\x00\x00\x00\x00\x11\x0bq<root><sections>'
             '<section /><section /></sections></root>')
 
@@ -298,7 +298,7 @@ class EncoderTestCase(unittest.TestCase):
         msg['/1'] = remoting.Response(body=[1, 2, 3])
 
         stream = remoting.encode(msg)
-        self.assertEquals(stream.tell(), 0)
+        self.assertEqual(stream.tell(), 0)
 
     def test_timezone(self):
         """
@@ -314,7 +314,7 @@ class EncoderTestCase(unittest.TestCase):
 
         stream = remoting.encode(msg, timezone_offset=td).getvalue()
 
-        self.assertEquals(stream, '\x00\x00\x00\x00\x00\x01\x00\x0b/1/onResult'
+        self.assertEqual(stream, '\x00\x00\x00\x00\x00\x01\x00\x0b/1/onResult'
             '\x00\x04null\x00\x00\x00\x00\n\x00\x00\x00\x01\x0bBr>\xdd5\x06'
             '\x00\x00\x00\x00')
 
@@ -325,7 +325,7 @@ class StrictEncodingTestCase(unittest.TestCase):
 
         msg['/1'] = remoting.Request('test.test', body=['hello'])
 
-        self.assertEquals(remoting.encode(msg, strict=True).getvalue(),
+        self.assertEqual(remoting.encode(msg, strict=True).getvalue(),
             '\x00\x00\x00\x00\x00\x01\x00\ttest.test\x00\x02/1\x00\x00\x00'
             '\r\n\x00\x00\x00\x01\x02\x00\x05hello')
 
@@ -334,7 +334,7 @@ class StrictEncodingTestCase(unittest.TestCase):
 
         msg['/1'] = remoting.Response(['spam'])
 
-        self.assertEquals(remoting.encode(msg, strict=True).getvalue(),
+        self.assertEqual(remoting.encode(msg, strict=True).getvalue(),
             '\x00\x00\x00\x00\x00\x01\x00\x0b/1/onResult\x00\x04null\x00\x00'
             '\x00\x0c\n\x00\x00\x00\x01\x02\x00\x04spam')
 
@@ -346,8 +346,10 @@ class FaultTestCase(unittest.TestCase):
         self.assertRaises(remoting.RemotingCallFailed, x.raiseException)
 
     def test_kwargs(self):
-        x = remoting.get_fault({'foo': 'bar'})
         # The fact that this doesn't throw an error means that this test passes
+        x = remoting.get_fault({'foo': 'bar'})
+
+        self.assertIsInstance(x, remoting.ErrorFault)
 
 
 class ContextTextCase(unittest.TestCase):
@@ -359,7 +361,7 @@ class ContextTextCase(unittest.TestCase):
         msg['/2'] = remoting.Request('bar', body=[f])
 
         s = remoting.encode(msg).getvalue()
-        self.assertEquals(s, '\x00\x00\x00\x00\x00\x02\x00\x03foo\x00\x02/1'
+        self.assertEqual(s, '\x00\x00\x00\x00\x00\x02\x00\x03foo\x00\x02/1'
             '\x00\x00\x00\x00\n\x00\x00\x00\x01\n\x00\x00\x00\x03\x02\x00\x01'
             'a\x02\x00\x01b\x02\x00\x01c\x00\x03bar\x00\x02/2\x00\x00\x00\x00'
             '\n\x00\x00\x00\x01\n\x00\x00\x00\x03\x02\x00\x01a\x02\x00\x01b'
@@ -377,7 +379,7 @@ class FunctionalTestCase(unittest.TestCase):
         msg = remoting.Envelope(pyamf.AMF0)
         msg['/1'] = remoting.Response([stream])
 
-        self.assertEquals(remoting.encode(msg).getvalue(),
+        self.assertEqual(remoting.encode(msg).getvalue(),
             '\x00\x00\x00\x00\x00\x01\x00\x0b/1/onResult\x00\x04null'
             '\x00\x00\x00\x00\n\x00\x00\x00\x01\x11\x0c\x1112345678')
 
@@ -386,48 +388,17 @@ class ReprTestCase(unittest.TestCase):
     def test_response(self):
         r = remoting.Response(u'€±')
 
-        self.assertEquals(repr(r),
+        self.assertEqual(repr(r),
             "<Response status=/onResult>u'\\u20ac\\xb1'</Response>")
 
     def test_request(self):
         r = remoting.Request(u'€±', [u'å∫ç'])
 
-        self.assertEquals(repr(r),
+        self.assertEqual(repr(r),
             "<Request target=u'\\u20ac\\xb1'>[u'\\xe5\\u222b\\xe7']</Request>")
 
     def test_base_fault(self):
         r = remoting.BaseFault(code=u'å', type=u'å', description=u'å', details=u'å')
 
-        self.assertEquals(repr(r),
+        self.assertEqual(repr(r),
             "BaseFault level=None code=u'\\xe5' type=u'\\xe5' description=u'\\xe5'\nTraceback:\nu'\\xe5'")
-
-
-def suite():
-    """
-    Add tests.
-    """
-    suite = unittest.TestSuite()
-
-    test_cases = [
-        DecoderTestCase,
-        EncoderTestCase,
-        StrictEncodingTestCase,
-        FaultTestCase,
-        ContextTextCase,
-        FunctionalTestCase,
-        ReprTestCase
-    ]
-
-    for tc in test_cases:
-        suite.addTest(unittest.makeSuite(tc))
-
-    from pyamf.tests.remoting import test_client, test_remoteobject, test_amf0
-
-    suite.addTest(test_client.suite())
-    suite.addTest(test_remoteobject.suite())
-    suite.addTest(test_amf0.suite())
-
-    return suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')
