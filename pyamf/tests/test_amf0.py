@@ -15,8 +15,9 @@ import types
 
 import pyamf
 from pyamf import amf0, util
-from pyamf.tests.util import check_buffer, EncoderTester, DecoderTester, \
-    ClassCacheClearingTestCase, Spam, ClassicSpam, isNaN, isPosInf, isNegInf
+from pyamf.tests.util import (
+    check_buffer, EncoderTester, DecoderTester, ClassCacheClearingTestCase,
+    Spam, ClassicSpam, isNaN, isPosInf, isNegInf)
 
 
 class TypesTestCase(unittest.TestCase):

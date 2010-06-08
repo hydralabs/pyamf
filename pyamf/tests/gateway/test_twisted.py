@@ -167,7 +167,6 @@ class TwistedServerTestCase(BaseTestCase):
             self.assertTrue(isinstance(http_request, http.Request))
 
             self.assertTrue(hasattr(http_request, 'amf_request'))
-            amf_request = http_request.amf_request
 
             self.assertEqual(request.target, 'echo')
             self.assertEqual(request.body, ['hello'])

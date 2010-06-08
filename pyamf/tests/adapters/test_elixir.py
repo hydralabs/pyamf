@@ -12,12 +12,10 @@ import unittest
 try:
     import elixir as e
     from pyamf.adapters import _elixir as adapter
-
 except ImportError:
     e = None
 
 import pyamf
-from pyamf.tests.util import Spam
 
 
 if e:

@@ -182,7 +182,7 @@ class WSGIServerTestCase(unittest.TestCase):
 
         self.gw.addService(echo)
 
-        response = self.gw(env, lambda *args: None)
+        self.gw(env, lambda *args: None)
 
         self.assertTrue(self.executed)
 

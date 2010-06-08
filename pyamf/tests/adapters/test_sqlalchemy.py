@@ -395,27 +395,3 @@ class AdapterTestCase(BaseTestCase):
     def test_not_mapped(self):
         self.assertRaises(adapter.UnmappedInstanceError, adapter.class_mapper, Spam)
         self.assertFalse(adapter.is_class_sa_mapped(Spam))
-
-
-def suite():
-    suite = unittest.TestSuite()
-
-    try:
-        import pysqlite2
-    except ImportError:
-        return suite
-
-    classes = [
-        SATestCase,
-        AdapterTestCase,
-        ClassAliasTestCase,
-        ApplyAttributesTestCase
-    ]
-
-    for x in classes:
-        suite.addTest(unittest.makeSuite(x))
-
-    return suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

@@ -233,23 +233,3 @@ class ModuleFinderLoadModuleTestCase(BaseModuleFinderTestCase):
 
         self.assertTrue(self.executed)
         self.assertTrue(mod is sys.modules['foo'])
-
-
-def suite():
-    suite = unittest.TestSuite()
-
-    tcs = [
-        SplitModuleTestCase,
-        RunHooksTestCase,
-        WhenImportedTestCase,
-        ModuleFinderFindModuleTestCase,
-        ModuleFinderLoadModuleTestCase
-    ]
-
-    for tc in tcs:
-        suite.addTest(unittest.makeSuite(tc))
-
-    return suite
-
-if __name__ == '__main__':
-    unittest.main(defaultTest='suite')

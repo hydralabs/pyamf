@@ -462,6 +462,13 @@ class ForeignKeyTestCase(ModelsBaseTestCase):
 
         self.assertEqual(attrs, {'id': None})
 
+        bfk = BlankForeignKey()
+
+        attrs = bfk_alias.getEncodableAttributes(bfk)
+
+        self.assertEqual(attrs, {'id': None})
+
+
     def test_static_relation(self):
         """
         @see: #693
