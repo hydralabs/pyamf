@@ -389,7 +389,7 @@ cdef class cBufferedByteStream(object):
         if self.has_available(size) == -1:
             size = self.length
 
-        buf = self.buffer[self.pos + size]
+        buf[0] = self.buffer + self.pos + size
 
         return size
 
@@ -422,7 +422,7 @@ cdef class cBufferedByteStream(object):
         cdef char *buf = NULL
         cdef Py_ssize_t cur_pos = self.pos
 
-        buf = malloc(sizeof(char *) * self.length)
+        buf = <char *>malloc(sizeof(char *) * self.length)
         memcpy(buf, self.buffer, self.length)
 
         free(self.buffer)
@@ -462,7 +462,7 @@ cdef class cBufferedByteStream(object):
 
         if size > 0:
             size = self.peek(&peek_buf, size)
-            buf = malloc(sizeof(char *) * size)
+            buf = <char *>malloc(sizeof(char *) * size)
 
             if buf == NULL:
                 python_exc.PyErr_NoMemory()

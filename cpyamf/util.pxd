@@ -27,7 +27,7 @@ cdef class cBufferedByteStream:
     cpdef inline Py_ssize_t remaining(self) except -1
     cpdef int seek(self, Py_ssize_t pos, int mode=*) except -1
     cpdef object getvalue(self)
-    cdef int peek(self, char **buf, Py_ssize_t size) except -1
+    cdef Py_ssize_t peek(self, char **buf, Py_ssize_t size) except -1
     cpdef int truncate(self, Py_ssize_t size=?) except -1
     cpdef int consume(self) except -1
     cdef int unpack_int(self, int num_bytes, long *ret) except -1

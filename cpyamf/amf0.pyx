@@ -103,7 +103,7 @@ cdef class Decoder(codec.Codec):
 
     cdef amf3.Decoder amf3_decoder
 
-    cef __cinit__(self):
+    def __cinit__(self):
         self.amf3_decoder = NULL
 
     cdef Context buildContext(self):
