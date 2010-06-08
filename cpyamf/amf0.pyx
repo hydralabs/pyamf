@@ -33,7 +33,6 @@ cdef extern from "Python.h":
 
 from cpyamf cimport codec, amf3, util
 import pyamf
-from pyamf import util
 import types
 
 
@@ -79,13 +78,13 @@ cdef class Context(codec.Context):
 
         self.amf3_objs = []
 
-    cpdef object hasAMF3ObjectReference(self, obj):
+    cdef object hasAMF3ObjectReference(self, obj):
         """
         Gets a reference for an object.
         """
         return obj in self.amf3_objs
 
-    cpdef int addAMF3Object(self, obj) except -1:
+    cdef int addAMF3Object(self, obj) except -1:
         """
         Adds an AMF3 reference to C{obj}.
 
@@ -101,6 +100,11 @@ cdef class Decoder(codec.Codec):
     """
     Decodes an AMF0 stream.
     """
+
+    cdef amf3.Decoder amf3_decoder
+
+    cef __cinit__(self):
+        self.amf3_decoder = NULL
 
     cdef Context buildContext(self):
         return Context()
@@ -119,46 +123,38 @@ cdef class Decoder(codec.Codec):
         cdef unsigned char *buf
 
         self.stream.read_double(&number)
-        buf = <unsigned char *>&number
+        #buf = <unsigned char *>&number
 
-        if floor(number) == number:
-            if memcmp(buf, &util.system_nan, 8) == 0:
-                done = 1
-            elif memcmp(buf, &util.system_posinf, 8) == 0:
-                done = 1
-            elif memcmp(buf, &util.system_neginf, 8) == 0:
-                done = 1
+        #if floor(number) == number:
+        #    if memcmp(buf, &util.system_nan, 8) == 0:
+        #        done = 1
+        #    elif memcmp(buf, &util.system_posinf, 8) == 0:
+        #        done = 1
+        #    elif memcmp(buf, &util.system_neginf, 8) == 0:
+        #        done = 1
 
-            if done == 0:
-                return int(number)
+        #    if done == 0:
+        #        return int(number)
 
         return number
 
-    def readBoolean(self):
-        """
-        Reads a ActionScript C{Boolean} value.
+    cdef object readBoolean(self):
+        cdef unsigned char b
 
-        @rtype: C{bool}
-        @return: Boolean.
-        """
-        return bool(self.stream.read_uchar())
+        self.stream.read_uchar(&b)
 
-    def readNull(self):
-        """
-        Reads a ActionScript C{null} value.
+        if b == 1:
+            return True
+        elif b == 0:
+            return False
 
-        @return: C{None}
-        @rtype: C{None}
-        """
+        raise pyamf.DecodeError('Unexpected value when decoding boolean')
+
+    cdef inline object readNull(self):
         return None
 
-    def readUndefined(self):
-        """
-        Reads an ActionScript C{undefined} value.
-
-        @return: L{Undefined<pyamf.Undefined>}
-        """
-        return pyamf.Undefined
+    cdef inline object readUndefined(self):
+        return <object>Undefined
 
     def readMixedArray(self):
         """
@@ -167,7 +163,10 @@ cdef class Decoder(codec.Codec):
         @rtype: C{dict}
         @return: C{dict} read from the stream
         """
-        self.stream.read_ulong()
+        cdef unsigned long l
+
+        self.stream.read_ulong(&l)
+
         obj = pyamf.MixedArray()
         self.context.addObject(obj)
         self._readObject(obj)
@@ -187,19 +186,21 @@ cdef class Decoder(codec.Codec):
 
         return obj
 
-    def readList(self):
+    cdef object readList(self):
         """
         Read a C{list} from the data stream.
 
         @rtype: C{list}
         @return: C{list}
         """
-        obj = []
-        self.context.addObject(obj)
-        len = self.stream.read_ulong()
+        cdef unsigned long l
+        cdef list obj = []
 
-        for i in xrange(len):
-            obj.append(self.readElement())
+        self.context.addObject(obj)
+        self.stream.read_ulong(&l)
+
+        for 0 <= i < l:
+            PyList_Append(obj, self.readElement())
 
         return obj
 
@@ -228,61 +229,74 @@ cdef class Decoder(codec.Codec):
 
         return ret
 
-    def _getAMF3Decoder(self):
-        decoder = getattr(self, 'amf3_decoder', None)
+    cdef inline amf3.Decoder _getAMF3Decoder(self):
+        if self.amf3_decoder == NULL:
+            self.amf3_decoder = amf3.Decoder(self.stream)
 
-        if not decoder:
-            decoder = pyamf.get_decoder(pyamf.AMF3, stream=self.stream)
+        return self.amf3_decoder
 
-        return decoder
-
-    def readAMF3(self):
+    cdef object readAMF3(self):
         """
         Read AMF3 elements from the data stream.
 
         @rtype: C{mixed}
         @return: The AMF3 element read from the stream
         """
-        decoder = self._getAMF3Decoder()
+        cdef amf3.Decoder decoder = self._getAMF3Decoder()
+        cdef object element = decoder.readElement()
 
-        element = decoder.readElement()
         self.context.addAMF3Object(element)
 
         return element
 
-    def readString(self):
+    cdef inline char *readBytes(self, bint big=0) except NULL:
+        cdef Py_ssize_t l
+        char *buf = NULL
+
+        if not big:
+            self.stream.read_ushort(&<unsigned short>l)
+        else:
+            self.stream.read_ulong(&<unsigned long>l)
+
+        self.stream.read(buf, l)
+
+        return buf
+
+    cdef object readString(self, bint big=0):
         """
         Reads a C{string} from the stream.
         """
-        l = self.stream.read_ushort()
+        cdef char *buf = self.readBytes(big)
+        cdef object s
 
-        return self.stream.read(l)
+        try:
+            s = PyString_FromStringAndSize(buf, r)
+        finally:
+            if buf != NULL:
+                free(buf)
 
-    cdef object readUnicode(self):
+        return s
+
+    cdef object readUnicode(self, bint big=0):
         """
         Reads a C{unicode} from the data stream.
         """
-        cdef unsigned short l
-        cdef char *bytes = NULL
-
-        self.stream.read_ushort(&l)
+        cdef char *bytes = self.readBytes(big)
 
         try:
-            self.stream.read(&bytes, l)
-        except:
-            if bytes != NULL:
-                PyMem_Free(bytes)
-
-        return self.context.getUnicodeForString(bytes)
+            return self.context.getUnicodeForString(bytes)
+        finally:
+            free(bytes)
 
     cdef int _readObject(self, obj, alias=None) except -1:
-        cdef dictobj_attrs = dict()
-
-        key = self.readString()
+        cdef dict obj_attrs = {}
+        cdef char *key
 
         while self.stream.peek() != TYPE_OBJECTTERM:
+            key = self.readBytes()
+            # change to PyDict_SetString()
             obj_attrs[key] = self.readElement()
-            key = self.readString()
+            free(key)
 
         # discard the end marker (TYPE_OBJECTTERM)
         self.stream.read(1)
