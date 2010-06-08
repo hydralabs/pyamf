@@ -280,18 +280,18 @@ cdef class cBufferedByteStream(object):
 
         return 0
 
-    cdef inline int has_available(self, Py_ssize_t size) except -1:
+    cdef inline int has_available(self, Py_ssize_t size):
         if size == 0:
             return 0
 
         if self.length == self.pos:
-            raise IOError
+            return -1
 
         if self.pos + size > self.length:
             if size == 1:
-                raise IOError
+                return -1
 
-            raise IOError
+            return -1
 
         return 0
 
@@ -308,7 +308,8 @@ cdef class cBufferedByteStream(object):
             if size == 0:
                 size = 1
 
-        self.has_available(size)
+        if self.has_available(size) == -1:
+            raise IOError
 
         buf[0] = <char *>malloc(sizeof(char *) * size)
 
@@ -465,8 +466,7 @@ cdef class cBufferedByteStream(object):
         cdef Py_ssize_t size = self.remaining()
 
         if size > 0:
-            try:
-                self.peek(&buf, size)
+            self.peek(&buf, size)
             except:
                 if buf != NULL:
                     free(buf)
@@ -498,7 +498,8 @@ cdef class cBufferedByteStream(object):
         """
         Unpacks a long from C{buf}.
         """
-        self.has_available(num_bytes)
+        if self.has_available(num_bytes) == -1:
+            raise IOError
 
         cdef int nb = num_bytes
         cdef long x = 0
@@ -527,7 +528,8 @@ cdef class cBufferedByteStream(object):
         """
         Unpacks an unsigned long from C{buf}.
         """
-        self.has_available(num_bytes)
+        if self.has_available(num_bytes) == -1:
+            raise IOError
 
         cdef int nb = num_bytes
         cdef unsigned long x = 0
