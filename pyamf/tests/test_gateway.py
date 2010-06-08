@@ -447,9 +447,7 @@ class BaseGatewayTestCase(unittest.TestCase):
     def test_null_target(self):
         gw = gateway.BaseGateway({})
 
-        envelope = remoting.Envelope()
         request = remoting.Request(None)
-
         processor = gw.getProcessor(request)
 
         from pyamf.remoting import amf3
@@ -459,9 +457,7 @@ class BaseGatewayTestCase(unittest.TestCase):
     def test_empty_target(self):
         gw = gateway.BaseGateway({})
 
-        envelope = remoting.Envelope()
         request = remoting.Request('')
-
         processor = gw.getProcessor(request)
 
         from pyamf.remoting import amf3

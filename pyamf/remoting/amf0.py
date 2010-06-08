@@ -7,7 +7,6 @@ AMF0 Remoting support.
 @since: 0.1.0
 """
 
-import os
 import traceback
 import sys
 

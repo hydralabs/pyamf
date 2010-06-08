@@ -448,7 +448,11 @@ class RemotingServiceTestCase(BaseServiceTestCase):
         wrapper = baz.gak()
         wrapper2 = spam.eggs()
 
+        self.assertTrue(wrapper)
+        self.assertTrue(wrapper2)
+
         response = self.gw.execute()
+        self.assertTrue(response)
         self.assertEqual(self.gw.requests, [])
 
         r = self.opener.request
@@ -498,6 +502,7 @@ class RemotingServiceTestCase(BaseServiceTestCase):
             'Content-Type': 'application/x-amf'})
 
         response = self.gw._getResponse(None)
+        self.assertTrue(response)
 
         self.assertEqual(self.gw.original_url,
             'http://example.org/amf-gatewayhello')
@@ -508,6 +513,7 @@ class RemotingServiceTestCase(BaseServiceTestCase):
             {'Content-Type': 'application/x-amf'})
 
         response = self.gw._getResponse(None)
+        self.assertTrue(response)
         self.assertEqual(self.gw.original_url, 'http://spam.eggs')
 
     def test_add_http_header(self):
@@ -555,6 +561,7 @@ class RemotingServiceTestCase(BaseServiceTestCase):
         })
 
         response = self.gw._getResponse(None)
+        self.assertTrue(response)
 
     def test_bad_content_length(self):
         # test a really borked content-length header

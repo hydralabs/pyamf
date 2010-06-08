@@ -11,7 +11,6 @@ Tests for AMF Remoting AMF0 style.
 
 import unittest
 
-import pyamf
 from pyamf import remoting
 from pyamf.remoting import amf0
 
@@ -43,7 +42,7 @@ class ExceptionTestCase(BaseTestCase):
     def generate_exception(self):
         try:
             raise NameError('foobar')
-        except NameError, e:
+        except NameError:
             import sys
 
             return sys.exc_info()

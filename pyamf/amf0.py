@@ -19,7 +19,6 @@ LocalConnection, SharedObjects and other classes in the Adobe Flash Player.
 """
 
 import datetime
-import types
 import copy
 
 import pyamf
@@ -221,7 +220,7 @@ class Decoder(pyamf.BaseDecoder):
         @rtype: C{dict}
         @return: C{dict} read from the stream
         """
-        len = self.stream.read_ulong()
+        self.stream.read_ulong() # length
         obj = pyamf.MixedArray()
         self.context.addObject(obj)
         self._readObject(obj)
@@ -378,7 +377,7 @@ class Decoder(pyamf.BaseDecoder):
         minutes.
         """
         ms = self.stream.read_double() / 1000.0
-        tz = self.stream.read_short()
+        self.stream.read_short() # tz
 
         # Timezones are ignored
         d = util.get_datetime(ms)

@@ -346,8 +346,10 @@ class FaultTestCase(unittest.TestCase):
         self.assertRaises(remoting.RemotingCallFailed, x.raiseException)
 
     def test_kwargs(self):
-        x = remoting.get_fault({'foo': 'bar'})
         # The fact that this doesn't throw an error means that this test passes
+        x = remoting.get_fault({'foo': 'bar'})
+
+        self.assertIsInstance(x, remoting.ErrorFault)
 
 
 class ContextTextCase(unittest.TestCase):

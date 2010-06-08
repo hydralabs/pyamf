@@ -251,10 +251,9 @@ class ClassLoaderTestCase(ClassCacheClearingTestCase):
 
 class TypeMapTestCase(unittest.TestCase):
     def setUp(self):
-        self.tm = dict(pyamf.TYPE_MAP)
+        self.tm = pyamf.TYPE_MAP.copy()
 
-    def tearDown(self):
-        pyamf.TYPE_MAP = self.tm
+        self.addCleanup(replace_dict, self.tm, pyamf.TYPE_MAP)
 
     def test_add_invalid(self):
         mod = new.module('spam')
@@ -274,7 +273,7 @@ class TypeMapTestCase(unittest.TestCase):
         self.assertRaises(TypeError, pyamf.add_type, A())
 
     def test_add_same(self):
-        td = pyamf.add_type(chr)
+        pyamf.add_type(chr)
         self.assertRaises(KeyError, pyamf.add_type, chr)
 
     def test_add_class(self):
@@ -287,7 +286,7 @@ class TypeMapTestCase(unittest.TestCase):
         pyamf.add_type(A)
         self.assertTrue(A in pyamf.TYPE_MAP)
 
-        td2 = pyamf.add_type(B)
+        pyamf.add_type(B)
         self.assertTrue(B in pyamf.TYPE_MAP)
 
     def test_add_callable(self):
@@ -309,6 +308,7 @@ class TypeMapTestCase(unittest.TestCase):
             pass
 
         td = pyamf.add_type([A, B, C])
+        self.assertEqual(td, pyamf.get_type([A, B, C]))
 
     def test_get_type(self):
         self.assertRaises(KeyError, pyamf.get_type, chr)

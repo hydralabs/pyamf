@@ -241,7 +241,7 @@ class GetDecodableAttributesTestCase(unittest.TestCase):
 
         ret = self.alias.getDecodableAttributes(self.obj, attrs)
 
-        self.assertEqual(attrs, {'foo': None, 'bar': [1, 2, 3]})
+        self.assertEqual(ret, {'foo': None, 'bar': [1, 2, 3]})
 
     def test_readonly(self):
         self.alias.compile()

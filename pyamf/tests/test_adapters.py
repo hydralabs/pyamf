@@ -7,7 +7,6 @@ Tests for the adapters module.
 @since: 0.3.1
 """
 
-import unittest
 import os
 import sys
 

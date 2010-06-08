@@ -412,8 +412,6 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
             '\x06\x0bhello\x01')
 
     def test_date(self):
-        import datetime
-
         x = datetime.datetime(2005, 3, 18, 1, 58, 31)
         self.encoder.writeElement(x)
 

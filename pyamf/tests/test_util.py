@@ -892,6 +892,8 @@ class IndexedCollectionTestCase(unittest.TestCase):
 
         o = self.collection.getByReference(idx)
 
+        self.assertIdentical(o, test_obj)
+
     def test_array(self):
         test_obj = []
         idx = self.collection.append(test_obj)

@@ -131,8 +131,6 @@ def isNegInf(val):
 def check_buffer(buf, parts, inner=False):
     assert isinstance(parts, (tuple, list))
 
-    orig = buf
-
     parts = [p for p in parts]
 
     for part in parts:
