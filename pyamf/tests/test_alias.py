@@ -298,7 +298,12 @@ class GetDecodableAttributesTestCase(unittest.TestCase):
 
         ret = self.alias.getDecodableAttributes(self.obj, attrs)
 
-        self.assertEquals(ret, {'foo': 'foo', 'bar': 'bar', 'dyn2': 'dyn2', 'dyn1': 'dyn1'})
+        self.assertEquals(ret, {
+            'foo': 'foo',
+            'bar': 'bar',
+            'dyn2': 'dyn2',
+            'dyn1': 'dyn1'
+        })
 
     def test_complex_not_dynamic(self):
         self.alias.compile()
@@ -361,6 +366,22 @@ class GetDecodableAttributesTestCase(unittest.TestCase):
             'foo': ['bar', 'baz'],
             'bar': {'foo': 'gak'}
         })
+
+    def test_synonym(self):
+        self.alias.synonym_attrs = {'foo': 'bar'}
+        self.alias.compile()
+
+        self.assertFalse(self.alias.shortcut_encode)
+        self.assertFalse(self.alias.shortcut_decode)
+
+        attrs = {
+            'foo': 'foo',
+            'spam': 'eggs'
+        }
+
+        ret = self.alias.getDecodableAttributes(self.obj, attrs)
+
+        self.assertEquals(ret, {'bar': 'foo', 'spam': 'eggs'})
 
 
 class ApplyAttributesTestCase(unittest.TestCase):

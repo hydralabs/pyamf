@@ -574,10 +574,14 @@ class ClassAlias(object):
         self.shortcut_encode = True
         self.shortcut_decode = True
 
-        if self.encodable_properties or self.static_attrs or self.exclude_attrs or self.proxy_attrs or self.external:
+        if (self.encodable_properties or self.static_attrs or
+                self.exclude_attrs or self.proxy_attrs or self.external or
+                self.synonym_attrs):
             self.shortcut_encode = False
 
-        if self.decodable_properties or self.static_attrs or self.exclude_attrs or self.readonly_attrs or not self.dynamic or self.external:
+        if (self.decodable_properties or self.static_attrs or
+                self.exclude_attrs or self.readonly_attrs or
+                not self.dynamic or self.external or self.synonym_attrs):
             self.shortcut_decode = False
 
         self.is_dict = False
@@ -770,6 +774,17 @@ class ClassAlias(object):
                     continue
 
                 attrs[k] = context.getObjectForProxy(v)
+
+        if self.synonym_attrs:
+            missing = object()
+
+            for k, v in self.synonym_attrs.iteritems():
+                value = attrs.pop(k, missing)
+
+                if value is missing:
+                    continue
+
+                attrs[v] = value
 
         if not changed:
             return attrs
