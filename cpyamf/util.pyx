@@ -381,15 +381,15 @@ cdef class cBufferedByteStream(object):
 
     cdef int peek(self, char **buf, Py_ssize_t size) except -1:
         """
-        Looks C{size} bytes ahead in the stream, returning what it finds,
-        returning the stream pointer to its initial position.
+        Makes a pointer reference to the underlying buffer. Do NOT modify the
+        returned value or free its contents.
         """
         self.complain_if_closed()
 
-        cdef Py_ssize_t cur_pos = self.pos
+        if self.has_available(size) == -1:
+            size = self.length
 
-        self.read(buf, size)
-        self.pos = cur_pos
+        buf = self.buffer[self.pos + size]
 
         return 0
 
@@ -422,17 +422,11 @@ cdef class cBufferedByteStream(object):
         cdef char *buf = NULL
         cdef Py_ssize_t cur_pos = self.pos
 
-        self.seek(0)
-
-        try:
-            self.peek(&buf, size)
-        except:
-            if buf != NULL:
-                free(buf)
-
-            raise
+        buf = malloc(sizeof(char *) * self.length)
+        memcpy(buf, self.buffer, self.length)
 
         free(self.buffer)
+
         self.size = 1024
         self.length = 0
 
