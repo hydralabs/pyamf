@@ -379,10 +379,10 @@ cdef class cBufferedByteStream(object):
 
         return PyString_FromStringAndSize(self.buffer, self.length)
 
-    cdef int peek(self, char **buf, Py_ssize_t size) except -1:
+    cdef Py_ssize_t peek(self, char **buf, Py_ssize_t size) except -1:
         """
         Makes a pointer reference to the underlying buffer. Do NOT modify the
-        returned value or free its contents.
+        returned value or free its contents. That would be seriously bad.
         """
         self.complain_if_closed()
 
@@ -391,7 +391,7 @@ cdef class cBufferedByteStream(object):
 
         buf = self.buffer[self.pos + size]
 
-        return 0
+        return size
 
     cpdef int truncate(self, Py_ssize_t size=0) except -1:
         """
@@ -457,17 +457,20 @@ cdef class cBufferedByteStream(object):
         self.complain_if_closed()
 
         cdef char *buf = NULL
+        cdef char *peek_buf
         cdef Py_ssize_t size = self.remaining()
 
         if size > 0:
-            self.peek(&buf, size)
-            except:
-                if buf != NULL:
-                    free(buf)
+            size = self.peek(&peek_buf, size)
+            buf = malloc(sizeof(char *) * size)
 
-                raise
+            if buf == NULL:
+                python_exc.PyErr_NoMemory()
+
+            memcpy(buf, peek_buf, size)
 
         free(self.buffer)
+
         self.size = 1024
         self.length = 0
         self.buffer = <char *>malloc(sizeof(char *) * self.size)
@@ -1046,15 +1049,11 @@ cdef class BufferedByteStream(cBufferedByteStream):
         if size == -1:
             l = cBufferedByteStream.remaining(self)
         else:
-            l = <int>size
+            l = <Py_ssize_t>size
 
-        try:
-            cBufferedByteStream.peek(self, &buf, l)
+        l = cBufferedByteStream.peek(self, &buf, l)
 
-            r = PyString_FromStringAndSize(buf, l)
-        finally:
-            if buf != NULL:
-                free(buf)
+        r = PyString_FromStringAndSize(buf, l)
 
         return r
 
