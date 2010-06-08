@@ -49,8 +49,8 @@ class ContextTestCase(unittest.TestCase):
     def test_create(self):
         c = amf0.Context()
 
-        self.assertEquals(c.objects, [])
-        self.assertEquals(len(c.objects), 0)
+        self.assertEqual(c.objects, [])
+        self.assertEqual(len(c.objects), 0)
 
     def test_add(self):
         x = amf0.Context()

@@ -25,14 +25,6 @@ sys.path.insert(0, base_path)
 
 readme = os.path.join(base_path, 'README.txt')
 
-    # need to remove all references to imported pyamf modules, as building
-    # the c extensions change pyamf.util.BufferedByteStream, which blow up
-    # the tests (at least the first time its built which in case of the 
-    # buildbots is always true)
-    for k, v in sys.modules.copy().iteritems():
-        if k and k.startswith('pyamf'):
-            del sys.modules[k]
-
 
 class TestCommand(test.test):
     """
@@ -84,6 +76,11 @@ def get_extensions():
 
     :since: 0.4
     """
+    if '--disable-ext' in sys.argv:
+        sys.argv.remove('--disable-ext')
+
+        return []
+
     if sys.platform.startswith('java'):
         print(80 * '*')
         print('WARNING:')
@@ -91,11 +88,6 @@ def get_extensions():
         print('\tOptimizations for this package will not be available!\n\n')
         print('Compiling extensions is not supported on Jython')
         print(80 * '*')
-
-        return []
-
-    if '--disable-ext' in sys.argv:
-        sys.argv.remove('--disable-ext')
 
         return []
 
@@ -135,7 +127,7 @@ def get_version():
 
     # need to remove all references to imported pyamf modules, as building
     # the c extensions change pyamf.util.BufferedByteStream, which blow up
-    # the tests (at least the first time its built which in case of the 
+    # the tests (at least the first time its built which in case of the
     # buildbots is always true)
     for k, v in sys.modules.copy().iteritems():
         if k and k.startswith('pyamf'):

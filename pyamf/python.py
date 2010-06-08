@@ -57,3 +57,21 @@ def isNegInf(val):
     @since: 0.5
     """
     return str(float(val)) == str(NegInf)
+
+
+
+def check_for_int(x):
+    """
+    This is a compatibility function that takes a C{float} and converts it to an
+    C{int} if the values are equal.
+    """
+    try:
+        y = int(x)
+    except (OverflowError, ValueError):
+        pass
+    else:
+        # There is no way in AMF0 to distinguish between integers and floats
+        if x == x and y == x:
+            return y
+
+    return x
