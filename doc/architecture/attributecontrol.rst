@@ -167,3 +167,20 @@ instance that is not on the list is ignored.
 
 **Note:** The ``dynamic`` property works for all types of Python classes, not
 just Google AppEngine.
+
+
+Synonyms
+--------
+
+It is possible to use object attribute names in Python that are not supported
+in ActionScript. One such example is the name ``public``. Perfectly legal
+syntax in Python but is a language construct in ActionScript 3. To support
+this use-case, the 0.6 release provides the ability to support property
+synonyms.
+
+.. literalinclude:: examples/attribute-control/synonym.py
+   :linenos:
+
+The ``synonym`` declaration in the ``__amf__`` class attribute. This is a
+``dict`` which maps the Python property names to their ActionScript
+equivalent.

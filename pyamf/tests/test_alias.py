@@ -208,6 +208,20 @@ class GetEncodableAttributesTestCase(unittest.TestCase):
         self.assertTrue(isinstance(attrs['bar'], flex.ObjectProxy))
         self.assertEqual(attrs['bar']._amf_object, {'foo': 'gak'})
 
+    def test_synonym(self):
+        self.alias.synonym_attrs = {'foo': 'bar'}
+        self.alias.compile()
+
+        self.assertFalse(self.alias.shortcut_encode)
+        self.assertFalse(self.alias.shortcut_decode)
+
+        self.obj.foo = 'bar'
+        self.obj.spam = 'eggs'
+
+        ret = self.alias.getEncodableAttributes(self.obj)
+
+        self.assertEquals(ret, {'bar': 'bar', 'spam': 'eggs'})
+
 
 class GetDecodableAttributesTestCase(unittest.TestCase):
     """
@@ -298,7 +312,12 @@ class GetDecodableAttributesTestCase(unittest.TestCase):
 
         ret = self.alias.getDecodableAttributes(self.obj, attrs)
 
-        self.assertEqual(ret, {'foo': 'foo', 'bar': 'bar', 'dyn2': 'dyn2', 'dyn1': 'dyn1'})
+        self.assertEquals(ret, {
+            'foo': 'foo',
+            'bar': 'bar',
+            'dyn2': 'dyn2',
+            'dyn1': 'dyn1'
+        })
 
     def test_complex_not_dynamic(self):
         self.alias.compile()
@@ -361,6 +380,22 @@ class GetDecodableAttributesTestCase(unittest.TestCase):
             'foo': ['bar', 'baz'],
             'bar': {'foo': 'gak'}
         })
+
+    def test_synonym(self):
+        self.alias.synonym_attrs = {'foo': 'bar'}
+        self.alias.compile()
+
+        self.assertFalse(self.alias.shortcut_encode)
+        self.assertFalse(self.alias.shortcut_decode)
+
+        attrs = {
+            'foo': 'foo',
+            'spam': 'eggs'
+        }
+
+        ret = self.alias.getDecodableAttributes(self.obj, attrs)
+
+        self.assertEquals(ret, {'bar': 'foo', 'spam': 'eggs'})
 
 
 class ApplyAttributesTestCase(unittest.TestCase):
@@ -605,6 +640,15 @@ class SimpleCompliationTestCase(unittest.TestCase):
         x.compile()
 
         self.assertTrue(x.sealed)
+
+    def test_synonym_attrs(self):
+        x = ClassAlias(Spam, synonym_attrs={'foo': 'bar'}, defer=True)
+
+        self.assertEquals(x.synonym_attrs, {'foo': 'bar'})
+
+        x.compile()
+
+        self.assertEquals(x.synonym_attrs, {'foo': 'bar'})
 
 
 class CompilationInheritanceTestCase(ClassCacheClearingTestCase):
@@ -871,6 +915,35 @@ class CompilationInheritanceTestCase(ClassCacheClearingTestCase):
         self.assertFalse(a.dynamic)
         self.assertFalse(b.dynamic)
         self.assertTrue(c.dynamic)
+
+
+    def test_synonym_attrs(self):
+        class A(object):
+            pass
+
+        class B(A):
+            pass
+
+        class C(B):
+            pass
+
+        a = self._register(ClassAlias(A, 'a', synonym_attrs={'foo': 'bar', 'bar': 'baz'}, defer=True))
+        b = self._register(ClassAlias(B, 'b', defer=True))
+        c = self._register(ClassAlias(C, 'c', synonym_attrs={'bar': 'spam'}, defer=True))
+
+        self.assertFalse(a._compiled)
+        self.assertFalse(b._compiled)
+        self.assertFalse(c._compiled)
+
+        c.compile()
+
+        self.assertTrue(a._compiled)
+        self.assertTrue(b._compiled)
+        self.assertTrue(c._compiled)
+
+        self.assertEquals(a.synonym_attrs, {'foo': 'bar', 'bar': 'baz'})
+        self.assertEquals(b.synonym_attrs, {'foo': 'bar', 'bar': 'baz'})
+        self.assertEquals(c.synonym_attrs, {'foo': 'bar', 'bar': 'spam'})
 
 
 class CompilationIntegrationTestCase(unittest.TestCase):

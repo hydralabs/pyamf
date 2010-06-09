@@ -228,7 +228,8 @@ def get_class_meta(klass):
         'amf3': None,
         'dynamic': None,
         'alias': None,
-        'external': None
+        'external': None,
+        'synonym_attrs': None
     }
 
     if not hasattr(klass, '__amf__'):
@@ -247,9 +248,9 @@ def get_class_meta(klass):
         if in_func(prop):
             meta[prop] = get_func(prop)
 
-    for prop in ['static', 'exclude', 'readonly', 'proxy']:
+    for prop in ['static', 'exclude', 'readonly', 'proxy', 'synonym']:
         if in_func(prop):
-            meta[prop + '_attrs'] = list(get_func(prop))
+            meta[prop + '_attrs'] = get_func(prop)
 
     return meta
 

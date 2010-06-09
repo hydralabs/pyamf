@@ -11,6 +11,7 @@ Highlighted Features
 ====================
 
 * The default AMF version has been switched from `AMF0` to `AMF3`.
+* Provide support for :doc:`property synonyms </architecture/attributecontrol>`.
 
 
 Backward Incompatible API Changes

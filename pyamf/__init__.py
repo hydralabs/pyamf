@@ -349,13 +349,14 @@ class ClassAlias(object):
         self.klass = klass
         self.alias = alias
 
-        self.static_attrs = kwargs.get('static_attrs', None)
-        self.exclude_attrs = kwargs.get('exclude_attrs', None)
-        self.readonly_attrs = kwargs.get('readonly_attrs', None)
-        self.proxy_attrs = kwargs.get('proxy_attrs', None)
-        self.amf3 = kwargs.get('amf3', None)
-        self.external = kwargs.get('external', None)
-        self.dynamic = kwargs.get('dynamic', None)
+        self.static_attrs = kwargs.pop('static_attrs', None)
+        self.exclude_attrs = kwargs.pop('exclude_attrs', None)
+        self.readonly_attrs = kwargs.pop('readonly_attrs', None)
+        self.proxy_attrs = kwargs.pop('proxy_attrs', None)
+        self.amf3 = kwargs.pop('amf3', None)
+        self.external = kwargs.pop('external', None)
+        self.dynamic = kwargs.pop('dynamic', None)
+        self.synonym_attrs = kwargs.pop('synonym_attrs', {})
 
         self._compiled = False
         self.anonymous = False
@@ -371,8 +372,11 @@ class ClassAlias(object):
             if self.alias == '':
                 raise ValueError('Cannot set class alias as \'\'')
 
-        if not kwargs.get('defer', False):
+        if not kwargs.pop('defer', False):
             self.compile()
+
+        if kwargs:
+            raise TypeError('Unexpected keyword arguments %r' % (kwargs,))
 
     def _checkExternal(self):
         if not hasattr(self.klass, '__readamf__'):
@@ -484,6 +488,10 @@ class ClassAlias(object):
         if alias.sealed is not None:
             self.inherited_sealed = alias.sealed
 
+        if alias.synonym_attrs:
+            self.synonym_attrs, x = alias.synonym_attrs.copy(), self.synonym_attrs
+            self.synonym_attrs.update(x)
+
     def _finalise_compile(self):
         if self.dynamic is None:
             self.dynamic = True
@@ -566,10 +574,14 @@ class ClassAlias(object):
         self.shortcut_encode = True
         self.shortcut_decode = True
 
-        if self.encodable_properties or self.static_attrs or self.exclude_attrs or self.proxy_attrs or self.external:
+        if (self.encodable_properties or self.static_attrs or
+                self.exclude_attrs or self.proxy_attrs or self.external or
+                self.synonym_attrs):
             self.shortcut_encode = False
 
-        if self.decodable_properties or self.static_attrs or self.exclude_attrs or self.readonly_attrs or not self.dynamic or self.external:
+        if (self.decodable_properties or self.static_attrs or
+                self.exclude_attrs or self.readonly_attrs or
+                not self.dynamic or self.external or self.synonym_attrs):
             self.shortcut_decode = False
 
         self.is_dict = False
@@ -702,6 +714,17 @@ class ClassAlias(object):
                 if k in self.proxy_attrs:
                     attrs[k] = context.getProxyForObject(v)
 
+        if self.synonym_attrs:
+            missing = object()
+
+            for k, v in self.synonym_attrs.iteritems():
+                value = attrs.pop(k, missing)
+
+                if value is missing:
+                    continue
+
+                attrs[v] = value
+
         return attrs
 
     def getDecodableAttributes(self, obj, attrs, codec=None):
@@ -762,6 +785,17 @@ class ClassAlias(object):
                     continue
 
                 attrs[k] = context.getObjectForProxy(v)
+
+        if self.synonym_attrs:
+            missing = object()
+
+            for k, v in self.synonym_attrs.iteritems():
+                value = attrs.pop(k, missing)
+
+                if value is missing:
+                    continue
+
+                attrs[v] = value
 
         if not changed:
             return attrs
