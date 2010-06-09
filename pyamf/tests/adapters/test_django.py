@@ -12,127 +12,137 @@ PyAMF Django adapter tests.
 import unittest
 import sys
 import os
-import new
 import datetime
 
 import pyamf
 from pyamf.tests import util
 
+try:
+    import django
+except ImportError:
+    django = None
 
-class ModelsBaseTestCase(unittest.TestCase):
+try:
+    reload(settings)
+except NameError:
+    from pyamf.tests.adapters.django_app import settings
+
+context = None
+
+#: django modules/functions used once bootstrapped
+create_test_db = None
+destroy_test_db = None
+management = None
+setup_test_environment = None
+teardown_test_environment = None
+
+# test app data
+models = None
+adapter = None
+
+def init_django():
+    """
+    Bootstrap Django and initialise this module
+    """
+    global django, management, create_test_db, destroy_test_db
+    global setup_test_environment, teardown_test_environment
+
+    if not django:
+        return
+
+    from django.core import management
+
+    project_dir = management.setup_environ(settings)
+    sys.path.insert(0, project_dir)
+
+    try:
+        from django.test.utils import create_test_db, destroy_test_db
+    except ImportError:
+        from django.db import connection
+
+        create_test_db = connection.creation.create_test_db
+        destroy_test_db = connection.creation.destroy_test_db
+
+    from django.test.utils import setup_test_environment, teardown_test_environment
+
+
+def setUpModule():
+    """
+    Called to set up the module by the test runner
+    """
+    global context, models, adapter
+
+    context = {
+        'sys.path': sys.path[:],
+        'sys.modules': sys.modules.copy(),
+        'os.environ': os.environ.copy(),
+    }
+
+    init_django()
+
+    from pyamf.tests.adapters.django_app.adapters import models
+    from pyamf.adapters import _django_db_models_base as adapter
+
+    setup_test_environment()
+
+    settings.DATABASE_NAME = create_test_db(0, True)
+
+
+def teadDownModule():
+    # remove all the stuff that django installed
+    teardown_test_environment()
+
+    sys.path = context['sys.path']
+    util.replace_dict(context['sys.modules'], sys.modules)
+    util.replace_dict(context['os.environ'], os.environ)
+
+    destroy_test_db(settings.DATABASE_NAME, 2)
+
+
+class BaseTestCase(unittest.TestCase):
+    """
+    """
+
     def setUp(self):
-        self.old_env = os.environ.copy()
-        self.mods = sys.modules.copy()
-
-        try:
-            if 'DJANGO_SETTINGS_MODULE' in os.environ.keys():
-                from django import conf
-                import copy
-
-                self.mod = copy.deepcopy(conf.settings)
-                mod = conf.settings
-                self.existing = True
-            else:
-                os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
-                mod = new.module('settings')
-
-                sys.modules['settings'] = mod
-
-                self.existing = False
-
-            import django
-        except ImportError:
+        if not django:
             self.skipTest("'django' is not available")
 
-        app = new.module('adapters')
 
-        app_models = new.module('adapters.models')
-        setattr(app, 'models', app_models)
-        setattr(app, '__file__', '')
-        setattr(app_models, '__file__', '')
+class TypeMapTestCase(BaseTestCase):
+    """
+    Tests for basic encoding functionality
+    """
 
-        sys.modules['adapters'] = app
-        sys.modules['adapters.models'] = app_models
-
-        self.app = app
-        self.models = app_models
-
-        setattr(mod, 'DATABASE_ENGINE', 'sqlite3')
-        setattr(mod, 'DATABASE_NAME', ':memory:')
-        setattr(mod, 'INSTALLED_APPS', ('adapters',))
-        setattr(mod, 'USE_I18N', False)
-
-        from pyamf.adapters import _django_db_models_base as models_adapter
-
-        self.adapter = models_adapter
-
-    def tearDown(self):
-        util.replace_dict(os.environ, self.old_env)
-        util.replace_dict(sys.modules, self.mods)
-
-        if self.existing:
-            from django import conf
-            conf.settings = self.mod
-
-    def resetDB(self):
-        from django.db import connection
-        import sys
-
-        old_stderr = sys.stderr
-        sys.stderr = util.NullFileDescriptor()
-
-        self.db_name = connection.creation.create_test_db(0, autoclobber=True)
-
-        sys.stderr = old_stderr
-
-
-class TypeMapTestCase(ModelsBaseTestCase):
     def test_objects_all(self):
-        from django.db import models
-
-        class Spam(models.Model):
-            pass
-
-        self.resetDB()
         encoder = pyamf.get_encoder(pyamf.AMF0)
 
-        encoder.writeElement(Spam.objects.all())
+        encoder.writeElement(models.SimplestModel.objects.all())
         self.assertEqual(encoder.stream.getvalue(), '\n\x00\x00\x00\x00')
 
         encoder = pyamf.get_encoder(pyamf.AMF3)
-        encoder.writeElement(Spam.objects.all())
+        encoder.writeElement(models.SimplestModel.objects.all())
         self.assertEqual(encoder.stream.getvalue(), '\t\x01\x01')
 
     def test_NOT_PROVIDED(self):
         from django.db.models import fields
 
-        encoder = pyamf.get_encoder(pyamf.AMF0)
-
-        encoder.writeElement(fields.NOT_PROVIDED)
-        self.assertEqual(encoder.stream.getvalue(), '\x06')
+        self.assertEqual(pyamf.encode(fields.NOT_PROVIDED, encoding=pyamf.AMF0).getvalue(),
+            '\x06')
 
         encoder = pyamf.get_encoder(pyamf.AMF3)
         encoder.writeElement(fields.NOT_PROVIDED)
         self.assertEqual(encoder.stream.getvalue(), '\x00')
 
 
-class ClassAliasTestCase(ModelsBaseTestCase):
+class ClassAliasTestCase(BaseTestCase):
     def test_time(self):
-        from django.db import models
-
-        class TestClass(models.Model):
-            t = models.TimeField()
-            d = models.DateField()
-            dt = models.DateTimeField()
-
-        x = TestClass()
+        x = models.TimeClass()
 
         x.t = datetime.time(12, 12, 12)
         x.d = datetime.date(2008, 3, 12)
         x.dt = datetime.datetime(2008, 3, 12, 12, 12, 12)
 
-        alias = self.adapter.DjangoClassAlias(TestClass, None)
-
+        alias = adapter.DjangoClassAlias(models.TimeClass, None)
         attrs = alias.getEncodableAttributes(x)
 
         self.assertEqual(attrs, {
@@ -142,7 +152,7 @@ class ClassAliasTestCase(ModelsBaseTestCase):
             't': datetime.datetime(1970, 1, 1, 12, 12, 12)
         })
 
-        y = TestClass()
+        y = models.TimeClass()
 
         alias.applyAttributes(y, {
             'id': None,
@@ -156,7 +166,7 @@ class ClassAliasTestCase(ModelsBaseTestCase):
         self.assertEqual(y.dt, datetime.datetime(2008, 3, 12, 12, 12, 12))
         self.assertEqual(y.t, datetime.time(12, 12, 12))
 
-        y = TestClass()
+        y = models.TimeClass()
 
         alias.applyAttributes(y, {
             'id': None,
@@ -177,7 +187,7 @@ class ClassAliasTestCase(ModelsBaseTestCase):
         class UndefinedClass(models.Model):
             pass
 
-        alias = self.adapter.DjangoClassAlias(UndefinedClass, None)
+        alias = adapter.DjangoClassAlias(UndefinedClass, None)
 
         x = UndefinedClass()
 
@@ -202,7 +212,7 @@ class ClassAliasTestCase(ModelsBaseTestCase):
             # note the lack of a setter callable ..
             numberOfOddPages = property(_get_number_of_odd_pages)
 
-        alias = self.adapter.DjangoClassAlias(Book, 'Book')
+        alias = adapter.DjangoClassAlias(Book, 'Book')
 
         x = Book()
 
@@ -219,14 +229,9 @@ class ClassAliasTestCase(ModelsBaseTestCase):
         """
         Test for dynamic property encoding.
         """
-        from django.db import models
+        alias = adapter.DjangoClassAlias(models.SimplestModel, 'Book')
 
-        class Foo(models.Model):
-            pass
-
-        alias = self.adapter.DjangoClassAlias(Foo, 'Book')
-
-        x = Foo()
+        x = models.SimplestModel()
         x.spam = 'eggs'
 
         self.assertEqual(alias.getEncodableAttributes(x),
@@ -253,7 +258,7 @@ class ClassAliasTestCase(ModelsBaseTestCase):
 
             days = property(_get_days, _set_days)
 
-        alias = self.adapter.DjangoClassAlias(Foob, 'Bar')
+        alias = adapter.DjangoClassAlias(Foob, 'Bar')
 
         x = Foob()
 
@@ -266,43 +271,26 @@ class ClassAliasTestCase(ModelsBaseTestCase):
         alias.applyAttributes(x, {'id': None})
 
 
-class ForeignKeyTestCase(ModelsBaseTestCase):
+class ForeignKeyTestCase(BaseTestCase):
     def test_one_to_many(self):
-        from django.db import models
-
-        class Reporter(models.Model):
-            first_name = models.CharField(max_length=30)
-            last_name = models.CharField(max_length=30)
-            email = models.EmailField()
-
-            def __unicode__(self):
-                return u"%s %s" % (self.first_name, self.last_name)
-
-        class Article(models.Model):
-            headline = models.CharField(max_length=100)
-            pub_date = models.DateField()
-            reporter = models.ForeignKey(Reporter)
-
-            def __unicode__(self):
-                return self.headline
-
-        self.resetDB()
-
         # initialise the db ..
-        r = Reporter(first_name='John', last_name='Smith', email='john@example.com')
+        r = models.Reporter(first_name='John', last_name='Smith', email='john@example.com')
         r.save()
+        self.addCleanup(r.delete)
 
-        r2 = Reporter(first_name='Paul', last_name='Jones', email='paul@example.com')
+        r2 = models.Reporter(first_name='Paul', last_name='Jones', email='paul@example.com')
         r2.save()
+        self.addCleanup(r2.delete)
 
-        a = Article(headline="This is a test", pub_date=datetime.date(2005, 7, 27), reporter=r)
+        a = models.Article(headline="This is a test", reporter=r)
         a.save()
+        self.addCleanup(a.delete)
 
         self.assertEqual(a.id, 1)
 
         del a
 
-        a = Article.objects.filter(pk=1)[0]
+        a = models.Article.objects.filter(pk=1)[0]
 
         self.assertFalse('_reporter_cache' in a.__dict__)
         a.reporter
@@ -310,8 +298,8 @@ class ForeignKeyTestCase(ModelsBaseTestCase):
 
         del a
 
-        a = Article.objects.filter(pk=1)[0]
-        alias = self.adapter.DjangoClassAlias(Article, defer=True)
+        a = models.Article.objects.filter(pk=1)[0]
+        alias = adapter.DjangoClassAlias(models.Article, defer=True)
 
         self.assertFalse(hasattr(alias, 'fields'))
         attrs = alias.getEncodableAttributes(a)
@@ -319,72 +307,53 @@ class ForeignKeyTestCase(ModelsBaseTestCase):
         # note that the reporter attribute does not exist.
         self.assertEqual(attrs, {
             'headline': u'This is a test',
-            'pub_date': datetime.datetime(2005, 7, 27, 0, 0),
             'id': 1,
+            'publications': []
         })
 
         self.assertFalse('_reporter_cache' in a.__dict__)
         self.assertEqual(pyamf.encode(a, encoding=pyamf.AMF3).getvalue(),
-            '\n\x0b\x01\x11headline\x06\x1dThis is a test\x11pub_date\x08\x01'
-            'BpUYj@\x00\x00\x05id\x04\x01\x01')
+            '\n\x0b\x01\x11headline\x06\x1dThis is a test\x05id\x04\x01'
+            '\x19publications\t\x01\x01\x01')
 
         del a
 
         # now with select_related to pull in the reporter object
-        a = Article.objects.select_related().filter(pk=1)[0]
+        a = models.Article.objects.select_related('reporter').filter(pk=1)[0]
 
-        alias = self.adapter.DjangoClassAlias(Article, defer=True)
+        alias = adapter.DjangoClassAlias(models.Article, defer=True)
 
         self.assertFalse(hasattr(alias, 'fields'))
         self.assertEqual(alias.getEncodableAttributes(a), {
             'headline': u'This is a test',
-            'pub_date': datetime.datetime(2005, 7, 27, 0, 0),
             'id': 1,
             'reporter': r,
+            'publications': []
         })
 
         self.assertTrue('_reporter_cache' in a.__dict__)
         self.assertEqual(pyamf.encode(a, encoding=pyamf.AMF3).getvalue(),
             '\n\x0b\x01\x11reporter\n\x0b\x01\x15first_name\x06\tJohn\x13'
-            'last_name\x06\x0bSmith\x05id\x04\x01\x0bemail\x06!'
-            'john@example.com\x01\x11headline\x06\x1dThis is a test\x11'
-            'pub_date\x08\x01BpUYj@\x00\x00\n\x04\x01\x01')
+            'last_name\x06\x0bSmith\x05id\x04\x01\x0bemail\x06!john'
+            '@example.com\x01\x11headline\x06\x1dThis is a test\x19'
+            'publications\t\x01\x01\n\x04\x01\x01')
 
     def test_many_to_many(self):
-        from django.db import models
-
-        class Publication(models.Model):
-            title = models.CharField(max_length=30)
-
-            def __unicode__(self):
-                return self.title
-
-            class Meta:
-                ordering = ('title',)
-
-        class Article2(models.Model):
-            headline = models.CharField(max_length=100)
-            publications = models.ManyToManyField(Publication)
-
-            def __unicode__(self):
-                return self.headline
-
-            class Meta:
-                ordering = ('headline',)
-
-        self.resetDB()
-
         # install some test data - taken from
         # http://www.djangoproject.com/documentation/models/many_to_many/
-        p1 = Publication(id=None, title='The Python Journal')
+        p1 = models.Publication(id=None, title='The Python Journal')
         p1.save()
-        p2 = Publication(id=None, title='Science News')
+        p2 = models.Publication(id=None, title='Science News')
         p2.save()
-        p3 = Publication(id=None, title='Science Weekly')
+        p3 = models.Publication(id=None, title='Science Weekly')
         p3.save()
 
+        self.addCleanup(p1.delete)
+        self.addCleanup(p2.delete)
+        self.addCleanup(p3.delete)
+
         # Create an Article.
-        a1 = Article2(id=None, headline='Django lets you build Web apps easily')
+        a1 = models.Article(id=None, headline='Django lets you build Web apps easily')
         a1.save()
         self.addCleanup(a1.delete)
         self.assertEqual(a1.id, 1)
@@ -392,11 +361,11 @@ class ForeignKeyTestCase(ModelsBaseTestCase):
         # Associate the Article with a Publication.
         a1.publications.add(p1)
 
-        pub_alias = self.adapter.DjangoClassAlias(Publication, None)
-        art_alias = self.adapter.DjangoClassAlias(Article2, None)
+        pub_alias = adapter.DjangoClassAlias(models.Publication, None)
+        art_alias = adapter.DjangoClassAlias(models.Article, None)
 
-        test_publication = Publication.objects.filter(pk=1)[0]
-        test_article = Article2.objects.filter(pk=1)[0]
+        test_publication = models.Publication.objects.filter(pk=1)[0]
+        test_article = models.Article.objects.filter(pk=1)[0]
 
         attrs = pub_alias.getEncodableAttributes(test_publication)
         self.assertEqual(attrs, {'id': 1, 'title': u'The Python Journal'})
@@ -408,10 +377,7 @@ class ForeignKeyTestCase(ModelsBaseTestCase):
             'publications': [p1]
         })
 
-        x = Article2()
-
-        if hasattr(x, '_state'):
-            x._state.db = p1._state.db
+        x = models.Article()
 
         art_alias.applyAttributes(x, {
             'headline': u'Test',
@@ -421,13 +387,9 @@ class ForeignKeyTestCase(ModelsBaseTestCase):
 
         self.assertEqual(x.headline, u'Test')
         self.assertEqual(x.id, 1)
+        self.assertEqual(list(x.publications.all()), [p1])
 
-        p = x.publications.all()
-
-        self.assertEqual(len(p), 1)
-        self.assertEqual(p[0], p1)
-
-        y = Article2()
+        y = models.Article()
         attrs = art_alias.getDecodableAttributes(y, {
             'headline': u'Django lets you build Web apps easily',
             'id': 0,
@@ -437,57 +399,32 @@ class ForeignKeyTestCase(ModelsBaseTestCase):
         self.assertEqual(attrs, {'headline': u'Django lets you build Web apps easily'})
 
     def test_nullable_foreign_keys(self):
-        from django.db import models
-
-        class FooBar(models.Model):
-            pass
-
-        class NullForeignKey(models.Model):
-            foobar = models.ForeignKey(FooBar, null=True)
-
-        class BlankForeignKey(models.Model):
-            foobar = models.ForeignKey(FooBar, blank=True)
-
-        self.resetDB()
-
-        x = FooBar()
+        x = models.SimplestModel()
         x.save()
+        self.addCleanup(x.delete)
 
-        nfk_alias = self.adapter.DjangoClassAlias(NullForeignKey, None)
-        bfk_alias = self.adapter.DjangoClassAlias(BlankForeignKey, None)
+        nfk_alias = adapter.DjangoClassAlias(models.NullForeignKey, None)
+        bfk_alias = adapter.DjangoClassAlias(models.BlankForeignKey, None)
 
-        nfk = NullForeignKey()
-
+        nfk = models.NullForeignKey()
         attrs = nfk_alias.getEncodableAttributes(nfk)
 
         self.assertEqual(attrs, {'id': None})
 
-        bfk = BlankForeignKey()
-
+        bfk = models.BlankForeignKey()
         attrs = bfk_alias.getEncodableAttributes(bfk)
 
         self.assertEqual(attrs, {'id': None})
-
 
     def test_static_relation(self):
         """
         @see: #693
         """
-        from django.db import models
         from pyamf import util
 
-        class Gak(models.Model):
-            pass
-
-        class Baz(models.Model):
-            gak = models.ForeignKey(Gak)
-
-            class __amf__:
-                static = ('gak',)
-
-        self.resetDB()
-
-        alias = self.adapter.DjangoClassAlias(Baz, **util.get_class_meta(Baz))
+        pyamf.register_class(models.StaticRelation)
+        alias = adapter.DjangoClassAlias(models.StaticRelation,
+            static_attrs=('gak',))
 
         alias.compile()
 
@@ -495,12 +432,13 @@ class ForeignKeyTestCase(ModelsBaseTestCase):
         self.assertTrue('gak' in alias.decodable_properties)
         self.assertTrue('gak' in alias.static_attrs)
 
-        x = Baz()
+        x = models.StaticRelation()
 
+        # just run this to ensure that it doesn't blow up
         alias.getDecodableAttributes(x, {'id': None, 'gak': 'foo'})
 
 
-class I18NTestCase(ModelsBaseTestCase):
+class I18NTestCase(BaseTestCase):
     def test_encode(self):
         from django.utils.translation import ugettext_lazy
 
@@ -508,54 +446,29 @@ class I18NTestCase(ModelsBaseTestCase):
             '\x06\x0bHello')
 
 
-class PKTestCase(ModelsBaseTestCase):
+class PKTestCase(BaseTestCase):
     """
     See ticket #599 for this. Check to make sure that django pk fields
     are set first
     """
 
     def test_behaviour(self):
-        from django.db import models
-
-        class Publication(models.Model):
-            title = models.CharField(max_length=30)
-
-            def __unicode__(self):
-                return self.title
-
-            class Meta:
-                ordering = ('title',)
-
-        class Article2(models.Model):
-            headline = models.CharField(max_length=100)
-            publications = models.ManyToManyField(Publication)
-
-            def __unicode__(self):
-                return self.headline
-
-            class Meta:
-                ordering = ('headline',)
-
-        self.resetDB()
-
-        p = Publication(id=None, title='The Python Journal')
-        a = Article2(id=None, headline='Django lets you build Web apps easily')
+        p = models.Publication(id=None, title='The Python Journal')
+        a = models.Article(id=None, headline='Django lets you build Web apps easily')
 
         # Associate the Article with a Publication.
         self.assertRaises(ValueError, lambda a, p: a.publications.add(p), a, p)
 
         p.save()
-        self.addCleanup(p.delete)
         a.save()
+
+        self.addCleanup(p.delete)
         self.addCleanup(a.delete)
 
         self.assertEqual(a.id, 1)
 
-        article_alias = self.adapter.DjangoClassAlias(Article2, None)
-        x = Article2()
-
-        if hasattr(x, '_state'):
-            x._state.db = p._state.db
+        article_alias = adapter.DjangoClassAlias(models.Article, None)
+        x = models.Article()
 
         article_alias.applyAttributes(x, {
             'headline': 'Foo bar!',
@@ -563,21 +476,18 @@ class PKTestCase(ModelsBaseTestCase):
             'publications': [p]
         })
 
+        self.assertEqual(x.headline, 'Foo bar!')
+        self.assertEqual(x.id, 1)
+        self.assertEqual(list(x.publications.all()), [p])
+
     def test_none(self):
         """
         See #556. Make sure that PK fields with a value of 0 are actually set
         to C{None}.
         """
-        from django.db import models
+        alias = adapter.DjangoClassAlias(models.SimplestModel, None)
 
-        class Foo(models.Model):
-            pass
-
-        self.resetDB()
-
-        alias = self.adapter.DjangoClassAlias(Foo, None)
-
-        x = Foo()
+        x = models.SimplestModel()
 
         self.assertEqual(x.id, None)
 
@@ -592,41 +502,22 @@ class PKTestCase(ModelsBaseTestCase):
         Ensure that Models without a primary key are correctly serialized.
         See #691.
         """
-        from django.db import models
-
-        class NotSaved(models.Model):
-            name = models.CharField(max_length=100)
-
-        instances = [NotSaved(name="a"), NotSaved(name="b")]
+        instances = [models.NotSaved(name="a"), models.NotSaved(name="b")]
         encoded = pyamf.encode(instances, encoding=pyamf.AMF3).getvalue()
         decoded = pyamf.get_decoder(pyamf.AMF3, encoded).readElement()
         self.assertEqual(decoded[0]['name'], 'a')
         self.assertEqual(decoded[1]['name'], 'b')
 
 
-class ModelInheritanceTestCase(ModelsBaseTestCase):
+class ModelInheritanceTestCase(BaseTestCase):
     """
     Tests for L{Django model inheritance<http://docs.djangoproject.com/en/dev/topics/db/models/#model-inheritance>}
     """
 
     def test_abstract(self):
-        from django.db import models
+        alias = adapter.DjangoClassAlias(models.Student)
 
-        class CommonInfo(models.Model):
-            name = models.CharField(max_length=100)
-            age = models.PositiveIntegerField()
-
-            class Meta:
-                abstract = True
-
-        class Student(CommonInfo):
-            home_group = models.CharField(max_length=5)
-
-        self.resetDB()
-
-        alias = self.adapter.DjangoClassAlias(Student)
-
-        x = Student()
+        x = models.Student()
 
         attrs = alias.getEncodableAttributes(x)
 
@@ -638,20 +529,8 @@ class ModelInheritanceTestCase(ModelsBaseTestCase):
         })
 
     def test_concrete(self):
-        from django.db import models
-
-        class Place(models.Model):
-            name = models.CharField(max_length=50)
-            address = models.CharField(max_length=80)
-
-        class Restaurant(Place):
-            serves_hot_dogs = models.BooleanField()
-            serves_pizza = models.BooleanField()
-
-        self.resetDB()
-
-        alias = self.adapter.DjangoClassAlias(Place)
-        x = Place()
+        alias = adapter.DjangoClassAlias(models.Place)
+        x = models.Place()
 
         attrs = alias.getEncodableAttributes(x)
 
@@ -661,8 +540,8 @@ class ModelInheritanceTestCase(ModelsBaseTestCase):
             'address': ''
         })
 
-        alias = self.adapter.DjangoClassAlias(Restaurant)
-        x = Restaurant()
+        alias = adapter.DjangoClassAlias(models.Restaurant)
+        x = models.Restaurant()
 
         attrs = alias.getEncodableAttributes(x)
 
@@ -690,30 +569,15 @@ class MockFile(object):
         return ''
 
 
-class FieldsTestCase(ModelsBaseTestCase):
+class FieldsTestCase(BaseTestCase):
     """
     Tests for L{fields}
     """
 
     def test_file(self):
-        from django.db import models
+        alias = adapter.DjangoClassAlias(models.FileModel)
 
-        self.executed = False
-
-        def get_studio_watermark(*args, **kwargs):
-            self.executed = True
-
-            return 'foo'
-
-        class Image(models.Model):
-            file = models.FileField(upload_to=get_studio_watermark)
-            text = models.CharField(max_length=64)
-
-        self.resetDB()
-
-        alias = self.adapter.DjangoClassAlias(Image)
-
-        i = Image()
+        i = models.FileModel()
         i.file.save('bar', MockFile())
         self.addCleanup(i.file.delete)
 
@@ -721,15 +585,14 @@ class FieldsTestCase(ModelsBaseTestCase):
 
         attrs = alias.getEncodableAttributes(i)
 
-        self.assertEqual(attrs, {'text': '', 'id': 1, 'file': u'foo'})
-        self.assertTrue(self.executed)
+        self.assertEqual(attrs, {'text': '', 'id': 1, 'file': u'file_model/bar'})
 
         attrs = alias.getDecodableAttributes(i, attrs)
 
         self.assertEqual(attrs, {'text': ''})
 
 
-class ImageTestCase(ModelsBaseTestCase):
+class ImageTestCase(BaseTestCase):
     """
     Tests for L{fields}
     """
@@ -740,112 +603,76 @@ class ImageTestCase(ModelsBaseTestCase):
         except ImportError:
             self.skipTest("'PIL' is not available")
 
-        ModelsBaseTestCase.setUp(self)
+        BaseTestCase.setUp(self)
 
     def test_image(self):
-        from django.db import models
+        alias = adapter.DjangoClassAlias(models.Profile)
 
-        self.executed = False
-
-        def get_studio_watermark(*args, **kwargs):
-            self.executed = True
-
-            return 'foo'
-
-        class Profile(models.Model):
-            file = models.ImageField(upload_to=get_studio_watermark)
-            text = models.CharField(max_length=64)
-
-        self.resetDB()
-
-        alias = self.adapter.DjangoClassAlias(Profile)
-
-        i = Profile()
+        i = models.Profile()
         i.file.save('bar', MockFile())
         self.addCleanup(i.file.delete)
 
         i.save()
+        self.addCleanup(i.delete)
 
         attrs = alias.getEncodableAttributes(i)
 
-        self.assertEqual(attrs, {'text': '', 'id': 1, 'file': u'foo'})
-        self.assertTrue(self.executed)
+        self.assertEqual(attrs, {'text': '', 'id': 1, 'file': u'profile/bar'})
 
         attrs = alias.getDecodableAttributes(i, attrs)
 
         self.assertEqual(attrs, {'text': ''})
 
 
-class ReferenceTestCase(ModelsBaseTestCase):
+class ReferenceTestCase(BaseTestCase):
     """
     Test case to make sure that the same object from the database is encoded
     by reference.
     """
-
-    def setUp(self):
-        ModelsBaseTestCase.setUp(self)
-
-        from django.db import models
-
-        class ParentReference(models.Model):
-            name = models.CharField(max_length=100)
-            bar = models.ForeignKey('ChildReference', null=True)
-
-        class ChildReference(models.Model):
-            name = models.CharField(max_length=100)
-            foo = models.ForeignKey(ParentReference)
-
-        self.ParentReference = ParentReference
-        self.ChildReference = ChildReference
-
-        self.resetDB()
-
-    def tearDown(self):
-        ModelsBaseTestCase.tearDown(self)
 
     def test_not_referenced(self):
         """
         Test to ensure that we observe the correct behaviour in the Django
         ORM.
         """
-        f = self.ParentReference()
+        f = models.ParentReference()
         f.name = 'foo'
 
-        b = self.ChildReference()
+        b = models.ChildReference()
         b.name = 'bar'
 
         f.save()
-        self.addCleanup(f.delete)
         b.foo = f
         b.save()
-        self.addCleanup(b.delete)
         f.bar = b
         f.save()
+
         self.addCleanup(f.delete)
+        self.addCleanup(b.delete)
 
         self.assertEqual(f.id, 1)
-        foo = self.ParentReference.objects.select_related().get(id=1)
+        foo = models.ParentReference.objects.select_related().get(id=1)
 
         self.assertFalse(foo.bar.foo is foo)
 
     def test_referenced_encode(self):
-        f = self.ParentReference()
+        f = models.ParentReference()
         f.name = 'foo'
 
-        b = self.ChildReference()
+        b = models.ChildReference()
         b.name = 'bar'
 
         f.save()
-        self.addCleanup(f.delete)
         b.foo = f
         b.save()
-        self.addCleanup(b.delete)
         f.bar = b
         f.save()
+
         self.addCleanup(f.delete)
+        self.addCleanup(b.delete)
 
         self.assertEqual(f.id, 1)
-        foo = self.ParentReference.objects.select_related().get(id=1)
+        foo = models.ParentReference.objects.select_related().get(id=1)
 
         # ensure the referenced attribute resolves
         foo.bar.foo
@@ -855,18 +682,15 @@ class ReferenceTestCase(ModelsBaseTestCase):
             '\x01\x06\x06\x02\x01')
 
 
-class AuthTestCase(ModelsBaseTestCase):
-
-    def setUp(self):
-        ModelsBaseTestCase.setUp(self)
-
-        from django.contrib.auth import models
-
-        self.models = models
+class AuthTestCase(BaseTestCase):
+    """
+    Tests for L{django.contrib.auth.models}
+    """
 
     def test_user(self):
-        alias = pyamf.get_class_alias(self.models.User)
-        self.resetDB()
+        from django.contrib.auth import models
+
+        alias = pyamf.get_class_alias(models.User)
 
         self.assertEqual(alias, 'django.contrib.auth.models.User')
         self.assertEqual(alias.exclude_attrs, ['message_set', 'password'])

@@ -67,7 +67,7 @@ class ElementTreeTestCase(unittest.TestCase):
         try:
             from elementtree import ElementTree
         except ImportError:
-            self.skipTest("'elementtree.cElementTree' is not available")
+            self.skipTest("'elementtree.ElementTree' is not available")
 
         self.assertEqual(self._encode(ElementTree), (
             ElementTreeTestCase.amf0_encoding,
