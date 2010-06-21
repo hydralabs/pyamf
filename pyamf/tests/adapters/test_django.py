@@ -22,15 +22,14 @@ try:
 except ImportError:
     django = None
 
-class ModelsBaseTestCase(unittest.TestCase):
-    def setUp(self):
-        try:
-            import pysqlite2
-        except ImportError:
-            self.skipTest('Cannot import pysqlite2 - AppEngine?')
+if django and django.VERSION < (1, 0):
+    django = None
 
-        self.old_env = os.environ.copy()
-        self.mods = sys.modules.copy()
+try:
+    reload(settings)
+except NameError:
+    from pyamf.tests.adapters.django_app import settings
+
 
 context = None
 
@@ -70,6 +69,8 @@ def init_django():
 
     from django.test.utils import setup_test_environment, teardown_test_environment
 
+    return True
+
 
 def setUpModule():
     """
@@ -83,14 +84,13 @@ def setUpModule():
         'os.environ': os.environ.copy(),
     }
 
-    init_django()
+    if init_django():
+        from pyamf.tests.adapters.django_app.adapters import models
+        from pyamf.adapters import _django_db_models_base as adapter
 
-    from pyamf.tests.adapters.django_app.adapters import models
-    from pyamf.adapters import _django_db_models_base as adapter
+        setup_test_environment()
 
-    setup_test_environment()
-
-    settings.DATABASE_NAME = create_test_db(0, True)
+        settings.DATABASE_NAME = create_test_db(0, True)
 
 
 def teadDownModule():

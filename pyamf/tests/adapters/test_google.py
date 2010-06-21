@@ -355,47 +355,68 @@ class EncodingReferencesTestCase(BaseTestCase):
         self.put(a)
         k = str(a.key())
 
+        amf0_k = struct.pack('>H', len(k)) + k
+        amf3_k = amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT) + k
+
         b = Novel(title='Sense and Sensibility', author=a)
 
-        self.assertEqual(b.author, a)
+        self.assertIdentical(b.author, a)
 
-        encoder = pyamf.get_encoder(pyamf.AMF0)
+        bytes = (
+            '\x03', (
+                '\x00\x05title\x02\x00\x15Sense and Sensibility',
+                '\x00\x04_key\x02' + amf0_k,
+                '\x00\x06author\x03', (
+                    '\x00\x04name\x02\x00\x0bJane Austen',
+                    '\x00\x04_key\x05'
+                ),
+                '\x00\x00\t'
+            ),
+            '\x00\x00\t')
 
-        encoder.writeElement(b)
-        self.assertEqual(encoder.stream.getvalue(),
-            '\x03\x00\x04_key\x05\x00\x06author\x03\x00\x04_key\x02%s%s'
-            '\x00\x04name\x02\x00\x0bJane Austen\x00\x00\t\x00\x05title'
-            '\x02\x00\x15Sense and Sensibility\x00\x00\t' % (
-                struct.pack('>H', len(k)), k))
+        self.assertEncoded(b, bytes, encoding=pyamf.AMF0)
 
-        encoder = pyamf.get_encoder(pyamf.AMF3)
+        bytes = (
+            '\n\x0b\x01', ((
+                '\rauthor\n\x0b\x01', (
+                    '\t_key\x06' + amf3_k,
+                    '\tname\x06\x17Jane Austen'
+                ), '\x01\x06\x01'),
+                '\x0btitle\x06+Sense and Sensibility'
+            ),
+            '\x01')
 
-        encoder.writeElement(b)
-        self.assertEqual(encoder.stream.getvalue(),
-            '\n;\x01\t_key\rauthor\x0btitle\x01\n+\x01\x00\tname\x06%s%s'
-            '\x06\x17Jane Austen\x01\x06+Sense and Sensibility\x01' % (
-                amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k))
+        self.assertEncoded(b, bytes, encoding=pyamf.AMF3)
 
         # now test with aliases ..
         pyamf.register_class(Author, 'Author')
         pyamf.register_class(Novel, 'Novel')
 
-        encoder = pyamf.get_encoder(pyamf.AMF0)
+        bytes = (
+            '\x10\x00\x05Novel', (
+                '\x00\x05title\x02\x00\x15Sense and Sensibility',
+                '\x00\x04_key\x02' + amf0_k,
+                '\x00\x06author\x10\x00\x06Author', (
+                    '\x00\x04name\x02\x00\x0bJane Austen',
+                    '\x00\x04_key\x05'
+                ),
+                '\x00\x00\t'
+            ),
+            '\x00\x00\t')
 
-        encoder.writeElement(b)
-        self.assertEqual(encoder.stream.getvalue(), '\x10\x00\x05Novel'
-            '\x00\x04_key\x05\x00\x06author\x10\x00\x06Author\x00\x04_key'
-            '\x02%s%s\x00\x04name\x02\x00\x0bJane Austen\x00\x00\t\x00'
-            '\x05title\x02\x00\x15Sense and Sensibility\x00\x00\t' % (
-                struct.pack('>H', len(k)), k))
+        self.assertEncoded(b, bytes, encoding=pyamf.AMF0)
 
-        encoder = pyamf.get_encoder(pyamf.AMF3)
+        bytes = (
+            '\n\x0b\x0bNovel', ((
+                '\rauthor\n\x0b\rAuthor', (
+                    '\t_key\x06' + amf3_k,
+                    '\tname\x06\x17Jane Austen'
+                ), '\x01\n\x01'),
+                '\x0btitle\x06+Sense and Sensibility'
+            ),
+            '\x01')
 
-        encoder.writeElement(b)
-        self.assertEqual(encoder.stream.getvalue(), '\n;\x0bNovel\t_key'
-            '\rauthor\x0btitle\x01\n+\rAuthor\x02\tname\x06%s%s\x06\x17'
-            'Jane Austen\x01\x06+Sense and Sensibility\x01' % (
-                amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k))
+        self.assertEncoded(b, bytes, encoding=pyamf.AMF3)
 
     def test_expando(self):
         class Author(db.Expando):
@@ -409,47 +430,68 @@ class EncodingReferencesTestCase(BaseTestCase):
         self.put(a)
         k = str(a.key())
 
+        amf0_k = struct.pack('>H', len(k)) + k
+        amf3_k = amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT) + k
+
         b = Novel(title='Sense and Sensibility', author=a)
 
         self.assertIdentical(b.author, a)
 
-        encoder = pyamf.get_encoder(pyamf.AMF0)
+        bytes = (
+            '\x03', (
+                '\x00\x05title\x02\x00\x15Sense and Sensibility',
+                '\x00\x04_key\x02' + amf0_k,
+                '\x00\x06author\x03', (
+                    '\x00\x04name\x02\x00\x0bJane Austen',
+                    '\x00\x04_key\x05'
+                ),
+                '\x00\x00\t'
+            ),
+            '\x00\x00\t')
 
-        encoder.writeElement(b)
-        self.assertEqual(encoder.stream.getvalue(),
-            '\x03\x00\x04_key\x05\x00\x06author\x03\x00\x04_key\x02%s%s'
-            '\x00\x04name\x02\x00\x0bJane Austen\x00\x00\t\x00\x05title'
-            '\x02\x00\x15Sense and Sensibility\x00\x00\t' % (
-                struct.pack('>H', len(k)), k))
+        self.assertEncoded(b, bytes, encoding=pyamf.AMF0)
 
-        encoder = pyamf.get_encoder(pyamf.AMF3)
+        bytes = (
+            '\n\x0b\x01', ((
+                '\rauthor\n\x0b\x01', (
+                    '\t_key\x06' + amf3_k,
+                    '\tname\x06\x17Jane Austen\x01'
+                ), '\x02\x01'),
+                '\x0btitle\x06+Sense and Sensibility'
+            ),
+            '\x01')
 
-        encoder.writeElement(b)
-        self.assertEqual(encoder.stream.getvalue(),
-            '\n;\x01\t_key\rauthor\x0btitle\x01\n+\x01\x00\tname\x06%s%s'
-            '\x06\x17Jane Austen\x01\x06+Sense and Sensibility\x01' % (
-                amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k))
+        self.assertEncoded(b, bytes, encoding=pyamf.AMF3)
 
         # now test with aliases ..
         pyamf.register_class(Author, 'Author')
         pyamf.register_class(Novel, 'Novel')
 
-        encoder = pyamf.get_encoder(pyamf.AMF0)
+        bytes = (
+            '\x10\x00\x05Novel', (
+                '\x00\x05title\x02\x00\x15Sense and Sensibility',
+                '\x00\x04_key\x02' + amf0_k,
+                '\x00\x06author\x10\x00\x06Author', (
+                    '\x00\x04name\x02\x00\x0bJane Austen',
+                    '\x00\x04_key\x05'
+                ),
+                '\x00\x00\t'
+            ),
+            '\x00\x00\t')
 
-        encoder.writeElement(b)
-        self.assertEqual(encoder.stream.getvalue(), '\x10\x00\x05Novel'
-            '\x00\x04_key\x05\x00\x06author\x10\x00\x06Author\x00\x04_key'
-            '\x02%s%s\x00\x04name\x02\x00\x0bJane Austen\x00\x00\t\x00'
-            '\x05title\x02\x00\x15Sense and Sensibility\x00\x00\t' % (
-                struct.pack('>H', len(k)), k))
+        self.assertEncoded(b, bytes, encoding=pyamf.AMF0)
 
-        encoder = pyamf.get_encoder(pyamf.AMF3)
+        bytes = (
+            '\n\x0b\x0bNovel', ((
+                '\rauthor\n\x0b\rAuthor', (
+                    '\t_key\x06' + amf3_k,
+                    '\tname\x06\x17Jane Austen\x01'
+                ), '\x06\x01'),
+                '\x0btitle\x06+Sense and Sensibility'
+            ),
+            '\x01')
 
-        encoder.writeElement(b)
-        self.assertEqual(encoder.stream.getvalue(),
-            '\n;\x0bNovel\t_key\rauthor\x0btitle\x01\n+\rAuthor\x02\tname'
-            '\x06%s%s\x06\x17Jane Austen\x01\x06+Sense and Sensibility'
-            '\x01' % (amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k))
+        self.assertEncoded(b, bytes, encoding=pyamf.AMF3)
 
     def test_dynamic_property_referenced_object(self):
         a = Author(name='Jane Austen')
@@ -458,11 +500,11 @@ class EncodingReferencesTestCase(BaseTestCase):
         b = Novel(title='Sense and Sensibility', author=a)
         self.put(b)
 
-        x = Novel.all().filter('title = ', 'Sense and Sensibility').get()
+        x = db.get(b.key())
         foo = [1, 2, 3]
 
         x.author.bar = foo
-        k = str(b.key())
+        k = str(x.key())
         ek = '%s%s' % (struct.pack('>H', len(k)), k)
         l = str(a.key())
         el = '%s%s' % (struct.pack('>H', len(l)), l)
@@ -470,17 +512,18 @@ class EncodingReferencesTestCase(BaseTestCase):
         bytes = (
             '\x03', (
                 '\x00\x05title\x02\x00\x15Sense and Sensibility',
-                '\x00\x04_key\x02\x00%s' % ek, (
-                    '\x00\x06author\x03', (
-                        '\x00\x03bar\n\x00\x00\x00\x03\x00?\xf0\x00\x00\x00\x00'
-                        '\x00\x00\x00@\x00\x00\x00\x00\x00\x00\x00\x00@\x08\x00'
-                        '\x00\x00\x00\x00\x00',
-                        '\x00\x04name\x02\x00\x0bJane Austen',
-                        '\x00\x04_key\x02\x00%s' % el
-                    ),
-                    '\x00\x00\t'
-                )),
+                '\x00\x04_key\x02' + ek,
+                '\x00\x06author\x03', (
+                    '\x00\x03bar\n\x00\x00\x00\x03\x00?\xf0\x00\x00\x00\x00'
+                    '\x00\x00\x00@\x00\x00\x00\x00\x00\x00\x00\x00@\x08\x00'
+                    '\x00\x00\x00\x00\x00',
+                    '\x00\x04name\x02\x00\x0bJane Austen',
+                    '\x00\x04_key\x02' + el
+                ),
+                '\x00\x00\t'
+            ),
             '\x00\x00\t')
+
 
         self.assertEncoded(x, bytes, encoding=pyamf.AMF0)
 

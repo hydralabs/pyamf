@@ -116,7 +116,13 @@ class DjangoGateway(gateway.BaseGateway):
             if self.debug:
                 response += "\n\nTraceback:\n\n%s" % gateway.format_exception()
 
-            return http.HttpResponseBadRequest(mimetype='text/plain', content=response)
+            # support for Django 0.96
+            http_response = http.HttpResponse(mimetype='text/plain',
+                content=response)
+
+            http_response.status_code = 400
+
+            return http_response
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
