@@ -13,7 +13,7 @@ import unittest
 
 import pyamf
 from pyamf import ClassAlias
-from pyamf.tests.util import ClassCacheClearingTestCase, Spam, get_fqcn
+from pyamf.tests.util import AMFTestCase, Spam, get_fqcn
 
 try:
     set
@@ -21,7 +21,7 @@ except NameError:
     from sets import Set as set
 
 
-class ClassAliasTestCase(ClassCacheClearingTestCase):
+class ClassAliasTestCase(AMFTestCase):
     """
     Test all functionality relating to the class L{ClassAlias}.
     """
@@ -607,7 +607,7 @@ class SimpleCompliationTestCase(unittest.TestCase):
         self.assertTrue(x.sealed)
 
 
-class CompilationInheritanceTestCase(ClassCacheClearingTestCase):
+class CompilationInheritanceTestCase(AMFTestCase):
     """
     """
 
@@ -983,13 +983,13 @@ class CompilationIntegrationTestCase(unittest.TestCase):
         self.assertEqual(c.decodable_properties, ['a_rw', 'b_rw'])
 
 
-class RegisterClassTestCase(ClassCacheClearingTestCase):
+class RegisterClassTestCase(AMFTestCase):
     """
     Tests for L{pyamf.register_class}
     """
 
     def tearDown(self):
-        ClassCacheClearingTestCase.tearDown(self)
+        AMFTestCase.tearDown(self)
 
         if hasattr(Spam, '__amf__'):
             del Spam.__amf__
@@ -1027,7 +1027,7 @@ class RegisterClassTestCase(ClassCacheClearingTestCase):
         self.assertFalse(alias._compiled)
 
 
-class UnregisterClassTestCase(ClassCacheClearingTestCase):
+class UnregisterClassTestCase(AMFTestCase):
     """
     Tests for L{pyamf.unregister_class}
     """

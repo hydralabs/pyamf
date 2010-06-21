@@ -22,10 +22,15 @@ try:
 except ImportError:
     django = None
 
-try:
-    reload(settings)
-except NameError:
-    from pyamf.tests.adapters.django_app import settings
+class ModelsBaseTestCase(unittest.TestCase):
+    def setUp(self):
+        try:
+            import pysqlite2
+        except ImportError:
+            self.skipTest('Cannot import pysqlite2 - AppEngine?')
+
+        self.old_env = os.environ.copy()
+        self.mods = sys.modules.copy()
 
 context = None
 

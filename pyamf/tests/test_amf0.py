@@ -16,7 +16,7 @@ import types
 import pyamf
 from pyamf import amf0, util
 from pyamf.tests.util import (
-    check_buffer, EncoderTester, DecoderTester, ClassCacheClearingTestCase,
+    check_buffer, EncoderTester, DecoderTester, AMFTestCase,
     Spam, ClassicSpam, isNaN, isPosInf, isNegInf)
 
 
@@ -121,13 +121,13 @@ class ContextTestCase(unittest.TestCase):
         self.assertEqual(x.getObjectReference({}), -1)
 
 
-class EncoderTestCase(ClassCacheClearingTestCase):
+class EncoderTestCase(AMFTestCase):
     """
     Tests the output from the AMF0 L{Encoder<pyamf.amf0.Encoder>} class.
     """
 
     def setUp(self):
-        ClassCacheClearingTestCase.setUp(self)
+        AMFTestCase.setUp(self)
 
         self.buf = util.BufferedByteStream()
         self.encoder = amf0.Encoder(self.buf)
@@ -548,13 +548,13 @@ class EncoderTestCase(ClassCacheClearingTestCase):
         self.assertEqual(self.buf.getvalue(), '\x0bBr>\xd8\x1f\xff\x80\x00\x00\x00')
 
 
-class DecoderTestCase(ClassCacheClearingTestCase):
+class DecoderTestCase(AMFTestCase):
     """
     Tests the output from the AMF0 L{Decoder<pyamf.amf0.Decoder>} class.
     """
 
     def setUp(self):
-        ClassCacheClearingTestCase.setUp(self)
+        AMFTestCase.setUp(self)
 
         self.buf = util.BufferedByteStream()
         self.decoder = amf0.Decoder(self.buf)
@@ -1030,7 +1030,7 @@ class RecordSetTestCase(unittest.TestCase):
         self.assertEqual(x.id, None)
 
 
-class ClassInheritanceTestCase(ClassCacheClearingTestCase):
+class ClassInheritanceTestCase(AMFTestCase):
     def test_simple(self):
         class A(object):
             class __amf__:
@@ -1092,13 +1092,13 @@ class ClassInheritanceTestCase(ClassCacheClearingTestCase):
         ), '\x00\x00\t')))
 
 
-class ExceptionEncodingTestCase(ClassCacheClearingTestCase):
+class ExceptionEncodingTestCase(AMFTestCase):
     """
     Tests for encoding exceptions.
     """
 
     def setUp(self):
-        ClassCacheClearingTestCase.setUp(self)
+        AMFTestCase.setUp(self)
 
         self.buffer = util.BufferedByteStream()
         self.encoder = amf0.Encoder(self.buffer)

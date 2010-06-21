@@ -51,6 +51,38 @@ if not hasattr(unittest.TestCase, 'assertNotIdentical'):
 
     unittest.TestCase.assertNotIdentical = assertNotIdentical
 
+if not hasattr(unittest.TestCase, 'patch'):
+    import inspect
+
+    def unpatch(self):
+        for orig, part, replaced in self.__patches:
+            setattr(orig, part, replaced)
+
+    def patch(self, orig, replace):
+        if not hasattr(self, '__patches'):
+            self.__patches = []
+            self.addCleanup(unpatch, self)
+
+        f = inspect.stack()[1][0]
+
+        parts = orig.split('.')
+
+        v = f.f_globals.copy()
+        v.update(f.f_locals)
+
+        orig = v[parts[0]]
+
+        for part in parts[1:-1]:
+            orig = getattr(orig, part)
+
+        to_replace = getattr(orig, parts[-1])
+
+        self.__patches.append((orig, parts[-1], to_replace))
+
+        setattr(orig, parts[-1], replace)
+
+    unittest.TestCase.patch = patch
+
 
 def get_suite():
     """
@@ -58,7 +90,20 @@ def get_suite():
     """
     loader = unittest.TestLoader()
 
-    return loader.discover(os.path.dirname(__file__), top_level_dir='../pyamf')
+    # this could be cleaned up but it works ..
+    tld = __file__.split(os.path.sep)
+
+    tld.reverse()
+
+    for i, x in enumerate(tld):
+        if x == 'pyamf':
+            tld.reverse()
+
+            tld = os.path.sep.join(tld[:-1 - i])
+
+            break
+
+    return loader.discover('pyamf', top_level_dir=tld)
 
 
 def main():

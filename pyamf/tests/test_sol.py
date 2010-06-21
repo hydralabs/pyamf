@@ -18,7 +18,7 @@ from StringIO import StringIO
 
 import pyamf
 from pyamf import sol
-from pyamf.tests.util import check_buffer
+from pyamf.tests.util import check_buffer, expectedFailureIfAppengine
 
 warnings.simplefilter('ignore', RuntimeWarning)
 
@@ -107,12 +107,22 @@ class HelperTestCase(unittest.TestCase):
         )
     )
 
-    contents_str = '\x00\xbf\x00\x00\x002TCSO\x00\x04\x00\x00\x00\x00\x00' + \
-        '\x05hello\x00\x00\x00\x00\x00\x04name\x02\x00\x05value\x00\x00' + \
-        '\x04spam\x02\x00\x04eggs\x00'
+    contents_str = (
+        '\x00\xbf\x00\x00\x002TCSO\x00\x04\x00\x00\x00\x00\x00'
+        '\x05hello\x00\x00\x00\x00\x00\x04name\x02\x00\x05value\x00\x00'
+        '\x04spam\x02\x00\x04eggs\x00')
 
     def setUp(self):
-        self.fp, self.file_name = tempfile.mkstemp()
+        try:
+            self.fp, self.file_name = tempfile.mkstemp()
+        except NotImplementedError:
+            try:
+                import google.appengine
+            except ImportError:
+                raise
+            else:
+                self.skipTest('Not available on AppEngine')
+
         os.close(self.fp)
 
     def tearDown(self):
@@ -181,6 +191,7 @@ class SOLTestCase(unittest.TestCase):
         self.assertEqual(s, {})
         self.assertEqual(s.name, 'eggs')
 
+    @expectedFailureIfAppengine
     def test_save(self):
         s = sol.SOL('hello')
         s.update({'name': 'value', 'spam': 'eggs'})

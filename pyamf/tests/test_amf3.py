@@ -16,7 +16,7 @@ import datetime
 import pyamf
 from pyamf import amf3, util
 from pyamf.tests import util as _util
-from pyamf.tests.util import Spam, check_buffer, assert_buffer
+from pyamf.tests.util import Spam
 
 
 class MockAlias(object):
@@ -53,6 +53,7 @@ class TypesTestCase(unittest.TestCase):
     """
     Tests the type mappings.
     """
+
     def test_types(self):
         self.assertEqual(amf3.TYPE_UNDEFINED, '\x00')
         self.assertEqual(amf3.TYPE_NULL, '\x01')
@@ -69,7 +70,7 @@ class TypesTestCase(unittest.TestCase):
         self.assertEqual(amf3.TYPE_BYTEARRAY, '\x0c')
 
 
-class ContextTestCase(_util.ClassCacheClearingTestCase):
+class ContextTestCase(_util.AMFTestCase):
     def test_create(self):
         c = amf3.Context()
 
@@ -262,10 +263,10 @@ class ContextTestCase(_util.ClassCacheClearingTestCase):
         self.assertEqual(len(new.legacy_xml), 0)
 
 
-class ClassDefinitionTestCase(_util.ClassCacheClearingTestCase):
+class ClassDefinitionTestCase(_util.AMFTestCase):
 
     def setUp(self):
-        _util.ClassCacheClearingTestCase.setUp(self)
+        _util.AMFTestCase.setUp(self)
 
         self.alias = pyamf.ClassAlias(Spam, defer=True)
 
@@ -309,12 +310,12 @@ class ClassDefinitionTestCase(_util.ClassCacheClearingTestCase):
         self.assertEqual(x.attr_len, 0)
 
 
-class EncoderTestCase(_util.ClassCacheClearingTestCase):
+class EncoderTestCase(_util.AMFTestCase):
     """
     Tests the output from the AMF3 L{Encoder<pyamf.amf3.Encoder>} class.
     """
     def setUp(self):
-        _util.ClassCacheClearingTestCase.setUp(self)
+        _util.AMFTestCase.setUp(self)
 
         self.buf = util.BufferedByteStream()
         self.context = amf3.Context()
@@ -496,7 +497,7 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
 
         self.encoder.writeElement(u)
 
-        assert_buffer(self, self.buf.getvalue(), (
+        self.assertBuffer(self.buf.getvalue(), (
             '\n\x0b!spam.eggs.Person', (
                 '\x17family_name\x06\x07Doe',
                 '\x15given_name\x06\tJane'
@@ -514,7 +515,7 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
 
         self.encoder.writeElement(u)
 
-        assert_buffer(self, self.buf.getvalue(), ('\n\x0b\x01', (
+        self.assertBuffer(self.buf.getvalue(), ('\n\x0b\x01', (
             '\x17family_name\x06\x07Doe',
             '\x15given_name\x06\tJane'
             ), '\x01'))
@@ -531,7 +532,7 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
 
         self.encoder.writeElement(u)
 
-        assert_buffer(self, self.buf.getvalue(), ('\n\x0b!spam.eggs.Person', (
+        self.assertBuffer(self.buf.getvalue(), ('\n\x0b!spam.eggs.Person', (
             '\x17family_name\x06\x07Doe',
             '\x15given_name\x06\tJane'
         ), '\x01'))
@@ -550,11 +551,11 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
 
         self.encoder.writeElement(foo)
 
-        self.assertTrue(check_buffer(self.buf.getvalue(), ('\n\x0b\x01', (
+        self.assertBuffer(self.buf.getvalue(), ('\n\x0b\x01', (
             '\ttext\x06\x07bar',
             '\ttail\x01',
             '\x07tag\x06\x07foo'
-        ), '\x01')))
+        ), '\x01'))
 
     def test_funcs(self):
         def x():
@@ -648,12 +649,12 @@ class EncoderTestCase(_util.ClassCacheClearingTestCase):
         self.assertEqual(self.buf.getvalue(), '\x08\x01Br>\xd8\x1f\xff\x80\x00')
 
 
-class DecoderTestCase(_util.ClassCacheClearingTestCase):
+class DecoderTestCase(_util.AMFTestCase):
     """
     Tests the output from the AMF3 L{Decoder<pyamf.amf3.Decoder>} class.
     """
     def setUp(self):
-        _util.ClassCacheClearingTestCase.setUp(self)
+        _util.AMFTestCase.setUp(self)
 
         self.buf = util.BufferedByteStream()
         self.context = amf3.Context()
@@ -980,9 +981,9 @@ class DecoderTestCase(_util.ClassCacheClearingTestCase):
         self.assertEqual(f, datetime.datetime(2009, 9, 24, 9, 23, 23))
 
 
-class ObjectEncodingTestCase(_util.ClassCacheClearingTestCase):
+class ObjectEncodingTestCase(_util.AMFTestCase):
     def setUp(self):
-        _util.ClassCacheClearingTestCase.setUp(self)
+        _util.AMFTestCase.setUp(self)
 
         self.stream = util.BufferedByteStream()
         self.context = amf3.Context()
@@ -1104,9 +1105,9 @@ class ObjectEncodingTestCase(_util.ClassCacheClearingTestCase):
             'foo\x01\n\x01\x01\x04\x02\x06\x07bar\x01')
 
 
-class ObjectDecodingTestCase(_util.ClassCacheClearingTestCase):
+class ObjectDecodingTestCase(_util.AMFTestCase):
     def setUp(self):
-        _util.ClassCacheClearingTestCase.setUp(self)
+        _util.AMFTestCase.setUp(self)
 
         self.stream = util.BufferedByteStream()
         self.context = amf3.Context()
@@ -1466,7 +1467,7 @@ class DataInputTestCase(unittest.TestCase):
             u'ἔδωσαν', x.readUTFBytes, 13)
 
 
-class ClassInheritanceTestCase(_util.ClassCacheClearingTestCase):
+class ClassInheritanceTestCase(_util.AMFTestCase):
     def test_simple(self):
         class A(object):
             pass
@@ -1678,13 +1679,13 @@ class ComplexEncodingTestCase(unittest.TestCase, _util.BaseEncoderMixIn):
             {self.TestSubObject: cd, dict: cd2, self.TestObject: cd3})
 
 
-class ExceptionEncodingTestCase(_util.ClassCacheClearingTestCase):
+class ExceptionEncodingTestCase(_util.AMFTestCase):
     """
     Tests for encoding exceptions.
     """
 
     def setUp(self):
-        _util.ClassCacheClearingTestCase.setUp(self)
+        _util.AMFTestCase.setUp(self)
 
         self.buffer = util.BufferedByteStream()
         self.encoder = amf3.Encoder(self.buffer)

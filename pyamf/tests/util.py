@@ -41,7 +41,7 @@ class Spam(object):
         pass
 
 
-class ClassCacheClearingTestCase(unittest.TestCase):
+class AMFTestCase(unittest.TestCase):
     def setUp(self):
         unittest.TestCase.setUp(self)
 
@@ -53,6 +53,30 @@ class ClassCacheClearingTestCase(unittest.TestCase):
 
         pyamf.CLASS_CACHE = self._class_cache
         pyamf.CLASS_LOADERS = self._class_loaders
+
+    def assertBuffer(self, first, second, msg=None):
+        """
+        """
+        if not check_buffer(first, second):
+            raise AssertionError(msg or '%r != %r' % (first, second))
+
+    def assertEncoded(self, obj, buffer, encoding=pyamf.AMF3):
+        bytes = pyamf.encode(obj, encoding=encoding).getvalue()
+
+        if isinstance(buffer, basestring):
+            self.assertEqual(bytes, buffer)
+
+            return
+
+        self.assertBuffer(bytes, buffer)
+
+    def decode(self, bytes, encoding=pyamf.AMF3):
+        decoded = list(pyamf.decode(bytes, encoding=encoding))
+
+        if len(decoded) == 1:
+            return decoded[0]
+
+        return decoded
 
 
 class EncoderTester(object):
@@ -184,20 +208,13 @@ def replace_dict(src, dest):
 
     assert src == dest
 
+
 class BaseCodecMixIn(object):
     amf_version = pyamf.AMF0
 
     def setUp(self):
         self.context = pyamf.get_context(self.amf_version)
         self.stream = BufferedByteStream()
-
-
-class BaseDecoderMixIn(BaseCodecMixIn):
-    def setUp(self):
-        BaseCodecMixIn.setUp(self)
-
-        self.decoder = pyamf.get_decoder(
-            self.amf_version, data=self.stream, context=self.context)
 
 
 class BaseEncoderMixIn(BaseCodecMixIn):
@@ -215,3 +232,12 @@ class NullFileDescriptor(object):
 
 def get_fqcn(klass):
     return '%s.%s' % (klass.__module__, klass.__name__)
+
+
+def expectedFailureIfAppengine(func):
+    try:
+        from google import appengine
+    except ImportError:
+        return func
+    else:
+        return unittest.expectedFailure(func)
