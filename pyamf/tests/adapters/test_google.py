@@ -955,89 +955,20 @@ class ReferencesTestCase(BaseTestCase):
         encoder.writeObject(self.jessica2)
         self.assertEqual(stream.getvalue(), '\n\x00')
 
-    def test_decode(self):
-        pyamf.register_class(PetModel, 'Pet')
-        k = str(self.jessica.key())
-
-        bytes = '\x10\x00\x03Pet\x00\x04_key\x02%s%s\x00\x04type\x02\x00' + \
-            '\x03cat\x00\x10weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00' + \
-            '\x00\x00\x04name\x02\x00\x07Jessica\x00\tbirthdate\x0bB^\xc4' + \
-            '\xae\xaa\x00\x00\x00\x00\x00\x00\x12spayed_or_neutered' + \
-            '\x01\x00\x00\x00\t'
-        bytes = bytes % (struct.pack('>H', len(k)), k)
-
-        decoder = pyamf.get_decoder(pyamf.AMF0)
-        context = decoder.context
-        stream = decoder.stream
-
-        stream.write(bytes * 2)
-        stream.seek(0)
-
-        j = decoder.readElement()
-        alias = context.getClassAlias(PetModel)
-
-        self.assertTrue(isinstance(j, PetModel))
-        self.assertTrue(isinstance(alias, adapter_db.DataStoreClassAlias))
-
-        self.assertEqual(context.gae_objects, {PetModel: {k: j}})
-
-        j2 = decoder.readElement()
-
-        self.assertTrue(isinstance(j2, PetModel))
-        self.assertEqual(context.gae_objects, {PetModel: {k: j}})
-
-    def test_cached_reference_properties(self):
-        a = Author(name='Jane Austen')
-        self.put(a)
-        k = str(a.key())
-
-        b = Novel(title='Sense and Sensibility', author=a)
-        self.put(b)
-
-        c = Novel(title='Pride and Prejudice', author=a)
-        self.put(c)
-
-        s, p = Novel.all().order('-title').fetch(2)
-
-        encoder = pyamf.get_encoder(pyamf.AMF3)
-        context = encoder.context
-
-        self.assertFalse(hasattr(context, 'gae_objects'))
-        encoder.writeElement(s)
-
-        self.assertTrue(hasattr(context, 'gae_objects'))
-        self.assertEqual(context.gae_objects, {
-            Novel: {str(s.key()): s},
-            Author: {k: a}
-        })
-
-        encoder.writeElement(p)
-
-        self.assertEqual(context.gae_objects, {
-            Novel: {
-                str(s.key()): s,
-                str(p.key()): p,
-            },
-            Author: {k: a}
-        })
-
     def test_nullreference(self):
         c = Novel(title='Pride and Prejudice', author=None)
-        c.put()
+        self.put(c)
 
-        try:
-            encoder = pyamf.get_encoder(encoding=pyamf.AMF3)
-            alias = adapter_db.DataStoreClassAlias(Novel, None)
+        encoder = pyamf.get_encoder(encoding=pyamf.AMF3)
+        alias = adapter_db.DataStoreClassAlias(Novel, None)
 
-            attrs = alias.getEncodableAttributes(c, codec=encoder)
+        attrs = alias.getEncodableAttributes(c, codec=encoder)
 
-            self.assertEqual(attrs, {
-                '_key': str(c.key()),
-                'title': 'Pride and Prejudice',
-                'author': None
-            })
-        finally:
-            c.delete()
+        self.assertEqual(attrs, {
+            '_key': str(c.key()),
+            'title': 'Pride and Prejudice',
+            'author': None
+        })
 
 
 class GAEReferenceCollectionTestCase(BaseTestCase):
