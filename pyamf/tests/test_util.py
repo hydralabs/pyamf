@@ -17,7 +17,23 @@ from StringIO import StringIO
 
 import pyamf
 from pyamf import util
-from pyamf.tests import util as _util
+from pyamf.tests.util import replace_dict
+
+PosInf = 1e300000
+NegInf = -1e300000
+NaN = PosInf / PosInf
+
+
+def isNaN(val):
+    return str(float(val)) == str(NaN)
+
+
+def isPosInf(val):
+    return str(float(val)) == str(PosInf)
+
+
+def isNegInf(val):
+    return str(float(val)) == str(NegInf)
 
 
 class TimestampTestCase(unittest.TestCase):
@@ -438,45 +454,41 @@ class DataTypeMixInTestCase(unittest.TestCase):
 
     def test_nan(self):
         x = util.BufferedByteStream('\xff\xf8\x00\x00\x00\x00\x00\x00')
-        self.assertTrue(_util.isNaN(x.read_double()))
+        self.assertTrue(isNaN(x.read_double()))
 
         x = util.BufferedByteStream('\xff\xf0\x00\x00\x00\x00\x00\x00')
-        self.assertTrue(_util.isNegInf(x.read_double()))
+        self.assertTrue(isNegInf(x.read_double()))
 
         x = util.BufferedByteStream('\x7f\xf0\x00\x00\x00\x00\x00\x00')
-        self.assertTrue(_util.isPosInf(x.read_double()))
+        self.assertTrue(isPosInf(x.read_double()))
 
         # now test little endian
         x = util.BufferedByteStream('\x00\x00\x00\x00\x00\x00\xf8\xff')
         x.endian = '<'
-        self.assertTrue(_util.isNaN(x.read_double()))
+        self.assertTrue(isNaN(x.read_double()))
 
         x = util.BufferedByteStream('\x00\x00\x00\x00\x00\x00\xf0\xff')
         x.endian = '<'
-        self.assertTrue(_util.isNegInf(x.read_double()))
+        self.assertTrue(isNegInf(x.read_double()))
 
         x = util.BufferedByteStream('\x00\x00\x00\x00\x00\x00\xf0\x7f')
         x.endian = '<'
-        self.assertTrue(_util.isPosInf(x.read_double()))
+        self.assertTrue(isPosInf(x.read_double()))
 
     def test_write_infinites(self):
-        nan = 1e3000000 / 1e3000000
-        pos_inf = 1e3000000
-        neg_inf = -1e3000000
-
         x = util.BufferedByteStream()
 
-        self._write_endian(x, x.write_double, (nan,), (
+        self._write_endian(x, x.write_double, (NaN,), (
             '\xff\xf8\x00\x00\x00\x00\x00\x00',
             '\x00\x00\x00\x00\x00\x00\xf8\xff'
         ))
 
-        self._write_endian(x, x.write_double, (pos_inf,), (
+        self._write_endian(x, x.write_double, (PosInf,), (
             '\x7f\xf0\x00\x00\x00\x00\x00\x00',
             '\x00\x00\x00\x00\x00\x00\xf0\x7f'
         ))
 
-        self._write_endian(x, x.write_double, (neg_inf,), (
+        self._write_endian(x, x.write_double, (NegInf,), (
             '\xff\xf0\x00\x00\x00\x00\x00\x00',
             '\x00\x00\x00\x00\x00\x00\xf0\xff'
         ))
@@ -756,7 +768,7 @@ class ClassAliasTestCase(unittest.TestCase):
         self.old_aliases = pyamf.ALIAS_TYPES.copy()
 
     def tearDown(self):
-        _util.replace_dict(self.old_aliases, pyamf.ALIAS_TYPES)
+        replace_dict(self.old_aliases, pyamf.ALIAS_TYPES)
 
     def test_simple(self):
         class A(object):
@@ -907,7 +919,7 @@ class IsClassSealedTestCase(unittest.TestCase):
 
     def test_new_mixed(self):
         class A(object):
-            __slots__ = ('foo', 'bar')
+            __slots__ = ['foo', 'bar']
 
         class B(A):
             pass
@@ -921,7 +933,7 @@ class IsClassSealedTestCase(unittest.TestCase):
 
     def test_deep(self):
         class A(object):
-            __slots__ = ('foo', 'bar')
+            __slots__ = ['foo', 'bar']
 
         class B(A):
             __slots__ = ('gak',)
@@ -959,6 +971,7 @@ class GetClassMetaTestCase(unittest.TestCase):
         empty = {
             'readonly_attrs': None,
             'static_attrs': None,
+            'synonym_attrs': None,
             'proxy_attrs': None,
             'dynamic': None,
             'alias': None,
@@ -983,6 +996,7 @@ class GetClassMetaTestCase(unittest.TestCase):
         meta = {
             'readonly_attrs': None,
             'static_attrs': None,
+            'synonym_attrs': None,
             'proxy_attrs': None,
             'dynamic': None,
             'alias': 'foo.bar.Spam',
@@ -998,15 +1012,16 @@ class GetClassMetaTestCase(unittest.TestCase):
     def test_static(self):
         class A:
             class __amf__:
-                static = ('foo', 'bar')
+                static = ['foo', 'bar']
 
         class B(object):
             class __amf__:
-                static = ('foo', 'bar')
+                static = ['foo', 'bar']
 
         meta = {
             'readonly_attrs': None,
             'static_attrs': ['foo', 'bar'],
+            'synonym_attrs': None,
             'proxy_attrs': None,
             'dynamic': None,
             'alias': None,
@@ -1021,15 +1036,16 @@ class GetClassMetaTestCase(unittest.TestCase):
     def test_exclude(self):
         class A:
             class __amf__:
-                exclude = ('foo', 'bar')
+                exclude = ['foo', 'bar']
 
         class B(object):
             class __amf__:
-                exclude = ('foo', 'bar')
+                exclude = ['foo', 'bar']
 
         meta = {
             'readonly_attrs': None,
             'exclude_attrs': ['foo', 'bar'],
+            'synonym_attrs': None,
             'proxy_attrs': None,
             'dynamic': None,
             'alias': None,
@@ -1045,15 +1061,16 @@ class GetClassMetaTestCase(unittest.TestCase):
     def test_readonly(self):
         class A:
             class __amf__:
-                readonly = ('foo', 'bar')
+                readonly = ['foo', 'bar']
 
         class B(object):
             class __amf__:
-                readonly = ('foo', 'bar')
+                readonly = ['foo', 'bar']
 
         meta = {
             'exclude_attrs': None,
             'readonly_attrs': ['foo', 'bar'],
+            'synonym_attrs': None,
             'proxy_attrs': None,
             'dynamic': None,
             'alias': None,
@@ -1078,6 +1095,7 @@ class GetClassMetaTestCase(unittest.TestCase):
         meta = {
             'exclude_attrs': None,
             'proxy_attrs': None,
+            'synonym_attrs': None,
             'readonly_attrs': None,
             'proxy_attrs': None,
             'dynamic': None,
@@ -1102,6 +1120,7 @@ class GetClassMetaTestCase(unittest.TestCase):
         meta = {
             'exclude_attrs': None,
             'proxy_attrs': None,
+            'synonym_attrs': None,
             'readonly_attrs': None,
             'proxy_attrs': None,
             'dynamic': False,
@@ -1126,6 +1145,7 @@ class GetClassMetaTestCase(unittest.TestCase):
         meta = {
             'exclude_attrs': None,
             'proxy_attrs': None,
+            'synonym_attrs': None,
             'readonly_attrs': None,
             'proxy_attrs': None,
             'dynamic': None,
@@ -1145,6 +1165,7 @@ class GetClassMetaTestCase(unittest.TestCase):
             'dynamic': False,
             'alias': 'spam.eggs',
             'proxy_attrs': None,
+            'synonym_attrs': None,
             'amf3': True,
             'static': ['baz'],
             'external': True
@@ -1164,6 +1185,7 @@ class GetClassMetaTestCase(unittest.TestCase):
             'alias': 'spam.eggs',
             'amf3': True,
             'exclude_attrs': ['foo'],
+            'synonym_attrs': None,
             'proxy_attrs': None,
             'external': True
         }
@@ -1174,16 +1196,41 @@ class GetClassMetaTestCase(unittest.TestCase):
     def test_proxy(self):
         class A:
             class __amf__:
-                proxy = ('foo', 'bar')
+                proxy = ['foo', 'bar']
 
         class B(object):
             class __amf__:
-                proxy = ('foo', 'bar')
+                proxy = ['foo', 'bar']
 
         meta = {
             'exclude_attrs': None,
             'readonly_attrs': None,
             'proxy_attrs': ['foo', 'bar'],
+            'synonym_attrs': None,
+            'dynamic': None,
+            'alias': None,
+            'amf3': None,
+            'static_attrs': None,
+            'external': None
+        }
+
+        self.assertEquals(util.get_class_meta(A), meta)
+        self.assertEquals(util.get_class_meta(B), meta)
+
+    def test_synonym(self):
+        class A:
+            class __amf__:
+                synonym = {'foo': 'bar'}
+
+        class B(object):
+            class __amf__:
+                synonym = {'foo': 'bar'}
+
+        meta = {
+            'exclude_attrs': None,
+            'readonly_attrs': None,
+            'proxy_attrs': None,
+            'synonym_attrs': {'foo': 'bar'},
             'dynamic': None,
             'alias': None,
             'amf3': None,

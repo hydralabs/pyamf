@@ -11,7 +11,7 @@ import unittest
 import new
 
 import pyamf
-from pyamf.tests.util import AMFTestCase, replace_dict, Spam
+from pyamf.tests.util import ClassCacheClearingTestCase, replace_dict, Spam
 
 
 class ASObjectTestCase(unittest.TestCase):
@@ -164,7 +164,7 @@ class HelperTestCase(unittest.TestCase):
         self.assertEqual(x, '\x02\x00\x03foo')
 
 
-class UnregisterClassTestCase(AMFTestCase):
+class UnregisterClassTestCase(ClassCacheClearingTestCase):
     def test_klass(self):
         alias = pyamf.register_class(Spam, 'spam.eggs')
 
@@ -181,7 +181,7 @@ class UnregisterClassTestCase(AMFTestCase):
         self.assertTrue(alias not in pyamf.CLASS_CACHE)
 
 
-class ClassLoaderTestCase(AMFTestCase):
+class ClassLoaderTestCase(ClassCacheClearingTestCase):
     def test_register(self):
         self.assertTrue(chr not in pyamf.CLASS_LOADERS)
         pyamf.register_class_loader(chr)
@@ -559,7 +559,7 @@ class TypedObjectTestCase(unittest.TestCase):
         self.assertNotEqual(alias.klass, Foo)
 
 
-class PackageTestCase(AMFTestCase):
+class PackageTestCase(ClassCacheClearingTestCase):
     """
     Tests for L{pyamf.register_package}
     """
@@ -571,7 +571,7 @@ class PackageTestCase(AMFTestCase):
         pass
 
     def setUp(self):
-        AMFTestCase.setUp(self)
+        ClassCacheClearingTestCase.setUp(self)
 
         self.module = new.module('foo')
 
@@ -596,7 +596,7 @@ class PackageTestCase(AMFTestCase):
         self.names = (self.module.__name__,)
 
     def tearDown(self):
-        AMFTestCase.tearDown(self)
+        ClassCacheClearingTestCase.tearDown(self)
 
         Spam.__module__ = self.spam_module
 

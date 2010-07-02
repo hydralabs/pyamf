@@ -15,8 +15,8 @@ import datetime
 
 import pyamf
 from pyamf import amf3, util
-from pyamf.tests import util as _util
-from pyamf.tests.util import Spam
+from pyamf.tests.util import (
+    Spam, EncoderMixIn, DecoderMixIn, ClassCacheClearingTestCase)
 
 
 class MockAlias(object):
@@ -53,7 +53,6 @@ class TypesTestCase(unittest.TestCase):
     """
     Tests the type mappings.
     """
-
     def test_types(self):
         self.assertEqual(amf3.TYPE_UNDEFINED, '\x00')
         self.assertEqual(amf3.TYPE_NULL, '\x01')
@@ -70,7 +69,7 @@ class TypesTestCase(unittest.TestCase):
         self.assertEqual(amf3.TYPE_BYTEARRAY, '\x0c')
 
 
-class ContextTestCase(_util.AMFTestCase):
+class ContextTestCase(ClassCacheClearingTestCase):
     def test_create(self):
         c = amf3.Context()
 
@@ -263,10 +262,10 @@ class ContextTestCase(_util.AMFTestCase):
         self.assertEqual(len(new.legacy_xml), 0)
 
 
-class ClassDefinitionTestCase(_util.AMFTestCase):
+class ClassDefinitionTestCase(ClassCacheClearingTestCase):
 
     def setUp(self):
-        _util.AMFTestCase.setUp(self)
+        ClassCacheClearingTestCase.setUp(self)
 
         self.alias = pyamf.ClassAlias(Spam, defer=True)
 
@@ -310,77 +309,50 @@ class ClassDefinitionTestCase(_util.AMFTestCase):
         self.assertEqual(x.attr_len, 0)
 
 
-class EncoderTestCase(_util.AMFTestCase):
+class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
     """
     Tests the output from the AMF3 L{Encoder<pyamf.amf3.Encoder>} class.
     """
+
+    amf_type = pyamf.AMF3
+
     def setUp(self):
-        _util.AMFTestCase.setUp(self)
-
-        self.buf = util.BufferedByteStream()
-        self.context = amf3.Context()
-        self.encoder = amf3.Encoder(self.buf, context=self.context)
-
-    def _run(self, data):
-        self.context.clear()
-
-        e = _util.EncoderTester(self.encoder, data)
-        e.run(self)
+        ClassCacheClearingTestCase.setUp(self)
+        EncoderMixIn.setUp(self)
 
     def test_list_references(self):
         y = [0, 1, 2, 3]
 
-        self._run([
-            (y, '\x09\x09\x01\x04\x00\x04\x01\x04\x02\x04\x03'),
-            (y, '\x09\x00'),
-            (y, '\x09\x00')])
+        self.assertEncoded(y, '\x09\x09\x01\x04\x00\x04\x01\x04\x02\x04\x03')
+        self.assertEncoded(y, '\x09\x00', clear=False)
+        self.assertEncoded(y, '\x09\x00', clear=False)
 
     def test_list_proxy_references(self):
         self.encoder.use_proxies = True
         y = [0, 1, 2, 3]
-        self._run([
-            (y, '\n\x07Cflex.messaging.io.ArrayCollection\t\t\x01\x04\x00'
-                '\x04\x01\x04\x02\x04\x03'),
-            (y, '\n\x00'),
-            (y, '\n\x00')])
+
+        self.assertEncoded(y, '\n\x07Cflex.messaging.io.ArrayCollection\t\t'
+            '\x01\x04\x00\x04\x01\x04\x02\x04\x03')
+        self.assertEncoded(y, '\n\x00', clear=False)
+        self.assertEncoded(y, '\n\x00', clear=False)
 
     def test_dict(self):
-        self._run([
-            ({'spam': 'eggs'}, '\n\x0b\x01\tspam\x06\teggs\x01')])
-
-        self._run([
-            ({'a': u'e', 'b': u'f', 'c': u'g', 'd': u'h'},  '\n\x0b\x01', (
-                '\x03c\x06\x03g',
-                '\x03b\x06\x03f',
-                '\x03a\x06\x03e',
-                '\x03d\x06\x03h',
-            ), '\x01')
-        ])
-
-        x = amf3.Decoder('\n\x0b\x01\x03a\x06\x00\x03c\x06\x02\x03b\x06\x04'
-            '\x03d\x06\x06\x01')
-        self.assertEqual(x.readElement(),
-            {'a': u'a', 'b': u'b', 'c': u'c', 'd': u'd'})
+        self.assertEncoded({'spam': 'eggs'}, '\n\x0b\x01\tspam\x06\teggs\x01')
+        self.assertEncoded({'a': u'e', 'b': u'f', 'c': u'g', 'd': u'h'},
+            '\n\x0b\x01', ('\x03c\x06\x03g', '\x03b\x06\x03f', '\x03a\x06\x03e',
+            '\x03d\x06\x03h'), '\x01')
 
     def test_mixed_array(self):
         x = pyamf.MixedArray()
         x.update({0:u'hello', 'spam': u'eggs'})
 
-        self._run([
-            (x, '\t\x03\tspam\x06\teggs\x01\x06\x0bhello')])
+        self.assertEncoded(x, '\t\x03\tspam\x06\teggs\x01\x06\x0bhello')
 
         x = pyamf.MixedArray()
         x.update({0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 'a': 'a'})
-        self._run([(x, '\x09\x0d\x03\x61\x06\x00\x01\x04\x00\x04\x01\x04\x02'
-            '\x04\x03\x04\x04\x04\x05')])
 
-        x = amf3.Decoder('\x09\x09\x03\x62\x06\x00\x03\x64\x06\x02\x03\x61'
-            '\x06\x04\x03\x63\x06\x06\x01\x04\x00\x04\x01\x04\x02\x04\x03')
-
-        y = x.readElement()
-        self.assertTrue(isinstance(y,pyamf.MixedArray))
-        self.assertEqual(y, {'a': u'a', 'b': u'b', 'c': u'c', 'd': u'd',
-                0: 0, 1: 1, 2: 2, 3: 3})
+        self.assertEncoded(x, '\x09\x0d\x03\x61\x06\x00\x01\x04\x00\x04\x01'
+            '\x04\x02\x04\x03\x04\x04\x04\x05')
 
     def test_empty_key_string(self):
         """
@@ -393,46 +365,32 @@ class EncoderTestCase(_util.AMFTestCase):
         def x():
             y = pyamf.MixedArray()
             y.update({'': 1, 0: 1})
-            self._run([(y, '\x09\x03\x01\x04\x01\x01\x04\x01')])
+            self.encode(y)
 
         self.failUnlessRaises(pyamf.EncodeError, x)
 
     def test_object(self):
-        self._run([
-            ({'a': u'spam', 'b': 5},
-                '\n\x0b\x01\x03a\x06\tspam\x03b\x04\x05\x01')])
+        self.assertEncoded({'a': u'spam', 'b': 5},
+            '\n\x0b\x01\x03a\x06\tspam\x03b\x04\x05\x01')
 
         pyamf.register_class(Spam, 'org.pyamf.spam')
 
         obj = Spam()
         obj.baz = 'hello'
 
-        self.encoder.writeElement(obj)
-
-        self.assertEqual(self.buf.getvalue(), '\n\x0b\x1dorg.pyamf.spam\x07baz'
-            '\x06\x0bhello\x01')
+        self.assertEncoded(obj,
+            '\n\x0b\x1dorg.pyamf.spam\x07baz\x06\x0bhello\x01')
 
     def test_date(self):
         x = datetime.datetime(2005, 3, 18, 1, 58, 31)
-        self.encoder.writeElement(x)
 
-        self.assertEqual(self.buf.getvalue(), '\x08\x01Bp+6!\x15\x80\x00')
-        self.buf.truncate()
-        self.encoder.writeElement(x)
+        self.assertEncoded(x, '\x08\x01Bp+6!\x15\x80\x00')
+        self.assertEncoded(x, '\x08\x00', clear=False)
 
-        self.assertEqual(self.buf.getvalue(), '\x08\x00')
-
-        try:
-            self._run([(datetime.time(22, 3), '')])
-        except pyamf.EncodeError, e:
-            self.assertTrue(str(e).startswith('A datetime.time instance was found but '
-                'AMF3 has no way to encode time objects. Please use '
-                'datetime.datetime instead'))
-        else:
-            self.fail('pyamf.EncodeError not raised when encoding datetime.time')
+        self.assertRaises(pyamf.EncodeError, self.encode, datetime.time(22, 3))
 
     def test_byte_array(self):
-        self._run([(amf3.ByteArray('hello'), '\x0c\x0bhello')])
+        self.assertEncoded(amf3.ByteArray('hello'), '\x0c\x0bhello')
 
     def test_xml(self):
         x = util.ET.fromstring('<a><b>hello world</b></a>')
@@ -462,7 +420,7 @@ class EncoderTestCase(_util.AMFTestCase):
 
         x = Spam({'spam': 'eggs'})
 
-        self._run([(x, '\n\x0b\x01\x09spam\x06\x09eggs\x01')])
+        self.assertEncoded(x, '\n\x0b\x01\x09spam\x06\x09eggs\x01')
 
     def test_custom_type(self):
         def write_as_list(list_interface_obj, encoder):
@@ -480,10 +438,8 @@ class EncoderTestCase(_util.AMFTestCase):
         pyamf.add_type(ListWrapper, write_as_list)
         x = ListWrapper()
 
-        self.encoder.writeElement(x)
-        self.assertEqual(x.ran, True)
-
-        self.assertEqual(self.buf.getvalue(), '\t\x07\x01\x04\x01\x04\x02\x04\x03')
+        self.assertEncoded(x, '\t\x07\x01\x04\x01\x04\x02\x04\x03')
+        self.assertTrue(x.ran)
 
     def test_old_style_classes(self):
         class Person:
@@ -495,15 +451,8 @@ class EncoderTestCase(_util.AMFTestCase):
         u.family_name = 'Doe'
         u.given_name = 'Jane'
 
-        self.encoder.writeElement(u)
-
-        self.assertBuffer(self.buf.getvalue(), (
-            '\n\x0b!spam.eggs.Person', (
-                '\x17family_name\x06\x07Doe',
-                '\x15given_name\x06\tJane'
-            ),
-            '\x01'
-        ))
+        self.assertEncoded(u, '\n\x0b!spam.eggs.Person', (
+            '\x17family_name\x06\x07Doe', '\x15given_name\x06\tJane'), '\x01')
 
     def test_slots(self):
         class Person(object):
@@ -513,12 +462,8 @@ class EncoderTestCase(_util.AMFTestCase):
         u.family_name = 'Doe'
         u.given_name = 'Jane'
 
-        self.encoder.writeElement(u)
-
-        self.assertBuffer(self.buf.getvalue(), ('\n\x0b\x01', (
-            '\x17family_name\x06\x07Doe',
-            '\x15given_name\x06\tJane'
-            ), '\x01'))
+        self.assertEncoded(u, '\n\x0b\x01', ('\x17family_name\x06\x07Doe',
+            '\x15given_name\x06\tJane'), '\x01')
 
     def test_slots_registered(self):
         class Person(object):
@@ -530,12 +475,8 @@ class EncoderTestCase(_util.AMFTestCase):
         u.family_name = 'Doe'
         u.given_name = 'Jane'
 
-        self.encoder.writeElement(u)
-
-        self.assertBuffer(self.buf.getvalue(), ('\n\x0b!spam.eggs.Person', (
-            '\x17family_name\x06\x07Doe',
-            '\x15given_name\x06\tJane'
-        ), '\x01'))
+        self.assertEncoded(u, '\n\x0b!spam.eggs.Person', (
+            '\x17family_name\x06\x07Doe', '\x15given_name\x06\tJane'), '\x01')
 
     def test_elementtree_tag(self):
         class NotAnElement(object):
@@ -549,24 +490,15 @@ class EncoderTestCase(_util.AMFTestCase):
         foo.text = 'bar'
         foo.tail = None
 
-        self.encoder.writeElement(foo)
-
-        self.assertBuffer(self.buf.getvalue(), ('\n\x0b\x01', (
-            '\ttext\x06\x07bar',
-            '\ttail\x01',
-            '\x07tag\x06\x07foo'
-        ), '\x01'))
+        self.assertEncoded(foo, '\n\x0b\x01', ('\ttext\x06\x07bar',
+            '\ttail\x01', '\x07tag\x06\x07foo'), '\x01')
 
     def test_funcs(self):
         def x():
             yield 2
 
-        self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, chr)
-        self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, self.assertRaises)
-        self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, lambda x: x)
-        self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, x())
-        self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, pyamf)
-        self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, ''.startswith)
+        for f in (chr, lambda x: x, x, x(), pyamf, ''.startswith):
+            self.assertRaises(pyamf.EncodeError, self.encode, f)
 
     def test_29b_ints(self):
         """
@@ -649,101 +581,95 @@ class EncoderTestCase(_util.AMFTestCase):
         self.assertEqual(self.buf.getvalue(), '\x08\x01Br>\xd8\x1f\xff\x80\x00')
 
 
-class DecoderTestCase(_util.AMFTestCase):
+class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
     """
     Tests the output from the AMF3 L{Decoder<pyamf.amf3.Decoder>} class.
     """
+
+    amf_type = pyamf.AMF3
+
     def setUp(self):
-        _util.AMFTestCase.setUp(self)
-
-        self.buf = util.BufferedByteStream()
-        self.context = amf3.Context()
-        self.decoder = amf3.Decoder(context=self.context)
-        self.decoder.stream = self.buf
-
-    def _run(self, data):
-        self.context.clear()
-        e = _util.DecoderTester(self.decoder, data)
-        e.run(self)
+        ClassCacheClearingTestCase.setUp(self)
+        DecoderMixIn.setUp(self)
 
     def test_undefined(self):
-        self._run([(pyamf.Undefined, '\x00')])
+        self.assertDecoded(pyamf.Undefined, '\x00')
 
     def test_number(self):
-        self._run([
-            (0,    '\x04\x00'),
-            (0.2,  '\x05\x3f\xc9\x99\x99\x99\x99\x99\x9a'),
-            (1,    '\x04\x01'),
-            (-1,    '\x04\xff\xff\xff\xff'),
-            (42,   '\x04\x2a'),
-            (-123, '\x04\xff\xff\xff\x85'),
-            (-123, '\x05\xc0\x5e\xc0\x00\x00\x00\x00\x00'),
-            (1.23456789, '\x05\x3f\xf3\xc0\xca\x42\x83\xde\x1b')])
+        self.assertDecoded(0, '\x04\x00')
+        self.assertDecoded(0.2, '\x05\x3f\xc9\x99\x99\x99\x99\x99\x9a')
+        self.assertDecoded(1, '\x04\x01')
+        self.assertDecoded(-1, '\x04\xff\xff\xff\xff')
+        self.assertDecoded(42, '\x04\x2a')
+
+        # two ways to represent -123, as an int and as a float
+        self.assertDecoded(-123, '\x04\xff\xff\xff\x85')
+        self.assertDecoded(-123, '\x05\xc0\x5e\xc0\x00\x00\x00\x00\x00')
+
+        self.assertDecoded(1.23456789, '\x05\x3f\xf3\xc0\xca\x42\x83\xde\x1b')
 
     def test_integer(self):
-        self._run([(0, '\x04\x00')])
-        self._run([(0x35, '\x04\x35')])
-        self._run([(0x7f, '\x04\x7f')])
-        self._run([(0x80, '\x04\x81\x00')])
-        self._run([(0xd4, '\x04\x81\x54')])
-        self._run([(0x3fff, '\x04\xff\x7f')])
-        self._run([(0x4000, '\x04\x81\x80\x00')])
-        self._run([(0x1a53f, '\x04\x86\xca\x3f')])
-        self._run([(0x1fffff, '\x04\xff\xff\x7f')])
-        self._run([(0x200000, '\x04\x80\xc0\x80\x00')])
-        self._run([(-0x01, '\x04\xff\xff\xff\xff')])
-        self._run([(-0x2a, '\x04\xff\xff\xff\xd6')])
-        self._run([(0xfffffff, '\x04\xbf\xff\xff\xff')])
-        self._run([(-0x10000000, '\x04\xc0\x80\x80\x00')])
+        self.assertDecoded(0, '\x04\x00')
+        self.assertDecoded(0x35, '\x04\x35')
+        self.assertDecoded(0x7f, '\x04\x7f')
+        self.assertDecoded(0x80, '\x04\x81\x00')
+        self.assertDecoded(0xd4, '\x04\x81\x54')
+        self.assertDecoded(0x3fff, '\x04\xff\x7f')
+        self.assertDecoded(0x4000, '\x04\x81\x80\x00')
+        self.assertDecoded(0x1a53f, '\x04\x86\xca\x3f')
+        self.assertDecoded(0x1fffff, '\x04\xff\xff\x7f')
+        self.assertDecoded(0x200000, '\x04\x80\xc0\x80\x00')
+        self.assertDecoded(-0x01, '\x04\xff\xff\xff\xff')
+        self.assertDecoded(-0x2a, '\x04\xff\xff\xff\xd6')
+        self.assertDecoded(0xfffffff, '\x04\xbf\xff\xff\xff')
+        self.assertDecoded(-0x10000000, '\x04\xc0\x80\x80\x00')
 
     def test_infinites(self):
-        self.buf.truncate()
-        self.buf.write('\x05\xff\xf8\x00\x00\x00\x00\x00\x00')
-        self.buf.seek(0)
-        x = self.decoder.readElement()
-        self.assertTrue(_util.isNaN(x))
+        x = self.decode('\x05\xff\xf8\x00\x00\x00\x00\x00\x00')
+        self.assertTrue(util.isNaN(x))
 
-        self.buf.truncate()
-        self.buf.write('\x05\xff\xf0\x00\x00\x00\x00\x00\x00')
-        self.buf.seek(0)
-        x = self.decoder.readElement()
-        self.assertTrue(_util.isNegInf(x))
+        x = self.decode('\x05\xff\xf0\x00\x00\x00\x00\x00\x00')
+        self.assertTrue(util.isNegInf(x))
 
-        self.buf.truncate()
-        self.buf.write('\x05\x7f\xf0\x00\x00\x00\x00\x00\x00')
-        self.buf.seek(0)
-        x = self.decoder.readElement()
-        self.assertTrue(_util.isPosInf(x))
+        x = self.decode('\x05\x7f\xf0\x00\x00\x00\x00\x00\x00')
+        self.assertTrue(util.isPosInf(x))
 
     def test_boolean(self):
-        self._run([(True, '\x03'), (False, '\x02')])
+        self.assertDecoded(True, '\x03')
+        self.assertDecoded(False, '\x02')
 
     def test_null(self):
-        self._run([(None, '\x01')])
+        self.assertDecoded(None, '\x01')
 
     def test_string(self):
-        self._run([
-            ('', '\x06\x01'),
-            ('hello', '\x06\x0bhello'),
-            (u'ღმერთსი შემვედრე, ნუთუ კვლა დამხსნას სოფლისა შრომასა, ცეცხლს',
-                '\x06\x82\x45\xe1\x83\xa6\xe1\x83\x9b\xe1\x83\x94\xe1\x83\xa0'
-                '\xe1\x83\x97\xe1\x83\xa1\xe1\x83\x98\x20\xe1\x83\xa8\xe1\x83'
-                '\x94\xe1\x83\x9b\xe1\x83\x95\xe1\x83\x94\xe1\x83\x93\xe1\x83'
-                '\xa0\xe1\x83\x94\x2c\x20\xe1\x83\x9c\xe1\x83\xa3\xe1\x83\x97'
-                '\xe1\x83\xa3\x20\xe1\x83\x99\xe1\x83\x95\xe1\x83\x9a\xe1\x83'
-                '\x90\x20\xe1\x83\x93\xe1\x83\x90\xe1\x83\x9b\xe1\x83\xae\xe1'
-                '\x83\xa1\xe1\x83\x9c\xe1\x83\x90\xe1\x83\xa1\x20\xe1\x83\xa1'
-                '\xe1\x83\x9d\xe1\x83\xa4\xe1\x83\x9a\xe1\x83\x98\xe1\x83\xa1'
-                '\xe1\x83\x90\x20\xe1\x83\xa8\xe1\x83\xa0\xe1\x83\x9d\xe1\x83'
-                '\x9b\xe1\x83\x90\xe1\x83\xa1\xe1\x83\x90\x2c\x20\xe1\x83\xaa'
-                '\xe1\x83\x94\xe1\x83\xaa\xe1\x83\xae\xe1\x83\x9a\xe1\x83\xa1'
-                )])
+        self.assertDecoded('', '\x06\x01')
+        self.assertDecoded('hello', '\x06\x0bhello')
+        self.assertDecoded(
+            u'ღმერთსი შემვედრე, ნუთუ კვლა დამხსნას სოფლისა შრომასა, ცეცხლს',
+            '\x06\x82\x45\xe1\x83\xa6\xe1\x83\x9b\xe1\x83\x94\xe1\x83\xa0'
+            '\xe1\x83\x97\xe1\x83\xa1\xe1\x83\x98\x20\xe1\x83\xa8\xe1\x83'
+            '\x94\xe1\x83\x9b\xe1\x83\x95\xe1\x83\x94\xe1\x83\x93\xe1\x83'
+            '\xa0\xe1\x83\x94\x2c\x20\xe1\x83\x9c\xe1\x83\xa3\xe1\x83\x97'
+            '\xe1\x83\xa3\x20\xe1\x83\x99\xe1\x83\x95\xe1\x83\x9a\xe1\x83'
+            '\x90\x20\xe1\x83\x93\xe1\x83\x90\xe1\x83\x9b\xe1\x83\xae\xe1'
+            '\x83\xa1\xe1\x83\x9c\xe1\x83\x90\xe1\x83\xa1\x20\xe1\x83\xa1'
+            '\xe1\x83\x9d\xe1\x83\xa4\xe1\x83\x9a\xe1\x83\x98\xe1\x83\xa1'
+            '\xe1\x83\x90\x20\xe1\x83\xa8\xe1\x83\xa0\xe1\x83\x9d\xe1\x83'
+            '\x9b\xe1\x83\x90\xe1\x83\xa1\xe1\x83\x90\x2c\x20\xe1\x83\xaa'
+            '\xe1\x83\x94\xe1\x83\xaa\xe1\x83\xae\xe1\x83\x9a\xe1\x83\xa1')
+
+    def test_mixed_array(self):
+        y = self.decode('\x09\x09\x03\x62\x06\x00\x03\x64\x06\x02\x03\x61'
+            '\x06\x04\x03\x63\x06\x06\x01\x04\x00\x04\x01\x04\x02\x04\x03')
+
+        self.assertTrue(isinstance(y,pyamf.MixedArray))
+        self.assertEqual(y,
+            {'a': u'a', 'b': u'b', 'c': u'c', 'd': u'd', 0: 0, 1: 1, 2: 2, 3: 3})
 
     def test_string_references(self):
-        self._run([
-            ('hello', '\x06\x0bhello'),
-            ('hello', '\x06\x00'),
-            ('hello', '\x06\x00')])
+        self.assertDecoded('hello', '\x06\x0bhello')
+        self.assertDecoded('hello', '\x06\x00', clear=False)
+        self.assertDecoded('hello', '\x06\x00', clear=False)
 
     def test_xml(self):
         self.buf.write('\x07\x33<a><b>hello world</b></a>')
@@ -784,45 +710,40 @@ class DecoderTestCase(_util.AMFTestCase):
         self.assertEqual(id(x), id(y))
 
     def test_list(self):
-        self._run([
-            ([], '\x09\x01\x01'),
-            ([0, 1, 2, 3], '\x09\x09\x01\x04\x00\x04\x01\x04\x02\x04\x03'),
-            (["Hello", 2, 3, 4, 5], '\x09\x0b\x01\x06\x0b\x48\x65\x6c\x6c\x6f'
-                '\x04\x02\x04\x03\x04\x04\x04\x05')])
+        self.assertDecoded([], '\x09\x01\x01')
+        self.assertDecoded([0, 1, 2, 3],
+            '\x09\x09\x01\x04\x00\x04\x01\x04\x02\x04\x03')
+        self.assertDecoded(["Hello", 2, 3, 4, 5], '\x09\x0b\x01\x06\x0b\x48'
+            '\x65\x6c\x6c\x6f\x04\x02\x04\x03\x04\x04\x04\x05')
 
     def test_list_references(self):
         y = [0, 1, 2, 3]
         z = [0, 1, 2]
 
-        self._run([
-            (y, '\x09\x09\x01\x04\x00\x04\x01\x04\x02\x04\x03'),
-            (y, '\x09\x00'),
-            (z, '\x09\x07\x01\x04\x00\x04\x01\x04\x02'),
-            (z, '\x09\x02')])
+        self.assertDecoded(y, '\x09\x09\x01\x04\x00\x04\x01\x04\x02\x04\x03')
+        self.assertDecoded(y, '\x09\x00', clear=False)
+        self.assertDecoded(z, '\x09\x07\x01\x04\x00\x04\x01\x04\x02', clear=False)
+        self.assertDecoded(z, '\x09\x02', clear=False)
 
     def test_dict(self):
-        self._run([
-            ({0: u'hello', 'foo': u'bar'},
-            '\x09\x03\x07\x66\x6f\x6f\x06\x07\x62\x61\x72\x01\x06\x0b\x68\x65'
-            '\x6c\x6c\x6f')])
-        self._run([({0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 'a': 'a'},
+        self.assertDecoded({'a': u'a', 'b': u'b', 'c': u'c', 'd': u'd'},
+            '\n\x0b\x01\x03a\x06\x00\x03c\x06\x02\x03b\x06\x04\x03d\x06\x06\x01')
+
+        self.assertDecoded({0: u'hello', 'foo': u'bar'}, '\x09\x03\x07\x66\x6f'
+            '\x6f\x06\x07\x62\x61\x72\x01\x06\x0b\x68\x65\x6c\x6c\x6f')
+        self.assertDecoded({0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 'a': 'a'},
             '\x09\x0d\x03\x61\x06\x00\x01\x04\x00\x04\x01\x04\x02\x04\x03\x04'
-            '\x04\x04\x05')])
-        self._run([(
-            {'a': u'a', 'b': u'b', 'c': u'c', 'd': u'd',
-                0: 0, 1: 1, 2: 2, 3: 3},
+            '\x04\x04\x05')
+        self.assertDecoded({'a': u'a', 'b': u'b', 'c': u'c', 'd': u'd',
+            0: 0, 1: 1, 2: 2, 3: 3},
             '\x09\x09\x03\x62\x06\x00\x03\x64\x06\x02\x03\x61\x06\x04\x03\x63'
             '\x06\x06\x01\x04\x00\x04\x01\x04\x02\x04\x03')
-            ])
-        self._run([
-            ({'a': 1, 'b': 2}, '\x0a\x0b\x01\x03\x62\x04\x02\x03\x61\x04\x01'
-                '\x01')])
-        self._run([
-            ({'baz': u'hello'}, '\x0a\x0b\x01\x07\x62\x61\x7a\x06\x0b\x68\x65'
-                '\x6c\x6c\x6f\x01')])
-        self._run([
-            ({'baz': u'hello'}, '\x0a\x13\x01\x07\x62\x61\x7a\x06\x0b\x68\x65'
-                '\x6c\x6c\x6f')])
+        self.assertDecoded({'a': 1, 'b': 2}, '\x0a\x0b\x01\x03\x62\x04\x02\x03'
+            '\x61\x04\x01\x01')
+        self.assertDecoded({'baz': u'hello'}, '\x0a\x0b\x01\x07\x62\x61\x7a'
+            '\x06\x0b\x68\x65\x6c\x6c\x6f\x01')
+        self.assertDecoded({'baz': u'hello'}, '\x0a\x13\x01\x07\x62\x61\x7a'
+            '\x06\x0b\x68\x65\x6c\x6c\x6f')
 
         bytes = '\x0a\x0b\x01\x07\x62\x61\x7a\x06\x0b\x68\x65\x6c\x6c\x6f\x01'
 
@@ -847,14 +768,13 @@ class DecoderTestCase(_util.AMFTestCase):
         self.assertEqual(obj.baz, 'hello')
 
     def test_byte_array(self):
-        self._run([(amf3.ByteArray('hello'), '\x0c\x0bhello')])
+        self.assertDecoded(amf3.ByteArray('hello'), '\x0c\x0bhello')
 
     def test_date(self):
         import datetime
 
-        self._run([
-            (datetime.datetime(2005, 3, 18, 1, 58, 31),
-                '\x08\x01Bp+6!\x15\x80\x00')])
+        self.assertDecoded(datetime.datetime(2005, 3, 18, 1, 58, 31),
+            '\x08\x01Bp+6!\x15\x80\x00')
 
     def test_get_class_definition(self):
         pyamf.register_class(Spam, 'abc.xyz')
@@ -981,26 +901,28 @@ class DecoderTestCase(_util.AMFTestCase):
         self.assertEqual(f, datetime.datetime(2009, 9, 24, 9, 23, 23))
 
 
-class ObjectEncodingTestCase(_util.AMFTestCase):
-    def setUp(self):
-        _util.AMFTestCase.setUp(self)
+class ObjectEncodingTestCase(ClassCacheClearingTestCase, EncoderMixIn):
+    """
+    """
 
-        self.stream = util.BufferedByteStream()
-        self.context = amf3.Context()
-        self.encoder = amf3.Encoder(self.stream, self.context)
+    amf_type = pyamf.AMF3
+
+    def setUp(self):
+        ClassCacheClearingTestCase.setUp(self)
+        EncoderMixIn.setUp(self)
 
     def test_object_references(self):
         obj = pyamf.ASObject(a='b')
 
         self.encoder.writeElement(obj)
-        pos = self.stream.tell()
+        pos = self.buf.tell()
         self.encoder.writeElement(obj)
-        self.assertEqual(self.stream.getvalue()[pos:], '\x0a\x00')
-        self.stream.truncate()
+        self.assertEqual(self.buf.getvalue()[pos:], '\x0a\x00')
+        self.buf.truncate()
 
         self.encoder.writeElement(obj)
-        self.assertEqual(self.stream.getvalue(), '\x0a\x00')
-        self.stream.truncate()
+        self.assertEqual(self.buf.getvalue(), '\x0a\x00')
+        self.buf.truncate()
 
     def test_class_references(self):
         alias = pyamf.register_class(Spam, 'abc.xyz')
@@ -1015,11 +937,11 @@ class ObjectEncodingTestCase(_util.AMFTestCase):
 
         self.assertTrue(cd.alias is alias)
 
-        self.assertEqual(self.stream.getvalue(), '\n\x0b\x0fabc.xyz\tspam\x06\teggs\x01')
+        self.assertEqual(self.buf.getvalue(), '\n\x0b\x0fabc.xyz\tspam\x06\teggs\x01')
 
-        pos = self.stream.tell()
+        pos = self.buf.tell()
         self.encoder.writeElement(y)
-        self.assertEqual(self.stream.getvalue()[pos:], '\n\x01\x07foo\x06\x07bar\x01')
+        self.assertEqual(self.buf.getvalue()[pos:], '\n\x01\x07foo\x06\x07bar\x01')
 
     def test_static(self):
         alias = pyamf.register_class(Spam, 'abc.xyz')
@@ -1028,9 +950,9 @@ class ObjectEncodingTestCase(_util.AMFTestCase):
 
         x = Spam({'spam': 'eggs'})
         self.encoder.writeElement(x)
-        self.assertEqual(self.stream.getvalue(), '\n\x03\x0fabc.xyz')
+        self.assertEqual(self.buf.getvalue(), '\n\x03\x0fabc.xyz')
         pyamf.unregister_class(Spam)
-        self.stream.truncate()
+        self.buf.truncate()
         self.encoder.context.clear()
 
         alias = pyamf.register_class(Spam, 'abc.xyz')
@@ -1039,7 +961,7 @@ class ObjectEncodingTestCase(_util.AMFTestCase):
 
         x = Spam({'spam': 'eggs', 'foo': 'bar'})
         self.encoder.writeElement(x)
-        self.assertEqual(self.stream.getvalue(), '\n\x13\x0fabc.xyz\tspam\x06\teggs')
+        self.assertEqual(self.buf.getvalue(), '\n\x13\x0fabc.xyz\tspam\x06\teggs')
 
     def test_dynamic(self):
         pyamf.register_class(Spam, 'abc.xyz')
@@ -1047,7 +969,7 @@ class ObjectEncodingTestCase(_util.AMFTestCase):
         x = Spam({'spam': 'eggs'})
         self.encoder.writeElement(x)
 
-        self.assertEqual(self.stream.getvalue(), '\n\x0b\x0fabc.xyz\tspam\x06\teggs\x01')
+        self.assertEqual(self.buf.getvalue(), '\n\x0b\x0fabc.xyz\tspam\x06\teggs\x01')
 
     def test_combined(self):
         alias = pyamf.register_class(Spam, 'abc.xyz')
@@ -1057,7 +979,7 @@ class ObjectEncodingTestCase(_util.AMFTestCase):
         x = Spam({'spam': 'foo', 'eggs': 'bar'})
         self.encoder.writeElement(x)
 
-        buf = self.stream.getvalue()
+        buf = self.buf.getvalue()
 
         self.assertEqual(buf, '\n\x1b\x0fabc.xyz\tspam\x06\x07foo\teggs\x06\x07bar\x01')
 
@@ -1069,7 +991,7 @@ class ObjectEncodingTestCase(_util.AMFTestCase):
         x = Spam({'spam': 'eggs'})
         self.encoder.writeElement(x)
 
-        buf = self.stream.getvalue()
+        buf = self.buf.getvalue()
 
         # an inline object with and inline class-def, encoding = 0x01, 1 attr
 
@@ -1100,28 +1022,30 @@ class ObjectEncodingTestCase(_util.AMFTestCase):
 
         self.encoder.writeElement([x, y])
 
-        self.assertEqual(self.stream.getvalue(),
+        self.assertEqual(self.buf.getvalue(),
             '\t\x05\x01\n;\x01\x17description\x05id\tname\x01\x04\x01\x06\x07'
             'foo\x01\n\x01\x01\x04\x02\x06\x07bar\x01')
 
 
-class ObjectDecodingTestCase(_util.AMFTestCase):
-    def setUp(self):
-        _util.AMFTestCase.setUp(self)
+class ObjectDecodingTestCase(ClassCacheClearingTestCase, DecoderMixIn):
+    """
+    """
 
-        self.stream = util.BufferedByteStream()
-        self.context = amf3.Context()
-        self.decoder = amf3.Decoder(self.stream, self.context)
+    amf_type = pyamf.AMF3
+
+    def setUp(self):
+        ClassCacheClearingTestCase.setUp(self)
+        DecoderMixIn.setUp(self)
 
     def test_object_references(self):
-        self.stream.write('\x0a\x23\x01\x03a\x03b\x06\x09spam\x04\x05')
-        self.stream.seek(0, 0)
+        self.buf.write('\x0a\x23\x01\x03a\x03b\x06\x09spam\x04\x05')
+        self.buf.seek(0, 0)
 
         obj1 = self.decoder.readElement()
 
-        self.stream.truncate()
-        self.stream.write('\n\x00')
-        self.stream.seek(0, 0)
+        self.buf.truncate()
+        self.buf.write('\n\x00')
+        self.buf.seek(0, 0)
 
         obj2 = self.decoder.readElement()
 
@@ -1135,8 +1059,8 @@ class ObjectDecodingTestCase(_util.AMFTestCase):
         self.assertEqual(self.context.classes, {})
         self.assertEqual(self.context.class_ref, {})
 
-        self.stream.write('\x0a\x13\x0fabc.xyz\x09spam\x06\x09eggs')
-        self.stream.seek(0, 0)
+        self.buf.write('\x0a\x13\x0fabc.xyz\x09spam\x06\x09eggs')
+        self.buf.seek(0, 0)
 
         obj = self.decoder.readElement()
 
@@ -1154,8 +1078,8 @@ class ObjectDecodingTestCase(_util.AMFTestCase):
         self.assertEqual(self.context.strings, [])
         self.assertEqual(self.context.classes, {})
 
-        self.stream.write('\x0a\x0b\x0fabc.xyz\x09spam\x06\x09eggs\x01')
-        self.stream.seek(0, 0)
+        self.buf.write('\x0a\x0b\x0fabc.xyz\x09spam\x06\x09eggs\x01')
+        self.buf.seek(0, 0)
 
         obj = self.decoder.readElement()
 
@@ -1177,9 +1101,9 @@ class ObjectDecodingTestCase(_util.AMFTestCase):
         self.assertEqual(self.context.strings, [])
         self.assertEqual(self.context.classes, {})
 
-        self.stream.write('\x0a\x1b\x0fabc.xyz\x09spam\x06\x09eggs\x07baz\x06\x07'
+        self.buf.write('\x0a\x1b\x0fabc.xyz\x09spam\x06\x09eggs\x07baz\x06\x07'
             'nat\x01')
-        self.stream.seek(0, 0)
+        self.buf.seek(0, 0)
 
         obj = self.decoder.readElement()
 
@@ -1194,215 +1118,194 @@ class ObjectDecodingTestCase(_util.AMFTestCase):
         alias = pyamf.register_class(Spam, 'abc.xyz')
         alias.external = True
 
-        self.stream.write('\x0a\x07\x0fabc.xyz')
-        self.stream.seek(0)
+        self.buf.write('\x0a\x07\x0fabc.xyz')
+        self.buf.seek(0)
         x = self.decoder.readElement()
 
         self.assertTrue(isinstance(x, Spam))
         self.assertEqual(x.__dict__, {})
 
 
-class DataOutputTestCase(unittest.TestCase):
+class DataOutputTestCase(unittest.TestCase, EncoderMixIn):
+    """
+    """
+
+    amf_type = pyamf.AMF3
+
     def setUp(self):
-        self.stream = util.BufferedByteStream()
-        self.encoder = amf3.Encoder(self.stream)
+        EncoderMixIn.setUp(self)
+
+        self.x = amf3.DataOutput(self.encoder)
 
     def test_create(self):
-        x = amf3.DataOutput(self.encoder)
-
-        self.assertEqual(x.encoder, self.encoder)
-        self.assertEqual(x.stream, self.stream)
-        self.assertEqual(x.stream, self.encoder.stream)
+        self.assertEqual(self.x.encoder, self.encoder)
+        self.assertEqual(self.x.stream, self.buf)
 
     def test_boolean(self):
-        x = amf3.DataOutput(self.encoder)
+        self.x.writeBoolean(True)
+        self.assertEqual(self.buf.getvalue(), '\x01')
+        self.buf.truncate()
 
-        x.writeBoolean(True)
-        self.assertEqual(self.stream.getvalue(), '\x01')
-        self.stream.truncate()
-
-        x.writeBoolean(False)
-        self.assertEqual(self.stream.getvalue(), '\x00')
+        self.x.writeBoolean(False)
+        self.assertEqual(self.buf.getvalue(), '\x00')
 
     def test_byte(self):
-        x = amf3.DataOutput(self.encoder)
-
         for y in xrange(10):
-            x.writeByte(y)
+            self.x.writeByte(y)
 
-        self.assertEqual(self.stream.getvalue(),
+        self.assertEqual(self.buf.getvalue(),
             '\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09')
 
     def test_double(self):
-        x = amf3.DataOutput(self.encoder)
+        self.x.writeDouble(0.0)
+        self.assertEqual(self.buf.getvalue(), '\x00' * 8)
+        self.buf.truncate()
 
-        x.writeDouble(0.0)
-        self.assertEqual(self.stream.getvalue(), '\x00' * 8)
-        self.stream.truncate()
-
-        x.writeDouble(1234.5678)
-        self.assertEqual(self.stream.getvalue(), '@\x93JEm\\\xfa\xad')
+        self.x.writeDouble(1234.5678)
+        self.assertEqual(self.buf.getvalue(), '@\x93JEm\\\xfa\xad')
 
     def test_float(self):
-        x = amf3.DataOutput(self.encoder)
+        self.x.writeFloat(0.0)
+        self.assertEqual(self.buf.getvalue(), '\x00' * 4)
+        self.buf.truncate()
 
-        x.writeFloat(0.0)
-        self.assertEqual(self.stream.getvalue(), '\x00' * 4)
-        self.stream.truncate()
-
-        x.writeFloat(1234.5678)
-        self.assertEqual(self.stream.getvalue(), 'D\x9aR+')
+        self.x.writeFloat(1234.5678)
+        self.assertEqual(self.buf.getvalue(), 'D\x9aR+')
 
     def test_int(self):
-        x = amf3.DataOutput(self.encoder)
+        self.x.writeInt(0)
+        self.assertEqual(self.buf.getvalue(), '\x00\x00\x00\x00')
+        self.buf.truncate()
 
-        x.writeInt(0)
-        self.assertEqual(self.stream.getvalue(), '\x00\x00\x00\x00')
-        self.stream.truncate()
+        self.x.writeInt(-12345)
+        self.assertEqual(self.buf.getvalue(), '\xff\xff\xcf\xc7')
+        self.buf.truncate()
 
-        x.writeInt(-12345)
-        self.assertEqual(self.stream.getvalue(), '\xff\xff\xcf\xc7')
-        self.stream.truncate()
-
-        x.writeInt(98)
-        self.assertEqual(self.stream.getvalue(), '\x00\x00\x00b')
+        self.x.writeInt(98)
+        self.assertEqual(self.buf.getvalue(), '\x00\x00\x00b')
 
     def test_multi_byte(self):
         # TODO nick: test multiple charsets
-        x = amf3.DataOutput(self.encoder)
+        self.x.writeMultiByte('this is a test', 'utf-8')
+        self.assertEqual(self.buf.getvalue(), u'this is a test')
+        self.buf.truncate()
 
-        x.writeMultiByte('this is a test', 'utf-8')
-        self.assertEqual(self.stream.getvalue(), u'this is a test')
-        self.stream.truncate()
-
-        x.writeMultiByte(u'ἔδωσαν', 'utf-8')
-        self.assertEqual(self.stream.getvalue(), '\xe1\xbc\x94\xce\xb4\xcf'
+        self.x.writeMultiByte(u'ἔδωσαν', 'utf-8')
+        self.assertEqual(self.buf.getvalue(), '\xe1\xbc\x94\xce\xb4\xcf'
             '\x89\xcf\x83\xce\xb1\xce\xbd')
 
     def test_object(self):
-        x = amf3.DataOutput(self.encoder)
         obj = pyamf.MixedArray(spam='eggs')
 
-        x.writeObject(obj)
-        self.assertEqual(self.stream.getvalue(), '\t\x01\tspam\x06\teggs\x01')
-        self.stream.truncate()
+        self.x.writeObject(obj)
+        self.assertEqual(self.buf.getvalue(), '\t\x01\tspam\x06\teggs\x01')
+        self.buf.truncate()
 
         # check references
-        x.writeObject(obj)
-        self.assertEqual(self.stream.getvalue(), '\t\x00')
-        self.stream.truncate()
+        self.x.writeObject(obj)
+        self.assertEqual(self.buf.getvalue(), '\t\x00')
+        self.buf.truncate()
 
     def test_object_proxy(self):
         self.encoder.use_proxies = True
-        x = amf3.DataOutput(self.encoder)
         obj = {'spam': 'eggs'}
 
-        x.writeObject(obj)
-        self.assertEqual(self.stream.getvalue(),
+        self.x.writeObject(obj)
+        self.assertEqual(self.buf.getvalue(),
             '\n\x07;flex.messaging.io.ObjectProxy\n\x0b\x01\tspam\x06\teggs\x01')
-        self.stream.truncate()
+        self.buf.truncate()
 
         # check references
-        x.writeObject(obj)
-        self.assertEqual(self.stream.getvalue(), '\n\x00')
-        self.stream.truncate()
+        self.x.writeObject(obj)
+        self.assertEqual(self.buf.getvalue(), '\n\x00')
+        self.buf.truncate()
 
     def test_object_proxy_mixed_array(self):
         self.encoder.use_proxies = True
-        x = amf3.DataOutput(self.encoder)
         obj = pyamf.MixedArray(spam='eggs')
 
-        x.writeObject(obj)
-        self.assertEqual(self.stream.getvalue(),
+        self.x.writeObject(obj)
+        self.assertEqual(self.buf.getvalue(),
             '\n\x07;flex.messaging.io.ObjectProxy\t\x01\tspam\x06\teggs\x01')
-        self.stream.truncate()
+        self.buf.truncate()
 
         # check references
-        x.writeObject(obj)
-        self.assertEqual(self.stream.getvalue(), '\n\x00')
-        self.stream.truncate()
+        self.x.writeObject(obj)
+        self.assertEqual(self.buf.getvalue(), '\n\x00')
+        self.buf.truncate()
 
     def test_object_proxy_inside_list(self):
         self.encoder.use_proxies = True
-        x = amf3.DataOutput(self.encoder)
         obj = [{'spam': 'eggs'}]
 
-        x.writeObject(obj)
-        self.assertEqual(self.stream.getvalue(),
+        self.x.writeObject(obj)
+        self.assertEqual(self.buf.getvalue(),
             '\n\x07Cflex.messaging.io.ArrayCollection\t\x03\x01\n\x07;'
             'flex.messaging.io.ObjectProxy\n\x0b\x01\tspam\x06\teggs\x01')
 
     def test_short(self):
-        x = amf3.DataOutput(self.encoder)
+        self.x.writeShort(55)
+        self.assertEqual(self.buf.getvalue(), '\x007')
+        self.buf.truncate()
 
-        x.writeShort(55)
-        self.assertEqual(self.stream.getvalue(), '\x007')
-        self.stream.truncate()
-
-        x.writeShort(-55)
-        self.assertEqual(self.stream.getvalue(), '\xff\xc9')
+        self.x.writeShort(-55)
+        self.assertEqual(self.buf.getvalue(), '\xff\xc9')
 
     def test_uint(self):
-        x = amf3.DataOutput(self.encoder)
+        self.x.writeUnsignedInt(55)
+        self.assertEqual(self.buf.getvalue(), '\x00\x00\x007')
+        self.buf.truncate()
 
-        x.writeUnsignedInt(55)
-        self.assertEqual(self.stream.getvalue(), '\x00\x00\x007')
-        self.stream.truncate()
-
-        self.assertRaises(OverflowError, x.writeUnsignedInt, -55)
+        self.assertRaises(OverflowError, self.x.writeUnsignedInt, -55)
 
     def test_utf(self):
-        x = amf3.DataOutput(self.encoder)
+        self.x.writeUTF(u'ἔδωσαν')
 
-        x.writeUTF(u'ἔδωσαν')
-
-        self.assertEqual(self.stream.getvalue(), '\x00\r\xe1\xbc\x94\xce'
+        self.assertEqual(self.buf.getvalue(), '\x00\r\xe1\xbc\x94\xce'
             '\xb4\xcf\x89\xcf\x83\xce\xb1\xce\xbd')
 
     def test_utf_bytes(self):
-        x = amf3.DataOutput(self.encoder)
+        self.x.writeUTFBytes(u'ἔδωσαν')
 
-        x.writeUTFBytes(u'ἔδωσαν')
-
-        self.assertEqual(self.stream.getvalue(),
+        self.assertEqual(self.buf.getvalue(),
             '\xe1\xbc\x94\xce\xb4\xcf\x89\xcf\x83\xce\xb1\xce\xbd')
 
 
 class DataInputTestCase(unittest.TestCase):
     def setUp(self):
-        self.stream = util.BufferedByteStream()
-        self.decoder = amf3.Decoder(self.stream)
+        self.buf = util.BufferedByteStream()
+        self.decoder = amf3.Decoder(self.buf)
 
     def test_create(self):
         x = amf3.DataInput(self.decoder)
 
         self.assertEqual(x.decoder, self.decoder)
-        self.assertEqual(x.stream, self.stream)
+        self.assertEqual(x.stream, self.buf)
         self.assertEqual(x.stream, self.decoder.stream)
 
     def _test(self, bytes, value, func, *params):
-        self.stream.write(bytes)
-        self.stream.seek(0)
+        self.buf.write(bytes)
+        self.buf.seek(0)
 
         self.assertEqual(func(*params), value)
-        self.stream.truncate()
+        self.buf.truncate()
 
     def test_boolean(self):
         x = amf3.DataInput(self.decoder)
 
-        self.stream.write('\x01')
-        self.stream.seek(-1, 2)
+        self.buf.write('\x01')
+        self.buf.seek(-1, 2)
         self.assertEqual(x.readBoolean(), True)
 
-        self.stream.write('\x00')
-        self.stream.seek(-1, 2)
+        self.buf.write('\x00')
+        self.buf.seek(-1, 2)
         self.assertEqual(x.readBoolean(), False)
 
     def test_byte(self):
         x = amf3.DataInput(self.decoder)
 
-        self.stream.write('\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09')
-        self.stream.seek(0)
+        self.buf.write('\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09')
+        self.buf.seek(0)
 
         for y in xrange(10):
             self.assertEqual(x.readByte(), y)
@@ -1467,7 +1370,16 @@ class DataInputTestCase(unittest.TestCase):
             u'ἔδωσαν', x.readUTFBytes, 13)
 
 
-class ClassInheritanceTestCase(_util.AMFTestCase):
+class ClassInheritanceTestCase(ClassCacheClearingTestCase, EncoderMixIn):
+    """
+    """
+
+    amf_type = pyamf.AMF3
+
+    def setUp(self):
+        ClassCacheClearingTestCase.setUp(self)
+        EncoderMixIn.setUp(self)
+
     def test_simple(self):
         class A(object):
             pass
@@ -1559,8 +1471,11 @@ class HelperTestCase(unittest.TestCase):
         self.assertEqual([x for x in amf3.decode('\n\x00', context=context)], [obj])
 
 
-class ComplexEncodingTestCase(unittest.TestCase, _util.BaseEncoderMixIn):
-    amf_version = pyamf.AMF3
+class ComplexEncodingTestCase(unittest.TestCase, EncoderMixIn):
+    """
+    """
+
+    amf_type = pyamf.AMF3
 
     class TestObject(object):
         def __init__(self):
@@ -1580,12 +1495,14 @@ class ComplexEncodingTestCase(unittest.TestCase, _util.BaseEncoderMixIn):
             return '<TestSubObject %r @ 0x%x>' % (self.__dict__, id(self))
 
     def setUp(self):
-        _util.BaseEncoderMixIn.setUp(self)
+        EncoderMixIn.setUp(self)
 
         pyamf.register_class(self.TestObject, 'test_complex.test')
         pyamf.register_class(self.TestSubObject, 'test_complex.sub')
 
     def tearDown(self):
+        EncoderMixIn.tearDown(self)
+
         pyamf.unregister_class(self.TestObject)
         pyamf.unregister_class(self.TestSubObject)
 
@@ -1679,16 +1596,16 @@ class ComplexEncodingTestCase(unittest.TestCase, _util.BaseEncoderMixIn):
             {self.TestSubObject: cd, dict: cd2, self.TestObject: cd3})
 
 
-class ExceptionEncodingTestCase(_util.AMFTestCase):
+class ExceptionEncodingTestCase(ClassCacheClearingTestCase, EncoderMixIn):
     """
     Tests for encoding exceptions.
     """
 
-    def setUp(self):
-        _util.AMFTestCase.setUp(self)
+    amf_type = pyamf.AMF3
 
-        self.buffer = util.BufferedByteStream()
-        self.encoder = amf3.Encoder(self.buffer)
+    def setUp(self):
+        ClassCacheClearingTestCase.setUp(self)
+        EncoderMixIn.setUp(self)
 
     def test_exception(self):
         try:
@@ -1696,7 +1613,7 @@ class ExceptionEncodingTestCase(_util.AMFTestCase):
         except Exception, e:
             self.encoder.writeElement(e)
 
-        self.assertEqual(self.buffer.getvalue(), '\n\x0b\x01\x0fmessage\x06'
+        self.assertEqual(self.buf.getvalue(), '\n\x0b\x01\x0fmessage\x06'
             '\x0ffoo bar\tname\x06\x13Exception\x01')
 
     def test_user_defined(self):
@@ -1708,7 +1625,7 @@ class ExceptionEncodingTestCase(_util.AMFTestCase):
         except Exception, e:
             self.encoder.writeElement(e)
 
-        self.assertEqual(self.buffer.getvalue(), '\n\x0b\x01\x0fmessage\x06'
+        self.assertEqual(self.buf.getvalue(), '\n\x0b\x01\x0fmessage\x06'
             '\x0ffoo bar\tname\x06\rFooBar\x01')
 
     def test_typed(self):
@@ -1722,7 +1639,7 @@ class ExceptionEncodingTestCase(_util.AMFTestCase):
         except Exception, e:
             self.encoder.writeElement(e)
 
-        self.assertEqual(self.buffer.getvalue(), '\n\x0b\x0ffoo.bar\x0f'
+        self.assertEqual(self.buf.getvalue(), '\n\x0b\x0ffoo.bar\x0f'
             'message\x06\x0bblarg\tname\x06\x07XYZ\x01')
 
 

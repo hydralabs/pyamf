@@ -34,7 +34,9 @@ except ImportError:
 
 import pyamf
 from pyamf import amf3
-from pyamf.tests.util import AMFTestCase, Spam
+from pyamf.tests import util
+
+Spam = util.Spam
 
 
 class PetModel(db.Model):
@@ -86,7 +88,7 @@ class Novel(db.Model):
     author = db.ReferenceProperty(Author)
 
 
-class BaseTestCase(AMFTestCase):
+class BaseTestCase(util.ClassCacheClearingTestCase):
     """
     """
 
@@ -94,7 +96,7 @@ class BaseTestCase(AMFTestCase):
         if not db:
             self.skipTest("'google.appengine.ext.db' not available")
 
-        AMFTestCase.setUp(self)
+        util.ClassCacheClearingTestCase.setUp(self)
 
     def put(self, entity):
         entity.put()
@@ -103,6 +105,14 @@ class BaseTestCase(AMFTestCase):
     def deleteEntity(self, entity):
         if entity.is_saved():
             entity.delete()
+
+    def decode(self, bytes, encoding=pyamf.AMF3):
+        decoded = list(pyamf.decode(bytes, encoding=encoding))
+
+        if len(decoded) == 1:
+            return decoded[0]
+
+        return decoded
 
 
 class JessicaMixIn(object):
@@ -149,7 +159,7 @@ class EncodingModelTestCase(BaseTestCase, JessicaMixIn):
             '\x00\x00\t'
         )
 
-        self.assertEncoded(self.jessica, encoded, encoding=pyamf.AMF0)
+        self.assertEncodes(self.jessica, encoded, encoding=pyamf.AMF0)
 
     def test_amf3(self):
         bytes = (
@@ -162,7 +172,7 @@ class EncodingModelTestCase(BaseTestCase, JessicaMixIn):
                 '%spayed_or_neutered\x02\x01'
             ))
 
-        self.assertEncoded(self.jessica, bytes, encoding=pyamf.AMF3)
+        self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF3)
 
     def test_save_amf0(self):
         self.jessica.put()
@@ -178,7 +188,7 @@ class EncodingModelTestCase(BaseTestCase, JessicaMixIn):
             '\x00\x10weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00'),
             '\x00\x00\t')
 
-        self.assertEncoded(self.jessica, bytes, encoding=pyamf.AMF0)
+        self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF0)
 
     def test_save_amf3(self):
         self.jessica.put()
@@ -196,7 +206,7 @@ class EncodingModelTestCase(BaseTestCase, JessicaMixIn):
                 '%spayed_or_neutered\x02\x01'
             ))
 
-        self.assertEncoded(self.jessica, bytes, encoding=pyamf.AMF3)
+        self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF3)
 
     def test_alias_amf0(self):
         pyamf.register_class(PetModel, 'Pet')
@@ -213,7 +223,7 @@ class EncodingModelTestCase(BaseTestCase, JessicaMixIn):
             '\x00\x00\t'
         )
 
-        self.assertEncoded(self.jessica, bytes, encoding=pyamf.AMF0)
+        self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF0)
 
     def test_alias_amf3(self):
         pyamf.register_class(PetModel, 'Pet')
@@ -229,7 +239,7 @@ class EncodingModelTestCase(BaseTestCase, JessicaMixIn):
                 '%spayed_or_neutered\x02\x01'
             ))
 
-        self.assertEncoded(self.jessica, bytes, encoding=pyamf.AMF3)
+        self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF3)
 
 
 class EncodingExpandoTestCase(BaseTestCase, JessicaMixIn):
@@ -261,7 +271,7 @@ class EncodingExpandoTestCase(BaseTestCase, JessicaMixIn):
             '\x00\x00\t'
         )
 
-        self.assertEncoded(self.jessica, bytes, encoding=pyamf.AMF0)
+        self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF0)
 
     def test_amf3(self):
         bytes = (
@@ -275,7 +285,7 @@ class EncodingExpandoTestCase(BaseTestCase, JessicaMixIn):
                 '%spayed_or_neutered\x02\x01'
             ))
 
-        self.assertEncoded(self.jessica, bytes, encoding=pyamf.AMF3)
+        self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF3)
 
     def test_save_amf0(self):
         self.jessica.put()
@@ -310,7 +320,7 @@ class EncodingExpandoTestCase(BaseTestCase, JessicaMixIn):
                 '%spayed_or_neutered\x02\x01'
             ))
 
-        self.assertEncoded(self.jessica, bytes, encoding=pyamf.AMF3)
+        self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF3)
 
     def test_alias_amf0(self):
         pyamf.register_class(PetExpando, 'Pet')
@@ -340,7 +350,7 @@ class EncodingExpandoTestCase(BaseTestCase, JessicaMixIn):
                 '%spayed_or_neutered\x02\x01'
             ))
 
-        self.assertEncoded(self.jessica, bytes, encoding=pyamf.AMF3)
+        self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF3)
 
 
 class EncodingReferencesTestCase(BaseTestCase):
@@ -374,7 +384,7 @@ class EncodingReferencesTestCase(BaseTestCase):
             ),
             '\x00\x00\t')
 
-        self.assertEncoded(b, bytes, encoding=pyamf.AMF0)
+        self.assertEncodes(b, bytes, encoding=pyamf.AMF0)
 
         bytes = (
             '\n\x0b\x01', ((
@@ -386,7 +396,7 @@ class EncodingReferencesTestCase(BaseTestCase):
             ),
             '\x01')
 
-        self.assertEncoded(b, bytes, encoding=pyamf.AMF3)
+        self.assertEncodes(b, bytes, encoding=pyamf.AMF3)
 
         # now test with aliases ..
         pyamf.register_class(Author, 'Author')
@@ -404,7 +414,7 @@ class EncodingReferencesTestCase(BaseTestCase):
             ),
             '\x00\x00\t')
 
-        self.assertEncoded(b, bytes, encoding=pyamf.AMF0)
+        self.assertEncodes(b, bytes, encoding=pyamf.AMF0)
 
         bytes = (
             '\n\x0b\x0bNovel', ((
@@ -416,7 +426,7 @@ class EncodingReferencesTestCase(BaseTestCase):
             ),
             '\x01')
 
-        self.assertEncoded(b, bytes, encoding=pyamf.AMF3)
+        self.assertEncodes(b, bytes, encoding=pyamf.AMF3)
 
     def test_expando(self):
         class Author(db.Expando):
@@ -449,7 +459,7 @@ class EncodingReferencesTestCase(BaseTestCase):
             ),
             '\x00\x00\t')
 
-        self.assertEncoded(b, bytes, encoding=pyamf.AMF0)
+        self.assertEncodes(b, bytes, encoding=pyamf.AMF0)
 
         bytes = (
             '\n\x0b\x01', ((
@@ -461,7 +471,7 @@ class EncodingReferencesTestCase(BaseTestCase):
             ),
             '\x01')
 
-        self.assertEncoded(b, bytes, encoding=pyamf.AMF3)
+        self.assertEncodes(b, bytes, encoding=pyamf.AMF3)
 
         # now test with aliases ..
         pyamf.register_class(Author, 'Author')
@@ -479,7 +489,7 @@ class EncodingReferencesTestCase(BaseTestCase):
             ),
             '\x00\x00\t')
 
-        self.assertEncoded(b, bytes, encoding=pyamf.AMF0)
+        self.assertEncodes(b, bytes, encoding=pyamf.AMF0)
 
         bytes = (
             '\n\x0b\x0bNovel', ((
@@ -491,7 +501,7 @@ class EncodingReferencesTestCase(BaseTestCase):
             ),
             '\x01')
 
-        self.assertEncoded(b, bytes, encoding=pyamf.AMF3)
+        self.assertEncodes(b, bytes, encoding=pyamf.AMF3)
 
     def test_dynamic_property_referenced_object(self):
         a = Author(name='Jane Austen')
@@ -525,7 +535,7 @@ class EncodingReferencesTestCase(BaseTestCase):
             '\x00\x00\t')
 
 
-        self.assertEncoded(x, bytes, encoding=pyamf.AMF0)
+        self.assertEncodes(x, bytes, encoding=pyamf.AMF0)
 
 
 class ListPropertyTestCase(BaseTestCase):
@@ -553,7 +563,7 @@ class ListPropertyTestCase(BaseTestCase):
             '\x00\x00\t'
         )
 
-        self.assertEncoded(self.obj, bytes, encoding=pyamf.AMF0)
+        self.assertEncodes(self.obj, bytes, encoding=pyamf.AMF0)
 
     def test_encode_amf3(self):
         bytes = (
@@ -564,7 +574,7 @@ class ListPropertyTestCase(BaseTestCase):
             )
         )
 
-        self.assertEncoded(self.obj, bytes, encoding=pyamf.AMF3)
+        self.assertEncodes(self.obj, bytes, encoding=pyamf.AMF3)
 
     def test_encode_amf0_registered(self):
         pyamf.register_class(ListModel, 'list-model')
@@ -580,7 +590,7 @@ class ListPropertyTestCase(BaseTestCase):
             '\x00\x00\t'
         )
 
-        self.assertEncoded(self.obj, bytes, encoding=pyamf.AMF0)
+        self.assertEncodes(self.obj, bytes, encoding=pyamf.AMF0)
 
     def test_encode_amf3_registered(self):
         pyamf.register_class(ListModel, 'list-model')
@@ -593,7 +603,7 @@ class ListPropertyTestCase(BaseTestCase):
             )
         )
 
-        self.assertEncoded(self.obj, bytes, encoding=pyamf.AMF3)
+        self.assertEncodes(self.obj, bytes, encoding=pyamf.AMF3)
 
     def _check_list(self, x):
         self.assertTrue(isinstance(x, ListModel))
@@ -1080,8 +1090,8 @@ class HelperTestCase(BaseTestCase):
         q = PetModel.all()
 
         self.assertTrue(isinstance(q, db.Query))
-        self.assertEncoded(q, '\n\x00\x00\x00\x00', encoding=pyamf.AMF0)
-        self.assertEncoded(q, '\t\x01\x01', encoding=pyamf.AMF3)
+        self.assertEncodes(q, '\n\x00\x00\x00\x00', encoding=pyamf.AMF0)
+        self.assertEncodes(q, '\t\x01\x01', encoding=pyamf.AMF3)
 
 
 class FloatPropertyTestCase(BaseTestCase):
