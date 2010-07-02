@@ -104,7 +104,7 @@ class WSGIServerTestCase(unittest.TestCase):
         self.assertTrue(self.executed)
 
     def _raiseException(self, e, *args, **kwargs):
-        raise e(*args, **kwargs)
+        raise e()
 
     def _restoreDecode(self):
         remoting.decode = self.old_method
@@ -134,7 +134,7 @@ class WSGIServerTestCase(unittest.TestCase):
         for x in (KeyboardInterrupt, SystemExit):
             remoting.decode = lambda *args, **kwargs: self._raiseException(x, *args, **kwargs)
 
-            print self.doRequest(request, None)
+            self.assertRaises(x, self.doRequest, request, None)
 
     def test_expose_request(self):
         self.gw.expose_request = True
