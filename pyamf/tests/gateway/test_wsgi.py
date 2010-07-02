@@ -21,10 +21,37 @@ class WSGIServerTestCase(unittest.TestCase):
         self.gw = WSGIGateway()
         self.executed = False
 
+    def doRequest(self, request, start_response, **kwargs):
+        kwargs.setdefault('REQUEST_METHOD', 'POST')
+        kwargs.setdefault('CONTENT_LENGTH', str(len(request)))
+
+        kwargs['wsgi.input'] = request
+
+        def sr(status, headers):
+            r = None
+
+            if start_response:
+                r = start_response(status, headers)
+
+            self.executed = True
+
+            return r
+
+        return self.gw(kwargs, sr)
+
+    def makeRequest(self, service, body, raw=False):
+        if not raw:
+            body = [body]
+
+        e = remoting.Envelope(pyamf.AMF3)
+        e['/1'] = remoting.Request(service, body=body)
+
+        return remoting.encode(e)
+
     def test_request_method(self):
         def bad_response(status, headers):
-            self.executed = True
             self.assertEqual(status, '400 Bad Request')
+            self.executed = True
 
         self.gw({'REQUEST_METHOD': 'GET'}, bad_response)
         self.assertTrue(self.executed)
@@ -37,38 +64,22 @@ class WSGIServerTestCase(unittest.TestCase):
         request.write('Bad request')
         request.seek(0, 0)
 
-        env = {
-            'REQUEST_METHOD': 'POST',
-            'CONTENT_LENGTH': str(len(request)),
-            'wsgi.input': request
-        }
-
         def start_response(status, headers):
             self.assertEqual(status, '400 Bad Request')
-            self.executed = True
 
-        self.gw(env, start_response)
+        self.doRequest(request, start_response)
         self.assertTrue(self.executed)
 
     def test_unknown_request(self):
-        request = util.BufferedByteStream()
-        request.write('\x00\x00\x00\x00\x00\x01\x00\x09test.test\x00'
-            '\x02/1\x00\x00\x00\x14\x0a\x00\x00\x00\x01\x08\x00\x00\x00\x00'
-            '\x00\x01\x61\x02\x00\x01\x61\x00\x00\x09')
-        request.seek(0, 0)
-
-        env = {
-            'REQUEST_METHOD': 'POST',
-            'CONTENT_LENGTH': str(len(request)),
-            'wsgi.input': request
-        }
+        request = self.makeRequest('test.test', [], raw=True)
 
         def start_response(status, headers):
             self.executed = True
             self.assertEqual(status, '200 OK')
             self.assertTrue(('Content-Type', 'application/x-amf') in headers)
 
-        response = self.gw(env, start_response)
+        response = self.doRequest(request, start_response)
+
         envelope = remoting.decode(''.join(response))
 
         message = envelope['/1']
@@ -83,50 +94,33 @@ class WSGIServerTestCase(unittest.TestCase):
     def test_eof_decode(self):
         request = util.BufferedByteStream()
 
-        env = {
-            'REQUEST_METHOD': 'POST',
-            'CONTENT_LENGTH': str(len(request)),
-            'wsgi.input': request
-        }
-
         def start_response(status, headers):
-            self.executed = True
             self.assertEqual(status, '400 Bad Request')
             self.assertTrue(('Content-Type', 'text/plain') in headers)
 
-        response = self.gw(env, start_response)
+        response = self.doRequest(request, start_response)
 
         self.assertEqual(response, ['400 Bad Request\n\nThe request body was unable to be successfully decoded.'])
         self.assertTrue(self.executed)
 
     def _raiseException(self, e, *args, **kwargs):
-        raise e()
+        raise e(*args, **kwargs)
+
+    def _restoreDecode(self):
+        remoting.decode = self.old_method
 
     def test_really_bad_decode(self):
         self.old_method = remoting.decode
         remoting.decode = lambda *args, **kwargs: self._raiseException(Exception, *args, **kwargs)
+        self.addCleanup(self._restoreDecode)
 
         request = util.BufferedByteStream()
 
-        env = {
-            'REQUEST_METHOD': 'POST',
-            'CONTENT_LENGTH': str(len(request)),
-            'wsgi.input': request
-        }
-
         def start_response(status, headers):
-            self.executed = True
             self.assertEqual(status, '500 Internal Server Error')
             self.assertTrue(('Content-Type', 'text/plain') in headers)
 
-        try:
-            response = self.gw(env, start_response)
-        except:
-            remoting.decode = self.old_method
-
-            raise
-
-        remoting.decode = self.old_method
+        response = self.doRequest(request, start_response)
 
         self.assertEqual(response, ['500 Internal Server Error\n\nAn unexpec'
             'ted error occurred whilst decoding.'])
@@ -134,39 +128,16 @@ class WSGIServerTestCase(unittest.TestCase):
 
     def test_expected_exceptions_decode(self):
         self.old_method = remoting.decode
+        self.addCleanup(self._restoreDecode)
+        request = util.BufferedByteStream()
 
-        env = {
-            'REQUEST_METHOD': 'POST',
-            'CONTENT_LENGTH': '0',
-            'wsgi.input': util.BufferedByteStream()
-        }
+        for x in (KeyboardInterrupt, SystemExit):
+            remoting.decode = lambda *args, **kwargs: self._raiseException(x, *args, **kwargs)
 
-        try:
-            for x in (KeyboardInterrupt, SystemExit):
-                remoting.decode = lambda *args, **kwargs: self._raiseException(x, *args, **kwargs)
-                self.assertRaises(x, self.gw, env, lambda *args: args)
-        except:
-            remoting.decode = self.old_method
-
-            raise
-
-        remoting.decode = self.old_method
+            print self.doRequest(request, None)
 
     def test_expose_request(self):
         self.gw.expose_request = True
-        self.executed = False
-
-        env = remoting.Envelope(pyamf.AMF3)
-        request = remoting.Request('echo', body=['hello'])
-        env['/1'] = request
-
-        request = remoting.encode(env)
-
-        env = {
-            'REQUEST_METHOD': 'POST',
-            'CONTENT_LENGTH': str(len(request)),
-            'wsgi.input': request
-        }
 
         def echo(http_request, data):
             self.assertTrue('pyamf.request' in http_request)
@@ -176,45 +147,27 @@ class WSGIServerTestCase(unittest.TestCase):
 
             self.assertEqual(request.target, 'echo')
             self.assertEqual(request.body, ['hello'])
-            self.executed = True
-
-            return data
 
         self.gw.addService(echo)
-
-        self.gw(env, lambda *args: None)
+        self.doRequest(self.makeRequest('echo', 'hello'), None)
 
         self.assertTrue(self.executed)
 
     def test_timezone(self):
         import datetime
 
-        self.executed = False
-
         td = datetime.timedelta(hours=-5)
         now = datetime.datetime.utcnow()
 
         def echo(d):
             self.assertEqual(d, now + td)
-            self.executed = True
 
             return d
 
         self.gw.addService(echo)
         self.gw.timezone_offset = -18000
 
-        msg = remoting.Envelope(amfVersion=pyamf.AMF0)
-        msg['/1'] = remoting.Request(target='echo', body=[now])
-
-        stream = remoting.encode(msg)
-
-        env = {
-            'REQUEST_METHOD': 'POST',
-            'CONTENT_LENGTH': str(len(stream)),
-            'wsgi.input': stream
-        }
-
-        response = self.gw(env, lambda *args: None)
+        response = self.doRequest(self.makeRequest('echo', now), None)
         envelope = remoting.decode(''.join(response))
         message = envelope['/1']
 

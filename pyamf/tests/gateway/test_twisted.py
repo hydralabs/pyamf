@@ -46,6 +46,8 @@ class TwistedServerTestCase(BaseTestCase):
     """
     """
 
+    missing = object()
+
     def setUp(self):
         BaseTestCase.setUp(self)
 
@@ -59,11 +61,37 @@ class TwistedServerTestCase(BaseTestCase):
     def tearDown(self):
         self.p.stopListening()
 
+    def getPage(self, data=None, **kwargs):
+        kwargs.setdefault('method', 'POST')
+        kwargs['postdata'] = data
+
+        return client.getPage("http://127.0.0.1:%d/" % (self.port,), **kwargs)
+
+    def doRequest(self, service, body=missing, type=pyamf.AMF3, raw=False, decode=True):
+        if not raw:
+            if body is self.missing:
+                body = []
+            else:
+                body = [body]
+
+            env = remoting.Envelope(type)
+            request = remoting.Request(service, body=body)
+            env['/1'] = request
+
+            body = remoting.encode(env).getvalue()
+
+        d = self.getPage(body)
+
+        if decode:
+            d.addCallback(lambda result: remoting.decode(result))
+
+        return d
+
     def test_invalid_method(self):
         """
         A classic GET on the xml server should return a NOT_ALLOWED.
         """
-        d = client.getPage("http://127.0.0.1:%d/" % (self.port,))
+        d = self.getPage(method='GET')
         d = self.assertFailure(d, error.Error)
         d.addCallback(
             lambda exc: self.assertEqual(int(exc.args[0]), http.NOT_ALLOWED))
@@ -71,9 +99,9 @@ class TwistedServerTestCase(BaseTestCase):
         return d
 
     def test_bad_content(self):
-        d = client.getPage("http://127.0.0.1:%d/" % (self.port,),
-                method="POST", postdata="spamandeggs")
+        d = self.getPage('spamandeggs')
         d = self.assertFailure(d, error.Error)
+
         d.addCallback(
             lambda exc: self.assertEqual(int(exc.args[0]), http.BAD_REQUEST))
 
@@ -85,16 +113,9 @@ class TwistedServerTestCase(BaseTestCase):
 
         self.gw.addService(echo)
 
-        env = remoting.Envelope(pyamf.AMF3)
-        request = remoting.Request('echo', body=['hello'])
-        env['/1'] = request
+        d = self.doRequest('echo', 'hello')
 
-        d = client.getPage("http://127.0.0.1:%d/" % (self.port,),
-                method="POST", postdata=remoting.encode(env).getvalue())
-
-        def cb(result):
-            response = remoting.decode(result)
-
+        def cb(response):
             self.assertEqual(response.amfVersion, pyamf.AMF3)
 
             self.assertTrue('/1' in response)
@@ -113,17 +134,9 @@ class TwistedServerTestCase(BaseTestCase):
             return x
 
         self.gw.addService(echo)
+        d = self.doRequest('echo', 'hello')
 
-        env = remoting.Envelope(pyamf.AMF3)
-        request = remoting.Request('echo', body=['hello'])
-        env['/1'] = request
-
-        d = client.getPage("http://127.0.0.1:%d/" % (self.port,),
-                method="POST", postdata=remoting.encode(env).getvalue())
-
-        def cb(result):
-            response = remoting.decode(result)
-
+        def cb(response):
             self.assertEqual(response.amfVersion, pyamf.AMF3)
 
             self.assertTrue('/1' in response)
@@ -135,16 +148,9 @@ class TwistedServerTestCase(BaseTestCase):
         return d.addCallback(cb)
 
     def test_unknown_request(self):
-        env = remoting.Envelope(pyamf.AMF0)
-        request = remoting.Request('echo', body=['hello'])
-        env['/1'] = request
+        d = self.doRequest('echo', 'hello')
 
-        d = client.getPage("http://127.0.0.1:%d/" % (self.port,),
-                method="POST", postdata=remoting.encode(env).getvalue())
-
-        def cb(result):
-            response = remoting.decode(result)
-
+        def cb(response):
             message = response['/1']
 
             self.assertEqual(message.status, remoting.STATUS_ERROR)
@@ -159,27 +165,27 @@ class TwistedServerTestCase(BaseTestCase):
         self.gw.expose_request = True
         self.executed = False
 
-        env = remoting.Envelope(pyamf.AMF0)
-        request = remoting.Request('echo', body=['hello'])
-        env['/1'] = request
-
         def echo(http_request, data):
             self.assertTrue(isinstance(http_request, http.Request))
 
             self.assertTrue(hasattr(http_request, 'amf_request'))
 
-            self.assertEqual(request.target, 'echo')
-            self.assertEqual(request.body, ['hello'])
+            amf_request = http_request.amf_request
+
+            self.assertEqual(amf_request.target, 'echo')
+            self.assertEqual(amf_request.body, ['hello'])
             self.executed = True
 
             return data
 
         self.gw.addService(echo)
 
-        d = client.getPage("http://127.0.0.1:%d/" % (self.port,),
-                method="POST", postdata=remoting.encode(env).getvalue())
+        d = self.doRequest('echo', 'hello', type=pyamf.AMF0)
 
-        return d.addCallback(lambda x: self.assertTrue(self.executed))
+        def check_response(response):
+            self.assertTrue(self.executed)
+
+        return d.addCallback(check_response)
 
     def test_preprocessor(self):
         d = defer.Deferred()
@@ -281,14 +287,9 @@ class TwistedServerTestCase(BaseTestCase):
 
         self.gw.addService(echo)
 
-        env = remoting.Envelope(pyamf.AMF0)
-        request = remoting.Request('echo', body=['hello'])
-        env['/1'] = request
-
-        d = client.getPage("http://127.0.0.1:%d/" % (self.port,),
-                method="POST", postdata=remoting.encode(env).getvalue())
-
+        d = self.doRequest('echo', 'hello')
         twisted.remoting.encode = force_error
+
         def switch(x):
             twisted.remoting.encode = encode
 
@@ -307,16 +308,9 @@ class TwistedServerTestCase(BaseTestCase):
             return data
 
         self.gw.addService(echo)
+        d = self.doRequest('echo', ('Hi', 'Mom'))
 
-        env = remoting.Envelope(pyamf.AMF0)
-        request = remoting.Request('echo', body=[('Hi', 'Mom')])
-        env['/1'] = request
-
-        d = client.getPage("http://127.0.0.1:%d/" % (self.port,),
-                method="POST", postdata=remoting.encode(env).getvalue())
-
-        def cb(result):
-            response = remoting.decode(result)
+        def cb(response):
             body_response = response['/1']
 
             self.assertEqual(body_response.status, remoting.STATUS_OK)
@@ -341,17 +335,10 @@ class TwistedServerTestCase(BaseTestCase):
         self.gw.addService(echo)
         self.gw.timezone_offset = -18000
 
-        msg = remoting.Envelope(amfVersion=pyamf.AMF0)
-        msg['/1'] = remoting.Request(target='echo', body=[now])
-
-        stream = remoting.encode(msg)
-
-        d = client.getPage("http://127.0.0.1:%d/" % (self.port,),
-                method="POST", postdata=stream.getvalue())
+        d = self.doRequest('echo', now)
 
         def cb(response):
-            envelope = remoting.decode(''.join(response))
-            message = envelope['/1']
+            message = response['/1']
 
             self.assertEqual(message.status, remoting.STATUS_OK)
             self.assertEqual(message.body, now)
@@ -369,12 +356,7 @@ class TwistedServerTestCase(BaseTestCase):
 
         self.gw.addService(service)
 
-        env = remoting.Envelope(pyamf.AMF0)
-        request = remoting.Request('service')
-        env['/1'] = request
-
-        d = client.getPage("http://127.0.0.1:%d/" % (self.port,),
-                method="POST", postdata=remoting.encode(env).getvalue())
+        d = self.doRequest('service')
 
         def cb(result):
             self.assertEqual(self.counter, 1)
@@ -428,13 +410,25 @@ class TwistedGatewayTestCase(BaseTestCase):
 
 
 class AMF0RequestProcessorTestCase(BaseTestCase):
+    """
+    """
+
+    def getProcessor(self, *args, **kwargs):
+        """
+        Return an L{twisted.AMF0RequestProcessor} attached to a gateway.
+        Supply the gateway args/kwargs.
+        """
+        self.gw = twisted.TwistedGateway(*args, **kwargs)
+        self.processor = twisted.AMF0RequestProcessor(self.gw)
+
+        return self.processor
+
     def test_unknown_service_request(self):
-        gw = twisted.TwistedGateway({'echo': lambda x: x})
-        proc = twisted.AMF0RequestProcessor(gw)
+        p = self.getProcessor({'echo': lambda x: x})
 
         request = remoting.Request('sdf')
 
-        d = proc(request)
+        d = p(request)
 
         self.assertTrue(isinstance(d, defer.Deferred))
         response = d.result
@@ -442,18 +436,21 @@ class AMF0RequestProcessorTestCase(BaseTestCase):
         self.assertTrue(response.status, remoting.STATUS_ERROR)
         self.assertTrue(isinstance(response.body, remoting.ErrorFault))
 
+        self.assertEqual(response.body.code, 'Service.ResourceNotFound')
+        self.assertEqual(response.body.description, u'Unknown service sdf')
+
     def test_error_auth(self):
         def auth(u, p):
             raise IndexError
 
-        gw = twisted.TwistedGateway({'echo': lambda x: x}, authenticator=auth)
-        proc = twisted.AMF0RequestProcessor(gw)
+        p = self.getProcessor({'echo': lambda x: x}, authenticator=auth)
 
         request = remoting.Request('echo', envelope=remoting.Envelope())
 
-        d = proc(request)
+        d = p(request)
 
         self.assertTrue(isinstance(d, defer.Deferred))
+
         response = d.result
         self.assertTrue(isinstance(response, remoting.Response))
         self.assertTrue(response.status, remoting.STATUS_ERROR)
@@ -464,19 +461,23 @@ class AMF0RequestProcessorTestCase(BaseTestCase):
         def auth(u, p):
             return False
 
-        gw = twisted.TwistedGateway({'echo': lambda x: x}, authenticator=auth)
-        proc = twisted.AMF0RequestProcessor(gw)
+        p = self.getProcessor({'echo': lambda x: x}, authenticator=auth)
 
         request = remoting.Request('echo', envelope=remoting.Envelope())
 
-        d = proc(request)
+        d = p(request)
 
         self.assertTrue(isinstance(d, defer.Deferred))
-        response = d.result
-        self.assertTrue(isinstance(response, remoting.Response))
-        self.assertTrue(response.status, remoting.STATUS_ERROR)
-        self.assertTrue(isinstance(response.body, remoting.ErrorFault))
-        self.assertEqual(response.body.code, 'AuthenticationError')
+
+        def check_response(response):
+            self.assertTrue(isinstance(response, remoting.Response))
+            self.assertTrue(response.status, remoting.STATUS_ERROR)
+            self.assertTrue(isinstance(response.body, remoting.ErrorFault))
+            self.assertEqual(response.body.code, 'AuthenticationError')
+
+        d.addCallback(check_response)
+
+        return d
 
     def test_deferred_auth(self):
         d = defer.Deferred()
@@ -484,8 +485,7 @@ class AMF0RequestProcessorTestCase(BaseTestCase):
         def auth(u, p):
             return reactor.callLater(0, lambda: True)
 
-        gw = twisted.TwistedGateway({'echo': lambda x: x}, authenticator=auth)
-        proc = twisted.AMF0RequestProcessor(gw)
+        p = self.getProcessor({'echo': lambda x: x}, authenticator=auth)
 
         request = remoting.Request('echo', envelope=remoting.Envelope())
 
@@ -493,7 +493,7 @@ class AMF0RequestProcessorTestCase(BaseTestCase):
             self.assertTrue(result)
             d.callback(None)
 
-        proc(request).addCallback(cb).addErrback(lambda failure: d.errback())
+        p(request).addCallback(cb).addErrback(lambda failure: d.errback())
 
         return d
 
@@ -501,19 +501,21 @@ class AMF0RequestProcessorTestCase(BaseTestCase):
         def preprocessor(service_request):
             raise IndexError
 
-        gw = twisted.TwistedGateway({'echo': lambda x: x}, preprocessor=preprocessor)
-        proc = twisted.AMF0RequestProcessor(gw)
+        p = self.getProcessor({'echo': lambda x: x}, preprocessor=preprocessor)
 
         request = remoting.Request('echo', envelope=remoting.Envelope())
 
-        d = proc(request)
+        d = p(request)
 
-        self.assertTrue(isinstance(d, defer.Deferred))
-        response = d.result
-        self.assertTrue(isinstance(response, remoting.Response))
-        self.assertTrue(response.status, remoting.STATUS_ERROR)
-        self.assertTrue(isinstance(response.body, remoting.ErrorFault))
-        self.assertEqual(response.body.code, 'IndexError')
+        def check_response(response):
+            self.assertTrue(isinstance(response, remoting.Response))
+            self.assertTrue(response.status, remoting.STATUS_ERROR)
+            self.assertTrue(isinstance(response.body, remoting.ErrorFault))
+            self.assertEqual(response.body.code, 'IndexError')
+
+        d.addCallback(check_response)
+
+        return d
 
     def test_deferred_preprocessor(self):
         d = defer.Deferred()
@@ -521,8 +523,7 @@ class AMF0RequestProcessorTestCase(BaseTestCase):
         def preprocessor(u, p):
             return reactor.callLater(0, lambda: True)
 
-        gw = twisted.TwistedGateway({'echo': lambda x: x}, preprocessor=preprocessor)
-        proc = twisted.AMF0RequestProcessor(gw)
+        p = self.getProcessor({'echo': lambda x: x}, preprocessor=preprocessor)
 
         request = remoting.Request('echo', envelope=remoting.Envelope())
 
@@ -530,7 +531,7 @@ class AMF0RequestProcessorTestCase(BaseTestCase):
             self.assertTrue(result)
             d.callback(None)
 
-        proc(request).addCallback(cb).addErrback(lambda failure: d.errback())
+        p(request).addCallback(cb).addErrback(lambda failure: d.errback())
 
         return d
 
@@ -540,12 +541,11 @@ class AMF0RequestProcessorTestCase(BaseTestCase):
         def preprocessor(service_request):
             d.callback(None)
 
-        gw = twisted.TwistedGateway({'echo': lambda x: x}, preprocessor=preprocessor)
-        proc = twisted.AMF0RequestProcessor(gw)
+        p = self.getProcessor({'echo': lambda x: x}, preprocessor=preprocessor)
 
         request = remoting.Request('echo', envelope=remoting.Envelope())
 
-        proc(request).addErrback(lambda failure: d.errback())
+        p(request).addErrback(lambda failure: d.errback())
 
         return d
 
@@ -556,8 +556,7 @@ class AMF0RequestProcessorTestCase(BaseTestCase):
             return reactor.callLater(0, lambda: True)
 
         preprocessor = gateway.expose_request(preprocessor)
-        gw = twisted.TwistedGateway({'echo': lambda x: x}, preprocessor=preprocessor)
-        proc = twisted.AMF0RequestProcessor(gw)
+        p = self.getProcessor({'echo': lambda x: x}, preprocessor=preprocessor)
 
         request = remoting.Request('echo', envelope=remoting.Envelope())
 
@@ -565,7 +564,7 @@ class AMF0RequestProcessorTestCase(BaseTestCase):
             self.assertTrue(result)
             d.callback(None)
 
-        proc(request).addCallback(cb).addErrback(lambda failure: d.errback())
+        p(request).addCallback(cb).addErrback(lambda failure: d.errback())
 
         return d
 
@@ -573,19 +572,20 @@ class AMF0RequestProcessorTestCase(BaseTestCase):
         def echo(x):
             raise KeyError
 
-        gw = twisted.TwistedGateway({'echo': echo})
-        proc = twisted.AMF0RequestProcessor(gw)
-
+        p = self.getProcessor({'echo': echo})
         request = remoting.Request('echo', envelope=remoting.Envelope())
 
-        d = proc(request)
+        d = p(request)
 
-        self.assertTrue(isinstance(d, defer.Deferred))
-        response = d.result
-        self.assertTrue(isinstance(response, remoting.Response))
-        self.assertTrue(response.status, remoting.STATUS_ERROR)
-        self.assertTrue(isinstance(response.body, remoting.ErrorFault))
-        self.assertEqual(response.body.code, 'KeyError')
+        def check_result(response):
+            self.assertTrue(isinstance(response, remoting.Response))
+            self.assertTrue(response.status, remoting.STATUS_ERROR)
+            self.assertTrue(isinstance(response.body, remoting.ErrorFault))
+            self.assertEqual(response.body.code, 'KeyError')
+
+        d.addCallback(check_result)
+
+        return d
 
     def test_error_deferred_body(self):
         d = defer.Deferred()
@@ -601,26 +601,18 @@ class AMF0RequestProcessorTestCase(BaseTestCase):
             d2.addCallback(cb)
             return d2
 
-        gw = twisted.TwistedGateway({'echo': echo}, expose_request=False)
-        proc = twisted.AMF0RequestProcessor(gw)
+        p = self.getProcessor({'echo': echo}, expose_request=False)
 
         request = remoting.Request('echo', envelope=remoting.Envelope())
         request.body = ['a']
 
         def cb(result):
-            try:
-                self.assertTrue(isinstance(result, remoting.Response))
-                self.assertTrue(result.status, remoting.STATUS_ERROR)
-                self.assertTrue(isinstance(result.body, remoting.ErrorFault))
-                self.assertEqual(result.body.code, 'IndexError')
-            except:
-                d.errback()
-            else:
-                d.callback(None)
+            self.assertTrue(isinstance(result, remoting.Response))
+            self.assertTrue(result.status, remoting.STATUS_ERROR)
+            self.assertTrue(isinstance(result.body, remoting.ErrorFault))
+            self.assertEqual(result.body.code, 'IndexError')
 
-        proc(request).addCallback(cb).addErrback(lambda x: d.errback())
-
-        return d
+        return p(request).addCallback(cb).addErrback(lambda x: d.errback())
 
 
 class AMF3RequestProcessorTestCase(BaseTestCase):
