@@ -17,7 +17,23 @@ from StringIO import StringIO
 
 import pyamf
 from pyamf import util
-from pyamf.tests import util as _util
+from pyamf.tests.util import replace_dict
+
+PosInf = 1e300000
+NegInf = -1e300000
+NaN = PosInf / PosInf
+
+
+def isNaN(val):
+    return str(float(val)) == str(NaN)
+
+
+def isPosInf(val):
+    return str(float(val)) == str(PosInf)
+
+
+def isNegInf(val):
+    return str(float(val)) == str(NegInf)
 
 
 class TimestampTestCase(unittest.TestCase):
@@ -438,45 +454,41 @@ class DataTypeMixInTestCase(unittest.TestCase):
 
     def test_nan(self):
         x = util.BufferedByteStream('\xff\xf8\x00\x00\x00\x00\x00\x00')
-        self.assertTrue(_util.isNaN(x.read_double()))
+        self.assertTrue(isNaN(x.read_double()))
 
         x = util.BufferedByteStream('\xff\xf0\x00\x00\x00\x00\x00\x00')
-        self.assertTrue(_util.isNegInf(x.read_double()))
+        self.assertTrue(isNegInf(x.read_double()))
 
         x = util.BufferedByteStream('\x7f\xf0\x00\x00\x00\x00\x00\x00')
-        self.assertTrue(_util.isPosInf(x.read_double()))
+        self.assertTrue(isPosInf(x.read_double()))
 
         # now test little endian
         x = util.BufferedByteStream('\x00\x00\x00\x00\x00\x00\xf8\xff')
         x.endian = '<'
-        self.assertTrue(_util.isNaN(x.read_double()))
+        self.assertTrue(isNaN(x.read_double()))
 
         x = util.BufferedByteStream('\x00\x00\x00\x00\x00\x00\xf0\xff')
         x.endian = '<'
-        self.assertTrue(_util.isNegInf(x.read_double()))
+        self.assertTrue(isNegInf(x.read_double()))
 
         x = util.BufferedByteStream('\x00\x00\x00\x00\x00\x00\xf0\x7f')
         x.endian = '<'
-        self.assertTrue(_util.isPosInf(x.read_double()))
+        self.assertTrue(isPosInf(x.read_double()))
 
     def test_write_infinites(self):
-        nan = 1e3000000 / 1e3000000
-        pos_inf = 1e3000000
-        neg_inf = -1e3000000
-
         x = util.BufferedByteStream()
 
-        self._write_endian(x, x.write_double, (nan,), (
+        self._write_endian(x, x.write_double, (NaN,), (
             '\xff\xf8\x00\x00\x00\x00\x00\x00',
             '\x00\x00\x00\x00\x00\x00\xf8\xff'
         ))
 
-        self._write_endian(x, x.write_double, (pos_inf,), (
+        self._write_endian(x, x.write_double, (PosInf,), (
             '\x7f\xf0\x00\x00\x00\x00\x00\x00',
             '\x00\x00\x00\x00\x00\x00\xf0\x7f'
         ))
 
-        self._write_endian(x, x.write_double, (neg_inf,), (
+        self._write_endian(x, x.write_double, (NegInf,), (
             '\xff\xf0\x00\x00\x00\x00\x00\x00',
             '\x00\x00\x00\x00\x00\x00\xf0\xff'
         ))
@@ -756,7 +768,7 @@ class ClassAliasTestCase(unittest.TestCase):
         self.old_aliases = pyamf.ALIAS_TYPES.copy()
 
     def tearDown(self):
-        _util.replace_dict(self.old_aliases, pyamf.ALIAS_TYPES)
+        replace_dict(self.old_aliases, pyamf.ALIAS_TYPES)
 
     def test_simple(self):
         class A(object):

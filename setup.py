@@ -3,6 +3,7 @@
 
 from ez_setup import use_setuptools
 
+# 15 seconds is far too long ....
 use_setuptools(download_delay=3)
 
 import sys, os.path
@@ -22,17 +23,7 @@ base_path = os.path.dirname(os.path.normpath(os.path.abspath(__file__)))
 # since the basedir is set as the first option in sys.path, this works
 sys.path.insert(0, base_path)
 
-from pyamf import version
-
 readme = os.path.join(base_path, 'README.txt')
-
-# need to remove all references to imported pyamf modules, as building
-# the c extensions change pyamf.util.BufferedByteStream, which blow up
-# the tests (at least the first time its built which in case of the 
-# buildbots is always true)
-for k, v in sys.modules.copy().iteritems():
-    if k and k.startswith('pyamf'):
-        del sys.modules[k]
 
 
 class TestCommand(test.test):
@@ -129,6 +120,24 @@ def get_test_requirements():
     return tests_require
 
 
+def get_version():
+    mp = sys.meta_path[:]
+
+    from pyamf import version
+
+    # need to remove all references to imported pyamf modules, as building
+    # the c extensions change pyamf.util.BufferedByteStream, which blow up
+    # the tests (at least the first time its built which in case of the 
+    # buildbots is always true)
+    for k, v in sys.modules.copy().iteritems():
+        if k and k.startswith('pyamf'):
+            del sys.modules[k]
+
+    sys.meta_path = mp
+
+    return version
+
+
 keyw = """\
 amf amf0 amf3 flex flash remoting rpc http flashplayer air bytearray
 objectproxy arraycollection recordset actionscript decoder encoder
@@ -141,7 +150,7 @@ if __name__ != '__main__':
 
 
 setup(name = "PyAMF",
-    version = str(version),
+    version = str(get_version()),
     description = "AMF support for Python",
     long_description = open(readme, 'rt').read(),
     url = "http://pyamf.org",

@@ -11,11 +11,6 @@ import unittest
 import copy
 
 import pyamf
-from pyamf.util import BufferedByteStream
-
-PosInf = 1e300000
-NegInf = -1e300000
-NaN = PosInf / PosInf
 
 
 class ClassicSpam:
@@ -41,6 +36,84 @@ class Spam(object):
         pass
 
 
+class EncoderMixIn(object):
+    """
+    A mixin class that provides an AMF* encoder and some helpful methods to do
+    testing.
+    """
+
+    amf_type = None
+
+    def setUp(self):
+        self.encoder = pyamf.get_encoder(encoding=self.amf_type)
+        self.buf = self.encoder.stream
+        self.context = self.encoder.context
+
+    def tearDown(self):
+        pass
+
+    def encode(self, *args):
+        self.buf.seek(0, 0)
+        self.buf.truncate()
+
+        for arg in args:
+            self.encoder.writeElement(arg)
+
+        return self.buf.getvalue()
+
+    def assertEncoded(self, arg, *args, **kwargs):
+        if kwargs.get('clear', True):
+            self.context.clear()
+
+        assert_buffer(self, self.encode(arg), args)
+
+
+class DecoderMixIn(object):
+    """
+    A mixin class that provides an AMF* decoder and some helpful methods to do
+    testing.
+    """
+
+    amf_type = None
+
+    def setUp(self):
+        self.decoder = pyamf.get_decoder(encoding=self.amf_type)
+        self.buf = self.decoder.stream
+        self.context = self.decoder.context
+
+    def tearDown(self):
+        pass
+
+    def decode(self, bytes, raw=False):
+        self.buf.seek(0, 0)
+        self.buf.truncate()
+
+        self.buf.write(bytes)
+        self.buf.seek(0, 0)
+
+        ret = []
+
+        while not self.buf.at_eof():
+            ret.append(self.decoder.readElement())
+
+        if raw:
+            return ret
+
+        if len(ret) == 1:
+            return ret[0]
+
+        return ret
+
+    def assertDecoded(self, decoded, bytes, raw=False, clear=True):
+        if clear:
+            self.context.clear()
+
+        ret = self.decode(bytes, raw)
+
+        self.assertEqual(ret, decoded)
+        self.assertEqual(self.buf.remaining(), 0)
+
+
 class ClassCacheClearingTestCase(unittest.TestCase):
     def setUp(self):
         unittest.TestCase.setUp(self)
@@ -54,78 +127,23 @@ class ClassCacheClearingTestCase(unittest.TestCase):
         pyamf.CLASS_CACHE = self._class_cache
         pyamf.CLASS_LOADERS = self._class_loaders
 
+    def assertBuffer(self, first, second, msg=None):
+        assert_buffer(self, first, second, msg)
 
-class EncoderTester(object):
-    """
-    A helper object that takes some input, runs over the encoder
-    and checks the output.
-    """
+    def assertEncodes(self, obj, buffer, encoding=pyamf.AMF3):
+        bytes = pyamf.encode(obj, encoding=encoding).getvalue()
 
-    def __init__(self, encoder, data):
-        self.encoder = encoder
-        self.buf = encoder.stream
-        self.data = data
+        if isinstance(buffer, basestring):
+            self.assertEqual(bytes, buffer)
 
-    def getval(self):
-        t = self.buf.getvalue()
-        self.buf.truncate(0)
+            return
 
-        return t
-
-    def run(self, testcase):
-        for n in self.data:
-            s = n[1:]
-            n = n[0]
-
-            self.encoder.writeElement(n)
-
-            if isinstance(s, basestring):
-                testcase.assertEqual(self.getval(), s)
-            elif isinstance(s, (tuple, list)):
-                val = self.getval()
-
-                if not check_buffer(val, s):
-                    testcase.fail('%r != %r' % (val, s))
+        self.assertBuffer(bytes, buffer)
 
 
-class DecoderTester(object):
-    """
-    A helper object that takes some input, runs over the decoder
-    and checks the output.
-    """
-
-    def __init__(self, decoder, data):
-        self.decoder = decoder
-        self.buf = decoder.stream
-        self.data = data
-
-    def run(self, testcase):
-        for n, s in self.data:
-            self.buf.truncate(0)
-            self.buf.write(s)
-            self.buf.seek(0)
-
-            testcase.assertEqual(self.decoder.readElement(), n)
-
-            if self.buf.remaining() != 0:
-                from pyamf.util import hexdump
-
-                print hexdump(self.buf.getvalue())
-
-            # make sure that the entire buffer was consumed
-            testcase.assertEqual(self.buf.remaining(), 0)
-
-
-def isNaN(val):
-    return str(float(val)) == str(NaN)
-
-
-def isPosInf(val):
-    return str(float(val)) == str(PosInf)
-
-
-def isNegInf(val):
-    return str(float(val)) == str(NegInf)
+def assert_buffer(testcase, val, s, msg=None):
+    if not check_buffer(val, s):
+        testcase.fail(msg or ('%r != %r' % (val, s)))
 
 
 def check_buffer(buf, parts, inner=False):
@@ -157,11 +175,6 @@ def check_buffer(buf, parts, inner=False):
     return len(buf) == 0
 
 
-def assert_buffer(testcase, val, s):
-    if not check_buffer(val, s):
-        testcase.fail('%r != %r' % (val, s))
-
-
 def replace_dict(src, dest):
     seen = []
 
@@ -184,34 +197,24 @@ def replace_dict(src, dest):
 
     assert src == dest
 
-class BaseCodecMixIn(object):
-    amf_version = pyamf.AMF0
-
-    def setUp(self):
-        self.context = pyamf.get_context(self.amf_version)
-        self.stream = BufferedByteStream()
-
-
-class BaseDecoderMixIn(BaseCodecMixIn):
-    def setUp(self):
-        BaseCodecMixIn.setUp(self)
-
-        self.decoder = pyamf.get_decoder(
-            self.amf_version, data=self.stream, context=self.context)
-
-
-class BaseEncoderMixIn(BaseCodecMixIn):
-    def setUp(self):
-        BaseCodecMixIn.setUp(self)
-
-        self.encoder = pyamf.get_encoder(
-            self.amf_version, stream=self.stream, context=self.context)
-
 
 class NullFileDescriptor(object):
+    """
+    A file like object that no-ops when writing.
+    """
+
     def write(self, *args, **kwargs):
         pass
 
 
 def get_fqcn(klass):
     return '%s.%s' % (klass.__module__, klass.__name__)
+
+
+def expectedFailureIfAppengine(func):
+    try:
+        from google import appengine
+    except ImportError:
+        return func
+    else:
+        return unittest.expectedFailure(func)

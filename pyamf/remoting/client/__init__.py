@@ -235,7 +235,7 @@ class RemotingService(object):
         :raise ValueError: Unknown scheme.
         """
         self.url = urlparse.urlparse(url)
-        self._root_url = urlparse.urlunparse(['', ''] + list(self.url[2:]))
+        self._root_url = url
 
         if not self.url[0] in ('http', 'https'):
             raise ValueError('Unknown scheme %r' % (self.url[0],))
@@ -389,7 +389,7 @@ class RemotingService(object):
 
         body = remoting.encode(self.getAMFRequest([request]), strict=self.strict)
 
-        http_request = urllib2.Request(self.url.geturl(), body.getvalue(),
+        http_request = urllib2.Request(self._root_url, body.getvalue(),
             self._get_execute_headers())
 
         envelope = self._getResponse(http_request)
@@ -409,7 +409,7 @@ class RemotingService(object):
         body = remoting.encode(self.getAMFRequest(requests),
             strict=self.strict)
 
-        http_request = urllib2.Request(self.url.geturl(), body.getvalue(),
+        http_request = urllib2.Request(self._root_url, body.getvalue(),
             self._get_execute_headers())
 
         envelope = self._getResponse(http_request)
@@ -425,14 +425,14 @@ class RemotingService(object):
         :raise RemotingError: Decompression not available.
         """
         if self.logger:
-            self.logger.debug('Sending POST request to %s', self.url.geturl())
+            self.logger.debug('Sending POST request to %s', self._root_url)
 
         try:
             fbh = self.opener(http_request)
         except urllib2.URLError, e:
             if self.logger:
                 self.logger.exception('Failed request for %s',
-                    self.url.geturl())
+                    self._root_url)
 
             raise remoting.RemotingError(str(e))
 

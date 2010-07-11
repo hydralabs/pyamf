@@ -57,10 +57,7 @@ class GAEReferenceCollection(dict):
         if not issubclass(klass, (db.Model, db.Expando)):
             raise TypeError('expected db.Model/db.Expando class, got %s' % (klass,))
 
-        if klass not in self.keys():
-            self[klass] = {}
-
-        return self[klass]
+        return self.setdefault(klass, {})
 
     def getClassKey(self, klass, key):
         """
@@ -73,9 +70,6 @@ class GAEReferenceCollection(dict):
         @return: The instance linked to the C{klass}/C{key}.
         @rtype: Instance of L{klass}.
         """
-        if not isinstance(key, basestring):
-            raise TypeError('basestring type expected for test, got %s' % (repr(key),))
-
         d = self._getClass(klass)
 
         return d[key]
@@ -88,9 +82,6 @@ class GAEReferenceCollection(dict):
         @param key: The datastore key of the object.
         @param obj: The loaded instance from the datastore.
         """
-        if not isinstance(key, basestring):
-            raise TypeError('basestring type expected for test, got %s' % (repr(key),))
-
         d = self._getClass(klass)
 
         d[key] = obj
@@ -153,10 +144,6 @@ class DataStoreClassAlias(pyamf.ClassAlias):
     def getEncodableAttributes(self, obj, codec=None):
         attrs = pyamf.ClassAlias.getEncodableAttributes(self, obj, codec=codec)
 
-        if not attrs:
-            attrs = {}
-
-        attrs[self.KEY_ATTR] = str(obj.key()) if obj.is_saved() else None
         gae_objects = getGAEObjects(codec.context) if codec else None
 
         if self.reference_properties and gae_objects:
@@ -167,8 +154,6 @@ class DataStoreClassAlias(pyamf.ClassAlias):
                 if not key:
                     continue
 
-                key = str(key)
-
                 try:
                     attrs[name] = gae_objects.getClassKey(klass, key)
                 except KeyError:
@@ -176,16 +161,14 @@ class DataStoreClassAlias(pyamf.ClassAlias):
                     gae_objects.addClassKey(klass, key, ref_obj)
                     attrs[name] = ref_obj
 
-        if attrs:
-            for k, v in attrs.keys()[:]:
-                if k.startswith('_'):
-                    del attrs[k]
+        for k in attrs.keys()[:]:
+            if k.startswith('_'):
+                del attrs[k]
 
         for attr in obj.dynamic_properties():
             attrs[attr] = getattr(obj, attr)
 
-        if not attrs:
-            attrs = None
+        attrs[self.KEY_ATTR] = str(obj.key()) if obj.is_saved() else None
 
         return attrs
 
@@ -306,7 +289,7 @@ def loadInstanceFromDatastore(klass, key, codec=None):
     return obj
 
 
-def writeGAEObject(self, object, *args, **kwargs):
+def writeGAEObject(self, obj, *args, **kwargs):
     """
     The GAE Datastore creates new instances of objects for each get request.
     This is a problem for PyAMF as it uses the id(obj) of the object to do
@@ -322,22 +305,22 @@ def writeGAEObject(self, object, *args, **kwargs):
 
     @since: 0.4.1
     """
-    if not (isinstance(object, db.Model) and object.is_saved()):
-        self.writeNonGAEObject(object, *args, **kwargs)
+    if not (isinstance(obj, db.Model) and obj.is_saved()):
+        self.writeNonGAEObject(obj, *args, **kwargs)
 
         return
 
     context = self.context
-    kls = object.__class__
-    s = str(object.key())
+    kls = obj.__class__
+    s = obj.key()
 
     gae_objects = getGAEObjects(context)
 
     try:
         referenced_object = gae_objects.getClassKey(kls, s)
     except KeyError:
-        referenced_object = object
-        gae_objects.addClassKey(kls, s, object)
+        referenced_object = obj
+        gae_objects.addClassKey(kls, s, obj)
 
     self.writeNonGAEObject(referenced_object, *args, **kwargs)
 

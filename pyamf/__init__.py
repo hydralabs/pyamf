@@ -995,7 +995,7 @@ class BaseDecoder(object):
         try:
             func = self._func_cache[t]
         except KeyError:
-            func = getattr(self, self.type_map[t])
+            func = getattr(self, self.type_map.get(t, ''), None)
 
             if not func:
                 raise DecodeError("Unsupported ActionScript type %r" % (t,))

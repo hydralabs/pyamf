@@ -69,10 +69,6 @@ To disable the installation of the C-extension, supply the
 
     python setup.py install --disable-ext
 
-You can run the unit tests like this::
-
-    python setup.py test
-
 
 Optional Extras
 ===============
@@ -81,10 +77,33 @@ PyAMF integrates with the following optional third-party Python
 libraries:
 
 - wsgiref_ 0.1.2 or newer (included in Python 2.5 and newer)
+- cElementTree_ 1.0.5 or newer (included in Python 2.5 and newer)
 - SQLAlchemy_ 0.4 or newer
 - Twisted_ 2.5 or newer
 - Django_ 0.97 or newer
 - `Google App Engine`_ 1.0 or newer
+- Elixir_ 0.7.1 or newer
+
+
+Unit Tests
+==========
+
+To run the PyAMF unit tests the following software packages
+must be installed. The ``easy_install`` command will automatically
+install them for you, as described above, but you can also choose to
+download and install the packages manually.
+
+- unittest2_ (included in Python 2.7 and newer)
+- pysqlite_
+
+You can run the unit tests using setuptools like this::
+
+    python setup.py test
+
+Other libraries for unit testing are also supported, including:
+
+- nose_
+- Trial_
 
 
 C-Extension
@@ -155,10 +174,16 @@ Sphinx from the ``pyamf/doc`` directory directly like this::
 .. _ElementTree: http://effbot.org/zone/element-index.htm
 .. _uuid:	http://pypi.python.org/pypi/uuid
 .. _wsgiref:	http://pypi.python.org/pypi/wsgiref
+.. _cElementTree: http://effbot.org/zone/celementtree.htm
 .. _SQLAlchemy:	http://sqlalchemy.org
 .. _Twisted:	http://twistedmatrix.com
 .. _Django:	http://djangoproject.com
 .. _Google App Engine: http://code.google.com/appengine
+.. _Elixir:	http://elixir.ematia.de
+.. _unittest2:	http://pypi.python.org/pypi/unittest2
+.. _pysqlite:	http://code.google.com/p/pysqlite
+.. _nose:	http://somethingaboutorange.com/mrl/projects/nose
+.. _Trial:	http://twistedmatrix.com/trac/wiki/TwistedTrial
 .. _Cython:	http://cython.org
 .. _Sphinx:     http://sphinx.pocoo.org
 .. _website:    http://pyamf.org

@@ -56,6 +56,9 @@ class DefaultDictTestCase(CollectionsTestCase):
     def setUp(self):
         CollectionsTestCase.setUp(self)
 
+        if not hasattr(collections, 'defaultdict'):
+            self.skipTest("'collections.defaultdict' not available")
+
         s = 'mississippi'
         self.obj = collections.defaultdict(int)
 

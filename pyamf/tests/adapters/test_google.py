@@ -17,12 +17,26 @@ try:
 
     from pyamf.adapters import _google_appengine_ext_db as adapter_db
 except ImportError:
-    db = None
+    # mock it
+    class db(object):
+        def __getattr__(self, name):
+            class c(object):
+                def __init__(self, *args, **kwargs):
+                    pass
+
+            return c
+
+        def __nonzero__(self):
+            return False
+
+    db = db()
+
 
 import pyamf
 from pyamf import amf3
-from pyamf.tests.util import ClassCacheClearingTestCase, Spam
+from pyamf.tests import util
 
+Spam = util.Spam
 
 if db:
     class PetModel(db.Model):
@@ -33,6 +47,16 @@ if db:
         weight_in_pounds = db.IntegerProperty()
         spayed_or_neutered = db.BooleanProperty()
 
+class PetModel(db.Model):
+    """
+    """
+
+    # 'borrowed' from http://code.google.com/appengine/docs/datastore/entitiesandmodels.html
+    name = db.StringProperty(required=True)
+    type = db.StringProperty(required=True, choices=set(["cat", "dog", "bird"]))
+    birthdate = db.DateProperty()
+    weight_in_pounds = db.IntegerProperty()
+    spayed_or_neutered = db.BooleanProperty()
 
     class PetExpando(db.Expando):
         name = db.StringProperty(required=True)
@@ -41,20 +65,46 @@ if db:
         weight_in_pounds = db.IntegerProperty()
         spayed_or_neutered = db.BooleanProperty()
 
+class PetExpando(db.Expando):
+    """
+    """
+
+    name = db.StringProperty(required=True)
+    type = db.StringProperty(required=True, choices=set(["cat", "dog", "bird"]))
+    birthdate = db.DateProperty()
+    weight_in_pounds = db.IntegerProperty()
+    spayed_or_neutered = db.BooleanProperty()
 
     class ListModel(db.Model):
         numbers = db.ListProperty(long)
 
-
-    class GettableModelStub(db.Model):
-        gets = []
-
-        @staticmethod
-        def get(*args, **kwargs):
-            GettableModelStub.gets.append([args, kwargs])
+class ListModel(db.Model):
+    """
+    """
+    numbers = db.ListProperty(long)
 
 
-class BaseTestCase(unittest.TestCase):
+class GettableModelStub(db.Model):
+    """
+    """
+
+    gets = []
+
+    @staticmethod
+    def get(*args, **kwargs):
+        GettableModelStub.gets.append([args, kwargs])
+
+
+class Author(db.Model):
+    name = db.StringProperty()
+
+
+class Novel(db.Model):
+    title = db.StringProperty()
+    author = db.ReferenceProperty(Author)
+
+
+class BaseTestCase(util.ClassCacheClearingTestCase):
     """
     """
 
@@ -62,188 +112,264 @@ class BaseTestCase(unittest.TestCase):
         if not db:
             self.skipTest("'google.appengine.ext.db' not available")
 
+        util.ClassCacheClearingTestCase.setUp(self)
 
-class EncodingModelTestCase(BaseTestCase, ClassCacheClearingTestCase):
+    def put(self, entity):
+        entity.put()
+        self.addCleanup(self.deleteEntity, entity)
+
+    def deleteEntity(self, entity):
+        if entity.is_saved():
+            entity.delete()
+
+    def decode(self, bytes, encoding=pyamf.AMF3):
+        decoded = list(pyamf.decode(bytes, encoding=encoding))
+
+        if len(decoded) == 1:
+            return decoded[0]
+
+        return decoded
+
+
+class JessicaMixIn(object):
+    """
+    Provides jessica!
+    """
+
+    jessica_attrs = {
+        'name': 'Jessica',
+        'type': 'cat',
+        'birthdate': datetime.date(1986, 10, 2),
+        'weight_in_pounds': 5,
+        'spayed_or_neutered': False
+    }
+
+    jessica_class = None
+
+    def setUp(self):
+        self.jessica = self.jessica_class(**self.jessica_attrs)
+
+
+class EncodingModelTestCase(BaseTestCase, JessicaMixIn):
+    """
+    """
+
+    jessica_class = PetModel
+
     def setUp(self):
         BaseTestCase.setUp(self)
-        ClassCacheClearingTestCase.setUp(self)
+        JessicaMixIn.setUp(self)
 
-        self.jessica = PetModel(name='Jessica', type='cat')
-        self.jessica.birthdate = datetime.date(1986, 10, 2)
-        self.jessica.weight_in_pounds = 5
-        self.jessica.spayed_or_neutered = False
-
-    def tearDown(self):
-        BaseTestCase.tearDown(self)
-        ClassCacheClearingTestCase.tearDown(self)
-
-        try:
-            self.jessica.delete()
-        except:
-            pass
+        self.addCleanup(self.deleteEntity, self.jessica)
 
     def test_amf0(self):
-        encoder = pyamf.get_encoder(pyamf.AMF0)
-        context = encoder.context
+        encoded = (
+            '\x03', (
+                '\x00\x04_key\x05',
+                '\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00',
+                '\x00\x04name\x02\x00\x07Jessica',
+                '\x00\x12spayed_or_neutered\x01\x00',
+                '\x00\x04type\x02\x00\x03cat',
+                '\x00\x10weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00'
+            ),
+            '\x00\x00\t'
+        )
 
-        alias = context.getClassAlias(PetModel)
-        self.assertEqual(alias.__class__, adapter_db.DataStoreClassAlias)
-
-        encoder.writeElement(self.jessica)
-        self.assertEqual(encoder.stream.getvalue(),
-            '\x03\x00\x04_key\x05\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00'
-            '\x00\x00\x00\x00\x04name\x02\x00\x07Jessica\x00\x12'
-            'spayed_or_neutered\x01\x00\x00\x04type\x02\x00\x03cat\x00\x10'
-            'weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00\x00\x00\t')
+        self.assertEncodes(self.jessica, encoded, encoding=pyamf.AMF0)
 
     def test_amf3(self):
-        encoder = pyamf.get_encoder(pyamf.AMF3)
-        encoder.writeElement(self.jessica)
-        self.assertEqual(encoder.stream.getvalue(),
-            '\nk\x01\t_key\x13birthdate\tname%spayed_or_neutered\ttype!'
-            'weight_in_pounds\x01\x08\x01B^\xc4\xae\xaa\x00\x00\x00\x06\x0f'
-            'Jessica\x02\x06\x07cat\x04\x05\x01')
+        bytes = (
+            '\n\x0b\x01', (
+                '\tname\x06\x0fJessica',
+                '\t_key\x01',
+                '\x13birthdate\x08\x01B^\xc4\xae\xaa\x00\x00\x00',
+                '!weight_in_pounds\x04\x05',
+                '\ttype\x06\x07cat',
+                '%spayed_or_neutered\x02\x01'
+            ))
+
+        self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF3)
 
     def test_save_amf0(self):
         self.jessica.put()
 
         k = str(self.jessica.key())
-        encoder = pyamf.get_encoder(pyamf.AMF0)
-        encoder.writeElement(self.jessica)
 
-        self.assertEqual(encoder.stream.getvalue(),
-            '\x03\x00\x04_key\x02%s%s\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00'
-            '\x00\x00\x00\x00\x00\x04name\x02\x00\x07Jessica\x00\x12'
-            'spayed_or_neutered\x01\x00\x00\x04type\x02\x00\x03cat\x00\x10'
-            'weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00\x00\x00\t' % (
-                struct.pack('>H', len(k)), k))
+        bytes = ('\x03', (
+            '\x00\x04_key\x02%s%s' % (struct.pack('>H', len(k)), k),
+            '\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00',
+            '\x00\x04name\x02\x00\x07Jessica',
+            '\x00\x12spayed_or_neutered\x01\x00',
+            '\x00\x04type\x02\x00\x03cat',
+            '\x00\x10weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00'),
+            '\x00\x00\t')
+
+        self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF0)
 
     def test_save_amf3(self):
         self.jessica.put()
 
         k = str(self.jessica.key())
-        encoder = pyamf.get_encoder(pyamf.AMF3)
-        encoder.writeElement(self.jessica)
+        encoded_key = '%s%s' % (amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k)
 
-        self.assertEqual(encoder.stream.getvalue(),
-            '\nk\x01\t_key\x13birthdate\tname%%spayed_or_neutered\ttype!'
-            'weight_in_pounds\x06%s%s\x08\x01B^\xc4\xae\xaa\x00\x00\x00\x06'
-            '\x0fJessica\x02\x06\x07cat\x04\x05\x01' % (
-                amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k))
+        bytes = (
+            '\n\x0b\x01', (
+                '\tname\x06\x0fJessica',
+                '\t_key\x06%s' % encoded_key,
+                '\x13birthdate\x08\x01B^\xc4\xae\xaa\x00\x00\x00',
+                '!weight_in_pounds\x04\x05',
+                '\ttype\x06\x07cat',
+                '%spayed_or_neutered\x02\x01'
+            ))
+
+        self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF3)
 
     def test_alias_amf0(self):
         pyamf.register_class(PetModel, 'Pet')
-        encoder = pyamf.get_encoder(pyamf.AMF0)
 
-        encoder.writeElement(self.jessica)
-        self.assertEqual(encoder.stream.getvalue(),
-            '\x10\x00\x03Pet\x00\x04_key\x05\x00\tbirthdate\x0bB^\xc4\xae\xaa'
-            '\x00\x00\x00\x00\x00\x00\x04name\x02\x00\x07Jessica\x00\x12'
-            'spayed_or_neutered\x01\x00\x00\x04type\x02\x00\x03cat\x00\x10'
-            'weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00\x00\x00\t')
+        bytes = (
+            '\x10\x00\x03Pet', (
+                '\x00\x04_key\x05',
+                '\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00',
+                '\x00\x04name\x02\x00\x07Jessica',
+                '\x00\x12spayed_or_neutered\x01\x00',
+                '\x00\x04type\x02\x00\x03cat',
+                '\x00\x10weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00'
+            ),
+            '\x00\x00\t'
+        )
+
+        self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF0)
 
     def test_alias_amf3(self):
         pyamf.register_class(PetModel, 'Pet')
-        encoder = pyamf.get_encoder(pyamf.AMF3)
-        encoder.writeElement(self.jessica)
 
-        self.assertEqual(encoder.stream.getvalue(),
-            '\nk\x07Pet\t_key\x13birthdate\tname%spayed_or_neutered\ttype!'
-            'weight_in_pounds\x01\x08\x01B^\xc4\xae\xaa\x00\x00\x00\x06\x0f'
-            'Jessica\x02\x06\x07cat\x04\x05\x01')
+        bytes = (
+            '\n\x0b\x07Pet', (
+                '\tname\x06\x0fJessica',
+                '\t_key\x01',
+                '\x13birthdate\x08\x01B^\xc4\xae\xaa\x00\x00\x00',
+                '!weight_in_pounds\x04\x05',
+                '\x07foo\x06\x07bar',
+                '\ttype\x06\x07cat',
+                '%spayed_or_neutered\x02\x01'
+            ))
+
+        self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF3)
 
 
-class EncodingExpandoTestCase(BaseTestCase, ClassCacheClearingTestCase):
+class EncodingExpandoTestCase(BaseTestCase, JessicaMixIn):
+    """
+    Tests for encoding L{db.Expando} classes
+    """
+
+    jessica_class = PetExpando
+
     def setUp(self):
         BaseTestCase.setUp(self)
-        ClassCacheClearingTestCase.setUp(self)
+        JessicaMixIn.setUp(self)
 
-        self.jessica = PetExpando(name='Jessica', type='cat')
-        self.jessica.birthdate = datetime.date(1986, 10, 2)
-        self.jessica.weight_in_pounds = 5
-        self.jessica.spayed_or_neutered = False
         self.jessica.foo = 'bar'
 
-    def tearDown(self):
-        BaseTestCase.tearDown(self)
-        ClassCacheClearingTestCase.tearDown(self)
-
-        try:
-            self.jessica.delete()
-        except:
-            pass
+        self.addCleanup(self.deleteEntity, self.jessica)
 
     def test_amf0(self):
-        encoder = pyamf.get_encoder(pyamf.AMF0)
-        encoder.writeElement(self.jessica)
+        bytes = (
+            '\x03', (
+                '\x00\x04_key\x05',
+                '\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00',
+                '\x00\x04name\x02\x00\x07Jessica',
+                '\x00\x12spayed_or_neutered\x01\x00',
+                '\x00\x04type\x02\x00\x03cat',
+                '\x00\x10weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00',
+                '\x00\x03foo\x02\x00\x03bar'
+            ),
+            '\x00\x00\t'
+        )
 
-        self.assertEqual(encoder.stream.getvalue(),
-            '\x03\x00\x04_key\x05\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00'
-            '\x00\x00\x00\x00\x04name\x02\x00\x07Jessica\x00\x12'
-            'spayed_or_neutered\x01\x00\x00\x04type\x02\x00\x03cat\x00\x10'
-            'weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00\x00\x03foo\x02'
-            '\x00\x03bar\x00\x00\t')
+        self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF0)
 
     def test_amf3(self):
-        encoder = pyamf.get_encoder(pyamf.AMF3)
-        encoder.writeElement(self.jessica)
+        bytes = (
+            '\n\x0b\x01', (
+                '\tname\x06\x0fJessica',
+                '\t_key\x01',
+                '\x13birthdate\x08\x01B^\xc4\xae\xaa\x00\x00\x00',
+                '!weight_in_pounds\x04\x05',
+                '\x07foo\x06\x07bar',
+                '\ttype\x06\x07cat',
+                '%spayed_or_neutered\x02\x01'
+            ))
 
-        self.assertEqual(encoder.stream.getvalue(),
-            '\nk\x01\t_key\x13birthdate\tname%spayed_or_neutered\ttype!'
-            'weight_in_pounds\x01\x08\x01B^\xc4\xae\xaa\x00\x00\x00\x06\x0f'
-            'Jessica\x02\x06\x07cat\x04\x05\x07foo\x06\x07bar\x01')
+        self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF3)
 
     def test_save_amf0(self):
         self.jessica.put()
 
         k = str(self.jessica.key())
-        encoder = pyamf.get_encoder(pyamf.AMF0)
-        encoder.writeElement(self.jessica)
+        bytes = pyamf.encode(self.jessica, encoding=pyamf.AMF0).getvalue()
 
-        self.assertEqual(encoder.stream.getvalue(),
-            '\x03\x00\x04_key\x02%s%s\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00'
-            '\x00\x00\x00\x00\x00\x04name\x02\x00\x07Jessica\x00\x12'
-            'spayed_or_neutered\x01\x00\x00\x04type\x02\x00\x03cat\x00\x10'
-            'weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00\x00\x03foo\x02'
-            '\x00\x03bar\x00\x00\t' % (struct.pack('>H', len(k)), k))
+        self.assertBuffer(bytes, ('\x03', (
+            '\x00\x04_key\x02%s%s' % (struct.pack('>H', len(k)), k),
+            '\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00',
+            '\x00\x04name\x02\x00\x07Jessica',
+            '\x00\x12spayed_or_neutered\x01\x00',
+            '\x00\x04type\x02\x00\x03cat',
+            '\x00\x10weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00',
+            '\x00\x03foo\x02\x00\x03bar'),
+            '\x00\x00\t'))
 
     def test_save_amf3(self):
         self.jessica.put()
 
         k = str(self.jessica.key())
-        encoder = pyamf.get_encoder(pyamf.AMF3)
-        encoder.writeElement(self.jessica)
+        encoded_key = '%s%s' % (amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k)
 
-        self.assertEqual(encoder.stream.getvalue(),
-            '\nk\x01\t_key\x13birthdate\tname%%spayed_or_neutered\ttype!'
-            'weight_in_pounds\x06%s%s\x08\x01B^\xc4\xae\xaa\x00\x00\x00\x06'
-            '\x0fJessica\x02\x06\x07cat\x04\x05\x07foo\x06\x07bar\x01' % (
-                amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k))
+        bytes = (
+            '\n\x0b\x01', (
+                '\tname\x06\x0fJessica',
+                '\t_key\x06%s' % encoded_key,
+                '\x13birthdate\x08\x01B^\xc4\xae\xaa\x00\x00\x00',
+                '!weight_in_pounds\x04\x05',
+                '\x07foo\x06\x07bar',
+                '\ttype\x06\x07cat',
+                '%spayed_or_neutered\x02\x01'
+            ))
+
+        self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF3)
 
     def test_alias_amf0(self):
         pyamf.register_class(PetExpando, 'Pet')
-        encoder = pyamf.get_encoder(pyamf.AMF0)
+        bytes = pyamf.encode(self.jessica, encoding=pyamf.AMF0).getvalue()
 
-        encoder.writeElement(self.jessica)
-        self.assertEqual(encoder.stream.getvalue(),
-            '\x10\x00\x03Pet\x00\x04_key\x05\x00\tbirthdate\x0bB^\xc4\xae\xaa'
-            '\x00\x00\x00\x00\x00\x00\x04name\x02\x00\x07Jessica\x00\x12'
-            'spayed_or_neutered\x01\x00\x00\x04type\x02\x00\x03cat\x00\x10'
-            'weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00\x00\x03foo\x02'
-            '\x00\x03bar\x00\x00\t')
+        self.assertBuffer(bytes, ('\x10\x00\x03Pet', (
+            '\x00\x04_key\x05',
+            '\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00',
+            '\x00\x04name\x02\x00\x07Jessica',
+            '\x00\x12spayed_or_neutered\x01\x00',
+            '\x00\x04type\x02\x00\x03cat',
+            '\x00\x10weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00',
+            '\x00\x03foo\x02\x00\x03bar'),
+            '\x00\x00\t'))
 
     def test_alias_amf3(self):
         pyamf.register_class(PetExpando, 'Pet')
-        encoder = pyamf.get_encoder(pyamf.AMF3)
-        encoder.writeElement(self.jessica)
 
-        self.assertEqual(encoder.stream.getvalue(),
-            '\nk\x07Pet\t_key\x13birthdate\tname%spayed_or_neutered\ttype!'
-            'weight_in_pounds\x01\x08\x01B^\xc4\xae\xaa\x00\x00\x00\x06\x0f'
-            'Jessica\x02\x06\x07cat\x04\x05\x07foo\x06\x07bar\x01')
+        bytes = (
+            '\n\x0b\x07Pet', (
+                '\tname\x06\x0fJessica',
+                '\t_key\x01',
+                '\x13birthdate\x08\x01B^\xc4\xae\xaa\x00\x00\x00',
+                '!weight_in_pounds\x04\x05',
+                '\x07foo\x06\x07bar',
+                '\ttype\x06\x07cat',
+                '%spayed_or_neutered\x02\x01'
+            ))
+
+        self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF3)
 
 
-class EncodingReferencesTestCase(BaseTestCase, ClassCacheClearingTestCase):
+class EncodingReferencesTestCase(BaseTestCase):
     """
     This test case refers to
     L{db.ReferenceProperty<http://code.google.com/appengine/docs/datastore/typesandpropertyclasses.html#ReferenceProperty>},
@@ -251,61 +377,72 @@ class EncodingReferencesTestCase(BaseTestCase, ClassCacheClearingTestCase):
     """
 
     def test_model(self):
-        class Author(db.Model):
-            name = db.StringProperty()
-
-        class Novel(db.Model):
-            title = db.StringProperty()
-            author = db.ReferenceProperty(Author)
-
         a = Author(name='Jane Austen')
-        a.put()
+        self.put(a)
         k = str(a.key())
+
+        amf0_k = struct.pack('>H', len(k)) + k
+        amf3_k = amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT) + k
 
         b = Novel(title='Sense and Sensibility', author=a)
 
-        self.assertEqual(b.author, a)
+        self.assertIdentical(b.author, a)
 
-        try:
-            encoder = pyamf.get_encoder(pyamf.AMF0)
+        bytes = (
+            '\x03', (
+                '\x00\x05title\x02\x00\x15Sense and Sensibility',
+                '\x00\x04_key\x02' + amf0_k,
+                '\x00\x06author\x03', (
+                    '\x00\x04name\x02\x00\x0bJane Austen',
+                    '\x00\x04_key\x05'
+                ),
+                '\x00\x00\t'
+            ),
+            '\x00\x00\t')
 
-            encoder.writeElement(b)
-            self.assertEqual(encoder.stream.getvalue(),
-                '\x03\x00\x04_key\x05\x00\x06author\x03\x00\x04_key\x02%s%s'
-                '\x00\x04name\x02\x00\x0bJane Austen\x00\x00\t\x00\x05title'
-                '\x02\x00\x15Sense and Sensibility\x00\x00\t' % (
-                    struct.pack('>H', len(k)), k))
+        self.assertEncodes(b, bytes, encoding=pyamf.AMF0)
 
-            encoder = pyamf.get_encoder(pyamf.AMF3)
+        bytes = (
+            '\n\x0b\x01', ((
+                '\rauthor\n\x0b\x01', (
+                    '\t_key\x06' + amf3_k,
+                    '\tname\x06\x17Jane Austen'
+                ), '\x01\x06\x01'),
+                '\x0btitle\x06+Sense and Sensibility'
+            ),
+            '\x01')
 
-            encoder.writeElement(b)
-            self.assertEqual(encoder.stream.getvalue(),
-                '\n;\x01\t_key\rauthor\x0btitle\x01\n+\x01\x00\tname\x06%s%s'
-                '\x06\x17Jane Austen\x01\x06+Sense and Sensibility\x01' % (
-                    amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k))
+        self.assertEncodes(b, bytes, encoding=pyamf.AMF3)
 
-            # now test with aliases ..
-            pyamf.register_class(Author, 'Author')
-            pyamf.register_class(Novel, 'Novel')
+        # now test with aliases ..
+        pyamf.register_class(Author, 'Author')
+        pyamf.register_class(Novel, 'Novel')
 
-            encoder = pyamf.get_encoder(pyamf.AMF0)
+        bytes = (
+            '\x10\x00\x05Novel', (
+                '\x00\x05title\x02\x00\x15Sense and Sensibility',
+                '\x00\x04_key\x02' + amf0_k,
+                '\x00\x06author\x10\x00\x06Author', (
+                    '\x00\x04name\x02\x00\x0bJane Austen',
+                    '\x00\x04_key\x05'
+                ),
+                '\x00\x00\t'
+            ),
+            '\x00\x00\t')
 
-            encoder.writeElement(b)
-            self.assertEqual(encoder.stream.getvalue(), '\x10\x00\x05Novel'
-                '\x00\x04_key\x05\x00\x06author\x10\x00\x06Author\x00\x04_key'
-                '\x02%s%s\x00\x04name\x02\x00\x0bJane Austen\x00\x00\t\x00'
-                '\x05title\x02\x00\x15Sense and Sensibility\x00\x00\t' % (
-                    struct.pack('>H', len(k)), k))
+        self.assertEncodes(b, bytes, encoding=pyamf.AMF0)
 
-            encoder = pyamf.get_encoder(pyamf.AMF3)
+        bytes = (
+            '\n\x0b\x0bNovel', ((
+                '\rauthor\n\x0b\rAuthor', (
+                    '\t_key\x06' + amf3_k,
+                    '\tname\x06\x17Jane Austen'
+                ), '\x01\n\x01'),
+                '\x0btitle\x06+Sense and Sensibility'
+            ),
+            '\x01')
 
-            encoder.writeElement(b)
-            self.assertEqual(encoder.stream.getvalue(), '\n;\x0bNovel\t_key'
-                '\rauthor\x0btitle\x01\n+\rAuthor\x02\tname\x06%s%s\x06\x17'
-                'Jane Austen\x01\x06+Sense and Sensibility\x01' % (
-                    amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k))
-        finally:
-            a.delete()
+        self.assertEncodes(b, bytes, encoding=pyamf.AMF3)
 
     def test_expando(self):
         class Author(db.Expando):
@@ -316,208 +453,229 @@ class EncodingReferencesTestCase(BaseTestCase, ClassCacheClearingTestCase):
             author = db.ReferenceProperty(Author)
 
         a = Author(name='Jane Austen')
-        a.put()
+        self.put(a)
         k = str(a.key())
+
+        amf0_k = struct.pack('>H', len(k)) + k
+        amf3_k = amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT) + k
 
         b = Novel(title='Sense and Sensibility', author=a)
 
-        self.assertEqual(b.author, a)
+        self.assertIdentical(b.author, a)
 
-        try:
-            encoder = pyamf.get_encoder(pyamf.AMF0)
+        bytes = (
+            '\x03', (
+                '\x00\x05title\x02\x00\x15Sense and Sensibility',
+                '\x00\x04_key\x02' + amf0_k,
+                '\x00\x06author\x03', (
+                    '\x00\x04name\x02\x00\x0bJane Austen',
+                    '\x00\x04_key\x05'
+                ),
+                '\x00\x00\t'
+            ),
+            '\x00\x00\t')
 
-            encoder.writeElement(b)
-            self.assertEqual(encoder.stream.getvalue(),
-                '\x03\x00\x04_key\x05\x00\x06author\x03\x00\x04_key\x02%s%s'
-                '\x00\x04name\x02\x00\x0bJane Austen\x00\x00\t\x00\x05title'
-                '\x02\x00\x15Sense and Sensibility\x00\x00\t' % (
-                    struct.pack('>H', len(k)), k))
+        self.assertEncodes(b, bytes, encoding=pyamf.AMF0)
 
-            encoder = pyamf.get_encoder(pyamf.AMF3)
+        bytes = (
+            '\n\x0b\x01', ((
+                '\rauthor\n\x0b\x01', (
+                    '\t_key\x06' + amf3_k,
+                    '\tname\x06\x17Jane Austen\x01'
+                ), '\x02\x01'),
+                '\x0btitle\x06+Sense and Sensibility'
+            ),
+            '\x01')
 
-            encoder.writeElement(b)
-            self.assertEqual(encoder.stream.getvalue(),
-                '\n;\x01\t_key\rauthor\x0btitle\x01\n+\x01\x00\tname\x06%s%s'
-                '\x06\x17Jane Austen\x01\x06+Sense and Sensibility\x01' % (
-                    amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k))
+        self.assertEncodes(b, bytes, encoding=pyamf.AMF3)
 
-            # now test with aliases ..
-            pyamf.register_class(Author, 'Author')
-            pyamf.register_class(Novel, 'Novel')
+        # now test with aliases ..
+        pyamf.register_class(Author, 'Author')
+        pyamf.register_class(Novel, 'Novel')
 
-            encoder = pyamf.get_encoder(pyamf.AMF0)
+        bytes = (
+            '\x10\x00\x05Novel', (
+                '\x00\x05title\x02\x00\x15Sense and Sensibility',
+                '\x00\x04_key\x02' + amf0_k,
+                '\x00\x06author\x10\x00\x06Author', (
+                    '\x00\x04name\x02\x00\x0bJane Austen',
+                    '\x00\x04_key\x05'
+                ),
+                '\x00\x00\t'
+            ),
+            '\x00\x00\t')
 
-            encoder.writeElement(b)
-            self.assertEqual(encoder.stream.getvalue(), '\x10\x00\x05Novel'
-                '\x00\x04_key\x05\x00\x06author\x10\x00\x06Author\x00\x04_key'
-                '\x02%s%s\x00\x04name\x02\x00\x0bJane Austen\x00\x00\t\x00'
-                '\x05title\x02\x00\x15Sense and Sensibility\x00\x00\t' % (
-                    struct.pack('>H', len(k)), k))
+        self.assertEncodes(b, bytes, encoding=pyamf.AMF0)
 
-            encoder = pyamf.get_encoder(pyamf.AMF3)
+        bytes = (
+            '\n\x0b\x0bNovel', ((
+                '\rauthor\n\x0b\rAuthor', (
+                    '\t_key\x06' + amf3_k,
+                    '\tname\x06\x17Jane Austen\x01'
+                ), '\x06\x01'),
+                '\x0btitle\x06+Sense and Sensibility'
+            ),
+            '\x01')
 
-            encoder.writeElement(b)
-            self.assertEqual(encoder.stream.getvalue(),
-                '\n;\x0bNovel\t_key\rauthor\x0btitle\x01\n+\rAuthor\x02\tname'
-                '\x06%s%s\x06\x17Jane Austen\x01\x06+Sense and Sensibility'
-                '\x01' % (amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k))
-        finally:
-            a.delete()
+        self.assertEncodes(b, bytes, encoding=pyamf.AMF3)
 
     def test_dynamic_property_referenced_object(self):
-        class Author(db.Model):
-            name = db.StringProperty()
+        a = Author(name='Jane Austen')
+        self.put(a)
 
-        class Novel(db.Model):
-            title = db.StringProperty()
-            author = db.ReferenceProperty(Author)
+        b = Novel(title='Sense and Sensibility', author=a)
+        self.put(b)
 
-        try:
-            a = Author(name='Jane Austen')
-            a.put()
+        x = db.get(b.key())
+        foo = [1, 2, 3]
 
-            b = Novel(title='Sense and Sensibility', author=a)
-            b.put()
+        x.author.bar = foo
+        k = str(x.key())
+        ek = '%s%s' % (struct.pack('>H', len(k)), k)
+        l = str(a.key())
+        el = '%s%s' % (struct.pack('>H', len(l)), l)
 
-            x = Novel.all().filter('title = ', 'Sense and Sensibility').get()
-            foo = [1, 2, 3]
-
-            x.author.bar = foo
-            k = str(x.key())
-            l = str(x.author.key())
-
-            stream = pyamf.encode(x)
-
-            self.assertEqual(stream.getvalue(), '\x03\x00\x04_key\x02%s%s'
-                '\x00\x06author\x03\x00\x04_key\x02%s%s\x00\x04name\x02\x00'
-                '\x0bJane Austen\x00\x03bar\n\x00\x00\x00\x03\x00?\xf0\x00'
-                '\x00\x00\x00\x00\x00\x00@\x00\x00\x00\x00\x00\x00\x00\x00@'
-                '\x08\x00\x00\x00\x00\x00\x00\x00\x00\t\x00\x05title\x02\x00'
-                '\x15Sense and Sensibility\x00\x00\t' % (
-                    struct.pack('>H', len(k)), k,
-                    struct.pack('>H', len(l)), l))
-        finally:
-            a.delete()
-            b.delete()
+        bytes = (
+            '\x03', (
+                '\x00\x05title\x02\x00\x15Sense and Sensibility',
+                '\x00\x04_key\x02' + ek,
+                '\x00\x06author\x03', (
+                    '\x00\x03bar\n\x00\x00\x00\x03\x00?\xf0\x00\x00\x00\x00'
+                    '\x00\x00\x00@\x00\x00\x00\x00\x00\x00\x00\x00@\x08\x00'
+                    '\x00\x00\x00\x00\x00',
+                    '\x00\x04name\x02\x00\x0bJane Austen',
+                    '\x00\x04_key\x02' + el
+                ),
+                '\x00\x00\t'
+            ),
+            '\x00\x00\t')
 
 
-class ListPropertyTestCase(BaseTestCase, ClassCacheClearingTestCase):
-    def test_encode(self):
-        obj = ListModel()
-        obj.numbers = [2, 4, 6, 8, 10]
+        self.assertEncodes(x, bytes, encoding=pyamf.AMF0)
 
-        encoder = pyamf.get_encoder(pyamf.AMF0)
 
-        encoder.writeElement(obj)
-        self.assertEqual(encoder.stream.getvalue(),
-            '\x03\x00\x04_key\x05\x00\x07numbers\n\x00\x00\x00\x05\x00@'
-            '\x00\x00\x00\x00\x00\x00\x00\x00@\x10\x00\x00\x00\x00\x00\x00'
-            '\x00@\x18\x00\x00\x00\x00\x00\x00\x00@ \x00\x00\x00\x00\x00\x00'
-            '\x00@$\x00\x00\x00\x00\x00\x00\x00\x00\t')
+class ListPropertyTestCase(BaseTestCase):
+    """
+    Tests for L{db.ListProperty} properties.
+    """
 
-        encoder = pyamf.get_encoder(pyamf.AMF3)
+    def setUp(self):
+        BaseTestCase.setUp(self)
 
-        encoder.writeElement(obj)
-        self.assertEqual(encoder.stream.getvalue(),
-            '\n+\x01\t_key\x0fnumbers\x01\t\x0b\x01\x04\x02\x04\x04\x04\x06'
-            '\x04\x08\x04\n\x01')
+        self.obj = ListModel()
+        self.obj.numbers = [2, 4, 6, 8, 10]
 
+        self.addCleanup(self.deleteEntity, self.obj)
+
+    def test_encode_amf0(self):
+        bytes = (
+            '\x03', (
+                '\x00\x04_key\x05',
+                '\x00\x07numbers\n\x00\x00\x00\x05\x00@'
+                '\x00\x00\x00\x00\x00\x00\x00\x00@\x10\x00\x00\x00\x00\x00'
+                '\x00\x00@\x18\x00\x00\x00\x00\x00\x00\x00@\x20\x00\x00\x00'
+                '\x00\x00\x00\x00@$\x00\x00\x00\x00\x00\x00'
+            ),
+            '\x00\x00\t'
+        )
+
+        self.assertEncodes(self.obj, bytes, encoding=pyamf.AMF0)
+
+    def test_encode_amf3(self):
+        bytes = (
+            '\n\x0b\x01', (
+                '\t_key\x01',
+                '\x0fnumbers\t\x0b\x01\x04\x02\x04\x04\x04\x06\x04\x08\x04\n'
+                    '\x01'
+            )
+        )
+
+        self.assertEncodes(self.obj, bytes, encoding=pyamf.AMF3)
+
+    def test_encode_amf0_registered(self):
         pyamf.register_class(ListModel, 'list-model')
 
-        encoder = pyamf.get_encoder(pyamf.AMF0)
+        bytes = (
+            '\x10\x00\nlist-model', (
+                '\x00\x04_key\x05',
+                '\x00\x07numbers\n\x00\x00\x00\x05\x00@'
+                '\x00\x00\x00\x00\x00\x00\x00\x00@\x10\x00\x00\x00\x00\x00'
+                '\x00\x00@\x18\x00\x00\x00\x00\x00\x00\x00@\x20\x00\x00\x00'
+                '\x00\x00\x00\x00@$\x00\x00\x00\x00\x00\x00'
+            ),
+            '\x00\x00\t'
+        )
 
-        encoder.writeElement(obj)
-        self.assertEqual(encoder.stream.getvalue(),
-            '\x10\x00\nlist-model\x00\x04_key\x05\x00\x07numbers\n\x00\x00'
-            '\x00\x05\x00@\x00\x00\x00\x00\x00\x00\x00\x00@\x10\x00\x00\x00'
-            '\x00\x00\x00\x00@\x18\x00\x00\x00\x00\x00\x00\x00@ \x00\x00\x00'
-            '\x00\x00\x00\x00@$\x00\x00\x00\x00\x00\x00\x00\x00\t')
+        self.assertEncodes(self.obj, bytes, encoding=pyamf.AMF0)
 
-        encoder = pyamf.get_encoder(pyamf.AMF3)
-
-        encoder.writeElement(obj)
-        self.assertEqual(encoder.stream.getvalue(),
-            '\n+\x15list-model\t_key\x0fnumbers\x01\t\x0b\x01\x04\x02\x04\x04'
-            '\x04\x06\x04\x08\x04\n\x01')
-
-    def test_decode(self):
+    def test_encode_amf3_registered(self):
         pyamf.register_class(ListModel, 'list-model')
 
-        decoder = pyamf.get_decoder(pyamf.AMF0)
-        decoder.stream.write(
-            '\x10\x00\nlist-model\x00\x07numbers\n\x00\x00'
-            '\x00\x05\x00@\x00\x00\x00\x00\x00\x00\x00\x00@\x10\x00\x00\x00'
-            '\x00\x00\x00\x00@\x18\x00\x00\x00\x00\x00\x00\x00@ \x00\x00'
-            '\x00\x00\x00\x00\x00@$\x00\x00\x00\x00\x00\x00\x00\x00\t')
-        decoder.stream.seek(0)
+        bytes = (
+            '\n\x0b\x15list-model', (
+                '\t_key\x01',
+                '\x0fnumbers\t\x0b\x01\x04\x02\x04\x04\x04\x06\x04\x08\x04\n'
+                    '\x01'
+            )
+        )
 
-        x = decoder.readElement()
+        self.assertEncodes(self.obj, bytes, encoding=pyamf.AMF3)
 
+    def _check_list(self, x):
         self.assertTrue(isinstance(x, ListModel))
         self.assertTrue(hasattr(x, 'numbers'))
         self.assertEqual(x.numbers, [2, 4, 6, 8, 10])
 
-        decoder = pyamf.get_decoder(pyamf.AMF3)
-        decoder.stream.write(
-            '\n\x0b\x15list-model\x0fnumbers\t\x0b\x01\x04\x02\x04'
-            '\x04\x04\x06\x04\x08\x04\n\x01')
-        decoder.stream.seek(0)
+    def test_decode_amf0(self):
+        pyamf.register_class(ListModel, 'list-model')
 
-        x = decoder.readElement()
+        bytes = (
+            '\x10\x00\nlist-model\x00\x07numbers\n\x00\x00\x00\x05\x00@\x00'
+            '\x00\x00\x00\x00\x00\x00\x00@\x10\x00\x00\x00\x00\x00\x00\x00@'
+            '\x18\x00\x00\x00\x00\x00\x00\x00@ \x00\x00\x00\x00\x00\x00\x00@'
+            '$\x00\x00\x00\x00\x00\x00\x00\x00\t')
 
-        self.assertTrue(isinstance(x, ListModel))
-        self.assertTrue(hasattr(x, 'numbers'))
-        self.assertEqual(x.numbers, [2, 4, 6, 8, 10])
+        x = self.decode(bytes, encoding=pyamf.AMF0)
+        self._check_list(x)
+
+    def test_decode_amf3(self):
+        pyamf.register_class(ListModel, 'list-model')
+
+        bytes = (
+            '\n\x0b\x15list-model\x0fnumbers\t\x0b\x01\x04\x02\x04\x04\x04'
+            '\x06\x04\x08\x04\n\x01')
+
+        x = self.decode(bytes, encoding=pyamf.AMF3)
+        self._check_list(x)
 
     def test_none(self):
         pyamf.register_class(ListModel, 'list-model')
 
-        decoder = pyamf.get_decoder(pyamf.AMF0)
-        decoder.stream.write(
-            '\x10\x00\nlist-model\x00\x07numbers\x05\x00\x00\t')
-        decoder.stream.seek(0)
+        bytes = '\x10\x00\nlist-model\x00\x07numbers\x05\x00\x00\t'
 
-        x = decoder.readElement()
+        x = self.decode(bytes, encoding=pyamf.AMF0)
 
         self.assertEqual(x.numbers, [])
 
 
-class DecodingModelTestCase(BaseTestCase, ClassCacheClearingTestCase):
+class DecodingModelTestCase(BaseTestCase, JessicaMixIn):
+    """
+    """
+
+    jessica_class = PetModel
+
     def setUp(self):
         BaseTestCase.setUp(self)
-        ClassCacheClearingTestCase.setUp(self)
+        JessicaMixIn.setUp(self)
 
-        pyamf.register_class(PetModel, 'Pet')
+        pyamf.register_class(self.jessica_class, 'Pet')
 
-        self.jessica = PetModel(name='Jessica', type='cat')
-        self.jessica.birthdate = datetime.date(1986, 10, 2)
-        self.jessica.weight_in_pounds = 5
-        self.jessica.spayed_or_neutered = False
-
-        self.jessica.put()
+        self.put(self.jessica)
         self.key = str(self.jessica.key())
 
-    def tearDown(self):
-        BaseTestCase.tearDown(self)
-        ClassCacheClearingTestCase.tearDown(self)
-
-        self.jessica.delete()
-
-    def test_amf0(self):
-        d = pyamf.get_decoder(pyamf.AMF0)
-        b = d.stream
-
-        b.write('\x10\x00\x03Pet\x00\x04_key\x02%s%s\x00\x04type\x02\x00\x03'
-            'cat\x00\x10weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00\x00'
-            '\x04name\x02\x00\x07Jessica\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00'
-            '\x00\x00\x00\x00\x00\x12spayed_or_neutered\x01\x00\x00\x00\t' % (
-                struct.pack('>H', len(self.key)), self.key))
-
-        b.seek(0)
-        x = d.readElement()
-
-        self.assertTrue(isinstance(x, PetModel))
-        self.assertEqual(x.__class__, PetModel)
+    def _check_model(self, x):
+        self.assertTrue(isinstance(x, self.jessica_class))
+        self.assertEqual(x.__class__, self.jessica_class)
 
         self.assertEqual(x.type, self.jessica.type)
         self.assertEqual(x.weight_in_pounds, self.jessica.weight_in_pounds)
@@ -531,110 +689,40 @@ class DecodingModelTestCase(BaseTestCase, ClassCacheClearingTestCase):
         self.assertEqual(x.parent_key(), self.jessica.parent_key())
         self.assertTrue(x.is_saved())
 
-    def test_amf3(self):
-        d = pyamf.get_decoder(pyamf.AMF3)
-        b = d.stream
-
-        b.write('\n\x0b\x07Pet\tname\x06\x0fJessica\t_key\x06%s%s\x13birthdate'
-            '\x08\x01B^\xc4\xae\xaa\x00\x00\x00!weight_in_pounds\x04\x05\x07'
-            'foo\x06\x07bar\ttype\x06\x07cat%%spayed_or_neutered\x02\x01' % (
-                amf3.encode_int(len(self.key) << 1 | amf3.REFERENCE_BIT), self.key))
-
-        b.seek(0)
-        x = d.readElement()
-
-        self.assertTrue(isinstance(x, PetModel))
-        self.assertEqual(x.__class__, PetModel)
-
-        self.assertEqual(x.type, self.jessica.type)
-        self.assertEqual(x.weight_in_pounds, self.jessica.weight_in_pounds)
-        self.assertEqual(x.birthdate, self.jessica.birthdate)
-        self.assertEqual(x.spayed_or_neutered, self.jessica.spayed_or_neutered)
-
-        # now check db.Model internals
-        self.assertEqual(x.key(), self.jessica.key())
-        self.assertEqual(x.kind(), self.jessica.kind())
-        self.assertEqual(x.parent(), self.jessica.parent())
-        self.assertEqual(x.parent_key(), self.jessica.parent_key())
-        self.assertTrue(x.is_saved())
-
-
-class DecodingExpandoTestCase(BaseTestCase, ClassCacheClearingTestCase):
-    def setUp(self):
-        BaseTestCase.setUp(self)
-        ClassCacheClearingTestCase.setUp(self)
-
-        pyamf.register_class(PetExpando, 'Pet')
-
-        self.jessica = PetExpando(name='Jessica', type='cat')
-        #self.jessica.birthdate = datetime.date(1986, 10, 2)
-        self.jessica.weight_in_pounds = 5
-        self.jessica.spayed_or_neutered = False
-        self.jessica.foo = 'bar'
-
-        self.jessica.put()
-        self.key = str(self.jessica.key())
-
-    def tearDown(self):
-        BaseTestCase.tearDown(self)
-        ClassCacheClearingTestCase.tearDown(self)
-
-        self.jessica.delete()
-
     def test_amf0(self):
-        d = pyamf.get_decoder(pyamf.AMF0)
-        b = d.stream
+        encoded_key = '%s%s' % (struct.pack('>H', len(self.key)), self.key)
 
-        b.write('\x10\x00\x03Pet\x00\x04_key\x02%s%s\x00\x04type\x02\x00\x03'
-            'cat\x00\x10weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00\x00'
+        bytes = (
+            '\x10\x00\x03Pet\x00\x04_key\x02%s\x00\x04type\x02\x00\x03cat'
+            '\x00\x10weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00\x00'
             '\x04name\x02\x00\x07Jessica\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00'
             '\x00\x00\x00\x00\x00\x12spayed_or_neutered\x01\x00\x00\x00\t' % (
-                struct.pack('>H', len(self.key)), self.key))
+                encoded_key))
 
-        b.seek(0)
-        x = d.readElement()
+        x = self.decode(bytes, encoding=pyamf.AMF0)
 
-        self.assertTrue(isinstance(x, PetExpando))
-        self.assertEqual(x.__class__, PetExpando)
-
-        self.assertEqual(x.type, self.jessica.type)
-        self.assertEqual(x.weight_in_pounds, self.jessica.weight_in_pounds)
-        self.assertEqual(x.birthdate, datetime.date(1986, 10, 2))
-        self.assertEqual(x.spayed_or_neutered, self.jessica.spayed_or_neutered)
-
-        # now check db.Expando internals
-        self.assertEqual(x.key(), self.jessica.key())
-        self.assertEqual(x.kind(), self.jessica.kind())
-        self.assertEqual(x.parent(), self.jessica.parent())
-        self.assertEqual(x.parent_key(), self.jessica.parent_key())
-        self.assertTrue(x.is_saved())
+        self._check_model(x)
 
     def test_amf3(self):
-        d = pyamf.get_decoder(pyamf.AMF3)
-        b = d.stream
+        encoded_key = '%s%s' % (
+            amf3.encode_int(len(self.key) << 1 | amf3.REFERENCE_BIT), self.key)
 
-        b.write('\n\x0b\x07Pet\tname\x06\x0fJessica\t_key\x06%s%s\x13birthdate'
+        bytes = (
+            '\n\x0b\x07Pet\tname\x06\x0fJessica\t_key\x06%s\x13birthdate'
             '\x08\x01B^\xc4\xae\xaa\x00\x00\x00!weight_in_pounds\x04\x05\x07'
             'foo\x06\x07bar\ttype\x06\x07cat%%spayed_or_neutered\x02\x01' % (
-                amf3.encode_int(len(self.key) << 1 | amf3.REFERENCE_BIT), self.key))
+                encoded_key))
 
-        b.seek(0)
-        x = d.readElement()
+        x = self.decode(bytes, encoding=pyamf.AMF3)
 
-        self.assertTrue(isinstance(x, PetExpando))
-        self.assertEqual(x.__class__, PetExpando)
+        self._check_model(x)
 
-        self.assertEqual(x.type, self.jessica.type)
-        self.assertEqual(x.weight_in_pounds, self.jessica.weight_in_pounds)
-        self.assertEqual(x.birthdate, datetime.date(1986, 10, 2))
-        self.assertEqual(x.spayed_or_neutered, self.jessica.spayed_or_neutered)
 
-        # now check db.Expando internals
-        self.assertEqual(x.key(), self.jessica.key())
-        self.assertEqual(x.kind(), self.jessica.kind())
-        self.assertEqual(x.parent(), self.jessica.parent())
-        self.assertEqual(x.parent_key(), self.jessica.parent_key())
-        self.assertTrue(x.is_saved())
+class DecodingExpandoTestCase(DecodingModelTestCase):
+    """
+    """
+
+    jessica_class = PetExpando
 
 
 class ClassAliasTestCase(BaseTestCase):
@@ -673,23 +761,22 @@ class ClassAliasTestCase(BaseTestCase):
         self.alias.compile()
 
         self.assertEqual(self.alias.decodable_properties, [
-            '_key',
             'birthdate',
             'name',
             'spayed_or_neutered',
             'type',
             'weight_in_pounds'
         ])
+
         self.assertEqual(self.alias.encodable_properties, [
-            '_key',
             'birthdate',
             'name',
             'spayed_or_neutered',
             'type',
             'weight_in_pounds'
         ])
-        self.assertEqual(self.alias.static_attrs,
-            ['_key', 'birthdate', 'name', 'spayed_or_neutered', 'type', 'weight_in_pounds'])
+
+        self.assertEqual(self.alias.static_attrs, None)
         self.assertEqual(self.alias.readonly_attrs, None)
         self.assertEqual(self.alias.exclude_attrs, None)
         self.assertEqual(self.alias.reference_properties, None)
@@ -850,185 +937,64 @@ class ClassAliasTestCase(BaseTestCase):
         self.assertEqual(obj.prop, 'foo')
 
 
-class ReferencesTestCase(BaseTestCase, ClassCacheClearingTestCase):
+class ReferencesTestCase(BaseTestCase):
     """
     """
 
     def setUp(self):
         BaseTestCase.setUp(self)
-        ClassCacheClearingTestCase.setUp(self)
 
         self.jessica = PetModel(name='Jessica', type='cat')
         self.jessica.birthdate = datetime.date(1986, 10, 2)
         self.jessica.weight_in_pounds = 5
         self.jessica.spayed_or_neutered = False
 
-        self.jessica.put()
+        self.put(self.jessica)
 
-        self.jessica2 = PetModel.all().filter('name', 'Jessica').get()
+        self.jessica2 = db.get(self.jessica.key())
 
-        self.assertNotEquals(id(self.jessica), id(self.jessica2))
+        self.assertNotIdentical(self.jessica,self.jessica2)
         self.assertEqual(str(self.jessica.key()), str(self.jessica2.key()))
 
-    def tearDown(self):
-        BaseTestCase.tearDown(self)
-        ClassCacheClearingTestCase.tearDown(self)
-
-        self.jessica.delete()
+    def failOnGet(self, *args, **kwargs):
+        self.fail('Get attempted %r, %r' % (args, kwargs))
 
     def test_amf0(self):
         encoder = pyamf.get_encoder(pyamf.AMF0)
-        context = encoder.context
         stream = encoder.stream
-        s = str(self.jessica.key())
-
-        self.assertFalse(hasattr(context, 'gae_objects'))
 
         encoder.writeObject(self.jessica)
 
-        self.assertTrue(hasattr(context, 'gae_objects'))
-        self.assertEqual(context.gae_objects, {PetModel: {s: self.jessica}})
-        self.assertEqual(stream.getvalue(), '\x03\x00\x04_key\x02%s%s\x00'
-            '\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00\x00\x04name'
-            '\x02\x00\x07Jessica\x00\x12spayed_or_neutered\x01\x00\x00\x04'
-            'type\x02\x00\x03cat\x00\x10weight_in_pounds\x00@\x14\x00\x00\x00'
-            '\x00\x00\x00\x00\x00\t' % (struct.pack('>H', len(s)), s))
-
         stream.truncate()
+
         encoder.writeObject(self.jessica2)
-
-        self.assertTrue(hasattr(context, 'gae_objects'))
-        self.assertEqual(context.gae_objects, {PetModel: {s: self.jessica}})
         self.assertEqual(stream.getvalue(), '\x07\x00\x00')
-        stream.truncate()
-
-        # check a non referenced object
-        toby = PetModel(name='Toby', type='cat')
-        toby.put()
-
-        try:
-            encoder.writeObject(toby)
-        finally:
-            toby.delete()
 
     def test_amf3(self):
         encoder = pyamf.get_encoder(pyamf.AMF3)
-        context = encoder.context
         stream = encoder.stream
-        s = str(self.jessica.key())
-
-        self.assertFalse(hasattr(context, 'gae_objects'))
 
         encoder.writeObject(self.jessica)
 
-        self.assertTrue(hasattr(context, 'gae_objects'))
-        self.assertEqual(context.gae_objects, {PetModel: {s: self.jessica}})
-        self.assertEqual(stream.getvalue(), '\nk\x01\t_key\x13birthdate\t'
-            'name%%spayed_or_neutered\ttype!weight_in_pounds\x06%s%s\x08\x01'
-            'B^\xc4\xae\xaa\x00\x00\x00\x06\x0fJessica\x02\x06\x07cat\x04'
-            '\x05\x01' % (amf3.encode_int(len(s) << 1 | amf3.REFERENCE_BIT), s))
-
         stream.truncate()
-        encoder.writeObject(self.jessica2)
 
-        self.assertTrue(hasattr(context, 'gae_objects'))
-        self.assertEqual(context.gae_objects, {PetModel: {s: self.jessica}})
+        encoder.writeObject(self.jessica2)
         self.assertEqual(stream.getvalue(), '\n\x00')
 
-    def test_decode(self):
-        pyamf.register_class(PetModel, 'Pet')
-        k = str(self.jessica.key())
-
-        bytes = '\x10\x00\x03Pet\x00\x04_key\x02%s%s\x00\x04type\x02\x00' + \
-            '\x03cat\x00\x10weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00' + \
-            '\x00\x00\x04name\x02\x00\x07Jessica\x00\tbirthdate\x0bB^\xc4' + \
-            '\xae\xaa\x00\x00\x00\x00\x00\x00\x12spayed_or_neutered' + \
-            '\x01\x00\x00\x00\t'
-        bytes = bytes % (struct.pack('>H', len(k)), k)
-
-        decoder = pyamf.get_decoder(pyamf.AMF0)
-        context = decoder.context
-        stream = decoder.stream
-
-        stream.write(bytes * 2)
-        stream.seek(0)
-
-        j = decoder.readElement()
-        alias = context.getClassAlias(PetModel)
-
-        self.assertTrue(isinstance(j, PetModel))
-        self.assertTrue(isinstance(alias, adapter_db.DataStoreClassAlias))
-
-        self.assertEqual(context.gae_objects, {PetModel: {k: j}})
-
-        j2 = decoder.readElement()
-
-        self.assertTrue(isinstance(j2, PetModel))
-        self.assertEqual(context.gae_objects, {PetModel: {k: j}})
-
-    def test_cached_reference_properties(self):
-        class Author(db.Model):
-            name = db.StringProperty()
-
-        class Novel(db.Model):
-            title = db.StringProperty()
-            author = db.ReferenceProperty(Author)
-
-        a = Author(name='Jane Austen')
-        a.put()
-        k = str(a.key())
-
-        b = Novel(title='Sense and Sensibility', author=a)
-        b.put()
-
-        c = Novel(title='Pride and Prejudice', author=a)
-        c.put()
-
-        try:
-            s, p = Novel.all().order('-title').fetch(2)
-
-            encoder = pyamf.get_encoder(pyamf.AMF3)
-            context = encoder.context
-
-            self.assertFalse(hasattr(context, 'gae_objects'))
-            encoder.writeElement(s)
-
-            self.assertTrue(hasattr(context, 'gae_objects'))
-            self.assertEqual(context.gae_objects, {
-                Novel: {str(s.key()): s},
-                Author: {k: a}
-            })
-
-            encoder.writeElement(p)
-
-            self.assertEqual(context.gae_objects, {
-                Novel: {
-                    str(s.key()): s,
-                    str(p.key()): p,
-                },
-                Author: {k: a}
-            })
-        finally:
-            a.delete()
-            b.delete()
-            c.delete()
-
+    def test_nullreference(self):
         c = Novel(title='Pride and Prejudice', author=None)
-        c.put()
+        self.put(c)
 
-        try:
-            encoder = pyamf.get_encoder(encoding=pyamf.AMF3)
-            alias = adapter_db.DataStoreClassAlias(Novel, None)
+        encoder = pyamf.get_encoder(encoding=pyamf.AMF3)
+        alias = adapter_db.DataStoreClassAlias(Novel, None)
 
-            attrs = alias.getEncodableAttributes(c, codec=encoder)
+        attrs = alias.getEncodableAttributes(c, codec=encoder)
 
-            self.assertEqual(attrs, {
-                '_key': str(c.key()),
-                'title': 'Pride and Prejudice',
-                'author': None
-            })
-        finally:
-            c.delete()
+        self.assertEqual(attrs, {
+            '_key': str(c.key()),
+            'title': 'Pride and Prejudice',
+            'author': None
+        })
 
 
 class GAEReferenceCollectionTestCase(BaseTestCase):
@@ -1051,8 +1017,6 @@ class GAEReferenceCollectionTestCase(BaseTestCase):
         self.assertRaises(TypeError, x.getClassKey, chr, '')
         # not a subclass of db.Model/db.Expando
         self.assertRaises(TypeError, x.getClassKey, Spam, '')
-        # wrong type for key
-        self.assertRaises(TypeError, x.getClassKey, PetModel, 3)
 
         x = self.klass()
 
@@ -1142,7 +1106,8 @@ class HelperTestCase(BaseTestCase):
         q = PetModel.all()
 
         self.assertTrue(isinstance(q, db.Query))
-        self.assertEqual(pyamf.encode(q).getvalue(), '\n\x00\x00\x00\x00')
+        self.assertEncodes(q, '\n\x00\x00\x00\x00', encoding=pyamf.AMF0)
+        self.assertEncodes(q, '\t\x01\x01', encoding=pyamf.AMF3)
 
 
 class FloatPropertyTestCase(BaseTestCase):

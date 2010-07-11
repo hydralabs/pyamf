@@ -199,12 +199,18 @@ class DjangoClassAlias(pyamf.ClassAlias):
         # django also forces the use only one attribute as primary key, so
         # our obj._meta.pk.attname check is sufficient)
         pk_attr = obj._meta.pk.attname
+        pk = attrs.pop(pk_attr, None)
 
-        try:
-            setattr(obj, pk_attr, attrs[pk_attr])
-            del attrs[pk_attr]
-        except KeyError:
-            pass
+        if pk:
+            if pk is fields.NOT_PROVIDED:
+                attrs[pk_attr] = pk
+            else:
+                # load the object from the database
+                try:
+                    loaded_instance = self.klass.objects.filter(pk=pk)[0]
+                    obj.__dict__ = loaded_instance.__dict__
+                except IndexError:
+                    pass
 
         if not getattr(obj, pk_attr):
             for name, relation in self.relations.iteritems():
