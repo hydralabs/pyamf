@@ -747,13 +747,9 @@ def decode(*args, **kwargs):
     """
     A helper function to decode an AMF0 datastream.
     """
-    decoder = Decoder(*args, **kwargs)
+    kwargs['encoding'] = pyamf.AMF0
 
-    while 1:
-        try:
-            yield decoder.readElement()
-        except pyamf.EOStream:
-            break
+    return pyamf.decode(*args, **kwargs)
 
 
 def encode(*args, **kwargs):
@@ -768,12 +764,9 @@ def encode(*args, **kwargs):
     @rtype: C{StringIO}
     @return: The encoded stream.
     """
-    encoder = Encoder(**kwargs)
+    kwargs['encoding'] = pyamf.AMF0
 
-    for element in args:
-        encoder.writeElement(element)
-
-    return encoder.stream
+    return pyamf.encode(*args, **kwargs)
 
 
 class RecordSet(object):
