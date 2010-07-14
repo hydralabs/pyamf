@@ -51,14 +51,14 @@ class AdapterHelperTestCase(ImportsTestCase):
 
         def x(mod):
             self.imported = True
-            self.foo = mod
+            self.spam = mod
 
-        adapters.register_adapter('foo', x)
+        adapters.register_adapter('spam', x)
 
-        import foo
+        import spam
 
         self.assertTrue(self.imported)
-        self.assertEqual(self.foo, foo)
+        self.assertEqual(self.spam, spam)
 
     def test_get_adapter(self):
         from pyamf.adapters import _decimal

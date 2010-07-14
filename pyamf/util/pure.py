@@ -20,7 +20,7 @@ try:
 except ImportError:
     from StringIO import StringIO
 
-from pyamf.util.python import int_types, str_types
+from pyamf.python import int_types, str_types
 
 
 class StringIOProxy(object):

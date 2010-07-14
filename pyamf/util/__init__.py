@@ -22,7 +22,7 @@ except ImportError:
     from pyamf.util.pure import BufferedByteStream, IndexedCollection
 
 # Required for backwards compatibility
-from pyamf.util.python import (
+from pyamf.python import (
     int_types, str_types,
     PosInf, NegInf, NaN,
     isNaN, isPosInf, isNegInf)

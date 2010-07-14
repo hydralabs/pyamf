@@ -7,10 +7,12 @@
 Python compatibility values and helpers.
 """
 
+import types
+
+class_types = [type]
 int_types = [int]
 str_types = [str]
 
-# py3k support
 try:
     int_types.append(long)
 except NameError:
@@ -21,10 +23,14 @@ try:
 except NameError:
     pass
 
-#: Numeric types.
+try:
+    class_types.append(types.ClassType)
+except:
+    pass
+
 int_types = tuple(int_types)
-#: String types.
 str_types = tuple(str_types)
+class_types = tuple(class_types)
 
 PosInf = 1e300000
 NegInf = -1e300000

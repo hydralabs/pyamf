@@ -21,6 +21,7 @@ import datetime
 
 from pyamf import util, versions as v
 from pyamf.adapters import register_adapters
+from pyamf import python
 
 try:
     set
@@ -113,18 +114,12 @@ class ReferenceError(BaseError):
     """
 
 
-class ClassAliasError(BaseError):
-    """
-    Generic error for anything class alias related.
-    """
-
-
-class UnknownClassAlias(ClassAliasError):
+class UnknownClassAlias(BaseError):
     """
     Raised if the AMF stream specifies an Actionscript class that does not
     have a Python class alias.
 
-    :See: :func:`register_class`
+    @see: L{register_class}
     """
 
 
@@ -1232,21 +1227,12 @@ def get_class_alias(klass):
     :rtype: :class:`ClassAlias`
     :raise UnknownClassAlias: Class not found.
     """
-    if isinstance(klass, basestring):
-        try:
-            return CLASS_CACHE[klass]
-        except KeyError:
-            return load_class(klass)
-
-    if not isinstance(klass, (type, types.ClassType)):
-        if isinstance(klass, types.InstanceType):
-            klass = klass.__class__
-        elif isinstance(klass, types.ObjectType):
-            klass = type(klass)
-
     try:
         return CLASS_CACHE[klass]
     except KeyError:
+        if isinstance(klass, python.str_types):
+            return load_class(klass)
+
         raise UnknownClassAlias('Unknown alias for %r' % (klass,))
 
 
