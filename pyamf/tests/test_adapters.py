@@ -12,12 +12,12 @@ import sys
 
 from pyamf import adapters
 from pyamf.tests import util
-from pyamf.tests.test_imports import PostLoadHookClearingTestCase
+from pyamf.tests.test_imports import ImportsTestCase
 
 
-class AdapterHelperTestCase(PostLoadHookClearingTestCase):
+class AdapterHelperTestCase(ImportsTestCase):
     def setUp(self):
-        PostLoadHookClearingTestCase.setUp(self)
+        ImportsTestCase.setUp(self)
 
         self.old_env = os.environ.copy()
         self.mods = sys.modules.copy()
@@ -26,7 +26,7 @@ class AdapterHelperTestCase(PostLoadHookClearingTestCase):
         sys.path.append(self.path)
 
     def tearDown(self):
-        PostLoadHookClearingTestCase.tearDown(self)
+        ImportsTestCase.tearDown(self)
 
         util.replace_dict(os.environ, self.old_env)
         util.replace_dict(sys.modules, self.mods)

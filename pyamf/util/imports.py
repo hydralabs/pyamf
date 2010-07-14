@@ -12,10 +12,22 @@ import sys
 
 __all__ = ['when_imported']
 
-#: A list of callables to be executed when the module is imported.
-post_load_hooks = {}
-#: List of modules that have already been loaded.
-loaded_modules = []
+
+def when_imported(name, *hooks):
+    """
+    Call C{hook(module)} when module named C{name} is first imported. C{name}
+    must be a fully qualified (i.e. absolute) module name.
+
+    C{hook} must accept one argument: which will be the imported module object.
+
+    If the module has already been imported, 'hook(module)' is called
+    immediately, and the module object is returned from this function. If the
+    module has not been imported, then the hook is called when the module is
+    first imported.
+    """
+    global finder
+
+    finder.when_imported(name, *hooks)
 
 
 class ModuleFinder(object):
@@ -25,9 +37,17 @@ class ModuleFinder(object):
     is placed in C{sys.meta_path}, which is consulted before C{sys.modules} -
     allowing us to provide this functionality.
 
+    @ivar post_load_hooks: C{dict} of C{full module path -> callable} to be
+        executed when the module is imported.
+    @ivar loaded_modules: C{list} of modules that this finder has seen. Used
+        to stop recursive imports in L{load_module}
     @see: L{when_imported}
     @since: 0.5
     """
+
+    def __init__(self):
+        self.post_load_hooks = {}
+        self.loaded_modules = []
 
     def find_module(self, name, path=None):
         """
@@ -41,10 +61,12 @@ class ModuleFinder(object):
             interface (which is this instance again). If not we return C{None}
             to allow the standard import process to continue.
         """
-        if name in loaded_modules or name not in post_load_hooks:
+        if name in self.loaded_modules:
             return None
 
-        return self
+        hooks = self.post_load_hooks.get(name, None)
+
+        return self if hooks else None
 
     def load_module(self, name):
         """
@@ -54,74 +76,61 @@ class ModuleFinder(object):
 
         @param name: The name of the module to import.
         """
-        loaded_modules.append(name)
-        parent, child = split_module(name)
+        i = self.loaded_modules.append(name)
 
-        __import__(name, {}, {}, [])
+        try:
+            __import__(name, {}, {}, [])
 
-        mod = sys.modules[name]
+            mod = sys.modules[name]
+            self._run_hooks(name, mod)
+        except:
+            self.loaded_modules.pop()
 
-        run_hooks(name, mod)
+            raise
 
         return mod
 
+    def when_imported(self, name, *hooks):
+        """
+        @see L{when_imported}
+        """
+        if name in sys.modules:
+            for hook in hooks:
+                hook(sys.modules[name])
 
-def run_hooks(name, module):
-    """
-    Run all hooks for a module.
-    Load an unactivated "lazy" module object.
-    """
-    try:
-        for hook in post_load_hooks[name]:
+            return
+
+        h = self.post_load_hooks.setdefault(name, [])
+        h.extend(hooks)
+
+    def _run_hooks(self, name, module):
+        """
+        Run all hooks for a module.
+        """
+        hooks = self.post_load_hooks.pop(name, [])
+
+        for hook in hooks:
             hook(module)
-    finally:
-        del post_load_hooks[name]
+
+    def __getstate__(self):
+        return (self.post_load_hooks.copy(), self.loaded_modules[:])
+
+    def __setstate__(self, state):
+        self.post_load_hooks, self.loaded_modules = state
 
 
-def split_module(name):
+def _init():
     """
-    Splits a module name into its parent and child parts.
-
-    >>> split_module('foo.bar.baz')
-    'foo.bar', 'baz'
-    >>> split_module('foo')
-    None, 'foo'
+    Internal function to install the module finder.
     """
-    try:
-        splitpos = name.rindex('.') + 1
+    global finder
 
-        return name[:splitpos - 1], name[splitpos:]
-    except ValueError:
-        return None, name
+    if finder is None:
+        finder = ModuleFinder()
 
-
-def when_imported(name, hook):
-    """
-    Call C{hook(module)} when module named C{name} is first used.
-
-    'hook' must accept one argument: the module object named by 'name', which
-    must be a fully qualified (i.e. absolute) module name.  The hook should
-    not raise any exceptions, or it will prevent later hooks from running.
-
-    If the module has already been imported normally, 'hook(module)' is
-    called immediately, and the module object is returned from this function.
-    If the module has not been imported, then the hook is called when the
-    module is first imported.
-    """
-    if name in loaded_modules or name in sys.modules:
-        hook(sys.modules[name])
-
-        return
-
-    if name not in post_load_hooks:
-        post_load_hooks[name] = []
-
-    post_load_hooks[name].append(hook)
+    if finder not in sys.meta_path:
+        sys.meta_path.insert(0, finder)
 
 
-# this is required for reloading this module
-for obj in sys.meta_path:
-    if obj.__class__ is ModuleFinder:
-        break
-else:
-    sys.meta_path.insert(0, ModuleFinder())
+finder = None
+_init()
