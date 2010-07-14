@@ -158,14 +158,12 @@ def set_attrs(obj, attrs):
     @param attrs: A collection implementing the C{iteritems} function
     @type attrs: Usually a dict
     """
-    if isinstance(obj, (list, dict)):
-        for k, v in attrs.iteritems():
-            obj[k] = v
+    o = setattr
 
-        return
+    if hasattr(obj, '__setitem__'):
+        o = type(obj).__setitem__
 
-    for k, v in attrs.iteritems():
-        setattr(obj, k, v)
+    [o(obj, k, v) for k, v in attrs.iteritems()]
 
 
 def get_class_alias(klass):
