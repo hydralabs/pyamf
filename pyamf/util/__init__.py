@@ -139,6 +139,8 @@ def get_datetime(secs):
 
 def get_properties(obj):
     """
+    Returns a list of properties for L{obj}
+
     @since: 0.5
     """
     if hasattr(obj, 'keys'):

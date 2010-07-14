@@ -94,6 +94,12 @@ class DecodeError(BaseError):
     """
 
 
+class EncodeError(BaseError):
+    """
+    Raised if the element could not be encoded to the stream.
+    """
+
+
 class EOStream(BaseError):
     """
     Raised if the data stream has come to a natural end.
@@ -102,19 +108,8 @@ class EOStream(BaseError):
 
 class ReferenceError(BaseError):
     """
-    Raised if an AMF data stream refers to a non-existent object
-    or string reference.
-    """
-
-
-class EncodeError(BaseError):
-    """
-    Raised if the element could not be encoded to the stream.
-
-    :Bug: See `Docuverse blog (external)`_ for more info about the empty key
-          string array bug.
-
-    .. _Docuverse blog (external): http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug
+    Raised if an AMF data stream refers to a non-existent object or string
+    reference (in the case of AMF3).
     """
 
 

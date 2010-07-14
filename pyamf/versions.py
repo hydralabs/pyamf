@@ -5,18 +5,27 @@
 Because there is disparity between Python packaging (and it is being sorted
 out ...) we currently provide our own way to get the string of a version tuple.
 
-:since: 0.6
+@since: 0.6
 """
 
 
 class Version(tuple):
+    """
+    Provides programmatic version information as well as a way to get a pretty
+    printed version number.
+
+    Usage example:
+    >>> version = Version(0, 0, 1)
+    >>> version[0] == 0
+    True
+    >>> str(version)
+    '0.0.1'
+    """
 
     _version = None
 
     def __new__(cls, *args):
-        x = tuple.__new__(cls, args)
-
-        return x
+        return tuple.__new__(cls, args)
 
     def __str__(self):
         if not self._version:
@@ -26,6 +35,11 @@ class Version(tuple):
 
 
 def get_version(v):
+    """
+    Returns a prettified version of a tuple that is PEP-345 compliant.
+
+    A major and a minor version must be provided at a minimum.
+    """
     version = '%s.%s' % (v[0], v[1])
 
     try:
