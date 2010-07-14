@@ -112,7 +112,7 @@ def get_timestamp(d):
     @rtype: C{str}
 
     @note: Inspiration taken from the U{Intertwingly blog
-    <http://intertwingly.net/blog/2007/09/02/Dealing-With-Dates>}.
+        <http://intertwingly.net/blog/2007/09/02/Dealing-With-Dates>}.
     """
     if isinstance(d, datetime.date) and not isinstance(d, datetime.datetime):
         d = datetime.datetime.combine(d, datetime.time(0, 0, 0, 0))
@@ -131,7 +131,7 @@ def get_datetime(secs):
     @return: UTC timestamp.
     @rtype: C{datetime.datetime}
     """
-    if secs < 0 and negative_timestamp_broken:
+    if negative_timestamp_broken and secs < 0:
         return datetime.datetime(1970, 1, 1) + datetime.timedelta(seconds=secs)
 
     return datetime.datetime.utcfromtimestamp(secs)
