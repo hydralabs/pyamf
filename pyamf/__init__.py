@@ -1396,9 +1396,6 @@ def encode(*args, **kwargs):
     :keyword element: Python data.
     :type encoding: `int`
     :keyword encoding: AMF encoding type.
-    :type context: :class:`amf0.Context<pyamf.amf0.Context>` or
-                   :class:`amf3.Context<pyamf.amf3.Context>`
-    :keyword context: Context.
 
     :rtype: `StringIO`
     :return: File-like object.
