@@ -140,6 +140,33 @@ class ClassCacheClearingTestCase(unittest.TestCase):
 
         self.assertBuffer(bytes, buffer)
 
+    def assertDecodes(self, bytes, cb, encoding=pyamf.AMF3, raw=False):
+        def _join(parts):
+            ret = ''
+
+            for p in parts:
+                if not isinstance(p, basestring):
+                    ret += _join(p)
+
+                    continue
+
+                ret += p
+
+            return ret
+
+        if not isinstance(bytes, basestring):
+            bytes = _join(bytes)
+
+        ret = list(pyamf.decode(bytes, encoding=encoding))
+
+        if not raw and len(ret) == 1:
+            ret = ret[0]
+
+        if callable(cb):
+            cb(ret)
+        else:
+            self.assertEqual(ret, cb)
+
 
 def assert_buffer(testcase, val, s, msg=None):
     if not check_buffer(val, s):

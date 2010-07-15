@@ -95,12 +95,6 @@ class DecodeError(BaseError):
     """
 
 
-class EncodeError(BaseError):
-    """
-    Raised if the element could not be encoded to the stream.
-    """
-
-
 class EOStream(BaseError):
     """
     Raised if the data stream has come to a natural end.
@@ -114,12 +108,29 @@ class ReferenceError(BaseError):
     """
 
 
-class UnknownClassAlias(BaseError):
+class EncodeError(BaseError):
+    """
+    Raised if the element could not be encoded to the stream.
+
+    :Bug: See `Docuverse blog (external)`_ for more info about the empty key
+          string array bug.
+
+    .. _Docuverse blog (external): http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug
+    """
+
+
+class ClassAliasError(BaseError):
+    """
+    Generic error for anything class alias related.
+    """
+
+
+class UnknownClassAlias(ClassAliasError):
     """
     Raised if the AMF stream specifies an Actionscript class that does not
     have a Python class alias.
 
-    @see: L{register_class}
+    :See: :func:`register_class`
     """
 
 
@@ -913,9 +924,6 @@ class ErrorAlias(ClassAlias):
     def getEncodableAttributes(self, obj, **kwargs):
         attrs = ClassAlias.getEncodableAttributes(self, obj, **kwargs)
 
-        if not attrs:
-            attrs = {}
-
         attrs['message'] = str(obj)
         attrs['name'] = obj.__class__.__name__
 
@@ -1227,12 +1235,21 @@ def get_class_alias(klass):
     :rtype: :class:`ClassAlias`
     :raise UnknownClassAlias: Class not found.
     """
+    if isinstance(klass, basestring):
+        try:
+            return CLASS_CACHE[klass]
+        except KeyError:
+            return load_class(klass)
+
+    if not isinstance(klass, (type, types.ClassType)):
+        if isinstance(klass, types.InstanceType):
+            klass = klass.__class__
+        elif isinstance(klass, types.ObjectType):
+            klass = type(klass)
+
     try:
         return CLASS_CACHE[klass]
     except KeyError:
-        if isinstance(klass, python.str_types):
-            return load_class(klass)
-
         raise UnknownClassAlias('Unknown alias for %r' % (klass,))
 
 
@@ -1396,6 +1413,9 @@ def encode(*args, **kwargs):
     :keyword element: Python data.
     :type encoding: `int`
     :keyword encoding: AMF encoding type.
+    :type context: :class:`amf0.Context<pyamf.amf0.Context>` or
+                   :class:`amf3.Context<pyamf.amf3.Context>`
+    :keyword context: Context.
 
     :rtype: `StringIO`
     :return: File-like object.

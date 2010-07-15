@@ -12,10 +12,11 @@ import datetime
 import struct
 
 try:
-    from google.appengine.ext import db
+    from google.appengine.ext import db, blobstore
     from google.appengine.ext.db import polymodel
 
     from pyamf.adapters import _google_appengine_ext_db as adapter_db
+    from pyamf.adapters import _google_appengine_ext_blobstore as adapter_blobstore
 except ImportError:
     # mock it
     class db(object):
@@ -38,14 +39,6 @@ from pyamf.tests import util
 
 Spam = util.Spam
 
-if db:
-    class PetModel(db.Model):
-        # 'borrowed' from http://code.google.com/appengine/docs/datastore/entitiesandmodels.html
-        name = db.StringProperty(required=True)
-        type = db.StringProperty(required=True, choices=set(["cat", "dog", "bird"]))
-        birthdate = db.DateProperty()
-        weight_in_pounds = db.IntegerProperty()
-        spayed_or_neutered = db.BooleanProperty()
 
 class PetModel(db.Model):
     """
@@ -58,12 +51,6 @@ class PetModel(db.Model):
     weight_in_pounds = db.IntegerProperty()
     spayed_or_neutered = db.BooleanProperty()
 
-    class PetExpando(db.Expando):
-        name = db.StringProperty(required=True)
-        type = db.StringProperty(required=True, choices=set(["cat", "dog", "bird"]))
-        birthdate = db.DateProperty()
-        weight_in_pounds = db.IntegerProperty()
-        spayed_or_neutered = db.BooleanProperty()
 
 class PetExpando(db.Expando):
     """
@@ -75,8 +62,6 @@ class PetExpando(db.Expando):
     weight_in_pounds = db.IntegerProperty()
     spayed_or_neutered = db.BooleanProperty()
 
-    class ListModel(db.Model):
-        numbers = db.ListProperty(long)
 
 class ListModel(db.Model):
     """
@@ -1185,3 +1170,46 @@ class PolyModelTestCase(BaseTestCase):
             's': 'bar',
             'd': 92
         })
+
+
+class BlobStoreTestCase(BaseTestCase):
+    """
+    Tests for L{blobstore}
+    """
+
+    bytes = (
+        '\n\x0bOgoogle.appengine.ext.blobstore.BlobInfo', (
+            '\tsize\x04\xcb\xad\x07',
+            '\x11creation\x08\x01Br\x9c\x1d\xbeh\x80\x00',
+            '\x07key\x06\rfoobar',
+            '\x19content_type\x06\x15text/plain',
+            '\x11filename\x06\x1fnot-telling.ogg'
+        ), '\x01')
+
+    values = {
+        'content_type': 'text/plain',
+        'size': 1234567,
+        'filename': 'not-telling.ogg',
+        'creation': datetime.datetime(2010, 07, 11, 14, 15, 01)
+    }
+
+    def setUp(self):
+        BaseTestCase.setUp(self)
+
+        self.key = blobstore.BlobKey('foobar')
+
+        self.info = blobstore.BlobInfo(self.key, self.values)
+
+    def test_class_alias(self):
+        alias_klass = pyamf.get_class_alias(blobstore.BlobInfo)
+
+        self.assertIdentical(alias_klass.__class__, adapter_blobstore.BlobInfoClassAlias)
+
+    def test_encode(self):
+        self.assertEncodes(self.info, self.bytes)
+
+    def test_decode(self):
+        def check(ret):
+            self.assertEqual(ret.key(), self.key)
+
+        self.assertDecodes(self.bytes, check)
