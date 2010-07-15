@@ -469,7 +469,7 @@ class RemotingService(object):
 
             compressedstream = StringIO(bytes)
             gzipper = GzipFile(fileobj=compressedstream)
-            bytes = gzipper.read(len(bytes))
+            bytes = gzipper.read()
             gzipper.close()
 
         response = remoting.decode(bytes, strict=self.strict)

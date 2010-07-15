@@ -581,10 +581,17 @@ class GZipTestCase(BaseServiceTestCase):
     def setUp(self):
         import gzip
 
+        env = remoting.Envelope(pyamf.AMF3)
+        r = remoting.Response(['foo' * 50000] * 200)
+
+        env['/1'] = r
+
+        response = remoting.encode(env).getvalue()
+
         buf = util.BufferedByteStream()
         x = gzip.GzipFile(fileobj=buf, mode='wb')
 
-        x.write(self.canned_response)
+        x.write(response)
 
         x.close()
 
