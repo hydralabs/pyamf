@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) The PyAMF Project.
+# See LICENSE.txt for details.
+
+"""
+Provides basic functionality for all pyamf.amf?.[De|E]ncoder classes.
+"""
+
 import types
 import datetime
 
