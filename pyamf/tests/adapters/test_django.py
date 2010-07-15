@@ -5,8 +5,6 @@
 PyAMF Django adapter tests.
 
 @since: 0.3.1
-
-@todo: This whole module needs to be refactored into something sane.
 """
 
 import unittest
@@ -465,9 +463,7 @@ class PKTestCase(BaseTestCase):
         self.assertRaises(ValueError, lambda a, p: a.publications.add(p), a, p)
 
         p.save()
-        self.addCleanup(p.delete)
         a.save()
-        self.addCleanup(a.delete)
 
         self.addCleanup(p.delete)
         self.addCleanup(a.delete)
@@ -649,13 +645,10 @@ class ReferenceTestCase(BaseTestCase):
         b.name = 'bar'
 
         f.save()
-        self.addCleanup(f.delete)
         b.foo = f
         b.save()
-        self.addCleanup(b.delete)
         f.bar = b
         f.save()
-        self.addCleanup(f.delete)
 
         self.addCleanup(f.delete)
         self.addCleanup(b.delete)
@@ -673,13 +666,12 @@ class ReferenceTestCase(BaseTestCase):
         b.name = 'bar'
 
         f.save()
-        self.addCleanup(f.delete)
+
         b.foo = f
         b.save()
-        self.addCleanup(b.delete)
+
         f.bar = b
         f.save()
-        self.addCleanup(f.delete)
 
         self.addCleanup(f.delete)
         self.addCleanup(b.delete)
