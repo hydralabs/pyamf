@@ -6,25 +6,22 @@
 """
 AMF0 implementation.
 
-`AMF0` supports the basic data types used for the NetConnection, NetStream,
+C{AMF0} supports the basic data types used for the NetConnection, NetStream,
 LocalConnection, SharedObjects and other classes in the Adobe Flash Player.
 
-**Since**: 0.1
-
-.. seealso::
-
-  - `Official AMF0 Specification in English (external) <http://opensource.adobe.com/wiki/download/attachments/1114283/amf0_spec_121207.pdf>`_
-  - `Official AMF0 Specification in Japanese (external) <http://opensource.adobe.com/wiki/download/attachments/1114283/JP_amf0_spec_121207.pdf>`_
-  - `AMF documentation on OSFlash (external) <http://osflash.org/documentation/amf>`_
+@since: 0.1
+@see: U{Official AMF0 Specification in English (external)
+    <http://opensource.adobe.com/wiki/download/attachments/1114283/amf0_spec_121207.pdf>}
+@see: U{Official AMF0 Specification in Japanese (external)
+    <http://opensource.adobe.com/wiki/download/attachments/1114283/JP_amf0_spec_121207.pdf>}
+@see: U{AMF documentation on OSFlash (external)
+    <http://osflash.org/documentation/amf>}
 """
 
 import datetime
 
 import pyamf
 from pyamf import util, codec, python
-
-
-__docformat__ = "restructuredtext en"
 
 
 #: Represented as 9 bytes: 1 byte for C{0×00} and 8 bytes a double
@@ -61,14 +58,14 @@ TYPE_OBJECTTERM  = '\x09'
 #: array elements themselves. Arrays are always sparse; values for
 #: inexistant keys are set to null (C{0×06}) to maintain sparsity.
 TYPE_ARRAY       = '\x0A'
-#: Date is represented as C{00x0B}, then a double, then an C{int}. The double
+#: Date is represented as C{0x0B}, then a double, then an C{int}. The double
 #: represents the number of milliseconds since 01/01/1970. The C{int} represents
 #: the timezone offset in minutes between GMT. Note for the latter than values
 #: greater than 720 (12 hours) are represented as M{2^16} - the value. Thus GMT+1
 #: is 60 while GMT-5 is 65236.
 TYPE_DATE        = '\x0B'
 #: LongString is reserved for strings larger then M{2^16} characters long. It
-#: is represented as C{00x0C} then a LongUTF.
+#: is represented as C{0x0C} then a LongUTF.
 TYPE_LONGSTRING  = '\x0C'
 #: Trying to send values which don’t make sense, such as prototypes, functions,
 #: built-in objects, etc. will be indicated by a single C{00x0D} byte.
@@ -78,7 +75,7 @@ TYPE_UNSUPPORTED = '\x0D'
 #: @see: U{RecordSet structure on OSFlash (external)
 #: <http://osflash.org/documentation/amf/recordset>}
 TYPE_RECORDSET   = '\x0E'
-#: The XML element is indicated by C{00x0F} and followed by a LongUTF containing
+#: The XML element is indicated by C{0x0F} and followed by a LongUTF containing
 #: the string representation of the XML object. The receiving gateway may which
 #: to wrap this string inside a language-specific standard XML object, or simply
 #: pass as a string.
@@ -113,7 +110,6 @@ class Context(codec.Context):
     def hasAMF3ObjectReference(self, obj):
         """
         Gets a reference for an object.
-
         """
         return obj in self.amf3_objs
 
@@ -121,10 +117,9 @@ class Context(codec.Context):
         """
         Adds an AMF3 reference to C{obj}.
 
-        :type obj: C{mixed}
-        :param obj: The object to add to the context.
-        :rtype: C{int}
-        :return: Reference to C{obj}.
+        @param obj: The object to add to the context.
+        @rtype: C{int}
+        @return: Reference to C{obj}.
         """
         return self.amf3_objs.append(obj)
 
