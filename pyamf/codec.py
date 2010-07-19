@@ -107,16 +107,24 @@ class IndexedCollection(object):
 
 class Context(object):
     """
-    I hold the AMF context for en/decoding streams.
+    The base context for all AMF [de|en]coding.
 
-    :ivar objects: An indexed collection of referencable objects encountered
-        during en/decoding.
-    :type objects: :class:`pyamf.util.IndexedCollection`
-    :ivar class_aliases: A `dict` of `class` to :class:`ClassAlias`
+    @ivar extra: The only public attribute. This is a placeholder for any extra
+        contextual data that required for different adapters.
+    @type extra: C{dict}
+    @ivar _objects: A collection of stored references to objects that have
+        already been visited by this context.
+    @type _objects: L{IndexedCollection}
+    @ivar _class_aliases: Lookup of C{class} -> L{pyamf.ClassAlias} as
+        determined by L{pyamf.get_class_alias}
+    @ivar _class_aliases: C{dict}
+    @ivar _unicodes: Lookup of utf-8 encoded byte strings -> string objects
+        (aka strings/unicodes). The reverse of L{_strings}.
+    @type _unicodes: C{dict}
     """
 
     def __init__(self):
-        self.objects = IndexedCollection()
+        self._objects = IndexedCollection()
 
         self.clear()
 
@@ -124,10 +132,10 @@ class Context(object):
         """
         Clears the context.
         """
-        self.objects.clear()
-        self.class_aliases = {}
-        self.unicodes = {}
-        self.extra_context = {}
+        self._objects.clear()
+        self._class_aliases = {}
+        self._unicodes = {}
+        self.extra = {}
 
     def getObject(self, ref):
         """
@@ -136,7 +144,7 @@ class Context(object):
         @type ref: C{int}
         @return: The referenced object or C{None} if not found.
         """
-        return self.objects.getByReference(ref)
+        return self._objects.getByReference(ref)
 
     def getObjectReference(self, obj):
         """
@@ -145,7 +153,7 @@ class Context(object):
         @return: The reference to the object or C{-1} if the object is not in
             the context.
         """
-        return self.objects.getReferenceTo(obj)
+        return self._objects.getReferenceTo(obj)
 
     def addObject(self, obj):
         """
@@ -154,7 +162,7 @@ class Context(object):
         @return: Reference to C{obj}.
         @rtype: C{int}
         """
-        return self.objects.append(obj)
+        return self._objects.append(obj)
 
     def getClassAlias(self, klass):
         """
@@ -163,18 +171,18 @@ class Context(object):
         @param klass: A class object.
         @return: The L{pyamf.ClassAlias} that is linked to C{klass}
         """
-        alias = self.class_aliases.get(klass)
+        alias = self._class_aliases.get(klass)
 
         if alias is not None:
             return alias
 
         try:
-            alias = self.class_aliases[klass] = pyamf.get_class_alias(klass)
+            alias = self._class_aliases[klass] = pyamf.get_class_alias(klass)
         except pyamf.UnknownClassAlias:
             # no alias has been found yet .. check subclasses
             alias = util.get_class_alias(klass)
 
-            alias = self.class_aliases[klass] = alias(klass)
+            alias = self._class_aliases[klass] = alias(klass)
 
         return alias
 
@@ -183,15 +191,15 @@ class Context(object):
         Returns the corresponding unicode object for a given string. If there
         is no unicode object, one is created.
 
-        :since: 0.6
+        @since: 0.6
         """
         h = hash(s)
-        u = self.unicodes.get(h, None)
+        u = self._unicodes.get(h, None)
 
         if u is not None:
             return u
 
-        u = self.unicodes[h] = unicode(s, 'utf-8')
+        u = self._unicodes[h] = unicode(s, 'utf-8')
 
         return u
 
@@ -200,15 +208,15 @@ class Context(object):
         Returns the corresponding utf-8 encoded string for a given unicode
         object. If there is no string, one is encoded.
 
-        :since: 0.6
+        @since: 0.6
         """
         h = hash(u)
-        s = self.unicodes.get(h, None)
+        s = self._unicodes.get(h, None)
 
         if s is not None:
             return s
 
-        s = self.unicodes[h] = u.encode('utf-8')
+        s = self._unicodes[h] = u.encode('utf-8')
 
         return s
 
