@@ -273,47 +273,47 @@ class Codec(object):
     @ivar stream: The underlying data stream.
     @type stream: L{util.BufferedByteStream}
     @ivar context: The context for the encoding.
-    @ivar strict: Whether the codec should operate in I{strict} mode. Nothing
-        is really affected by this for the time being - its just here for
-        flexibility.
+    @ivar strict: Whether the codec should operate in I{strict} mode.
     @type strict: C{bool}, default is C{False}.
     @ivar timezone_offset: The offset from I{UTC} for any C{datetime} objects
         being encoded. Default to C{None} means no offset.
     @type timezone_offset: C{datetime.timedelta} or C{int} or C{None}
     """
 
-    context_class = Context
+    def __init__(self, stream=None, context=None, strict=False,
+                 timezone_offset=None):
+        if not isinstance(stream, util.BufferedByteStream):
+            stream = util.BufferedByteStream(stream)
 
-    def __init__(self, stream=None, context=None, strict=False, timezone_offset=None):
-        if isinstance(stream, util.BufferedByteStream):
-            self.stream = stream
-        else:
-            self.stream = util.BufferedByteStream(stream)
-
+        self.stream = stream
         self.context = context or self.buildContext()
-
-        self._func_cache = {}
-
         self.strict = strict
         self.timezone_offset = timezone_offset
 
+        self._func_cache = {}
+
     def buildContext(self):
-        return self.context_class()
+        """
+        A context factory.
+        """
+        raise NotImplementedError
+
+    def getTypeFunc(self, data):
+        """
+        Returns a callable based on C{data}. If no such callable can be found,
+        the default must be to return C{None}.
+        """
+        raise NotImplementedError
 
 
 class Decoder(Codec):
     """
     Base AMF decoder.
 
-    :ivar stream: The underlying data stream.
-    :type stream: :class:`BufferedByteStream<pyamf.util.BufferedByteStream>`
-    :ivar strict: Defines how strict the decoding should be. For the time
-                  being this relates to typed objects in the stream that do not
-                  have a registered alias. Introduced in 0.4.
-    :type strict: `bool`
-    :ivar timezone_offset: The offset from UTC for any datetime objects being
-        decoded. Default to `None` means no offset.
-    :type timezone_offset: `datetime.timedelta`
+    @ivar strict: Defines how strict the decoding should be. For the time
+        being this relates to typed objects in the stream that do not have a
+        registered alias. Introduced in 0.4.
+    @type strict: C{bool}
     """
 
     def readProxy(self, obj, **kwargs):
@@ -328,8 +328,8 @@ class Decoder(Codec):
         """
         Reads an AMF3 element from the data stream.
 
-        :raise DecodeError: The ActionScript type is unsupported.
-        :raise EOStream: No more data left to decode.
+        @raise DecodeError: The ActionScript type is unsupported.
+        @raise EOStream: No more data left to decode.
         """
         pos = self.stream.tell()
 
@@ -341,10 +341,10 @@ class Decoder(Codec):
         try:
             func = self._func_cache[t]
         except KeyError:
-            func = getattr(self, self.type_map[t])
+            func = self.getTypeFunc(t)
 
             if not func:
-                raise pyamf.DecodeError("Unsupported ActionScript type %r" % (t,))
+                raise pyamf.DecodeError("Unsupported ActionScript type %x" % t)
 
             self._func_cache[t] = func
 
@@ -357,7 +357,7 @@ class Decoder(Codec):
 
     def __iter__(self):
         try:
-            while 1:
+            while True:
                 yield self.readElement()
         except pyamf.EOStream:
             raise StopIteration
@@ -373,17 +373,14 @@ class _CustomTypeFunc(object):
         self.func = func
 
     def __call__(self, data, **kwargs):
-        self.encoder.writeElement(self.func(data, encoder=self.encoder), **kwargs)
+        self.encoder.writeElement(
+            self.func(data, encoder=self.encoder), **kwargs)
 
 
 class Encoder(Codec):
     """
     Base AMF encoder.
     """
-
-    type_map = {
-        util.xml_types: 'writeXML'
-    }
 
     def writeProxy(self, obj, **kwargs):
         """
@@ -402,6 +399,7 @@ class Encoder(Codec):
         raise NotImplementedError
 
     writeString = writeNull
+    writeUnicode = writeNull
     writeBoolean = writeNull
     writeNumber = writeNull
     writeList = writeNull
@@ -410,7 +408,11 @@ class Encoder(Codec):
     writeXML = writeNull
     writeObject = writeNull
 
-    def getCustomTypeFunc(self, data):
+    def getTypeFunc(self, data):
+        """
+        Returns a callable that will encode C{data} to C{self.stream}
+        """
+        # check for any overridden types
         for type_, func in pyamf.TYPE_MAP.iteritems():
             try:
                 if isinstance(data, type_):
@@ -419,15 +421,6 @@ class Encoder(Codec):
                 if callable(type_) and type_(data):
                     return _CustomTypeFunc(self, func)
 
-    def _getTypeFunc(self, data):
-        """
-        Gets a function used to encode C{data}.
-
-        @rtype: callable.
-        @return: The function used to encode data to the stream.
-        @raise EncodeError: Unable to find a corresponding function that will
-            encode C{data}.
-        """
         if data is None:
             return self.writeNull
 
@@ -445,34 +438,25 @@ class Encoder(Codec):
             return self.writeList
         elif t is pyamf.UndefinedType:
             return self.writeUndefined
-        elif t in (types.ClassType, types.TypeType):
-            # can't encode classes
-            raise pyamf.EncodeError("Cannot encode %r" % (data,))
         elif t in (datetime.date, datetime.datetime, datetime.time):
             return self.writeDate
+        elif t in (types.ClassType, types.TypeType):
+            # can't encode classes
+            return None
         elif t in (types.BuiltinFunctionType, types.BuiltinMethodType,
                 types.FunctionType, types.GeneratorType, types.ModuleType,
                 types.LambdaType, types.MethodType):
             # can't encode code objects
-            raise pyamf.EncodeError("Cannot encode %r" % (data,))
+            return None
 
-        for t, method in self.type_map.iteritems():
-            if not isinstance(data, t):
-                continue
-
-            if callable(method):
-                return lambda *args, **kwargs: method(self, *args, **kwargs)
-
-            return getattr(self, method)
+        if util.is_xml_type(data):
+            return self.writeXML
 
         return self.writeObject
 
     def writeElement(self, data, **kwargs):
         """
-        Writes the data. Overridden in subclass.
-
-        :type   data: `mixed`
-        :param  data: The data to be encoded to the data stream.
+        Encodes C{data}.
         """
         key = type(data)
         func = None
@@ -480,10 +464,11 @@ class Encoder(Codec):
         try:
             func = self._func_cache[key]
         except KeyError:
-            func = self.getCustomTypeFunc(data)
+            func = self.getTypeFunc(data)
 
-            if not func:
-                func = self._getTypeFunc(data)
+            if func is None:
+                raise pyamf.EncodeError('Unable to encode %r (type %r)' % (
+                    data, key))
 
             self._func_cache[key] = func
 
