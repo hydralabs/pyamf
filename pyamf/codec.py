@@ -18,6 +18,10 @@ class IndexedCollection(object):
     """
     Store references to objects and provides an api to query references.
 
+    All reference checks are done using the builtin C{id} function unless
+    C{use_hash} is specified as C{True} where the slower but more flexible
+    C{hash} builtin is used.
+
     @note: All attributes on the instance are private, use the apis only.
     """
 
