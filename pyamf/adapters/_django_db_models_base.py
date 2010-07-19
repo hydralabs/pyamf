@@ -235,7 +235,7 @@ def getDjangoObjects(context):
     :rtype: Instance of :class:`DjangoReferenceCollection`
     :since: 0.5
     """
-    c = context.extra_context
+    c = context.extra
     k = 'django_objects'
 
     try:
