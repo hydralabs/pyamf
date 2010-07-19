@@ -153,7 +153,7 @@ class DataOutput(object):
     @see: U{IDataOutput on Livedocs (external)
     <http://livedocs.adobe.com/flex/201/langref/flash/utils/IDataOutput.html>}
     """
-    def __init__(self, encoder=None):
+    def __init__(self, encoder):
         """
         @param encoder: Encoder containing the stream.
         @type encoder: L{amf3.Encoder<pyamf.amf3.Encoder>}
