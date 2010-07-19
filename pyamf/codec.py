@@ -316,14 +316,6 @@ class Decoder(Codec):
     @type strict: C{bool}
     """
 
-    def readProxy(self, obj, **kwargs):
-        """
-        Decodes a proxied object from the stream.
-
-        :since: 0.6
-        """
-        return self.context.getObjectForProxy(obj)
-
     def readElement(self):
         """
         Reads an AMF3 element from the data stream.
@@ -381,16 +373,6 @@ class Encoder(Codec):
     """
     Base AMF encoder.
     """
-
-    def writeProxy(self, obj, **kwargs):
-        """
-        Encodes a proxied object to the stream.
-
-        @since: 0.6
-        """
-        proxy = self.context.getProxyForObject(obj)
-
-        self.writeElement(proxy, use_proxies=False)
 
     def writeNull(self, obj, **kwargs):
         """

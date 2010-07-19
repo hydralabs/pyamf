@@ -725,8 +725,6 @@ class Decoder(codec.Decoder):
     Decodes an AMF3 data stream.
     """
 
-    context_class = Context
-
     type_map = {
         TYPE_UNDEFINED:  'readUndefined',
         TYPE_NULL:       'readNull',
@@ -747,6 +745,17 @@ class Decoder(codec.Decoder):
         self.use_proxies = kwargs.pop('use_proxies', use_proxies_default)
 
         codec.Decoder.__init__(self, *args, **kwargs)
+
+    def buildContext(self):
+        return Context()
+
+    def readProxy(self, obj, **kwargs):
+        """
+        Decodes a proxied object from the stream.
+
+        :since: 0.6
+        """
+        return self.context.getObjectForProxy(obj)
 
     def readUndefined(self):
         """
@@ -1087,13 +1096,14 @@ class Encoder(codec.Encoder):
     Encodes an AMF3 data stream.
     """
 
-    context_class = Context
-
     def __init__(self, *args, **kwargs):
         self.use_proxies = kwargs.pop('use_proxies', use_proxies_default)
         self.string_references = kwargs.pop('string_references', True)
 
         codec.Encoder.__init__(self, *args, **kwargs)
+
+    def buildContext(self):
+        return Context()
 
     def getCustomTypeFunc(self, data):
         """
@@ -1372,6 +1382,16 @@ class Encoder(codec.Encoder):
 
         for k in int_keys:
             self.writeElement(n[k])
+
+    def writeProxy(self, obj, **kwargs):
+        """
+        Encodes a proxied object to the stream.
+
+        @since: 0.6
+        """
+        proxy = self.context.getProxyForObject(obj)
+
+        self.writeElement(proxy, use_proxies=False)
 
     def writeObject(self, obj, use_proxies=None):
         """
