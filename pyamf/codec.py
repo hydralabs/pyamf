@@ -122,7 +122,7 @@ class Context(object):
 
     def clear(self):
         """
-        Completely clears the context.
+        Clears the context.
         """
         self.objects.clear()
         self.class_aliases = {}
@@ -134,39 +134,35 @@ class Context(object):
         """
         Gets an object based on a reference.
 
-        :param ref: The reference for the object.
-        :type ref: `int`
-        :return: The referenced object or `None` if not found.
+        @type ref: C{int}
+        @return: The referenced object or C{None} if not found.
         """
         return self.objects.getByReference(ref)
 
     def getObjectReference(self, obj):
         """
-        Gets a reference for an object.
+        Gets a reference for an already referenced object.
 
-        :param obj: The referenced object.
-        :return: The reference to the object or `None` if the object is not
-                 in the context.
+        @return: The reference to the object or C{-1} if the object is not in
+            the context.
         """
         return self.objects.getReferenceTo(obj)
 
     def addObject(self, obj):
         """
-        Adds a reference to `obj`.
+        Adds a reference to C{obj}.
 
-        :type obj: `mixed`
-        :param obj: The object to add to the context.
-        :rtype: `int`
-        :return: Reference to `obj`.
+        @return: Reference to C{obj}.
+        @rtype: C{int}
         """
         return self.objects.append(obj)
 
     def getClassAlias(self, klass):
         """
-        Gets a class alias based on the supplied `klass`.
+        Gets a class alias based on the supplied C{klass}.
 
-        :param klass: The class object.
-        :return: The :class:`ClassAlias` that is linked to `klass`
+        @param klass: A class object.
+        @return: The L{pyamf.ClassAlias} that is linked to C{klass}
         """
         alias = self.class_aliases.get(klass)
 
