@@ -126,7 +126,6 @@ class Context(object):
         """
         self.objects.clear()
         self.class_aliases = {}
-        self.proxied_objects = {}
         self.unicodes = {}
         self.extra_context = {}
 
@@ -178,54 +177,6 @@ class Context(object):
             alias = self.class_aliases[klass] = alias(klass)
 
         return alias
-
-    def getProxyForObject(self, obj):
-        """
-        Returns the proxied version of `obj` as stored in the context, or
-        creates a new proxied object and returns that.
-
-        :see: func:`pyamf.flex.proxy_object`
-        :since: 0.6
-        """
-        proxied = self.proxied_objects.get(id(obj))
-
-        if proxied is None:
-            from pyamf import flex
-
-            proxied = flex.proxy_object(obj)
-
-            self.addProxyObject(obj, proxied)
-
-        return proxied
-
-    def getObjectForProxy(self, proxy):
-        """
-        Returns the unproxied version of `proxy` as stored in the context, or
-        unproxies the proxy and returns that 'raw' object.
-
-        :see: :func:`pyamf.flex.unproxy_object`
-        :since: 0.6
-        """
-        obj = self.proxied_objects.get(id(proxy))
-
-        if obj is None:
-            from pyamf import flex
-
-            obj = flex.unproxy_object(proxy)
-
-            self.addProxyObject(obj, proxy)
-
-        return obj
-
-    def addProxyObject(self, obj, proxied):
-        """
-        Stores a reference to the unproxied and proxied versions of `obj` for
-        later retrieval.
-
-        :since: 0.6
-        """
-        self.proxied_objects[id(obj)] = proxied
-        self.proxied_objects[id(proxied)] = obj
 
     def getUnicodeForString(self, s):
         """
