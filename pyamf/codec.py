@@ -9,7 +9,7 @@ import types
 import datetime
 
 import pyamf
-from pyamf import util
+from pyamf import util, python
 
 __all__ = [
     'IndexedCollection',
@@ -17,6 +17,13 @@ __all__ = [
     'Decoder',
     'Encoder'
 ]
+
+try:
+    unicode
+except NameError:
+    # py3k support
+    unicode = str
+    str = bytes
 
 
 class IndexedCollection(object):
@@ -358,7 +365,8 @@ class Encoder(_Codec):
 
     def getTypeFunc(self, data):
         """
-        Returns a callable that will encode C{data} to C{self.stream}
+        Returns a callable that will encode C{data} to C{self.stream}. If
+        C{data} is unencodable, then C{None} is returned.
         """
         # check for any overridden types
         for type_, func in pyamf.TYPE_MAP.iteritems():
@@ -374,13 +382,16 @@ class Encoder(_Codec):
 
         t = type(data)
 
+        # try types that we know will work
         if t is str:
             return self.writeString
         elif t is unicode:
             return self.writeUnicode
         elif t is bool:
             return self.writeBoolean
-        elif t in (int, long, float):
+        elif t is float:
+            return self.writeNumber
+        elif t in python.int_types:
             return self.writeNumber
         elif isinstance(data, (list, tuple)):
             return self.writeList
@@ -388,23 +399,27 @@ class Encoder(_Codec):
             return self.writeUndefined
         elif t in (datetime.date, datetime.datetime, datetime.time):
             return self.writeDate
-        elif t in (types.ClassType, types.TypeType):
-            # can't encode classes
-            return None
-        elif t in (types.BuiltinFunctionType, types.BuiltinMethodType,
-                types.FunctionType, types.GeneratorType, types.ModuleType,
-                types.LambdaType, types.MethodType):
-            # can't encode code objects
-            return None
-
-        if util.is_xml_type(data):
+        elif util.is_xml_type(data):
             return self.writeXML
 
+        # now try some types that won't
+        elif t in python.class_types:
+            # can't encode classes
+            return None
+        elif hasattr(t, '__call__'):
+            # can't encode code objects
+            return None
+        elif isinstance(t, types.ModuleType):
+            # cannot encode module objects
+            return None
+
+        # well, we tried ..
         return self.writeObject
 
     def writeElement(self, data, **kwargs):
         """
-        Encodes C{data}.
+        Encodes C{data} to AMF. If the data is not able to be matched to an AMF
+        type, then L{pyamf.EncodeError} will be raised.
         """
         try:
             key = data.__class__
