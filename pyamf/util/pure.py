@@ -20,7 +20,10 @@ try:
 except ImportError:
     from StringIO import StringIO
 
-from pyamf.python import int_types, str_types
+from pyamf import python
+
+# worked out a little further down
+SYSTEM_ENDIAN = None
 
 
 class StringIOProxy(object):
@@ -28,20 +31,18 @@ class StringIOProxy(object):
     I am a C{StringIO} type object containing byte data from the AMF stream.
 
     @see: U{ByteArray on OSFlash (external)
-    <http://osflash.org/documentation/amf3#x0c_-_bytearray>}
+        <http://osflash.org/documentation/amf3#x0c_-_bytearray>}
     @see: U{Parsing ByteArrays on OSFlash (external)
-    <http://osflash.org/documentation/amf3/parsing_byte_arrays>}
+        <http://osflash.org/documentation/amf3/parsing_byte_arrays>}
     """
-
-    _wrapped_class = StringIO
 
     def __init__(self, buf=None):
         """
         @raise TypeError: Unable to coerce C{buf} to C{StringIO}.
         """
-        self._buffer = StringIOProxy._wrapped_class()
+        self._buffer = StringIO()
 
-        if isinstance(buf, (str, unicode)):
+        if isinstance(buf, python.str_types):
             self._buffer.write(buf)
         elif hasattr(buf, 'getvalue'):
             self._buffer.write(buf.getvalue())
@@ -50,10 +51,8 @@ class StringIOProxy(object):
             buf.seek(0)
             self._buffer.write(buf.read())
             buf.seek(old_pos)
-        elif buf is None:
-            pass
-        else:
-            raise TypeError("Unable to coerce buf->StringIO")
+        elif buf is not None:
+            raise TypeError("Unable to coerce buf->StringIO got %r" % (buf,))
 
         self._get_len()
         self._len_changed = False
@@ -99,7 +98,7 @@ class StringIOProxy(object):
         @type size: C{int}
         """
         if size == 0:
-            self._buffer = StringIOProxy._wrapped_class()
+            self._buffer = StringIO()
             self._len_changed = True
 
             return
@@ -107,7 +106,7 @@ class StringIOProxy(object):
         cur_pos = self.tell()
         self.seek(0)
         buf = self.read(size)
-        self._buffer = StringIOProxy._wrapped_class()
+        self._buffer = StringIO()
 
         self._buffer.write(buf)
         self.seek(cur_pos)
@@ -203,12 +202,10 @@ class DataTypeMixIn(object):
 
     def _is_big_endian(self):
         """
-        Whether this system is big endian or not.
-
-        @rtype: C{bool}
+        Whether the current endian is big endian.
         """
         if self.endian == DataTypeMixIn.ENDIAN_NATIVE:
-            return DataTypeMixIn._system_endian == DataTypeMixIn.ENDIAN_BIG
+            return SYSTEM_ENDIAN == DataTypeMixIn.ENDIAN_BIG
 
         return self.endian in (DataTypeMixIn.ENDIAN_BIG, DataTypeMixIn.ENDIAN_NETWORK)
 
@@ -227,8 +224,8 @@ class DataTypeMixIn(object):
         @raise TypeError: Unexpected type for int C{c}.
         @raise OverflowError: Not in range.
         """
-        if type(c) not in int_types:
-            raise TypeError('expected an int (got:%r)' % (type(c),))
+        if type(c) not in python.int_types:
+            raise TypeError('expected an int (got:%r)' % type(c))
 
         if not 0 <= c <= 255:
             raise OverflowError("Not in range, %d" % c)
@@ -250,8 +247,8 @@ class DataTypeMixIn(object):
         @raise TypeError: Unexpected type for int C{c}.
         @raise OverflowError: Not in range.
         """
-        if type(c) not in int_types:
-            raise TypeError('expected an int (got:%r)' % (type(c),))
+        if type(c) not in python.int_types:
+            raise TypeError('expected an int (got:%r)' % type(c))
 
         if not -128 <= c <= 127:
             raise OverflowError("Not in range, %d" % c)
@@ -273,7 +270,7 @@ class DataTypeMixIn(object):
         @raise TypeError: Unexpected type for int C{s}.
         @raise OverflowError: Not in range.
         """
-        if type(s) not in int_types:
+        if type(s) not in python.int_types:
             raise TypeError('expected an int (got:%r)' % (type(s),))
 
         if not 0 <= s <= 65535:
@@ -296,7 +293,7 @@ class DataTypeMixIn(object):
         @raise TypeError: Unexpected type for int C{s}.
         @raise OverflowError: Not in range.
         """
-        if type(s) not in int_types:
+        if type(s) not in python.int_types:
             raise TypeError('expected an int (got:%r)' % (type(s),))
 
         if not -32768 <= s <= 32767:
@@ -319,7 +316,7 @@ class DataTypeMixIn(object):
         @raise TypeError: Unexpected type for int C{l}.
         @raise OverflowError: Not in range.
         """
-        if type(l) not in int_types:
+        if type(l) not in python.int_types:
             raise TypeError('expected an int (got:%r)' % (type(l),))
 
         if not 0 <= l <= 4294967295:
@@ -342,7 +339,7 @@ class DataTypeMixIn(object):
         @raise TypeError: Unexpected type for int C{l}.
         @raise OverflowError: Not in range.
         """
-        if type(l) not in int_types:
+        if type(l) not in python.int_types:
             raise TypeError('expected an int (got:%r)' % (type(l),))
 
         if not -2147483648 <= l <= 2147483647:
@@ -380,7 +377,7 @@ class DataTypeMixIn(object):
         @raise TypeError: Unexpected type for int C{n}.
         @raise OverflowError: Not in range.
         """
-        if type(n) not in int_types:
+        if type(n) not in python.int_types:
             raise TypeError('expected an int (got:%r)' % (type(n),))
 
         if not 0 <= n <= 0xffffff:
@@ -420,7 +417,7 @@ class DataTypeMixIn(object):
         @raise TypeError: Unexpected type for int C{n}.
         @raise OverflowError: Not in range.
         """
-        if type(n) not in int_types:
+        if type(n) not in python.int_types:
             raise TypeError('expected an int (got:%r)' % (type(n),))
 
         if not -8388608 <= n <= 8388607:
@@ -494,18 +491,9 @@ class DataTypeMixIn(object):
         @param u: unicode object
         @raise TypeError: Unexpected type for str C{u}.
         """
-        if type(u) not in str_types:
-            raise TypeError('expected a str (got:%r)' % (type(u),))
-
         bytes = u.encode("utf8")
 
         self.write(struct.pack("%s%ds" % (self.endian, len(bytes)), bytes))
-
-
-if struct.pack('@H', 1)[0] == '\x01':
-    DataTypeMixIn._system_endian = DataTypeMixIn.ENDIAN_LITTLE
-else:
-    DataTypeMixIn._system_endian = DataTypeMixIn.ENDIAN_BIG
 
 
 class BufferedByteStream(StringIOProxy, DataTypeMixIn):
@@ -514,9 +502,7 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
 
     Features:
      - Raises L{IOError} if reading past end.
-     - Allows you to C{peek()} at the next byte.
-
-    @see: L{cBufferedByteStream<cpyamf.util.cBufferedByteStream>}
+     - Allows you to C{peek()} into the stream.
     """
 
     def __init__(self, buf=None):
@@ -526,8 +512,6 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
         """
         StringIOProxy.__init__(self, buf=buf)
 
-        self.seek(0)
-
     def read(self, length=-1):
         """
         Reads up to the specified number of bytes from the stream into
@@ -536,8 +520,8 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
         @raise IOError: Attempted to read past the end of the buffer.
         """
         if length == -1 and self.at_eof():
-            raise IOError('Attempted to read from the buffer but already at '
-                'the end')
+            raise IOError(
+                'Attempted to read from the buffer but already at the end')
         elif length > 0 and self.tell() + length > len(self):
             raise IOError('Attempted to read %d bytes from the buffer but '
                 'only %d remain' % (length, len(self) - self.tell()))
@@ -553,7 +537,6 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
         @type size: C{int}
         @raise ValueError: Trying to peek backwards.
 
-        @rtype:
         @return: Bytes.
         """
         if size == -1:
@@ -636,9 +619,8 @@ def is_float_broken():
     @since: 0.4
     @rtype: C{bool}
     """
-    from pyamf.python import NaN
-
-    return str(NaN) != str(struct.unpack("!d", '\xff\xf8\x00\x00\x00\x00\x00\x00')[0])
+    return str(python.NaN) != str(
+        struct.unpack("!d", '\xff\xf8\x00\x00\x00\x00\x00\x00')[0])
 
 
 # init the module from here ..
@@ -649,28 +631,26 @@ if is_float_broken():
         Override the L{DataTypeMixIn.read_double} method to fix problems
         with doubles by using the third-party C{fpconst} library.
         """
-        from pyamf.python import PosInf, NegInf, NaN
-
         bytes = self.read(8)
 
         if self._is_big_endian():
             if bytes == '\xff\xf8\x00\x00\x00\x00\x00\x00':
-                return NaN
+                return python.NaN
 
             if bytes == '\xff\xf0\x00\x00\x00\x00\x00\x00':
-                return NegInf
+                return python.NegInf
 
             if bytes == '\x7f\xf0\x00\x00\x00\x00\x00\x00':
-                return PosInf
+                return python.PosInf
         else:
             if bytes == '\x00\x00\x00\x00\x00\x00\xf8\xff':
-                return NaN
+                return python.NaN
 
             if bytes == '\x00\x00\x00\x00\x00\x00\xf0\xff':
-                return NegInf
+                return python.NegInf
 
             if bytes == '\x00\x00\x00\x00\x00\x00\xf0\x7f':
-                return PosInf
+                return python.PosInf
 
         return struct.unpack("%sd" % self.endian, bytes)[0]
 
@@ -707,3 +687,9 @@ if is_float_broken():
     x = DataTypeMixIn.write_double
     DataTypeMixIn.write_double = write_double_workaround
     write_double_workaround.old_func = x
+
+
+if struct.pack('@H', 1)[0] == '\x01':
+    SYSTEM_ENDIAN = DataTypeMixIn.ENDIAN_LITTLE
+else:
+    SYSTEM_ENDIAN = DataTypeMixIn.ENDIAN_BIG
