@@ -186,10 +186,10 @@ class Context(object):
 
         return alias
 
-    def getUnicodeForString(self, s):
+    def getStringForBytes(self, s):
         """
-        Returns the corresponding unicode object for a given string. If there
-        is no unicode object, one is created.
+        Returns the corresponding string for the supplied utf-8 encoded bytes.
+        If there is no string object, one is created.
 
         @since: 0.6
         """
@@ -199,11 +199,11 @@ class Context(object):
         if u is not None:
             return u
 
-        u = self._unicodes[h] = unicode(s, 'utf-8')
+        u = self._unicodes[h] = s.decode('utf-8')
 
         return u
 
-    def getStringForUnicode(self, u):
+    def getBytesForString(self, u):
         """
         Returns the corresponding utf-8 encoded string for a given unicode
         object. If there is no string, one is encoded.

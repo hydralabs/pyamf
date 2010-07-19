@@ -295,7 +295,7 @@ class Decoder(codec.Decoder):
 
         bytes = self.stream.read(l)
 
-        return self.context.getUnicodeForString(bytes)
+        return self.context.getStringForBytes(bytes)
 
     def _readObject(self, obj, alias=None):
         obj_attrs = dict()
@@ -375,7 +375,7 @@ class Decoder(codec.Decoder):
 
         bytes = self.stream.read(l)
 
-        return self.context.getUnicodeForString(bytes)
+        return self.context.getStringForBytes(bytes)
 
     def readXML(self):
         """
@@ -544,7 +544,7 @@ class Encoder(codec.Encoder):
         """
         Write a unicode to the data stream.
         """
-        s = self.context.getStringForUnicode(u)
+        s = self.context.getBytesForString(u)
 
         self.writeString(s, writeType)
 

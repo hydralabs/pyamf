@@ -496,36 +496,36 @@ class BaseContextTestCase(unittest.TestCase):
     def test_unicode(self):
         x = codec.Context()
 
-        u = x.getUnicodeForString('foo')
+        u = x.getStringForBytes('foo')
 
         self.assertTrue(type(u) is unicode)
         self.assertEqual(u, u'foo')
 
-        i = x.getUnicodeForString('foo')
+        i = x.getStringForBytes('foo')
 
         self.assertTrue(u is i)
 
         x.clear()
 
-        i = x.getUnicodeForString('foo')
+        i = x.getStringForBytes('foo')
 
         self.assertFalse(u is i)
 
     def test_string(self):
         x = codec.Context()
 
-        s = x.getStringForUnicode(u'foo')
+        s = x.getBytesForString(u'foo')
 
         self.assertTrue(type(s) is str)
         self.assertEqual(s, 'foo')
 
-        i = x.getStringForUnicode(u'f' + u'oo')
+        i = x.getBytesForString(u'f' + u'oo')
 
         self.assertTrue(s is i)
 
         x.clear()
 
-        i = x.getStringForUnicode(u'fo' + u'o')
+        i = x.getBytesForString(u'fo' + u'o')
 
         self.assertFalse(s is i)
 

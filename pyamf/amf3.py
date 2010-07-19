@@ -868,7 +868,7 @@ class Decoder(codec.Decoder):
         length, is_reference = self._readLength()
 
         if is_reference:
-            return self.context.getUnicodeForString(self.context.getString(length))
+            return self.context.getStringForBytes(self.context.getString(length))
 
         if length == 0:
             return u''
@@ -876,7 +876,7 @@ class Decoder(codec.Decoder):
         result = self.stream.read(length)
         self.context.addString(result)
 
-        return self.context.getUnicodeForString(result)
+        return self.context.getStringForBytes(result)
 
     def readString(self):
         """
@@ -1272,7 +1272,7 @@ class Encoder(codec.Encoder):
 
             return
 
-        s = self.context.getStringForUnicode(u)
+        s = self.context.getBytesForString(u)
 
         self._writeString(s)
 
