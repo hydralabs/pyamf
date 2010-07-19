@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright (c) The PyAMF Project.
 # See LICENSE.txt for details.
 
@@ -14,11 +12,11 @@ supports data types that are available only in ActionScript 3.0, such as
 L{ByteArray} and L{ArrayCollection}.
 
 @see: U{Official AMF3 Specification in English (external)
-<http://opensource.adobe.com/wiki/download/attachments/1114283/amf3_spec_05_05_08.pdf>}
+    <http://opensource.adobe.com/wiki/download/attachments/1114283/amf3_spec_05_05_08.pdf>}
 @see: U{Official AMF3 Specification in Japanese (external)
-<http://opensource.adobe.com/wiki/download/attachments/1114283/JP_amf3_spec_121207.pdf>}
+    <http://opensource.adobe.com/wiki/download/attachments/1114283/JP_amf3_spec_121207.pdf>}
 @see: U{AMF3 documentation on OSFlash (external)
-<http://osflash.org/documentation/amf3>}
+    <http://osflash.org/documentation/amf3>}
 
 @since: 0.1
 """
@@ -29,8 +27,8 @@ import zlib
 import pyamf
 from pyamf import codec, util
 
-#: If True encode/decode lists/tuples to L{ArrayCollections<ArrayCollection>}
-#: and dicts to L{ObjectProxy}
+#: If True encode/decode lists/tuples to L{ArrayCollections<pyamf.flex.ArrayCollection>}
+#: and dicts to L{ObjectProxy<pyamf.flex.ObjectProxy}
 use_proxies_default = False
 
 
@@ -104,10 +102,10 @@ TYPE_BYTEARRAY = '\x0C'
 #: Reference bit.
 REFERENCE_BIT = 0x01
 
-#: The maximum that can be represented by an signed 29 bit integer.
+#: The maximum that can be represented by a signed 29 bit integer.
 MAX_29B_INT = 0x0FFFFFFF
 
-#: The minimum that can be represented by an signed 29 bit integer.
+#: The minimum that can be represented by a signed 29 bit integer.
 MIN_29B_INT = -0x10000000
 
 ENCODED_INT_CACHE = {}
