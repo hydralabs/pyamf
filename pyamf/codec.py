@@ -63,7 +63,7 @@ class IndexedCollection(object):
         """
         Returns a reference to C{obj} if it is contained within this index.
 
-        If the object is not contained within the collection, C{-§} will be
+        If the object is not contained within the collection, C{-1} will be
         returned.
 
         @param obj: The object to find the reference to.
