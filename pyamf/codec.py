@@ -221,7 +221,7 @@ class Context(object):
         return s
 
 
-class Codec(object):
+class _Codec(object):
     """
     Base codec.
 
@@ -261,7 +261,7 @@ class Codec(object):
         raise NotImplementedError
 
 
-class Decoder(Codec):
+class Decoder(_Codec):
     """
     Base AMF decoder.
 
@@ -324,7 +324,7 @@ class _CustomTypeFunc(object):
             self.func(data, encoder=self.encoder), **kwargs)
 
 
-class Encoder(Codec):
+class Encoder(_Codec):
     """
     Base AMF encoder.
     """
