@@ -406,7 +406,12 @@ class Encoder(_Codec):
         """
         Encodes C{data}.
         """
-        key = type(data)
+        try:
+            key = data.__class__
+        except AttributeError:
+            # usually extension types
+            key = type(data)
+
         func = None
 
         try:
