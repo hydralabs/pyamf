@@ -23,12 +23,19 @@ except ImportError:
 
 # Required for backwards compatibility
 from pyamf.python import (
-    int_types, str_types,
-    PosInf, NegInf, NaN,
-    isNaN, isPosInf, isNegInf)
+    int_types, str_types, PosInf, NegInf, NaN, isNaN, isPosInf, isNegInf)
+
+ETREE_MODULES = [
+    'xml.etree.cElementTree',
+    'cElementTree',
+    'xml.etree.ElementTree',
+    'elementtree.ElementTree'
+]
 
 #: XML types.
 xml_types = None
+xml_modules = None
+
 ET = None
 #: On some Python versions retrieving a negative timestamp, like
 #: C{datetime.datetime.utcfromtimestamp(-31536000.0)} is broken.
@@ -49,56 +56,29 @@ def find_xml_lib():
 
     @since: 0.4
     """
-    global xml_types, ET
+    types = []
+    modules = []
 
-    xml_types = []
+    for mod in ETREE_MODULES:
+        try:
+            etree = get_module(mod)
+        except ImportError:
+            continue
 
-    try:
-        import xml.etree.cElementTree as cET
+        modules.append(etree)
+        e = etree.Element('foo')
 
-        ET = cET
-        xml_types.append(type(cET.Element('foo')))
-    except ImportError:
-        pass
+        try:
+            types.append(e.__class__)
+        except AttributeError:
+            types.append(type(e))
 
-    try:
-        import cElementTree as cET
-
-        if ET is None:
-            ET = cET
-
-        xml_types.append(type(cET.Element('foo')))
-    except ImportError:
-        pass
-
-    try:
-        import xml.etree.ElementTree as pET
-
-        if ET is None:
-            ET = pET
-
-        xml_types.append(pET._ElementInterface)
-    except ImportError:
-        pass
-
-    try:
-        import elementtree.ElementTree as pET
-
-        if ET is None:
-            ET = pET
-
-        xml_types.append(pET._ElementInterface)
-    except ImportError:
-        pass
-
-    for x in xml_types[:]:
-        # hack for jython
+    # hack for jython
+    for x in types[:]:
         if x.__name__ == 'instance':
-            xml_types.remove(x)
+            types.remove(x)
 
-    xml_types = tuple(xml_types)
-
-    return xml_types
+    return tuple(types), tuple(modules)
 
 
 def get_timestamp(d):
@@ -276,9 +256,43 @@ def get_module(mod_name):
     return mod
 
 
-# init the module from here
+def set_xml_type(t):
+    """
+    Sets the default type that PyAMF will use to construct XML objects,
+    supplying the stringified XML to the caller.
+    """
+    global xml_modules, ET
 
-find_xml_lib()
+    if xml_modules is None:
+        xml_modules = (t,)
+    else:
+        types = set(xml_modules)
+        types.update([t])
+
+        xml_modules = tuple(types)
+
+    ET = t
+
+
+def is_xml_type(t):
+    """
+    Determines if the type object is a valid XML type.
+
+    If L{xml_types} is not populated then it will call L{find_xml_lib}.
+    """
+    global xml_types, xml_modules, ET
+
+    if xml_types is None:
+        xml_types, xml_modules = find_xml_lib()
+
+    if ET is None:
+        try:
+            ET = xml_modules[0]
+        except IndexError:
+            return False
+
+    return isinstance(t, xml_types)
+
 
 try:
     datetime.datetime.utcfromtimestamp(-31536000.0)
