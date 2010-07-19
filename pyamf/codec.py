@@ -338,21 +338,23 @@ class Encoder(_Codec):
     Base AMF encoder.
     """
 
-    def writeNull(self, obj, **kwargs):
+    def _write_type(self, obj, **kwargs):
         """
         Subclasses should override this and all write[type] functions
         """
         raise NotImplementedError
 
-    writeString = writeNull
-    writeUnicode = writeNull
-    writeBoolean = writeNull
-    writeNumber = writeNull
-    writeList = writeNull
-    writeUndefined = writeNull
-    writeDate = writeNull
-    writeXML = writeNull
-    writeObject = writeNull
+
+    writeNull = _write_type
+    writeString = _write_type
+    writeUnicode = _write_typel
+    writeBoolean = _write_type
+    writeNumber = _write_type
+    writeList = _write_type
+    writeUndefined = _write_type
+    writeDate = _write_type
+    writeXML = _write_type
+    writeObject = _write_type
 
     def getTypeFunc(self, data):
         """
