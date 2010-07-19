@@ -172,13 +172,13 @@ class DataOutput(object):
 
         @raise ValueError: Non-boolean value found.
         """
-        if isinstance(value, bool):
-            if value is True:
-                self.stream.write_uchar(1)
-            else:
-                self.stream.write_uchar(0)
-        else:
+        if not isinstance(value, bool):
             raise ValueError("Non-boolean value found")
+
+        if value is True:
+            self.stream.write_uchar(1)
+        else:
+            self.stream.write_uchar(0)
 
     def writeByte(self, value):
         """
@@ -237,7 +237,7 @@ class DataOutput(object):
         @see: U{Supported character sets on Livedocs (external)
             <http://livedocs.adobe.com/flex/201/langref/charset-codes.html>}
         """
-        self.stream.write(unicode(value).encode(charset))
+        self.stream.write(value.decode(charset))
 
     def writeObject(self, value, use_proxies=None):
         """
@@ -286,9 +286,6 @@ class DataOutput(object):
         @type value: C{str}
         @param value: The string value to be written.
         """
-        if not isinstance(value, unicode):
-            value = unicode(value, 'utf8')
-
         buf = util.BufferedByteStream()
         buf.write_utf8_string(value)
         bytes = buf.getvalue()
