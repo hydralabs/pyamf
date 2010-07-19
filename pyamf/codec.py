@@ -16,10 +16,9 @@ from pyamf import util
 
 class IndexedCollection(object):
     """
-    A class that provides a quick and clean way to store references and
-    referenced objects.
+    Store references to objects and provides an api to query references.
 
-    @note: All attributes on the instance are private.
+    @note: All attributes on the instance are private, use the apis only.
     """
 
     def __init__(self, use_hash=False):
@@ -32,18 +31,19 @@ class IndexedCollection(object):
 
     def clear(self):
         """
-        Clears the index.
+        Clears the collection.
         """
         self.list = []
         self.dict = {}
 
     def getByReference(self, ref):
         """
-        Returns an object based on the reference.
+        Returns an object based on the supplied reference. The C{ref} should
+        be an C{int}.
 
         If the reference is not found, C{None} will be returned.
 
-        @raise TypeError: Bad reference type.
+        @raise pyamf.ReferenceError: references must be integers.
         """
         try:
             return self.list[ref]
@@ -54,11 +54,11 @@ class IndexedCollection(object):
         """
         Returns a reference to C{obj} if it is contained within this index.
 
-        If the object is not contained within the collection, C{None} will be
+        If the object is not contained within the collection, C{-§} will be
         returned.
 
-        @param obj: The object to find the reference to
-        @return: An C{int} representing the reference or C{None} is the object
+        @param obj: The object to find the reference to.
+        @return: An C{int} representing the reference or C{-1} is the object
             is not contained within the collection.
         """
         return self.dict.get(self.func(obj), -1)
@@ -81,10 +81,8 @@ class IndexedCollection(object):
     def __eq__(self, other):
         if isinstance(other, list):
             return self.list == other
-        elif isinstance(other, dict):
-            return self.dict == other
 
-        return False
+        raise NotImplementError("cannot compare %s to %r" % (type(other), self))
 
     def __len__(self):
         return len(self.list)
@@ -98,10 +96,13 @@ class IndexedCollection(object):
         return r != -1
 
     def __repr__(self):
-        return '<%s list=%r dict=%r>' % (self.__class__.__name__, self.list, self.dict)
+        t = self.__class__
 
-    def __iter__(self):
-        return iter(self.list)
+        return '<%s.%s size=%d 0x%x>' % (
+            t.__module__,
+            t.__name__,
+            len(self.list),
+            id(self))
 
 
 class Context(object):

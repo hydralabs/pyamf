@@ -22,45 +22,38 @@ class TestObject(object):
 
 
 class IndexedCollectionTestCase(unittest.TestCase):
+    """
+    Tests for L{codec.IndexedCollection}
+    """
+
     def setUp(self):
         self.collection = codec.IndexedCollection()
 
     def test_clear(self):
         o = object()
 
-        self.assertEqual(sys.getrefcount(o), 2)
+        self.assertEqual(self.collection.getReferenceTo(o), -1)
+
         self.collection.append(o)
-        self.assertEqual(sys.getrefcount(o), 3)
+        self.assertEqual(self.collection.getReferenceTo(o), 0)
 
         self.collection.clear()
 
-        self.assertEqual(sys.getrefcount(o), 2)
-
-    def test_delete(self):
-        o = object()
-
-        self.assertEqual(sys.getrefcount(o), 2)
-        self.collection.append(o)
-        self.assertEqual(sys.getrefcount(o), 3)
-
-        del self.collection
-
-        self.assertEqual(sys.getrefcount(o), 2)
+        self.assertEqual(self.collection.getReferenceTo(o), -1)
 
     def test_append(self):
-        max = 5
-        for i in range(0, max):
+        n = 5
+
+        for i in range(0, n):
             test_obj = TestObject()
 
             test_obj.name = i
 
-            self.assertEqual(sys.getrefcount(test_obj), 2)
             self.collection.append(test_obj)
-            self.assertEqual(sys.getrefcount(test_obj), 3)
 
-        self.assertEqual(max, len(self.collection))
+        self.assertEqual(len(self.collection), n)
 
-        for i in range(0, max):
+        for i in range(0, n):
             self.assertEqual(i, self.collection[i].name)
 
     def test_get_reference_to(self):
@@ -68,9 +61,7 @@ class IndexedCollectionTestCase(unittest.TestCase):
 
         self.collection.append(test_obj)
 
-        self.assertEqual(sys.getrefcount(test_obj), 3)
         idx = self.collection.getReferenceTo(test_obj)
-        self.assertEqual(sys.getrefcount(test_obj), 3)
 
         self.assertEqual(0, idx)
         self.assertEqual(-1, self.collection.getReferenceTo(TestObject()))
@@ -79,24 +70,41 @@ class IndexedCollectionTestCase(unittest.TestCase):
         test_obj = TestObject()
         idx = self.collection.append(test_obj)
 
-        self.assertEqual(id(test_obj), id(self.collection.getByReference(idx)))
+        self.assertIdentical(test_obj, self.collection.getByReference(idx))
 
         idx = self.collection.getReferenceTo(test_obj)
 
-        self.assertEqual(id(test_obj), id(self.collection.getByReference(idx)))
-        self.assertRaises(TypeError, self.collection.getByReference, 'bad ref')
+        self.assertIdentical(test_obj, self.collection.getByReference(idx))
+        self.assertRaises(pyamf.ReferenceError,
+            self.collection.getByReference, 'bad ref')
 
         self.assertEqual(None, self.collection.getByReference(74))
 
-    def test_get_by_refererence_refcount(self):
-        test_obj = TestObject()
-        idx = self.collection.append(test_obj)
+    def test_len(self):
+        self.assertEqual(0, len(self.collection))
 
-        o = self.collection.getByReference(idx)
+        self.collection.append([])
 
-        self.assertIdentical(o, test_obj)
+        self.assertEqual(1, len(self.collection))
 
-    def test_array(self):
-        test_obj = []
-        idx = self.collection.append(test_obj)
-        self.assertEqual(id(test_obj), id(self.collection.getByReference(idx)))
+        self.collection.append({})
+
+        self.assertEqual(2, len(self.collection))
+
+        self.collection.clear()
+        self.assertEqual(0, len(self.collection))
+
+    def test_repr(self):
+        x = "0x%x" % id(self.collection)
+
+        self.assertEqual(repr(self.collection),
+            '<pyamf.codec.IndexedCollection size=0 %s>' % (x,))
+
+    def test_contains(self):
+        o = object()
+
+        self.assertFalse(o in self.collection)
+
+        self.collection.append(o)
+
+        self.assertTrue(o in self.collection)
