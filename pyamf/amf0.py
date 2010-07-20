@@ -396,8 +396,6 @@ class Encoder(codec.Encoder):
     @type use_amf3: C{bool}
     """
 
-    context_class = Context
-
     def __init__(self, *args, **kwargs):
         self.use_amf3 = kwargs.pop('use_amf3', False)
 
