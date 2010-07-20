@@ -2,17 +2,13 @@
 # See LICENSE.txt for details.
 
 """
-**PyAMF** provides Action Message Format (AMF_) support for Python that is
-compatible with the Adobe `Flash Player`_.
+L{PyAMF<http://pyamf.org>} provides Action Message Format (L{AMF
+<http://en.wikipedia.org/wiki/Action_Message_Format>}) support for Python that
+is compatible with the Adobe L{Flash Player
+<http://en.wikipedia.org/wiki/Flash_Player>}.
 
-.. _AMF:          http://en.wikipedia.org/wiki/Action_Message_Format
-.. _Flash Player: http://en.wikipedia.org/wiki/Flash_Player
-
-:Copyright: Copyright (c) 2007-2010 The PyAMF Project. All Rights Reserved.
-:Contact: users@pyamf.org
-:See: http://pyamf.org
-:Since: October 2007
-:Status: Production/Stable
+@since: October 2007
+@status: Production/Stable
 """
 
 import types
