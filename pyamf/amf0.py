@@ -21,7 +21,7 @@ LocalConnection, SharedObjects and other classes in the Adobe Flash Player.
 import datetime
 
 import pyamf
-from pyamf import util, codec, python
+from pyamf import util, codec
 
 
 #: Represented as 9 bytes: 1 byte for C{0×00} and 8 bytes a double
