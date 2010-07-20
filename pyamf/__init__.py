@@ -100,12 +100,7 @@ class ReferenceError(BaseError):
 
 class EncodeError(BaseError):
     """
-    Raised if the element could not be encoded to the stream.
-
-    :Bug: See `Docuverse blog (external)`_ for more info about the empty key
-          string array bug.
-
-    .. _Docuverse blog (external): http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug
+    Raised if the element could not be encoded to AMF.
     """
 
 
@@ -120,7 +115,7 @@ class UnknownClassAlias(ClassAliasError):
     Raised if the AMF stream specifies an Actionscript class that does not
     have a Python class alias.
 
-    :See: :func:`register_class`
+    @see L{register_class}
     """
 
 
@@ -177,7 +172,7 @@ class ClassAlias(object):
         self.checkClass(klass)
 
         self.klass = klass
-        self.alias = alias
+        self.alias = alias.decode('utf-8')
 
         self.static_attrs = kwargs.pop('static_attrs', None)
         self.exclude_attrs = kwargs.pop('exclude_attrs', None)
@@ -810,17 +805,11 @@ def get_class_alias(klass):
     :rtype: :class:`ClassAlias`
     :raise UnknownClassAlias: Class not found.
     """
-    if isinstance(klass, basestring):
+    if isinstance(klass, python.str_types):
         try:
             return CLASS_CACHE[klass]
         except KeyError:
             return load_class(klass)
-
-    if not isinstance(klass, (type, types.ClassType)):
-        if isinstance(klass, types.InstanceType):
-            klass = klass.__class__
-        elif isinstance(klass, types.ObjectType):
-            klass = type(klass)
 
     try:
         return CLASS_CACHE[klass]
