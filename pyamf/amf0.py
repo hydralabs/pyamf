@@ -726,32 +726,6 @@ class Encoder(codec.Encoder):
         encoder.writeElement(data)
 
 
-def decode(*args, **kwargs):
-    """
-    A helper function to decode an AMF0 datastream.
-    """
-    kwargs['encoding'] = pyamf.AMF0
-
-    return pyamf.decode(*args, **kwargs)
-
-
-def encode(*args, **kwargs):
-    """
-    A helper function to encode an element into the AMF0 format.
-
-    @type element: C{mixed}
-    @keyword element: The element to encode
-    @type context: L{Context<pyamf.amf0.Context>}
-    @keyword context: AMF0 C{Context} to use for the encoding. This holds
-        previously referenced objects etc.
-    @rtype: C{StringIO}
-    @return: The encoded stream.
-    """
-    kwargs['encoding'] = pyamf.AMF0
-
-    return pyamf.encode(*args, **kwargs)
-
-
 class RecordSet(object):
     """
     I represent the C{RecordSet} class used in Adobe Flash Remoting to hold
