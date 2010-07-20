@@ -994,114 +994,58 @@ def encode(*args, **kwargs):
     return stream
 
 
-def get_decoder(encoding, *args, **kwargs):
+def get_decoder(version, *args, **kwargs):
     """
-    Returns a subclassed instance of :class:`BaseDecoder`, based on the
-    `encoding` param.
+    Returns a L{codec.Decoder} capable of decoding AMF C{version} streams.
+
+    @raise ValueError: Unknown C{version}.
     """
-    return _get_decoder_class(encoding)(*args, **kwargs)
+    def _get_decoder_class():
+        if version == AMF0:
+            try:
+                from cpyamf import amf0
+            except ImportError:
+                from pyamf import amf0
+
+            return amf0.Decoder
+        elif version == AMF3:
+            try:
+                from cpyamf import amf3
+            except ImportError:
+                from pyamf import amf3
+
+            return amf3.Decoder
+
+        raise ValueError("Unknown AMF version %r" % (version,))
+
+    return _get_decoder_class(version)(*args, **kwargs)
 
 
-def _get_decoder_class(encoding):
+def get_encoder(version, *args, **kwargs):
     """
-    Get compatible decoder.
+    Returns a L{codec.Encoder} capable of encoding AMF C{version} streams.
 
-    :type encoding: `int`
-    :param encoding: AMF encoding version.
-    :raise ValueError: AMF encoding version is unknown.
-
-    :rtype: :class:`amf0.Decoder<pyamf.amf0.Decoder>` or
-            :class:`amf3.Decoder<pyamf.amf3.Decoder>`
-    :return: AMF0 or AMF3 decoder.
+    @raise ValueError: Unknown C{version}.
     """
-    if encoding == AMF0:
-        try:
-            from cpyamf import amf0
-        except ImportError:
-            from pyamf import amf0
+    def _get_encoder_class(encoding):
+        if version == AMF0:
+            try:
+                from cpyamf import amf0
+            except ImportError:
+                from pyamf import amf0
 
-        return amf0.Decoder
-    elif encoding == AMF3:
-        try:
-            from cpyamf import amf3
-        except ImportError:
-            from pyamf import amf3
+            return amf0.Encoder
+        elif version == AMF3:
+            try:
+                from cpyamf import amf3
+            except ImportError:
+                from pyamf import amf3
 
-        return amf3.Decoder
+            return amf3.Encoder
 
-    raise ValueError("Unknown encoding %s" % (encoding,))
+        raise ValueError("Unknown version %r" % (version,))
 
-
-def get_encoder(encoding, *args, **kwargs):
-    """
-    Returns a subclassed instance of :class:`pyamf.BaseEncoder`, based on
-    the `encoding` param.
-    """
-    return _get_encoder_class(encoding)(*args, **kwargs)
-
-
-def _get_encoder_class(encoding):
-    """
-    Get compatible encoder.
-
-    :type encoding: `int`
-    :param encoding: AMF encoding version.
-    :raise ValueError: AMF encoding version is unknown.
-
-    :rtype: :class:`amf0.Encoder<pyamf.amf0.Encoder>` or
-            :class:`amf3.Encoder<pyamf.amf3.Encoder>`
-    :return: AMF0 or AMF3 encoder.
-    """
-    if encoding == AMF0:
-        try:
-            from cpyamf import amf0
-        except ImportError:
-            from pyamf import amf0
-
-        return amf0.Encoder
-    elif encoding == AMF3:
-        try:
-            from cpyamf import amf3
-        except ImportError:
-            from pyamf import amf3
-
-        return amf3.Encoder
-
-    raise ValueError("Unknown encoding %s" % (encoding,))
-
-
-def get_context(encoding, **kwargs):
-    return _get_context_class(encoding)(**kwargs)
-
-
-def _get_context_class(encoding):
-    """
-    Gets a compatible context class.
-
-    :type encoding: `int`
-    :param encoding: AMF encoding version.
-    :raise ValueError: AMF encoding version is unknown.
-
-    :rtype: :class:`amf0.Context<pyamf.amf0.Context>` or
-            :class:`amf3.Context<pyamf.amf3.Context>`
-    :return: AMF0 or AMF3 context class.
-    """
-    if encoding == AMF0:
-        try:
-            from cpyamf import amf0
-        except ImportError:
-            from pyamf import amf0
-
-        return amf0.Context
-    elif encoding == AMF3:
-        try:
-            from cpyamf import amf3
-        except ImportError:
-            from pyamf import amf3
-
-        return amf3.Context
-
-    raise ValueError("Unknown encoding %s" % (encoding,))
+    return _get_encoder_class(version)(*args, **kwargs)
 
 
 def blaze_loader(alias):
