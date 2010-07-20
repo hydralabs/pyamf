@@ -127,28 +127,41 @@ class Decoder(codec.Decoder):
     Decodes an AMF0 stream.
     """
 
-    # XXX nick: Do we need to support TYPE_MOVIECLIP here?
-    type_map = {
-        TYPE_NUMBER:     'readNumber',
-        TYPE_BOOL:       'readBoolean',
-        TYPE_STRING:     'readUnicode',
-        TYPE_OBJECT:     'readObject',
-        TYPE_NULL:       'readNull',
-        TYPE_UNDEFINED:  'readUndefined',
-        TYPE_REFERENCE:  'readReference',
-        TYPE_MIXEDARRAY: 'readMixedArray',
-        TYPE_ARRAY:      'readList',
-        TYPE_DATE:       'readDate',
-        TYPE_LONGSTRING: 'readLongString',
-        # TODO: do we need a special value here?
-        TYPE_UNSUPPORTED:'readNull',
-        TYPE_XML:        'readXML',
-        TYPE_TYPEDOBJECT:'readTypedObject',
-        TYPE_AMF3:       'readAMF3'
-    }
-
     def buildContext(self):
         return Context()
+
+    def getTypeFunc(self, data):
+        # great for coverage, sucks for readability
+        if data == TYPE_NUMBER:
+            return self.readNumber
+        elif data == TYPE_BOOL:
+            return self.readBoolean
+        elif data == TYPE_STRING:
+            return self.readString
+        elif data == TYPE_OBJECT:
+            return self.readObject
+        elif data == TYPE_NULL:
+            return self.readNull
+        elif data == TYPE_UNDEFINED:
+            return self.readUndefined
+        elif data == TYPE_REFERENCE:
+            return self.readReference
+        elif data == TYPE_MIXEDARRAY:
+            return self.readMixedArray
+        elif data == TYPE_ARRAY:
+            return self.readList
+        elif data == TYPE_DATE:
+            return self.readDate
+        elif data == TYPE_LONGSTRING:
+            return self.readLongString
+        elif data == TYPE_UNSUPPORTED:
+            return self.readNull
+        elif data == TYPE_XML:
+            return self.readXML
+        elif data == TYPE_TYPEDOBJECT:
+            return self.readTypedObject
+        elif data == TYPE_AMF3:
+            return self.readAMF3
 
     def readNumber(self):
         """
