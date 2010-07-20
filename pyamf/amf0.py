@@ -183,6 +183,20 @@ class Decoder(codec.Decoder):
         """
         return bool(self.stream.read_uchar())
 
+    def readString(self, bytes=False):
+        """
+        Reads a C{string} from the stream. If bytes is C{True} then you will get
+        the raw bytes read from the stream, otherwise a string that has been
+        B{utf-8} decoded.
+        """
+        l = self.stream.read_ushort()
+        b = self.stream.read(l)
+
+        if bytes:
+            return b
+
+        return self.context.getStringForBytes(b)
+
     def readNull(self):
         """
         Reads a ActionScript C{null} value.
@@ -290,26 +304,8 @@ class Decoder(codec.Decoder):
 
         return element
 
-    def readString(self):
-        """
-        Reads a C{string} from the stream.
-        """
-        l = self.stream.read_ushort()
-
-        return self.stream.read(l)
-
-    def readUnicode(self):
-        """
-        Reads a C{unicode} from the data stream.
-        """
-        l = self.stream.read_ushort()
-
-        bytes = self.stream.read(l)
-
-        return self.context.getStringForBytes(bytes)
-
-    def _readObject(self, obj, alias=None):
-        obj_attrs = dict()
+    def readObjectAttributes(self, obj):
+        obj_attrs = {}
 
         key = self.readString()
 
