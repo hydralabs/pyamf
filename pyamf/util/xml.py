@@ -13,8 +13,8 @@ __all__ = [
     'set_xml_type'
 ]
 
-#: list of supported third party packages that support the C{etree} interface.
-#: At least enough for our needs anyway.
+#: list of supported third party packages that support the C{ElementTree}
+#: interface. At least enough for our needs anyway.
 ETREE_MODULES = [
     'xml.etree.cElementTree',
     'cElementTree',
@@ -31,18 +31,18 @@ ET = None
 
 def find_xml_lib():
     """
-    Run through a predefined order looking through the various C{ElementTree}
-    implementations so that any type can be encoded but PyAMF will return
-    elements as the first implementation found.
+    Run through L{ETREE_MODULES} and find C{ElementTree} implementations so
+    that any type can be encoded.
 
-    We work through the C implementations first - then the pure Python
-    versions. The downside to this is that a possible of three libraries will
-    be loaded into memory that are not used but the libs are small
-    (relatively) and the flexibility that this gives seems to outweigh the
-    cost. Time will tell.
+    We work through the C implementations first, then the pure Python versions.
+    The downside to this is that B{all} libraries will be imported but I{only}
+    one is ever used. The libs are small (relatively) and the flexibility that
+    this gives seems to outweigh the cost. Time will tell.
 
     @since: 0.4
     """
+    from pyamf.util import get_module
+
     types = []
     modules = []
 
