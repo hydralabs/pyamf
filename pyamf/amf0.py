@@ -200,9 +200,6 @@ class Decoder(codec.Decoder):
     def readNull(self):
         """
         Reads a ActionScript C{null} value.
-
-        @return: C{None}
-        @rtype: C{None}
         """
         return None
 
@@ -221,38 +218,34 @@ class Decoder(codec.Decoder):
         @rtype: C{dict}
         @return: C{dict} read from the stream
         """
+        # TODO: something with the length/strict
         self.stream.read_ulong() # length
+
         obj = pyamf.MixedArray()
         self.context.addObject(obj)
-        self._readObject(obj)
+
+        attrs = self.readObjectAttributes(obj)
         ikeys = []
 
-        for key in obj.keys():
+        for key in attrs.keys():
             try:
                 ikey = int(key)
-                ikeys.append((key, ikey))
-                obj[ikey] = obj[key]
-                del obj[key]
+                obj[ikey] = attrs[key]
             except ValueError:
                 # XXX: do we want to ignore this?
                 pass
-
-        ikeys.sort()
 
         return obj
 
     def readList(self):
         """
         Read a C{list} from the data stream.
-
-        @rtype: C{list}
-        @return: C{list}
         """
         obj = []
         self.context.addObject(obj)
-        len = self.stream.read_ulong()
+        l = self.stream.read_ulong()
 
-        for i in xrange(len):
+        for i in xrange(l):
             obj.append(self.readElement())
 
         return obj
@@ -261,26 +254,24 @@ class Decoder(codec.Decoder):
         """
         Reads an ActionScript object from the stream and attempts to
         'cast' it.
-
-        @see: L{load_class<pyamf.load_class>}
         """
-        classname = self.readString()
-        alias = None
+        class_alias = self.readString()
 
         try:
-            alias = pyamf.get_class_alias(classname)
-
-            ret = alias.createInstance(codec=self)
+            alias = self.context.getClassAlias(class_alias)
         except pyamf.UnknownClassAlias:
             if self.strict:
                 raise
 
-            ret = pyamf.TypedObject(classname)
+            alias = pyamf.TypedObjectClassAlias(None, classname)
 
-        self.context.addObject(ret)
-        self._readObject(ret, alias)
+        obj = alias.createInstance(codec=self)
+        self.context.addObject(obj)
 
-        return ret
+        attrs = self.readObjectAttributes(ret)
+        alias.applyAttributes(obj, attrs, codec=self)
+
+        return obj
 
     def _getAMF3Decoder(self):
         decoder = getattr(self, 'amf3_decoder', None)
@@ -316,11 +307,6 @@ class Decoder(codec.Decoder):
         # discard the end marker (TYPE_OBJECTTERM)
         self.stream.read(1)
 
-        if alias:
-            alias.applyAttributes(obj, obj_attrs, codec=self)
-        else:
-            util.set_attrs(obj, obj_attrs)
-
     def readObject(self):
         """
         Reads an object from the data stream.
@@ -330,7 +316,8 @@ class Decoder(codec.Decoder):
         obj = pyamf.ASObject()
         self.context.addObject(obj)
 
-        self._readObject(obj)
+        attrs = self.readObjectAttributes(obj)
+        util.set_attrs(obj, attrs)
 
         return obj
 
@@ -341,7 +328,6 @@ class Decoder(codec.Decoder):
         @raise pyamf.ReferenceError: Unknown reference.
         """
         idx = self.stream.read_ushort()
-
         o = self.context.getObject(idx)
 
         if o is None:
