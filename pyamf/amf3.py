@@ -27,6 +27,16 @@ import zlib
 import pyamf
 from pyamf import codec, util
 
+
+__all__ = [
+    'ByteArray',
+    'Context',
+    'Encoder',
+    'Decoder',
+    'use_proxies_default',
+]
+
+
 #: If True encode/decode lists/tuples to L{ArrayCollections<pyamf.flex.ArrayCollection>}
 #: and dicts to L{ObjectProxy<pyamf.flex.ObjectProxy}
 use_proxies_default = False
