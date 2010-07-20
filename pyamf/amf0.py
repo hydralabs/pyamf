@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright (c) The PyAMF Project.
 # See LICENSE.txt for details.
 
@@ -24,31 +22,31 @@ import pyamf
 from pyamf import util, codec
 
 
-#: Represented as 9 bytes: 1 byte for C{0×00} and 8 bytes a double
+#: Represented as 9 bytes: 1 byte for C{0x00} and 8 bytes a double
 #: representing the value of the number.
 TYPE_NUMBER      = '\x00'
-#: Represented as 2 bytes: 1 byte for C{0×01} and a second, C{0×00}
-#: for C{False}, C{0×01} for C{True}.
+#: Represented as 2 bytes: 1 byte for C{0x01} and a second, C{0x00}
+#: for C{False}, C{0x01} for C{True}.
 TYPE_BOOL        = '\x01'
-#: Represented as 3 bytes + len(String): 1 byte C{0×02}, then a UTF8 string,
+#: Represented as 3 bytes + len(String): 1 byte C{0x02}, then a UTF8 string,
 #: including the top two bytes representing string length as a C{int}.
 TYPE_STRING      = '\x02'
-#: Represented as 1 byte, C{0×03}, then pairs of UTF8 string, the key, and
-#: an AMF element, ended by three bytes, C{0×00} C{0×00} C{0×09}.
+#: Represented as 1 byte, C{0x03}, then pairs of UTF8 string, the key, and
+#: an AMF element, ended by three bytes, C{0x00} C{0x00} C{0x09}.
 TYPE_OBJECT      = '\x03'
 #: MovieClip does not seem to be supported by Remoting.
 #: It may be used by other AMF clients such as SharedObjects.
 TYPE_MOVIECLIP   = '\x04'
-#: 1 single byte, C{0×05} indicates null.
+#: 1 single byte, C{0x05} indicates null.
 TYPE_NULL        = '\x05'
-#: 1 single byte, C{0×06} indicates null.
+#: 1 single byte, C{0x06} indicates null.
 TYPE_UNDEFINED   = '\x06'
 #: When an ActionScript object refers to itself, such C{this.self = this},
 #: or when objects are repeated within the same scope (for example, as the
-#: two parameters of the same function called), a code of C{0×07} and an
+#: two parameters of the same function called), a code of C{0x07} and an
 #: C{int}, the reference number, are written.
 TYPE_REFERENCE   = '\x07'
-#: A MixedArray is indicated by code C{0×08}, then a Long representing the
+#: A MixedArray is indicated by code C{0x08}, then a Long representing the
 #: highest numeric index in the array, or 0 if there are none or they are
 #: all negative. After that follow the elements in key : value pairs.
 TYPE_MIXEDARRAY  = '\x08'
@@ -56,7 +54,7 @@ TYPE_MIXEDARRAY  = '\x08'
 TYPE_OBJECTTERM  = '\x09'
 #: An array is indicated by C{0x0A}, then a Long for array length, then the
 #: array elements themselves. Arrays are always sparse; values for
-#: inexistant keys are set to null (C{0×06}) to maintain sparsity.
+#: inexistant keys are set to null (C{0x06}) to maintain sparsity.
 TYPE_ARRAY       = '\x0A'
 #: Date is represented as C{0x0B}, then a double, then an C{int}. The double
 #: represents the number of milliseconds since 01/01/1970. The C{int} represents
@@ -67,12 +65,12 @@ TYPE_DATE        = '\x0B'
 #: LongString is reserved for strings larger then M{2^16} characters long. It
 #: is represented as C{0x0C} then a LongUTF.
 TYPE_LONGSTRING  = '\x0C'
-#: Trying to send values which don’t make sense, such as prototypes, functions,
+#: Trying to send values which don't make sense, such as prototypes, functions,
 #: built-in objects, etc. will be indicated by a single C{00x0D} byte.
 TYPE_UNSUPPORTED = '\x0D'
 #: Remoting Server -> Client only.
 #: @see: L{RecordSet}
-#: @see: U{RecordSet structure on OSFlash (external)
+#: @see: U{RecordSet structure on OSFlash
 #: <http://osflash.org/documentation/amf/recordset>}
 TYPE_RECORDSET   = '\x0E'
 #: The XML element is indicated by C{0x0F} and followed by a LongUTF containing
@@ -80,15 +78,15 @@ TYPE_RECORDSET   = '\x0E'
 #: to wrap this string inside a language-specific standard XML object, or simply
 #: pass as a string.
 TYPE_XML         = '\x0F'
-#: A typed object is indicated by C{0×10}, then a UTF string indicating class
-#: name, and then the same structure as a normal C{0×03} Object. The receiving
+#: A typed object is indicated by C{0x10}, then a UTF string indicating class
+#: name, and then the same structure as a normal C{0x03} Object. The receiving
 #: gateway may use a mapping scheme, or send back as a vanilla object or
 #: associative array.
 TYPE_TYPEDOBJECT = '\x10'
 #: An AMF message sent from an AVM+ client such as the Flash Player 9 may break
 #: out into L{AMF3<pyamf.amf3>} mode. In this case the next byte will be the
 #: AMF3 type code and the data will be in AMF3 format until the decoded object
-#: reaches it’s logical conclusion (for example, an object has no more keys).
+#: reaches it's logical conclusion (for example, an object has no more keys).
 TYPE_AMF3        = '\x11'
 
 
