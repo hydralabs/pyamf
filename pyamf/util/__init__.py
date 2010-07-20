@@ -32,11 +32,9 @@ def get_timestamp(d):
     Returns a UTC timestamp for a C{datetime.datetime} object.
 
     @type d: C{datetime.datetime}
-    @param d: The date object.
     @return: UTC timestamp.
-    @rtype: C{str}
-
-    @note: Inspiration taken from the U{Intertwingly blog
+    @rtype: C{float}
+    @seealso: Inspiration taken from the U{Intertwingly blog
         <http://intertwingly.net/blog/2007/09/02/Dealing-With-Dates>}.
     """
     if isinstance(d, datetime.date) and not isinstance(d, datetime.datetime):
@@ -78,10 +76,10 @@ def get_properties(obj):
 
 def set_attrs(obj, attrs):
     """
-    A generic function which applies a collection of attributes C{attrs} to
-    object C{obj}.
+    Applies a collection of attributes C{attrs} to object C{obj} in the most
+    generic way possible.
 
-    @param obj: An instance implementing the C{__setattr__} function
+    @param obj: An instance implementing C{__setattr__}, or C{__setitem__}
     @param attrs: A collection implementing the C{iteritems} function
     @type attrs: Usually a dict
     """
@@ -113,8 +111,7 @@ def get_class_alias(klass):
 
 def is_class_sealed(klass):
     """
-    Returns a C{boolean} whether or not the supplied class can accept dynamic
-    properties.
+    Whether or not the supplied class can accept dynamic properties.
 
     @rtype: C{bool}
     @since: 0.5
@@ -184,16 +181,10 @@ def get_class_meta(klass):
 
 def get_module(mod_name):
     """
-    Load a module based on `mod_name`.
-
-    :type mod_name: `str`
-    :param mod_name: The module name.
-    :return: Module.
-
-    :raise ImportError: Unable to import an empty module.
+    Load and return a module based on C{mod_name}.
     """
     if mod_name is '':
-        raise ImportError("Unable to import empty module")
+        raise ImportError('Unable to import empty module')
 
     mod = __import__(mod_name)
     components = mod_name.split('.')
