@@ -161,7 +161,7 @@ class Decoder(codec.Decoder):
 
         @rtype: C{int} or C{float}
         """
-        return python.check_for_int(self.stream.read_double())
+        return check_for_int(self.stream.read_double())
 
     def readBoolean(self):
         """
@@ -800,3 +800,19 @@ class RecordSet(object):
 
 pyamf.register_class(RecordSet)
 
+
+def check_for_int(x):
+    """
+    This is a compatibility function that takes a C{float} and converts it to an
+    C{int} if the values are equal.
+    """
+    try:
+        y = int(x)
+    except (OverflowError, ValueError):
+        pass
+    else:
+        # There is no way in AMF0 to distinguish between integers and floats
+        if x == x and y == x:
+            return y
+
+    return x
