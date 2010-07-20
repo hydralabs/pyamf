@@ -18,11 +18,6 @@ from pyamf import util, versions as v
 from pyamf.adapters import register_adapters
 from pyamf import python
 
-try:
-    set
-except NameError:
-    from sets import Set as set
-
 
 __all__ = [
     'register_class',
