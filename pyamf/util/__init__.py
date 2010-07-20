@@ -22,9 +22,6 @@ try:
 except ImportError:
     from pyamf.util.pure import BufferedByteStream
 
-# Required for backwards compatibility
-from pyamf.python import (
-    int_types, str_types, PosInf, NegInf, NaN, isNaN, isPosInf, isNegInf)
 
 ETREE_MODULES = [
     'xml.etree.cElementTree',
