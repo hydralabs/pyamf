@@ -15,6 +15,7 @@ import types
 import inspect
 
 import pyamf
+from pyamf import python
 
 try:
     from cpyamf.util import BufferedByteStream
@@ -153,12 +154,14 @@ def get_class_alias(klass):
     """
     for k, v in pyamf.ALIAS_TYPES.iteritems():
         for kl in v:
-            if isinstance(kl, types.FunctionType):
-                if kl(klass) is True:
-                    return k
-            elif isinstance(kl, (type, (types.ClassType, types.ObjectType))):
+            try:
                 if issubclass(klass, kl):
                     return k
+            except TypeError:
+                # not a class
+                if hasattr(kl, '__call__'):
+                    if kl(klass) is True:
+                        return k
 
     return pyamf.ClassAlias
 
@@ -196,7 +199,7 @@ def get_class_meta(klass):
     @rtype: C{dict}
     @since: 0.5
     """
-    if not isinstance(klass, (type, types.ClassType)) or klass is object:
+    if not isinstance(klass, python.class_types) or klass is object:
         raise TypeError('klass must be a class object, got %r' % type(klass))
 
     meta = {
