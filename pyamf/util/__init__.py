@@ -14,7 +14,6 @@ import inspect
 
 import pyamf
 from pyamf import python
-from pyamf.util.xml import is_xml
 
 try:
     from cpyamf.util import BufferedByteStream

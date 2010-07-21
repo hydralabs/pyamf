@@ -9,7 +9,7 @@ import types
 import datetime
 
 import pyamf
-from pyamf import util, python
+from pyamf import util, python, xml
 
 __all__ = [
     'IndexedCollection',
@@ -400,7 +400,7 @@ class Encoder(_Codec):
             return self.writeUndefined
         elif t in (datetime.date, datetime.datetime, datetime.time):
             return self.writeDate
-        elif util.xml.is_xml(data):
+        elif xml.is_xml(data):
             return self.writeXML
 
         # now try some types that won't

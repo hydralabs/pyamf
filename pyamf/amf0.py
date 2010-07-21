@@ -19,8 +19,7 @@ LocalConnection, SharedObjects and other classes in the Adobe Flash Player.
 import datetime
 
 import pyamf
-from pyamf import util, codec
-from pyamf.util import xml
+from pyamf import util, codec, xml
 
 
 #: Represented as 9 bytes: 1 byte for C{0x00} and 8 bytes a double
@@ -94,8 +93,6 @@ TYPE_AMF3        = '\x11'
 class Context(codec.Context):
     """
     I hold the AMF0 context for en/decoding streams.
-
-    AMF0 object references start at index 1.
     """
 
     def clear(self):

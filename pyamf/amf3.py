@@ -25,7 +25,7 @@ import datetime
 import zlib
 
 import pyamf
-from pyamf import codec, util
+from pyamf import codec, util, xml
 
 
 __all__ = [
@@ -1596,7 +1596,7 @@ class Encoder(codec.Encoder):
 
         self.context.addObject(n)
 
-        self._writeString(util.xml.tostring(n, 'utf-8'))
+        self._writeString(xml.tostring(n, 'utf-8'))
 
 
 def decode(*args, **kwargs):
