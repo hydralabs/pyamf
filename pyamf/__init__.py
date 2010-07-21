@@ -845,10 +845,10 @@ def unregister_class_loader(loader):
 
     :raise LookupError: The `loader` was not registered.
     """
-    if loader not in CLASS_LOADERS:
+    try:
+        CLASS_LOADERS.remove(loader)
+    except KeyError:
         raise LookupError("loader not found")
-
-    CLASS_LOADERS.remove(loader)
 
 
 def load_class(alias):
