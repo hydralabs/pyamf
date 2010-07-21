@@ -116,10 +116,7 @@ class ASObject(dict):
     """
     This class represents a Flash Actionscript Object (typed or untyped).
 
-    I supply a `__builtin__.dict` interface to support `get`/`setattr`
-    calls.
-
-    :raise AttributeError: Unknown attribute.
+    I supply a C{dict} interface to support C{getattr}/C{setattr} calls.
     """
 
     class __amf__:
