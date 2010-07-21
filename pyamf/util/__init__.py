@@ -34,7 +34,7 @@ def get_timestamp(d):
     @type d: C{datetime.datetime}
     @return: UTC timestamp.
     @rtype: C{float}
-    @seealso: Inspiration taken from the U{Intertwingly blog
+    @see: Inspiration taken from the U{Intertwingly blog
         <http://intertwingly.net/blog/2007/09/02/Dealing-With-Dates>}.
     """
     if isinstance(d, datetime.date) and not isinstance(d, datetime.datetime):
