@@ -2,18 +2,12 @@
 # See LICENSE.txt for details.
 
 """
-XML handling helpers
+XML handling helpers.
 
 @since: 0.6
 """
 
-__all__ = [
-    'find_xml_lib',
-    'is_xml_type',
-    'set_xml_type'
-]
-
-#: list of supported third party packages that support the C{ElementTree}
+#: list of supported third party packages that support the C{etree}
 #: interface. At least enough for our needs anyway.
 ETREE_MODULES = [
     'xml.etree.cElementTree',
@@ -22,14 +16,15 @@ ETREE_MODULES = [
     'elementtree.ElementTree'
 ]
 
-#: XML types.
-xml_types = None
-xml_modules = None
-
+#: A tuple of class/type objects that are used to represent XML objects.
+types = None
+#: A mapping of type -> module for all known xml types.
+modules = None
+#: The module that will be used to create C{ElementTree} instances.
 ET = None
 
 
-def find_xml_lib():
+def find_libs():
     """
     Run through L{ETREE_MODULES} and find C{ElementTree} implementations so
     that any type can be encoded.
@@ -38,13 +33,11 @@ def find_xml_lib():
     The downside to this is that B{all} libraries will be imported but I{only}
     one is ever used. The libs are small (relatively) and the flexibility that
     this gives seems to outweigh the cost. Time will tell.
-
-    @since: 0.4
     """
     from pyamf.util import get_module
 
     types = []
-    modules = []
+    mapping = {}
 
     for mod in ETREE_MODULES:
         try:
@@ -52,55 +45,107 @@ def find_xml_lib():
         except ImportError:
             continue
 
-        modules.append(etree)
-        e = etree.Element('foo')
+        t = _get_type(etree)
 
-        try:
-            types.append(e.__class__)
-        except AttributeError:
-            types.append(type(e))
+        types.append(t)
+        mapping[t] = etree
 
-    # hack for jython
-    for x in types[:]:
-        if x.__name__ == 'instance':
-            types.remove(x)
-
-    return tuple(types), tuple(modules)
+    return tuple(types), mapping
 
 
-def set_xml_type(t):
+def set_default_interface(etree):
     """
-    Sets the default type that PyAMF will use to construct XML objects,
-    supplying the stringified XML to the caller.
+    Sets the default interface that PyAMF will use to deal with XML entities
+    (both objects and blobs).
     """
-    global xml_modules, ET
+    global types, ET
 
-    if xml_modules is None:
-        xml_modules = (t,)
-    else:
-        types = set(xml_modules)
-        types.update([t])
+    t = _get_type(etree)
 
-        xml_modules = tuple(types)
+    _types = set(types)
+    _types.update([t])
 
-    ET = t
+    types = tuple(_types)
+
+    ET = etree
 
 
-def is_xml_type(t):
+def is_xml(obj):
     """
-    Determines if the type object is a valid XML type.
+    Determines C{obj} is a valid XML type.
 
-    If L{xml_types} is not populated then it will call L{find_xml_lib}.
+    If L{types} is not populated then L{find_libs} be called.
     """
-    global xml_types, xml_modules, ET
+    global types
 
-    if xml_types is None:
-        xml_types, xml_modules = find_xml_lib()
+    try:
+        _bootstrap()
+    except ImportError:
+        return False
+
+    return isinstance(obj, types)
+
+
+def _get_type(etree):
+    """
+    Returns the type associated with handling XML objects from this etree
+    interface.
+    """
+    e = etree.fromstring('<foo/>')
+
+    try:
+        return e.__class__
+    except AttributeError:
+        return type(e)
+
+
+def _no_et():
+    raise ImportError('Unable to find at least one compatible ElementTree '
+        'library, use pyamf.set_default_etree to enable XML support')
+
+
+def _bootstrap():
+    global types, modules, ET
+
+    if types is None:
+        types, modules = find_libs()
 
     if ET is None:
         try:
-            ET = xml_modules[0]
+            etree = modules[types[0]]
         except IndexError:
-            return False
+            _no_et()
 
-    return isinstance(t, xml_types)
+        set_default_interface(etree)
+
+
+def tostring(element, *args, **kwargs):
+    """
+    Helper func to provide easy access to the (possibly) moving target that is
+    C{ET}.
+    """
+    global modules
+
+    _bootstrap()
+
+    t = _get_type(element)
+
+    etree = modules.get(t, None)
+
+    if not etree:
+        raise RuntimeError('Unable to find the etree implementation related '
+            'to %r (type %r)' % (element, t))
+
+    return etree.tostring(element, *args, **kwargs)
+
+
+def fromstring(*args, **kwargs):
+    """
+    Helper func to provide easy access to the (possibly) moving target that is
+    C{ET}.
+    """
+    global ET
+
+    _bootstrap()
+
+    return ET.fromstring(*args, **kwargs)
