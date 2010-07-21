@@ -1331,6 +1331,16 @@ def register_package(module=None, package=None, separator='.', ignore=[],
     return registered
 
 
+def set_default_etree(etree):
+    """
+    Sets the default interface that will called apon to both de/serialise XML
+    entities. This means providing both C{tostring} and C{fromstring} functions.
+    """
+    from pyamf.util import xml
+
+    xml.set_default_interface(etree)
+
+
 #: setup some some standard class registrations and class loaders.
 register_class(ASObject)
 register_class_loader(flex_loader)

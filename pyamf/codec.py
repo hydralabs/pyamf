@@ -400,7 +400,7 @@ class Encoder(_Codec):
             return self.writeUndefined
         elif t in (datetime.date, datetime.datetime, datetime.time):
             return self.writeDate
-        elif util.is_xml_type(data):
+        elif util.xml.is_xml(data):
             return self.writeXML
 
         # now try some types that won't

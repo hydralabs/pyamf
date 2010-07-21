@@ -1088,7 +1088,7 @@ class Decoder(codec.Decoder):
 
         xmlstring = self.stream.read(ref >> 1)
 
-        x = util.ET.fromstring(xmlstring)
+        x = util.xml.fromstring(xmlstring)
         self.context.addObject(x)
 
         if legacy is True:
@@ -1596,7 +1596,7 @@ class Encoder(codec.Encoder):
 
         self.context.addObject(n)
 
-        self._writeString(util.ET.tostring(n, 'utf-8'))
+        self._writeString(util.xml.tostring(n, 'utf-8'))
 
 
 def decode(*args, **kwargs):

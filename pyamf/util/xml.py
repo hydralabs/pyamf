@@ -33,7 +33,7 @@ def set_default_interface(etree):
     """
     global types, ET
 
-    t = _get_type(etree)
+    t = _get_etree_type(etree)
 
     _types = set(types)
     _types.update([t])
@@ -64,7 +64,7 @@ def find_libs():
         except ImportError:
             continue
 
-        t = _get_type(etree)
+        t = _get_etree_type(etree)
 
         types.append(t)
         mapping[t] = etree
@@ -88,17 +88,25 @@ def is_xml(obj):
     return isinstance(obj, types)
 
 
-def _get_type(etree):
+def _get_type(e):
+    """
+    Returns the type associated with handling XML objects from this etree
+    interface.
+    """
+    try:
+        return e.__class__
+    except AttributeError:
+        return type(e)
+
+
+def _get_etree_type(etree):
     """
     Returns the type associated with handling XML objects from this etree
     interface.
     """
     e = etree.fromstring('<foo/>')
 
-    try:
-        return e.__class__
-    except AttributeError:
-        return type(e)
+    return _get_type(e)
 
 
 def _no_et():
@@ -129,7 +137,6 @@ def tostring(element, *args, **kwargs):
     global modules
 
     _bootstrap()
-
     t = _get_type(element)
 
     etree = modules.get(t, None)

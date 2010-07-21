@@ -20,6 +20,7 @@ import datetime
 
 import pyamf
 from pyamf import util, codec
+from pyamf.util import xml
 
 
 #: Represented as 9 bytes: 1 byte for C{0x00} and 8 bytes a double
@@ -377,7 +378,7 @@ class Decoder(codec.Decoder):
         Read XML.
         """
         data = self.readLongString()
-        xml = util.ET.fromstring(data)
+        xml = util.xml.fromstring(data)
         self.context.addObject(xml)
 
         return xml
@@ -682,8 +683,8 @@ class Encoder(codec.Encoder):
         """
         Write XML to the data stream.
 
-        @type e: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param e: The XML data to be encoded to the AMF0 data stream.
+        @type e: One of L{pyamf.util.xml.xml_types}
         """
         if self.use_amf3 is True:
             self.writeAMF3(e)
@@ -692,7 +693,7 @@ class Encoder(codec.Encoder):
 
         self.writeType(TYPE_XML)
 
-        data = util.ET.tostring(e, 'utf-8')
+        data = xml.tostring(e, 'utf-8')
         self.stream.write_ulong(len(data))
         self.stream.write(data)
 
