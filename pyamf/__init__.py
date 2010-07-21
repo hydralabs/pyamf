@@ -63,7 +63,6 @@ DEFAULT_ENCODING = AMF3
 
 
 class UndefinedType(object):
-
     def __repr__(self):
         return 'pyamf.Undefined'
 
@@ -104,13 +103,7 @@ class EncodeError(BaseError):
     """
 
 
-class ClassAliasError(BaseError):
-    """
-    Generic error for anything class alias related.
-    """
-
-
-class UnknownClassAlias(ClassAliasError):
+class UnknownClassAlias(BaseError):
     """
     Raised if the AMF stream specifies an Actionscript class that does not
     have a Python class alias.
