@@ -779,22 +779,6 @@ class Decoder(codec.Decoder):
     Decodes an AMF3 data stream.
     """
 
-    type_map = {
-        TYPE_UNDEFINED:  'readUndefined',
-        TYPE_NULL:       'readNull',
-        TYPE_BOOL_FALSE: 'readBoolFalse',
-        TYPE_BOOL_TRUE:  'readBoolTrue',
-        TYPE_INTEGER:    'readInteger',
-        TYPE_NUMBER:     'readNumber',
-        TYPE_STRING:     'readUnicode',
-        TYPE_XML:        'readXML',
-        TYPE_DATE:       'readDate',
-        TYPE_ARRAY:      'readArray',
-        TYPE_OBJECT:     'readObject',
-        TYPE_XMLSTRING:  'readXMLString',
-        TYPE_BYTEARRAY:  'readByteArray',
-    }
-
     def __init__(self, *args, **kwargs):
         self.use_proxies = kwargs.pop('use_proxies', use_proxies_default)
 
@@ -802,6 +786,34 @@ class Decoder(codec.Decoder):
 
     def buildContext(self):
         return Context()
+
+    def getTypeFunc(self, data):
+        if data == TYPE_UNDEFINED:
+            return self.readUndefined
+        elif data == TYPE_NULL:
+            return self.readNull
+        elif data == TYPE_BOOL_FALSE:
+            return self.readBoolFalse
+        elif data == TYPE_BOOL_TRUE:
+            return self.readBoolTrue
+        elif data == TYPE_INTEGER:
+            return self.readInteger
+        elif data == TYPE_NUMBER:
+            return self.readNumber
+        elif data == TYPE_STRING:
+            return self.readString
+        elif data == TYPE_XML:
+            return self.readXML
+        elif data == TYPE_DATE:
+            return self.readDate
+        elif data == TYPE_ARRAY:
+            return self.readArray
+        elif data == TYPE_OBJECT:
+            return self.readObject
+        elif data == TYPE_XMLSTRING:
+            return self.readXMLString
+        elif data == TYPE_BYTEARRAY:
+            return self.readByteArray
 
     def readProxy(self, obj, **kwargs):
         """
