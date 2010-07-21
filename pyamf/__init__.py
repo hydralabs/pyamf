@@ -34,7 +34,7 @@ __version__ = version = v.Version(0, 6, 0, 'b1')
 #: Class mapping support.
 CLASS_CACHE = {}
 #: Class loaders.
-CLASS_LOADERS = []
+CLASS_LOADERS = set()
 #: Custom type map.
 TYPE_MAP = {}
 #: Maps error classes to string codes.
@@ -830,13 +830,10 @@ def register_class_loader(loader):
     :raise TypeError: The `loader` is not callable.
     :raise ValueError: The `loader` is already registered.
     """
-    if not callable(loader):
+    if not hasattr(loader, '__call__'):
         raise TypeError("loader must be callable")
 
-    if loader in CLASS_LOADERS:
-        raise ValueError("loader has already been registered")
-
-    CLASS_LOADERS.append(loader)
+    CLASS_LOADERS.update([loader])
 
 
 def unregister_class_loader(loader):
