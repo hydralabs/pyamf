@@ -1088,7 +1088,7 @@ class Decoder(codec.Decoder):
 
         xmlstring = self.stream.read(ref >> 1)
 
-        x = util.xml.fromstring(xmlstring)
+        x = xml.fromstring(xmlstring)
         self.context.addObject(x)
 
         if legacy is True:

@@ -20,7 +20,7 @@ ETREE_MODULES = [
 #: A tuple of class/type objects that are used to represent XML objects.
 types = None
 #: A mapping of type -> module for all known xml types.
-modules = None
+modules = {}
 #: The module that will be used to create C{ElementTree} instances.
 ET = None
 
@@ -32,16 +32,20 @@ def set_default_interface(etree):
     Sets the default interface that PyAMF will use to deal with XML entities
     (both objects and blobs).
     """
-    global types, ET
+    global types, ET, modules
 
     t = _get_etree_type(etree)
 
-    _types = set(types)
+    _types = set(types or [])
     _types.update([t])
 
     types = tuple(_types)
 
-    ET = etree
+    modules[t] = etree
+
+    old, ET = ET, etree
+
+    return old
 
 
 def find_libs():

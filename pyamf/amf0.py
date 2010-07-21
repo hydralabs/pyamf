@@ -378,7 +378,7 @@ class Decoder(codec.Decoder):
         root = xml.fromstring(data)
         self.context.addObject(root)
 
-        return xml
+        return root
 
 
 class Encoder(codec.Encoder):

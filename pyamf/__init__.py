@@ -1335,10 +1335,12 @@ def set_default_etree(etree):
     """
     Sets the default interface that will called apon to both de/serialise XML
     entities. This means providing both C{tostring} and C{fromstring} functions.
-    """
-    from pyamf.util import xml
 
-    xml.set_default_interface(etree)
+    For testing purposes, will return the previous value for this (if any).
+    """
+    from pyamf import xml
+
+    return xml.set_default_interface(etree)
 
 
 #: setup some some standard class registrations and class loaders.

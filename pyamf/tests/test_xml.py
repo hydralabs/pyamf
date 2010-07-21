@@ -62,13 +62,23 @@ for mod in pyamf.xml.ETREE_MODULES:
 
         element = etree.fromstring(self.xml)
         xml = etree.tostring(element)
-        bytes = pyamf.encode(element, encoding=pyamf.AMF0).getvalue()
 
+        old = pyamf.set_default_etree(etree)
+
+        if old:
+            self.addCleanup(lambda x: pyamf.set_default_etree(x), old)
+
+        bytes = pyamf.encode(element, encoding=pyamf.AMF0).getvalue()
         self.check_amf0(bytes, xml)
 
-        bytes = pyamf.encode(element, encoding=pyamf.AMF3).getvalue()
+        new_element = pyamf.decode(bytes, encoding=pyamf.AMF0).next()
+        self.assertIdentical(type(element), type(new_element))
 
+        bytes = pyamf.encode(element, encoding=pyamf.AMF3).getvalue()
         self.check_amf3(bytes, xml)
+
+        new_element = pyamf.decode(bytes, encoding=pyamf.AMF3).next()
+        self.assertIdentical(type(element), type(new_element))
 
     check_etree.__name__ = name
 
