@@ -98,7 +98,8 @@ class IndexedCollection(object):
         if isinstance(other, list):
             return self.list == other
 
-        raise NotImplementError("cannot compare %s to %r" % (type(other), self))
+        raise NotImplementedError("cannot compare %s to %r" % (
+            type(other), self))
 
     def __len__(self):
         return len(self.list)
@@ -354,7 +355,7 @@ class Encoder(_Codec):
 
     writeNull = _write_type
     writeString = _write_type
-    writeUnicode = _write_typel
+    writeUnicode = _write_type
     writeBoolean = _write_type
     writeNumber = _write_type
     writeList = _write_type
@@ -403,10 +404,10 @@ class Encoder(_Codec):
             return self.writeXML
 
         # now try some types that won't
-        elif t in python.class_types:
+        if t in python.class_types:
             # can't encode classes
             return None
-        elif hasattr(t, '__call__'):
+        elif isinstance(data, python.func_types):
             # can't encode code objects
             return None
         elif isinstance(t, types.ModuleType):
@@ -421,12 +422,7 @@ class Encoder(_Codec):
         Encodes C{data} to AMF. If the data is not able to be matched to an AMF
         type, then L{pyamf.EncodeError} will be raised.
         """
-        try:
-            key = data.__class__
-        except AttributeError:
-            # usually extension types
-            key = type(data)
-
+        key = type(data)
         func = None
 
         try:

@@ -9,6 +9,9 @@ Python compatibility values and helpers.
 
 import types
 
+func_types = (
+    types.BuiltinFunctionType, types.BuiltinMethodType, types.CodeType,
+    types.FunctionType, types.GeneratorType, types.LambdaType, types.MethodType)
 class_types = [type]
 int_types = [int]
 str_types = [str]
@@ -27,6 +30,7 @@ try:
     class_types.append(types.ClassType)
 except:
     pass
+
 
 int_types = tuple(int_types)
 str_types = tuple(str_types)
