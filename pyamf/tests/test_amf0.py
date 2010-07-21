@@ -76,32 +76,6 @@ class ContextTestCase(unittest.TestCase):
 
         self.assertFalse(x.hasAMF3ObjectReference({}))
 
-    def test_get_by_reference(self):
-        x = amf0.Context()
-        y = [1, 2, 3]
-        z = {'spam': 'eggs'}
-
-        x.addObject(y)
-        x.addObject(z)
-
-        self.assertEqual(x.getObject(0), y)
-        self.assertEqual(x.getObject(1), z)
-        self.assertEqual(x.getObject(2), None)
-        self.assertRaises(TypeError, x.getObject, '')
-        self.assertRaises(TypeError, x.getObject, 2.2323)
-
-    def test_get_reference(self):
-        x = amf0.Context()
-        y = [1, 2, 3]
-        z = {'spam': 'eggs'}
-
-        ref1 = x.addObject(y)
-        ref2 = x.addObject(z)
-
-        self.assertEqual(x.getObjectReference(y), ref1)
-        self.assertEqual(x.getObjectReference(z), ref2)
-        self.assertEqual(x.getObjectReference({}), -1)
-
 
 class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
     """
@@ -789,7 +763,18 @@ class HelperTestCase(unittest.TestCase):
         self.assertEqual([x for x in amf0.decode('\x07\x00\x00', context=context)], [obj])
 
 
-class RecordSetTestCase(unittest.TestCase):
+class RecordSetTestCase(unittest.TestCase, EncoderMixIn, DecoderMixIn):
+    """
+    Tests for L{amf0.RecordSet}
+    """
+
+    amf_type = pyamf.AMF0
+
+    def setUp(self):
+        unittest.TestCase.setUp(self)
+        EncoderMixIn.setUp(self)
+        DecoderMixIn.setUp(self)
+
     def test_create(self):
         x = amf0.RecordSet()
 
@@ -876,15 +861,11 @@ class RecordSetTestCase(unittest.TestCase):
         self.assertEqual(si.id, 'asdfasdf')
 
     def test_encode(self):
-        stream = util.BufferedByteStream()
-        encoder = pyamf._get_encoder_class(pyamf.AMF0)(stream)
-
         x = amf0.RecordSet(columns=['a', 'b', 'c'], items=[
             [1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
-        encoder.writeElement(x)
-
-        stream.write('\x10\x00\tRecordSet\x00\nserverInfo\x03\x00\x06cursor'
+        self.assertEncoded(x,
+            '\x10\x00\tRecordSet\x00\nserverInfo\x03\x00\x06cursor'
             '\x00?\xf0\x00\x00\x00\x00\x00\x00\x00\x0bcolumnNames\n\x00\x00'
             '\x00\x03\x02\x00\x01a\x02\x00\x01b\x02\x00\x01c\x00\x0binitial'
             'Data\n\x00\x00\x00\x03\n\x00\x00\x00\x03\x00?\xf0\x00\x00\x00'
@@ -897,24 +878,17 @@ class RecordSetTestCase(unittest.TestCase):
             '\x08\x00\x00\x00\x00\x00\x00\x00\x00\t\x00\x00\t')
 
     def test_decode(self):
-        stream = util.BufferedByteStream()
-        decoder = pyamf._get_decoder_class(pyamf.AMF0)(stream)
-
-        stream.write('\x10\x00\tRecordSet\x00\n'
-            'serverInfo\x08\x00\x00\x00\x00\x00\x06cursor\x00?\xf0\x00\x00\x00'
-            '\x00\x00\x00\x00\x0bcolumnNames\n\x00\x00\x00\x03\x02\x00\x01a'
-            '\x02\x00\x01b\x02\x00\x01c\x00\x0binitialData\n\x00\x00\x00\x03'
-            '\n\x00\x00\x00\x03\x00?\xf0\x00\x00\x00\x00\x00\x00\x00@\x00\x00'
-            '\x00\x00\x00\x00\x00\x00@\x08\x00\x00\x00\x00\x00\x00\n\x00\x00'
-            '\x00\x03\x00@\x10\x00\x00\x00\x00\x00\x00\x00@\x14\x00\x00\x00'
-            '\x00\x00\x00\x00@\x18\x00\x00\x00\x00\x00\x00\n\x00\x00\x00\x03'
-            '\x00@\x1c\x00\x00\x00\x00\x00\x00\x00@ \x00\x00\x00\x00\x00\x00'
-            '\x00@"\x00\x00\x00\x00\x00\x00\x00\x07version\x00?\xf0\x00\x00'
-            '\x00\x00\x00\x00\x00\ntotalCount\x00@\x08\x00\x00\x00\x00\x00\x00'
-            '\x00\x00\t\x00\x00\t')
-
-        stream.seek(0, 0)
-        x = decoder.readElement()
+        x = self.decode('\x10\x00\tRecordSet\x00\nserverInfo\x08\x00\x00\x00'
+            '\x00\x00\x06cursor\x00?\xf0\x00\x00\x00\x00\x00\x00\x00\x0b'
+            'columnNames\n\x00\x00\x00\x03\x02\x00\x01a\x02\x00\x01b\x02\x00'
+            '\x01c\x00\x0binitialData\n\x00\x00\x00\x03\n\x00\x00\x00\x03\x00?'
+            '\xf0\x00\x00\x00\x00\x00\x00\x00@\x00\x00\x00\x00\x00\x00\x00\x00'
+            '@\x08\x00\x00\x00\x00\x00\x00\n\x00\x00\x00\x03\x00@\x10\x00\x00'
+            '\x00\x00\x00\x00\x00@\x14\x00\x00\x00\x00\x00\x00\x00@\x18\x00\x00'
+            '\x00\x00\x00\x00\n\x00\x00\x00\x03\x00@\x1c\x00\x00\x00\x00\x00'
+            '\x00\x00@ \x00\x00\x00\x00\x00\x00\x00@"\x00\x00\x00\x00\x00\x00'
+            '\x00\x07version\x00?\xf0\x00\x00\x00\x00\x00\x00\x00\ntotalCount'
+            '\x00@\x08\x00\x00\x00\x00\x00\x00\x00\x00\t\x00\x00\t')
 
         self.assertTrue(isinstance(x, amf0.RecordSet))
         self.assertEqual(x.columns, ['a', 'b', 'c'])
