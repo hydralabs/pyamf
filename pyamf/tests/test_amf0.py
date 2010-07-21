@@ -14,7 +14,7 @@ import datetime
 import types
 
 import pyamf
-from pyamf import amf0, util
+from pyamf import amf0, util, xml, python
 from pyamf.tests.util import (
     EncoderMixIn, DecoderMixIn, ClassCacheClearingTestCase, Spam, ClassicSpam)
 
@@ -485,19 +485,19 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         self.buf.write('\x00\xff\xf8\x00\x00\x00\x00\x00\x00')
         self.buf.seek(0)
         x = self.decoder.readElement()
-        self.assertTrue(util.isNaN(x))
+        self.assertTrue(python.isNaN(x))
 
         self.buf.truncate()
         self.buf.write('\x00\xff\xf0\x00\x00\x00\x00\x00\x00')
         self.buf.seek(0)
         x = self.decoder.readElement()
-        self.assertTrue(util.isNegInf(x))
+        self.assertTrue(python.isNegInf(x))
 
         self.buf.truncate()
         self.buf.write('\x00\x7f\xf0\x00\x00\x00\x00\x00\x00')
         self.buf.seek(0)
         x = self.decoder.readElement()
-        self.assertTrue(util.isPosInf(x))
+        self.assertTrue(python.isPosInf(x))
 
     def test_boolean(self):
         self.assertDecoded(True, '\x01\x01')
@@ -532,7 +532,7 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         self.buf.seek(0)
         d = self.decoder.readElement()
 
-        self.assertEqual(type(d.keys()[0]), str)
+        self.assertEqual(type(d.keys()[0]), unicode)
 
     def test_mixed_array(self):
         bytes = ('\x08\x00\x00\x00\x00\x00\x01a\x00?\xf0\x00\x00\x00\x00\x00'
@@ -545,7 +545,7 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         self.buf.seek(0)
         d = self.decoder.readElement()
 
-        self.assertEqual(type(d.keys()[0]), str)
+        self.assertEqual(type(d.keys()[0]), unicode)
 
     def test_date(self):
         self.assertDecoded(datetime.datetime(2005, 3, 18, 1, 58, 31),
@@ -557,7 +557,7 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         e = '<a><b>hello world</b></a>'
         ret = self.decode('\x0f\x00\x00\x00\x19' + e)
 
-        self.assertEqual(util.ET.tostring(ret), e)
+        self.assertEqual(xml.tostring(ret), e)
 
     def test_xml_references(self):
         self.buf.truncate(0)
@@ -566,12 +566,12 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         self.buf.seek(0)
 
         self.assertEqual(
-            util.ET.tostring(util.ET.fromstring('<a><b>hello world</b></a>')),
-            util.ET.tostring(self.decoder.readElement()))
+            xml.tostring(xml.fromstring('<a><b>hello world</b></a>')),
+            xml.tostring(self.decoder.readElement()))
 
         self.assertEqual(
-            util.ET.tostring(util.ET.fromstring('<a><b>hello world</b></a>')),
-            util.ET.tostring(self.decoder.readElement()))
+            xml.tostring(xml.fromstring('<a><b>hello world</b></a>')),
+            xml.tostring(self.decoder.readElement()))
 
     def test_object(self):
         bytes = '\x03\x00\x01a\x02\x00\x01b\x00\x00\x09'
@@ -582,7 +582,7 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         self.buf.seek(0)
         d = self.decoder.readElement()
 
-        self.assertEqual(type(d.keys()[0]), str)
+        self.assertEqual(type(d.keys()[0]), unicode)
 
     def test_registered_class(self):
         pyamf.register_class(Spam, alias='org.pyamf.spam')
