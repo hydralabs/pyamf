@@ -268,7 +268,7 @@ class Decoder(codec.Decoder):
         obj = alias.createInstance(codec=self)
         self.context.addObject(obj)
 
-        attrs = self.readObjectAttributes(ret)
+        attrs = self.readObjectAttributes(obj)
         alias.applyAttributes(obj, attrs, codec=self)
 
         return obj
@@ -306,6 +306,8 @@ class Decoder(codec.Decoder):
 
         # discard the end marker (TYPE_OBJECTTERM)
         self.stream.read(1)
+
+        return obj_attrs
 
     def readObject(self):
         """
@@ -733,7 +735,7 @@ class RecordSet(object):
     @type id: C{str}
 
     @see: U{RecordSet on OSFlash (external)
-    <http://osflash.org/documentation/amf/recordset>}
+        <http://osflash.org/documentation/amf/recordset>}
     """
 
     class __amf__:
