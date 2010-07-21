@@ -172,7 +172,10 @@ class ClassAlias(object):
         self.checkClass(klass)
 
         self.klass = klass
-        self.alias = alias.decode('utf-8')
+        self.alias = alias
+
+        if hasattr(self.alias, 'decode'):
+            self.alias = self.alias.decode('utf-8')
 
         self.static_attrs = kwargs.pop('static_attrs', None)
         self.exclude_attrs = kwargs.pop('exclude_attrs', None)
@@ -752,9 +755,10 @@ class ErrorAlias(ClassAlias):
 
 def register_class(klass, alias=None):
     """
-    Registers a class to be used in the data streaming.
+    Registers a class to be used in the data streaming. This is the equivalent
+    to the C{[RemoteClass(alias="foobar")]} AS3 metatag.
 
-    :return: The registered :class:`ClassAlias`.
+    @return: The registered L{ClassAlias} instance.
     """
     meta = util.get_class_meta(klass)
 
@@ -775,13 +779,9 @@ def register_class(klass, alias=None):
 
 def unregister_class(alias):
     """
-    Deletes a class from the cache.
+    Opposite of L{register_class}.
 
-    If `alias` is a class, the matching alias is found.
-
-    :type alias: `class` or `str`
-    :param alias: Alias for class to delete.
-    :raise UnknownClassAlias: Unknown alias.
+    @raise UnknownClassAlias: Unknown alias.
     """
     try:
         x = CLASS_CACHE[alias]
@@ -796,25 +796,25 @@ def unregister_class(alias):
     return x
 
 
-def get_class_alias(klass):
+def get_class_alias(klass_or_alias):
     """
-    Finds the alias registered to the class.
+    Finds the L{ClassAlias} that is registered to C{klass_or_alias}.
 
-    :type klass: `object` or class object.
-    :return: The class alias linked to `klass`.
-    :rtype: :class:`ClassAlias`
-    :raise UnknownClassAlias: Class not found.
+    If a string is supplied and no related L{ClassAlias} is found, the alias is
+    loaded via L{load_class}.
+
+    @raise UnknownClassAlias: Unknown alias
     """
-    if isinstance(klass, python.str_types):
+    if isinstance(klass_or_alias, python.str_types):
         try:
-            return CLASS_CACHE[klass]
+            return CLASS_CACHE[klass_or_alias]
         except KeyError:
-            return load_class(klass)
+            return load_class(klass_or_alias)
 
     try:
-        return CLASS_CACHE[klass]
+        return CLASS_CACHE[klass_or_alias]
     except KeyError:
-        raise UnknownClassAlias('Unknown alias for %r' % (klass,))
+        raise UnknownClassAlias('Unknown alias for %r' % (klass_or_alias,))
 
 
 def register_class_loader(loader):
