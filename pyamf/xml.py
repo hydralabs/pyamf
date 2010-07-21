@@ -2,7 +2,7 @@
 # See LICENSE.txt for details.
 
 """
-XML handling helpers.
+Provides XML support.
 
 @since: 0.6
 """
