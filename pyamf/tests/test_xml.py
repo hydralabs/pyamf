@@ -10,8 +10,11 @@ Tests for XML library integration
 """
 
 import unittest
+import sys
+import traceback
 
-import pyamf
+import pyamf.xml
+from pyamf import util
 
 
 class ElementTreeTestCase(unittest.TestCase):
@@ -19,57 +22,55 @@ class ElementTreeTestCase(unittest.TestCase):
     Tests the type mappings.
     """
 
-    amf0_encoding = '\x0f\x00\x00\x00\x11<foo bar="baz" />'
-    amf3_encoding = '\x0b#<foo bar="baz" />'
+    xml = '<foo bar="baz" />'
 
-    def _encode(self, mod):
-        element = mod.Element('foo', bar='baz')
+    def check_amf0(self, bytes, xml):
+        b = util.BufferedByteStream(bytes)
 
-        return (
-            pyamf.encode(element, encoding=pyamf.AMF0).getvalue(),
-            pyamf.encode(element, encoding=pyamf.AMF3).getvalue()
-        )
+        self.assertEqual(b.read_char(), 15)
 
-    def test_cElementTree(self):
+        l = b.read_ulong()
+
+        self.assertEqual(l, b.remaining())
+        self.assertEqual(b.read(), xml)
+
+    def check_amf3(self, bytes, xml):
+        b = util.BufferedByteStream(bytes)
+
+        self.assertEqual(b.read_char(), 11)
+
+        l = b.read_uchar()
+
+        self.assertEqual(l >> 1, b.remaining())
+        self.assertEqual(b.read(), xml)
+
+
+for mod in pyamf.xml.ETREE_MODULES:
+    name = 'test_' + mod.replace('.', '_')
+
+    def check_etree(self):
+        # holy hack batman
+        import inspect
+
+        mod = inspect.stack()[1][0].f_locals['testMethod'].__name__[5:]
+        mod = mod.replace('_', '.')
+
         try:
-            import cElementTree
+            etree = util.get_module(mod)
         except ImportError:
-            self.skipTest("'cElementTree' is not available")
+            self.skipTest('%r is not available' % (mod,))
 
-        self.assertEqual(self._encode(cElementTree), (
-            ElementTreeTestCase.amf0_encoding,
-            ElementTreeTestCase.amf3_encoding
-        ))
+        element = etree.fromstring(self.xml)
+        xml = etree.tostring(element)
+        bytes = pyamf.encode(element, encoding=pyamf.AMF0).getvalue()
 
-    def test_xe_cElementTree(self):
-        try:
-            from xml.etree import cElementTree
-        except ImportError:
-            self.skipTest("'xml.etree.cElementTree' is not available")
+        self.check_amf0(bytes, xml)
 
-        self.assertEqual(self._encode(cElementTree), (
-            ElementTreeTestCase.amf0_encoding,
-            ElementTreeTestCase.amf3_encoding
-        ))
+        bytes = pyamf.encode(element, encoding=pyamf.AMF3).getvalue()
 
-    def test_xe_ElementTree(self):
-        try:
-            from xml.etree import ElementTree
-        except ImportError:
-            self.skipTest("'xml.etree.ElementTree' is not available")
+        self.check_amf3(bytes, xml)
 
-        self.assertEqual(self._encode(ElementTree), (
-            ElementTreeTestCase.amf0_encoding,
-            ElementTreeTestCase.amf3_encoding
-        ))
+    check_etree.__name__ = name
 
-    def test_ElementTree(self):
-        try:
-            from elementtree import ElementTree
-        except ImportError:
-            self.skipTest("'elementtree.ElementTree' is not available")
+    setattr(ElementTreeTestCase, name, check_etree)
 
-        self.assertEqual(self._encode(ElementTree), (
-            ElementTreeTestCase.amf0_encoding,
-            ElementTreeTestCase.amf3_encoding
-        ))

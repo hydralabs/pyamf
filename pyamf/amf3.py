@@ -1596,7 +1596,7 @@ class Encoder(codec.Encoder):
 
         self.context.addObject(n)
 
-        self._writeString(xml.tostring(n, 'utf-8'))
+        self._writeString(xml.tostring(n).encode('utf-8'))
 
 
 def decode(*args, **kwargs):

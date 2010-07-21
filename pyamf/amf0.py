@@ -375,8 +375,8 @@ class Decoder(codec.Decoder):
         Read XML.
         """
         data = self.readLongString()
-        xml = util.xml.fromstring(data)
-        self.context.addObject(xml)
+        root = xml.fromstring(data)
+        self.context.addObject(root)
 
         return xml
 
@@ -690,7 +690,7 @@ class Encoder(codec.Encoder):
 
         self.writeType(TYPE_XML)
 
-        data = xml.tostring(e, 'utf-8')
+        data = xml.tostring(e).encode('utf-8')
         self.stream.write_ulong(len(data))
         self.stream.write(data)
 
