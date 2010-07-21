@@ -24,6 +24,23 @@ modules = None
 ET = None
 
 
+def set_default_interface(etree):
+    """
+    Sets the default interface that PyAMF will use to deal with XML entities
+    (both objects and blobs).
+    """
+    global types, ET
+
+    t = _get_type(etree)
+
+    _types = set(types)
+    _types.update([t])
+
+    types = tuple(_types)
+
+    ET = etree
+
+
 def find_libs():
     """
     Run through L{ETREE_MODULES} and find C{ElementTree} implementations so
@@ -51,23 +68,6 @@ def find_libs():
         mapping[t] = etree
 
     return tuple(types), mapping
-
-
-def set_default_interface(etree):
-    """
-    Sets the default interface that PyAMF will use to deal with XML entities
-    (both objects and blobs).
-    """
-    global types, ET
-
-    t = _get_type(etree)
-
-    _types = set(types)
-    _types.update([t])
-
-    types = tuple(_types)
-
-    ET = etree
 
 
 def is_xml(obj):
