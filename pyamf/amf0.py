@@ -227,11 +227,11 @@ class Decoder(codec.Decoder):
 
         for key in attrs.keys():
             try:
-                ikey = int(key)
-                obj[ikey] = attrs[key]
+                key = int(key)
             except ValueError:
-                # XXX: do we want to ignore this?
                 pass
+
+            obj[key] = attrs[key]
 
         return obj
 
