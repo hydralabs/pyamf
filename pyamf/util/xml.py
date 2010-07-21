@@ -23,6 +23,8 @@ modules = None
 #: The module that will be used to create C{ElementTree} instances.
 ET = None
 
+__all__ = ['set_default_interface']
+
 
 def set_default_interface(etree):
     """
