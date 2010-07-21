@@ -974,21 +974,21 @@ def encode(*args, **kwargs):
     return stream
 
 
-def get_decoder(version, *args, **kwargs):
+def get_decoder(encoding, *args, **kwargs):
     """
-    Returns a L{codec.Decoder} capable of decoding AMF C{version} streams.
+    Returns a L{codec.Decoder} capable of decoding AMF[C{encoding}] streams.
 
-    @raise ValueError: Unknown C{version}.
+    @raise ValueError: Unknown C{encoding}.
     """
     def _get_decoder_class():
-        if version == AMF0:
+        if encoding == AMF0:
             try:
                 from cpyamf import amf0
             except ImportError:
                 from pyamf import amf0
 
             return amf0.Decoder
-        elif version == AMF3:
+        elif encoding == AMF3:
             try:
                 from cpyamf import amf3
             except ImportError:
@@ -996,26 +996,26 @@ def get_decoder(version, *args, **kwargs):
 
             return amf3.Decoder
 
-        raise ValueError("Unknown AMF version %r" % (version,))
+        raise ValueError("Unknown encoding %r" % (encoding,))
 
-    return _get_decoder_class(version)(*args, **kwargs)
+    return _get_decoder_class()(*args, **kwargs)
 
 
-def get_encoder(version, *args, **kwargs):
+def get_encoder(encoding, *args, **kwargs):
     """
-    Returns a L{codec.Encoder} capable of encoding AMF C{version} streams.
+    Returns a L{codec.Encoder} capable of encoding AMF[C{encoding}] streams.
 
-    @raise ValueError: Unknown C{version}.
+    @raise ValueError: Unknown C{encoding}.
     """
-    def _get_encoder_class(encoding):
-        if version == AMF0:
+    def _get_encoder_class():
+        if encoding == AMF0:
             try:
                 from cpyamf import amf0
             except ImportError:
                 from pyamf import amf0
 
             return amf0.Encoder
-        elif version == AMF3:
+        elif encoding == AMF3:
             try:
                 from cpyamf import amf3
             except ImportError:
@@ -1023,9 +1023,9 @@ def get_encoder(version, *args, **kwargs):
 
             return amf3.Encoder
 
-        raise ValueError("Unknown version %r" % (version,))
+        raise ValueError("Unknown encoding %r" % (encoding,))
 
-    return _get_encoder_class(version)(*args, **kwargs)
+    return _get_encoder_class()(*args, **kwargs)
 
 
 def blaze_loader(alias):
