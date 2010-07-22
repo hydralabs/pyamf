@@ -712,7 +712,7 @@ class TypedObjectClassAlias(ClassAlias):
 
     klass = TypedObject
 
-    def __init__(self, klass, alias, *args, **kwargs):
+    def __init__(self, alias, *args, **kwargs):
         # klass attr is ignored
 
         ClassAlias.__init__(self, self.klass, alias)

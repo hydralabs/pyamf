@@ -183,10 +183,14 @@ class Context(object):
 
     def getClassAlias(self, klass):
         """
-        Gets a class alias based on the supplied C{klass}.
+        Gets a class alias based on the supplied C{klass}. If one is not found
+        in the global context, one is created locally.
 
-        @param klass: A class object.
-        @return: The L{pyamf.ClassAlias} that is linked to C{klass}
+        If you supply a string alias and the class is not registered,
+        L{pyamf.UnknownClassAlias} will be raised.
+
+        @param klass: A class object or string alias.
+        @return: The L{pyamf.ClassAlias} instance that describes C{klass}
         """
         try:
             return self._class_aliases[klass]
@@ -196,11 +200,11 @@ class Context(object):
         try:
             alias = self._class_aliases[klass] = pyamf.get_class_alias(klass)
         except pyamf.UnknownClassAlias:
-            # no alias has been found yet .. check subclasses
-            alias = util.get_class_alias(klass)
-
-            if alias is None:
+            if isinstance(klass, python.str_types):
                 raise
+
+            # no alias has been found yet .. check subclasses
+            alias = util.get_class_alias(klass) or pyamf.ClassAlias
 
             alias = self._class_aliases[klass] = alias(klass)
 

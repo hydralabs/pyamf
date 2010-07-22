@@ -261,7 +261,7 @@ class Decoder(codec.Decoder):
             if self.strict:
                 raise
 
-            alias = pyamf.TypedObjectClassAlias(None, class_alias)
+            alias = pyamf.TypedObjectClassAlias(class_alias)
 
         obj = alias.createInstance(codec=self)
         self.context.addObject(obj)
