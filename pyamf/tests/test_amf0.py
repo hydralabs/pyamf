@@ -394,9 +394,18 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
 
     def test_amf3_xml(self):
         self.encoder.use_amf3 = True
-        xml = '<root><sections><section /><section /></sections></root>'
+        blob = '<root><sections><section /><section /></sections></root>'
 
-        self.assertEncoded(util.ET.fromstring(xml), '\x11\x0bq' + xml)
+        blob = xml.tostring(xml.fromstring(blob))
+
+        bytes = self.encode(xml.fromstring(blob))
+
+        buf = util.BufferedByteStream(bytes)
+
+        self.assertEqual(buf.read_uchar(), 17)
+        self.assertEqual(buf.read_uchar(), 11)
+        self.assertEqual(buf.read_uchar() >> 1, buf.remaining())
+        self.assertEqual(buf.read(), blob)
 
     def test_use_amf3(self):
         self.encoder.use_amf3 = True
