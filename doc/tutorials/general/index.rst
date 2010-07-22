@@ -8,5 +8,5 @@
    helloworld/index.rst
    client.rst
    remoteobject.rst
-   authentication.rst
+   authentication/index.rst
    sharedobject.rst

@@ -24,7 +24,7 @@ summary of all new features.
   :doc:`Django <../tutorials/gateways/django>`,
   :doc:`Google App Engine <../tutorials/gateways/appengine>` and
   :doc:`SQLAlchemy <../tutorials/gateways/sqlalchemy>`
-- :doc:`Authentication <../tutorials/general/authentication>`/``setCredentials`` support
+- :doc:`Authentication <../tutorials/general/authentication/index>`/``setCredentials`` support
 - Python AMF :doc:`client <../tutorials/general/client>` with HTTP(S)
   and authentication support
 - Service Browser requests supported
