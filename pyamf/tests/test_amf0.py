@@ -45,38 +45,6 @@ class TypesTestCase(unittest.TestCase):
         self.assertEqual(amf0.TYPE_AMF3, '\x11')
 
 
-class ContextTestCase(unittest.TestCase):
-    def test_create(self):
-        c = amf0.Context()
-
-        self.assertEqual(c.objects, [])
-        self.assertEqual(len(c.objects), 0)
-
-    def test_add(self):
-        x = amf0.Context()
-        y = [1, 2, 3]
-
-        self.assertEqual(x.addObject(y), 0)
-        self.assertTrue(y in x.objects)
-        self.assertEqual(len(x.objects), 1)
-
-    def test_clear(self):
-        x = amf0.Context()
-        x.clear()
-
-        y = [1, 2, 3]
-
-        x.addObject(y)
-        x.addAMF3Object({})
-        x.clear()
-
-        self.assertEqual(x.objects, [])
-        self.assertEqual(len(x.objects), 0)
-        self.assertFalse(y in x.objects)
-
-        self.assertFalse(x.hasAMF3ObjectReference({}))
-
-
 class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
     """
     Tests the output from the AMF0 L{Encoder<pyamf.amf0.Encoder>} class.
