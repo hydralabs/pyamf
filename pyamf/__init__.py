@@ -755,7 +755,7 @@ def register_class(klass, alias=None):
     if alias is not None:
         meta['alias'] = alias
 
-    alias_klass = util.get_class_alias(klass)
+    alias_klass = util.get_class_alias(klass) or ClassAlias
 
     x = alias_klass(klass, defer=True, **meta)
 

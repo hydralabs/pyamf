@@ -188,16 +188,19 @@ class Context(object):
         @param klass: A class object.
         @return: The L{pyamf.ClassAlias} that is linked to C{klass}
         """
-        alias = self._class_aliases.get(klass)
-
-        if alias is not None:
-            return alias
+        try:
+            return self._class_aliases[klass]
+        except KeyError:
+            pass
 
         try:
             alias = self._class_aliases[klass] = pyamf.get_class_alias(klass)
         except pyamf.UnknownClassAlias:
             # no alias has been found yet .. check subclasses
             alias = util.get_class_alias(klass)
+
+            if alias is None:
+                raise
 
             alias = self._class_aliases[klass] = alias(klass)
 
@@ -363,6 +366,7 @@ class Encoder(_Codec):
     writeDate = _write_type
     writeXML = _write_type
     writeObject = _write_type
+    writeSequence = _write_type
 
     def getTypeFunc(self, data):
         """
@@ -394,8 +398,10 @@ class Encoder(_Codec):
             return self.writeNumber
         elif t in python.int_types:
             return self.writeNumber
-        elif isinstance(data, (list, tuple)):
+        elif t in (list, tuple):
             return self.writeList
+        elif isinstance(data, (list, tuple)):
+            return self.writeSequence
         elif t is pyamf.UndefinedType:
             return self.writeUndefined
         elif t in (datetime.date, datetime.datetime, datetime.time):

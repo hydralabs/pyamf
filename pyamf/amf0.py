@@ -261,7 +261,7 @@ class Decoder(codec.Decoder):
             if self.strict:
                 raise
 
-            alias = pyamf.TypedObjectClassAlias(None, classname)
+            alias = pyamf.TypedObjectClassAlias(None, class_alias)
 
         obj = alias.createInstance(codec=self)
         self.context.addObject(obj)
@@ -460,15 +460,6 @@ class Encoder(codec.Encoder):
         @type a: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param a: The array data to be encoded to the AMF0 data stream.
         """
-        alias = self.context.getClassAlias(a.__class__)
-
-        if alias.external:
-            # a is a subclassed list with a registered alias - push to the
-            # correct method
-            self.writeObject(a)
-
-            return
-
         if self.writeReference(a) != -1:
             return
 
@@ -479,6 +470,20 @@ class Encoder(codec.Encoder):
 
         for data in a:
             self.writeElement(data)
+
+    def writeSequence(self, iterable):
+        """
+        """
+        alias = self.context.getClassAlias(iterable.__class__)
+
+        if alias.external:
+            # a is a subclassed list with a registered alias - push to the
+            # correct method
+            self.writeObject(iterable)
+
+            return
+
+        self.writeList(iterable)
 
     def writeNumber(self, n):
         """

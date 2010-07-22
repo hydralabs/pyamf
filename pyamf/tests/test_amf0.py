@@ -149,18 +149,17 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
         self.assertRaises(pyamf.EncodeError, self.encode, datetime.time(22, 3))
 
     def test_xml(self):
-        xml = '<a><b>hello world</b></a>'
+        blob = '<a><b>hello world</b></a>'
 
-        self.assertEncoded(util.ET.fromstring(xml),
-            '\x0f\x00\x00\x00\x19' + xml)
+        self.assertEncoded(xml.fromstring(blob),
+            '\x0f\x00\x00\x00\x19' + blob)
 
     def test_xml_references(self):
-        xml = '<a><b>hello world</b></a>'
-        x = util.ET.fromstring(xml)
+        blob = '<a><b>hello world</b></a>'
+        x = xml.fromstring(blob)
 
-        self.assertEncoded([x, x], '\n\x00\x00\x00\x02'
-                '\x0f\x00\x00\x00\x19<a><b>hello world</b></a>'
-                '\x0f\x00\x00\x00\x19<a><b>hello world</b></a>')
+        self.assertEncoded([x, x], '\n\x00\x00\x00\x02' +
+                ('\x0f\x00\x00\x00\x19' + blob) * 2)
 
     def test_object(self):
         self.assertEncoded({'a': 'b'}, '\x03\x00\x01a\x02\x00\x01b\x00\x00\x09')
@@ -728,39 +727,6 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         f = self.decoder.readElement()
 
         self.assertEqual(f, datetime.datetime(2009, 9, 24, 9, 23, 23))
-
-
-class HelperTestCase(unittest.TestCase):
-    def test_encode(self):
-        buf = amf0.encode(1)
-
-        self.assertTrue(isinstance(buf, util.BufferedByteStream))
-
-        self.assertEqual(amf0.encode(1).getvalue(), '\x00?\xf0\x00\x00\x00\x00\x00\x00')
-        self.assertEqual(amf0.encode('foo', 'bar').getvalue(), '\x02\x00\x03foo\x02\x00\x03bar')
-
-    def test_encode_with_context(self):
-        context = amf0.Context()
-
-        obj = object()
-        context.addObject(obj)
-        self.assertEqual(amf0.encode(obj, context=context).getvalue(), '\x07\x00\x00')
-
-    def test_decode(self):
-        gen = amf0.decode('\x00?\xf0\x00\x00\x00\x00\x00\x00')
-        self.assertTrue(isinstance(gen, types.GeneratorType))
-
-        self.assertEqual(gen.next(), 1)
-        self.assertRaises(StopIteration, gen.next)
-
-        self.assertEqual([x for x in amf0.decode('\x02\x00\x03foo\x02\x00\x03bar')], ['foo', 'bar'])
-
-    def test_decode_with_context(self):
-        context = amf0.Context()
-
-        obj = object()
-        context.addObject(obj)
-        self.assertEqual([x for x in amf0.decode('\x07\x00\x00', context=context)], [obj])
 
 
 class RecordSetTestCase(unittest.TestCase, EncoderMixIn, DecoderMixIn):

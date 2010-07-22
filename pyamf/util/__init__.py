@@ -92,7 +92,7 @@ def set_attrs(obj, attrs):
 
 def get_class_alias(klass):
     """
-    Returns a alias class suitable for klass. Defaults to L{pyamf.ClassAlias}
+    Tries to find a suitable L{pyamf.ClassAlias} subclass for C{klass}.
     """
     for k, v in pyamf.ALIAS_TYPES.iteritems():
         for kl in v:
@@ -104,8 +104,6 @@ def get_class_alias(klass):
                 if hasattr(kl, '__call__'):
                     if kl(klass) is True:
                         return k
-
-    return pyamf.ClassAlias
 
 
 def is_class_sealed(klass):
