@@ -1287,9 +1287,6 @@ class Encoder(codec.Encoder):
 
         self.writeBytes(s)
 
-    def writeLabel(self, s):
-        self.serialiseString(s)
-
     def writeDate(self, n, **kwargs):
         """
         Writes a C{datetime} instance to the stream.
