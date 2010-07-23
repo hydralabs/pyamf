@@ -1266,34 +1266,26 @@ class Encoder(codec.Encoder):
         self._writeInteger((len(s) << 1) | REFERENCE_BIT)
         self.stream.write(s)
 
-    def writeUnicode(self, u, writeType=True, **kwargs):
+    def writeBytes(self, b):
         """
         Writes a unicode object to the stream.
         """
-        if writeType:
-            self.stream.write(TYPE_STRING)
+        self.stream.write(TYPE_STRING)
 
-        if u == u'':
+        if len(b) == 0:
             self.stream.write_uchar(REFERENCE_BIT)
 
             return
 
-        s = self.context.getBytesForString(u)
+        self.serialiseString(b)
 
-        self.serialiseString(s)
-
-    def writeString(self, s, writeType=True, **kwargs):
+    def writeString(self, s):
         """
-        Writes a string to the stream. If C{n} is not a unicode string, an
-        attempt will be made to convert it.
-
-        @type   n: C{basestring}
-        @param  n: The string data to be encoded to the AMF3 data stream.
+        Writes a string to the stream. It will be B{UTF-8} encoded.
         """
-        if writeType:
-            self.stream.write(TYPE_STRING)
+        s = self.context.getBytesForString(s)
 
-        self.serialiseString(s)
+        self.writeBytes(s)
 
     def writeLabel(self, s):
         self.serialiseString(s)
