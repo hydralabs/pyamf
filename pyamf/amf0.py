@@ -517,9 +517,7 @@ class Encoder(codec.Encoder):
         """
         Write mixed array to the data stream.
 
-        @type o: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
-        @param o: The mixed array data to be encoded to the AMF0
-            data stream.
+        @type o: L{pyamf.MixedArray}
         """
         if self.writeReference(o) != -1:
             return
