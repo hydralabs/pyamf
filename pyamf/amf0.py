@@ -170,7 +170,7 @@ class Decoder(codec.Decoder):
 
         @rtype: C{int} or C{float}
         """
-        return check_for_int(self.stream.read_double())
+        return _check_for_int(self.stream.read_double())
 
     def readBoolean(self):
         """
@@ -797,7 +797,7 @@ class RecordSet(object):
 pyamf.register_class(RecordSet)
 
 
-def check_for_int(x):
+def _check_for_int(x):
     """
     This is a compatibility function that takes a C{float} and converts it to an
     C{int} if the values are equal.
