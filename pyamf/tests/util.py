@@ -85,6 +85,9 @@ class DecoderMixIn(object):
         pass
 
     def decode(self, bytes, raw=False):
+        if not isinstance(bytes, basestring):
+            bytes = _join(bytes)
+
         self.buf.seek(0, 0)
         self.buf.truncate()
 
@@ -141,19 +144,6 @@ class ClassCacheClearingTestCase(unittest.TestCase):
         self.assertBuffer(bytes, buffer)
 
     def assertDecodes(self, bytes, cb, encoding=pyamf.AMF3, raw=False):
-        def _join(parts):
-            ret = ''
-
-            for p in parts:
-                if not isinstance(p, basestring):
-                    ret += _join(p)
-
-                    continue
-
-                ret += p
-
-            return ret
-
         if not isinstance(bytes, basestring):
             bytes = _join(bytes)
 
@@ -245,3 +235,17 @@ def expectedFailureIfAppengine(func):
         return func
     else:
         return unittest.expectedFailure(func)
+
+
+def _join(parts):
+    ret = ''
+
+    for p in parts:
+        if not isinstance(p, basestring):
+            ret += _join(p)
+
+            continue
+
+        ret += p
+
+    return ret
