@@ -1246,7 +1246,7 @@ class Encoder(codec.Encoder):
         self.stream.write(TYPE_NUMBER)
         self.stream.write_double(n)
 
-    def _writeString(self, s):
+    def serialiseString(self, s):
         """
         Writes a raw string to the stream.
 
@@ -1280,7 +1280,7 @@ class Encoder(codec.Encoder):
 
         s = self.context.getBytesForString(u)
 
-        self._writeString(s)
+        self.serialiseString(s)
 
     def writeString(self, s, writeType=True, **kwargs):
         """
@@ -1293,10 +1293,10 @@ class Encoder(codec.Encoder):
         if writeType:
             self.stream.write(TYPE_STRING)
 
-        self._writeString(s)
+        self.serialiseString(s)
 
     def writeLabel(self, s):
-        self._writeString(s)
+        self.serialiseString(s)
 
     def writeDate(self, n, **kwargs):
         """
@@ -1429,7 +1429,7 @@ class Encoder(codec.Encoder):
         self._writeInteger(len(int_keys) << 1 | REFERENCE_BIT)
 
         for x in str_keys:
-            self._writeString(x)
+            self.serialiseString(x)
             self.writeElement(n[x])
 
         self.stream.write_uchar(0x01)
@@ -1516,7 +1516,7 @@ class Encoder(codec.Encoder):
             if alias.anonymous:
                 self.stream.write_uchar(0x01)
             else:
-                self._writeString(alias.alias)
+                self.serialiseString(alias.alias)
 
             # work out what the final reference for the class will be.
             # this is okay because the next time an object of the same
@@ -1532,7 +1532,7 @@ class Encoder(codec.Encoder):
 
         if alias.static_attrs:
             if not class_ref:
-                [self._writeString(attr) for attr in alias.static_attrs]
+                [self.serialiseString(attr) for attr in alias.static_attrs]
 
             for attr in alias.static_attrs:
                 value = attrs.pop(attr)
@@ -1545,7 +1545,7 @@ class Encoder(codec.Encoder):
         if definition.encoding == ObjectEncoding.DYNAMIC:
             if attrs:
                 for attr, value in attrs.iteritems():
-                    self._writeString(attr)
+                    self.serialiseString(attr)
                     self.writeElement(value)
 
             self.stream.write('\x01')
@@ -1596,7 +1596,7 @@ class Encoder(codec.Encoder):
 
         self.context.addObject(n)
 
-        self._writeString(xml.tostring(n).encode('utf-8'))
+        self.serialiseString(xml.tostring(n).encode('utf-8'))
 
 
 def encode_int(n):
