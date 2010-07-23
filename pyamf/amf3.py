@@ -25,7 +25,7 @@ import datetime
 import zlib
 
 import pyamf
-from pyamf import codec, util, xml
+from pyamf import codec, util, xml, python
 
 
 __all__ = [
@@ -1177,7 +1177,7 @@ class Encoder(codec.Encoder):
         """
         t = type(data)
 
-        if t in (int, long):
+        if t in python.int_types:
             return self.writeInteger
         elif t is ByteArray:
             return self.writeByteArray
@@ -1402,9 +1402,9 @@ class Encoder(codec.Encoder):
         str_keys = []
 
         for x in keys:
-            if isinstance(x, (int, long)):
+            if isinstance(x, python.int_types):
                 int_keys.append(x)
-            elif isinstance(x, (str, unicode)):
+            elif isinstance(x, python.str_types):
                 str_keys.append(x)
             else:
                 raise ValueError("Non int/str key value found in dict")
