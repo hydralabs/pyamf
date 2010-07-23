@@ -192,7 +192,6 @@ class Decoder(codec.Decoder):
         self.context.addObject(obj)
 
         attrs = self.readObjectAttributes(obj)
-        ikeys = []
 
         for key in attrs.keys():
             try:
