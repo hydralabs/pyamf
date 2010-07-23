@@ -154,7 +154,7 @@ class Decoder(codec.Decoder):
     def readString(self, bytes=False):
         """
         Reads a C{string} from the stream. If bytes is C{True} then you will get
-        the raw bytes read from the stream, otherwise a string that has been
+        the raw data read from the stream, otherwise a string that has been
         B{utf-8} decoded.
         """
         l = self.stream.read_ushort()
@@ -183,8 +183,7 @@ class Decoder(codec.Decoder):
         """
         Read mixed array.
 
-        @rtype: C{dict}
-        @return: C{dict} read from the stream
+        @rtype: L{pyamf.MixedArray}
         """
         # TODO: something with the length/strict
         self.stream.read_ulong() # length
@@ -220,8 +219,10 @@ class Decoder(codec.Decoder):
 
     def readTypedObject(self):
         """
-        Reads an ActionScript object from the stream and attempts to
-        'cast' it.
+        Reads an aliased ActionScript object from the stream and attempts to
+        'cast' it into a python class.
+
+        @see: L{pyamf.register_class}
         """
         class_alias = self.readString()
 
@@ -279,7 +280,7 @@ class Decoder(codec.Decoder):
 
     def readObject(self):
         """
-        Reads an object from the data stream.
+        Reads an anonymous object from the data stream.
 
         @rtype: L{ASObject<pyamf.ASObject>}
         """
@@ -355,17 +356,19 @@ class Encoder(codec.Encoder):
     """
     Encodes an AMF0 stream.
 
-    @ivar use_amf3: A flag to determine whether this encoder knows about AMF3.
+    @ivar use_amf3: A flag to determine whether this encoder should default to
+        using AMF3. Defaults to C{False}
     @type use_amf3: C{bool}
     """
 
     def __init__(self, *args, **kwargs):
-        self.use_amf3 = kwargs.pop('use_amf3', False)
-
         codec.Encoder.__init__(self, *args, **kwargs)
 
+        self.use_amf3 = kwargs.pop('use_amf3', False)
+
     def buildContext(self):
-        return Context()
+        return codec.Context()
+
 
     def getCustomTypeFunc(self, data):
         t = type(data)
@@ -381,8 +384,6 @@ class Encoder(codec.Encoder):
 
         @type   t: C{str}
         @param  t: ActionScript type.
-
-        @raise pyamf.EncodeError: AMF0 type is not recognized.
         """
         self.stream.write(t)
 
@@ -390,9 +391,7 @@ class Encoder(codec.Encoder):
         """
         Writes the L{undefined<TYPE_UNDEFINED>} data type to the stream.
 
-        @param data: The C{undefined} data to be encoded to the AMF0 data
-            stream.
-        @type data: C{undefined} data
+        @param data: Ignored, here for the sake of interface.
         """
         self.writeType(TYPE_UNDEFINED)
 
@@ -410,9 +409,6 @@ class Encoder(codec.Encoder):
     def writeNull(self, n):
         """
         Write null type to data stream.
-
-        @type   n: C{None}
-        @param  n: Is ignored.
         """
         self.writeType(TYPE_NULL)
 
@@ -420,7 +416,6 @@ class Encoder(codec.Encoder):
         """
         Write array to the stream.
 
-        @type a: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param a: The array data to be encoded to the AMF0 data stream.
         """
         if self.writeReference(a) != -1:
@@ -450,9 +445,8 @@ class Encoder(codec.Encoder):
 
     def writeNumber(self, n):
         """
-        Write number to the data stream.
+        Write number to the data stream .
 
-        @type   n: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param  n: The number data to be encoded to the AMF0 data stream.
         """
         self.writeType(TYPE_NUMBER)
@@ -462,7 +456,6 @@ class Encoder(codec.Encoder):
         """
         Write boolean to the data stream.
 
-        @type b: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param b: The boolean data to be encoded to the AMF0 data stream.
         """
         self.writeType(TYPE_BOOL)
@@ -511,9 +504,7 @@ class Encoder(codec.Encoder):
         """
         Write reference to the data stream.
 
-        @type o: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
-        @param o: The reference data to be encoded to the AMF0 data
-            stream.
+        @param o: The reference data to be encoded to the AMF0 datastream.
         """
         idx = self.context.getObjectReference(o)
 
@@ -530,9 +521,7 @@ class Encoder(codec.Encoder):
         """
         Write C{dict} to the data stream.
 
-        @type o: C{iterable}
-        @param o: The C{dict} data to be encoded to the AMF0 data
-            stream.
+        @param o: The C{dict} data to be encoded to the AMF0 data stream.
         """
         for key, val in o.iteritems():
             self.writeString(key, False)
@@ -575,16 +564,10 @@ class Encoder(codec.Encoder):
 
     def writeObject(self, o):
         """
-        Write object to the stream.
+        Write a Python object to the stream.
 
-        @type o: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
         @param o: The object data to be encoded to the AMF0 data stream.
         """
-        if self.use_amf3:
-            self.writeAMF3(o)
-
-            return
-
         if self.writeReference(o) != -1:
             return
 
@@ -646,10 +629,7 @@ class Encoder(codec.Encoder):
 
     def writeXML(self, e):
         """
-        Write XML to the data stream.
-
-        @param e: The XML data to be encoded to the AMF0 data stream.
-        @type e: One of L{pyamf.util.xml.xml_types}
+        Writes an XML instance.
         """
         if self.use_amf3 is True:
             self.writeAMF3(e)
@@ -672,10 +652,7 @@ class Encoder(codec.Encoder):
 
     def writeAMF3(self, data):
         """
-        Writes an element to the datastream in L{AMF3<pyamf.amf3>} format.
-
-        @type data: C{mixed}
-        @param data: The data to be encoded to the AMF0 data stream.
+        Writes an element in L{AMF3<pyamf.amf3>} format.
         """
         encoder = self._getAMF3Encoder()
 
