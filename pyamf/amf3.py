@@ -1171,7 +1171,7 @@ class Encoder(codec.Encoder):
     def buildContext(self):
         return Context()
 
-    def getCustomTypeFunc(self, data):
+    def getTypeFunc(self, data):
         """
         Returns a function object that will encode `data`.
         """
@@ -1179,23 +1179,12 @@ class Encoder(codec.Encoder):
 
         if t in (int, long):
             return self.writeInteger
-
-        if isinstance(data, (list, tuple)):
-            try:
-                alias = self.context.getClassAlias(data.__class__)
-            except AttributeError:
-                return self.writeList
-
-            alias.compile()
-
-            if alias.external:
-                return self.writeObject
         elif t is ByteArray:
             return self.writeByteArray
         elif t is pyamf.MixedArray:
             return self.writeDict
 
-        return codec.Encoder.getCustomTypeFunc(self, data)
+        return codec.Encoder.getTypeFunc(self, data)
 
     def writeUndefined(self, *args, **kwargs):
         """
@@ -1384,7 +1373,6 @@ class Encoder(codec.Encoder):
         """
 
         # Design bug in AMF3 that cannot read/write empty key strings
-        # http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug
         # for more info
         if '' in n:
             raise pyamf.EncodeError("dicts cannot contain empty string keys")

@@ -415,20 +415,6 @@ class Encoder(codec.Encoder):
         for data in a:
             self.writeElement(data)
 
-    def writeSequence(self, iterable):
-        """
-        """
-        alias = self.context.getClassAlias(iterable.__class__)
-
-        if alias.external:
-            # a is a subclassed list with a registered alias - push to the
-            # correct method
-            self.writeObject(iterable)
-
-            return
-
-        self.writeList(iterable)
-
     def writeNumber(self, n):
         """
         Write number to the data stream .

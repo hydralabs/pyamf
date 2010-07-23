@@ -370,7 +370,26 @@ class Encoder(_Codec):
     writeDate = _write_type
     writeXML = _write_type
     writeObject = _write_type
-    writeSequence = _write_type
+
+    def writeSequence(self, iterable):
+        """
+        Encodes an iterable. The default is to write If the iterable has an al
+        """
+        try:
+            alias = self.context.getClassAlias(iterable.__class__)
+        except (AttributeError, pyamf.UnknownClassAlias):
+            self.writeList(iterable)
+
+            return
+
+        if alias.external:
+            # a is a subclassed list with a registered alias - push to the
+            # correct method
+            self.writeObject(iterable)
+
+            return
+
+        self.writeList(iterable)
 
     def getTypeFunc(self, data):
         """
