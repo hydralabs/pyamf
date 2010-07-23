@@ -89,6 +89,11 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
             '\x00\x00\x00\x00\x00\x00\x40\x00\x00\x00\x00\x00\x00\x00\x00'
             '\x40\x08\x00\x00\x00\x00\x00\x00')
 
+    def test_list_references(self):
+        x = []
+
+        self.assertEqual(self.encode(x, x), '\n\x00\x00\x00\x00\x07\x00\x00')
+
     def test_longstring(self):
         s = 'a' * 65537
 
@@ -100,11 +105,16 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
     def test_mixed_array(self):
         d = pyamf.MixedArray(a=1, b=2, c=3)
 
-        self.assertEncoded(d, '\x08\x00\x00\x00\x00', (
+        bytes = ('\x08\x00\x00\x00\x00', (
             '\x00\x01a\x00?\xf0\x00\x00\x00\x00\x00\x00',
             '\x00\x01c\x00@\x08\x00\x00\x00\x00\x00\x00',
             '\x00\x01b\x00@\x00\x00\x00\x00\x00\x00\x00'
         ), '\x00\x00\t')
+
+        self.assertEncoded(d, bytes)
+
+        # test the reference
+        self.assertEqual(self.encode(d), '\x07\x00\x00')
 
     def test_date(self):
         self.assertEncoded(datetime.datetime(2005, 3, 18, 1, 58, 31),
@@ -167,7 +177,6 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
         self.encoder.use_amf3 = True
 
         o = Spam()
-        self.context.addAMF3Object(o)
 
         self.assertEncoded(o, '\x11\n\x0b\x01\x01')
 
@@ -705,6 +714,12 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
 
         self.assertEqual(f, datetime.datetime(2009, 9, 24, 9, 23, 23))
 
+    def test_unsupported(self):
+        self.assertDecoded(None, '\x0D')
+
+    def test_bad_reference(self):
+        self.assertRaises(pyamf.ReferenceError, self.decode, '\x07\x00\x03')
+
 
 class RecordSetTestCase(unittest.TestCase, EncoderMixIn, DecoderMixIn):
     """
@@ -712,6 +727,20 @@ class RecordSetTestCase(unittest.TestCase, EncoderMixIn, DecoderMixIn):
     """
 
     amf_type = pyamf.AMF0
+    blob = (
+        '\x10\x00\tRecordSet\x00\nserverInfo\x03', (
+            '\x00\x06cursor\x00?\xf0\x00\x00\x00\x00\x00\x00',
+            '\x00\x0bcolumnNames\n\x00\x00\x00\x03\x02\x00\x01a\x02\x00\x01b\x02\x00\x01c',
+            '\x00\x0binitialData\n\x00\x00\x00\x03\n\x00\x00\x00\x03\x00?\xf0'
+                '\x00\x00\x00\x00\x00\x00\x00@\x00\x00\x00\x00\x00\x00\x00\x00'
+                '@\x08\x00\x00\x00\x00\x00\x00\n\x00\x00\x00\x03\x00@\x10\x00'
+                '\x00\x00\x00\x00\x00\x00@\x14\x00\x00\x00\x00\x00\x00\x00@\x18'
+                '\x00\x00\x00\x00\x00\x00\n\x00\x00\x00\x03\x00@\x1c\x00\x00'
+                '\x00\x00\x00\x00\x00@ \x00\x00\x00\x00\x00\x00\x00@"\x00\x00'
+                '\x00\x00\x00\x00',
+            '\x00\x07version\x00?\xf0\x00\x00\x00\x00\x00\x00',
+            '\x00\ntotalCount\x00@\x08\x00\x00\x00\x00\x00\x00'),
+        '\x00\x00\t\x00\x00\t')
 
     def setUp(self):
         unittest.TestCase.setUp(self)
@@ -804,40 +833,29 @@ class RecordSetTestCase(unittest.TestCase, EncoderMixIn, DecoderMixIn):
         self.assertEqual(si.id, 'asdfasdf')
 
     def test_encode(self):
+        self.buf = self.encoder.stream
+
         x = amf0.RecordSet(columns=['a', 'b', 'c'], items=[
             [1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
-        self.assertEncoded(x,
-            '\x10\x00\tRecordSet\x00\nserverInfo\x03\x00\x06cursor'
-            '\x00?\xf0\x00\x00\x00\x00\x00\x00\x00\x0bcolumnNames\n\x00\x00'
-            '\x00\x03\x02\x00\x01a\x02\x00\x01b\x02\x00\x01c\x00\x0binitial'
-            'Data\n\x00\x00\x00\x03\n\x00\x00\x00\x03\x00?\xf0\x00\x00\x00'
-            '\x00\x00\x00\x00@\x00\x00\x00\x00\x00\x00\x00\x00@\x08\x00\x00'
-            '\x00\x00\x00\x00\n\x00\x00\x00\x03\x00@\x10\x00\x00\x00\x00\x00'
-            '\x00\x00@\x14\x00\x00\x00\x00\x00\x00\x00@\x18\x00\x00\x00\x00'
-            '\x00\x00\n\x00\x00\x00\x03\x00@\x1c\x00\x00\x00\x00\x00\x00\x00'
-            '@ \x00\x00\x00\x00\x00\x00\x00@"\x00\x00\x00\x00\x00\x00\x00\x07'
-            'version\x00?\xf0\x00\x00\x00\x00\x00\x00\x00\ntotalCount\x00@'
-            '\x08\x00\x00\x00\x00\x00\x00\x00\x00\t\x00\x00\t')
+        self.assertEncoded(x, self.blob)
 
     def test_decode(self):
-        x = self.decode('\x10\x00\tRecordSet\x00\nserverInfo\x08\x00\x00\x00'
-            '\x00\x00\x06cursor\x00?\xf0\x00\x00\x00\x00\x00\x00\x00\x0b'
-            'columnNames\n\x00\x00\x00\x03\x02\x00\x01a\x02\x00\x01b\x02\x00'
-            '\x01c\x00\x0binitialData\n\x00\x00\x00\x03\n\x00\x00\x00\x03\x00?'
-            '\xf0\x00\x00\x00\x00\x00\x00\x00@\x00\x00\x00\x00\x00\x00\x00\x00'
-            '@\x08\x00\x00\x00\x00\x00\x00\n\x00\x00\x00\x03\x00@\x10\x00\x00'
-            '\x00\x00\x00\x00\x00@\x14\x00\x00\x00\x00\x00\x00\x00@\x18\x00\x00'
-            '\x00\x00\x00\x00\n\x00\x00\x00\x03\x00@\x1c\x00\x00\x00\x00\x00'
-            '\x00\x00@ \x00\x00\x00\x00\x00\x00\x00@"\x00\x00\x00\x00\x00\x00'
-            '\x00\x07version\x00?\xf0\x00\x00\x00\x00\x00\x00\x00\ntotalCount'
-            '\x00@\x08\x00\x00\x00\x00\x00\x00\x00\x00\t\x00\x00\t')
+        self.buf = self.decoder.stream
+        x = self.decode(self.blob)
 
         self.assertTrue(isinstance(x, amf0.RecordSet))
         self.assertEqual(x.columns, ['a', 'b', 'c'])
         self.assertEqual(x.items, [[1, 2, 3], [4, 5, 6], [7, 8, 9]])
         self.assertEqual(x.service, None)
         self.assertEqual(x.id, None)
+
+    def test_repr(self):
+        x = amf0.RecordSet(columns=['spam'], items=[['eggs']],
+            service={'name': 'baz'}, id='asdfasdf')
+
+        self.assertEqual(repr(x), "<pyamf.amf0.RecordSet id=asdfasdf "
+            "service={'name': 'baz'} at 0x%x>" % (id(x),))
 
 
 class ClassInheritanceTestCase(ClassCacheClearingTestCase, EncoderMixIn):
