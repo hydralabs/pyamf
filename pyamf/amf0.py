@@ -242,11 +242,13 @@ class Decoder(codec.Decoder):
 
         return obj
 
-    def _getAMF3Decoder(self):
-        decoder = getattr(self, 'amf3_decoder', None)
+    @property
+    def _amf3_decoder(self):
+        decoder = getattr(self, '__amf3_decoder', None)
 
         if not decoder:
             decoder = pyamf.get_decoder(pyamf.AMF3, stream=self.stream)
+            self.__amf3_decoder = decoder
 
         return decoder
 
@@ -254,15 +256,9 @@ class Decoder(codec.Decoder):
         """
         Read AMF3 elements from the data stream.
 
-        @rtype: C{mixed}
         @return: The AMF3 element read from the stream
         """
-        decoder = self._getAMF3Decoder()
-
-        element = decoder.readElement()
-        self.context.addAMF3Object(element)
-
-        return element
+        return self._amf3_decoder.readElement()
 
     def readObjectAttributes(self, obj):
         obj_attrs = {}
@@ -369,8 +365,10 @@ class Encoder(codec.Encoder):
     def buildContext(self):
         return codec.Context()
 
+    def getTypeFunc(self, data):
+        if self.use_amf3:
+            return self.writeAMF3
 
-    def getCustomTypeFunc(self, data):
         t = type(data)
 
         if t is pyamf.MixedArray:
@@ -642,11 +640,13 @@ class Encoder(codec.Encoder):
         self.stream.write_ulong(len(data))
         self.stream.write(data)
 
-    def _getAMF3Encoder(self):
-        encoder = getattr(self, 'amf3_encoder', None)
+    @property
+    def _amf3_encoder(self):
+        encoder = getattr(self, '__amf3_encoder', None)
 
         if not encoder:
             encoder = pyamf.get_encoder(pyamf.AMF3, stream=self.stream)
+            self.__amf3_encoder = encoder
 
         return encoder
 
@@ -654,10 +654,8 @@ class Encoder(codec.Encoder):
         """
         Writes an element in L{AMF3<pyamf.amf3>} format.
         """
-        encoder = self._getAMF3Encoder()
-
         self.writeType(TYPE_AMF3)
-        encoder.writeElement(data)
+        self._amf3_encoder.writeElement(data)
 
 
 class RecordSet(object):
