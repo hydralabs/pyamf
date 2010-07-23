@@ -703,7 +703,7 @@ class RecordSet(object):
     serverInfo = property(_get_server_info, _set_server_info)
 
     def __repr__(self):
-        ret = '<%s.%s object' % (self.__module__, self.__class__.__name__)
+        ret = '<%s.%s' % (self.__module__, self.__class__.__name__)
 
         if self.id is not None:
             ret += ' id=%s' % self.id
