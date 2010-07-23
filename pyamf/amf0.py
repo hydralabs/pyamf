@@ -283,8 +283,7 @@ class Decoder(codec.Decoder):
         obj = pyamf.ASObject()
         self.context.addObject(obj)
 
-        attrs = self.readObjectAttributes(obj)
-        util.set_attrs(obj, attrs)
+        obj.update(self.readObjectAttributes(obj))
 
         return obj
 
