@@ -1599,41 +1599,6 @@ class Encoder(codec.Encoder):
         self._writeString(xml.tostring(n).encode('utf-8'))
 
 
-def decode(*args, **kwargs):
-    """
-    A helper function to decode an AMF0 datastream.
-    """
-    try:
-        from cpyamf import amf3
-
-        decoder = amf3.Decoder(*args, **kwargs)
-    except ImportError:
-        decoder = Decoder(*args, **kwargs)
-
-    while 1:
-        try:
-            yield decoder.readElement()
-        except pyamf.EOStream:
-            break
-
-
-def encode(*args, **kwargs):
-    """
-    A helper function to encode an element into the AMF3 format.
-    """
-    try:
-        from cpyamf import amf3
-
-        encoder = amf3.Encoder(**kwargs)
-    except ImportError:
-        encoder = Encoder(**kwargs)
-
-    for element in args:
-        encoder.writeElement(element)
-
-    return encoder.stream
-
-
 def encode_int(n):
     """
     Encodes an int as a variable length signed 29-bit integer as defined by
