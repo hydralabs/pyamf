@@ -90,43 +90,13 @@ TYPE_TYPEDOBJECT = '\x10'
 TYPE_AMF3        = '\x11'
 
 
-class Context(codec.Context):
-    """
-    I hold the AMF0 context for en/decoding streams.
-    """
-
-    def clear(self):
-        """
-        Clears the context.
-        """
-        codec.Context.clear(self)
-
-        self.amf3_objs = []
-
-    def hasAMF3ObjectReference(self, obj):
-        """
-        Gets a reference for an object.
-        """
-        return obj in self.amf3_objs
-
-    def addAMF3Object(self, obj):
-        """
-        Adds an AMF3 reference to C{obj}.
-
-        @param obj: The object to add to the context.
-        @rtype: C{int}
-        @return: Reference to C{obj}.
-        """
-        return self.amf3_objs.append(obj)
-
-
 class Decoder(codec.Decoder):
     """
     Decodes an AMF0 stream.
     """
 
     def buildContext(self):
-        return Context()
+        return codec.Context()
 
     def getTypeFunc(self, data):
         # great for coverage, sucks for readability
@@ -403,14 +373,7 @@ class Encoder(codec.Encoder):
         if t is pyamf.MixedArray:
             return self.writeMixedArray
 
-        # There is a very specific use case that we must check for.
-        # In the context there is an array of amf3_objs that contain
-        # references to objects that are to be encoded in amf3.
-
-        if self.use_amf3 and self.context.hasAMF3ObjectReference(data):
-            return self.writeAMF3
-
-        return codec.Encoder.getCustomTypeFunc(self, data)
+        return codec.Encoder.getTypeFunc(self, data)
 
     def writeType(self, t):
         """
@@ -715,8 +678,6 @@ class Encoder(codec.Encoder):
         @param data: The data to be encoded to the AMF0 data stream.
         """
         encoder = self._getAMF3Encoder()
-
-        self.context.addAMF3Object(data)
 
         self.writeType(TYPE_AMF3)
         encoder.writeElement(data)
