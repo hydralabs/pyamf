@@ -342,6 +342,7 @@ class Decoder(codec.Decoder):
         """
         data = self.readLongString()
         root = xml.fromstring(data)
+
         self.context.addObject(root)
 
         return root
@@ -451,22 +452,14 @@ class Encoder(codec.Encoder):
         else:
             self.stream.write_uchar(0)
 
-    def writeString(self, s, writeType=True):
+    def serialiseString(self, s):
         """
-        Write string to the data stream.
+        Similar to L{writeString} but does not encode a type byte.
+        """
+        if type(s) is unicode:
+            s = self.context.getBytesForString(s)
 
-        @type s: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
-        @param s: The string data to be encoded to the AMF0 data stream.
-        @type writeType: C{bool}
-        @param writeType: Write data type.
-        """
         l = len(s)
-
-        if writeType:
-            if l > 0xffff:
-                self.writeType(TYPE_LONGSTRING)
-            else:
-                self.writeType(TYPE_STRING)
 
         if l > 0xffff:
             self.stream.write_ulong(l)
@@ -475,16 +468,31 @@ class Encoder(codec.Encoder):
 
         self.stream.write(s)
 
-    def writeLabel(self, s):
-        self.writeString(s, False)
+    def writeBytes(self, s):
+        """
+        Write a string of bytes to the data stream.
+        """
+        l = len(s)
 
-    def writeUnicode(self, u, writeType=True):
+        if l > 0xffff:
+            self.writeType(TYPE_LONGSTRING)
+        else:
+            self.writeType(TYPE_STRING)
+
+        if l > 0xffff:
+            self.stream.write_ulong(l)
+        else:
+            self.stream.write_ushort(l)
+
+        self.stream.write(s)
+
+    def writeString(self, u):
         """
         Write a unicode to the data stream.
         """
         s = self.context.getBytesForString(u)
 
-        self.writeString(s, writeType)
+        self.writeBytes(s)
 
     def writeReference(self, o):
         """
@@ -498,7 +506,6 @@ class Encoder(codec.Encoder):
             return -1
 
         self.writeType(TYPE_REFERENCE)
-
         self.stream.write_ushort(idx)
 
         return idx
@@ -510,7 +517,7 @@ class Encoder(codec.Encoder):
         @param o: The C{dict} data to be encoded to the AMF0 data stream.
         """
         for key, val in o.iteritems():
-            self.writeString(key, False)
+            self.serialiseString(key)
             self.writeElement(val)
 
     def writeMixedArray(self, o):
@@ -543,8 +550,7 @@ class Encoder(codec.Encoder):
         self._writeEndObject()
 
     def _writeEndObject(self):
-        self.stream.write('\x00\x00')
-        self.writeType(TYPE_OBJECTTERM)
+        self.stream.write('\x00\x00' + TYPE_OBJECTTERM)
 
     def writeObject(self, o):
         """
@@ -569,7 +575,7 @@ class Encoder(codec.Encoder):
             self.writeType(TYPE_OBJECT)
         else:
             self.writeType(TYPE_TYPEDOBJECT)
-            self.writeString(alias.alias, False)
+            self.serialiseString(alias.alias)
 
         attrs = alias.getEncodableAttributes(o, codec=self)
 
@@ -577,13 +583,11 @@ class Encoder(codec.Encoder):
             for key in alias.static_attrs:
                 value = attrs.pop(key)
 
-                self.writeString(key, False)
+                self.serialiseString(key)
                 self.writeElement(value)
 
         if attrs:
-            for key, value in attrs.iteritems():
-                self.writeString(key, False)
-                self.writeElement(value)
+            self._writeDict(attrs)
 
         self._writeEndObject()
 
