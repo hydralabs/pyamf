@@ -361,8 +361,8 @@ class Encoder(_Codec):
 
 
     writeNull = _write_type
+    writeBytes = _write_type
     writeString = _write_type
-    writeUnicode = _write_type
     writeBoolean = _write_type
     writeNumber = _write_type
     writeList = _write_type
@@ -393,9 +393,9 @@ class Encoder(_Codec):
 
         # try types that we know will work
         if t is str:
-            return self.writeString
+            return self.writeBytes
         elif t is unicode:
-            return self.writeUnicode
+            return self.writeString
         elif t is bool:
             return self.writeBoolean
         elif t is float:
@@ -413,7 +413,7 @@ class Encoder(_Codec):
         elif xml.is_xml(data):
             return self.writeXML
 
-        # now try some types that won't
+        # now try some types that won't encode
         if t in python.class_types:
             # can't encode classes
             return None
