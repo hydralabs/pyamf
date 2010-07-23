@@ -615,14 +615,13 @@ class Encoder(codec.Encoder):
         """
         Writes an XML instance.
         """
-        if self.use_amf3 is True:
-            self.writeAMF3(e)
-
-            return
-
         self.writeType(TYPE_XML)
 
-        data = xml.tostring(e).encode('utf-8')
+        data = xml.tostring(e)
+
+        if isinstance(data, unicode):
+            data = data.encode('utf-8')
+
         self.stream.write_ulong(len(data))
         self.stream.write(data)
 
