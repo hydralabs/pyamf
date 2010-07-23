@@ -393,17 +393,6 @@ class Encoder(codec.Encoder):
         """
         self.writeType(TYPE_UNDEFINED)
 
-    def writeUnsupported(self, data):
-        """
-        Writes L{unsupported<TYPE_UNSUPPORTED>} data type to the
-        stream.
-
-        @param data: The C{unsupported} data to be encoded to the AMF0
-            data stream.
-        @type data: C{unsupported} data
-        """
-        self.writeType(TYPE_UNSUPPORTED)
-
     def writeNull(self, n):
         """
         Write null type to data stream.
