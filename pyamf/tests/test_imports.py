@@ -96,6 +96,10 @@ class WhenImportedTestCase(ImportsTestCase):
         try:
             import spam
         except Exception, e:
-            print e
+            pass
+        else:
+            self.fail('expected exception')
 
-        print self.finder.loaded_modules
+        self.assertFalse('spam' in self.finder.loaded_modules)
+
+        self.assertEqual(type(e), RuntimeError)
