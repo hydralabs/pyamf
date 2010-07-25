@@ -246,7 +246,8 @@ class Decoder(codec.Decoder):
         decoder = getattr(self, '__amf3_decoder', None)
 
         if not decoder:
-            decoder = pyamf.get_decoder(pyamf.AMF3, stream=self.stream)
+            decoder = pyamf.get_decoder(pyamf.AMF3, stream=self.stream,
+                timezone_offset=self.timezone_offset)
             self.__amf3_decoder = decoder
 
         return decoder
@@ -619,7 +620,8 @@ class Encoder(codec.Encoder):
         encoder = getattr(self, '__amf3_encoder', None)
 
         if not encoder:
-            encoder = pyamf.get_encoder(pyamf.AMF3, stream=self.stream)
+            encoder = pyamf.get_encoder(pyamf.AMF3, stream=self.stream,
+                timezone_offset=self.timezone_offset)
             self.__amf3_encoder = encoder
 
         return encoder
