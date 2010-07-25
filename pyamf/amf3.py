@@ -1348,7 +1348,7 @@ class Encoder(codec.Encoder):
         self.context.addObject(n)
 
         self._writeInteger((len(n) << 1) | REFERENCE_BIT)
-        self.stream.write_uchar(0x01)
+        self.stream.write('\x01')
 
         [self.writeElement(x) for x in n]
 
@@ -1464,9 +1464,6 @@ class Encoder(codec.Encoder):
         if definition:
             class_ref = True
             alias = definition.alias
-
-            if alias.anonymous and definition.reference is not None:
-                class_ref = True
         else:
             try:
                 alias = pyamf.get_class_alias(kls)
@@ -1497,7 +1494,7 @@ class Encoder(codec.Encoder):
                 definition.reference << 2 | REFERENCE_BIT)
 
             if alias.anonymous:
-                self.stream.write_uchar(0x01)
+                self.stream.write('\x01')
             else:
                 self.serialiseString(alias.alias)
 
