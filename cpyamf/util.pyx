@@ -427,12 +427,9 @@ cdef class cBufferedByteStream(object):
 
         memcpy(buf, self.buffer, self.length)
 
-        if self._init_buffer() == -1:
-            free(buf)
-
-            return -1
-
         try:
+            self._init_buffer()
+
             self.write(buf, size)
         finally:
             free(buf)
@@ -590,7 +587,7 @@ cdef class cBufferedByteStream(object):
 
         cdef char *buf = <char *>malloc(sizeof(char *) * num_bytes)
 
-        if not buf:
+        if buf == NULL:
             PyErr_NoMemory()
 
         cdef long i = num_bytes
