@@ -9,10 +9,8 @@ General tests.
 
 import unittest
 import new
-import sys
 
 import pyamf
-from pyamf import codec
 from pyamf.tests.util import ClassCacheClearingTestCase, replace_dict, Spam
 
 

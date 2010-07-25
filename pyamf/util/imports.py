@@ -76,7 +76,7 @@ class ModuleFinder(object):
 
         @param name: The name of the module to import.
         """
-        i = self.loaded_modules.append(name)
+        self.loaded_modules.append(name)
 
         try:
             __import__(name, {}, {}, [])

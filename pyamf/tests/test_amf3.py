@@ -10,7 +10,6 @@ Tests for AMF3 Implementation.
 """
 
 import unittest
-import types
 import datetime
 
 import pyamf

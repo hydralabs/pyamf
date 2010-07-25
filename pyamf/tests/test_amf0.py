@@ -11,7 +11,6 @@ Tests for AMF0 Implementation.
 
 import unittest
 import datetime
-import types
 
 import pyamf
 from pyamf import amf0, util, xml, python
@@ -599,9 +598,6 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
             '\x00\x3F\xF0\x00\x00\x00\x00\x00\x00')
 
     def test_amf3(self):
-        # this is horrible, it needs refactoring
-        x = 1
-
         self.buf.write('\x11\x04\x01')
         self.buf.seek(0)
 

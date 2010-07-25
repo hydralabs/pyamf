@@ -8,7 +8,6 @@ Tests for AMF utilities.
 """
 
 import unittest
-import sys
 
 import pyamf
 from pyamf import codec

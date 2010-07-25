@@ -16,7 +16,6 @@ from django.db.models.fields import related, files
 import datetime
 
 import pyamf
-from pyamf.util import imports
 
 
 class DjangoReferenceCollection(dict):

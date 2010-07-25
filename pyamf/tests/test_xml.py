@@ -10,8 +10,6 @@ Tests for XML library integration
 """
 
 import unittest
-import sys
-import traceback
 
 import pyamf.xml
 from pyamf import util

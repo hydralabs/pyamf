@@ -10,7 +10,6 @@ Tests for AMF utilities.
 """
 
 import unittest
-import sys
 
 from datetime import datetime
 from StringIO import StringIO

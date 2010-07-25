@@ -9,7 +9,6 @@ AMF Utilities.
 
 import calendar
 import datetime
-import types
 import inspect
 
 import pyamf
