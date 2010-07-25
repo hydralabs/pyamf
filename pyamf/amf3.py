@@ -970,7 +970,7 @@ class Decoder(codec.Decoder):
 
         while key:
             result[key] = self.readElement()
-            key = self.readString()
+            key = self.readBytes()
 
         for i in xrange(size):
             el = self.readElement()
@@ -1012,7 +1012,7 @@ class Decoder(codec.Decoder):
 
         if class_def.attr_len > 0:
             for i in xrange(class_def.attr_len):
-                key = self.readString()
+                key = self.readBytes()
 
                 class_def.static_properties.append(key)
 
@@ -1025,7 +1025,7 @@ class Decoder(codec.Decoder):
             obj[attr] = self.readElement()
 
     def _readDynamic(self, class_def, obj):
-        attr = self.readString()
+        attr = self.readBytes()
 
         while attr:
             obj[attr] = self.readElement()

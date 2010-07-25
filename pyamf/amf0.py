@@ -263,11 +263,11 @@ class Decoder(codec.Decoder):
     def readObjectAttributes(self, obj):
         obj_attrs = {}
 
-        key = self.readString()
+        key = self.readString(True)
 
         while self.stream.peek() != TYPE_OBJECTTERM:
             obj_attrs[key] = self.readElement()
-            key = self.readString()
+            key = self.readString(True)
 
         # discard the end marker (TYPE_OBJECTTERM)
         self.stream.read(1)

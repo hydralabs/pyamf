@@ -694,7 +694,7 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         self.buf.seek(0)
         d = self.decoder.readElement()
 
-        self.assertEqual(type(d.keys()[0]), unicode)
+        self.assertEqual(type(d.keys()[0]), str)
 
     def test_object(self):
         pyamf.register_class(Spam, 'org.pyamf.spam')

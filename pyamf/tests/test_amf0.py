@@ -516,7 +516,7 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         self.buf.seek(0)
         d = self.decoder.readElement()
 
-        self.assertEqual(type(d.keys()[0]), unicode)
+        self.assertEqual(type(d.keys()[0]), str)
 
     def test_mixed_array(self):
         bytes = ('\x08\x00\x00\x00\x00\x00\x01a\x00?\xf0\x00\x00\x00\x00\x00'
@@ -529,7 +529,7 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         self.buf.seek(0)
         d = self.decoder.readElement()
 
-        self.assertEqual(type(d.keys()[0]), unicode)
+        self.assertEqual(type(d.keys()[0]), str)
 
     def test_date(self):
         self.assertDecoded(datetime.datetime(2005, 3, 18, 1, 58, 31),
@@ -566,7 +566,7 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         self.buf.seek(0)
         d = self.decoder.readElement()
 
-        self.assertEqual(type(d.keys()[0]), unicode)
+        self.assertEqual(type(d.keys()[0]), str)
 
     def test_registered_class(self):
         pyamf.register_class(Spam, alias='org.pyamf.spam')
