@@ -666,10 +666,8 @@ class ReferenceTestCase(BaseTestCase):
         b.name = 'bar'
 
         f.save()
-
         b.foo = f
         b.save()
-
         f.bar = b
         f.save()
 
