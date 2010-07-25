@@ -21,7 +21,7 @@ cdef class cBufferedByteStream:
     cdef inline int complain_if_closed(self) except -1
     cdef int _actually_increase_buffer(self, Py_ssize_t size) except -1
     cdef int _increase_buffer(self, Py_ssize_t size) except -1
-    cdef inline int has_available(self, Py_ssize_t size) except -1
+    cdef inline bint has_available(self, Py_ssize_t size) except -1
     cdef int read(self, char **buf, Py_ssize_t size) except -1
     cpdef bint at_eof(self) except -1
     cpdef inline Py_ssize_t remaining(self) except -1

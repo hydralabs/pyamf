@@ -284,20 +284,17 @@ cdef class cBufferedByteStream(object):
 
         return 0
 
-    cdef inline int has_available(self, Py_ssize_t size):
+    cdef inline bint has_available(self, Py_ssize_t size):
         if size == 0:
-            return 0
+            return 1
 
         if self.length == self.pos:
-            return -1
+            return 0
 
         if self.pos + size > self.length:
-            if size == 1:
-                return -1
+            return 0
 
-            return -1
-
-        return 0
+        return 1
 
     cdef int read(self, char **buf, Py_ssize_t size) except -1:
         """
@@ -312,7 +309,7 @@ cdef class cBufferedByteStream(object):
             if size == 0:
                 size = 1
 
-        if self.has_available(size) == -1:
+        if not self.has_available(size):
             raise IOError
 
         buf[0] = <char *>malloc(sizeof(char *) * size)
@@ -390,7 +387,7 @@ cdef class cBufferedByteStream(object):
         """
         self.complain_if_closed()
 
-        if self.has_available(size) == -1:
+        if not self.has_available(size):
             size = self.length
 
         buf[0] = self.buffer + self.pos + size
@@ -499,7 +496,7 @@ cdef class cBufferedByteStream(object):
         """
         Unpacks a long from C{buf}.
         """
-        if self.has_available(num_bytes) == -1:
+        if not self.has_available(num_bytes):
             raise IOError
 
         cdef int nb = num_bytes
@@ -529,7 +526,7 @@ cdef class cBufferedByteStream(object):
         """
         Unpacks an unsigned long from C{buf}.
         """
-        if self.has_available(num_bytes) == -1:
+        if not self.has_available(num_bytes):
             raise IOError
 
         cdef int nb = num_bytes
@@ -1036,7 +1033,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
     def __len__(self):
         return self.length
 
-    def peek(self, size=1):
+    def peek(self, Py_ssize_t size=1):
         """
         Looks C{size} bytes ahead in the stream, returning what it finds,
         returning the stream pointer to its initial position.
@@ -1048,18 +1045,13 @@ cdef class BufferedByteStream(cBufferedByteStream):
         @return: Bytes.
         """
         cdef char *buf = NULL
-        cdef Py_ssize_t l
 
         if size == -1:
-            l = cBufferedByteStream.remaining(self)
-        else:
-            l = <Py_ssize_t>size
+            size = cBufferedByteStream.remaining(self)
 
-        l = cBufferedByteStream.peek(self, &buf, l)
+        size = cBufferedByteStream.peek(self, &buf, size)
 
-        r = PyString_FromStringAndSize(buf, l)
-
-        return r
+        return PyString_FromStringAndSize(buf, size)
 
     def read_uchar(self):
         """
