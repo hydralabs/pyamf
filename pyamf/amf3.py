@@ -1624,6 +1624,8 @@ def encode_int(n):
     else:
         bytes += chr(n & 0x7f)
 
+    ENCODED_INT_CACHE[n] = bytes
+
     return bytes
 
 
