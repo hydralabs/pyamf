@@ -8,7 +8,6 @@ C-extension for L{pyamf.util} Python module in L{PyAMF<pyamf>}.
 """
 
 from python cimport *
-cimport python_exc
 
 cdef extern from "stdlib.h" nogil:
     ctypedef unsigned long size_t
@@ -83,18 +82,18 @@ cdef int _memcpy_ensure_endian(void *src, void *dest, unsigned int size) nogil:
     return 0
 
 
-cdef int build_platform_exceptional_floats():
+cdef int build_platform_exceptional_floats() except -1:
     global platform_nan, platform_posinf, platform_neginf
     global system_nan, system_posinf, system_neginf
 
     if _memcpy_ensure_endian(NaN, &system_nan, 8) == -1:
-        return -1
+        PyErr_NoMemory()
 
     if _memcpy_ensure_endian(NegInf, &system_neginf, 8) == -1:
-        return -1
+        PyErr_NoMemory()
 
     if _memcpy_ensure_endian(PosInf, &system_posinf, 8) == -1:
-        return -1
+        PyErr_NoMemory()
 
     if float_broken == 1:
         try:
@@ -198,21 +197,33 @@ cdef class cBufferedByteStream(object):
 
     def __cinit__(self):
         self.endian = ENDIAN_NETWORK
-        self.pos = 0
-        self.length = 0
-        self.size = 512
         self.closed = 0
+        self.buffer = NULL
 
-        self.buffer = <char *>malloc(sizeof(char *) * self.size)
-
-        if self.buffer == NULL:
-            python_exc.PyErr_NoMemory()
+        self._init_buffer()
 
     def __dealloc__(self):
         if self.buffer != NULL:
             free(self.buffer)
 
         self.buffer = NULL
+
+    cdef inline int _init_buffer(self):
+        if self.buffer != NULL:
+            free(self.buffer)
+
+            self.buffer = NULL
+
+        self.pos = 0
+        self.length = 0
+        self.size = 512
+
+        self.buffer = <char *>malloc(sizeof(char *) * self.size)
+
+        if self.buffer == NULL:
+            PyErr_NoMemory()
+
+        return 0
 
     cpdef int close(self):
         self.closed = 1
@@ -244,7 +255,7 @@ cdef class cBufferedByteStream(object):
         buf = <char *>realloc(self.buffer, sizeof(char *) * requested_size)
 
         if buf == NULL:
-            python_exc.PyErr_NoMemory()
+            PyErr_NoMemory()
 
         self.buffer = buf
         self.size = requested_size
@@ -315,7 +326,7 @@ cdef class cBufferedByteStream(object):
         buf[0] = <char *>malloc(sizeof(char *) * size)
 
         if buf[0] == NULL:
-            python_exc.PyErr_NoMemory()
+            PyErr_NoMemory()
 
         memcpy(buf[0], self.buffer + self.pos, size)
         self.pos += size
@@ -345,10 +356,7 @@ cdef class cBufferedByteStream(object):
         Sets the file-pointer offset, measured from the beginning of this stream,
         at which the next write operation will occur.
 
-        @param pos:
-        @type pos: C{int}
         @param mode: mode 0: absolute; 1: relative; 2: relative to EOF
-        @type mode: C{int}
         """
         self.complain_if_closed()
 
@@ -407,36 +415,22 @@ cdef class cBufferedByteStream(object):
             raise IOError
 
         if size == 0:
-            free(self.buffer)
-
-            self.pos = 0
-            self.length = 0
-            self.size = 1024
-
-            self.buffer = <char *>malloc(sizeof(char *) * self.size)
-
-            if self.buffer == NULL:
-                python_exc.PyErr_NoMemory()
-
-            return 0
+            return self._init_buffer()
 
         cdef char *buf = NULL
         cdef Py_ssize_t cur_pos = self.pos
 
         buf = <char *>malloc(sizeof(char *) * self.length)
+
+        if buf == NULL:
+            PyErr_NoMemory()
+
         memcpy(buf, self.buffer, self.length)
 
-        free(self.buffer)
-
-        self.size = 1024
-        self.length = 0
-
-        self.buffer = <char *>malloc(sizeof(char *) * self.size)
-
-        if self.buffer == NULL:
+        if self._init_buffer() == -1:
             free(buf)
 
-            python_exc.PyErr_NoMemory()
+            return -1
 
         try:
             self.write(buf, size)
@@ -466,27 +460,17 @@ cdef class cBufferedByteStream(object):
             buf = <char *>malloc(sizeof(char *) * size)
 
             if buf == NULL:
-                python_exc.PyErr_NoMemory()
+                PyErr_NoMemory()
 
             memcpy(buf, peek_buf, size)
 
-        free(self.buffer)
+        try:
+            self._init_buffer()
 
-        self.size = 1024
-        self.length = 0
-        self.buffer = <char *>malloc(sizeof(char *) * self.size)
-        self.pos = 0
-
-        if self.buffer == NULL:
-            free(buf)
-
-            python_exc.PyErr_NoMemory()
-
-        if size > 0:
-            try:
+            if size > 0:
                 self.write(buf, size)
-            finally:
-                free(buf)
+        finally:
+            free(buf)
 
         self.pos = 0
 
@@ -568,7 +552,7 @@ cdef class cBufferedByteStream(object):
         cdef char *buf = <char *>malloc(num_bytes)
 
         if buf == NULL:
-            python_exc.PyErr_NoMemory()
+            PyErr_NoMemory()
 
         cdef long i = num_bytes
 
@@ -607,7 +591,7 @@ cdef class cBufferedByteStream(object):
         cdef char *buf = <char *>malloc(sizeof(char *) * num_bytes)
 
         if not buf:
-            python_exc.PyErr_NoMemory()
+            PyErr_NoMemory()
 
         cdef long i = num_bytes
 
@@ -806,10 +790,12 @@ cdef class cBufferedByteStream(object):
             if float_broken == 1:
                 if is_big_endian(SYSTEM_ENDIAN):
                     if not is_big_endian(self.endian):
-                        swap_bytes(buf, 8)
+                        if swap_bytes(buf, 8) == -1:
+                            PyErr_NoMemory()
                 else:
                     if is_big_endian(self.endian):
-                        swap_bytes(buf, 8)
+                        if swap_bytes(buf, 8) == -1:
+                            PyErr_NoMemory()
 
                 if memcmp(buf, &system_nan, 8) == 0:
                     memcpy(obj, &system_nan, 8)
@@ -829,10 +815,12 @@ cdef class cBufferedByteStream(object):
 
                 if is_big_endian(SYSTEM_ENDIAN):
                     if not is_big_endian(self.endian):
-                        swap_bytes(buf, 8)
+                        if swap_bytes(buf, 8) == -1:
+                            PyErr_NoMemory()
                 else:
                     if is_big_endian(self.endian):
-                        swap_bytes(buf, 8)
+                        if swap_bytes(buf, 8) == -1:
+                            PyErr_NoMemory()
 
             obj[0] = _PyFloat_Unpack8(buf, not is_big_endian(self.endian))
         finally:
@@ -855,7 +843,7 @@ cdef class cBufferedByteStream(object):
         buf = <unsigned char *>malloc(sizeof(unsigned char *) * sizeof(double))
 
         if buf == NULL:
-            python_exc.PyErr_NoMemory()
+            PyErr_NoMemory()
 
         try:
             if float_broken == 1:
@@ -875,10 +863,12 @@ cdef class cBufferedByteStream(object):
                 if done == 1:
                     if is_big_endian(SYSTEM_ENDIAN):
                         if not is_big_endian(self.endian):
-                            swap_bytes(buf, 8)
+                            if swap_bytes(buf, 8) == -1:
+                                PyErr_NoMemory()
                     else:
                         if is_big_endian(self.endian):
-                            swap_bytes(buf, 8)
+                            if swap_bytes(buf, 8) == -1:
+                                PyErr_NoMemory()
 
             if done == 0:
                 _PyFloat_Pack8(val, <unsigned char *>buf, not is_big_endian(self.endian))
@@ -919,7 +909,7 @@ cdef class cBufferedByteStream(object):
         buf = <unsigned char *>malloc(sizeof(unsigned char *) * 4)
 
         if buf == NULL:
-            python_exc.PyErr_NoMemory()
+            PyErr_NoMemory()
 
         try:
             _PyFloat_Pack4(c, <unsigned char *>buf, le)
@@ -1063,7 +1053,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         i = <unsigned char *>malloc(1 * sizeof(unsigned char))
 
         if i == NULL:
-            python_exc.PyErr_NoMemory()
+            PyErr_NoMemory()
 
         try:
             cBufferedByteStream.read_uchar(self, i)
@@ -1084,7 +1074,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         i = <char *>malloc(1 * sizeof(char))
 
         if i == NULL:
-            python_exc.PyErr_NoMemory()
+            PyErr_NoMemory()
 
         try:
             cBufferedByteStream.read_char(self, i)
@@ -1105,7 +1095,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         i = <unsigned short *>malloc(1 * sizeof(unsigned short))
 
         if i == NULL:
-            python_exc.PyErr_NoMemory()
+            PyErr_NoMemory()
 
         try:
             cBufferedByteStream.read_ushort(self, i)
@@ -1126,7 +1116,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         i = <short *>malloc(1 * sizeof(short))
 
         if i == NULL:
-            python_exc.PyErr_NoMemory()
+            PyErr_NoMemory()
 
         try:
             cBufferedByteStream.read_short(self, i)
@@ -1147,7 +1137,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         i = <unsigned long *>malloc(1 * sizeof(unsigned long))
 
         if i == NULL:
-            python_exc.PyErr_NoMemory()
+            PyErr_NoMemory()
 
         try:
             cBufferedByteStream.read_ulong(self, i)
@@ -1168,7 +1158,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         i = <long *>malloc(1 * sizeof(long))
 
         if i == NULL:
-            python_exc.PyErr_NoMemory()
+            PyErr_NoMemory()
 
         try:
             cBufferedByteStream.read_long(self, i)
@@ -1189,7 +1179,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         i = <unsigned long *>malloc(1 * sizeof(unsigned long))
 
         if i == NULL:
-            python_exc.PyErr_NoMemory()
+            PyErr_NoMemory()
 
         try:
             cBufferedByteStream.read_24bit_uint(self, i)
@@ -1210,7 +1200,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         i = <long *>malloc(1 * sizeof(long))
 
         if i == NULL:
-            python_exc.PyErr_NoMemory()
+            PyErr_NoMemory()
 
         try:
             cBufferedByteStream.read_24bit_int(self, i)
@@ -1318,10 +1308,12 @@ cdef class BufferedByteStream(cBufferedByteStream):
             if done == 1:
                 if is_big_endian(SYSTEM_ENDIAN):
                     if not is_big_endian(self.endian):
-                        swap_bytes(<unsigned char *>&d, 8)
+                        if swap_bytes(<unsigned char *>&d, 8) == -1:
+                            PyErr_NoMemory()
                 else:
                     if is_big_endian(self.endian):
-                        swap_bytes(<unsigned char *>&d, 8)
+                        if swap_bytes(<unsigned char *>&d, 8) == -1:
+                            PyErr_NoMemory()
 
                 cBufferedByteStream.write(self, <char *>&d, 8)
 
