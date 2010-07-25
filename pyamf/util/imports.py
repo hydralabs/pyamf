@@ -66,7 +66,8 @@ class ModuleFinder(object):
 
         hooks = self.post_load_hooks.get(name, None)
 
-        return self if hooks else None
+        if hooks:
+            return self
 
     def load_module(self, name):
         """

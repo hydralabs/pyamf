@@ -102,4 +102,4 @@ class WhenImportedTestCase(ImportsTestCase):
 
         self.assertFalse('spam' in self.finder.loaded_modules)
 
-        self.assertEqual(type(e), RuntimeError)
+        self.assertEqual(e.__class__, RuntimeError)

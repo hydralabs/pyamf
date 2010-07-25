@@ -664,22 +664,20 @@ if is_float_broken():
         Override the L{DataTypeMixIn.write_double} method to fix problems
         with doubles by using the third-party C{fpconst} library.
         """
-        from pyamf.util.python import isNaN, isNegInf, isPosInf
-
         if type(d) is not float:
             raise TypeError('expected a float (got:%r)' % (type(d),))
 
-        if isNaN(d):
+        if python.isNaN(d):
             if self._is_big_endian():
                 self.write('\xff\xf8\x00\x00\x00\x00\x00\x00')
             else:
                 self.write('\x00\x00\x00\x00\x00\x00\xf8\xff')
-        elif isNegInf(d):
+        elif python.isNegInf(d):
             if self._is_big_endian():
                 self.write('\xff\xf0\x00\x00\x00\x00\x00\x00')
             else:
                 self.write('\x00\x00\x00\x00\x00\x00\xf0\xff')
-        elif isPosInf(d):
+        elif python.isPosInf(d):
             if self._is_big_endian():
                 self.write('\x7f\xf0\x00\x00\x00\x00\x00\x00')
             else:
