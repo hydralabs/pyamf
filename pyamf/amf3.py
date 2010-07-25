@@ -1185,7 +1185,7 @@ class Encoder(codec.Encoder):
 
         return codec.Encoder.getTypeFunc(self, data)
 
-    def writeUndefined(self):
+    def writeUndefined(self, n):
         """
         Writes an C{pyamf.Undefined} value to the stream.
         """

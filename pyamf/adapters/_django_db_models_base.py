@@ -281,20 +281,5 @@ def writeDjangoObject(encoder, obj, **kwargs):
     encoder.writeObject(referenced_object)
 
 
-def install_django_reference_model_hook(mod):
-    """
-    Called when :module:`pyamf.amf0` or :module:`pyamf.amf3` are imported. Attaches the
-    :func:`writeDjangoObject` method to the `Encoder` class in that module.
-
-    :param mod: The module imported.
-    :since: 0.4.1
-    """
-    mod.Encoder.type_map[Model] = writeDjangoObject
-
-
 # initialise the module here: hook into pyamf
 pyamf.register_alias_type(DjangoClassAlias, Model)
-
-# hook the L{writeDjangobject} method to the Encoder class on import
-imports.when_imported('pyamf.amf0', install_django_reference_model_hook)
-imports.when_imported('pyamf.amf3', install_django_reference_model_hook)

@@ -13,10 +13,20 @@ import unittest
 
 import pyamf
 from pyamf import flex, util, amf3, amf0
-from pyamf.tests.util import check_buffer
+from pyamf.tests.util import EncoderMixIn
 
 
-class ArrayCollectionTestCase(unittest.TestCase):
+class ArrayCollectionTestCase(unittest.TestCase, EncoderMixIn):
+    """
+    Tests for L{flex.ArrayCollection}
+    """
+
+    amf_type = pyamf.AMF3
+
+    def setUp(self):
+        unittest.TestCase.setUp(self)
+        EncoderMixIn.setUp(self)
+
     def test_create(self):
         self.assertEqual(flex.ArrayCollection(), [])
         self.assertEqual(flex.ArrayCollection([1, 2, 3]), [1, 2, 3])
@@ -28,29 +38,24 @@ class ArrayCollectionTestCase(unittest.TestCase):
 
         self.assertEqual(flex.ArrayCollection(X()), ['foo', 'bar', 'baz'])
 
-        self.assertRaises(TypeError, flex.ArrayCollection, {'first': 'Matt', 'last': 'Matthews'})
+        self.assertRaises(TypeError, flex.ArrayCollection,
+            {'first': 'Matt', 'last': 'Matthews'})
 
     def test_encode_amf3(self):
-        stream = util.BufferedByteStream()
-        encoder = amf3.Encoder(stream)
-
         x = flex.ArrayCollection()
         x.append('eggs')
 
-        encoder.writeElement(x)
-
-        self.assertEqual(stream.getvalue(),
+        self.assertEncoded(x,
             '\n\x07Cflex.messaging.io.ArrayCollection\t\x03\x01\x06\teggs')
 
     def test_encode_amf0(self):
+        self.encoder = pyamf.get_encoder(pyamf.AMF0)
+        self.buf = self.encoder.stream
+
         x = flex.ArrayCollection()
         x.append('eggs')
 
-        stream = util.BufferedByteStream()
-        encoder = amf0.Encoder(stream)
-        encoder.writeElement(x)
-
-        self.assertEqual(stream.getvalue(),
+        self.assertEncoded(x,
             '\x11\n\x07Cflex.messaging.io.ArrayCollection\t\x03\x01\x06\teggs')
 
     def test_decode_amf3(self):
@@ -172,18 +177,19 @@ class ArrayCollectionAPITestCase(unittest.TestCase):
         self.assertEqual(a.length, 3)
 
 
-class ObjectProxyTestCase(unittest.TestCase):
-    def test_encode(self):
-        stream = util.BufferedByteStream()
-        encoder = amf3.Encoder(stream)
+class ObjectProxyTestCase(unittest.TestCase, EncoderMixIn):
 
+    amf_type = pyamf.AMF3
+
+    def setUp(self):
+        unittest.TestCase.setUp(self)
+        EncoderMixIn.setUp(self)
+
+    def test_encode(self):
         x = flex.ObjectProxy(pyamf.MixedArray(a='spam', b=5))
 
-        encoder.writeElement(x)
-
-        self.assertTrue(check_buffer(stream.getvalue(), (
-            '\n\x07;flex.messaging.io.ObjectProxy\t\x01',
-            ('\x03a\x06\x09spam', '\x03b\x04\x05'), '\x01')))
+        self.assertEncoded(x, '\n\x07;flex.messaging.io.ObjectProxy\n\x0b\x01',
+            ('\x03a\x06\tspam', '\x03b\x04\x05', '\x01'))
 
     def test_decode(self):
         stream = util.BufferedByteStream(

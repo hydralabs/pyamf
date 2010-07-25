@@ -184,7 +184,7 @@ class GetEncodableAttributesTestCase(unittest.TestCase):
     def test_proxy(self):
         from pyamf import flex
 
-        c = codec.Encoder()
+        c = pyamf.get_encoder(pyamf.AMF3)
 
         self.alias.proxy_attrs = ('foo', 'bar')
         self.alias.compile()
@@ -362,7 +362,7 @@ class GetDecodableAttributesTestCase(unittest.TestCase):
     def test_proxy(self):
         from pyamf import flex
 
-        c = codec.Encoder()
+        c = pyamf.get_encoder(pyamf.AMF3)
 
         self.alias.proxy_attrs = ('foo', 'bar')
         self.alias.compile()

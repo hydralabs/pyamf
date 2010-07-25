@@ -491,6 +491,9 @@ class DataTypeMixIn(object):
         @param u: unicode object
         @raise TypeError: Unexpected type for str C{u}.
         """
+        if not isinstance(u, python.str_types):
+            raise TypeError('Expected %r, got %r' % (python.str_types, u))
+
         bytes = u.encode("utf8")
 
         self.write(struct.pack("%s%ds" % (self.endian, len(bytes)), bytes))

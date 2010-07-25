@@ -811,7 +811,7 @@ class ClassAliasTestCase(unittest.TestCase):
         self.assertEqual(util.get_class_alias(A), DummyAlias)
 
     def test_none_existant(self):
-        self.assertEqual(pyamf.ClassAlias, util.get_class_alias(self.__class__))
+        self.assertEqual(util.get_class_alias(self.__class__), None)
 
     def test_subclass(self):
         class A(object):
