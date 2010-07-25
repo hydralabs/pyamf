@@ -275,20 +275,6 @@ class EncoderTestCase(unittest.TestCase):
 
         self.assertRaises(StopIteration, it.next)
 
-    def test_xml_amf3(self):
-        from pyamf.util import ET
-
-        msg = remoting.Envelope(pyamf.AMF3)
-        xml_str = '<root><sections><section /><section /></sections></root>'
-
-        msg['/1'] = remoting.Response(body=ET.fromstring(xml_str), envelope=msg)
-
-        buf = remoting.encode(msg)
-
-        self.assertEqual(buf.getvalue(), '\x00\x03\x00\x00\x00\x01\x00\x0b/1'
-            '/onResult\x00\x04null\x00\x00\x00\x00\x11\x0bq<root><sections>'
-            '<section /><section /></sections></root>')
-
     def test_stream_pos(self):
         """
         Ensure that the stream pointer is placed at the beginning.
