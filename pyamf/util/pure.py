@@ -213,7 +213,7 @@ class DataTypeMixIn(object):
         """
         Reads an C{unsigned char} from the stream.
         """
-        return struct.unpack("B", self._read(1))[0]
+        return ord(self._read(1))
 
     def write_uchar(self, c):
         """
