@@ -99,21 +99,21 @@ cdef int build_platform_exceptional_floats() except -1:
         try:
             _PyFloat_Unpack8(<unsigned char *>&NaN, not is_big_endian(SYSTEM_ENDIAN))
         except:
-            pass
+            raise
         else:
             memcpy(&platform_nan, &system_nan, 8)
 
         try:
             _PyFloat_Unpack8(<unsigned char *>&PosInf, not is_big_endian(SYSTEM_ENDIAN))
         except:
-            pass
+            raise
         else:
             memcpy(&platform_posinf, &system_posinf, 8)
 
         try:
             _PyFloat_Unpack8(<unsigned char *>&NegInf, not is_big_endian(SYSTEM_ENDIAN))
         except:
-            pass
+            raise
         else:
             memcpy(&platform_neginf, &system_neginf, 8)
 
@@ -208,7 +208,7 @@ cdef class cBufferedByteStream(object):
 
         self.buffer = NULL
 
-    cdef inline int _init_buffer(self):
+    cdef inline int _init_buffer(self) except -1:
         if self.buffer != NULL:
             free(self.buffer)
 
@@ -396,9 +396,9 @@ cdef class cBufferedByteStream(object):
         self.complain_if_closed()
 
         if not self.has_available(size):
-            size = self.length
+            size = self.length - self.pos
 
-        buf[0] = self.buffer + self.pos + size
+        buf[0] = self.buffer + self.pos
 
         return size
 
