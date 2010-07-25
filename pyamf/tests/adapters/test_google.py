@@ -145,8 +145,6 @@ class EncodingModelTestCase(BaseTestCase, JessicaMixIn):
         BaseTestCase.setUp(self)
         JessicaMixIn.setUp(self)
 
-        self.addCleanup(self.deleteEntity, self.jessica)
-
     def test_amf0(self):
         encoded = (
             '\x03', (
@@ -176,7 +174,7 @@ class EncodingModelTestCase(BaseTestCase, JessicaMixIn):
         self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF3)
 
     def test_save_amf0(self):
-        self.jessica.put()
+        self.put(self.jessica)
 
         k = str(self.jessica.key())
 
@@ -192,7 +190,7 @@ class EncodingModelTestCase(BaseTestCase, JessicaMixIn):
         self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF0)
 
     def test_save_amf3(self):
-        self.jessica.put()
+        self.put(self.jessica)
 
         k = str(self.jessica.key())
         encoded_key = '%s%s' % (amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k)
@@ -289,7 +287,7 @@ class EncodingExpandoTestCase(BaseTestCase, JessicaMixIn):
         self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF3)
 
     def test_save_amf0(self):
-        self.jessica.put()
+        self.put(self.jessica)
 
         k = str(self.jessica.key())
         bytes = pyamf.encode(self.jessica, encoding=pyamf.AMF0).getvalue()
@@ -305,7 +303,7 @@ class EncodingExpandoTestCase(BaseTestCase, JessicaMixIn):
             '\x00\x00\t'))
 
     def test_save_amf3(self):
-        self.jessica.put()
+        self.put(self.jessica)
 
         k = str(self.jessica.key())
         encoded_key = '%s%s' % (amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k)
@@ -830,7 +828,7 @@ class ClassAliasTestCase(BaseTestCase):
         })
 
     def test_get_attributes_saved(self):
-        self.jessica.put()
+        self.put(self.jessica)
 
         attrs = self.alias.getEncodableAttributes(self.jessica)
 
@@ -857,7 +855,7 @@ class ClassAliasTestCase(BaseTestCase):
         })
 
     def test_get_attributes_saved_expando(self):
-        self.jessica_expando.put()
+        self.put(self.jessica_expando)
 
         attrs = self.alias.getEncodableAttributes(self.jessica_expando)
 
@@ -948,22 +946,22 @@ class ReferencesTestCase(BaseTestCase):
         encoder = pyamf.get_encoder(pyamf.AMF0)
         stream = encoder.stream
 
-        encoder.writeObject(self.jessica)
+        encoder.writeElement(self.jessica)
 
         stream.truncate()
 
-        encoder.writeObject(self.jessica2)
+        encoder.writeElement(self.jessica2)
         self.assertEqual(stream.getvalue(), '\x07\x00\x00')
 
     def test_amf3(self):
         encoder = pyamf.get_encoder(pyamf.AMF3)
         stream = encoder.stream
 
-        encoder.writeObject(self.jessica)
+        encoder.writeElement(self.jessica)
 
         stream.truncate()
 
-        encoder.writeObject(self.jessica2)
+        encoder.writeElement(self.jessica2)
         self.assertEqual(stream.getvalue(), '\n\x00')
 
     def test_nullreference(self):

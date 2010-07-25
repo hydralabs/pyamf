@@ -18,7 +18,6 @@ from google.appengine.ext.db import polymodel
 import datetime
 
 import pyamf
-from pyamf.util import imports
 from pyamf.adapters import util
 
 
@@ -289,7 +288,7 @@ def loadInstanceFromDatastore(klass, key, codec=None):
     return obj
 
 
-def writeGAEObject(self, obj, *args, **kwargs):
+def writeGAEObject(obj, encoder=None):
     """
     The GAE Datastore creates new instances of objects for each get request.
     This is a problem for PyAMF as it uses the id(obj) of the object to do
@@ -305,12 +304,14 @@ def writeGAEObject(self, obj, *args, **kwargs):
 
     @since: 0.4.1
     """
-    if not (isinstance(obj, db.Model) and obj.is_saved()):
-        self.writeNonGAEObject(obj, *args, **kwargs)
+    import logging
+    logging.info('holy fsck batman')
+    if not obj.is_saved():
+        encoder.writeObject(obj)
 
         return
 
-    context = self.context
+    context = encoder.context
     kls = obj.__class__
     s = obj.key()
 
@@ -322,26 +323,11 @@ def writeGAEObject(self, obj, *args, **kwargs):
         referenced_object = obj
         gae_objects.addClassKey(kls, s, obj)
 
-    self.writeNonGAEObject(referenced_object, *args, **kwargs)
+    encoder.writeObject(referenced_object)
 
-
-def install_gae_reference_model_hook(mod):
-    """
-    Called when L{pyamf.amf0} or L{pyamf.amf3} are imported. Attaches the
-    L{writeGAEObject} method to the C{Encoder} class in that module.
-
-    @param mod: The module imported.
-    @since: 0.4.1
-    """
-    if not hasattr(mod.Encoder, 'writeNonGAEObject'):
-        mod.Encoder.writeNonGAEObject = mod.Encoder.writeObject
-        mod.Encoder.writeObject = writeGAEObject
 
 # initialise the module here: hook into pyamf
 
+pyamf.register_alias_type(DataStoreClassAlias, db.Model)
 pyamf.add_type(db.Query, util.to_list)
-pyamf.register_alias_type(DataStoreClassAlias, db.Model, db.Expando)
-
-# hook the L{writeGAEObject} method to the Encoder class on import
-imports.when_imported('pyamf.amf0', install_gae_reference_model_hook)
-imports.when_imported('pyamf.amf3', install_gae_reference_model_hook)
+pyamf.add_type(db.Model, writeGAEObject)
