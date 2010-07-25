@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # Copyright (c) The PyAMF Project.
 # See LICENSE.txt for details.
 
@@ -108,7 +106,7 @@ def encode(name, values, strict=True, encoding=pyamf.AMF0):
     :rtype: :class:`BufferedByteStream<pyamf.util.BufferedByteStream>`
     """
     encoder = pyamf.get_encoder(encoding)
-    encoder.stream = stream = util.BufferedByteStream()
+    stream = encoder.stream
 
     # write the header
     stream.write(HEADER_VERSION)
@@ -133,7 +131,7 @@ def encode(name, values, strict=True, encoding=pyamf.AMF0):
     stream.write_uchar(encoding)
 
     for n, v in values.iteritems():
-        encoder.writeLabel(str(n))
+        encoder.serialiseString(n)
         encoder.writeElement(v)
 
         # write the padding
