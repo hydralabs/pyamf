@@ -246,7 +246,7 @@ def getDjangoObjects(context):
     return c[k]
 
 
-def writeDjangoObject(encoder, obj, **kwargs):
+def writeDjangoObject(obj, encoder=None):
     """
     The Django ORM creates new instances of objects for each db request.
     This is a problem for PyAMF as it uses the id(obj) of the object to do
@@ -283,3 +283,4 @@ def writeDjangoObject(encoder, obj, **kwargs):
 
 # initialise the module here: hook into pyamf
 pyamf.register_alias_type(DjangoClassAlias, Model)
+pyamf.add_type(Model, writeDjangoObject)

@@ -344,8 +344,10 @@ class _CustomTypeFunc(object):
         self.func = func
 
     def __call__(self, data, **kwargs):
-        self.encoder.writeElement(
-            self.func(data, encoder=self.encoder), **kwargs)
+        ret = self.func(data, encoder=self.encoder)
+
+        if ret is not None:
+            self.encoder.writeElement(ret)
 
 
 class Encoder(_Codec):
@@ -358,7 +360,6 @@ class Encoder(_Codec):
         Subclasses should override this and all write[type] functions
         """
         raise NotImplementedError
-
 
     writeNull = _write_type
     writeBytes = _write_type

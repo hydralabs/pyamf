@@ -507,7 +507,8 @@ class PKTestCase(BaseTestCase):
         """
         instances = [models.NotSaved(name="a"), models.NotSaved(name="b")]
         encoded = pyamf.encode(instances, encoding=pyamf.AMF3).getvalue()
-        decoded = pyamf.get_decoder(pyamf.AMF3, encoded).readElement()
+
+        decoded = pyamf.decode(encoded, encoding=pyamf.AMF3).next()
         self.assertEqual(decoded[0]['name'], 'a')
         self.assertEqual(decoded[1]['name'], 'b')
 
@@ -627,11 +628,17 @@ class ImageTestCase(BaseTestCase):
         self.assertEqual(attrs, {'text': ''})
 
 
-class ReferenceTestCase(BaseTestCase):
+class ReferenceTestCase(BaseTestCase, util.EncoderMixIn):
     """
     Test case to make sure that the same object from the database is encoded
     by reference.
     """
+
+    amf_type = pyamf.AMF3
+
+    def setUp(self):
+        BaseTestCase.setUp(self)
+        util.EncoderMixIn.setUp(self)
 
     def test_not_referenced(self):
         """
@@ -680,9 +687,8 @@ class ReferenceTestCase(BaseTestCase):
         # ensure the referenced attribute resolves
         foo.bar.foo
 
-        self.assertEqual(pyamf.encode(foo).getvalue(), '\n\x0b\x01\x07bar\n'
-            '\x0b\x01\x07foo\n\x00\x05id\x04\x01\tname\x06\x00\x01\x04\x04'
-            '\x01\x06\x06\x02\x01')
+        self.assertEncoded(foo, '\n\x0b\x01\x07bar\n\x0b\x01\x07foo\n\x00\x05'
+            'id\x04\x01\tname\x06\x00\x01\x04\x04\x01\x06\x06\x02\x01')
 
 
 class AuthTestCase(BaseTestCase):
