@@ -70,7 +70,7 @@ cdef int _memcpy_ensure_endian(void *src, void *dest, unsigned int size) nogil:
 
     memcpy(buf, src, size)
 
-    if is_big_endian(SYSTEM_ENDIAN):
+    if not is_big_endian(SYSTEM_ENDIAN):
         if swap_bytes(buf, size) == -1:
             free(buf)
 
@@ -172,15 +172,15 @@ cdef inline int swap_bytes(unsigned char *buffer, Py_ssize_t size) nogil:
     return 0
 
 
-cdef bint is_broken_float():
+cdef bint is_broken_float() except -1:
     cdef double test = _PyFloat_Unpack8(NaN, 0)
 
     cdef int result
     cdef unsigned char *buf = <unsigned char *>&test
 
-    if is_big_endian(SYSTEM_ENDIAN):
+    if not is_big_endian(SYSTEM_ENDIAN):
         if swap_bytes(buf, 8) == -1:
-            return -1
+            PyErr_NoMemory()
 
     result = memcmp(NaN, buf, 8)
 
