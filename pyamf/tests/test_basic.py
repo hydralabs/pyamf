@@ -93,16 +93,12 @@ class HelperTestCase(unittest.TestCase):
     def test_get_decoder(self):
         self.assertRaises(ValueError, pyamf.get_decoder, 'spam')
 
-        context = pyamf.get_context(pyamf.AMF0)
-        decoder = pyamf.get_decoder(pyamf.AMF0, stream='123', context=context, strict=True)
+        decoder = pyamf.get_decoder(pyamf.AMF0, stream='123', strict=True)
         self.assertEqual(decoder.stream.getvalue(), '123')
-        self.assertEqual(decoder.context, context)
         self.assertTrue(decoder.strict)
 
-        context = pyamf.get_context(pyamf.AMF3)
-        decoder = pyamf.get_decoder(pyamf.AMF3, stream='456', context=context, strict=True)
+        decoder = pyamf.get_decoder(pyamf.AMF3, stream='456', strict=True)
         self.assertEqual(decoder.stream.getvalue(), '456')
-        self.assertEqual(decoder.context, context)
         self.assertTrue(decoder.strict)
 
     def test_get_encoder(self):
@@ -110,14 +106,11 @@ class HelperTestCase(unittest.TestCase):
         pyamf.get_encoder(pyamf.AMF3)
         self.assertRaises(ValueError, pyamf.get_encoder, 'spam')
 
-        context = pyamf.get_context(pyamf.AMF0)
-        encoder = pyamf.get_encoder(pyamf.AMF0, stream='spam', context=context)
+        encoder = pyamf.get_encoder(pyamf.AMF0, stream='spam')
         self.assertEqual(encoder.stream.getvalue(), 'spam')
-        self.assertEqual(encoder.context, context)
         self.assertFalse(encoder.strict)
 
-        context = pyamf.get_context(pyamf.AMF3)
-        encoder = pyamf.get_encoder(pyamf.AMF3, stream='eggs', context=context)
+        encoder = pyamf.get_encoder(pyamf.AMF3, stream='eggs')
         self.assertFalse(encoder.strict)
 
         encoder = pyamf.get_encoder(pyamf.AMF0, strict=True)
@@ -178,7 +171,6 @@ class ClassLoaderTestCase(ClassCacheClearingTestCase):
     def test_bad_register(self):
         self.assertRaises(TypeError, pyamf.register_class_loader, 1)
         pyamf.register_class_loader(ord)
-        self.assertRaises(ValueError, pyamf.register_class_loader, ord)
 
     def test_unregister(self):
         self.assertTrue(chr not in pyamf.CLASS_LOADERS)
