@@ -19,7 +19,6 @@ cdef extern from "stdlib.h" nogil:
     void *malloc(size_t)
     void free(void *)
 
-
 cdef extern from "stdio.h":
     int SIZEOF_LONG
 
@@ -29,6 +28,7 @@ cdef extern from "Python.h":
     double _PyFloat_Unpack4(unsigned char *, int) except? -1.0
     double _PyFloat_Unpack8(unsigned char *, int) except? -1.0
 
+
 from pyamf import python
 
 # module constant declarations
@@ -36,6 +36,8 @@ DEF ENDIAN_NETWORK = "!"
 DEF ENDIAN_NATIVE = "@"
 DEF ENDIAN_LITTLE = "<"
 DEF ENDIAN_BIG = ">"
+
+DEF MAX_BUFFER_EXTENSION = 1 << 14
 
 cdef char SYSTEM_ENDIAN
 
@@ -52,7 +54,6 @@ cdef double platform_neginf
 cdef double system_nan
 cdef double system_posinf
 cdef double system_neginf
-
 
 cdef object pyamf_NaN = python.NaN
 cdef object pyamf_NegInf = python.NegInf
@@ -237,6 +238,9 @@ cdef class cBufferedByteStream(object):
         while new_size > requested_size:
             requested_size *= 2
 
+        if requested_size > new_size + MAX_BUFFER_EXTENSION:
+            requested_size = new_size + MAX_BUFFER_EXTENSION
+
         buf = <char *>realloc(self.buffer, sizeof(char *) * requested_size)
 
         if buf == NULL:
@@ -273,10 +277,10 @@ cdef class cBufferedByteStream(object):
 
         memcpy(self.buffer + self.pos, buf, size)
 
-        if self.pos + size > self.length:
-            self.length = self.pos + size
-
         self.pos += size
+
+        if self.pos > self.length:
+            self.length = self.pos
 
         return 0
 
