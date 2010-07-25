@@ -446,7 +446,7 @@ class Encoder(_Codec):
         # well, we tried ..
         return self.writeObject
 
-    def writeElement(self, data, **kwargs):
+    def writeElement(self, data):
         """
         Encodes C{data} to AMF. If the data is not able to be matched to an AMF
         type, then L{pyamf.EncodeError} will be raised.
@@ -465,4 +465,4 @@ class Encoder(_Codec):
 
             self._func_cache[key] = func
 
-        func(data, **kwargs)
+        func(data)

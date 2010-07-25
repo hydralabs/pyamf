@@ -14,7 +14,7 @@ import types
 import datetime
 
 import pyamf
-from pyamf import amf3, util
+from pyamf import amf3, util, xml, python
 from pyamf.tests.util import (
     Spam, EncoderMixIn, DecoderMixIn, ClassCacheClearingTestCase)
 
@@ -74,20 +74,11 @@ class ContextTestCase(ClassCacheClearingTestCase):
         c = amf3.Context()
 
         self.assertEqual(c.strings, [])
-        self.assertEqual(c.objects, [])
         self.assertEqual(c.classes, {})
         self.assertEqual(c.legacy_xml, [])
         self.assertEqual(len(c.strings), 0)
         self.assertEqual(len(c.classes), 0)
         self.assertEqual(len(c.legacy_xml), 0)
-
-    def test_add_object(self):
-        x = amf3.Context()
-        y = [1, 2, 3]
-
-        self.assertEqual(x.addObject(y), 0)
-        self.assertTrue(y in x.objects)
-        self.assertEqual(len(x.objects), 1)
 
     def test_add_string(self):
         x = amf3.Context()
@@ -129,10 +120,6 @@ class ContextTestCase(ClassCacheClearingTestCase):
         x.addString('spameggs')
         x.addLegacyXML(z)
         x.clear()
-
-        self.assertEqual(x.objects, [])
-        self.assertEqual(len(x.objects), 0)
-        self.assertFalse(y in x.objects)
 
         self.assertEqual(x.strings, [])
         self.assertEqual(len(x.strings), 0)
@@ -372,27 +359,15 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
         self.assertEncoded(amf3.ByteArray('hello'), '\x0c\x0bhello')
 
     def test_xml(self):
-        x = util.ET.fromstring('<a><b>hello world</b></a>')
+        x = xml.fromstring('<a><b>hello world</b></a>')
         self.context.addLegacyXML(x)
-        self.encoder.writeElement(x)
-
-        self.assertEqual(self.buf.getvalue(),
-            '\x07\x33<a><b>hello world</b></a>')
-        self.buf.truncate()
-        self.encoder.writeElement(x)
-
-        self.assertEqual(self.buf.getvalue(), '\x07\x00')
+        self.assertEqual(self.encode(x), '\x07\x33<a><b>hello world</b></a>')
+        self.assertEqual(self.encode(x), '\x07\x00')
 
     def test_xmlstring(self):
-        x = util.ET.fromstring('<a><b>hello world</b></a>')
-        self.encoder.writeElement(x)
-
-        self.assertEqual(self.buf.getvalue(),
-            '\x0b\x33<a><b>hello world</b></a>')
-        self.buf.truncate()
-
-        self.encoder.writeElement(x)
-        self.assertEqual(self.buf.getvalue(), '\x0b\x00')
+        x = xml.fromstring('<a><b>hello world</b></a>')
+        self.assertEqual(self.encode(x), '\x0b\x33<a><b>hello world</b></a>')
+        self.assertEqual(self.encode(x), '\x0b\x00')
 
     def test_anonymous(self):
         pyamf.register_class(Spam)
@@ -535,21 +510,11 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
         """
         Test to ensure that only C{dict} objects will be proxied correctly
         """
-        x = pyamf.ASObject()
-
         self.encoder.use_proxies = True
-        self.encoder.writeElement(x)
+        bytes = '\n\x07;flex.messaging.io.ObjectProxy\n\x0b\x01\x01'
 
-        self.assertEqual(self.buf.getvalue(), '\n\x07;flex.messaging.io.ObjectProxy\n\x0b\x01\x01')
-
-        self.buf.truncate()
-        self.context.clear()
-        x = dict()
-
-        self.encoder.writeElement(x)
-
-        self.assertEqual(self.buf.getvalue(), '\n\x07;flex.messaging.io.'
-            'ObjectProxy\n\x0b\x01\x01')
+        self.assertEncoded(pyamf.ASObject(), bytes)
+        self.assertEncoded({}, bytes)
 
     def test_timezone(self):
         d = datetime.datetime(2009, 9, 24, 14, 23, 23)
@@ -605,13 +570,13 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
 
     def test_infinites(self):
         x = self.decode('\x05\xff\xf8\x00\x00\x00\x00\x00\x00')
-        self.assertTrue(util.isNaN(x))
+        self.assertTrue(python.isNaN(x))
 
         x = self.decode('\x05\xff\xf0\x00\x00\x00\x00\x00\x00')
-        self.assertTrue(util.isNegInf(x))
+        self.assertTrue(python.isNegInf(x))
 
         x = self.decode('\x05\x7f\xf0\x00\x00\x00\x00\x00\x00')
-        self.assertTrue(util.isPosInf(x))
+        self.assertTrue(python.isPosInf(x))
 
     def test_boolean(self):
         self.assertDecoded(True, '\x03')
@@ -655,7 +620,7 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         self.buf.seek(0, 0)
         x = self.decoder.readElement()
 
-        self.assertEqual(util.ET.tostring(x), '<a><b>hello world</b></a>')
+        self.assertEqual(xml.tostring(x), '<a><b>hello world</b></a>')
         self.assertEqual(self.context.getLegacyXMLReference(x), 0)
 
         self.buf.truncate()
@@ -670,7 +635,7 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         self.buf.seek(0, 0)
         x = self.decoder.readElement()
 
-        self.assertEqual(util.ET.tostring(x), '<a><b>hello world</b></a>')
+        self.assertEqual(xml.tostring(x), '<a><b>hello world</b></a>')
         self.assertEqual(self.context.getLegacyXMLReference(x), -1)
 
         self.buf.truncate()
@@ -730,13 +695,14 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         self.buf.seek(0)
         d = self.decoder.readElement()
 
-        self.assertEqual(type(d.keys()[0]), str)
+        self.assertEqual(type(d.keys()[0]), unicode)
 
     def test_object(self):
         pyamf.register_class(Spam, 'org.pyamf.spam')
 
         self.buf.truncate(0)
-        self.buf.write('\x0a\x13\x1dorg.pyamf.spam\x07baz\x06\x0b\x68\x65\x6c\x6c\x6f')
+        self.buf.write(
+            '\x0a\x13\x1dorg.pyamf.spam\x07baz\x06\x0b\x68\x65\x6c\x6c\x6f')
         self.buf.seek(0)
 
         obj = self.decoder.readElement()
@@ -1013,6 +979,8 @@ class ObjectDecodingTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         ClassCacheClearingTestCase.setUp(self)
         DecoderMixIn.setUp(self)
 
+        assert isinstance(self.context, amf3.Context)
+
     def test_object_references(self):
         self.buf.write('\x0a\x23\x01\x03a\x03b\x06\x09spam\x04\x05')
         self.buf.seek(0, 0)
@@ -1030,7 +998,6 @@ class ObjectDecodingTestCase(ClassCacheClearingTestCase, DecoderMixIn):
     def test_static(self):
         pyamf.register_class(Spam, 'abc.xyz')
 
-        self.assertEqual(self.context.objects, [])
         self.assertEqual(self.context.strings, [])
         self.assertEqual(self.context.classes, {})
         self.assertEqual(self.context.class_ref, {})
@@ -1040,7 +1007,7 @@ class ObjectDecodingTestCase(ClassCacheClearingTestCase, DecoderMixIn):
 
         obj = self.decoder.readElement()
 
-        class_def = self.context.class_ref[0]
+        class_def = self.context.getClass(Spam)
 
         self.assertEqual(class_def.static_properties, ['spam'])
 
@@ -1050,7 +1017,6 @@ class ObjectDecodingTestCase(ClassCacheClearingTestCase, DecoderMixIn):
     def test_dynamic(self):
         pyamf.register_class(Spam, 'abc.xyz')
 
-        self.assertEqual(self.context.objects, [])
         self.assertEqual(self.context.strings, [])
         self.assertEqual(self.context.classes, {})
 
@@ -1073,17 +1039,13 @@ class ObjectDecodingTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         """
         pyamf.register_class(Spam, 'abc.xyz')
 
-        self.assertEqual(self.context.objects, [])
-        self.assertEqual(self.context.strings, [])
-        self.assertEqual(self.context.classes, {})
-
-        self.buf.write('\x0a\x1b\x0fabc.xyz\x09spam\x06\x09eggs\x07baz\x06\x07'
-            'nat\x01')
+        self.buf.write(
+            '\x0a\x1b\x0fabc.xyz\x09spam\x06\x09eggs\x07baz\x06\x07nat\x01')
         self.buf.seek(0, 0)
 
         obj = self.decoder.readElement()
 
-        class_def = self.context.class_ref[0]
+        class_def = self.context.getClass(Spam)
 
         self.assertEqual(class_def.static_properties, ['spam'])
 
@@ -1202,7 +1164,7 @@ class DataOutputTestCase(unittest.TestCase, EncoderMixIn):
 
         self.x.writeObject(obj)
         self.assertEqual(self.buf.getvalue(),
-            '\n\x07;flex.messaging.io.ObjectProxy\t\x01\tspam\x06\teggs\x01')
+            '\n\x07;flex.messaging.io.ObjectProxy\n\x0b\x01\tspam\x06\teggs\x01')
         self.buf.truncate()
 
         # check references
@@ -1373,12 +1335,7 @@ class ClassInheritanceTestCase(ClassCacheClearingTestCase, EncoderMixIn):
         x.a = 'spam'
         x.b = 'eggs'
 
-        stream = util.BufferedByteStream()
-        encoder = pyamf._get_encoder_class(pyamf.AMF3)(stream)
-
-        encoder.writeElement(x)
-
-        self.assertEqual(stream.getvalue(),
+        self.assertEncoded(x,
             '\n+\x03B\x03a\x03b\x06\tspam\x06\teggs\x01')
 
     def test_deep(self):
@@ -1405,46 +1362,8 @@ class ClassInheritanceTestCase(ClassCacheClearingTestCase, EncoderMixIn):
         x.b = 'eggs'
         x.c = 'foo'
 
-        stream = util.BufferedByteStream()
-        encoder = pyamf._get_encoder_class(pyamf.AMF3)(stream)
-
-        encoder.writeElement(x)
-
-        self.assertEqual(stream.getvalue(),
+        self.assertEncoded(x,
             '\n;\x03C\x03a\x03b\x03c\x06\tspam\x06\teggs\x06\x07foo\x01')
-
-
-class HelperTestCase(unittest.TestCase):
-    def test_encode(self):
-        buf = amf3.encode(1)
-
-        self.assertTrue(isinstance(buf, util.BufferedByteStream))
-
-        self.assertEqual(amf3.encode(1).getvalue(), '\x04\x01')
-        self.assertEqual(amf3.encode('foo', 'bar').getvalue(), '\x06\x07foo\x06\x07bar')
-
-    def test_encode_with_context(self):
-        context = pyamf.get_context(pyamf.AMF3)
-
-        obj = object()
-        context.addObject(obj)
-        self.assertEqual(amf3.encode(obj, context=context).getvalue(), '\n\x00')
-
-    def test_decode(self):
-        gen = amf3.decode('\x04\x01')
-        self.assertTrue(isinstance(gen, types.GeneratorType))
-
-        self.assertEqual(gen.next(), 1)
-        self.assertRaises(StopIteration, gen.next)
-
-        self.assertEqual([x for x in amf3.decode('\x06\x07foo\x06\x07bar')], ['foo', 'bar'])
-
-    def test_decode_with_context(self):
-        context = pyamf.get_context(pyamf.AMF3)
-
-        obj = object()
-        context.addObject(obj)
-        self.assertEqual([x for x in amf3.decode('\n\x00', context=context)], [obj])
 
 
 class ComplexEncodingTestCase(unittest.TestCase, EncoderMixIn):
