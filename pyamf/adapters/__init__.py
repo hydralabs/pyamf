@@ -14,6 +14,9 @@ import glob
 from pyamf.util import imports
 
 
+adapters_registered = False
+
+
 class PackageImporter(object):
     """
     Package importer used for lazy module loading.
@@ -23,8 +26,6 @@ class PackageImporter(object):
 
     def __call__(self, mod):
         __import__('%s.%s' % ('pyamf.adapters', self.name))
-
-adapters_registered = False
 
 
 def register_adapters():
