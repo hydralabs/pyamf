@@ -13,14 +13,14 @@ from cpyamf.util cimport cBufferedByteStream, BufferedByteStream
 
 
 import pyamf
-from pyamf import util, codec
+from pyamf import util
 
 
 cdef class IndexedCollection(object):
     """
     Provides reference functionality for amf contexts.
 
-    :see: ``pyamf.util.pure.IndexedCollection`` for proper documentation.
+    @see: L{pyamf.codec.IndexedCollection} for complete documentation
     """
 
     def __cinit__(self, bint use_hash=0):
@@ -38,16 +38,10 @@ cdef class IndexedCollection(object):
 
     property use_hash:
         def __get__(self):
-            if self.use_hash == 1:
-                return True
-
-            return False
+            return self.use_hash
 
         def __set__(self, value):
-            if value is True:
-                self.use_hash = 1
-            else:
-                self.use_hash = 0
+            self.use_hash = value
 
     cdef void _clear(self):
         cdef Py_ssize_t i
@@ -62,7 +56,7 @@ cdef class IndexedCollection(object):
     def __dealloc__(self):
         self._clear()
 
-    cdef int _actually_increase_size(self) except? -1:
+    cdef int _actually_increase_size(self) except -1:
         cdef Py_ssize_t new_len = self.length
         cdef Py_ssize_t current_size = self.size
         cdef PyObject **cpy
@@ -78,7 +72,7 @@ cdef class IndexedCollection(object):
             if cpy == NULL:
                 self._clear()
 
-                raise MemoryError
+                PyErr_NoMemory()
 
             self.data = cpy
 
@@ -99,15 +93,13 @@ cdef class IndexedCollection(object):
         self.data = <PyObject **>PyMem_Malloc(sizeof(PyObject *) * self.size)
 
         if self.data == NULL:
-            raise MemoryError
+            PyErr_NoMemory()
 
         self.refs = {}
 
         return 0
 
     cpdef object getByReference(self, Py_ssize_t ref):
-        """
-        """
         if ref < 0 or ref >= self.length:
             return None
 
@@ -416,12 +408,12 @@ cdef class Codec:
         for type_, func in pyamf.TYPE_MAP.iteritems():
             try:
                 if isinstance(data, type_):
-                    ret = codec._CustomTypeFunc(self, func)
+                    ret = CustomTypeFunc(self, func)
 
                     break
             except TypeError:
                 if callable(type_) and type_(data):
-                    ret = codec._CustomTypeFunc(self, func)
+                    ret = CustomTypeFunc(self, func)
 
                     break
 
@@ -462,3 +454,19 @@ cdef class TypeMappedCallable:
 
     def __call__(self, *args, **kwargs):
         self.method(self.codec, *args, **kwargs)
+
+
+class CustomTypeFunc(object):
+    """
+    Support for custom type mappings when encoding.
+    """
+
+    def __init__(self, encoder, func):
+        self.encoder = encoder
+        self.func = func
+
+    def __call__(self, data, **kwargs):
+        ret = self.func(data, encoder=self.encoder)
+
+        if ret is not None:
+            self.encoder.writeElement(ret)
