@@ -144,55 +144,55 @@ objectproxy arraycollection recordset actionscript decoder encoder
 gateway remoteobject twisted pylons django sharedobject lso sol"""
 
 
-if __name__ != '__main__':
-    raise ImportError('This setup.py file should not be imported. '
-        'See README.txt for more info.')
+def main():
+    setup(name = "PyAMF",
+        version = str(get_version()),
+        description = "AMF support for Python",
+        long_description = open(readme, 'rt').read(),
+        url = "http://pyamf.org",
+        author = "The PyAMF Project",
+        author_email = "users@pyamf.org",
+        keywords = keyw,
+        packages = find_packages(exclude=["*.tests"]),
+        ext_modules = get_extensions(),
+        install_requires = get_install_requirements(),
+        tests_require = get_test_requirements(),
+        test_suite = "pyamf.tests.get_suite",
+        zip_safe = True,
+        license = "MIT License",
+        platforms = ["any"],
+        cmdclass = {
+            'build_ext': build_ext,
+           'test': TestCommand
+        },
+        extras_require = {
+            'wsgi': ['wsgiref'],
+            'twisted': ['Twisted>=2.5.0'],
+            'django': ['Django>=0.96'],
+            'sqlalchemy': ['SQLAlchemy>=0.4'],
+            'cython': ['Cython>=0.12.1'],
+        },
+        classifiers = [
+            "Development Status :: 5 - Production/Stable",
+            "Framework :: Django",
+            "Framework :: Pylons",
+            "Framework :: Turbogears",
+            "Framework :: Twisted",
+            "Intended Audience :: Developers",
+            "Intended Audience :: Information Technology",
+            "License :: OSI Approved :: MIT License",
+            "Natural Language :: English",
+            "Operating System :: OS Independent",
+            "Programming Language :: C",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2.3",
+            "Programming Language :: Python :: 2.4",
+            "Programming Language :: Python :: 2.5",
+            "Programming Language :: Python :: 2.6",
+            "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+        ])
 
 
-setup(name = "PyAMF",
-    version = str(get_version()),
-    description = "AMF support for Python",
-    long_description = open(readme, 'rt').read(),
-    url = "http://pyamf.org",
-    author = "The PyAMF Project",
-    author_email = "users@pyamf.org",
-    keywords = keyw,
-    packages = find_packages(exclude=["*.tests"]),
-    ext_modules = get_extensions(),
-    install_requires = get_install_requirements(),
-    tests_require = get_test_requirements(),
-    test_suite = "pyamf.tests.get_suite",
-    zip_safe = True,
-    license = "MIT License",
-    platforms = ["any"],
-    cmdclass = {
-        'build_ext': build_ext,
-       'test': TestCommand
-    },
-    extras_require = {
-        'wsgi': ['wsgiref'],
-        'twisted': ['Twisted>=2.5.0'],
-        'django': ['Django>=0.96'],
-        'sqlalchemy': ['SQLAlchemy>=0.4'],
-        'cython': ['Cython>=0.12.1'],
-    },
-    classifiers = [
-        "Development Status :: 5 - Production/Stable",
-        "Framework :: Django",
-        "Framework :: Pylons",
-        "Framework :: Turbogears",
-        "Framework :: Twisted",
-        "Intended Audience :: Developers",
-        "Intended Audience :: Information Technology",
-        "License :: OSI Approved :: MIT License",
-        "Natural Language :: English",
-        "Operating System :: OS Independent",
-        "Programming Language :: C",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 2.3",
-        "Programming Language :: Python :: 2.4",
-        "Programming Language :: Python :: 2.5",
-        "Programming Language :: Python :: 2.6",
-        "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-    ])
+if __name__ == '__main__':
+    main()
