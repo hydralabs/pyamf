@@ -423,40 +423,40 @@ cdef class Encoder(Codec):
         return self.stream.write(<char *>&type, 1)
 
     cdef int writeNull(self, object o) except -1:
-        pass
+        raise NotImplementedError
 
     cdef int writeUndefined(self, object o) except -1:
-        pass
+        raise NotImplementedError
 
     cdef int writeString(self, object o) except -1:
-        pass
+        raise NotImplementedError
 
     cdef int writeBytes(self, object o) except -1:
-        pass
+        raise NotImplementedError
 
     cdef int writeBoolean(self, object o) except -1:
-        pass
+        raise NotImplementedError
 
     cdef int writeInt(self, object o) except -1:
-        pass
+        raise NotImplementedError
 
     cdef int writeLong(self, object o) except -1:
-        pass
+        raise NotImplementedError
 
     cdef int writeNumber(self, object o) except -1:
-        pass
+        raise NotImplementedError
 
     cdef int writeDateTime(self, object o) except -1:
-        pass
+        raise NotImplementedError
 
     cdef int writeXML(self, object o) except -1:
-        pass
+        raise NotImplementedError
 
     cdef int writeList(self, object o) except -1:
-        pass
+        raise NotImplementedError
 
     cdef int writeTuple(self, object o) except -1:
-        pass
+        raise NotImplementedError
 
     cdef int writeSequence(self, object iterable) except -1:
         """
@@ -475,10 +475,10 @@ cdef class Encoder(Codec):
         return self.writeList(iterable)
 
     cdef int writeObject(self, object o) except -1:
-        pass
+        raise NotImplementedError
 
     cdef int writeMixedArray(self, object o) except -1:
-        pass
+        raise NotImplementedError
 
     cdef inline int handleBasicTypes(self, object element, object py_type) except -1:
         """
@@ -530,6 +530,8 @@ cdef class Encoder(Codec):
             raise pyamf.EncodeError("Cannot encode generators")
         elif PyClass_Check(element) or PyType_CheckExact(element):
             raise pyamf.EncodeError("Cannot encode class objects")
+
+        return 0
 
     cdef PyObject *getCustomTypeFunc(self, data) except? NULL:
         cdef _CustomTypeFunc ret
