@@ -246,8 +246,11 @@ cdef class Context(object):
         try:
             alias = pyamf.get_class_alias(klass)
         except pyamf.UnknownClassAlias:
+            if isinstance(klass, basestring):
+                raise
+
             # no alias has been found yet .. check subclasses
-            alias = util.get_class_alias(klass)
+            alias = util.get_class_alias(klass) or pyamf.ClassAlias
 
             x = alias(klass)
             alias = x
