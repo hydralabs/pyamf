@@ -84,7 +84,7 @@ cdef class IndexedCollection(object):
 
         return self._actually_increase_size()
 
-    cpdef int clear(self) except? -1:
+    cpdef int clear(self) except -1:
         self._clear()
 
         self.length = 0
@@ -212,7 +212,7 @@ cdef class Context(object):
         def __set__(self, value):
             self.extra_context = value
 
-    cpdef int clear(self) except? -1:
+    cpdef int clear(self) except -1:
         self.objects.clear()
 
         self.class_aliases = {}
