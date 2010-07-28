@@ -28,9 +28,15 @@ import pyamf
 from pyamf import util, xml
 
 
+cdef PyObject *MixedArray = <PyObject *>pyamf.MixedArray
 cdef PyObject *Undefined = <PyObject *>pyamf.Undefined
 cdef PyObject *BuiltinFunctionType = <PyObject *>types.BuiltinFunctionType
 cdef PyObject *GeneratorType = <PyObject *>types.GeneratorType
+
+Py_INCREF(<object>MixedArray)
+Py_INCREF(<object>Undefined)
+Py_INCREF(<object>BuiltinFunctionType)
+Py_INCREF(<object>GeneratorType)
 
 PyDateTime_IMPORT
 
@@ -323,11 +329,6 @@ cdef class Codec(object):
     managing codecs.
     """
 
-    cdef util.cBufferedByteStream stream
-    cdef Context context
-    cdef bint strict
-    cdef object timezone_offset
-
     property stream:
         def __get__(self):
             return <BufferedByteStream>self.stream
@@ -370,7 +371,7 @@ cdef class Codec(object):
         self.timezone_offset = timezone_offset
 
     cdef Context buildContext(self):
-        raise NotImplementedError
+        return Context()
 
     cdef PyObject *getTypeFunc(self, data):
         raise NotImplementedError
@@ -413,9 +414,6 @@ cdef class Encoder(Codec):
     """
     Base AMF encoder.
     """
-
-    cdef dict _func_cache
-    cdef list _use_write_object
 
     def __cinit__(self):
         self._func_cache = {}
@@ -460,7 +458,7 @@ cdef class Encoder(Codec):
     cdef int writeTuple(self, object o) except -1:
         pass
 
-    cpdef int writeSequence(self, object iterable) except -1:
+    cdef int writeSequence(self, object iterable) except -1:
         """
         Encodes an iterable. The default is to write If the iterable has an al
         """
@@ -477,6 +475,9 @@ cdef class Encoder(Codec):
         return self.writeList(iterable)
 
     cdef int writeObject(self, object o) except -1:
+        pass
+
+    cdef int writeMixedArray(self, object o) except -1:
         pass
 
     cdef inline int handleBasicTypes(self, object element, object py_type) except -1:
@@ -509,6 +510,8 @@ cdef class Encoder(Codec):
             ret = self.writeObject(element)
         elif PyDateTime_Check(element):
             ret = self.writeDateTime(element)
+        elif <PyObject *>py_type == MixedArray:
+            ret = self.writeMixedArray(element)
         elif PySequence_Contains(self._use_write_object, py_type):
             ret = self.writeObject(element)
         elif xml.is_xml(element):
@@ -528,7 +531,7 @@ cdef class Encoder(Codec):
         elif PyClass_Check(element) or PyType_CheckExact(element):
             raise pyamf.EncodeError("Cannot encode class objects")
 
-    cdef PyObject *getCustomTypeFunc(self, data):
+    cdef PyObject *getCustomTypeFunc(self, data) except? NULL:
         cdef _CustomTypeFunc ret
 
         for type_, func in pyamf.TYPE_MAP.iteritems():

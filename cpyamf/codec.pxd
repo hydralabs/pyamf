@@ -48,3 +48,48 @@ cdef class Context(object):
 
     cpdef object getStringForBytes(self, object s)
     cpdef object getBytesForString(self, object u)
+
+
+cdef class Codec(object):
+    """
+    Base class for Encoder/Decoder classes. Provides base functionality for
+    managing codecs.
+    """
+
+    cdef util.cBufferedByteStream stream
+    cdef Context context
+    cdef bint strict
+    cdef object timezone_offset
+
+    cdef Context buildContext(self)
+    cdef PyObject *getTypeFunc(self, data)
+
+
+cdef class Encoder(Codec):
+    """
+    """
+
+    cdef dict _func_cache
+    cdef list _use_write_object
+
+    cdef inline int writeType(self, char type) except -1
+    cdef int writeNull(self, object o) except -1
+    cdef int writeUndefined(self, object o) except -1
+    cdef int writeString(self, object o) except -1
+    cdef int writeBytes(self, object o) except -1
+    cdef int writeBoolean(self, object o) except -1
+    cdef int writeInt(self, object o) except -1
+    cdef int writeLong(self, object o) except -1
+    cdef int writeNumber(self, object o) except -1
+    cdef int writeDateTime(self, object o) except -1
+    cdef int writeXML(self, object o) except -1
+    cdef int writeList(self, object o) except -1
+    cdef int writeTuple(self, object o) except -1
+    cdef int writeSequence(self, object iterable) except -1
+    cdef int writeObject(self, object o) except -1
+    cdef int writeMixedArray(self, object o) except -1
+
+    cdef inline int handleBasicTypes(self, object element, object py_type) except -1
+    cdef int checkBadTypes(self, object element, object py_type) except -1
+    cdef PyObject *getCustomTypeFunc(self, data) except? NULL
+    cpdef int writeElement(self, object element) except -1
