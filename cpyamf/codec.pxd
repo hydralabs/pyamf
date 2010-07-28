@@ -36,19 +36,15 @@ cdef class Context(object):
 
     cdef dict class_aliases
     cdef IndexedCollection objects
-    cdef dict proxied_objects
     cdef dict unicodes
     cdef dict extra_context
 
     cpdef int clear(self) except? -1
+    cpdef object getClassAlias(self, object klass)
+
     cpdef object getObject(self, Py_ssize_t ref)
     cpdef Py_ssize_t getObjectReference(self, object obj) except -2
     cpdef Py_ssize_t addObject(self, object obj) except -1
-    cpdef object getClassAlias(self, object klass)
-
-    cpdef int addProxyObject(self, object obj, object proxied) except? -1
-    cpdef object getProxyForObject(self, object obj)
-    cpdef object getObjectForProxy(self, object proxy)
 
     cpdef object getUnicodeForString(self, object s)
     cpdef object getStringForUnicode(self, object u)

@@ -196,11 +196,9 @@ cdef class Context(object):
             return self.objects
 
     def __cinit__(self):
-        self.class_aliases = {}
         self.objects = IndexedCollection()
-        self.proxied_objects = {}
-        self.unicodes = {}
-        self.extra_context = {}
+
+        self.clear()
 
     def __init__(self):
         self.clear()
@@ -216,7 +214,6 @@ cdef class Context(object):
         self.objects.clear()
 
         self.class_aliases = {}
-        self.proxied_objects = {}
         self.unicodes = {}
         self.extra_context = {}
 
@@ -258,60 +255,6 @@ cdef class Context(object):
             self.class_aliases[klass] = alias
 
         return alias
-
-    cpdef object getProxyForObject(self, object obj):
-        """
-        Returns the proxied version of C{obj} as stored in the context, or
-        creates a new proxied object and returns that.
-
-        @see: L{pyamf.flex.proxy_object}
-        @since: 0.6
-        """
-        cdef PyObject *ret = PyDict_GetItem(self.proxied_objects, PyLong_FromVoidPtr(<void *>obj))
-
-        if ret != NULL:
-            return <object>ret
-
-        from pyamf import flex
-
-        proxied = flex.proxy_object(obj)
-
-        self.addProxyObject(obj, proxied)
-
-        return proxied
-
-    cpdef object getObjectForProxy(self, object proxy):
-        """
-        Returns the unproxied version of C{proxy} as stored in the context, or
-        unproxies the proxy and returns that 'raw' object.
-
-        @see: L{pyamf.flex.unproxy_object}
-        @since: 0.6
-        """
-        cdef PyObject *ret = PyDict_GetItem(self.proxied_objects, PyLong_FromVoidPtr(<void *>proxy))
-
-        if ret != NULL:
-            return <object>ret
-
-        from pyamf import flex
-
-        obj = flex.unproxy_object(proxy)
-
-        self.addProxyObject(obj, proxy)
-
-        return obj
-
-    cpdef int addProxyObject(self, object obj, object proxied) except? -1:
-        """
-        Stores a reference to the unproxied and proxied versions of C{obj} for
-        later retrieval.
-
-        @since: 0.6
-        """
-        self.proxied_objects[PyLong_FromVoidPtr(<void *>obj)] = proxied
-        self.proxied_objects[PyLong_FromVoidPtr(<void *>proxied)] = obj
-
-        return 0
 
     cpdef object getUnicodeForString(self, object s):
         """
