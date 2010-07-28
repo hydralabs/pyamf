@@ -48,18 +48,3 @@ cdef class Context(object):
 
     cpdef object getStringForBytes(self, object s)
     cpdef object getBytesForString(self, object u)
-
-
-cdef class Codec(object):
-    """
-    Base class for Encoder/Decoder classes. Provides base functionality for
-    managing codecs.
-    """
-    cdef util.cBufferedByteStream stream
-    cdef Context context
-    cdef bint strict
-    cdef object timezone_offset
-
-    cdef Context buildContext(self)
-    cdef PyObject *getCustomTypeFunc(self, data)
-    cdef object getTypeMapFunc(self, data)

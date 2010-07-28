@@ -9,11 +9,30 @@ C-extension for L{pyamf.amf3} Python module in L{PyAMF<pyamf>}.
 
 from python cimport *
 
+cdef extern from "datetime.h":
+    void PyDateTime_IMPORT()
+    int PyDateTime_Check(object)
+    int PyTime_Check(object)
+
+cdef extern from "Python.h":
+    PyObject *Py_True
+    PyObject *Py_None
+
+    bint PyClass_Check(object)
+    bint PyType_CheckExact(object)
+
 from cpyamf.util cimport cBufferedByteStream, BufferedByteStream
 
-
+import types
 import pyamf
-from pyamf import util
+from pyamf import util, xml
+
+
+cdef PyObject *Undefined = <PyObject *>pyamf.Undefined
+cdef PyObject *BuiltinFunctionType = <PyObject *>types.BuiltinFunctionType
+cdef PyObject *GeneratorType = <PyObject *>types.GeneratorType
+
+PyDateTime_IMPORT
 
 
 cdef class IndexedCollection(object):
@@ -298,11 +317,16 @@ cdef class Context(object):
         return s
 
 
-cdef class Codec:
+cdef class Codec(object):
     """
     Base class for Encoder/Decoder classes. Provides base functionality for
     managing codecs.
     """
+
+    cdef util.cBufferedByteStream stream
+    cdef Context context
+    cdef bint strict
+    cdef object timezone_offset
 
     property stream:
         def __get__(self):
@@ -346,68 +370,221 @@ cdef class Codec:
         self.timezone_offset = timezone_offset
 
     cdef Context buildContext(self):
-        return Context()
+        raise NotImplementedError
+
+    cdef PyObject *getTypeFunc(self, data):
+        raise NotImplementedError
+
+
+cdef class Decoder(Codec):
+    """
+    Base AMF decoder.
+    """
+
+    cpdef object readElement(self):
+        """
+        Reads an element from the data stream.
+        """
+        cdef Py_ssize_t pos = self.stream.tell()
+        cdef unsigned char t
+
+        if self.stream.at_eof():
+            raise pyamf.EOStream
+
+        self.stream.read_uchar(&t)
+
+        try:
+            self.readConcreteElement()
+        except IOError:
+            self.stream.seek(pos)
+
+            raise
+
+        raise pyamf.DecodeError("Unsupported ActionScript type")
+
+    cdef int readConcreteElement(self) except -1:
+        """
+        The workhorse function. Overridden in subclasses
+        """
+        raise NotImplementedError
+
+
+cdef class Encoder(Codec):
+    """
+    Base AMF encoder.
+    """
+
+    cdef dict _func_cache
+    cdef list _use_write_object
+
+    def __cinit__(self):
+        self._func_cache = {}
+        self._use_write_object = []
+
+    cdef inline int writeType(self, char type) except -1:
+        return self.stream.write(<char *>&type, 1)
+
+    cdef int writeNull(self, object o) except -1:
+        pass
+
+    cdef int writeUndefined(self, object o) except -1:
+        pass
+
+    cdef int writeString(self, object o) except -1:
+        pass
+
+    cdef int writeBytes(self, object o) except -1:
+        pass
+
+    cdef int writeBoolean(self, object o) except -1:
+        pass
+
+    cdef int writeInt(self, object o) except -1:
+        pass
+
+    cdef int writeLong(self, object o) except -1:
+        pass
+
+    cdef int writeNumber(self, object o) except -1:
+        pass
+
+    cdef int writeDateTime(self, object o) except -1:
+        pass
+
+    cdef int writeXML(self, object o) except -1:
+        pass
+
+    cdef int writeList(self, object o) except -1:
+        pass
+
+    cdef int writeTuple(self, object o) except -1:
+        pass
+
+    cpdef int writeSequence(self, object iterable) except -1:
+        """
+        Encodes an iterable. The default is to write If the iterable has an al
+        """
+        try:
+            alias = self.context.getClassAlias(iterable.__class__)
+        except (AttributeError, pyamf.UnknownClassAlias):
+            return self.writeList(iterable)
+
+        if alias.external:
+            # a is a subclassed list with a registered alias - push to the
+            # correct method
+            return self.writeObject(iterable)
+
+        return self.writeList(iterable)
+
+    cdef int writeObject(self, object o) except -1:
+        pass
+
+    cdef inline int handleBasicTypes(self, object element, object py_type) except -1:
+        """
+        @return: 0 = handled, -1 = error, 1 = not handled
+        """
+        cdef int ret = 1
+
+        if PyString_CheckExact(element):
+            ret = self.writeBytes(element)
+        elif PyUnicode_CheckExact(element):
+            ret = self.writeString(element)
+        elif <PyObject *>element == Py_None:
+            ret = self.writeNull(element)
+        elif PyBool_Check(element):
+            ret = self.writeBoolean(element)
+        elif PyInt_CheckExact(element):
+            ret = self.writeInt(element)
+        elif PyLong_CheckExact(element):
+            ret = self.writeLong(element)
+        elif PyFloat_CheckExact(element):
+            ret = self.writeNumber(element)
+        elif PyList_CheckExact(element):
+            ret = self.writeList(element)
+        elif PyTuple_CheckExact(element):
+            ret = self.writeTuple(element)
+        elif <PyObject *>element == Undefined:
+            ret = self.writeUndefined(element)
+        elif PyDict_CheckExact(element):
+            ret = self.writeObject(element)
+        elif PyDateTime_Check(element):
+            ret = self.writeDateTime(element)
+        elif PySequence_Contains(self._use_write_object, py_type):
+            ret = self.writeObject(element)
+        elif xml.is_xml(element):
+            ret = self.writeXML(element)
+
+        return ret
+
+    cdef int checkBadTypes(self, object element, object py_type) except -1:
+        if PyModule_CheckExact(element):
+            raise pyamf.EncodeError("Cannot encode modules")
+        elif PyMethod_Check(element):
+            raise pyamf.EncodeError("Cannot encode methods")
+        elif PyFunction_Check(element) or <PyObject *>py_type == BuiltinFunctionType:
+            raise pyamf.EncodeError("Cannot encode functions")
+        elif <PyObject *>py_type == GeneratorType:
+            raise pyamf.EncodeError("Cannot encode generators")
+        elif PyClass_Check(element) or PyType_CheckExact(element):
+            raise pyamf.EncodeError("Cannot encode class objects")
 
     cdef PyObject *getCustomTypeFunc(self, data):
-        cdef object ret = None
+        cdef _CustomTypeFunc ret
 
         for type_, func in pyamf.TYPE_MAP.iteritems():
             try:
                 if isinstance(data, type_):
-                    ret = CustomTypeFunc(self, func)
+                    ret = _CustomTypeFunc(self, func)
 
                     break
             except TypeError:
                 if callable(type_) and type_(data):
-                    ret = CustomTypeFunc(self, func)
+                    ret = _CustomTypeFunc(self, func)
 
                     break
 
         if ret is None:
             return NULL
 
-        Py_INCREF(ret)
-
         return <PyObject *>ret
 
-    cdef object getTypeMapFunc(self, data):
-        cdef char *buf
+    cpdef int writeElement(self, object element) except -1:
+        cdef int ret = 0
+        cdef object py_type = type(element)
+        cdef PyObject *func = NULL
+        cdef int use_proxy
 
-        for t, method in self.type_map.iteritems():
-            if not isinstance(data, t):
-                continue
+        ret = self.handleBasicTypes(element, py_type)
 
-            if callable(method):
-                return TypeMappedCallable(self, method)
+        if ret == 1:
+            func = PyDict_GetItem(self._func_cache, py_type)
 
-            return getattr(self, method)
+            if func == NULL:
+                func = self.getCustomTypeFunc(element)
 
-        return None
+                if func == NULL:
+                    self.checkBadTypes(element, py_type)
 
+                    PyList_Append(self._use_write_object, py_type)
 
-cdef class TypeMappedCallable:
-    """
-    A convienience class that provides the encoder instance to the typed
-    callable.
-    """
+                    return self.writeObject(element)
 
-    cdef Codec encoder
-    cdef object method
+                PyDict_SetItem(self._func_cache, py_type, <object>func)
 
-    def __init__(self, Codec dec, method):
-        self.codec = dec
-        self.method = method
+            (<object>func)(element)
 
-    def __call__(self, *args, **kwargs):
-        self.method(self.codec, *args, **kwargs)
+        return ret
 
 
-class CustomTypeFunc(object):
+cdef class _CustomTypeFunc(object):
     """
     Support for custom type mappings when encoding.
     """
 
-    def __init__(self, encoder, func):
+    cdef Encoder encoder
+    cdef object func
+
+    def __cinit__(self, Encoder encoder, func):
         self.encoder = encoder
         self.func = func
 

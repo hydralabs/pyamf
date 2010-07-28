@@ -15,7 +15,7 @@ cdef extern from "datetime.h":
     int PyTime_Check(object)
 
 cdef extern from "Python.h":
-    PyObject* Py_True
+    PyObject *Py_True
     PyObject *Py_None
 
     bint PyClass_Check(object)
@@ -66,12 +66,7 @@ cdef int OBJECT_ENCODING_PROXY = 0x03
 cdef PyObject *ByteArrayType = <PyObject *>amf3.ByteArray
 cdef object DataInput = amf3.DataInput
 cdef object DataOutput = amf3.DataOutput
-cdef PyObject *Undefined = <PyObject *>pyamf.Undefined
-cdef PyObject *BuiltinFunctionType = <PyObject *>types.BuiltinFunctionType
-cdef PyObject *GeneratorType = <PyObject *>types.GeneratorType
 cdef object empty_string = str('')
-
-PyDateTime_IMPORT
 
 
 cdef class ClassDefinition(object):
@@ -271,24 +266,6 @@ cdef class Context(codec.Context):
 
     cpdef Py_ssize_t addLegacyXML(self, object doc) except -1:
         return self.legacy_xml.append(doc)
-
-
-cdef class Codec(codec.Codec):
-
-    def __init__(self, stream=None, context=None, strict=False, timezone_offset=None, use_proxies=False):
-        codec.Codec.__init__(self, stream, context, strict, timezone_offset)
-
-        self.use_proxies = use_proxies
-
-    cdef Context buildContext(self):
-        return Context()
-
-    property use_proxies:
-        def __get__(self):
-            return self.use_proxies
-
-        def __set__(self, value):
-            self.use_proxies = value
 
 
 cdef class Decoder(Codec):
@@ -670,21 +647,24 @@ cdef class Decoder(Codec):
         raise pyamf.DecodeError("Unsupported ActionScript type")
 
 
-cdef class Encoder(Codec):
+cdef class Encoder(codec.Encoder):
     """
     The AMF3 Encoder.
     """
 
-    type_map = {
-        util.xml_types: 'writeXML',
-        pyamf.MixedArray: 'writeMixedArray'
-    }
+    cdef bint use_proxies
 
-    def __init__(self, stream=None, context=None, strict=False, timezone_offset=None, use_proxies=False):
-        Codec.__init__(self, stream, context, strict, timezone_offset, use_proxies)
+    property use_proxies:
+        def __get__(self):
+            return self.use_proxies
 
-        self._func_cache = {}
-        self._use_write_object = []
+        def __set__(self, value):
+            self.use_proxies = value
+
+    def __init__(self, **kwargs):
+        self.use_proxies = kwargs.pop('use_proxies', amf3.use_proxies_default)
+
+        codec.Encoder.__init__(self, **kwargs)
 
     cpdef int writeString(self, object s, int writeType=1) except -1:
         cdef Py_ssize_t l
@@ -706,13 +686,13 @@ cdef class Encoder(Codec):
         if r != -1:
             # we have a reference
 
-            _encode_integer(self, r << 1)
+            _encode_integer(self.stream, r << 1)
 
             return 0
 
         self.context.addString(s)
 
-        _encode_integer(self, (l << 1) | REFERENCE_BIT)
+        _encode_integer(self.stream, (l << 1) | REFERENCE_BIT)
         self.stream.write(PyString_AS_STRING(s), l)
 
         return 0
@@ -743,7 +723,7 @@ cdef class Encoder(Codec):
             return self.writeNumber(float(n))
 
         self.writeType(TYPE_INTEGER)
-        _encode_integer(self, x)
+        _encode_integer(self.stream, x)
 
     cdef int writeLong(self, object n) except -1:
         cdef long x
@@ -757,7 +737,7 @@ cdef class Encoder(Codec):
             return self.writeNumber(float(n))
 
         self.writeType(TYPE_INTEGER)
-        _encode_integer(self, x)
+        _encode_integer(self.stream, x)
 
     cdef int writeNumber(self, object n) except -1:
         cdef double x = PyFloat_AS_DOUBLE(n)
@@ -782,13 +762,13 @@ cdef class Encoder(Codec):
         self.writeType(TYPE_ARRAY)
 
         if ref != -1:
-            return _encode_integer(self, ref << 1)
+            return _encode_integer(self.stream, ref << 1)
 
         self.context.addObject(n)
 
         ref = PyList_GET_SIZE(n)
 
-        _encode_integer(self, (ref << 1) | REFERENCE_BIT)
+        _encode_integer(self.stream, (ref << 1) | REFERENCE_BIT)
 
         self.writeType('\x01')
 
@@ -807,13 +787,13 @@ cdef class Encoder(Codec):
         self.writeType(TYPE_ARRAY)
 
         if ref != -1:
-            return _encode_integer(self, ref << 1)
+            return _encode_integer(self.stream, ref << 1)
 
         self.context.addObject(n)
 
         ref = PyTuple_GET_SIZE(n)
 
-        _encode_integer(self, (ref << 1) | REFERENCE_BIT)
+        _encode_integer(self.stream, (ref << 1) | REFERENCE_BIT)
         self.writeType('\x01')
 
         for i from 0 <= i < ref:
@@ -844,7 +824,7 @@ cdef class Encoder(Codec):
         ref = self.context.getObjectReference(n)
 
         if ref != -1:
-            return _encode_integer(self, ref << 1)
+            return _encode_integer(self.stream, ref << 1)
 
         self.context.addObject(n)
 
@@ -878,7 +858,7 @@ cdef class Encoder(Codec):
                 str_keys.append(str(x))
                 del int_keys[int_keys.index(x)]
 
-        _encode_integer(self, len(int_keys) << 1 | REFERENCE_BIT)
+        _encode_integer(self.stream, len(int_keys) << 1 | REFERENCE_BIT)
 
         for x in str_keys:
             self.writeLabel(x)
@@ -912,7 +892,7 @@ cdef class Encoder(Codec):
         ref = self.context.getObjectReference(obj)
 
         if ref != -1:
-            _encode_integer(self, ref << 1)
+            _encode_integer(self.stream, ref << 1)
 
             return 0
 
@@ -1032,7 +1012,7 @@ cdef class Encoder(Codec):
         ref = self.context.getObjectReference(obj)
 
         if ref != -1:
-            _encode_integer(self, ref << 1)
+            _encode_integer(self.stream, ref << 1)
 
             return 0
 
@@ -1041,7 +1021,7 @@ cdef class Encoder(Codec):
         buf = str(obj)
         l = PyString_GET_SIZE(buf)
 
-        _encode_integer(self, (l << 1) | REFERENCE_BIT)
+        _encode_integer(self.stream, (l << 1) | REFERENCE_BIT)
         self.stream.write(PyString_AS_STRING(buf), l)
 
         return 0
@@ -1057,7 +1037,7 @@ cdef class Encoder(Codec):
         i = self.context.getObjectReference(obj)
 
         if i != -1:
-            _encode_integer(self, i << 1)
+            _encode_integer(self.stream, i << 1)
 
             return 0
 
@@ -1070,7 +1050,7 @@ cdef class Encoder(Codec):
 
         i = PyString_GET_SIZE(s)
 
-        _encode_integer(self, (i << 1) | REFERENCE_BIT)
+        _encode_integer(self.stream, (i << 1) | REFERENCE_BIT)
         self.stream.write(PyString_AS_STRING(s), i)
 
         return 0
@@ -1084,7 +1064,7 @@ cdef class Encoder(Codec):
         self.writeType(TYPE_DATE)
 
         if ref != -1:
-            _encode_integer(self, ref << 1)
+            _encode_integer(self.stream, ref << 1)
 
             return 0
 
@@ -1107,84 +1087,12 @@ cdef class Encoder(Codec):
 
         return self.writeObject(proxy, 0)
 
-    cpdef int writeElement(self, object element, use_proxies=None) except -1:
-        cdef int ret = 0
-        cdef object py_type = type(element)
-        cdef PyObject *func = NULL
-        cdef int use_proxy
+    cdef inline int handleBasicTypes(self, object element, object py_type) except -1:
+        cdef int ret = codec.Encoder.handleBasicTypes(self, element, py_type)
 
-        if use_proxies is None:
-            use_proxy = -1
-        elif use_proxies is True:
-            use_proxy = 1
-        else:
-            use_proxy = 0
-
-        if PyString_CheckExact(element):
-            ret = self.writeString(element, 1)
-        elif PyUnicode_CheckExact(element):
-            ret = self.writeUnicode(element, 1)
-        elif <PyObject *>element == Py_None:
-            ret = self.writeType(TYPE_NULL)
-        elif PyBool_Check(element):
-            if <PyObject *>element == Py_True:
-                ret = self.writeType(TYPE_BOOL_TRUE)
-            else:
-                ret = self.writeType(TYPE_BOOL_FALSE)
-        elif PyInt_CheckExact(element):
-            ret = self.writeInt(element)
-        elif PyLong_CheckExact(element):
-            ret = self.writeLong(element)
-        elif PyFloat_CheckExact(element):
-            ret = self.writeNumber(element)
-        elif PyList_CheckExact(element):
-            ret = self.writeList(element, use_proxy)
-        elif PyTuple_CheckExact(element):
-            ret = self.writeTuple(element)
-        elif <PyObject *>element == Undefined:
-            ret = self.writeType(TYPE_UNDEFINED)
-        elif PyDict_CheckExact(element):
-            ret = self.writeObject(element, use_proxy)
-        elif <PyObject *>py_type == ByteArrayType:
-            ret = self.writeByteArray(element)
-        elif PyDateTime_Check(element):
-            return self.writeDateTime(element)
-        elif PySequence_Contains(self._use_write_object, py_type):
-            return self.writeObject(element, use_proxy)
-        else:
-            func = PyDict_GetItem(self._func_cache, py_type)
-
-            if func == NULL:
-                func = self.getCustomTypeFunc(element)
-
-                if func == NULL:
-                    f = self.getTypeMapFunc(element)
-
-                    if f is None:
-                        if PyModule_CheckExact(element):
-                            raise pyamf.EncodeError("Cannot encode modules")
-                        elif PyMethod_Check(element):
-                            raise pyamf.EncodeError("Cannot encode methods")
-                        elif PyFunction_Check(element) or <PyObject *>py_type == BuiltinFunctionType:
-                            raise pyamf.EncodeError("Cannot encode functions")
-                        elif <PyObject *>py_type == GeneratorType:
-                            raise pyamf.EncodeError("Cannot encode generators")
-                        elif PyClass_Check(element) or PyType_CheckExact(element):
-                            raise pyamf.EncodeError("Cannot encode class objects")
-                        elif PyTime_Check(element):
-                            raise pyamf.EncodeError('A datetime.time instance was found but '
-                                'AMF3 has no way to encode time objects. Please use '
-                                'datetime.datetime instead ')
-
-                        PyList_Append(self._use_write_object, py_type)
-
-                        return self.writeObject(element, use_proxy)
-
-                    func = <PyObject *>f
-
-                PyDict_SetItem(self._func_cache, py_type, <object>func)
-
-            (<object>func)(element, use_proxies=use_proxy)
+        if ret == 1:
+            if <PyObject *>py_type == ByteArrayType:
+                ret = self.writeByteArray(element)
 
         return ret
 
@@ -1288,13 +1196,13 @@ cdef int decode_int(cBufferedByteStream stream, long *ret, int sign=0) except -1
     return 0
 
 
-cdef inline int _encode_integer(Encoder self, long i) except -1:
+cdef inline int _encode_integer(cBufferedByteStream stream, long i) except -1:
     cdef char *buf = NULL
     cdef int size = 0
 
     try:
         size = encode_int(i, &buf)
 
-        return self.stream.write(buf, size)
+        return stream.write(buf, size)
     finally:
         PyMem_Free(buf)
