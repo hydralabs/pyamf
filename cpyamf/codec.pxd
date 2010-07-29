@@ -64,6 +64,11 @@ cdef class Codec(object):
     cdef Context buildContext(self)
 
 
+cdef class Decoder(Codec):
+    cpdef object readElement(self)
+    cdef object readConcreteElement(self, char t)
+
+
 cdef class Encoder(Codec):
     """
     """

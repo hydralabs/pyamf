@@ -390,15 +390,15 @@ cdef class Decoder(Codec):
         Reads an element from the data stream.
         """
         cdef Py_ssize_t pos = self.stream.tell()
-        cdef unsigned char t
+        cdef char t
 
         if self.stream.at_eof():
             raise pyamf.EOStream
 
-        self.stream.read_uchar(&t)
+        self.stream.read_char(&t)
 
         try:
-            self.readConcreteElement()
+            return self.readConcreteElement(t)
         except IOError:
             self.stream.seek(pos)
 
@@ -406,7 +406,7 @@ cdef class Decoder(Codec):
 
         raise pyamf.DecodeError("Unsupported ActionScript type")
 
-    cdef int readConcreteElement(self) except -1:
+    cdef object readConcreteElement(self, char t):
         """
         The workhorse function. Overridden in subclasses
         """
