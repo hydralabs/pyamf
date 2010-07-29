@@ -11,8 +11,9 @@ from python cimport *
 
 cdef extern from "datetime.h":
     void PyDateTime_IMPORT()
-    int PyDateTime_Check(object)
-    int PyTime_Check(object)
+    int PyDateTime_CheckExact(object)
+    int PyDate_CheckExact(object)
+    int PyTime_CheckExact(object)
 
 cdef extern from "Python.h":
     PyObject *Py_True
@@ -26,6 +27,7 @@ from cpyamf.util cimport cBufferedByteStream, BufferedByteStream
 import types
 import pyamf
 from pyamf import util, xml
+import datetime
 
 
 cdef PyObject *MixedArray = <PyObject *>pyamf.MixedArray
@@ -244,13 +246,13 @@ cdef class Context(object):
 
         return 0
 
-    cpdef object getObject(self, Py_ssize_t ref):
+    cpdef inline object getObject(self, Py_ssize_t ref):
         return self.objects.getByReference(ref)
 
-    cpdef Py_ssize_t getObjectReference(self, object obj) except -2:
+    cpdef inline Py_ssize_t getObjectReference(self, object obj) except -2:
         return self.objects.getReferenceTo(obj)
 
-    cpdef Py_ssize_t addObject(self, object obj) except -1:
+    cpdef inline Py_ssize_t addObject(self, object obj) except -1:
         return self.objects.append(obj)
 
     cpdef object getClassAlias(self, object klass):
@@ -452,6 +454,11 @@ cdef class Encoder(Codec):
     cdef int writeDateTime(self, object o) except -1:
         raise NotImplementedError
 
+    cdef int writeDate(self, object o) except -1:
+        o = datetime.datetime.combine(o, datetime.time(0, 0, 0, 0))
+
+        self.writeDateTime(o)
+
     cdef int writeXML(self, object o) except -1:
         raise NotImplementedError
 
@@ -514,12 +521,16 @@ cdef class Encoder(Codec):
             ret = self.writeUndefined(element)
         elif PyDict_CheckExact(element):
             ret = self.writeDict(element)
-        elif PyDateTime_Check(element):
+        elif PyDateTime_CheckExact(element):
             ret = self.writeDateTime(element)
+        elif PyDate_CheckExact(element):
+            ret = self.writeDate(element)
         elif <PyObject *>py_type == MixedArray:
             ret = self.writeMixedArray(element)
         elif PySequence_Contains(self.use_write_object, py_type):
             ret = self.writeObject(element)
+        elif isinstance(element, (list, tuple)):
+            ret = self.writeSequence(element)
         elif xml.is_xml(element):
             ret = self.writeXML(element)
 
@@ -536,6 +547,10 @@ cdef class Encoder(Codec):
             raise pyamf.EncodeError("Cannot encode generators")
         elif PyClass_Check(element) or PyType_CheckExact(element):
             raise pyamf.EncodeError("Cannot encode class objects")
+        elif PyTime_CheckExact(element):
+            raise pyamf.EncodeError('A datetime.time instance was found but '
+                'AMF has no way to encode time objects. Please use '
+                'datetime.datetime instead')
 
         return 0
 

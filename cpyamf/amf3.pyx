@@ -4,28 +4,16 @@
 """
 C-extension for L{pyamf.amf3} Python module in L{PyAMF<pyamf>}.
 
-:since: 0.6
+@since: 0.6
 """
 
 from python cimport *
-
-cdef extern from "datetime.h":
-    void PyDateTime_IMPORT()
-    int PyDateTime_Check(object)
-    int PyTime_Check(object)
-
-cdef extern from "Python.h":
-    PyObject *Py_True
-    PyObject *Py_None
-
-    bint PyClass_Check(object)
-    bint PyType_CheckExact(object)
 
 
 from cpyamf.util cimport cBufferedByteStream, BufferedByteStream
 from cpyamf cimport codec
 import pyamf
-from pyamf import util, amf3
+from pyamf import util, amf3, xml
 import types
 
 
@@ -268,7 +256,7 @@ cdef class Context(codec.Context):
         return self.legacy_xml.append(doc)
 
 
-cdef class Decoder(Codec):
+cdef class _Decoder(codec.Decoder):
     """
     Decodes an AMF3 data stream.
     """
@@ -1026,7 +1014,7 @@ cdef class Encoder(codec.Encoder):
 
         return 0
 
-    cpdef int writeXML(self, obj, use_proxies) except -1:
+    cdef int writeXML(self, obj) except -1:
         cdef Py_ssize_t i = self.context.getLegacyXMLReference(obj)
 
         if i == -1:
@@ -1043,9 +1031,9 @@ cdef class Encoder(codec.Encoder):
 
         self.context.addObject(obj)
 
-        s = util.ET.tostring(obj, 'utf-8')
+        s = xml.tostring(obj).encode('utf-8')
 
-        if PyString_CheckExact(s) != 1:
+        if PyString_CheckExact(s):
             raise TypeError('Expected string from xml serialization')
 
         i = PyString_GET_SIZE(s)
@@ -1090,7 +1078,7 @@ cdef class Encoder(codec.Encoder):
     cdef inline int handleBasicTypes(self, object element, object py_type) except -1:
         cdef int ret = codec.Encoder.handleBasicTypes(self, element, py_type)
 
-        if ret == 1:
+        if ret == 1: # not handled
             if <PyObject *>py_type == ByteArrayType:
                 ret = self.writeByteArray(element)
 

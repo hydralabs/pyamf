@@ -86,6 +86,7 @@ cdef class Encoder(Codec):
     cdef int writeLong(self, object o) except -1
     cdef int writeNumber(self, object o) except -1
     cdef int writeDateTime(self, object o) except -1
+    cdef int writeDate(self, object o) except -1
     cdef int writeXML(self, object o) except -1
     cdef int writeList(self, object o) except -1
     cdef int writeTuple(self, object o) except -1

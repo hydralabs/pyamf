@@ -17,9 +17,10 @@ cdef extern from "stdlib.h" nogil:
 
     int memcmp(void *dest, void *src, size_t)
     void *memcpy(void *, void *, size_t)
+    void free(void *)
 
 
-from cpyamf cimport codec, util
+from cpyamf cimport codec
 import pyamf
 from pyamf import xml, util
 
@@ -43,6 +44,10 @@ cdef char TYPE_XML         = '\x0F'
 cdef char TYPE_TYPEDOBJECT = '\x10'
 cdef char TYPE_AMF3        = '\x11'
 
+
+cdef object undefined = pyamf.Undefined
+cdef object ASObject = pyamf.ASObject
+cdef object UnknownClassAlias = pyamf.UnknownClassAlias
 
 cdef class Decoder(codec.Decoder):
     """
@@ -88,35 +93,170 @@ cdef class Decoder(codec.Decoder):
 
         raise pyamf.DecodeError('Bad boolean read from stream')
 
-    cdef object readString(self):
-        raise NotImplementedError()
+    cpdef object readString(self, bint bytes=0):
+        cdef unsigned short l
+        cdef char *b = NULL
+        cdef object s
+
+        self.stream.read_ushort(&l)
+
+        try:
+            self.stream.read(&b, l)
+            s = PyString_FromStringAndSize(b, <Py_ssize_t>l)
+        finally:
+            if b != NULL:
+                free(b)
+
+        if bytes:
+            return s
+
+        return self.context.getStringForBytes(s)
+
+    cdef dict readObjectAttributes(self, obj):
+        cdef dict obj_attrs = {}
+        cdef char *peek = NULL
+
+        cdef object key = self.readString(1)
+
+        self.stream.peek(&peek, 1)
+
+        while peek[0] != TYPE_OBJECTTERM:
+            obj_attrs[key] = self.readElement()
+            key = self.readString(1)
+
+            self.stream.peek(&peek, 1)
+
+        # discard the end marker (TYPE_OBJECTTERM)
+        self.stream.seek(1, 1)
+
+        return obj_attrs
 
     cdef object readObject(self):
-        raise NotImplementedError()
+        cdef object obj = ASObject()
 
-    cdef object readNull(self):
-        raise NotImplementedError()
+        self.context.addObject(obj)
 
-    cdef object readReference(self):
-        raise NotImplementedError()
+        PyDict_Update(obj, self.readObjectAttributes(obj))
 
-    cdef object readMixedArray(self):
-        raise NotImplementedError()
-
-    cdef object readList(self):
-        raise NotImplementedError()
-
-    cdef object readDate(self):
-        raise NotImplementedError()
-
-    cdef object readLongString(self):
-        raise NotImplementedError()
-
-    cdef object readXML(self):
-        raise NotImplementedError()
+        return obj
 
     cdef object readTypedObject(self):
-        raise NotImplementedError()
+        cdef object class_alias = self.readString()
+
+        try:
+            alias = self.context.getClassAlias(class_alias)
+        except UnknownClassAlias:
+            if self.strict:
+                raise
+
+            alias = pyamf.TypedObjectClassAlias(class_alias)
+
+        obj = alias.createInstance(codec=self)
+        self.context.addObject(obj)
+
+        attrs = self.readObjectAttributes(obj)
+        alias.applyAttributes(obj, attrs, codec=self)
+
+        return obj
+
+    cdef inline object readNull(self):
+        return None
+
+    cdef inline object readUndefined(self):
+        return undefined
+
+    cdef object readReference(self):
+        cdef unsigned short idx
+
+        self.stream.read_ushort(&idx)
+        o = self.context.getObject(idx)
+
+        if o is None:
+            raise pyamf.ReferenceError('Unknown reference %d' % (idx,))
+
+        return o
+
+    cdef object readMixedArray(self):
+        cdef unsigned long l
+        cdef dict attrs
+        cdef Py_ssize_t ref = 0
+        cdef PyObject *key = NULL
+        cdef PyObject *value = NULL
+        cdef object ikey
+
+        obj = pyamf.MixedArray()
+        self.context.addObject(obj)
+
+        self.stream.read_ulong(&l)
+
+        attrs = self.readObjectAttributes(obj)
+
+        while PyDict_Next(attrs, &ref, &key, &value):
+            try:
+                ikey = int(<object>key)
+            except ValueError:
+                ikey = <object>key
+
+            PyDict_SetItem(obj, ikey, <object>value)
+
+        return obj
+
+    cdef object readList(self):
+        cdef list obj = []
+        cdef unsigned long l
+        cdef unsigned long i
+
+        self.context.addObject(obj)
+        self.stream.read_ulong(&l)
+
+        for i from 0 <= i < l:
+            PyList_Append(obj, self.readElement())
+
+        return obj
+
+    cdef object readDate(self):
+        cdef double ms
+        cdef short tz
+
+        self.stream.read_double(&ms)
+        self.stream.read_short(&tz)
+
+        # Timezones are ignored
+        d = util.get_datetime(ms / 1000.0)
+
+        if self.timezone_offset:
+            d = d + self.timezone_offset
+
+        self.context.addObject(d)
+
+        return d
+
+    cdef object readLongString(self, bint bytes=0):
+        cdef unsigned long l
+        cdef char *b = NULL
+        cdef object s
+
+        self.stream.read_ulong(&l)
+
+        try:
+            self.stream.read(&b, l)
+            s = PyString_FromStringAndSize(b, <Py_ssize_t>l)
+        finally:
+            if b != NULL:
+                free(b)
+
+        if bytes:
+            return s
+
+        return self.context.getStringForBytes(s)
+
+    cdef object readXML(self):
+        cdef object data = self.readLongString()
+        cdef object root = xml.fromstring(data)
+
+        self.context.addObject(root)
+
+        return root
 
     cdef object readAMF3(self):
         raise NotImplementedError()
@@ -407,3 +547,30 @@ cdef class Encoder(codec.Encoder):
             self._writeDict(attrs)
 
         return self._writeEndObject()
+
+    cdef int writeMixedArray(self, o) except -1:
+        if self.writeReference(o) != -1:
+            return 0
+
+        self.context.addObject(o)
+        self.writeType(TYPE_MIXEDARRAY)
+
+        # TODO: optimise this
+        # work out the highest integer index
+        try:
+            # list comprehensions to save the day
+            max_index = max([y[0] for y in o.items()
+                if isinstance(y[0], (int, long))])
+
+            if max_index < 0:
+                max_index = 0
+        except ValueError:
+            max_index = 0
+
+        self.stream.write_ulong(max_index)
+
+        self._writeDict(o)
+        self._writeEndObject()
+
+    cdef int writeAMF3(self, o) except -1:
+        raise NotImplementedError
