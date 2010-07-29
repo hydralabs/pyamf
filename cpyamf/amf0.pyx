@@ -44,6 +44,115 @@ cdef char TYPE_TYPEDOBJECT = '\x10'
 cdef char TYPE_AMF3        = '\x11'
 
 
+cdef class Decoder(codec.Decoder):
+    """
+    """
+
+    cdef bint use_amf3
+    #cdef amf3.Dncoder amf3_decoder
+
+    property use_amf3:
+        def __get__(self):
+            return self.use_amf3
+
+        def __set__(self, value):
+            self.use_amf3 = value
+
+    def __cinit__(self):
+        self.use_amf3 = 0
+
+    def __init__(self, *args, **kwargs):
+        self.use_amf3 = kwargs.pop('use_amf3', 0)
+
+        codec.Codec.__init__(self, *args, **kwargs)
+
+    cdef object readNumber(self):
+        cdef double i
+
+        self.stream.read_double(&i)
+
+        if floor(i) == i:
+            return int(i)
+
+        return i
+
+    cdef object readBoolean(self):
+        cdef unsigned char b
+
+        self.stream.read_uchar(&b)
+
+        if b == 1:
+            return True
+        elif b == 0:
+            return False
+
+        raise pyamf.DecodeError('Bad boolean read from stream')
+
+    cdef object readString(self):
+        raise NotImplementedError()
+
+    cdef object readObject(self):
+        raise NotImplementedError()
+
+    cdef object readNull(self):
+        raise NotImplementedError()
+
+    cdef object readReference(self):
+        raise NotImplementedError()
+
+    cdef object readMixedArray(self):
+        raise NotImplementedError()
+
+    cdef object readList(self):
+        raise NotImplementedError()
+
+    cdef object readDate(self):
+        raise NotImplementedError()
+
+    cdef object readLongString(self):
+        raise NotImplementedError()
+
+    cdef object readXML(self):
+        raise NotImplementedError()
+
+    cdef object readTypedObject(self):
+        raise NotImplementedError()
+
+    cdef object readAMF3(self):
+        raise NotImplementedError()
+
+    cdef object readConcreteElement(self, char type):
+        if type == TYPE_NUMBER:
+            return self.readNumber()
+        elif type == TYPE_BOOL:
+            return self.readBoolean()
+        elif type == TYPE_STRING:
+            return self.readString()
+        elif type == TYPE_OBJECT:
+            return self.readObject()
+        elif type == TYPE_NULL:
+            return self.readNull()
+        elif type == TYPE_UNDEFINED:
+            return self.readUndefined()
+        elif type == TYPE_REFERENCE:
+            return self.readReference()
+        elif type == TYPE_MIXEDARRAY:
+            return self.readMixedArray()
+        elif type == TYPE_ARRAY:
+            return self.readList()
+        elif type == TYPE_DATE:
+            return self.readDate()
+        elif type == TYPE_LONGSTRING:
+            return self.readLongString()
+        elif type == TYPE_UNSUPPORTED:
+            return self.readNull()
+        elif type == TYPE_XML:
+            return self.readXML()
+        elif type == TYPE_TYPEDOBJECT:
+            return self.readTypedObject()
+        elif type == TYPE_AMF3:
+            return self.readAMF3()
+
 cdef class Encoder(codec.Encoder):
     """
     The AMF0 Encoder.
