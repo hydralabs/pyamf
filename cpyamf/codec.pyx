@@ -357,6 +357,12 @@ cdef class Codec(object):
         def __get__(self):
             return self.context
 
+    def __cinit__(self):
+        self.stream = None
+        self.context = None
+        self.strict = 0
+        self.timezone_offset = None
+
     def __init__(self, stream=None, context=None, strict=False, timezone_offset=None):
         if not isinstance(stream, BufferedByteStream):
             stream = BufferedByteStream(stream)
@@ -372,9 +378,6 @@ cdef class Codec(object):
 
     cdef Context buildContext(self):
         return Context()
-
-    cdef PyObject *getTypeFunc(self, data):
-        raise NotImplementedError
 
 
 cdef class Decoder(Codec):
@@ -416,8 +419,8 @@ cdef class Encoder(Codec):
     """
 
     def __cinit__(self):
-        self._func_cache = {}
-        self._use_write_object = []
+        self.func_cache = {}
+        self.use_write_object = []
 
     cdef inline int writeType(self, char type) except -1:
         return self.stream.write(<char *>&type, 1)
@@ -456,6 +459,9 @@ cdef class Encoder(Codec):
         raise NotImplementedError
 
     cdef int writeTuple(self, object o) except -1:
+        raise NotImplementedError
+
+    cdef int writeDict(self, object o) except -1:
         raise NotImplementedError
 
     cdef int writeSequence(self, object iterable) except -1:
@@ -507,12 +513,12 @@ cdef class Encoder(Codec):
         elif <PyObject *>element == Undefined:
             ret = self.writeUndefined(element)
         elif PyDict_CheckExact(element):
-            ret = self.writeObject(element)
+            ret = self.writeDict(element)
         elif PyDateTime_Check(element):
             ret = self.writeDateTime(element)
         elif <PyObject *>py_type == MixedArray:
             ret = self.writeMixedArray(element)
-        elif PySequence_Contains(self._use_write_object, py_type):
+        elif PySequence_Contains(self.use_write_object, py_type):
             ret = self.writeObject(element)
         elif xml.is_xml(element):
             ret = self.writeXML(element)
@@ -551,6 +557,8 @@ cdef class Encoder(Codec):
         if ret is None:
             return NULL
 
+        Py_INCREF(ret)
+
         return <PyObject *>ret
 
     cpdef int writeElement(self, object element) except -1:
@@ -562,7 +570,7 @@ cdef class Encoder(Codec):
         ret = self.handleBasicTypes(element, py_type)
 
         if ret == 1:
-            func = PyDict_GetItem(self._func_cache, py_type)
+            func = PyDict_GetItem(self.func_cache, py_type)
 
             if func == NULL:
                 func = self.getCustomTypeFunc(element)
@@ -570,11 +578,11 @@ cdef class Encoder(Codec):
                 if func == NULL:
                     self.checkBadTypes(element, py_type)
 
-                    PyList_Append(self._use_write_object, py_type)
+                    PyList_Append(self.use_write_object, py_type)
 
                     return self.writeObject(element)
 
-                PyDict_SetItem(self._func_cache, py_type, <object>func)
+                PyDict_SetItem(self.func_cache, py_type, <object>func)
 
             (<object>func)(element)
 

@@ -21,6 +21,7 @@ cdef extern from "stdlib.h" nogil:
 
 from cpyamf cimport codec, util
 import pyamf
+from pyamf import xml, util
 
 
 cdef char TYPE_NUMBER      = '\x00'
@@ -101,6 +102,7 @@ cdef class Encoder(codec.Encoder):
         Write array to the stream.
         """
         cdef Py_ssize_t size, i
+        cdef PyObject *x
 
         if self.writeReference(a) != -1:
             return 0
@@ -121,6 +123,7 @@ cdef class Encoder(codec.Encoder):
 
     cdef int writeTuple(self, object a) except -1:
         cdef Py_ssize_t size, i
+        cdef PyObject *x
 
         if self.writeReference(a) != -1:
             return 0
@@ -195,6 +198,47 @@ cdef class Encoder(codec.Encoder):
             self.stream.write_ushort(l)
 
         return self.stream.write(PyString_AS_STRING(u), l)
+
+    cdef int writeXML(self, e) except -1:
+        """
+        Writes an XML instance.
+        """
+        self.writeType(TYPE_XML)
+
+        data = xml.tostring(e)
+
+        if isinstance(data, unicode):
+            data = data.encode('utf-8')
+
+        if not PyString_CheckExact(data):
+            raise TypeError('expected str from xml.tostring')
+
+        cdef Py_ssize_t l = PyString_GET_SIZE(data)
+
+        self.stream.write_ulong(l)
+
+        return self.stream.write(PyString_AS_STRING(data), l)
+
+    cdef int writeDateTime(self, d) except -1:
+        if self.timezone_offset is not None:
+            d -= self.timezone_offset
+
+        secs = util.get_timestamp(d)
+
+        self.writeType(TYPE_DATE)
+        self.stream.write_double(secs * 1000.0)
+
+        return self.stream.write('\x00\x00', 2)
+
+    cdef int writeDict(self, o) except -1:
+        if self.writeReference(o) != -1:
+            return 0
+
+        self.context.addObject(o)
+        self.writeType(TYPE_OBJECT)
+        self._writeDict(o)
+
+        return self._writeEndObject()
 
     cdef int _writeDict(self, attrs) except -1:
         """

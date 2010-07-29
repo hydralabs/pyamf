@@ -62,15 +62,14 @@ cdef class Codec(object):
     cdef object timezone_offset
 
     cdef Context buildContext(self)
-    cdef PyObject *getTypeFunc(self, data)
 
 
 cdef class Encoder(Codec):
     """
     """
 
-    cdef dict _func_cache
-    cdef list _use_write_object
+    cdef dict func_cache
+    cdef list use_write_object
 
     cdef inline int writeType(self, char type) except -1
     cdef int writeNull(self, object o) except -1
@@ -87,6 +86,7 @@ cdef class Encoder(Codec):
     cdef int writeTuple(self, object o) except -1
     cdef int writeSequence(self, object iterable) except -1
     cdef int writeObject(self, object o) except -1
+    cdef int writeDict(self, object o) except -1
     cdef int writeMixedArray(self, object o) except -1
 
     cdef inline int handleBasicTypes(self, object element, object py_type) except -1
