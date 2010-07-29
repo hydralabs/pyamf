@@ -7,7 +7,7 @@ C-extension for L{pyamf.amf3} Python module in L{PyAMF<pyamf>}.
 @since: 0.4
 """
 
-from python cimport *
+from cpython cimport *
 
 cdef extern from "datetime.h":
     void PyDateTime_IMPORT()
@@ -218,10 +218,6 @@ cdef class Context(object):
     @ivar class_aliases: A L{dict} of C{class} to L{ClassAlias}
     """
 
-    property objects:
-        def __get__(self):
-            return self.objects
-
     def __cinit__(self):
         self.objects = IndexedCollection()
 
@@ -229,6 +225,10 @@ cdef class Context(object):
 
     def __init__(self):
         self.clear()
+
+    property objects:
+        def __get__(self):
+            return self.objects
 
     property extra_context:
         def __get__(self):
@@ -361,25 +361,17 @@ cdef class Codec(object):
 
     def __cinit__(self):
         self.stream = None
-        self.context = None
         self.strict = 0
         self.timezone_offset = None
 
-    def __init__(self, stream=None, context=None, strict=False, timezone_offset=None):
+    def __init__(self, stream=None, strict=False, timezone_offset=None):
         if not isinstance(stream, BufferedByteStream):
             stream = BufferedByteStream(stream)
 
-        if context is None:
-            context = self.buildContext()
-
         self.stream = <cBufferedByteStream>stream
-        self.context = context
         self.strict = strict
 
         self.timezone_offset = timezone_offset
-
-    cdef Context buildContext(self):
-        return Context()
 
 
 cdef class Decoder(Codec):

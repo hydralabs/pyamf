@@ -57,11 +57,8 @@ cdef class Codec(object):
     """
 
     cdef util.cBufferedByteStream stream
-    cdef Context context
     cdef bint strict
     cdef object timezone_offset
-
-    cdef Context buildContext(self)
 
 
 cdef class Decoder(Codec):
