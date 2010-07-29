@@ -7,7 +7,7 @@ C-extension for L{pyamf.amf3} Python module in L{PyAMF<pyamf>}.
 :since: 0.6
 """
 
-from python cimport *
+from cpython cimport *
 
 cdef extern from "math.h":
     float floor(float)
@@ -53,21 +53,19 @@ cdef class Decoder(codec.Decoder):
     """
     """
 
-    cdef bint use_amf3
+    cdef public bint use_amf3
+    cdef readonly codec.Context context
     #cdef amf3.Dncoder amf3_decoder
-
-    property use_amf3:
-        def __get__(self):
-            return self.use_amf3
-
-        def __set__(self, value):
-            self.use_amf3 = value
 
     def __cinit__(self):
         self.use_amf3 = 0
 
     def __init__(self, *args, **kwargs):
         self.use_amf3 = kwargs.pop('use_amf3', 0)
+        self.context = kwargs.pop('context', None)
+
+        if self.context is None:
+            self.context = codec.Context()
 
         codec.Codec.__init__(self, *args, **kwargs)
 
@@ -298,21 +296,20 @@ cdef class Encoder(codec.Encoder):
     The AMF0 Encoder.
     """
 
-    cdef bint use_amf3
+    cdef public bint use_amf3
+    cdef readonly codec.Context context
     #cdef amf3.Encoder amf3_encoder
-
-    property use_amf3:
-        def __get__(self):
-            return self.use_amf3
-
-        def __set__(self, value):
-            self.use_amf3 = value
 
     def __cinit__(self):
         self.use_amf3 = 0
 
     def __init__(self, *args, **kwargs):
         self.use_amf3 = kwargs.pop('use_amf3', 0)
+
+        self.context = kwargs.pop('context', None)
+
+        if self.context is None:
+            self.context = codec.Context()
 
         codec.Codec.__init__(self, *args, **kwargs)
 

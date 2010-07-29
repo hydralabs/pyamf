@@ -7,7 +7,7 @@ C-extension for L{pyamf.amf3} Python module in L{PyAMF<pyamf>}.
 @since: 0.6
 """
 
-from python cimport *
+from cpython cimport *
 
 
 from cpyamf.util cimport cBufferedByteStream, BufferedByteStream
@@ -125,21 +125,7 @@ cdef class ClassDefinition(object):
 cdef class Context(codec.Context):
     """
     I hold the AMF3 context for en/decoding streams.
-
-    :ivar strings: A list of string references.
-    :type strings: ``list``
-    :ivar classes: A list of L{ClassDefinition}.
-    :type classes: C{list}
-    :ivar legacy_xml: A list of legacy encoded XML documents.
-    :type legacy_xml: C{list}
     """
-
-    cdef codec.IndexedCollection strings
-    cdef codec.IndexedCollection legacy_xml
-    cdef dict classes
-    cdef dict class_ref
-
-    cdef int class_idx
 
     def __cinit__(self):
         self.strings = codec.IndexedCollection(use_hash=1)
@@ -260,6 +246,16 @@ cdef class _Decoder(codec.Decoder):
     """
     Decodes an AMF3 data stream.
     """
+
+    cdef readonly Context context
+
+    def __init__(self, *args, **kwargs):
+        self.context = kwargs.pop('context', None)
+
+        if self.context is None:
+            self.context = codec.Context()
+
+        codec.Decoder.__init__(self, *args, **kwargs)
 
     cdef inline long _read_ref(self) except -1:
         cdef long ref
@@ -640,19 +636,17 @@ cdef class Encoder(codec.Encoder):
     The AMF3 Encoder.
     """
 
-    cdef bint use_proxies
+    cdef public bint use_proxies
+    cdef readonly Context context
 
-    property use_proxies:
-        def __get__(self):
-            return self.use_proxies
-
-        def __set__(self, value):
-            self.use_proxies = value
-
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         self.use_proxies = kwargs.pop('use_proxies', amf3.use_proxies_default)
+        self.context = kwargs.pop('context', None)
 
-        codec.Encoder.__init__(self, **kwargs)
+        if self.context is None:
+            self.context = Context()
+
+        codec.Encoder.__init__(self, *args, **kwargs)
 
     cpdef int writeString(self, object s, int writeType=1) except -1:
         cdef Py_ssize_t l
