@@ -20,12 +20,12 @@ A live demo can be found on the PyAMF `Google App Engine example page`_.
 Download
 ========
 
-Grab the example from SVN with:
+Clone the PyAMF repository with:
 
 .. code-block:: bash
 
-    svn export http://svn.pyamf.org/pyamf/trunk/doc/tutorials/examples/actionscript/shell shell-example
-    cd shell-example/python
+    git clone git://github.com/hydralabs/pyamf.git pyamf
+    cd doc/tutorials/examples/actionscript/shell
 
 Alternatively, if you just want to have a look, you can browse_ the example online.
 
@@ -33,7 +33,7 @@ Alternatively, if you just want to have a look, you can browse_ the example onli
 Setup
 =====
 
-**Note**: make sure you have Django_ >= 0.96 installed.
+**Note**: make sure you have Django_ >= 1.0 installed.
 
 Database
 --------
@@ -103,10 +103,10 @@ You should see something like this for the client:
     Connecting to http://localhost:8000/gateway/shell/
 
     Welcome to the PyAMF 0.5.1 Shell Demo!
-    Python 2.6.4 (r264:75706, Dec 22 2009, 21:55:52) 
+    Python 2.6.4 (r264:75706, Dec 22 2009, 21:55:52)
     [GCC 4.2.1 (Apple Inc. build 5646)] on darwin
     Type "help", "copyright", "credits" or "license" for more information.
-    >>> 
+    >>>
 
 You can now use the interpreter as you normally would:
 
@@ -136,7 +136,7 @@ for this example client:
 .. _Flex: http://opensource.adobe.com/wiki/display/flexsdk/Flex+SDK
 .. _Django: http://djangoproject.com
 .. _Google App Engine example page: http://pyamf.appspot.com/shell
-.. _browse: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/shell
-.. _development server: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/shell/python/manage.py
+.. _browse: http://dev.pyamf.org/browser/pyamf/master/doc/tutorials/examples/actionscript/shell
+.. _development server: http://dev.pyamf.org/browser/pyamf/masterdoc/tutorials/examples/actionscript/shell/python/manage.py
 .. _SQLite: http://sqlite.org
-.. _SWF file: http://dev.pyamf.org/browser/pyamf/trunk/doc/tutorials/examples/actionscript/shell/flex/deploy/shell.swf
+.. _SWF file: http://dev.pyamf.org/browser/pyamf/master/doc/tutorials/examples/actionscript/shell/flex/deploy/shell.swf

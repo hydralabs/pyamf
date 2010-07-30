@@ -5,7 +5,7 @@
 .. topic:: Introduction
 
    This page describes how to setup the `Socket` example application for
-   PyAMF. 
+   PyAMF.
 
    The `Socket` class in Actionscript 3.0 enables Adobe Flash Player
    applications to make socket connections and to read and write raw
@@ -14,7 +14,7 @@
    The example server shows how to setup a `Socket` connection with the
    `Flex SDK`_ and exchange AMF data with a :doc:`../gateways/twisted`
    server.
-   
+
    A live demo can be found on the PyAMF blog_.
 
 .. contents::
@@ -22,12 +22,12 @@
 Download
 ========
 
-Grab the example from SVN with:
+Clone the PyAMF repository with:
 
 .. code-block:: bash
 
-    svn export http://svn.pyamf.org/trunk/doc/tutorials/examples/actionscript/socket socket-example
-    cd socket-example/python
+    git clone git://github.com/hydralabs/pyamf.git pyamf
+    cd doc/tutorials/examples/actionscript/socket-example
 
 Alternatively, if you just want to take a look at the source, you can
 browse_ the example online.
@@ -125,6 +125,6 @@ for this example client:
 .. _Twisted: http://twistedmatrix.com
 .. _Python: http://python.org
 .. _blog: http://blog.pyamf.org/archives/socket-example
-.. _browse: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/socket
-.. _SWF file: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/socket/flex/deploy/socket.swf
-.. _client: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/socket/python/client.py
+.. _browse: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/socket
+.. _SWF file: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/socket/flex/deploy/socket.swf
+.. _client: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/socket/python/client.py

@@ -6,13 +6,12 @@
 
 .. topic:: Introduction
 
-   Ohloh_ is a website which provides a web services suite and online
-   community platform that aims to map the landscape of open source
-   software development. 
+   Ohloh_ is a website which provides a web services suite and online community
+   platform that aims to map the landscape of open source software development.
 
-   The `Ohloh API`_ is a free, REST-based programming interface to the
-   Ohloh open source directory. You can use the Ohloh API to create
-   your own applications and web services based on Ohloh data.
+   The `Ohloh API`_ is a free, REST-based programming interface to the Ohloh
+   open source directory. You can use the Ohloh API to create your own
+   applications and web services based on Ohloh data.
 
    There is a live demo available on the PyAMF blog_.
 
@@ -24,12 +23,12 @@
 Download
 ========
 
-Grab the example from the `Subversion repository`_ with:
+Clone the PyAMF repository with:
 
 .. code-block:: bash
 
-    svn export http://svn.pyamf.org/trunk/doc/tutorials/examples/actionscript/ohloh ohloh-example
-    cd ohloh-example/python
+    git clone git://github.com/hydralabs/pyamf.git pyamf
+    cd doc/tutorials/examples/actionscript/ohloh
 
 Alternatively, if you just want to have a look at the source, you can
 browse_ the example online.
@@ -94,10 +93,9 @@ for that email address.
 
 .. _Ohloh: http://www.ohloh.net
 .. _Ohloh API: http://www.ohloh.net/api/getting_started
-.. _Subversion repository: http://svn.pyamf.org/trunk/doc/tutorials/examples/actionscript/ohloh
-.. _blog: http://blog.pyamf.org/archives/ohloh-api-and-python 
-.. _browse: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/ohloh
-.. _ohloh.py: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/ohloh/python/ohloh.py
-.. _development server: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/bytearray/python/manage.py
-.. _SWF file: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/ohloh/flex/deploy/ohloh.swf
+.. _blog: http://blog.pyamf.org/archives/ohloh-api-and-python
+.. _browse: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/ohloh
+.. _ohloh.py: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/ohloh/python/ohloh.py
+.. _development server: http://dev.pyamf.org/browser/masterdoc/tutorials/examples/actionscript/bytearray/python/manage.py
+.. _SWF file: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/ohloh/flex/deploy/ohloh.swf
 .. _Ohloh website: http://www.ohloh.net/api/examples

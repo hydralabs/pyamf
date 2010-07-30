@@ -31,12 +31,13 @@ A live demo can be found on the PyAMF blog_.
 
 Download
 ========
-Grab the example from SVN with:
+
+Clone the PyAMF repository with:
 
 .. code-block:: bash
 
-    svn export http://svn.pyamf.org/trunk/doc/tutorials/examples/actionscript/bytearray bytearray-example
-    cd bytearray-example/python
+    git clone git://github.com/hydralabs/pyamf.git pyamf
+    cd doc/tutorials/examples/actionscript/bytearray/python
 
 Alternatively, if you just want to have a look, you can browse_ the example online.
 
@@ -44,7 +45,7 @@ Alternatively, if you just want to have a look, you can browse_ the example onli
 Gateway
 =======
 
-**Note**: Make sure you have Django_ >= 0.96 installed.
+**Note**: Make sure you have Django_ >= 1.0 installed.
 
 The remoting gateway for the Adobe Flash Player and Python AMF clients starts on
 http://127.0.0.1:8000 when you launch the `development server`_:
@@ -153,7 +154,7 @@ for this example client:
 .. _Django: http://djangoproject.com
 .. _Python: http://python.org
 .. _blog: http://blog.pyamf.org/archives/bytearray-example
-.. _browse: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/bytearray
-.. _development server: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/bytearray/python/manage.py
-.. _SWF file: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/bytearray/flex/deploy/bytearray.swf
+.. _browse: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/bytearray
+.. _development server: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/bytearray/python/manage.py
+.. _SWF file: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/bytearray/flex/deploy/bytearray.swf
 

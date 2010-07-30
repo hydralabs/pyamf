@@ -2,7 +2,12 @@
   What's New in PyAMF 0.6
 **************************
 
-TODO: A description here of PyAMF 0.6.
+PyAMF 0.6 represents the next step towards the holy grail that is 1.0. The focus
+of this release has mainly been about speed and providing better support for
+integrated frameworks (e.g. Django, SQLAlchemy, AppEngine). The C extensions
+have been supercharged and now 90%+ of the encoding is done in C. This has given
+some massive gains in both encoding and decoding (more about this in an upcoming
+blog post).
 
 .. contents::
 
@@ -28,13 +33,8 @@ Backward Incompatible API Changes
   :class:`pyamf.util.IndexedCollection`. Any method that used to raise
   :class:`pyamf.ReferenceError` will now return ``None`` for speed.
 * ``amf3.Encoder.write*`` methods no longer accept ``use_references``.
-* Added two new Context methods to help handling ``unicode`` vs ``string``.
-  See ``pyamf.BaseContext.getStringForUnicode`` and
-  ``pyamf.BaseContext.getUnicodeForString``. Also
-  ``amf*.Encoder.writeUnicode`` and ``amf*.Decoder.readUnicode`` methods have
-  been introduced.
-* ``amf*.Encoder.type_map`` has been changed to support custom types only.
-  Standard types (e.g. ``str``, ``unicode``) are hardcoded.
+* ``amf*.Encoder.type_map`` has been been removed. Use ``pyamf.add_type``
+  instead. Standard types (e.g. ``str``, ``unicode``) are now hardcoded.
 * ``django.contrib.auth.models.User`` is now strongly typed, with the alias
   ``django.contrib.auth.models.User`` with the password and all messages
   excluded from the instance. In addition, the ``username`` is now set to

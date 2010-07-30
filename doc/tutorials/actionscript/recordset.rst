@@ -24,13 +24,15 @@ Also make sure you have SQLAlchemy_ >= 0.4 installed.
 Download
 ========
 
-Grab the example from SVN with::
+Clone the PyAMF repository with:
 
-    svn export http://svn.pyamf.org/trunk/doc/tutorials/examples/actionscript/recordset recordset-example
-    cd recordset-example/python
+.. code-block:: bash
 
-Alternatively, if you just want to have a look, you can browse_ the
-example online.
+    git clone git://github.com/hydralabs/pyamf.git pyamf
+    cd doc/tutorials/examples/actionscript/recordset
+
+Alternatively, if you just want to have a look, you can browse_ the example
+online.
 
 
 Database
@@ -110,7 +112,7 @@ You should see something like this for the client::
     2009-12-27 01:58:13,301 DEBUG [root] Adding request service.getLanguages()
     2009-12-27 01:58:13,301 DEBUG [root] Executing single request: /1
     2009-12-27 01:58:13,301 DEBUG [root] AMF version: 0
-    2009-12-27 01:58:13,302 DEBUG [root] Sending POST request to 
+    2009-12-27 01:58:13,302 DEBUG [root] Sending POST request to
     2009-12-27 01:58:13,307 DEBUG [root] Waiting for response...
     2009-12-27 01:58:13,311 DEBUG [root] Got response status: 200
     2009-12-27 01:58:13,311 DEBUG [root] Content-Type: application/x-amf
@@ -143,6 +145,6 @@ for this example client::
 .. _page: http://blog.vixiom.com/2007/04/17/actionscript-20-flash-remoting-with-flash-cs3/
 .. _SQLAlchemy: http://sqlalchemy.org
 .. _SQLite: http://sqlite.org
-.. _browse: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/recordset
-.. _development server: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/recordset/python/gateway.py
-.. _SWF file: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/recordset/flash/SoftwareInfoExample.swf
+.. _browse: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/recordset
+.. _development server: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/recordset/python/gateway.py
+.. _SWF file: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/recordset/flash/SoftwareInfoExample.swf

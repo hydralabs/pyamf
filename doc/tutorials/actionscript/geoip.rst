@@ -19,12 +19,13 @@
 
 Download
 ========
-Grab the example from SVN with:
+
+Clone the PyAMF repository with:
 
 .. code-block:: bash
 
-    svn export http://svn.pyamf.org/trunk/doc/tutorials/examples/actionscript/geoip geoip-example
-    cd geoip-example/python
+    git clone git://github.com/hydralabs/pyamf.git pyamf
+    cd doc/tutorials/examples/actionscript/geoip/python
 
 Alternatively, if you just want to have a look, you can browse_ the example online.
 
@@ -93,7 +94,7 @@ You should see something like this for the client:
     2009-12-26 21:35:44,659 DEBUG [root] Adding request geoip.getGeoInfo()
     2009-12-26 21:35:44,659 DEBUG [root] Executing single request: /1
     2009-12-26 21:35:44,659 DEBUG [root] AMF version: 0
-    2009-12-26 21:35:44,663 DEBUG [root] Sending POST request to 
+    2009-12-26 21:35:44,663 DEBUG [root] Sending POST request to
     2009-12-26 21:35:44,665 DEBUG [root] Waiting for response...
     2009-12-26 21:35:44,672 DEBUG [root] Got response status: 200
     2009-12-26 21:35:44,672 DEBUG [root] Content-Type: application/x-amf
@@ -128,6 +129,6 @@ for this example client:
 .. _GeoIP API for Python: http://www.maxmind.com/app/python
 .. _Python: http://python.org
 .. _blog: http://blog.pyamf.org/archives/geoip-example
-.. _browse: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/geoip
-.. _development server: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/geoip/python/server.py
-.. _SWF file: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/geoip/flex/deploy/geoip.swf
+.. _browse: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/geoip
+.. _development server: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/geoip/python/server.py
+.. _SWF file: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/geoip/flex/deploy/geoip.swf

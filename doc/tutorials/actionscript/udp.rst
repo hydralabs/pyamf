@@ -13,17 +13,19 @@
    and software network interfaces available on the client computer.
 
 .. contents::
- 
+
 Download
 ========
 
 #. Download and install the `Adobe AIR 2 Runtime`_. Also download the
    Adobe AIR 2 SDK if you want to modify and compile the application.
 
-#. Grab the example from SVN with::
+#. Clone the PyAMF repository with:
 
-     svn export http://svn.pyamf.org/trunk/doc/tutorials/examples/actionscript/udp udp-example
-     cd udp-example/python
+.. code-block:: bash
+
+    git clone git://github.com/hydralabs/pyamf.git pyamf
+    cd doc/tutorials/examples/actionscript/udp-example
 
    Alternatively, if you just want to have a look, you can browse_ the example online.
 
@@ -33,8 +35,8 @@ Server
 
 **Note**: Make sure you have Twisted_ >= 2.5 installed.
 
-The UDP server for the Adobe Flash Player starts on
-localhost:55555 when you launch the `development server`_:
+The UDP server for the Adobe Flash Player starts on localhost:55555 when you
+launch the `development server`_:
 
 .. code-block:: bash
 
@@ -81,6 +83,6 @@ Right-click for the fullscreen and always on top options:
 .. _Adobe AIR 2 Runtime: http://labs.adobe.com/downloads/air2.html
 .. _Twisted: http://twistedmatrix.com
 .. _UDP sockets: http://help.adobe.com/en_US/FlashPlatform/beta/reference/actionscript/3/flash/net/DatagramSocket.html
-.. _browse: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/udp
-.. _development server: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/udp/python/server.py
-.. _AIR file: http://dev.pyamf.org/browser/trunk/doc/tutorials/examples/actionscript/udp/air/deploy/udp.air
+.. _browse: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/udp
+.. _development server: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/udp/python/server.py
+.. _AIR file: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/udp/air/deploy/udp.air

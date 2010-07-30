@@ -123,19 +123,14 @@ extension module::
 Advanced Options
 ================
 
-Because of setuptools_ you can do, with the release tag, as well
-as with trunk::
-    
-    easy_install http://svn.pyamf.org/tags/release-0.6b1
-
 To find out about other advanced installation options, run::
-    
+
     easy_install --help
 
 Also see `Installing Python Modules`_ for detailed information.
 
 To install PyAMF to a custom location::
-   
+
     easy_install --prefix=/path/to/installdir
 
 
@@ -170,7 +165,7 @@ Sphinx from the ``pyamf/doc`` directory directly like this::
 .. _yet:	http://dev.pyamf.org/milestone/0.7
 .. _setuptools:	http://peak.telecommunity.com/DevCenter/setuptools
 .. _easy_install: http://peak.telecommunity.com/DevCenter/EasyInstall#installing-easy-install
-.. _ez_setup.py: http://svn.pyamf.org/trunk/ez_setup.py
+.. _ez_setup.py: http://github.com/hydralabs/pyamf/blob/master/ez_setup.py
 .. _ElementTree: http://effbot.org/zone/element-index.htm
 .. _uuid:	http://pypi.python.org/pypi/uuid
 .. _wsgiref:	http://pypi.python.org/pypi/wsgiref
