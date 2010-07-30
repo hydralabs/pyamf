@@ -10,6 +10,9 @@ C-extension for L{pyamf.amf3} Python module in L{PyAMF<pyamf>}.
 from cpython cimport *
 
 cdef extern from "stdlib.h" nogil:
+    ctypedef unsigned long size_t
+
+    void *malloc(size_t)
     void free(void *)
 
 from cpyamf.util cimport cBufferedByteStream, BufferedByteStream
@@ -1118,18 +1121,16 @@ cdef int encode_int(long i, char **buf) except -1:
     # Use typecasting to get the twos complement representation of i
     cdef unsigned long n = (<unsigned long*>(<void *>(&i)))[0]
 
-    cdef int size = 0
     cdef unsigned long real_value = n
     cdef char changed = 0
     cdef unsigned char count = 0
     cdef char *bytes = NULL
 
     if n > 0x1fffff:
-        size = 4
-        bytes = <char *>PyMem_Malloc(size)
+        bytes = <char *>malloc(4)
 
         if bytes == NULL:
-            raise MemoryError
+            PyErr_NoMemory()
 
         changed = 1
         n = n >> 1
@@ -1137,46 +1138,39 @@ cdef int encode_int(long i, char **buf) except -1:
         count += 1
 
     if n > 0x3fff:
-        if size == 0:
-            size = 3
-            bytes = <char *>PyMem_Malloc(size)
+        if bytes == NULL:
+            bytes = <char *>malloc(3)
 
             if bytes == NULL:
-                raise MemoryError
+                PyErr_NoMemory()
 
         bytes[count] = 0x80 | ((n >> 14) & 0xff)
         count += 1
 
     if n > 0x7f:
-        if size == 0:
-            size = 2
-            bytes = <char *>PyMem_Malloc(size)
+        if bytes == NULL:
+            bytes = <char *>malloc(2)
 
             if bytes == NULL:
-                raise MemoryError
+                PyErr_NoMemory()
 
         bytes[count] = 0x80 | ((n >> 7) & 0xff)
         count += 1
 
-    if changed == 1:
-        n = real_value
-
-    if size == 0:
-        size = 1
-
-        bytes = <char *>PyMem_Malloc(size)
+    if bytes == NULL:
+        bytes = <char *>malloc(1)
 
         if bytes == NULL:
-            raise MemoryError
+            PyErr_NoMemory()
 
-    if n > 0x1fffff:
-        bytes[count] = n & 0xff
+    if real_value > 0x1fffff:
+        bytes[count] = real_value & 0xff
     else:
-        bytes[count] = n & 0x7f
+        bytes[count] = real_value & 0x7f
 
     buf[0] = bytes
 
-    return size
+    return count + 1
 
 
 cdef int decode_int(cBufferedByteStream stream, long *ret, int sign=0) except -1:
