@@ -669,48 +669,6 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         self.assertDecoded(datetime.datetime(2005, 3, 18, 1, 58, 31),
             '\x08\x01Bp+6!\x15\x80\x00')
 
-    def test_get_class_definition(self):
-        pyamf.register_class(Spam, 'abc.xyz')
-
-        self.buf.write('\x0fabc.xyz')
-        self.buf.seek(0, 0)
-
-        class_def = self.decoder._getClassDefinition(0x01)
-        alias = class_def.alias
-
-        self.assertTrue(alias.klass, Spam)
-        self.assertTrue(alias.alias, 'abc.xyz')
-        self.assertEqual(class_def.encoding, amf3.ObjectEncoding.STATIC)
-
-        self.assertTrue(class_def in self.context.class_ref.values())
-        self.assertTrue(alias.klass in self.context.classes)
-
-        self.context.class_ref = {}
-        self.buf.write('\x0fabc.xyz')
-        self.buf.seek(0, 0)
-
-        class_def = self.decoder._getClassDefinition(0x03)
-        alias = class_def.alias
-
-        self.assertTrue(alias.klass, Spam)
-        self.assertTrue(alias.alias, 'abc.xyz')
-        self.assertEqual(class_def.encoding, amf3.ObjectEncoding.EXTERNAL)
-
-        self.assertTrue(class_def in self.context.class_ref.values())
-
-        self.context.class_ref = {}
-        self.buf.write('\x0fabc.xyz')
-        self.buf.seek(0, 0)
-
-        class_def = self.decoder._getClassDefinition(0x05)
-        alias = class_def.alias
-
-        self.assertTrue(alias.klass, Spam)
-        self.assertTrue(alias.alias, 'abc.xyz')
-        self.assertEqual(class_def.encoding, amf3.ObjectEncoding.DYNAMIC)
-
-        self.assertTrue(class_def in self.context.class_ref.values())
-
     def test_not_strict(self):
         self.assertFalse(self.decoder.strict)
 

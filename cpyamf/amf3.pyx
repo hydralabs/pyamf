@@ -830,6 +830,9 @@ cdef class Encoder(codec.Encoder):
         cdef PyObject *val
         cdef Py_ssize_t idx = 0
 
+        if self.use_proxies:
+            return self.writeProxy(obj)
+
         self.writeType(TYPE_OBJECT)
 
         ref = self.context.getObjectReference(obj)
@@ -868,7 +871,7 @@ cdef class Encoder(codec.Encoder):
         if '' in n:
             raise pyamf.EncodeError("dicts cannot contain empty string keys")
 
-        if self.use_proxies == 1:
+        if self.use_proxies:
             return self.writeProxy(n)
 
         self.writeType(TYPE_ARRAY)
@@ -1098,7 +1101,7 @@ cdef class Encoder(codec.Encoder):
         """
         cdef object proxy = self.context.getProxyForObject(obj)
 
-        return self.writeObject(proxy)
+        return self.writeObject(proxy, 1)
 
     cdef inline int handleBasicTypes(self, object element, object py_type) except -1:
         cdef int ret = codec.Encoder.handleBasicTypes(self, element, py_type)
