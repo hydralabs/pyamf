@@ -9,6 +9,8 @@ C-extension for L{pyamf.amf3} Python module in L{PyAMF<pyamf>}.
 
 from cpython cimport *
 
+cdef extern from "stdlib.h" nogil:
+    void free(void *)
 
 from cpyamf.util cimport cBufferedByteStream, BufferedByteStream
 from cpyamf cimport codec
@@ -55,6 +57,8 @@ cdef PyObject *ByteArrayType = <PyObject *>amf3.ByteArray
 cdef object DataInput = amf3.DataInput
 cdef object DataOutput = amf3.DataOutput
 cdef object empty_string = str('')
+cdef object empty_unicode = empty_string.encode('utf-8')
+cdef object undefined = pyamf.Undefined
 
 
 cdef class ClassDefinition(object):
@@ -292,13 +296,13 @@ cdef class Decoder(codec.Decoder):
     Decodes an AMF3 data stream.
     """
 
-    cdef readonly Context context
-
     def __init__(self, *args, **kwargs):
-        self.context = kwargs.pop('context', None)
+        context = kwargs.pop('context', None)
 
-        if self.context is None:
-            self.context = codec.Context()
+        if context is None:
+            context = Context()
+
+        self.context = context
 
         codec.Decoder.__init__(self, *args, **kwargs)
 
@@ -324,42 +328,45 @@ cdef class Decoder(codec.Decoder):
 
         return d
 
-    cdef object readUnicode(self):
-        """
-        Reads and returns a decoded utf-u unicode from the stream.
-        """
-        cdef object s = self.readString()
-
-        return self.context.getUnicodeForString(s)
-
-    cpdef object readString(self):
+    cpdef object readString(self, bint bytes=0):
         """
         Reads and returns a string from the stream.
         """
         cdef long r = _read_ref(self.stream)
+        cdef object s
 
         if r & REFERENCE_BIT == 0:
             # read a string reference
-            return self.context.getString(r >> 1)
+            s = self.context.getString(r >> 1)
+
+            if bytes == 1:
+                return s
+
+            return self.context.getStringForBytes(s)
 
         r >>= 1
 
         if r == 0:
-            return empty_string
+            if bytes == 1:
+                return empty_string
+
+            return empty_unicode
 
         cdef char *buf = NULL
-        cdef object s
 
         try:
             self.stream.read(&buf, r)
             s = PyString_FromStringAndSize(buf, r)
         finally:
             if buf != NULL:
-                PyMem_Free(buf)
+                free(buf)
 
         self.context.addString(s)
 
-        return s
+        if bytes == 1:
+            return s
+
+        return self.context.getStringForBytes(s)
 
     cdef object readDate(self):
         """
@@ -385,7 +392,7 @@ cdef class Decoder(codec.Decoder):
 
         return result
 
-    cdef object readArray(self):
+    cdef object readList(self):
         """
         Reads an array from the stream.
         """
@@ -398,7 +405,7 @@ cdef class Decoder(codec.Decoder):
             return self.context.getObject(size >> 1)
 
         size >>= 1
-        key = self.readString()
+        key = self.readString(1)
 
         if key == empty_string:
             # integer indexes only -> python list
@@ -415,7 +422,7 @@ cdef class Decoder(codec.Decoder):
 
         while key:
             result[key] = self.readElement()
-            key = self.readString()
+            key = self.readString(1)
 
         for i from 0 <= i < size:
             el = self.readElement()
@@ -423,7 +430,7 @@ cdef class Decoder(codec.Decoder):
 
         return result
 
-    cpdef ClassDefinition _getClassDefinition(self, long ref):
+    cdef ClassDefinition _getClassDefinition(self, long ref):
         """
         Reads class definition from the stream.
         """
@@ -432,7 +439,7 @@ cdef class Decoder(codec.Decoder):
 
         ref >>= 1
 
-        cdef object name = self.readString()
+        cdef object name = self.readString(1)
         cdef object alias = None
         cdef Py_ssize_t i
 
@@ -455,7 +462,7 @@ cdef class Decoder(codec.Decoder):
 
         if class_def.attr_len > 0:
             for i from 0 <= i < class_def.attr_len:
-                key = self.readString()
+                key = self.readString(1)
 
                 PyList_Append(class_def.static_properties, key)
 
@@ -472,16 +479,16 @@ cdef class Decoder(codec.Decoder):
         return 0
 
     cdef int _readDynamic(self, ClassDefinition class_def, obj) except -1:
-        cdef object attr = self.readString()
+        cdef object attr = self.readString(1)
 
         while PyString_GET_SIZE(attr) != 0:
             PyDict_SetItem(obj, attr, self.readElement())
 
-            attr = self.readString()
+            attr = self.readString(1)
 
         return 0
 
-    cdef object readObject(self, int use_proxies=-1):
+    cdef object readObject(self):
         """
         Reads an object from the stream.
 
@@ -489,9 +496,6 @@ cdef class Decoder(codec.Decoder):
             only is not allowed.
         @raise pyamf.DecodeError: Unknown object encoding.
         """
-        if use_proxies == -1:
-            use_proxies = self.use_proxies
-
         cdef long ref = _read_ref(self.stream)
         cdef object obj
 
@@ -501,7 +505,7 @@ cdef class Decoder(codec.Decoder):
             if obj is None:
                 raise pyamf.ReferenceError('Unknown reference')
 
-            if use_proxies == 1:
+            if self.use_proxies == 1:
                 return self.readProxy(obj)
 
             return obj
@@ -522,7 +526,7 @@ cdef class Decoder(codec.Decoder):
         elif class_def.encoding == OBJECT_ENCODING_EXTERNAL or class_def.encoding == OBJECT_ENCODING_PROXY:
             obj.__readamf__(DataInput(self))
 
-            if use_proxies == 1:
+            if self.use_proxies == 1:
                 return self.readProxy(obj)
 
             return obj
@@ -531,17 +535,14 @@ cdef class Decoder(codec.Decoder):
 
         alias.applyAttributes(obj, obj_attrs, codec=self)
 
-        if use_proxies == 1:
+        if self.use_proxies == 1:
             return self.readProxy(obj)
 
         return obj
 
-    cdef object readXML(self, int legacy=0):
+    cdef object readXML(self):
         """
         Reads an XML object from the stream.
-
-        @type legacy: C{bool}
-        @param legacy: The read XML is in 'legacy' format.
         """
         cdef long ref = _read_ref(self.stream)
 
@@ -560,11 +561,8 @@ cdef class Decoder(codec.Decoder):
             if buf != NULL:
                 PyMem_Free(buf)
 
-        x = util.ET.fromstring(s)
+        x = xml.fromstring(s)
         self.context.addObject(x)
-
-        if legacy == 1:
-            self.context.addLegacyXML(x)
 
         return x
 
@@ -618,55 +616,33 @@ cdef class Decoder(codec.Decoder):
         """
         return self.context.getObjectForProxy(obj)
 
-    cpdef object readElement(self):
-        """
-        Reads an AMF3 element from the data stream.
-
-        @raise DecodeError: The ActionScript type is unsupported.
-        @raise EOStream: No more data left to decode.
-        """
-        cdef Py_ssize_t pos = self.stream.tell()
-
-        cdef unsigned char t
-
-        if self.stream.at_eof():
-            raise pyamf.EOStream
-
-        self.stream.read_uchar(&t)
-
-        try:
-            if t == TYPE_STRING:
-                return self.readUnicode()
-            elif t == TYPE_OBJECT:
-                return self.readObject()
-            elif t == TYPE_UNDEFINED:
-                return pyamf.Undefined
-            elif t == TYPE_NULL:
-                return None
-            elif t == TYPE_BOOL_FALSE:
-                return False
-            elif t == TYPE_BOOL_TRUE:
-                return True
-            elif t == TYPE_INTEGER:
-                return self.readInteger()
-            elif t == TYPE_NUMBER:
-                return self.readNumber()
-            elif t == TYPE_ARRAY:
-                return self.readArray()
-            elif t == TYPE_DATE:
-                return self.readDate()
-            elif t == TYPE_BYTEARRAY:
-                return self.readByteArray()
-            elif t == TYPE_XML:
-                return self.readXML(1)
-            elif t == TYPE_XMLSTRING:
-                return self.readXML(0)
-        except IOError:
-            self.stream.seek(pos)
-
-            raise
-
-        raise pyamf.DecodeError("Unsupported ActionScript type")
+    cdef object readConcreteElement(self, char t):
+        if t == TYPE_STRING:
+            return self.readString()
+        elif t == TYPE_OBJECT:
+            return self.readObject()
+        elif t == TYPE_UNDEFINED:
+            return undefined
+        elif t == TYPE_NULL:
+            return None
+        elif t == TYPE_BOOL_FALSE:
+            return False
+        elif t == TYPE_BOOL_TRUE:
+            return True
+        elif t == TYPE_INTEGER:
+            return self.readInteger(1)
+        elif t == TYPE_NUMBER:
+            return self.readNumber()
+        elif t == TYPE_ARRAY:
+            return self.readList()
+        elif t == TYPE_DATE:
+            return self.readDate()
+        elif t == TYPE_BYTEARRAY:
+            return self.readByteArray()
+        elif t == TYPE_XML:
+            return self.readXML()
+        elif t == TYPE_XMLSTRING:
+            return self.readXML()
 
 
 cdef class Encoder(codec.Encoder):
@@ -674,15 +650,14 @@ cdef class Encoder(codec.Encoder):
     The AMF3 Encoder.
     """
 
-    cdef public bint use_proxies
-    cdef readonly Context context
-
     def __init__(self, *args, **kwargs):
         self.use_proxies = kwargs.pop('use_proxies', amf3.use_proxies_default)
-        self.context = kwargs.pop('context', None)
+        context = kwargs.pop('context', None)
 
-        if self.context is None:
-            self.context = Context()
+        if context is None:
+            context = Context()
+
+        self.context = context
 
         codec.Encoder.__init__(self, *args, **kwargs)
 
@@ -732,9 +707,6 @@ cdef class Encoder(codec.Encoder):
         cdef object s = self.context.getStringForUnicode(u)
 
         return self.writeString(s, 0)
-
-    cdef inline int writeType(self, char type) except -1:
-        return self.stream.write(<char *>&type, 1)
 
     cdef int writeInt(self, object n) except -1:
         cdef long x = PyInt_AS_LONG(n)

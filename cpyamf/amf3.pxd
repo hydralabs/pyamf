@@ -40,3 +40,26 @@ cdef class Context(codec.Context):
     cpdef object getClassByReference(self, Py_ssize_t ref)
     cpdef object getClass(self, object klass)
     cpdef Py_ssize_t addClass(self, ClassDefinition alias, klass) except? -1
+
+
+cdef class Decoder(codec.Decoder):
+    cdef public bint use_proxies
+    cdef readonly Context context
+
+    cdef ClassDefinition _getClassDefinition(self, long ref)
+    cdef int _readStatic(self, ClassDefinition class_def, obj) except -1
+    cdef int _readDynamic(self, ClassDefinition class_def, obj) except -1
+
+    cdef object readInteger(self, int signed=?)
+    cdef object readByteArray(self)
+    cdef object readProxy(self, obj)
+
+
+cdef class Encoder(codec.Encoder):
+    cdef public bint use_proxies
+    cdef readonly Context context
+
+    cdef int writeUnicode(self, object u, int writeType=?) except -1
+    cpdef int writeLabel(self, str e) except -1
+    cdef int writeByteArray(self, object obj) except -1
+    cdef int writeProxy(self, obj) except -1

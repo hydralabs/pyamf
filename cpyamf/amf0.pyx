@@ -20,7 +20,7 @@ cdef extern from "stdlib.h" nogil:
     void free(void *)
 
 
-from cpyamf cimport codec
+from cpyamf cimport codec, amf3
 import pyamf
 from pyamf import xml, util
 
@@ -45,7 +45,6 @@ cdef char TYPE_TYPEDOBJECT = '\x10'
 cdef char TYPE_AMF3        = '\x11'
 
 
-cdef object undefined = pyamf.Undefined
 cdef object ASObject = pyamf.ASObject
 cdef object UnknownClassAlias = pyamf.UnknownClassAlias
 
@@ -55,7 +54,7 @@ cdef class Decoder(codec.Decoder):
 
     cdef public bint use_amf3
     cdef readonly codec.Context context
-    #cdef amf3.Dncoder amf3_decoder
+    cdef amf3.Decoder amf3_decoder
 
     def __cinit__(self):
         self.use_amf3 = 0
@@ -157,12 +156,6 @@ cdef class Decoder(codec.Decoder):
 
         return obj
 
-    cdef inline object readNull(self):
-        return None
-
-    cdef inline object readUndefined(self):
-        return undefined
-
     cdef object readReference(self):
         cdef unsigned short idx
 
@@ -257,7 +250,10 @@ cdef class Decoder(codec.Decoder):
         return root
 
     cdef object readAMF3(self):
-        raise NotImplementedError()
+        if self.amf3_decoder is None:
+            self.amf3_decoder = amf3.Decoder(stream=self.stream)
+
+        return self.amf3_decoder.readElement()
 
     cdef object readConcreteElement(self, char type):
         if type == TYPE_NUMBER:
@@ -291,6 +287,7 @@ cdef class Decoder(codec.Decoder):
         elif type == TYPE_AMF3:
             return self.readAMF3()
 
+
 cdef class Encoder(codec.Encoder):
     """
     The AMF0 Encoder.
@@ -298,7 +295,7 @@ cdef class Encoder(codec.Encoder):
 
     cdef public bint use_amf3
     cdef readonly codec.Context context
-    #cdef amf3.Encoder amf3_encoder
+    cdef amf3.Encoder amf3_encoder
 
     def __cinit__(self):
         self.use_amf3 = 0
@@ -570,4 +567,8 @@ cdef class Encoder(codec.Encoder):
         self._writeEndObject()
 
     cdef int writeAMF3(self, o) except -1:
-        raise NotImplementedError
+        if self.amf3_encoder is None:
+            self.amf3_encoder = amf3.Encoder(stream=self.stream)
+
+        self.writeType(TYPE_AMF3)
+        self.amf3_encoder.writeElement(o)

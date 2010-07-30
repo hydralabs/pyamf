@@ -978,8 +978,6 @@ class ObjectDecodingTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         ClassCacheClearingTestCase.setUp(self)
         DecoderMixIn.setUp(self)
 
-        assert isinstance(self.context, amf3.Context)
-
     def test_object_references(self):
         self.buf.write('\x0a\x23\x01\x03a\x03b\x06\x09spam\x04\x05')
         self.buf.seek(0, 0)

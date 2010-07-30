@@ -30,13 +30,11 @@ from pyamf import util, xml
 import datetime
 
 
-cdef PyObject *MixedArray = <PyObject *>pyamf.MixedArray
-cdef PyObject *Undefined = <PyObject *>pyamf.Undefined
+cdef object MixedArray = pyamf.MixedArray
+cdef object Undefined = pyamf.Undefined
 cdef PyObject *BuiltinFunctionType = <PyObject *>types.BuiltinFunctionType
 cdef PyObject *GeneratorType = <PyObject *>types.GeneratorType
 
-Py_INCREF(<object>MixedArray)
-Py_INCREF(<object>Undefined)
 Py_INCREF(<object>BuiltinFunctionType)
 Py_INCREF(<object>GeneratorType)
 
@@ -355,10 +353,6 @@ cdef class Codec(object):
         def __set__(self, value):
             self.timezone_offset = value
 
-    property context:
-        def __get__(self):
-            return self.context
-
     def __cinit__(self):
         self.stream = None
         self.strict = 0
@@ -378,6 +372,30 @@ cdef class Decoder(Codec):
     """
     Base AMF decoder.
     """
+
+    cdef object readDate(self):
+        raise NotImplementedError
+
+    cpdef object readString(self, bint bytes=0):
+        raise NotImplementedError
+
+    cdef object readObject(self):
+        raise NotImplementedError
+
+    cdef object readNumber(self):
+        raise NotImplementedError
+
+    cdef inline object readNull(self):
+        return None
+
+    cdef inline object readUndefined(self):
+        return Undefined
+
+    cdef object readList(self):
+        raise NotImplementedError
+
+    cdef object readXML(self):
+        raise NotImplementedError
 
     cpdef object readElement(self):
         """
@@ -475,6 +493,8 @@ cdef class Encoder(Codec):
         if alias.external:
             # a is a subclassed list with a registered alias - push to the
             # correct method
+            PyList_Append(self.use_write_object, type(iterable))
+
             return self.writeObject(iterable)
 
         return self.writeList(iterable)
@@ -509,7 +529,7 @@ cdef class Encoder(Codec):
             ret = self.writeList(element)
         elif PyTuple_CheckExact(element):
             ret = self.writeTuple(element)
-        elif <PyObject *>element == Undefined:
+        elif element is Undefined:
             ret = self.writeUndefined(element)
         elif PyDict_CheckExact(element):
             ret = self.writeDict(element)
@@ -517,7 +537,7 @@ cdef class Encoder(Codec):
             ret = self.writeDateTime(element)
         elif PyDate_CheckExact(element):
             ret = self.writeDate(element)
-        elif <PyObject *>py_type == MixedArray:
+        elif py_type is MixedArray:
             ret = self.writeMixedArray(element)
         elif PySequence_Contains(self.use_write_object, py_type):
             ret = self.writeObject(element)
