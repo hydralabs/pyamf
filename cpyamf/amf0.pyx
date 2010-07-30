@@ -48,12 +48,25 @@ cdef char TYPE_AMF3        = '\x11'
 cdef object ASObject = pyamf.ASObject
 cdef object UnknownClassAlias = pyamf.UnknownClassAlias
 
+
+cdef class Context(codec.Context):
+    cdef amf3.Context amf3_context
+
+    cpdef int clear(self) except -1:
+        codec.Context.clear(self)
+
+        if self.amf3_context:
+            self.amf3_context.clear()
+
+        return 0
+
+
 cdef class Decoder(codec.Decoder):
     """
     """
 
     cdef public bint use_amf3
-    cdef readonly codec.Context context
+    cdef readonly Context context
     cdef amf3.Decoder amf3_decoder
 
     def __cinit__(self):
@@ -64,7 +77,7 @@ cdef class Decoder(codec.Decoder):
         self.context = kwargs.pop('context', None)
 
         if self.context is None:
-            self.context = codec.Context()
+            self.context = Context()
 
         codec.Codec.__init__(self, *args, **kwargs)
 
@@ -254,7 +267,12 @@ cdef class Decoder(codec.Decoder):
 
     cdef object readAMF3(self):
         if self.amf3_decoder is None:
-            self.amf3_decoder = amf3.Decoder(stream=self.stream, timezone_offset=self.timezone_offset)
+            self.context.amf3_context = amf3.Context()
+
+            self.amf3_decoder = amf3.Decoder(
+                stream=self.stream,
+                context=self.context.amf3_context,
+                timezone_offset=self.timezone_offset)
 
         return self.amf3_decoder.readElement()
 
@@ -297,7 +315,7 @@ cdef class Encoder(codec.Encoder):
     """
 
     cdef public bint use_amf3
-    cdef readonly codec.Context context
+    cdef readonly Context context
     cdef amf3.Encoder amf3_encoder
 
     def __cinit__(self):
@@ -309,7 +327,7 @@ cdef class Encoder(codec.Encoder):
         self.context = kwargs.pop('context', None)
 
         if self.context is None:
-            self.context = codec.Context()
+            self.context = Context()
 
         codec.Codec.__init__(self, *args, **kwargs)
 
@@ -571,7 +589,12 @@ cdef class Encoder(codec.Encoder):
 
     cdef int writeAMF3(self, o) except -1:
         if self.amf3_encoder is None:
-            self.amf3_encoder = amf3.Encoder(stream=self.stream, timezone_offset=self.timezone_offset)
+            self.context.amf3_context = amf3.Context()
+
+            self.amf3_encoder = amf3.Encoder(
+                stream=self.stream,
+                context=self.context.amf3_context,
+                timezone_offset=self.timezone_offset)
 
         self.writeType(TYPE_AMF3)
         self.amf3_encoder.writeElement(o)

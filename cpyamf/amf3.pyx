@@ -171,6 +171,7 @@ cdef class Context(codec.Context):
         codec.Context.clear(self)
 
         self.strings.clear()
+        self.proxied_objects = {}
 
         self.classes = {}
         self.class_ref = {}
@@ -197,11 +198,6 @@ cdef class Context(codec.Context):
             self.classes = value
 
     cpdef object getString(self, Py_ssize_t ref):
-        cdef PyObject *r = PyDict_GetItem(self.unicodes, ref)
-
-        if r != NULL:
-            return <object>r
-
         return self.strings.getByReference(ref)
 
     cpdef Py_ssize_t getStringReference(self, object s) except -2:
@@ -638,7 +634,7 @@ cdef class Decoder(codec.Decoder):
 
     cdef object readConcreteElement(self, char t):
         if t == TYPE_STRING:
-            return self.readString()
+            return self.readString(0)
         elif t == TYPE_OBJECT:
             return self.readObject()
         elif t == TYPE_UNDEFINED:
@@ -925,7 +921,7 @@ cdef class Encoder(codec.Encoder):
         for k in int_keys:
             self.writeElement(n[k])
 
-    cpdef int writeObject(self, object obj, int use_proxies=-1) except -1:
+    cdef int writeObject(self, object obj) except -1:
         cdef Py_ssize_t ref
         cdef object kls
         cdef ClassDefinition definition
@@ -937,10 +933,7 @@ cdef class Encoder(codec.Encoder):
         cdef PyObject *value
         cdef object attrs
 
-        if use_proxies == -1:
-            use_proxies = self.use_proxies
-
-        if use_proxies == 1:
+        if self.use_proxies:
             return self.writeProxy(obj)
 
         self.writeType(TYPE_OBJECT)
@@ -1105,7 +1098,7 @@ cdef class Encoder(codec.Encoder):
         """
         cdef object proxy = self.context.getProxyForObject(obj)
 
-        return self.writeObject(proxy, 0)
+        return 0#self.writeObject(proxy)
 
     cdef inline int handleBasicTypes(self, object element, object py_type) except -1:
         cdef int ret = codec.Encoder.handleBasicTypes(self, element, py_type)

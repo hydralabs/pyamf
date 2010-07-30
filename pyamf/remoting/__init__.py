@@ -663,7 +663,7 @@ def decode(stream, strict=False, logger=None, timezone_offset=None):
 
     body_count = stream.read_short()
 
-    for i in range(body_count):
+    for i in xrange(body_count):
         context.clear()
 
         target, payload = _read_body(stream, decoder, strict, logger)

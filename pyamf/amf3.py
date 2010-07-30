@@ -912,7 +912,7 @@ class Decoder(codec.Decoder):
 
         size >>= 1
 
-        key = self.readString()
+        key = self.readBytes()
 
         if key == '':
             # integer indexes only -> python list
@@ -949,7 +949,7 @@ class Decoder(codec.Decoder):
 
             return class_def
 
-        name = self.readString()
+        name = self.readBytes()
         alias = None
 
         if name == '':
@@ -988,7 +988,7 @@ class Decoder(codec.Decoder):
 
         while attr:
             obj[attr] = self.readElement()
-            attr = self.readString()
+            attr = self.readBytes()
 
     def readObject(self):
         """
