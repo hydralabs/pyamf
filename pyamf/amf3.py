@@ -587,15 +587,12 @@ class Context(codec.Context):
     @type strings: C{list}
     @ivar classes: A list of L{ClassDefinition}.
     @type classes: C{list}
-    @ivar legacy_xml: A list of legacy encoded XML documents.
-    @type legacy_xml: C{list}
     """
 
     def __init__(self):
         self.strings = codec.IndexedCollection(use_hash=True)
         self.classes = {}
         self.class_ref = {}
-        self.legacy_xml = codec.IndexedCollection()
 
         self.class_idx = 0
 
@@ -611,7 +608,6 @@ class Context(codec.Context):
         self.proxied_objects = {}
         self.classes = {}
         self.class_ref = {}
-        self.legacy_xml.clear()
 
         self.class_idx = 0
 
@@ -690,43 +686,6 @@ class Context(codec.Context):
         self.class_idx += 1
 
         return ref
-
-    def getLegacyXML(self, ref):
-        """
-        Return the legacy XML reference. This is the C{flash.xml.XMLDocument}
-        class in ActionScript 3.0 and the top-level C{XML} class in
-        ActionScript 1.0 and 2.0.
-
-        @type ref: C{int}
-        @param ref: The reference index.
-        @return: Instance of L{ET<util.ET>} or C{None}
-        """
-        return self.legacy_xml.getByReference(ref)
-
-    def getLegacyXMLReference(self, doc):
-        """
-        Return legacy XML reference.
-
-        @type doc: L{ET<util.ET>}
-        @param doc: The XML document to reference.
-        @return: The reference to C{doc} or C{None}.
-        @rtype: C{int}
-        """
-        return self.legacy_xml.getReferenceTo(doc)
-
-    def addLegacyXML(self, doc):
-        """
-        Creates a reference to C{doc}.
-
-        If C{doc} is already referenced that index will be returned. Otherwise
-        a new index will be created.
-
-        @type doc: L{ET<util.ET>}
-        @param doc: The XML document to reference.
-        @rtype: C{int}
-        @return: The reference to C{doc}.
-        """
-        return self.legacy_xml.append(doc)
 
     def getObjectForProxy(self, proxy):
         """
@@ -1085,7 +1044,7 @@ class Decoder(codec.Decoder):
 
         return obj
 
-    def _readXML(self, legacy=False):
+    def _readXML(self):
         """
         Reads an object from the stream.
 
@@ -1101,9 +1060,6 @@ class Decoder(codec.Decoder):
 
         x = xml.fromstring(xmlstring)
         self.context.addObject(x)
-
-        if legacy is True:
-            self.context.addLegacyXML(x)
 
         return x
 
@@ -1124,7 +1080,7 @@ class Decoder(codec.Decoder):
         @return: The XML Document.
         @rtype: L{ET<util.ET>}
         """
-        return self._readXML(True)
+        return self._readXML()
 
     def readByteArray(self):
         """
@@ -1553,13 +1509,7 @@ class Encoder(codec.Encoder):
         @type   n: L{ET<util.ET>}
         @param  n: The XML Document to be encoded to the AMF3 data stream.
         """
-        i = self.context.getLegacyXMLReference(n)
-
-        if i == -1:
-            self.stream.write(TYPE_XMLSTRING)
-        else:
-            self.stream.write(TYPE_XML)
-
+        self.stream.write(TYPE_XMLSTRING)
         ref = self.context.getObjectReference(n)
 
         if ref != -1:

@@ -74,10 +74,8 @@ class ContextTestCase(ClassCacheClearingTestCase):
 
         self.assertEqual(c.strings, [])
         self.assertEqual(c.classes, {})
-        self.assertEqual(c.legacy_xml, [])
         self.assertEqual(len(c.strings), 0)
         self.assertEqual(len(c.classes), 0)
-        self.assertEqual(len(c.legacy_xml), 0)
 
     def test_add_string(self):
         x = amf3.Context()
@@ -102,14 +100,6 @@ class ContextTestCase(ClassCacheClearingTestCase):
         self.assertEqual(x.class_ref, {0: y})
         self.assertEqual(len(x.class_ref), 1)
 
-    def test_add_legacy_xml(self):
-        x = amf3.Context()
-        y = 'abc'
-
-        self.assertEqual(x.addLegacyXML(y), 0)
-        self.assertTrue(y in x.legacy_xml)
-        self.assertEqual(len(x.legacy_xml), 1)
-
     def test_clear(self):
         x = amf3.Context()
         y = [1, 2, 3]
@@ -117,16 +107,11 @@ class ContextTestCase(ClassCacheClearingTestCase):
 
         x.addObject(y)
         x.addString('spameggs')
-        x.addLegacyXML(z)
         x.clear()
 
         self.assertEqual(x.strings, [])
         self.assertEqual(len(x.strings), 0)
         self.assertFalse('spameggs' in x.strings)
-
-        self.assertEqual(x.legacy_xml, [])
-        self.assertEqual(len(x.legacy_xml), 0)
-        self.assertFalse('<a></a>' in x.legacy_xml)
 
     def test_get_by_reference(self):
         x = amf3.Context()
@@ -150,8 +135,6 @@ class ContextTestCase(ClassCacheClearingTestCase):
         x.addObject(z)
         x.addString('abc')
         x.addString('def')
-        x.addLegacyXML('<a></a>')
-        x.addLegacyXML('<b></b>')
         x.addClass(a, Foo)
         x.addClass(b, Bar)
 
@@ -167,10 +150,6 @@ class ContextTestCase(ClassCacheClearingTestCase):
         self.assertRaises(TypeError, x.getString, '')
         self.assertRaises(TypeError, x.getString, 2.2323)
 
-        self.assertEqual(x.getLegacyXML(0), '<a></a>')
-        self.assertEqual(x.getLegacyXML(1), '<b></b>')
-        self.assertEqual(x.getLegacyXML(2), None)
-
         self.assertEqual(x.getClass(Foo), a)
         self.assertEqual(x.getClass(Bar), b)
         self.assertEqual(x.getClass(2), None)
@@ -182,9 +161,7 @@ class ContextTestCase(ClassCacheClearingTestCase):
         self.assertEqual(x.getObject(2), None)
         self.assertEqual(x.getString(2), None)
         self.assertEqual(x.getClass(2), None)
-        self.assertEqual(x.getLegacyXML(2), None)
         self.assertEqual(x.getClassByReference(2), None)
-        self.assertEqual(x.getLegacyXMLReference(object()), -1)
 
     def test_get_reference(self):
         x = amf3.Context()
@@ -205,8 +182,6 @@ class ContextTestCase(ClassCacheClearingTestCase):
         ref2 = x.addObject(z)
         x.addString('abc')
         x.addString('def')
-        x.addLegacyXML('<a></a>')
-        x.addLegacyXML('<b></b>')
         x.addClass(a, Spam)
         x.addClass(b, Foo)
 
@@ -217,10 +192,6 @@ class ContextTestCase(ClassCacheClearingTestCase):
         self.assertEqual(x.getStringReference('abc'), 0)
         self.assertEqual(x.getStringReference('def'), 1)
         self.assertEqual(x.getStringReference('asdfas'), -1)
-
-        self.assertEqual(x.getLegacyXMLReference('<a></a>'), 0)
-        self.assertEqual(x.getLegacyXMLReference('<b></b>'), 1)
-        self.assertEqual(x.getLegacyXMLReference('<c/>'), -1)
 
         self.assertEqual(x.getClass(Spam), a)
         self.assertEqual(x.getClass(Foo), b)
@@ -356,12 +327,6 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
 
     def test_byte_array(self):
         self.assertEncoded(amf3.ByteArray('hello'), '\x0c\x0bhello')
-
-    def test_xml(self):
-        x = xml.fromstring('<a><b>hello world</b></a>')
-        self.context.addLegacyXML(x)
-        self.assertEqual(self.encode(x), '\x07\x33<a><b>hello world</b></a>')
-        self.assertEqual(self.encode(x), '\x07\x00')
 
     def test_xmlstring(self):
         x = xml.fromstring('<a><b>hello world</b></a>')
@@ -614,28 +579,12 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         self.assertDecoded('hello', '\x06\x00', clear=False)
         self.assertDecoded('hello', '\x06\x00', clear=False)
 
-    def test_xml(self):
-        self.buf.write('\x07\x33<a><b>hello world</b></a>')
-        self.buf.seek(0, 0)
-        x = self.decoder.readElement()
-
-        self.assertEqual(xml.tostring(x), '<a><b>hello world</b></a>')
-        self.assertEqual(self.context.getLegacyXMLReference(x), 0)
-
-        self.buf.truncate()
-        self.buf.write('\x07\x00')
-        self.buf.seek(0, 0)
-        y = self.decoder.readElement()
-
-        self.assertEqual(x, y)
-
     def test_xmlstring(self):
         self.buf.write('\x0b\x33<a><b>hello world</b></a>')
         self.buf.seek(0, 0)
         x = self.decoder.readElement()
 
         self.assertEqual(xml.tostring(x), '<a><b>hello world</b></a>')
-        self.assertEqual(self.context.getLegacyXMLReference(x), -1)
 
         self.buf.truncate()
         self.buf.write('\x0b\x00')
