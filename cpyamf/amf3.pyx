@@ -414,7 +414,7 @@ cdef class Decoder(codec.Decoder):
         """
         cdef long size = _read_ref(self.stream)
         cdef long i
-        cdef object result
+        cdef list result
         cdef object tmp
 
         if size & REFERENCE_BIT == 0:
@@ -429,22 +429,22 @@ cdef class Decoder(codec.Decoder):
             self.context.addObject(result)
 
             for i from 0 <= i < size:
-                PyList_Append(result, self.readElement())
+                result.append(self.readElement())
 
             return result
 
-        result = pyamf.MixedArray()
+        tmp = pyamf.MixedArray()
         self.context.addObject(result)
 
         while key:
-            result[key] = self.readElement()
+            tmp[key] = self.readElement()
             key = self.readString(1)
 
         for i from 0 <= i < size:
             el = self.readElement()
-            result[i] = el
+            tmp[i] = el
 
-        return result
+        return tmp
 
     cdef ClassDefinition _getClassDefinition(self, long ref):
         """
