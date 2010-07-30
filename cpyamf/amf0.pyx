@@ -74,7 +74,10 @@ cdef class Decoder(codec.Decoder):
         self.stream.read_double(&i)
 
         if floor(i) == i:
-            return int(i)
+            try:
+                return int(i)
+            except OverflowError:
+                return i
 
         return i
 
