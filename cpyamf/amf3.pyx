@@ -302,13 +302,6 @@ cdef class Decoder(codec.Decoder):
 
         codec.Decoder.__init__(self, *args, **kwargs)
 
-    cdef inline long _read_ref(self) except -1:
-        cdef long ref
-
-        decode_int(self.stream, &ref, 0)
-
-        return ref
-
     cdef object readInteger(self, int signed=1):
         """
         Reads and returns an integer from the stream.
@@ -343,7 +336,7 @@ cdef class Decoder(codec.Decoder):
         """
         Reads and returns a string from the stream.
         """
-        cdef long r = self._read_ref()
+        cdef long r = _read_ref(self.stream)
 
         if r & REFERENCE_BIT == 0:
             # read a string reference
@@ -374,7 +367,7 @@ cdef class Decoder(codec.Decoder):
 
         The timezone is ignored as the date is always in UTC.
         """
-        cdef long ref = self._read_ref()
+        cdef long ref = _read_ref(self.stream)
 
         if ref & REFERENCE_BIT == 0:
             return self.context.getObject(ref >> 1)
@@ -396,7 +389,7 @@ cdef class Decoder(codec.Decoder):
         """
         Reads an array from the stream.
         """
-        cdef long size = self._read_ref()
+        cdef long size = _read_ref(self.stream)
         cdef long i
         cdef object result
         cdef object tmp
@@ -499,7 +492,7 @@ cdef class Decoder(codec.Decoder):
         if use_proxies == -1:
             use_proxies = self.use_proxies
 
-        cdef long ref = self._read_ref()
+        cdef long ref = _read_ref(self.stream)
         cdef object obj
 
         if ref & REFERENCE_BIT == 0:
@@ -550,7 +543,7 @@ cdef class Decoder(codec.Decoder):
         @type legacy: C{bool}
         @param legacy: The read XML is in 'legacy' format.
         """
-        cdef long ref = self._read_ref()
+        cdef long ref = _read_ref(self.stream)
 
         if ref & REFERENCE_BIT == 0:
             return self.context.getObject(ref >> 1)
@@ -584,7 +577,7 @@ cdef class Decoder(codec.Decoder):
         @see: L{ByteArray}
         @note: This is not supported in ActionScript 1.0 and 2.0.
         """
-        cdef long ref = self._read_ref()
+        cdef long ref = _read_ref(self.stream)
 
         if ref & REFERENCE_BIT == 0:
             return self.context.getObject(ref >> 1)
@@ -1233,3 +1226,11 @@ cdef inline int _encode_integer(cBufferedByteStream stream, long i) except -1:
         return stream.write(buf, size)
     finally:
         PyMem_Free(buf)
+
+
+cdef inline long _read_ref(cBufferedByteStream stream) except -1:
+    cdef long ref
+
+    decode_int(stream, &ref, 0)
+
+    return ref
