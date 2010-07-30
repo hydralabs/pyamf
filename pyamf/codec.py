@@ -205,8 +205,10 @@ class Context(object):
 
             # no alias has been found yet .. check subclasses
             alias = util.get_class_alias(klass) or pyamf.ClassAlias
+            meta = util.get_class_meta(klass)
+            alias = alias(klass, defer=True, **meta)
 
-            alias = self._class_aliases[klass] = alias(klass)
+            self._class_aliases[klass] = alias
 
         return alias
 

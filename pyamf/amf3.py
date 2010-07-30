@@ -1465,14 +1465,7 @@ class Encoder(codec.Encoder):
             class_ref = True
             alias = definition.alias
         else:
-            try:
-                alias = pyamf.get_class_alias(kls)
-            except pyamf.UnknownClassAlias:
-                alias_klass = util.get_class_alias(kls) or pyamf.ClassAlias
-                meta = util.get_class_meta(kls)
-
-                alias = alias_klass(kls, defer=True, **meta)
-
+            alias = self.context.getClassAlias(kls)
             definition = ClassDefinition(alias)
 
             self.context.addClass(definition, alias.klass)

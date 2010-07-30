@@ -115,6 +115,38 @@ cdef class ClassDefinition(object):
             PyMem_Free(self.encoded_ref)
             self.encoded_ref = NULL
 
+    cdef int writeReference(self, cBufferedByteStream stream):
+        if self.encoded_ref != NULL:
+            return stream.write(self.encoded_ref, self.encoded_ref_size)
+
+        cdef Py_ssize_t ref = 0
+        cdef char *buf
+        cdef int ret = 0
+
+        if self.encoding != OBJECT_ENCODING_EXTERNAL:
+            ref += self.attr_len << 4
+
+        ref |= self.encoding << 2 | REFERENCE_BIT << 1 | REFERENCE_BIT
+
+        try:
+            ret = encode_int(ref, &buf)
+
+            stream.write(buf, ret)
+        finally:
+            if buf != NULL:
+                free(buf)
+
+        try:
+            self.encoded_ref_size = encode_int(self.ref << 2 | REFERENCE_BIT, &self.encoded_ref)
+        except:
+            if self.encoded_ref != NULL:
+                free(self.encoded_ref)
+                self.encoded_ref = NULL
+
+            raise
+
+        return 0
+
 
 cdef class Context(codec.Context):
     """
@@ -126,18 +158,16 @@ cdef class Context(codec.Context):
         self.classes = {}
         self.class_ref = {}
         self.proxied_objects = {}
-        self.legacy_xml = codec.IndexedCollection()
 
         self.class_idx = 0
 
-    cpdef int clear(self) except? -1:
+    cpdef int clear(self) except -1:
         """
         Clears the context.
         """
         codec.Context.clear(self)
 
         self.strings.clear()
-        self.legacy_xml.clear()
 
         self.classes = {}
         self.class_ref = {}
@@ -162,10 +192,6 @@ cdef class Context(codec.Context):
 
         def __set__(self, value):
             self.classes = value
-
-    property legacy_xml:
-        def __get__(self):
-            return self.legacy_xml
 
     cpdef object getString(self, Py_ssize_t ref):
         cdef PyObject *r = PyDict_GetItem(self.unicodes, ref)
@@ -203,7 +229,7 @@ cdef class Context(codec.Context):
 
         return <object>ret
 
-    cpdef object getClass(self, object klass):
+    cpdef ClassDefinition getClass(self, object klass):
         cdef PyObject *ret
 
         ret = PyDict_GetItem(self.classes, klass)
@@ -226,15 +252,6 @@ cdef class Context(codec.Context):
         self.class_idx += 1
 
         return ref
-
-    cpdef object getLegacyXML(self, Py_ssize_t ref):
-        return self.legacy_xml.getByReference(ref)
-
-    cpdef Py_ssize_t getLegacyXMLReference(self, object doc) except -2:
-        return self.legacy_xml.getReferenceTo(doc)
-
-    cpdef Py_ssize_t addLegacyXML(self, object doc) except -1:
-        return self.legacy_xml.append(doc)
 
     cpdef object getProxyForObject(self, object obj):
         """
@@ -447,12 +464,12 @@ cdef class Decoder(codec.Decoder):
             name = pyamf.ASObject
 
         try:
-            alias = pyamf.get_class_alias(name)
+            alias = self.context.getClassAlias(name)
         except pyamf.UnknownClassAlias:
             if self.strict:
                 raise
 
-            alias = pyamf.TypedObjectClassAlias(pyamf.TypedObject, name)
+            alias = pyamf.TypedObjectClassAlias(name)
 
         cdef ClassDefinition class_def = ClassDefinition(alias)
 
@@ -661,52 +678,70 @@ cdef class Encoder(codec.Encoder):
 
         codec.Encoder.__init__(self, *args, **kwargs)
 
-    cpdef int writeString(self, object s, int writeType=1) except -1:
-        cdef Py_ssize_t l
-        cdef Py_ssize_t r
+    cdef inline int writeNull(self, n) except -1:
+        """
+        Writes a C{null} value to the stream.
+        """
+        return self.writeType(TYPE_NULL)
 
-        if writeType == 1:
-            self.writeType(TYPE_STRING)
+    cdef inline int writeUndefined(self, n) except -1:
+        return self.writeType(TYPE_UNDEFINED)
+
+    cpdef int serialiseString(self, s) except -1:
+        """
+        Similar to L{writeString} but does not encode a type byte.
+        """
+        if PyUnicode_CheckExact(s):
+            s = self.context.getBytesForString(s)
 
         l = PyString_GET_SIZE(s)
 
         if l == 0:
             # '' is a special case
-            self.stream.write(&REF_CHAR, 1)
-
-            return 0
+            return self.stream.write(&REF_CHAR, 1)
 
         r = self.context.getStringReference(s)
 
         if r != -1:
             # we have a reference
 
-            _encode_integer(self.stream, r << 1)
-
-            return 0
+            return _encode_integer(self.stream, r << 1)
 
         self.context.addString(s)
 
         _encode_integer(self.stream, (l << 1) | REFERENCE_BIT)
-        self.stream.write(PyString_AS_STRING(s), l)
 
-        return 0
+        return self.stream.write(PyString_AS_STRING(s), l)
 
-    cdef int writeUnicode(self, object u, int writeType=1) except -1:
-        if writeType == 1:
-            self.writeType(TYPE_STRING)
+    cdef int writeString(self, object s) except -1:
+        s = self.context.getBytesForString(s)
 
-        l = PyUnicode_GET_SIZE(u)
+        return self.writeBytes(s)
+
+    cdef int writeBytes(self, object s) except -1:
+        cdef Py_ssize_t l
+        cdef Py_ssize_t r
+
+        self.writeType(TYPE_STRING)
+
+        l = PyString_GET_SIZE(s)
 
         if l == 0:
             # '' is a special case
-            self.stream.write(&REF_CHAR, 1)
+            return self.stream.write(&REF_CHAR, 1)
 
-            return 0
+        r = self.context.getStringReference(s)
 
-        cdef object s = self.context.getStringForUnicode(u)
+        if r != -1:
+            # we have a reference
 
-        return self.writeString(s, 0)
+            return _encode_integer(self.stream, r << 1)
+
+        self.context.addString(s)
+
+        _encode_integer(self.stream, (l << 1) | REFERENCE_BIT)
+
+        return self.stream.write(PyString_AS_STRING(s), l)
 
     cdef int writeInt(self, object n) except -1:
         cdef long x = PyInt_AS_LONG(n)
@@ -739,15 +774,12 @@ cdef class Encoder(codec.Encoder):
 
         return 0
 
-    cdef int writeList(self, object n, int use_proxies=-1) except -1:
+    cdef int writeList(self, object n) except -1:
         cdef Py_ssize_t ref = self.context.getObjectReference(n)
         cdef Py_ssize_t i
         cdef PyObject *x
 
-        if use_proxies == -1:
-            use_proxies = self.use_proxies
-
-        if use_proxies == 1:
+        if self.use_proxies == 1:
             # Encode lists as ArrayCollections
             return self.writeProxy(n)
 
@@ -757,7 +789,6 @@ cdef class Encoder(codec.Encoder):
             return _encode_integer(self.stream, ref << 1)
 
         self.context.addObject(n)
-
         ref = PyList_GET_SIZE(n)
 
         _encode_integer(self.stream, (ref << 1) | REFERENCE_BIT)
@@ -795,20 +826,50 @@ cdef class Encoder(codec.Encoder):
 
         return 0
 
-    cpdef int writeLabel(self, str e) except -1:
-        return self.writeString(e, 0)
+    cdef int writeDict(self, object obj) except -1:
+        cdef PyObject *key
+        cdef PyObject *val
+        cdef Py_ssize_t idx = 0
 
-    cpdef int writeMixedArray(self, object n, int use_proxies=-1) except? -1:
+        self.writeType(TYPE_OBJECT)
+
+        ref = self.context.getObjectReference(obj)
+
+        if ref != -1:
+            _encode_integer(self.stream, ref << 1)
+
+            return 0
+
+        self.context.addObject(obj)
+
+        cdef bint class_ref = 0
+        cdef ClassDefinition definition = self.context.getClass(dict)
+
+        if not definition:
+            definition = ClassDefinition(self.context.getClassAlias(dict))
+            self.context.addClass(definition, dict)
+        else:
+            class_ref = 1
+
+        definition.writeReference(self.stream)
+
+        if class_ref == 0:
+            self.stream.write(&REF_CHAR, 1)
+
+        while PyDict_Next(obj, &idx, &key, &val):
+            self.serialiseString(<object>key)
+            self.writeElement(<object>val)
+
+        return self.stream.write(&REF_CHAR, 1)
+
+    cdef int writeMixedArray(self, object n) except -1:
         # Design bug in AMF3 that cannot read/write empty key strings
         # http://www.docuverse.com/blog/donpark/2007/05/14/flash-9-amf3-bug
         # for more info
         if '' in n:
             raise pyamf.EncodeError("dicts cannot contain empty string keys")
 
-        if use_proxies == -1:
-            use_proxies = self.use_proxies
-
-        if use_proxies == 1:
+        if self.use_proxies == 1:
             return self.writeProxy(n)
 
         self.writeType(TYPE_ARRAY)
@@ -853,7 +914,7 @@ cdef class Encoder(codec.Encoder):
         _encode_integer(self.stream, len(int_keys) << 1 | REFERENCE_BIT)
 
         for x in str_keys:
-            self.writeLabel(x)
+            self.serialiseString(x)
             self.writeElement(n[x])
 
         self.stream.write_uchar(0x01)
@@ -892,55 +953,24 @@ cdef class Encoder(codec.Encoder):
 
         # object is not referenced, serialise it
         kls = obj.__class__
-        definition = <ClassDefinition>self.context.getClass(kls)
+        definition = self.context.getClass(kls)
 
         if definition:
             class_ref = 1
             alias = definition.alias
         else:
-            try:
-                alias = pyamf.get_class_alias(kls)
-            except pyamf.UnknownClassAlias:
-                alias_klass = util.get_class_alias(kls)
-                meta = util.get_class_meta(kls)
-
-                alias = alias_klass(kls, defer=True, **meta)
-
+            alias = self.context.getClassAlias(kls)
             definition = ClassDefinition(alias)
 
             self.context.addClass(definition, alias.klass)
 
-        if class_ref == 1:
-            self.stream.write(definition.encoded_ref, definition.encoded_ref_size)
-        else:
-            ref = 0
+        definition.writeReference(self.stream)
 
-            if definition.encoding != OBJECT_ENCODING_EXTERNAL:
-                ref += definition.attr_len << 4
-
-            ref |= definition.encoding << 2 | REFERENCE_BIT << 1 | REFERENCE_BIT
-
-            try:
-                ret = encode_int(ref, &buf)
-
-                self.stream.write(buf, ret)
-            finally:
-                if buf != NULL:
-                    PyMem_Free(buf)
-
-            try:
-                definition.encoded_ref_size = encode_int(definition.ref << 2 | REFERENCE_BIT, &definition.encoded_ref)
-            except:
-                if definition.encoded_ref != NULL:
-                    PyMem_Free(definition.encoded_ref)
-                    definition.encoded_ref = NULL
-
-                raise
-
+        if class_ref == 0:
             if alias.anonymous:
                 self.stream.write(&REF_CHAR, 1)
             else:
-                self.writeLabel(alias.alias)
+                self.serialiseString(alias.alias)
 
             # work out what the final reference for the class will be.
             # this is okay because the next time an object of the same
@@ -960,7 +990,7 @@ cdef class Encoder(codec.Encoder):
         if definition.attr_len > 0:
             if class_ref == 0:
                 for attr in definition.static_properties:
-                    self.writeLabel(attr)
+                    self.serialiseString(attr)
 
             for attr in definition.static_properties:
                 value = PyDict_GetItem(attrs, attr)
@@ -982,7 +1012,7 @@ cdef class Encoder(codec.Encoder):
             value = NULL
 
             while PyDict_Next(attrs, &ref, &key, &value):
-                self.writeLabel(<object>key)
+                self.serialiseString(<object>key)
                 self.writeElement(<object>value)
 
             self.stream.write(&REF_CHAR, 1)
@@ -1019,12 +1049,7 @@ cdef class Encoder(codec.Encoder):
         return 0
 
     cdef int writeXML(self, obj) except -1:
-        cdef Py_ssize_t i = self.context.getLegacyXMLReference(obj)
-
-        if i == -1:
-            self.writeType(TYPE_XMLSTRING)
-        else:
-            self.writeType(TYPE_XML)
+        self.writeType(TYPE_XMLSTRING)
 
         i = self.context.getObjectReference(obj)
 
@@ -1037,7 +1062,7 @@ cdef class Encoder(codec.Encoder):
 
         s = xml.tostring(obj).encode('utf-8')
 
-        if PyString_CheckExact(s):
+        if not PyString_CheckExact(s):
             raise TypeError('Expected string from xml serialization')
 
         i = PyString_GET_SIZE(s)
@@ -1084,7 +1109,7 @@ cdef class Encoder(codec.Encoder):
 
         if ret == 1: # not handled
             if <PyObject *>py_type == ByteArrayType:
-                ret = self.writeByteArray(element)
+                return self.writeByteArray(element)
 
         return ret
 

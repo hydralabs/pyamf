@@ -1,4 +1,4 @@
-from cpyamf cimport codec
+from cpyamf cimport codec, util
 
 
 cdef class ClassDefinition(object):
@@ -16,10 +16,11 @@ cdef class ClassDefinition(object):
 
     cdef list static_properties
 
+    cdef int writeReference(self, util.cBufferedByteStream stream)
+
 
 cdef class Context(codec.Context):
     cdef codec.IndexedCollection strings
-    cdef codec.IndexedCollection legacy_xml
     cdef dict classes
     cdef dict class_ref
     cdef dict proxied_objects
@@ -29,16 +30,12 @@ cdef class Context(codec.Context):
     cpdef Py_ssize_t getStringReference(self, object s) except -2
     cpdef Py_ssize_t addString(self, object s) except -2
 
-    cpdef object getLegacyXML(self, Py_ssize_t ref)
-    cpdef Py_ssize_t getLegacyXMLReference(self, object doc) except -2
-    cpdef Py_ssize_t addLegacyXML(self, object doc) except -1
-
     cpdef int addProxyObject(self, object obj, object proxied) except? -1
     cpdef object getProxyForObject(self, object obj)
     cpdef object getObjectForProxy(self, object proxy)
 
     cpdef object getClassByReference(self, Py_ssize_t ref)
-    cpdef object getClass(self, object klass)
+    cpdef ClassDefinition getClass(self, object klass)
     cpdef Py_ssize_t addClass(self, ClassDefinition alias, klass) except? -1
 
 
@@ -59,7 +56,5 @@ cdef class Encoder(codec.Encoder):
     cdef public bint use_proxies
     cdef readonly Context context
 
-    cdef int writeUnicode(self, object u, int writeType=?) except -1
-    cpdef int writeLabel(self, str e) except -1
     cdef int writeByteArray(self, object obj) except -1
     cdef int writeProxy(self, obj) except -1

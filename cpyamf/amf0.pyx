@@ -251,7 +251,7 @@ cdef class Decoder(codec.Decoder):
 
     cdef object readAMF3(self):
         if self.amf3_decoder is None:
-            self.amf3_decoder = amf3.Decoder(stream=self.stream)
+            self.amf3_decoder = amf3.Decoder(stream=self.stream, timezone_offset=self.timezone_offset)
 
         return self.amf3_decoder.readElement()
 
@@ -568,7 +568,13 @@ cdef class Encoder(codec.Encoder):
 
     cdef int writeAMF3(self, o) except -1:
         if self.amf3_encoder is None:
-            self.amf3_encoder = amf3.Encoder(stream=self.stream)
+            self.amf3_encoder = amf3.Encoder(stream=self.stream, timezone_offset=self.timezone_offset)
 
         self.writeType(TYPE_AMF3)
         self.amf3_encoder.writeElement(o)
+
+    cdef inline int handleBasicTypes(self, object element, object py_type) except -1:
+        if self.use_amf3:
+            return self.writeAMF3(element)
+
+        return codec.Encoder.handleBasicTypes(self, element, py_type)

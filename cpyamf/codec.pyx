@@ -224,23 +224,12 @@ cdef class Context(object):
     def __init__(self):
         self.clear()
 
-    property objects:
-        def __get__(self):
-            return self.objects
-
-    property extra_context:
-        def __get__(self):
-            return self.extra_context
-
-        def __set__(self, value):
-            self.extra_context = value
-
     cpdef int clear(self) except -1:
         self.objects.clear()
 
         self.class_aliases = {}
         self.unicodes = {}
-        self.extra_context = {}
+        self.extra = {}
 
         return 0
 
@@ -263,10 +252,10 @@ cdef class Context(object):
         cdef PyObject *ret
         cdef object alias, x
 
-        ret = PyDict_GetItem(self.class_aliases, klass)
-
-        if ret != NULL:
-            return <object>ret
+        try:
+            return self.class_aliases[klass]
+        except KeyError:
+            pass
 
         try:
             alias = pyamf.get_class_alias(klass)
@@ -276,15 +265,14 @@ cdef class Context(object):
 
             # no alias has been found yet .. check subclasses
             alias = util.get_class_alias(klass) or pyamf.ClassAlias
-
-            x = alias(klass)
-            alias = x
+            meta = util.get_class_meta(klass)
+            alias = alias(klass, defer=True, **meta)
 
             self.class_aliases[klass] = alias
 
         return alias
 
-    cpdef object getStringForBytes(self, object s):
+    cpdef unicode getStringForBytes(self, object s):
         """
         Returns the corresponding unicode object for a given string. If there
         is no unicode object, one is created.
@@ -297,13 +285,13 @@ cdef class Context(object):
         if ret != NULL:
             return <object>ret
 
-        cdef object u = s.decode('utf-8')
+        cdef unicode u = s.decode('utf-8')
 
         self.unicodes[h] = u
 
         return u
 
-    cpdef object getBytesForString(self, object u):
+    cpdef str getBytesForString(self, object u):
         """
         Returns the corresponding utf-8 encoded string for a given unicode
         object. If there is no string, one is encoded.
@@ -316,7 +304,7 @@ cdef class Context(object):
         if ret != NULL:
             return <object>ret
 
-        cdef object s = u.encode('utf-8')
+        cdef str s = u.encode('utf-8')
 
         self.unicodes[h] = s
 
@@ -433,6 +421,9 @@ cdef class Encoder(Codec):
     def __cinit__(self):
         self.func_cache = {}
         self.use_write_object = []
+
+    cpdef int serialiseString(self, u) except -1:
+        raise NotImplementedError
 
     cdef inline int writeType(self, char type) except -1:
         return self.stream.write(<char *>&type, 1)

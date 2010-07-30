@@ -37,7 +37,7 @@ cdef class Context(object):
     cdef dict class_aliases
     cdef IndexedCollection objects
     cdef dict unicodes
-    cdef dict extra_context
+    cdef public dict extra
 
     cpdef int clear(self) except? -1
     cpdef object getClassAlias(self, object klass)
@@ -46,8 +46,8 @@ cdef class Context(object):
     cpdef Py_ssize_t getObjectReference(self, object obj) except -2
     cpdef Py_ssize_t addObject(self, object obj) except -1
 
-    cpdef object getStringForBytes(self, object s)
-    cpdef object getBytesForString(self, object u)
+    cpdef unicode getStringForBytes(self, object s)
+    cpdef str getBytesForString(self, object u)
 
 
 cdef class Codec(object):
@@ -82,6 +82,7 @@ cdef class Encoder(Codec):
     cdef dict func_cache
     cdef list use_write_object
 
+    cpdef int serialiseString(self, u) except -1
     cdef inline int writeType(self, char type) except -1
     cdef int writeNull(self, object o) except -1
     cdef int writeUndefined(self, object o) except -1
