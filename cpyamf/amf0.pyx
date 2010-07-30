@@ -361,7 +361,7 @@ cdef class Encoder(codec.Encoder):
         """
         return self.writeType(TYPE_NULL)
 
-    cdef int writeList(self, object a) except -1:
+    cpdef int writeList(self, object a, bint is_proxy=0) except -1:
         """
         Write array to the stream.
         """
@@ -523,7 +523,7 @@ cdef class Encoder(codec.Encoder):
     cdef inline int _writeEndObject(self) except -1:
         return self.stream.write('\x00\x00\x09', 3)
 
-    cdef int writeObject(self, o) except -1:
+    cpdef int writeObject(self, o, bint is_proxy=0) except -1:
         """
         Write a Python object to the stream.
 

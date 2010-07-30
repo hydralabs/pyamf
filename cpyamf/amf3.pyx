@@ -773,12 +773,12 @@ cdef class Encoder(codec.Encoder):
 
         return 0
 
-    cdef int writeList(self, object n) except -1:
+    cpdef int writeList(self, object n, bint is_proxy=0) except -1:
         cdef Py_ssize_t ref = self.context.getObjectReference(n)
         cdef Py_ssize_t i
         cdef PyObject *x
 
-        if self.use_proxies == 1:
+        if self.use_proxies == 1 and not is_proxy:
             # Encode lists as ArrayCollections
             return self.writeProxy(n)
 
@@ -921,7 +921,7 @@ cdef class Encoder(codec.Encoder):
         for k in int_keys:
             self.writeElement(n[k])
 
-    cdef int writeObject(self, object obj) except -1:
+    cpdef int writeObject(self, object obj, bint is_proxy=0) except -1:
         cdef Py_ssize_t ref
         cdef object kls
         cdef ClassDefinition definition
@@ -933,7 +933,7 @@ cdef class Encoder(codec.Encoder):
         cdef PyObject *value
         cdef object attrs
 
-        if self.use_proxies:
+        if self.use_proxies and not is_proxy:
             return self.writeProxy(obj)
 
         self.writeType(TYPE_OBJECT)
@@ -1098,7 +1098,7 @@ cdef class Encoder(codec.Encoder):
         """
         cdef object proxy = self.context.getProxyForObject(obj)
 
-        return 0#self.writeObject(proxy)
+        return self.writeObject(proxy)
 
     cdef inline int handleBasicTypes(self, object element, object py_type) except -1:
         cdef int ret = codec.Encoder.handleBasicTypes(self, element, py_type)
