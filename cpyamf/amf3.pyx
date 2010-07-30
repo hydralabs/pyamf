@@ -62,16 +62,6 @@ cdef class ClassDefinition(object):
     Holds transient class trait info for an individual encode/decode.
     """
 
-    cdef object alias
-    cdef Py_ssize_t ref
-    cdef Py_ssize_t attr_len
-    cdef int encoding
-
-    cdef char *encoded_ref
-    cdef Py_ssize_t encoded_ref_size
-
-    cdef list static_properties
-
     property alias:
         def __get__(self):
             return self.alias
@@ -131,6 +121,7 @@ cdef class Context(codec.Context):
         self.strings = codec.IndexedCollection(use_hash=1)
         self.classes = {}
         self.class_ref = {}
+        self.proxied_objects = {}
         self.legacy_xml = codec.IndexedCollection()
 
         self.class_idx = 0
@@ -241,8 +232,62 @@ cdef class Context(codec.Context):
     cpdef Py_ssize_t addLegacyXML(self, object doc) except -1:
         return self.legacy_xml.append(doc)
 
+    cpdef object getProxyForObject(self, object obj):
+        """
+        Returns the proxied version of C{obj} as stored in the context, or
+        creates a new proxied object and returns that.
 
-cdef class _Decoder(codec.Decoder):
+        @see: L{pyamf.flex.proxy_object}
+        @since: 0.6
+        """
+        cdef PyObject *ret = PyDict_GetItem(self.proxied_objects, PyLong_FromVoidPtr(<void *>obj))
+
+        if ret != NULL:
+            return <object>ret
+
+        from pyamf import flex
+
+        proxied = flex.proxy_object(obj)
+
+        self.addProxyObject(obj, proxied)
+
+        return proxied
+
+    cpdef object getObjectForProxy(self, object proxy):
+        """
+        Returns the unproxied version of C{proxy} as stored in the context, or
+        unproxies the proxy and returns that 'raw' object.
+
+        @see: L{pyamf.flex.unproxy_object}
+        @since: 0.6
+        """
+        cdef PyObject *ret = PyDict_GetItem(self.proxied_objects, PyLong_FromVoidPtr(<void *>proxy))
+
+        if ret != NULL:
+            return <object>ret
+
+        from pyamf import flex
+
+        obj = flex.unproxy_object(proxy)
+
+        self.addProxyObject(obj, proxy)
+
+        return obj
+
+    cpdef int addProxyObject(self, object obj, object proxied) except? -1:
+        """
+        Stores a reference to the unproxied and proxied versions of C{obj} for
+        later retrieval.
+
+        @since: 0.6
+        """
+        self.proxied_objects[PyLong_FromVoidPtr(<void *>obj)] = proxied
+        self.proxied_objects[PyLong_FromVoidPtr(<void *>proxied)] = obj
+
+        return 0
+
+
+cdef class Decoder(codec.Decoder):
     """
     Decodes an AMF3 data stream.
     """
