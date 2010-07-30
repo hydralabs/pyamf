@@ -115,7 +115,7 @@ cdef class ClassDefinition(object):
 
     def __dealloc__(self):
         if self.encoded_ref != NULL:
-            PyMem_Free(self.encoded_ref)
+            free(self.encoded_ref)
             self.encoded_ref = NULL
 
     cdef int writeReference(self, cBufferedByteStream stream):
@@ -579,7 +579,7 @@ cdef class Decoder(codec.Decoder):
             s = PyString_FromStringAndSize(buf, ref)
         finally:
             if buf != NULL:
-                PyMem_Free(buf)
+                free(buf)
 
         x = xml.fromstring(s)
         self.context.addObject(x)
@@ -611,7 +611,7 @@ cdef class Decoder(codec.Decoder):
             s = PyString_FromStringAndSize(buf, ref)
         finally:
             if buf != NULL:
-                PyMem_Free(buf)
+                free(buf)
 
         if zlib:
             try:
@@ -1216,7 +1216,7 @@ cdef inline int _encode_integer(cBufferedByteStream stream, long i) except -1:
 
         return stream.write(buf, size)
     finally:
-        PyMem_Free(buf)
+        free(buf)
 
 
 cdef inline long _read_ref(cBufferedByteStream stream) except -1:
