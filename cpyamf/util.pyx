@@ -7,7 +7,7 @@ C-extension for L{pyamf.util} Python module in L{PyAMF<pyamf>}.
 :since: 0.4
 """
 
-from python cimport *
+from cpython cimport *
 
 cdef extern from "stdlib.h" nogil:
     ctypedef unsigned long size_t
