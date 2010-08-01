@@ -56,7 +56,7 @@ cdef int OBJECT_ENCODING_EXTERNAL = 0x01
 cdef int OBJECT_ENCODING_DYNAMIC = 0x02
 cdef int OBJECT_ENCODING_PROXY = 0x03
 
-cdef PyObject *ByteArrayType = <PyObject *>amf3.ByteArray
+cdef object ByteArrayType = amf3.ByteArray
 cdef object DataInput = amf3.DataInput
 cdef object DataOutput = amf3.DataOutput
 cdef object empty_string = str('')
@@ -478,27 +478,25 @@ cdef class Decoder(codec.Decoder):
 
         if class_def.attr_len > 0:
             for i from 0 <= i < class_def.attr_len:
-                key = self.readString(1)
-
-                PyList_Append(class_def.static_properties, key)
+                class_def.static_properties.append(self.readString(1))
 
         self.context.addClass(class_def, alias.klass)
 
         return class_def
 
-    cdef int _readStatic(self, ClassDefinition class_def, obj) except -1:
+    cdef int _readStatic(self, ClassDefinition class_def, dict obj) except -1:
         cdef Py_ssize_t i
 
         for 0 <= i < class_def.attr_len:
-            PyDict_SetItem(obj, <object>PyList_GetItem(class_def.static_properties, i), self.readElement())
+            obj[class_def.static_properties[i]] = self.readElement()
 
         return 0
 
-    cdef int _readDynamic(self, ClassDefinition class_def, obj) except -1:
-        cdef object attr = self.readString(1)
+    cdef int _readDynamic(self, ClassDefinition class_def, dict obj) except -1:
+        cdef str attr = self.readString(1)
 
-        while PyString_GET_SIZE(attr) != 0:
-            PyDict_SetItem(obj, attr, self.readElement())
+        while len(attr) != 0:
+            obj[attr] = self.readElement()
 
             attr = self.readString(1)
 
@@ -551,7 +549,7 @@ cdef class Decoder(codec.Decoder):
 
         alias.applyAttributes(obj, obj_attrs, codec=self)
 
-        if self.use_proxies == 1:
+        if self.use_proxies:
             return self.readProxy(obj)
 
         return obj
@@ -659,6 +657,8 @@ cdef class Decoder(codec.Decoder):
             return self.readXML()
         elif t == TYPE_XMLSTRING:
             return self.readXML()
+
+        raise pyamf.DecodeError("Unsupported ActionScript type")
 
 
 cdef class Encoder(codec.Encoder):
@@ -825,9 +825,7 @@ cdef class Encoder(codec.Encoder):
 
         return 0
 
-    cdef int writeDict(self, object obj) except -1:
-        cdef PyObject *key
-        cdef PyObject *val
+    cdef int writeDict(self, dict obj) except -1:
         cdef Py_ssize_t idx = 0
 
         if self.use_proxies:
@@ -858,9 +856,9 @@ cdef class Encoder(codec.Encoder):
         if class_ref == 0:
             self.stream.write(&REF_CHAR, 1)
 
-        while PyDict_Next(obj, &idx, &key, &val):
-            self.serialiseString(<object>key)
-            self.writeElement(<object>val)
+        for key, value in obj.iteritems():
+            self.serialiseString(key)
+            self.writeElement(val)
 
         return self.stream.write(&REF_CHAR, 1)
 
@@ -1107,7 +1105,7 @@ cdef class Encoder(codec.Encoder):
         cdef int ret = codec.Encoder.handleBasicTypes(self, element, py_type)
 
         if ret == 1: # not handled
-            if <PyObject *>py_type == ByteArrayType:
+            if py_type is ByteArrayType:
                 return self.writeByteArray(element)
 
         return ret

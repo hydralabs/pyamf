@@ -186,10 +186,6 @@ cdef class Decoder(codec.Decoder):
     cdef object readMixedArray(self):
         cdef unsigned long l
         cdef dict attrs
-        cdef Py_ssize_t ref = 0
-        cdef PyObject *key = NULL
-        cdef PyObject *value = NULL
-        cdef object ikey
 
         obj = pyamf.MixedArray()
         self.context.addObject(obj)
@@ -198,13 +194,13 @@ cdef class Decoder(codec.Decoder):
 
         attrs = self.readObjectAttributes(obj)
 
-        while PyDict_Next(attrs, &ref, &key, &value):
+        for key, value in attrs.iteritems():
             try:
-                ikey = int(<object>key)
+                key = int(key)
             except ValueError:
-                ikey = <object>key
+                pass
 
-            PyDict_SetItem(obj, ikey, <object>value)
+            obj[key] = value
 
         return obj
 
@@ -217,7 +213,7 @@ cdef class Decoder(codec.Decoder):
         self.stream.read_ulong(&l)
 
         for i from 0 <= i < l:
-            PyList_Append(obj, self.readElement())
+            obj.append(self.readElement())
 
         return obj
 
@@ -307,6 +303,8 @@ cdef class Decoder(codec.Decoder):
             return self.readTypedObject()
         elif type == TYPE_AMF3:
             return self.readAMF3()
+
+        raise pyamf.DecodeError("Unsupported ActionScript type")
 
 
 cdef class Encoder(codec.Encoder):
@@ -504,19 +502,15 @@ cdef class Encoder(codec.Encoder):
 
         return self._writeEndObject()
 
-    cdef int _writeDict(self, attrs) except -1:
+    cdef int _writeDict(self, dict attrs) except -1:
         """
         Write C{dict} to the data stream.
 
         @param o: The C{dict} data to be encoded to the AMF0 data stream.
         """
-        cdef Py_ssize_t ref = 0
-        cdef PyObject *key = NULL
-        cdef PyObject *value = NULL
-
-        while PyDict_Next(attrs, &ref, &key, &value):
-            self.serialiseString(<object>key)
-            self.writeElement(<object>value)
+        for key, value in attrs.iteritems():
+            self.serialiseString(key)
+            self.writeElement(value)
 
         return 0
 
@@ -546,12 +540,9 @@ cdef class Encoder(codec.Encoder):
             self.writeType(TYPE_TYPEDOBJECT)
             self.serialiseString(alias.alias)
 
-        attrs = alias.getEncodableAttributes(o, codec=self)
+        cdef dict attrs = alias.getEncodableAttributes(o, codec=self)
 
-        if not PyDict_CheckExact(attrs):
-            raise TypeError('Expected dict from getEncodableAttributes')
-
-        if alias.static_attrs and attrs:
+        if len(attrs) and alias.static_attrs:
             for key in alias.static_attrs:
                 value = attrs.pop(key)
 
@@ -584,7 +575,7 @@ cdef class Encoder(codec.Encoder):
 
         self.stream.write_ulong(max_index)
 
-        self._writeDict(o)
+        self._writeDict(dict(o))
         self._writeEndObject()
 
     cdef int writeAMF3(self, o) except -1:

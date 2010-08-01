@@ -104,5 +104,4 @@ cdef class Encoder(Codec):
 
     cdef inline int handleBasicTypes(self, object element, object py_type) except -1
     cdef int checkBadTypes(self, object element, object py_type) except -1
-    cdef PyObject *getCustomTypeFunc(self, data) except? NULL
     cpdef int writeElement(self, object element) except -1

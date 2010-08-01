@@ -16,9 +16,6 @@ cdef extern from "datetime.h":
     int PyTime_CheckExact(object)
 
 cdef extern from "Python.h":
-    PyObject *Py_True
-    PyObject *Py_None
-
     bint PyClass_Check(object)
     bint PyType_CheckExact(object)
 
@@ -32,11 +29,8 @@ import datetime
 
 cdef object MixedArray = pyamf.MixedArray
 cdef object Undefined = pyamf.Undefined
-cdef PyObject *BuiltinFunctionType = <PyObject *>types.BuiltinFunctionType
-cdef PyObject *GeneratorType = <PyObject *>types.GeneratorType
-
-Py_INCREF(<object>BuiltinFunctionType)
-Py_INCREF(<object>GeneratorType)
+cdef object BuiltinFunctionType = types.BuiltinFunctionType
+cdef object GeneratorType = types.GeneratorType
 
 PyDateTime_IMPORT
 
@@ -404,8 +398,6 @@ cdef class Decoder(Codec):
 
             raise
 
-        raise pyamf.DecodeError("Unsupported ActionScript type")
-
     cdef object readConcreteElement(self, char t):
         """
         The workhorse function. Overridden in subclasses
@@ -506,7 +498,7 @@ cdef class Encoder(Codec):
             ret = self.writeBytes(element)
         elif PyUnicode_CheckExact(element):
             ret = self.writeString(element)
-        elif <PyObject *>element == Py_None:
+        elif element is None:
             ret = self.writeNull(element)
         elif PyBool_Check(element):
             ret = self.writeBoolean(element)
@@ -544,9 +536,9 @@ cdef class Encoder(Codec):
             raise pyamf.EncodeError("Cannot encode modules")
         elif PyMethod_Check(element):
             raise pyamf.EncodeError("Cannot encode methods")
-        elif PyFunction_Check(element) or <PyObject *>py_type == BuiltinFunctionType:
+        elif PyFunction_Check(element) or py_type is BuiltinFunctionType:
             raise pyamf.EncodeError("Cannot encode functions")
-        elif <PyObject *>py_type == GeneratorType:
+        elif py_type is GeneratorType:
             raise pyamf.EncodeError("Cannot encode generators")
         elif PyClass_Check(element) or PyType_CheckExact(element):
             raise pyamf.EncodeError("Cannot encode class objects")
@@ -557,52 +549,30 @@ cdef class Encoder(Codec):
 
         return 0
 
-    cdef PyObject *getCustomTypeFunc(self, data) except? NULL:
-        cdef _CustomTypeFunc ret
-
-        for type_, func in pyamf.TYPE_MAP.iteritems():
-            try:
-                if isinstance(data, type_):
-                    ret = _CustomTypeFunc(self, func)
-
-                    break
-            except TypeError:
-                if callable(type_) and type_(data):
-                    ret = _CustomTypeFunc(self, func)
-
-                    break
-
-        if ret is None:
-            return NULL
-
-        Py_INCREF(ret)
-
-        return <PyObject *>ret
-
     cpdef int writeElement(self, object element) except -1:
         cdef int ret = 0
-        cdef object py_type = type(element)
-        cdef PyObject *func = NULL
+        cdef py_type = type(element)
+        cdef object func = None
         cdef int use_proxy
 
         ret = self.handleBasicTypes(element, py_type)
 
         if ret == 1:
-            func = PyDict_GetItem(self.func_cache, py_type)
+            # encoding was not handled by basic types
+            func = self.func_cache.get(py_type, None)
 
-            if func == NULL:
-                func = self.getCustomTypeFunc(element)
+            if func is None:
+                func = get_custom_type_func(self, element)
 
-                if func == NULL:
+                if func is None:
                     self.checkBadTypes(element, py_type)
-
-                    PyList_Append(self.use_write_object, py_type)
+                    self.use_write_object.append(py_type)
 
                     return self.writeObject(element)
 
-                PyDict_SetItem(self.func_cache, py_type, <object>func)
+                self.func_cache[py_type] = func
 
-            (<object>func)(element)
+            func(element)
 
         return ret
 
@@ -624,3 +594,17 @@ cdef class _CustomTypeFunc(object):
 
         if ret is not None:
             self.encoder.writeElement(ret)
+
+
+cdef object get_custom_type_func(object encoder, object data):
+    cdef _CustomTypeFunc ret
+
+    for type_, func in pyamf.TYPE_MAP.iteritems():
+        try:
+            if isinstance(data, type_):
+                return _CustomTypeFunc(encoder, func)
+        except TypeError:
+            if callable(type_) and type_(data):
+                return _CustomTypeFunc(encoder, func)
+
+    return None
