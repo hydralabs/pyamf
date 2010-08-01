@@ -778,14 +778,13 @@ class ObjectEncodingTestCase(ClassCacheClearingTestCase, EncoderMixIn):
 
     def test_class_references(self):
         alias = pyamf.register_class(Spam, 'abc.xyz')
-        class_defs = self.context.class_ref
 
         x = Spam({'spam': 'eggs'})
         y = Spam({'foo': 'bar'})
 
         self.encoder.writeElement(x)
-        self.assertEqual(len(class_defs), 1)
-        cd = class_defs[0]
+
+        cd = self.context.getClass(Spam)
 
         self.assertTrue(cd.alias is alias)
 
@@ -906,10 +905,6 @@ class ObjectDecodingTestCase(ClassCacheClearingTestCase, DecoderMixIn):
     def test_static(self):
         pyamf.register_class(Spam, 'abc.xyz')
 
-        self.assertEqual(self.context.strings, [])
-        self.assertEqual(self.context.classes, {})
-        self.assertEqual(self.context.class_ref, {})
-
         self.buf.write('\x0a\x13\x0fabc.xyz\x09spam\x06\x09eggs')
         self.buf.seek(0, 0)
 
@@ -925,15 +920,12 @@ class ObjectDecodingTestCase(ClassCacheClearingTestCase, DecoderMixIn):
     def test_dynamic(self):
         pyamf.register_class(Spam, 'abc.xyz')
 
-        self.assertEqual(self.context.strings, [])
-        self.assertEqual(self.context.classes, {})
-
         self.buf.write('\x0a\x0b\x0fabc.xyz\x09spam\x06\x09eggs\x01')
         self.buf.seek(0, 0)
 
         obj = self.decoder.readElement()
 
-        class_def = self.context.class_ref[0]
+        class_def = self.context.getClass(Spam)
 
         self.assertEqual(class_def.static_properties, [])
 
@@ -1322,16 +1314,13 @@ class ComplexEncodingTestCase(unittest.TestCase, EncoderMixIn):
         return test_objects
 
     def complex_test(self):
-        class_defs = self.context.class_ref
-        classes = self.context.classes
+        to_cd = self.context.getClass(self.TestObject)
+        tso_cd = self.context.getClass(self.TestSubObject)
 
-        self.assertEqual(len(classes), 3)
-        self.assertTrue(self.TestObject in classes.keys())
-        self.assertTrue(self.TestSubObject in classes.keys())
+        self.assertIdentical(to_cd.alias.klass, self.TestObject)
+        self.assertIdentical(tso_cd.alias.klass, self.TestSubObject)
 
-        self.assertEqual(len(class_defs), 3)
-        self.assertEqual(self.TestObject, class_defs[1].alias.klass)
-        self.assertEqual(self.TestSubObject, class_defs[2].alias.klass)
+        self.assertEqual(self.context.getClassByReference(3), None)
 
     def complex_encode_decode_test(self, decoded):
         for obj in decoded:
@@ -1355,48 +1344,42 @@ class ComplexEncodingTestCase(unittest.TestCase, EncoderMixIn):
         self.complex_encode_decode_test(decoded['objects'])
 
     def test_class_refs(self):
-        class_defs = self.context.class_ref
-        classes = self.context.classes
-
-        self.assertEqual(class_defs, {})
-        self.assertEqual(classes, {})
-
         a = self.TestSubObject()
         b = self.TestSubObject()
 
         self.encoder.writeObject(a)
 
-        cd = class_defs[0]
+        cd = self.context.getClass(self.TestSubObject)
 
-        self.assertEqual(class_defs, {0: cd})
-        self.assertEqual(classes, {self.TestSubObject: cd})
+        self.assertIdentical(self.context.getClassByReference(0), cd)
+        self.assertEqual(self.context.getClassByReference(1), None)
 
         self.encoder.writeElement({'foo': 'bar'})
 
-        cd2 = class_defs[1]
-
-        self.assertEqual(class_defs, {0: cd, 1: cd2})
-        self.assertEqual(classes, {self.TestSubObject: cd, dict: cd2})
+        cd2 = self.context.getClass(dict)
+        self.assertIdentical(self.context.getClassByReference(1), cd2)
+        self.assertEqual(self.context.getClassByReference(2), None)
 
         self.encoder.writeElement({})
 
-        self.assertEqual(class_defs, {0: cd, 1: cd2})
-        self.assertEqual(classes, {self.TestSubObject: cd, dict: cd2})
+        self.assertIdentical(self.context.getClassByReference(0), cd)
+        self.assertIdentical(self.context.getClassByReference(1), cd2)
+        self.assertEqual(self.context.getClassByReference(2), None)
 
         self.encoder.writeElement(b)
 
-        self.assertEqual(class_defs, {0: cd, 1: cd2})
-        self.assertEqual(classes, {self.TestSubObject: cd, dict: cd2})
+        self.assertIdentical(self.context.getClassByReference(0), cd)
+        self.assertIdentical(self.context.getClassByReference(1), cd2)
+        self.assertEqual(self.context.getClassByReference(2), None)
 
         c = self.TestObject()
 
         self.encoder.writeElement(c)
+        cd3 = self.context.getClass(self.TestObject)
 
-        cd3 = class_defs[2]
-
-        self.assertEqual(class_defs, {0: cd, 1: cd2, 2: cd3})
-        self.assertEqual(classes,
-            {self.TestSubObject: cd, dict: cd2, self.TestObject: cd3})
+        self.assertIdentical(self.context.getClassByReference(0), cd)
+        self.assertIdentical(self.context.getClassByReference(1), cd2)
+        self.assertIdentical(self.context.getClassByReference(2), cd3)
 
 
 class ExceptionEncodingTestCase(ClassCacheClearingTestCase, EncoderMixIn):

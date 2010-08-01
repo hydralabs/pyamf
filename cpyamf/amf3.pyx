@@ -69,22 +69,6 @@ cdef class ClassDefinition(object):
     Holds transient class trait info for an individual encode/decode.
     """
 
-    property alias:
-        def __get__(self):
-            return self.alias
-
-    property encoding:
-        def __get__(self):
-            return self.encoding
-
-    property static_properties:
-        def __get__(self):
-            return self.static_properties
-
-    property attr_len:
-        def __get__(self):
-            return self.attr_len
-
     def __cinit__(self):
         self.alias = None
         self.ref = -1
@@ -178,24 +162,6 @@ cdef class Context(codec.Context):
         self.class_idx = 0
 
         return 0
-
-    property strings:
-        def __get__(self):
-            return self.strings
-
-    property class_ref:
-        def __get__(self):
-            return self.class_ref
-
-        def __set__(self, value):
-            self.class_ref = value
-
-    property classes:
-        def __get__(self):
-            return self.classes
-
-        def __set__(self, value):
-            self.classes = value
 
     cpdef object getString(self, Py_ssize_t ref):
         return self.strings.getByReference(ref)

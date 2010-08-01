@@ -6,15 +6,15 @@ cdef class ClassDefinition(object):
     Holds transient class trait info for an individual encode/decode.
     """
 
-    cdef object alias
+    cdef readonly object alias
     cdef Py_ssize_t ref
-    cdef Py_ssize_t attr_len
-    cdef int encoding
+    cdef readonly Py_ssize_t attr_len
+    cdef readonly int encoding
 
     cdef char *encoded_ref
     cdef Py_ssize_t encoded_ref_size
 
-    cdef list static_properties
+    cdef readonly list static_properties
 
     cdef int writeReference(self, util.cBufferedByteStream stream)
 
