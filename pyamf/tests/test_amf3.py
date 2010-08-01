@@ -278,6 +278,10 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
             '\n\x0b\x01', ('\x03c\x06\x03g', '\x03b\x06\x03f', '\x03a\x06\x03e',
             '\x03d\x06\x03h'), '\x01')
 
+    def test_boolean(self):
+        self.assertEncoded(True, '\x03')
+        self.assertEncoded(False, '\x02')
+
     def test_mixed_array(self):
         x = pyamf.MixedArray()
         x.update({0:u'hello', 'spam': u'eggs'})

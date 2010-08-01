@@ -687,6 +687,12 @@ cdef class Encoder(codec.Encoder):
     cdef inline int writeUndefined(self, n) except -1:
         return self.writeType(TYPE_UNDEFINED)
 
+    cdef inline int writeBoolean(self, n) except -1:
+        if n is True:
+            return self.writeType(TYPE_BOOL_TRUE)
+
+        return self.writeType(TYPE_BOOL_FALSE)
+
     cpdef int serialiseString(self, s) except -1:
         """
         Similar to L{writeString} but does not encode a type byte.
