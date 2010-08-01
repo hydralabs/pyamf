@@ -240,10 +240,10 @@ def getGAEObjects(context):
     @rtype: Instance of L{GAEReferenceCollection}
     @since: 0.4.1
     """
-    if not hasattr(context, 'gae_objects'):
-        context.gae_objects = GAEReferenceCollection()
+    if not hasattr(context.extra, 'gae_objects'):
+        context.extra['gae_objects'] = GAEReferenceCollection()
 
-    return context.gae_objects
+    return context.extra['gae_objects']
 
 
 def loadInstanceFromDatastore(klass, key, codec=None):
@@ -304,8 +304,6 @@ def writeGAEObject(obj, encoder=None):
 
     @since: 0.4.1
     """
-    import logging
-    logging.info('holy fsck batman')
     if not obj.is_saved():
         encoder.writeObject(obj)
 
