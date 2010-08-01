@@ -416,6 +416,7 @@ cdef class Decoder(codec.Decoder):
         cdef long i
         cdef list result
         cdef object tmp
+        cdef str key
 
         if size & REFERENCE_BIT == 0:
             return self.context.getObject(size >> 1)
@@ -423,7 +424,7 @@ cdef class Decoder(codec.Decoder):
         size >>= 1
         key = self.readString(1)
 
-        if key == empty_string:
+        if PyString_Size(key) == 0:
             # integer indexes only -> python list
             result = []
             self.context.addObject(result)
@@ -436,7 +437,7 @@ cdef class Decoder(codec.Decoder):
         tmp = pyamf.MixedArray()
         self.context.addObject(result)
 
-        while key:
+        while PyString_Size(key):
             tmp[key] = self.readElement()
             key = self.readString(1)
 
@@ -858,7 +859,7 @@ cdef class Encoder(codec.Encoder):
 
         for key, value in obj.iteritems():
             self.serialiseString(key)
-            self.writeElement(val)
+            self.writeElement(value)
 
         return self.stream.write(&REF_CHAR, 1)
 

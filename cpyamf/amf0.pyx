@@ -492,7 +492,7 @@ cdef class Encoder(codec.Encoder):
 
         return self.stream.write('\x00\x00', 2)
 
-    cdef int writeDict(self, o) except -1:
+    cdef int writeDict(self, dict o) except -1:
         if self.writeReference(o) != -1:
             return 0
 

@@ -461,7 +461,7 @@ cdef class Encoder(Codec):
     cdef int writeTuple(self, object o) except -1:
         raise NotImplementedError
 
-    cdef int writeDict(self, object o) except -1:
+    cdef int writeDict(self, dict o) except -1:
         raise NotImplementedError
 
     cdef int writeSequence(self, object iterable) except -1:
@@ -476,7 +476,7 @@ cdef class Encoder(Codec):
         if alias.external:
             # a is a subclassed list with a registered alias - push to the
             # correct method
-            PyList_Append(self.use_write_object, type(iterable))
+            self.use_write_object.append(type(iterable))
 
             return self.writeObject(iterable)
 
