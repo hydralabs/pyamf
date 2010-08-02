@@ -8,12 +8,7 @@ C-extension for L{pyamf.amf3} Python module in L{PyAMF<pyamf>}.
 """
 
 from cpython cimport *
-
-cdef extern from "stdlib.h" nogil:
-    ctypedef unsigned long size_t
-
-    void *malloc(size_t)
-    void free(void *)
+from libc.stdlib cimport malloc, free
 
 from cpyamf.util cimport cBufferedByteStream, BufferedByteStream
 from cpyamf cimport codec

@@ -8,15 +8,9 @@ C-extension for L{pyamf.util} Python module in L{PyAMF<pyamf>}.
 """
 
 from cpython cimport *
+from libc.stdlib cimport *
+from libc.string cimport *
 
-cdef extern from "stdlib.h" nogil:
-    ctypedef unsigned long size_t
-
-    int memcmp(void *dest, void *src, size_t)
-    void *memcpy(void *, void *, size_t)
-    void *realloc(void *, size_t)
-    void *malloc(size_t)
-    void free(void *)
 
 cdef extern from "stdio.h":
     int SIZEOF_LONG

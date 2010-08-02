@@ -17,7 +17,6 @@ cdef extern from "datetime.h":
 
 cdef extern from "Python.h":
     bint PyClass_Check(object)
-    bint PyType_CheckExact(object)
 
 from cpyamf.util cimport cBufferedByteStream, BufferedByteStream
 

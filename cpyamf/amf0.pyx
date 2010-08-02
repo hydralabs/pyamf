@@ -8,19 +8,13 @@ C-extension for L{pyamf.amf3} Python module in L{PyAMF<pyamf>}.
 """
 
 from cpython cimport *
+from clib.stdlib cimport memcmp, memcpy, free
 
 cdef extern from "math.h":
     float floor(float)
 
-cdef extern from "stdlib.h" nogil:
-    ctypedef unsigned long size_t
-
-    int memcmp(void *dest, void *src, size_t)
-    void *memcpy(void *, void *, size_t)
-    void free(void *)
-
-
 from cpyamf cimport codec, amf3
+
 import pyamf
 from pyamf import xml, util
 
