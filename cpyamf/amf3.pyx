@@ -54,8 +54,8 @@ cdef int OBJECT_ENCODING_PROXY = 0x03
 cdef object ByteArrayType = amf3.ByteArray
 cdef object DataInput = amf3.DataInput
 cdef object DataOutput = amf3.DataOutput
-cdef object empty_string = str('')
-cdef object empty_unicode = empty_string.encode('utf-8')
+cdef str empty_string = str('')
+cdef unicode empty_unicode = empty_string.decode('utf-8')
 cdef object undefined = pyamf.Undefined
 
 
@@ -290,7 +290,6 @@ cdef class Decoder(codec.Decoder):
         cdef object s
 
         if r & REFERENCE_BIT == 0:
-            print 'reading a reference', r >> 1
             # read a string reference
             s = self.context.getString(r >> 1)
 
@@ -315,8 +314,6 @@ cdef class Decoder(codec.Decoder):
         finally:
             if buf != NULL:
                 free(buf)
-
-        print 'brand new string', repr(s)
 
         self.context.addString(s)
 
