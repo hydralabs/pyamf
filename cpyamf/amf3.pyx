@@ -290,6 +290,7 @@ cdef class Decoder(codec.Decoder):
         cdef object s
 
         if r & REFERENCE_BIT == 0:
+            print 'reading a reference', r >> 1
             # read a string reference
             s = self.context.getString(r >> 1)
 
@@ -314,6 +315,8 @@ cdef class Decoder(codec.Decoder):
         finally:
             if buf != NULL:
                 free(buf)
+
+        print 'brand new string', repr(s)
 
         self.context.addString(s)
 
