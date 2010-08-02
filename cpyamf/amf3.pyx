@@ -301,10 +301,12 @@ cdef class Decoder(codec.Decoder):
         r >>= 1
 
         if r == 0:
-            if bytes == 1:
+            if bytes:
                 return empty_string
 
             return empty_unicode
+
+        return 'foobar'
 
         cdef char *buf = NULL
 
