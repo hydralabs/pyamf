@@ -306,8 +306,6 @@ cdef class Decoder(codec.Decoder):
 
             return empty_unicode
 
-        return 'foobar'
-
         cdef char *buf = NULL
 
         try:
