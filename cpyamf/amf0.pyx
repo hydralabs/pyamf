@@ -8,7 +8,8 @@ C-extension for L{pyamf.amf3} Python module in L{PyAMF<pyamf>}.
 """
 
 from cpython cimport *
-from clib.stdlib cimport memcmp, memcpy, free
+from libc.stdlib cimport *
+from libc.string cimport *
 
 cdef extern from "math.h":
     float floor(float)

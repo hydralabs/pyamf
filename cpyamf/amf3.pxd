@@ -28,7 +28,7 @@ cdef class Context(codec.Context):
 
     cpdef object getString(self, Py_ssize_t ref)
     cpdef Py_ssize_t getStringReference(self, object s) except -2
-    cpdef Py_ssize_t addString(self, object s) except -2
+    cpdef Py_ssize_t addString(self, str s) except -1
 
     cpdef int addProxyObject(self, object obj, object proxied) except? -1
     cpdef object getProxyForObject(self, object obj)

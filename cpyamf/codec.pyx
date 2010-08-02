@@ -54,13 +54,6 @@ cdef class IndexedCollection(object):
 
         self.clear()
 
-    property use_hash:
-        def __get__(self):
-            return self.use_hash
-
-        def __set__(self, value):
-            self.use_hash = value
-
     cdef void _clear(self):
         cdef Py_ssize_t i
 
@@ -130,9 +123,9 @@ cdef class IndexedCollection(object):
         return PyLong_FromVoidPtr(<void *>obj)
 
     cpdef Py_ssize_t getReferenceTo(self, object obj) except -2:
-        cdef PyObject *p = <PyObject *>PyDict_GetItem(self.refs, self._ref(obj))
+        cdef object p = self.refs.get(self._ref(obj), None)
 
-        if p == NULL:
+        if p is None:
             return -1
 
         return <Py_ssize_t>PyInt_AS_LONG(<object>p)
@@ -242,9 +235,6 @@ cdef class Context(object):
         @param klass: The class object.
         @return: The L{ClassAlias} that is linked to C{klass}
         """
-        cdef PyObject *ret
-        cdef object alias, x
-
         try:
             return self.class_aliases[klass]
         except KeyError:
@@ -273,10 +263,10 @@ cdef class Context(object):
         :since: 0.6
         """
         cdef object h = hash(s)
-        cdef PyObject *ret = PyDict_GetItem(self.unicodes, h)
+        cdef object ret = self.unicodes.get(h, None)
 
-        if ret != NULL:
-            return <object>ret
+        if ret is not None:
+            return ret
 
         cdef unicode u = s.decode('utf-8')
 
@@ -292,10 +282,10 @@ cdef class Context(object):
         :since: 0.6
         """
         cdef object h = hash(u)
-        cdef PyObject *ret = PyDict_GetItem(self.unicodes, h)
+        cdef object ret = self.unicodes.get(h, None)
 
-        if ret != NULL:
-            return <object>ret
+        if ret is not None:
+            return ret
 
         cdef str s = u.encode('utf-8')
 
@@ -319,20 +309,6 @@ cdef class Codec(object):
                 value = BufferedByteStream(value)
 
             self.stream = <cBufferedByteStream>value
-
-    property strict:
-        def __get__(self):
-            return self.strict
-
-        def __set__(self, value):
-            self.strict = value
-
-    property timezone_offset:
-        def __get__(self):
-            return self.timezone_offset
-
-        def __set__(self, value):
-            self.timezone_offset = value
 
     def __cinit__(self):
         self.stream = None

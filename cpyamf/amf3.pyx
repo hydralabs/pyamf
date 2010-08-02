@@ -164,51 +164,28 @@ cdef class Context(codec.Context):
     cpdef Py_ssize_t getStringReference(self, object s) except -2:
         return self.strings.getReferenceTo(s)
 
-    cpdef Py_ssize_t addString(self, object s) except -2:
+    cpdef Py_ssize_t addString(self, str s) except -1:
         """
         Returns -2 which signifies that s was empty
         """
-        if not PyString_CheckExact(s):
-            raise TypeError('str expected')
-
         if PyString_GET_SIZE(s) == 0:
-            return -1
+            return -2
 
         return self.strings.append(s)
 
     cpdef object getClassByReference(self, Py_ssize_t ref):
-        cdef PyObject *ret
-        cdef object ref_obj
-
-        ref_obj = PyInt_FromSsize_t(ref)
-
-        ret = PyDict_GetItem(self.class_ref, ref_obj)
-
-        if ret == NULL:
-            return None
-
-        return <object>ret
+        return self.class_ref.get(ref, None)
 
     cpdef ClassDefinition getClass(self, object klass):
-        cdef PyObject *ret
-
-        ret = PyDict_GetItem(self.classes, klass)
-
-        if ret == NULL:
-            return None
-
-        return <object>ret
+        return self.classes.get(klass, None)
 
     cpdef Py_ssize_t addClass(self, ClassDefinition alias, klass) except? -1:
-        cdef Py_ssize_t ref = self.class_idx
-        cdef object ref_obj
+        cdef object ref = self.class_idx
 
-        ref_obj = PyInt_FromSsize_t(ref)
-
-        self.class_ref[ref_obj] = alias
+        self.class_ref[ref] = alias
         self.classes[klass] = alias
 
-        alias.ref = ref_obj
+        alias.ref = ref
         self.class_idx += 1
 
         return ref

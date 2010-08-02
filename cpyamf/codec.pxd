@@ -13,9 +13,9 @@ cdef class IndexedCollection(object):
     Provides reference functionality for amf contexts.
     """
 
-    cdef bint use_hash
+    cdef public bint use_hash
     cdef PyObject **data
-    cdef object refs
+    cdef dict refs
     cdef Py_ssize_t size
     cdef Py_ssize_t length
 
@@ -57,8 +57,8 @@ cdef class Codec(object):
     """
 
     cdef util.cBufferedByteStream stream
-    cdef bint strict
-    cdef object timezone_offset
+    cdef public bint strict
+    cdef public object timezone_offset
 
 
 cdef class Decoder(Codec):
