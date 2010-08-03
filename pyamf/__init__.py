@@ -157,7 +157,7 @@ class ClassAlias(object):
     """
 
     def __init__(self, klass, alias=None, **kwargs):
-        if not isinstance(klass, (type, types.ClassType)):
+        if not isinstance(klass, python.class_types):
             raise TypeError('klass must be a class type, got %r' % type(klass))
 
         self.checkClass(klass)
@@ -198,21 +198,21 @@ class ClassAlias(object):
             raise TypeError('Unexpected keyword arguments %r' % (kwargs,))
 
     def _checkExternal(self):
-        if not hasattr(self.klass, '__readamf__'):
+        k = self.klass
+
+        if not hasattr(k, '__readamf__'):
             raise AttributeError("An externalised class was specified, but"
-                " no __readamf__ attribute was found for %r" % (self.klass,))
+                " no __readamf__ attribute was found for %r" % (k,))
 
-        if not hasattr(self.klass, '__writeamf__'):
+        if not hasattr(k, '__writeamf__'):
             raise AttributeError("An externalised class was specified, but"
-                " no __writeamf__ attribute was found for %r" % (self.klass,))
+                " no __writeamf__ attribute was found for %r" % (k,))
 
-        if not isinstance(self.klass.__readamf__, types.UnboundMethodType):
-            raise TypeError("%s.__readamf__ must be callable" % (
-                self.klass.__name__,))
+        if not hasattr(k.__readamf__, '__call__'):
+            raise TypeError("%s.__readamf__ must be callable" % (k.__name__,))
 
-        if not isinstance(self.klass.__writeamf__, types.UnboundMethodType):
-            raise TypeError("%s.__writeamf__ must be callable" % (
-                self.klass.__name__,))
+        if not hasattr(k.__writeamf__, '__call__'):
+            raise TypeError("%s.__writeamf__ must be callable" % (k.__name__,))
 
     def compile(self):
         """
@@ -425,7 +425,7 @@ class ClassAlias(object):
             return self.alias == other
         elif isinstance(other, self.__class__):
             return self.klass == other.klass
-        elif isinstance(other, (type, types.ClassType)):
+        elif isinstance(other, python.class_types):
             return self.klass == other
         else:
             return False
@@ -476,7 +476,7 @@ class ClassAlias(object):
 
     def getEncodableAttributes(self, obj, codec=None):
         """
-        Returns a dict of attributes to be encoded or C{None}.
+        Must return a C{dict} of attributes to be encoded, even if its empty.
 
         @param codec: An optional argument that will contain the encoder
             instance calling this function.

@@ -532,6 +532,9 @@ class BufferedByteStreamTestCase(unittest.TestCase):
         self.assertEqual(x.peek(5), 'abcde')
         self.assertEqual(x.peek(-1), 'abcdefghijklmnopqrstuvwxyz')
 
+        x.seek(10)
+        self.assertEqual(x.peek(50), 'klmnopqrstuvwxyz')
+
     def test_eof(self):
         x = util.BufferedByteStream()
 

@@ -1159,8 +1159,19 @@ cdef inline int _encode_integer(cBufferedByteStream stream, long i) except -1:
 
 
 cdef inline long _read_ref(cBufferedByteStream stream) except -1:
-    cdef long ref
+    cdef long *i = NULL
+    cdef long j = 0
 
-    decode_int(stream, &ref, 0)
+    i = <long *>malloc(1 * sizeof(long))
 
-    return ref
+    if i == NULL:
+        PyErr_NoMemory()
+
+    try:
+        decode_int(stream, i, 0)
+
+        j = <long>(i[0])
+    finally:
+        free(i)
+
+    return j
