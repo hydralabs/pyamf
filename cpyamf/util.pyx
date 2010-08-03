@@ -608,25 +608,49 @@ cdef class cBufferedByteStream(object):
         """
         Reads an C{unsigned char} from the stream.
         """
-        return self.unpack_uint(1, <unsigned long *>ret)
+        cdef unsigned long x
+
+        self.unpack_uint(1, &x)
+
+        ret[0] = (&x)[0]
+
+        return 0
 
     cdef int read_char(self, char *ret) except -1:
         """
         Reads a C{char} from the stream.
         """
-        return self.unpack_int(1, <long *>ret)
+        cdef long x
+
+        self.unpack_int(1, &x)
+
+        ret[0] = (&x)[0]
+
+        return 0
 
     cdef int read_ushort(self, unsigned short *ret) except -1:
         """
         Reads a 2 byte unsigned integer from the stream.
         """
-        return self.unpack_uint(2, <unsigned long *>ret)
+        cdef unsigned long x
+
+        self.unpack_uint(2, &x)
+
+        ret[0] = (&x)[0]
+
+        return 0
 
     cdef int read_short(self, short *ret) except -1:
         """
         Reads a 2 byte integer from the stream.
         """
-        return self.unpack_int(2, <long *>ret)
+        cdef long x
+
+        self.unpack_int(2, &x)
+
+        ret[0] = (&x)[0]
+
+        return 0
 
     cdef int read_ulong(self, unsigned long *ret) except -1:
         """
@@ -1038,169 +1062,81 @@ cdef class BufferedByteStream(cBufferedByteStream):
         """
         Reads an C{unsigned char} from the stream.
         """
-        cdef unsigned char *i = NULL
-        cdef object ret
+        cdef unsigned char i = 0
 
-        i = <unsigned char *>malloc(1 * sizeof(unsigned char))
+        cBufferedByteStream.read_uchar(self, &i)
 
-        if i == NULL:
-            PyErr_NoMemory()
-
-        try:
-            cBufferedByteStream.read_uchar(self, i)
-
-            ret = <unsigned char>(i[0])
-        finally:
-            free(i)
-
-        return ret
+        return i
 
     def read_char(self):
         """
         Reads a C{char} from the stream.
         """
-        cdef char *i = NULL
-        cdef object ret
+        cdef char i = 0
 
-        i = <char *>malloc(1 * sizeof(char))
+        cBufferedByteStream.read_char(self, &i)
 
-        if i == NULL:
-            PyErr_NoMemory()
-
-        try:
-            cBufferedByteStream.read_char(self, i)
-
-            ret = <char>(i[0])
-        finally:
-            free(i)
-
-        return ret
+        return i
 
     def read_ushort(self):
         """
         Reads a 2 byte unsigned integer from the stream.
         """
-        cdef unsigned short *i = NULL
-        cdef object ret
+        cdef unsigned short i = 0
 
-        i = <unsigned short *>malloc(1 * sizeof(unsigned short))
+        cBufferedByteStream.read_ushort(self, &i)
 
-        if i == NULL:
-            PyErr_NoMemory()
-
-        try:
-            cBufferedByteStream.read_ushort(self, i)
-
-            ret = <unsigned short>(i[0])
-        finally:
-            free(i)
-
-        return ret
+        return i
 
     def read_short(self):
         """
         Reads a 2 byte integer from the stream.
         """
-        cdef short *i = NULL
-        cdef object ret
+        cdef short i = 0
 
-        i = <short *>malloc(1 * sizeof(short))
+        cBufferedByteStream.read_short(self, &i)
 
-        if i == NULL:
-            PyErr_NoMemory()
-
-        try:
-            cBufferedByteStream.read_short(self, i)
-
-            ret = <short>(i[0])
-        finally:
-            free(i)
-
-        return ret
+        return i
 
     def read_ulong(self):
         """
         Reads a 4 byte unsigned integer from the stream.
         """
-        cdef unsigned long *i = NULL
-        cdef object ret
+        cdef unsigned long i = 0
 
-        i = <unsigned long *>malloc(1 * sizeof(unsigned long))
+        cBufferedByteStream.read_ulong(self, &i)
 
-        if i == NULL:
-            PyErr_NoMemory()
-
-        try:
-            cBufferedByteStream.read_ulong(self, i)
-
-            ret = <unsigned long>(i[0])
-        finally:
-            free(i)
-
-        return ret
+        return i
 
     def read_long(self):
         """
         Reads a 4 byte integer from the stream.
         """
-        cdef long *i = NULL
-        cdef object ret
+        cdef long i = 0
 
-        i = <long *>malloc(1 * sizeof(long))
+        cBufferedByteStream.read_long(self, &i)
 
-        if i == NULL:
-            PyErr_NoMemory()
-
-        try:
-            cBufferedByteStream.read_long(self, i)
-
-            ret = <long>(i[0])
-        finally:
-            free(i)
-
-        return ret
+        return i
 
     def read_24bit_uint(self):
         """
         Reads a 24 bit unsigned integer from the stream.
         """
-        cdef unsigned long *i = NULL
-        cdef object ret
+        cdef unsigned long i = 0
 
-        i = <unsigned long *>malloc(1 * sizeof(unsigned long))
+        cBufferedByteStream.read_24bit_uint(self, &i)
 
-        if i == NULL:
-            PyErr_NoMemory()
-
-        try:
-            cBufferedByteStream.read_24bit_uint(self, i)
-
-            ret = <long>(i[0])
-        finally:
-            free(i)
-
-        return ret
+        return i
 
     def read_24bit_int(self):
         """
         Reads a 24 bit integer from the stream.
         """
-        cdef long *i = NULL
-        cdef object ret
+        cdef long i = 0
 
-        i = <long *>malloc(1 * sizeof(long))
+        cBufferedByteStream.read_24bit_int(self, &i)
 
-        if i == NULL:
-            PyErr_NoMemory()
-
-        try:
-            cBufferedByteStream.read_24bit_int(self, i)
-
-            ret = <long>(i[0])
-        finally:
-            free(i)
-
-        return ret
+        return i
 
     def write_char(self, x):
         """
@@ -1286,7 +1222,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         if PyFloat_Check(val) == 0:
             raise TypeError('Expecting float for val')
 
-        cdef double d = PyFloat_AsDouble(val)
+        cdef double d = val
 
         if float_broken == 1:
             if memcmp(&d, &platform_nan, 8) == 0:
@@ -1323,8 +1259,8 @@ cdef class BufferedByteStream(cBufferedByteStream):
         return PyFloat_FromDouble(x)
 
     def __add__(self, other):
-        cdef long old_pos = <long>self.tell()
-        cdef long old_other_pos = <long>other.tell()
+        cdef Py_ssize_t old_pos = self.tell()
+        cdef Py_ssize_t old_other_pos = other.tell()
 
         new = BufferedByteStream(self)
 
