@@ -1061,7 +1061,6 @@ cdef int encode_int(long i, char **buf) except -1:
     cdef unsigned long n = (<unsigned long*>(<void *>(&i)))[0]
 
     cdef unsigned long real_value = n
-    cdef char changed = 0
     cdef unsigned char count = 0
     cdef char *bytes = NULL
 
@@ -1071,7 +1070,6 @@ cdef int encode_int(long i, char **buf) except -1:
         if bytes == NULL:
             PyErr_NoMemory()
 
-        changed = 1
         n = n >> 1
         bytes[count] = 0x80 | ((n >> 21) & 0xff)
         count += 1

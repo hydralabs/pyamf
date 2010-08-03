@@ -520,7 +520,7 @@ cdef class cBufferedByteStream(object):
 
         self.pos += nb
 
-        ret[0] = x
+        memcpy(ret, &x, sizeof(unsigned long))
 
         return 0
 
