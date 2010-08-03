@@ -5,7 +5,7 @@
 Because there is disparity between Python packaging (and it is being sorted
 out ...) we currently provide our own way to get the string of a version tuple.
 
-:since: 0.6
+@since: 0.6
 """
 
 

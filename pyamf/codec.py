@@ -58,8 +58,6 @@ class IndexedCollection(object):
         be an C{int}.
 
         If the reference is not found, C{None} will be returned.
-
-        @raise pyamf.ReferenceError: references must be integers.
         """
         try:
             return self.list[ref]
@@ -136,7 +134,7 @@ class Context(object):
         determined by L{pyamf.get_class_alias}
     @ivar _class_aliases: C{dict}
     @ivar _unicodes: Lookup of utf-8 encoded byte strings -> string objects
-        (aka strings/unicodes). The reverse of L{_strings}.
+        (aka strings/unicodes).
     @type _unicodes: C{dict}
     """
 

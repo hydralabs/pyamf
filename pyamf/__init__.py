@@ -29,11 +29,14 @@ __all__ = [
 ]
 
 #: PyAMF version number.
-__version__ = version = v.Version(0, 6, 0, 'b1')
+__version__ = version = v.Version(0, 6, 0, 'b2')
 
-#: Class mapping support.
+#: Class alias mapping support. Contains two types of keys: The string alias
+#: related to the class and the class object itself. Both point to the linked
+#: L{ClassAlias} object.
 CLASS_CACHE = {}
-#: Class loaders.
+#: Class loaders. An iterable of callables that are handed a string alias and
+#: return a class object or C{None} it not handled.
 CLASS_LOADERS = set()
 #: Custom type map.
 TYPE_MAP = {}
@@ -66,7 +69,7 @@ class UndefinedType(object):
     def __repr__(self):
         return 'pyamf.Undefined'
 
-#: Represents the `undefined` value in the Adobe Flash Player client.
+#: Represents the C{undefined} value in the Adobe Flash Player client.
 Undefined = UndefinedType()
 
 
@@ -143,7 +146,7 @@ class ASObject(dict):
 
 class MixedArray(dict):
     """
-    Used to be able to specify the `mixedarray` type.
+    Used to be able to specify the C{mixedarray} type.
     """
 
 
@@ -151,8 +154,6 @@ class ClassAlias(object):
     """
     Class alias. Provides class/instance meta data to the En/Decoder to allow
     fine grain control and some performance increases.
-
-    :ivar bases: A list of `(class, alias)` for all bases of this alias.
     """
 
     def __init__(self, klass, alias=None, **kwargs):
@@ -435,21 +436,20 @@ class ClassAlias(object):
     def checkClass(self, klass):
         """
         This function is used to check if the class being aliased fits certain
-        criteria. The default is to check that `__new__` is available or the
-        `__init__` constructor does not need additional arguments.
+        criteria. The default is to check that C{__new__} is available or the
+        C{__init__} constructor does not need additional arguments. If this is
+        the case then L{TypeError} will be raised.
 
-        :since: 0.4
-        :raise TypeError: `__new__` not available and `__init__` requires
-                          additional arguments
+        @since: 0.4
         """
         # Check for __new__ support.
-        if hasattr(klass, '__new__') and callable(klass.__new__):
+        if hasattr(klass, '__new__') and hasattr(klass.__new__, '__call__'):
             # Should be good to go.
             return
 
         # Check that the constructor of the class doesn't require any additonal
         # arguments.
-        if not (hasattr(klass, '__init__') and callable(klass.__init__)):
+        if not (hasattr(klass, '__init__') and hasattr(klass.__init__, '__call__')):
             return
 
         klass_func = klass.__init__.im_func
@@ -476,11 +476,11 @@ class ClassAlias(object):
 
     def getEncodableAttributes(self, obj, codec=None):
         """
-        Returns a dict of attributes to be encoded or `None`.
+        Returns a dict of attributes to be encoded or C{None}.
 
-        :param codec: An optional argument that will contain the en/decoder
-                      instance calling this function.
-        :since: 0.5
+        @param codec: An optional argument that will contain the encoder
+            instance calling this function.
+        @since: 0.5
         """
         if not self._compiled:
             self.compile()
@@ -543,16 +543,16 @@ class ClassAlias(object):
 
     def getDecodableAttributes(self, obj, attrs, codec=None):
         """
-        Returns a dictionary of attributes for `obj` that has been filtered,
-        based on the supplied `attrs`. This allows for fine grain control
+        Returns a dictionary of attributes for C{obj} that has been filtered,
+        based on the supplied C{attrs}. This allows for fine grain control
         over what will finally end up on the object or not.
 
-        :param obj: The reference object.
-        :param attrs: The `attrs` dictionary that has been decoded.
-        :param codec: An optional argument that will contain the codec
-                      instance calling this function.
-        :return: A dictionary of attributes that can be applied to `obj`
-        :since: 0.5
+        @param obj: The object that will recieve the attributes.
+        @param attrs: The C{attrs} dictionary that has been decoded.
+        @param codec: An optional argument that will contain the decoder
+            instance calling this function.
+        @return: A dictionary of attributes that can be applied to C{obj}
+        @since: 0.5
         """
         if not self._compiled:
             self.compile()
@@ -622,14 +622,14 @@ class ClassAlias(object):
 
     def applyAttributes(self, obj, attrs, codec=None):
         """
-        Applies the collection of attributes `attrs` to aliased object `obj`.
+        Applies the collection of attributes C{attrs} to aliased object C{obj}.
         Called when decoding reading aliased objects from an AMF byte stream.
 
         Override this to provide fine grain control of application of
-        attributes to `obj`.
+        attributes to C{obj}.
 
-        :param codec: An optional argument that will contain the en/decoder
-                      instance calling this function.
+        @param codec: An optional argument that will contain the en/decoder
+            instance calling this function.
         """
         if not self._compiled:
             self.compile()
@@ -655,14 +655,14 @@ class ClassAlias(object):
         Overrride this to provide known static properties based on the aliased
         class.
 
-        :since: 0.5
+        @since: 0.5
         """
 
     def createInstance(self, codec=None, *args, **kwargs):
         """
         Creates an instance of the klass.
 
-        :return: Instance of `self.klass`.
+        @return: Instance of L{self.klass}.
         """
         if type(self.klass) is type:
             return self.klass.__new__(self.klass)
@@ -675,12 +675,12 @@ class TypedObject(dict):
     This class is used when a strongly typed object is decoded but there is no
     registered class to apply it to.
 
-    This object can only be used for 'simple' streams - i.e. not externalized
-    data. If encountered, a :class:`DecodeError` will be raised.
+    This object can only be used for standard streams - i.e. not externalized
+    data. If encountered, a L{DecodeError} will be raised.
 
-    :ivar alias: The alias of the typed object.
-    :type alias: `unicode`
-    :since: 0.4
+    @ivar alias: The alias of the typed object.
+    @type alias: L{string}
+    @since: 0.4
     """
 
     def __init__(self, alias):
@@ -701,20 +701,20 @@ class TypedObject(dict):
             'class alias \'%s\'.\n\nA class alias was found and because '
             'strict mode is False an attempt was made to encode the object '
             'automatically. To encode this stream, a registered class with '
-            'the alias and a corresponding __readamf__ method will be '
+            'the alias and a corresponding __writeamf__ method will be '
             'required.' % (self.alias,))
 
 
 class TypedObjectClassAlias(ClassAlias):
     """
-    :since: 0.4
+    The meta class for L{TypedObject} used to adapt PyAMF.
+
+    @since: 0.4
     """
 
     klass = TypedObject
 
     def __init__(self, alias, *args, **kwargs):
-        # klass attr is ignored
-
         ClassAlias.__init__(self, self.klass, alias)
 
     def createInstance(self, codec=None):
@@ -728,7 +728,7 @@ class ErrorAlias(ClassAlias):
     """
     Adapts Python exception objects to Adobe Flash Player error objects.
 
-    :since: 0.5
+    @since: 0.5
     """
 
     def getCustomProperties(self):
@@ -809,16 +809,27 @@ def get_class_alias(klass_or_alias):
 
 def register_class_loader(loader):
     """
-    Registers a loader that is called to provide the `Class` for a specific
+    Registers a loader that is called to provide the C{class} for a specific
     alias.
 
-    The `loader` is provided with one argument, the `Class` alias. If the
-    loader succeeds in finding a suitable class then it should return that
-    class, otherwise it should return `None`.
+    The C{loader} is provided with one argument, the class alias (as a string).
+    If the loader succeeds in finding a suitable class then it should return
+    that class, otherwise it should return C{None}.
 
-    :type loader: `callable`
-    :raise TypeError: The `loader` is not callable.
-    :raise ValueError: The `loader` is already registered.
+    An example:
+
+    def lazy_load_from_my_module(alias):
+        if not alias.startswith('foo.bar.'):
+            return None
+
+        from foo import bar
+
+        if alias == 'foo.bar.Spam':
+            return bar.Spam
+        elif alias == 'foo.bar.Eggs':
+            return bar.Eggs
+
+    pyamf.register_class_loader(lazy_load_from_my_module)
     """
     if not hasattr(loader, '__call__'):
         raise TypeError("loader must be callable")
@@ -830,10 +841,8 @@ def unregister_class_loader(loader):
     """
     Unregisters a class loader.
 
-    :type loader: `callable`
-    :param loader: The object to be unregistered
-
-    :raise LookupError: The `loader` was not registered.
+    @param loader: The class loader to be unregistered.
+    @raise LookupError: The {loader} was not registered.
     """
     try:
         CLASS_LOADERS.remove(loader)
@@ -846,43 +855,40 @@ def load_class(alias):
     Finds the class registered to the alias.
 
     The search is done in order:
-      1. Checks if the class name has been registered via :func:`register_class`
-         or :func:`register_package`.
-      2. Checks all functions registered via :func:`register_class_loader`.
+      1. Checks if the class name has been registered via L{register_class}
+         or L{register_package}.
+      2. Checks all functions registered via L{register_class_loader}.
       3. Attempts to load the class via standard module loading techniques.
 
-    :type alias: `str`
-    :param alias: The class name.
-    :raise UnknownClassAlias: The `alias` was not found.
-    :raise TypeError: Expecting class type or :class:`ClassAlias` from loader.
-    :return: Class registered to the alias.
+    @param alias: The class name.
+    @type alias: C{string}
+    @raise UnknownClassAlias: The C{alias} was not found.
+    @raise TypeError: Expecting class type or L{ClassAlias} from loader.
+    @return: Class registered to the alias.
+    @rtype: L{classobj}
     """
-    alias = str(alias)
-
     # Try the CLASS_CACHE first
     try:
         return CLASS_CACHE[alias]
     except KeyError:
         pass
 
-    # Check each CLASS_LOADERS in turn
     for loader in CLASS_LOADERS:
         klass = loader(alias)
 
         if klass is None:
             continue
 
-        if isinstance(klass, (type, types.ClassType)):
+        if isinstance(klass, python.class_types):
             return register_class(klass, alias)
         elif isinstance(klass, ClassAlias):
-            CLASS_CACHE[str(alias)] = klass
+            CLASS_CACHE[klass.alias] = klass
             CLASS_CACHE[klass.klass] = klass
 
             return klass
-        else:
-            raise TypeError("Expecting class type or ClassAlias from loader")
 
-    # XXX nick: Are there security concerns for loading classes this way?
+        raise TypeError("Expecting class object or ClassAlias from loader")
+
     mod_class = alias.split('.')
 
     if mod_class:
@@ -892,15 +898,14 @@ def load_class(alias):
         try:
             module = util.get_module(module)
         except (ImportError, AttributeError):
-            # XXX What to do here?
             pass
         else:
             klass = getattr(module, klass)
 
-            if isinstance(klass, (type, types.ClassType)):
+            if isinstance(klass, python.class_types):
                 return register_class(klass, alias)
             elif isinstance(klass, ClassAlias):
-                CLASS_CACHE[str(alias)] = klass
+                CLASS_CACHE[klass.alias] = klass
                 CLASS_CACHE[klass.klass] = klass
 
                 return klass.klass
@@ -911,21 +916,17 @@ def load_class(alias):
     raise UnknownClassAlias("Unknown alias for %r" % (alias,))
 
 
-def decode(*args, **kwargs):
+def decode(stream, *args, **kwargs):
     """
     A generator function to decode a datastream.
 
-    :kwarg stream: AMF data.
-    :type stream: :class:`BufferedByteStream<pyamf.util.BufferedByteStream>`
-    :type encoding: `int`
-    :kwarg encoding: AMF encoding type.
-    :type context: :class:`AMF0 Context<pyamf.amf0.Context>` or
-                   :class:`AMF3 Context<pyamf.amf3.Context>`
-    :kwarg context: Context.
-    :return: Each element in the stream.
+    @param stream: AMF data to be decoded.
+    @type stream: byte data.
+    @kwarg encoding: AMF encoding type. One of L{ENCODING_TYPES}.
+    @return: A generator that will decode each element in the stream.
     """
     encoding = kwargs.pop('encoding', DEFAULT_ENCODING)
-    decoder = get_decoder(encoding, *args, **kwargs)
+    decoder = get_decoder(encoding, stream, *args, **kwargs)
 
     while True:
         try:
@@ -938,22 +939,14 @@ def encode(*args, **kwargs):
     """
     A helper function to encode an element.
 
-    :type args: `mixed`
-    :keyword element: Python data.
-    :type encoding: `int`
-    :keyword encoding: AMF encoding type.
-    :type context: :class:`amf0.Context<pyamf.amf0.Context>` or
-                   :class:`amf3.Context<pyamf.amf3.Context>`
-    :keyword context: Context.
-
-    :rtype: `StringIO`
-    :return: File-like object.
+    @param args: The python data to be encoded.
+    @kwarg encoding: AMF encoding type. One of L{ENCODING_TYPES}.
+    @return: A L{util.BufferedByteStream} object that contains the data.
     """
     encoding = kwargs.pop('encoding', DEFAULT_ENCODING)
     encoder = get_encoder(encoding, **kwargs)
 
-    for el in args:
-        encoder.writeElement(el)
+    [encoder.writeElement(el) for el in args]
 
     stream = encoder.stream
     stream.seek(0)
@@ -1018,10 +1011,10 @@ def get_encoder(encoding, *args, **kwargs):
 def blaze_loader(alias):
     """
     Loader for BlazeDS framework compatibility classes, specifically
-    implementing `ISmallMessage`.
+    implementing C{ISmallMessage}.
 
-    :see: `BlazeDS (external)<http://opensource.adobe.com/wiki/display/blazeds/BlazeDS>`
-    :since: 0.5
+    @see: L{BlazeDS <http://opensource.adobe.com/wiki/display/blazeds/BlazeDS>}
+    @since: 0.5
     """
     if alias not in ['DSC', 'DSK']:
         return
@@ -1033,9 +1026,9 @@ def blaze_loader(alias):
 
 def flex_loader(alias):
     """
-    Loader for :package:`Flex<pyamf.flex>` framework compatibility classes.
+    Loader for L{Flex<pyamf.flex>} framework compatibility classes.
 
-    :raise UnknownClassAlias: Trying to load an unknown Flex compatibility class.
+    @raise UnknownClassAlias: Trying to load an unknown Flex compatibility class.
     """
     if not alias.startswith('flex.'):
         return
@@ -1055,14 +1048,15 @@ def flex_loader(alias):
 
 def add_type(type_, func=None):
     """
-    Adds a custom type to :data:`TYPE_MAP`. A custom type allows fine grain control
+    Adds a custom type to L{TYPE_MAP}. A custom type allows fine grain control
     of what to encode to an AMF data stream.
 
-    :raise TypeError: Unable to add as a custom type (expected a class or callable).
-    :raise KeyError: Type already exists.
+    @raise TypeError: Unable to add as a custom type (expected a class or callable).
+    @raise KeyError: Type already exists.
     """
     def _check_type(type_):
-        if not (isinstance(type_, (type, types.ClassType)) or callable(type_)):
+        if not (isinstance(type_, python.class_types) or
+                hasattr(type_, '__call__')):
             raise TypeError(r'Unable to add '%r' as a custom type (expected a '
                 'class or callable)' % (type_,))
 
@@ -1085,12 +1079,12 @@ def get_type(type_):
     """
     Gets the declaration for the corresponding custom type.
 
-    :raise KeyError: Unknown type.
+    @raise KeyError: Unknown type.
     """
     if isinstance(type_, list):
         type_ = tuple(type_)
 
-    for (k, v) in TYPE_MAP.iteritems():
+    for k, v in TYPE_MAP.iteritems():
         if k == type_:
             return v
 
@@ -1101,7 +1095,7 @@ def remove_type(type_):
     """
     Removes the custom type declaration.
 
-    :return: Custom type declaration.
+    @return: Custom type declaration.
     """
     declaration = get_type(type_)
 
@@ -1112,27 +1106,23 @@ def remove_type(type_):
 
 def add_error_class(klass, code):
     """
-    Maps an exception class to a string code. Used to map remoting `onStatus`
+    Maps an exception class to a string code. Used to map remoting C{onStatus}
     objects to an exception class so that an exception can be built to
     represent that error.
-
-    :type code: `str`
-    :raise TypeError: `klass` must be a `class` type.
-    :raise TypeError: Error classes must subclass the `__builtin__.Exception` class.
-    :raise ValueError: Code is already registered.
     """
-    if not isinstance(code, basestring):
-        code = str(code)
+    if not isinstance(code, python.str_types):
+        code = code.decode('utf-8')
 
-    if not isinstance(klass, (type, types.ClassType)):
+    if not isinstance(klass, python.class_types):
         raise TypeError("klass must be a class type")
 
     mro = inspect.getmro(klass)
 
     if not Exception in mro:
-        raise TypeError('Error classes must subclass the __builtin__.Exception class')
+        raise TypeError(
+            'Error classes must subclass the __builtin__.Exception class')
 
-    if code in ERROR_CLASS_MAP.keys():
+    if code in ERROR_CLASS_MAP:
         raise ValueError('Code %s is already registered' % (code,))
 
     ERROR_CLASS_MAP[code] = klass
@@ -1140,18 +1130,14 @@ def add_error_class(klass, code):
 
 def remove_error_class(klass):
     """
-    Removes a class from :data:`ERROR_CLASS_MAP`.
-
-    :raise ValueError: Code is not registered.
-    :raise ValueError: Class is not registered.
-    :raise TypeError: Invalid type, expected `class` or `string`.
+    Removes a class from L{ERROR_CLASS_MAP}.
     """
-    if isinstance(klass, basestring):
-        if not klass in ERROR_CLASS_MAP.keys():
+    if isinstance(klass, python.str_types):
+        if klass not in ERROR_CLASS_MAP:
             raise ValueError('Code %s is not registered' % (klass,))
-    elif isinstance(klass, (type, types.ClassType)):
+    elif isinstance(klass, python.class_types):
         classes = ERROR_CLASS_MAP.values()
-        if not klass in classes:
+        if klass not in classes:
             raise ValueError('Class %s is not registered' % (klass,))
 
         klass = ERROR_CLASS_MAP.keys()[classes.index(klass)]
@@ -1163,34 +1149,30 @@ def remove_error_class(klass):
 
 def register_alias_type(klass, *args):
     """
-    This function allows you to map subclasses of :class:`ClassAlias` to classes
-    listed in `args`.
+    This function allows you to map subclasses of L{ClassAlias} to classes
+    listed in C{args}.
 
-    When an object is read/written from/to the AMF stream, a paired
-    :class:`ClassAlias` instance is created (or reused), based on the Python class
-    of that object. :class:`ClassAlias` provides important metadata for the class
-    and can also control how the equivalent Python object is created, how the
-    attributes are applied etc.
+    When an object is read/written from/to the AMF stream, a paired L{ClassAlias}
+    instance is created (or reused), based on the Python class of that object.
+    L{ClassAlias} provides important metadata for the class and can also control
+    how the equivalent Python object is created, how the attributes are applied
+    etc.
 
     Use this function if you need to do something non-standard.
 
-    :see: :class:`pyamf.adapters._google_appengine_ext_db.DataStoreClassAlias` for a
-          good example.
-    :since: 0.4
-    :raise RuntimeError: Type is already registered.
-    :raise TypeError: `klass` must be a class.
-    :raise ValueError: New aliases must subclass :class:`pyamf.ClassAlias`.
-    :raise ValueError: At least one type must be supplied.
+    @see: L{pyamf.adapters._google_appengine_ext_db.DataStoreClassAlias} for a
+        good example.
+    @since: 0.4
     """
 
     def check_type_registered(arg):
-        # FIXME: Create a reverse index of registered types and do a quicker lookup
         for k, v in ALIAS_TYPES.iteritems():
             for kl in v:
                 if arg is kl:
-                    raise RuntimeError('%r is already registered under %r' % (arg, k))
+                    raise RuntimeError('%r is already registered under %r' % (
+                        arg, k))
 
-    if not isinstance(klass, (type, types.ClassType)):
+    if not isinstance(klass, python.class_types):
         raise TypeError('klass must be class')
 
     if not issubclass(klass, ClassAlias):
@@ -1199,13 +1181,13 @@ def register_alias_type(klass, *args):
     if len(args) == 0:
         raise ValueError('At least one type must be supplied')
 
-    if len(args) == 1 and callable(args[0]):
+    if len(args) == 1 and hasattr(args[0], '__call__'):
         c = args[0]
 
         check_type_registered(c)
     else:
         for arg in args:
-            if not isinstance(arg, (type, types.ClassType)):
+            if not isinstance(arg, python.class_types):
                 raise TypeError('%r must be class' % (arg,))
 
             check_type_registered(arg)
@@ -1215,44 +1197,40 @@ def register_alias_type(klass, *args):
 
 def unregister_alias_type(klass):
     """
-    Removes the klass from the :data:`ALIAS_TYPE` register.
+    Removes the klass from the L{ALIAS_TYPE} register.
 
-    :see: :func:`register_alias_type`
+    @see: L{register_alias_type}
     """
     return ALIAS_TYPES.pop(klass, None)
 
 
 def register_package(module=None, package=None, separator='.', ignore=[],
-    strict=True):
+                     strict=True):
     """
     This is a helper function that takes the concept of Actionscript packages
     and registers all the classes in the supplied Python module under that
-    package. It auto-aliased all classes in `module` based on `package`.
+    package. It auto-aliased all classes in C{module} based on the parent
+    C{package}.
 
-    :param module: The Python module that will contain all the classes to
-                   auto alias.
-    :type module: `module` or `dict`
-    :param package: The base package name. e.g. 'com.example.app'. If this
-                    is `None` then the value is inferred from `module.__name__`.
-    :type package: `str` or `unicode` or `None`
-    :param separator: The separator used to append to `package` to form the
-                      complete alias.
-    :type separator: `str`
-    :param ignore: To give fine grain control over what gets aliased and what
-                   doesn't, supply a list of classes that you **do not** want to
-                   be aliased.
-    :type ignore: `iterable`
-    :param strict: If this value is `True` then only classes that originate
-                   from `module` will be registered, all others will be left
-                   in peace.
-    :type strict: `bool`
+    @param module: The Python module that will contain all the classes to
+        auto alias.
+    @type module: C{module} or C{dict}
+    @param package: The base package name. e.g. 'com.example.app'. If this
+        is C{None} then the value is inferred from C{module.__name__}.
+    @type package: C{string} or C{None}
+    @param separator: The separator used to append to C{package} to form the
+        complete alias.
+    @param ignore: To give fine grain control over what gets aliased and what
+        doesn't, supply a list of classes that you B{do not} want to be aliased.
+    @type ignore: C{iterable}
+    @param strict: Whether only classes that originate from C{module} will be
+        registered.
 
-    :raise TypeError: Cannot get list of classes from module
-    :return: A collection of all the classes that were registered and their
-             respective :class:`ClassAlias` objects.
-    :since: 0.5
+    @return: A dict of all the classes that were registered and their respective
+        L{ClassAlias} counterparts.
+    @since: 0.5
     """
-    if isinstance(module, basestring):
+    if isinstance(module, python.str_types):
         if module == '':
             raise TypeError('Cannot get list of classes from %r' % (module,))
 
@@ -1266,7 +1244,7 @@ def register_package(module=None, package=None, separator='.', ignore=[],
         module = prev_frame.f_locals
 
     if type(module) is dict:
-        has = lambda x: x in module.keys()
+        has = lambda x: x in module
         get = module.__getitem__
     elif type(module) is list:
         has = lambda x: x in module
@@ -1294,7 +1272,7 @@ def register_package(module=None, package=None, separator='.', ignore=[],
         raise TypeError('Cannot get list of classes from %r' % (module,))
 
     def check_attr(attr):
-        if not isinstance(attr, (types.ClassType, types.TypeType)):
+        if not isinstance(attr, python.class_types):
             return False
 
         if attr.__name__ in ignore:
