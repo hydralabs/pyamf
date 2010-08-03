@@ -7,9 +7,8 @@ Gateway for the Django framework.
 This gateway allows you to expose functions in Django to AMF clients and
 servers.
 
-:see: `Django homepage (external) <http://djangoproject.com>`_
-
-:since: 0.1.0
+@see: U{Django homepage<http://djangoproject.com>}
+@since: 0.1.0
 """
 
 django = __import__('django.http')
@@ -28,7 +27,7 @@ class DjangoGateway(gateway.BaseGateway):
     """
     An instance of this class is suitable as a Django view.
 
-    An example usage would be through `urlconf`::
+    An example usage would be through C{urlconf}::
 
         from django.conf.urls.defaults import *
 
@@ -36,13 +35,12 @@ class DjangoGateway(gateway.BaseGateway):
             (r'^gateway/', 'yourproject.yourapp.gateway.gw_instance'),
         )
 
-    where `yourproject.yourapp.gateway.gw_instance` refers to an instance of
+    where C{yourproject.yourapp.gateway.gw_instance} refers to an instance of
     this class.
 
-    :ivar expose_request: The standard Django view always has the request
+    @ivar expose_request: The standard Django view always has the request
         object as the first parameter. To disable this functionality, set this
-        to `False`.
-    :type expose_request: `bool`
+        to C{False}.
     """
 
     csrf_exempt = True
@@ -69,12 +67,12 @@ class DjangoGateway(gateway.BaseGateway):
         """
         Processes the AMF request, returning an AMF response.
 
-        :param http_request: The underlying HTTP Request.
-        :type http_request: :class:`HTTPRequest<django.core.http.HTTPRequest>`
-        :param request: The AMF Request.
-        :type request: :class:`Envelope<pyamf.remoting.Envelope>`
-        :rtype: :class:`Envelope<pyamf.remoting.Envelope>`
-        :return: The AMF Response.
+        @param http_request: The underlying HTTP Request.
+        @type http_request: U{HTTPRequest<http://docs.djangoproject.com
+            /en/dev/ref/request-response/#httprequest-objects>}
+        @param request: The AMF Request.
+        @type request: L{Envelope<pyamf.remoting.Envelope>}
+        @rtype: L{Envelope<pyamf.remoting.Envelope>}
         """
         response = remoting.Envelope(request.amfVersion)
 
@@ -89,11 +87,6 @@ class DjangoGateway(gateway.BaseGateway):
     def __call__(self, http_request):
         """
         Processes and dispatches the request.
-
-        :param http_request: The `HTTPRequest` object.
-        :type http_request: `HTTPRequest`
-        :return: The response to the request.
-        :rtype: `HTTPResponse`
         """
         if http_request.method != 'POST':
             return http.HttpResponseNotAllowed(['POST'])
@@ -150,8 +143,8 @@ class DjangoGateway(gateway.BaseGateway):
             if self.logger:
                 self.logger.exception('Error processing AMF request')
 
-            response = "500 Internal Server Error\n\nThe request was " \
-                "unable to be successfully processed."
+            response = ("500 Internal Server Error\n\nThe request was "
+                "unable to be successfully processed.")
 
             if self.debug:
                 response += "\n\nTraceback:\n\n%s" % gateway.format_exception()
@@ -176,7 +169,8 @@ class DjangoGateway(gateway.BaseGateway):
             if self.debug:
                 response += "\n\nTraceback:\n\n%s" % gateway.format_exception()
 
-            return http.HttpResponseServerError(mimetype='text/plain', content=response)
+            return http.HttpResponseServerError(
+                mimetype='text/plain', content=response)
 
         buf = stream.getvalue()
 

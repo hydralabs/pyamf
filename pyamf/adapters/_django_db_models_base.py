@@ -2,11 +2,10 @@
 # See LICENSE.txt for details.
 
 """
-`django.db.models` adapter module.
+C{django.db.models} adapter module.
 
-:see: `Django Project <http://www.djangoproject.com>`_
-
-:since: 0.4.1
+@see: U{Django Project<http://www.djangoproject.com>}
+@since: 0.4.1
 """
 
 from django.db.models.base import Model
@@ -23,7 +22,7 @@ class DjangoReferenceCollection(dict):
     This helper class holds a dict of klass to pk/objects loaded from the
     underlying db.
 
-    :since: 0.5
+    @since: 0.5
     """
 
     def _getClass(self, klass):
@@ -36,12 +35,12 @@ class DjangoReferenceCollection(dict):
         """
         Return an instance based on klass/key.
 
-        If an instance cannot be found then `KeyError` is raised.
+        If an instance cannot be found then C{KeyError} is raised.
 
-        :param klass: The class of the instance.
-        :param key: The primary_key of the instance.
-        :return: The instance linked to the `klass`/`key`.
-        :rtype: Instance of `klass`.
+        @param klass: The class of the instance.
+        @param key: The primary_key of the instance.
+        @return: The instance linked to the C{klass}/C{key}.
+        @rtype: Instance of C{klass}.
         """
         d = self._getClass(klass)
 
@@ -51,9 +50,9 @@ class DjangoReferenceCollection(dict):
         """
         Adds an object to the collection, based on klass and key.
 
-        :param klass: The class of the object.
-        :param key: The datastore key of the object.
-        :param obj: The loaded instance from the datastore.
+        @param klass: The class of the object.
+        @param key: The datastore key of the object.
+        @param obj: The loaded instance from the datastore.
         """
         d = self._getClass(klass)
 
@@ -225,14 +224,11 @@ class DjangoClassAlias(pyamf.ClassAlias):
 
 def getDjangoObjects(context):
     """
-    Returns a reference to the `django_objects` on the context. If it doesn't
+    Returns a reference to the C{django_objects} on the context. If it doesn't
     exist then it is created.
 
-    :param context: The context to load the `django_objects` index from.
-    :type context: Instance of :class:`pyamf.BaseContext`
-    :return: The `django_objects` index reference.
-    :rtype: Instance of :class:`DjangoReferenceCollection`
-    :since: 0.5
+    @rtype: Instance of L{DjangoReferenceCollection}
+    @since: 0.5
     """
     c = context.extra
     k = 'django_objects'
@@ -248,7 +244,7 @@ def getDjangoObjects(context):
 def writeDjangoObject(obj, encoder=None):
     """
     The Django ORM creates new instances of objects for each db request.
-    This is a problem for PyAMF as it uses the id(obj) of the object to do
+    This is a problem for PyAMF as it uses the C{id(obj)} of the object to do
     reference checking.
 
     We could just ignore the problem, but the objects are conceptually the
@@ -259,7 +255,7 @@ def writeDjangoObject(obj, encoder=None):
     C{object.__class__: {key1: object1, key2: object2, .., keyn: objectn}}. We
     use the primary key to do the reference checking.
 
-    :since: 0.5
+    @since: 0.5
     """
     s = obj.pk
 

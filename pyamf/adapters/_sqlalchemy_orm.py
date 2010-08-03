@@ -4,7 +4,7 @@
 """
 SQLAlchemy adapter module.
 
-@see: U{SQLAlchemy homepage (external)<http://www.sqlalchemy.org>}
+@see: U{SQLAlchemy homepage<http://www.sqlalchemy.org>}
 
 @since: 0.4
 """

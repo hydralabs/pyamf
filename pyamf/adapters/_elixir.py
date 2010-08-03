@@ -4,7 +4,7 @@
 """
 Elixir adapter module. Elixir adds a number of properties to the mapped instances.
 
-@see: U{Elixir homepage (external)<http://elixir.ematia.de>}
+@see: U{Elixir homepage<http://elixir.ematia.de>}
 @since: 0.6
 """
 

@@ -7,10 +7,9 @@ Gateway for Google App Engine.
 This gateway allows you to expose functions in Google App Engine web
 applications to AMF clients and servers.
 
-:See: `Google App Engine homepage (external)
-    <http://code.google.com/appengine/docs/python/overview.html>`_
-
-:Since: 0.3.1
+@see: U{Google App Engine homepage
+    <http://code.google.com/appengine/docs/python/overview.html>}
+@since: 0.3.1
 """
 
 import sys

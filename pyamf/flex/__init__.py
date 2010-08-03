@@ -4,11 +4,9 @@
 """
 Compatibility classes/functions for Flex.
 
-:note: Not available in ActionScript 1.0 and 2.0.
-:see: `Flex on Wikipedia (external)
-      <http://en.wikipedia.org/wiki/Adobe_Flex>`_
-
-:since: 0.1.0
+@note: Not available in ActionScript 1.0 and 2.0.
+@see: U{Flex on Wikipedia<http://en.wikipedia.org/wiki/Adobe_Flex>}
+@since: 0.1
 """
 
 import pyamf
@@ -19,22 +17,20 @@ __all__ = ['ArrayCollection', 'ObjectProxy']
 class ArrayCollection(list):
     """
     I represent the ActionScript 3 based class
-    `flex.messaging.io.ArrayCollection` used in the Flex framework.
+    C{flex.messaging.io.ArrayCollection} used in the Flex framework.
 
-    The `ArrayCollection` class is a wrapper class that exposes an Array
+    The C{ArrayCollection} class is a wrapper class that exposes an Array
     as a collection that can be accessed and manipulated using the
     methods and properties of the `ICollectionView` or `IList`
     interfaces in the Flex framework.
 
-    :see: `ArrayCollection on Livedocs (external)
-          <http://livedocs.adobe.com/flex/201/langref/mx/collections/ArrayCollection.html>`_
-
-    :note: This class does not implement the RemoteObject part of the
-           documentation.
-
-    :ivar length: [read-only] The number of items in this collection.
+    @see: U{ArrayCollection on Livedocs <http://
+        livedocs.adobe.com/flex/201/langref/mx/collections/ArrayCollection.html>}
+    @note: This class does not implement the RemoteObject part of the
+        documentation.
+    @ivar length: [read-only] The number of items in this collection.
         Introduced in 0.4.
-    :type length: `int`
+    @type length: C{int}
     """
 
     class __amf__:
@@ -67,6 +63,7 @@ class ArrayCollection(list):
         self.extend(data)
 
     def __writeamf__(self, output):
+        # meh, this needs to be re-thought out
         output.encoder.writeList(list(self), is_proxy=True)
 
     def _get_length(self):
@@ -81,9 +78,8 @@ class ArrayCollection(list):
         """
         Adds the specified item to the end of the list.
 
-        :param item: The object to add to the collection.
-        :type item: `mixed`
-        :since: 0.4
+        @param item: The object to add to the collection.
+        @since: 0.4
         """
         self.append(item)
 
@@ -91,17 +87,13 @@ class ArrayCollection(list):
         """
         Adds the item at the specified index.
 
-        :param item: The object to add to the collection.
-        :type item: `mixed`
-        :param index: The index at which to place the item.
-        :raise IndexError: If index is less than 0 or greater than the length
+        @param item: The object to add to the collection.
+        @param index: The index at which to place the item.
+        @raise IndexError: If index is less than 0 or greater than the length
             of the list.
-        :since: 0.4
+        @since: 0.4
         """
-        if index < 0:
-            raise IndexError
-
-        if index > len(self):
+        if index < 0 or index > len(self):
             raise IndexError
 
         self.insert(index, item)
@@ -110,14 +102,12 @@ class ArrayCollection(list):
         """
         Gets the item at the specified index.
 
-        :param index: The index in the list from which to retrieve the item.
-        :type index: `int`
-        :param prefetch: This param is ignored and is only here as part of the
+        @param index: The index in the list from which to retrieve the item.
+        @type index: C{int}
+        @param prefetch: This param is ignored and is only here as part of the
             interface.
-        :raise IndexError: if `index < 0` or `index >= length`
-        :return: The item at index `index`.
-        :rtype: `mixed`.
-        :since: 0.4
+        @raise IndexError: if `index < 0` or `index >= length`
+        @since: 0.4
         """
         if index < 0:
             raise IndexError
@@ -130,13 +120,10 @@ class ArrayCollection(list):
     def getItemIndex(self, item):
         """
         Returns the index of the item if it is in the list such that
-        `getItemAt(index) == item`.
+        C{getItemAt(index) == item}.
 
-        :param item: The item to find.
-        :type item: `mixed`.
-        :return: The index of the item or -1 if the item is not in the list.
-        :rtype: `int`
-        :since: 0.4
+        @return: The index of the item or C{-1} if the item is not in the list.
+        @since: 0.4
         """
         try:
             return self.index(item)
@@ -147,7 +134,7 @@ class ArrayCollection(list):
         """
         Removes all items from the list.
 
-        :since: 0.4
+        @since: 0.4
         """
         while len(self) > 0:
             self.pop()
@@ -157,20 +144,15 @@ class ArrayCollection(list):
         Removes the item at the specified index and returns it. Any items that
         were after this index are now one index earlier.
 
-        :param index: The index from which to remove the item.
-        :return: The item that was removed.
-        :rtype: `mixed`
-        :raise IndexError: If index is less than 0 or greater than length.
-        :since: 0.4
+        @param index: The index from which to remove the item.
+        @return: The item that was removed.
+        @raise IndexError: If index is less than 0 or greater than length.
+        @since: 0.4
         """
-        if index < 0:
-            raise IndexError
-
-        if index > len(self):
+        if index < 0 or index > len(self):
             raise IndexError
 
         x = self[index]
-
         del self[index]
 
         return x
@@ -180,19 +162,11 @@ class ArrayCollection(list):
         Places the item at the specified index. If an item was already at that
         index the new item will replace it and it will be returned.
 
-        :param item: The new item to be placed at the specified index.
-        :type item: `mixed`
-        :param index: The index at which to place the item.
-        :type index: `int`
-        :return: The item that was replaced, or `None`.
-        :rtype: `mixed` or `None`.
-        :raise IndexError: If index is less than 0 or greater than length.
-        :since: 0.4
+        @return: The item that was replaced, or C{None}.
+        @raise IndexError: If index is less than 0 or greater than length.
+        @since: 0.4
         """
-        if index < 0:
-            raise IndexError
-
-        if index > len(self):
+        if index < 0 or index > len(self):
             raise IndexError
 
         tmp = self.__getitem__(index)
@@ -202,23 +176,23 @@ class ArrayCollection(list):
 
     def toArray(self):
         """
-        Returns an Array that is populated in the same order as the `IList`
+        Returns an Array that is populated in the same order as the C{IList}
         implementation.
 
-        :return: The array.
-        :rtype: `list`
+        @return: The array.
+        @rtype: C{list}
         """
         return self
 
 
 class ObjectProxy(object):
     """
-    I represent the ActionScript 3 based class `flex.messaging.io.ObjectProxy`
-    used in the Flex framework. Flex's `ObjectProxy` class allows an anonymous,
+    I represent the ActionScript 3 based class C{flex.messaging.io.ObjectProxy}
+    used in the Flex framework. Flex's C{ObjectProxy} class allows an anonymous,
     dynamic ActionScript Object to be bindable and report change events.
 
-    :see: `ObjectProxy on Livedocs (external)
-          <http://livedocs.adobe.com/flex/201/langref/mx/utils/ObjectProxy.html>`_
+    @see: U{ObjectProxy on Livedocs<http://
+        livedocs.adobe.com/flex/201/langref/mx/utils/ObjectProxy.html>}
     """
 
     class __amf__:
@@ -269,9 +243,11 @@ def proxy_object(obj):
     """
     Returns a proxied representation of C{obj}
 
-    Conversion:
-        C{list}: L{ArrayCollection}
-        C{mixed}: L{ObjectProxy}
+    Conversion
+    ==========
+      - C{list}: L{ArrayCollection}
+      - C{mixed}: L{ObjectProxy}
+
     @since: 0.6
     """
     if type(obj) in (list, tuple):

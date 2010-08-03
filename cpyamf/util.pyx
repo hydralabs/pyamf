@@ -4,7 +4,7 @@
 """
 C-extension for L{pyamf.util} Python module in L{PyAMF<pyamf>}.
 
-:since: 0.4
+@since: 0.4
 """
 
 from cpython cimport *

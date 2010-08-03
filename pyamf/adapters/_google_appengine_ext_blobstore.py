@@ -1,8 +1,9 @@
-# Copyright (c) 2007-2009 The PyAMF Project.
+# Copyright (c) The PyAMF Project.
 # See LICENSE.txt for details.
 
 """
-Adapter module for L{google.appengine.ext.blobstore}.
+Adapter module for U{google.appengine.ext.blobstore<http://
+code.google.com/appengine/docs/python/blobstore/}.
 
 @since: 0.6
 """
@@ -17,7 +18,7 @@ bi = blobstore.BlobInfo
 
 class BlobInfoStub(object):
     """
-    Since L{blobstore.BlobInfo} requires __init__ args, we stub the object until
+    Since C{blobstore.BlobInfo} requires __init__ args, we stub the object until
     C{applyAttributes} is called which then magically converts it to the correct
     type.
     """
@@ -25,7 +26,7 @@ class BlobInfoStub(object):
 
 class BlobInfoClassAlias(pyamf.ClassAlias):
     """
-    Fine grain control over L{blobstore.BlobInfo} instances. Required to encode
+    Fine grain control over C{blobstore.BlobInfo} instances. Required to encode
     the C{key} attribute correctly.
     """
 
@@ -48,7 +49,7 @@ class BlobInfoClassAlias(pyamf.ClassAlias):
 
     def applyAttributes(self, obj, attrs, **kwargs):
         """
-        Applies C{attrs} to C{obj}. Since L{blobstore.BlobInfo} objects are
+        Applies C{attrs} to C{obj}. Since C{blobstore.BlobInfo} objects are
         read-only entities, we only care about the C{key} attribute.
         """
         assert type(obj) is BlobInfoStub

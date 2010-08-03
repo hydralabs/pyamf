@@ -13,6 +13,10 @@ Service.
 import pyamf
 from pyamf.flex.messaging import AsyncMessage, AcknowledgeMessage, ErrorMessage
 
+#: Namespace for C{flex.data} messages.
+NAMESPACE = 'flex.data.messages'
+
+
 __all__ = [
     'DataMessage',
     'SequencedMessage',
@@ -32,8 +36,8 @@ class DataMessage(AsyncMessage):
     the operation. This information is used to replicate updates and detect
     conflicts.
 
-    @see: U{DataMessage on Livedocs (external)
-    <http://livedocs.adobe.com/flex/201/langref/mx/data/messages/DataMessage.html>}
+    @see: U{DataMessage on Livedocs<http://
+        livedocs.adobe.com/flex/201/langref/mx/data/messages/DataMessage.html>}
     """
 
     def __init__(self):
@@ -53,8 +57,8 @@ class SequencedMessage(AcknowledgeMessage):
     """
     Response to L{DataMessage} requests.
 
-    @see: U{SequencedMessage on Livedocs (external)
-    <http://livedocs.adobe.com/flex/201/langref/mx/data/messages/SequencedMessage.html>}
+    @see: U{SequencedMessage on Livedocs<http://
+        livedocs.adobe.com/flex/201/langref/mx/data/messages/SequencedMessage.html>}
     """
 
     def __init__(self):
@@ -80,8 +84,8 @@ class PagedMessage(SequencedMessage):
     """
     This messsage provides information about a partial sequence result.
 
-    @see: U{PagedMessage on Livedocs (external)
-    <http://livedocs.adobe.com/flex/201/langref/mx/data/messages/PagedMessage.html>}
+    @see: U{PagedMessage on Livedocs<http://
+        livedocs.adobe.com/flex/201/langref/mx/data/messages/PagedMessage.html>}
     """
 
     def __init__(self):
@@ -101,8 +105,8 @@ class DataErrorMessage(ErrorMessage):
     This message provides the conflict information in addition to
     the L{ErrorMessage<pyamf.flex.messaging.ErrorMessage>} information.
 
-    @see: U{DataErrorMessage on Livedocs (external)
-    <http://livedocs.adobe.com/flex/201/langref/mx/data/messages/DataErrorMessage.html>}
+    @see: U{DataErrorMessage on Livedocs<http://
+        livedocs.adobe.com/flex/201/langref/mx/data/messages/DataErrorMessage.html>}
     """
 
     def __init__(self):
@@ -116,7 +120,5 @@ class DataErrorMessage(ErrorMessage):
         #: conflicting properties.
         self.serverObject = None
 
-#: Namespace for C{flex.data} messages.
-MESSAGES_NS = 'flex.data.messages'
 
-pyamf.register_package(globals(), MESSAGES_NS)
+pyamf.register_package(globals(), NAMESPACE)

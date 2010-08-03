@@ -9,7 +9,7 @@ file in the same directory with it, and add this to the top of your setup.py::
 
 If you want to require a specific version of setuptools, set a download
 mirror, or use an alternate download directory, you can do so by supplying
-the appropriate options to ``use_setuptools()``.
+the appropriate options to C{use_setuptools()}.
 
 This file can also be run as a script to install or upgrade setuptools.
 """

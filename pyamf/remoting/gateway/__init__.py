@@ -260,10 +260,11 @@ class BaseGateway(object):
     @ivar logger: A logging instance.
     @ivar strict: Defines whether the gateway should use strict en/decoding.
     @type strict: C{bool}
-    @ivar timezone_offset: A L{datetime.timedelta} between UTC and the
-        timezone to be encoded. Most dates should be handled as UTC to avoid
-        confusion but for older legacy systems this is not an option. Supplying
-        an int as this will be interpretted in seconds.
+    @ivar timezone_offset: A U{datetime.datetime.timedelta<http://
+        docs.python.org/library/datetime.html#datetime.timedelta} between UTC
+        and the timezone to be encoded. Most dates should be handled as UTC to
+        avoid confusion but for older legacy systems this is not an option.
+        Supplying an int as this will be interpretted in seconds.
     @ivar debug: Provides debugging information when an error occurs. Use only
         in non production settings.
     @type debug: C{bool}

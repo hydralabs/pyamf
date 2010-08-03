@@ -2,9 +2,9 @@
 # See LICENSE.txt for details.
 
 """
-L{PyAMF<http://pyamf.org>} provides Action Message Format (L{AMF
+U{PyAMF<http://pyamf.org>} provides Action Message Format (U{AMF
 <http://en.wikipedia.org/wiki/Action_Message_Format>}) support for Python that
-is compatible with the Adobe L{Flash Player
+is compatible with the Adobe U{Flash Player
 <http://en.wikipedia.org/wiki/Flash_Player>}.
 
 @since: October 2007
@@ -111,7 +111,7 @@ class UnknownClassAlias(BaseError):
     Raised if the AMF stream specifies an Actionscript class that does not
     have a Python class alias.
 
-    @see L{register_class}
+    @see: L{register_class}
     """
 
 
@@ -658,11 +658,11 @@ class ClassAlias(object):
         @since: 0.5
         """
 
-    def createInstance(self, codec=None, *args, **kwargs):
+    def createInstance(self, codec=None):
         """
         Creates an instance of the klass.
 
-        @return: Instance of L{self.klass}.
+        @return: Instance of C{self.klass}.
         """
         if type(self.klass) is type:
             return self.klass.__new__(self.klass)
@@ -679,7 +679,7 @@ class TypedObject(dict):
     data. If encountered, a L{DecodeError} will be raised.
 
     @ivar alias: The alias of the typed object.
-    @type alias: L{string}
+    @type alias: C{string}
     @since: 0.4
     """
 
@@ -816,20 +816,20 @@ def register_class_loader(loader):
     If the loader succeeds in finding a suitable class then it should return
     that class, otherwise it should return C{None}.
 
-    An example:
+    An example::
 
-    def lazy_load_from_my_module(alias):
-        if not alias.startswith('foo.bar.'):
-            return None
+        def lazy_load_from_my_module(alias):
+            if not alias.startswith('foo.bar.'):
+                return None
 
-        from foo import bar
+            from foo import bar
 
-        if alias == 'foo.bar.Spam':
-            return bar.Spam
-        elif alias == 'foo.bar.Eggs':
-            return bar.Eggs
+            if alias == 'foo.bar.Spam':
+                return bar.Spam
+            elif alias == 'foo.bar.Eggs':
+                return bar.Eggs
 
-    pyamf.register_class_loader(lazy_load_from_my_module)
+        pyamf.register_class_loader(lazy_load_from_my_module)
     """
     if not hasattr(loader, '__call__'):
         raise TypeError("loader must be callable")
@@ -865,7 +865,7 @@ def load_class(alias):
     @raise UnknownClassAlias: The C{alias} was not found.
     @raise TypeError: Expecting class type or L{ClassAlias} from loader.
     @return: Class registered to the alias.
-    @rtype: L{classobj}
+    @rtype: C{classobj}
     """
     # Try the CLASS_CACHE first
     try:
@@ -1013,7 +1013,7 @@ def blaze_loader(alias):
     Loader for BlazeDS framework compatibility classes, specifically
     implementing C{ISmallMessage}.
 
-    @see: L{BlazeDS <http://opensource.adobe.com/wiki/display/blazeds/BlazeDS>}
+    @see: U{BlazeDS<http://opensource.adobe.com/wiki/display/blazeds/BlazeDS>}
     @since: 0.5
     """
     if alias not in ['DSC', 'DSK']:
@@ -1197,7 +1197,7 @@ def register_alias_type(klass, *args):
 
 def unregister_alias_type(klass):
     """
-    Removes the klass from the L{ALIAS_TYPE} register.
+    Removes the klass from the L{ALIAS_TYPES} register.
 
     @see: L{register_alias_type}
     """

@@ -93,7 +93,7 @@ class ModuleFinder(object):
 
     def when_imported(self, name, *hooks):
         """
-        @see L{when_imported}
+        @see: L{when_imported}
         """
         if name in sys.modules:
             for hook in hooks:

@@ -41,8 +41,8 @@ class AbstractMessage(object):
     message instance. The data property contains the instance specific data
     that needs to be delivered and processed by the decoder.
 
-    @see: U{AbstractMessage on Livedocs (external)
-    <http://livedocs.adobe.com/flex/201/langref/mx/messaging/messages/AbstractMessage.html>}
+    @see: U{AbstractMessage on Livedocs<http://
+        livedocs.adobe.com/flex/201/langref/mx/messaging/messages/AbstractMessage.html>}
 
     @ivar body: Specific data that needs to be delivered to the remote
         destination.
@@ -215,8 +215,8 @@ class AsyncMessage(AbstractMessage):
     """
     I am the base class for all asynchronous Flex messages.
 
-    @see: U{AsyncMessage on Livedocs (external)
-    <http://livedocs.adobe.com/flex/201/langref/mx/messaging/messages/AsyncMessage.html>}
+    @see: U{AsyncMessage on Livedocs<http://
+        livedocs.adobe.com/flex/201/langref/mx/messaging/messages/AsyncMessage.html>}
 
     @ivar correlationId: Correlation id of the message.
     @type correlationId: C{str}
@@ -278,8 +278,8 @@ class AcknowledgeMessage(AsyncMessage):
     Every message sent within the messaging system must receive an
     acknowledgement.
 
-    @see: U{AcknowledgeMessage on Livedocs (external)
-    <http://livedocs.adobe.com/flex/201/langref/mx/messaging/messages/AcknowledgeMessage.html>}
+    @see: U{AcknowledgeMessage on Livedocs<http://
+        livedocs.adobe.com/flex/201/langref/mx/messaging/messages/AcknowledgeMessage.html>}
     """
 
     #: Used to indicate that the acknowledgement is for a message that
@@ -315,8 +315,8 @@ class CommandMessage(AsyncMessage):
     Provides a mechanism for sending commands related to publish/subscribe
     messaging, ping, and cluster operations.
 
-    @see: U{CommandMessage on Livedocs (external)
-    <http://livedocs.adobe.com/flex/201/langref/mx/messaging/messages/CommandMessage.html>}
+    @see: U{CommandMessage on Livedocs<http://
+        livedocs.adobe.com/flex/201/langref/mx/messaging/messages/CommandMessage.html>}
 
     @ivar operation: The command
     @type operation: C{int}
@@ -414,8 +414,8 @@ class ErrorMessage(AcknowledgeMessage):
 
     This class is used to report errors within the messaging system.
 
-    @see: U{ErrorMessage on Livedocs (external)
-    <http://livedocs.adobe.com/flex/201/langref/mx/messaging/messages/ErrorMessage.html>}
+    @see: U{ErrorMessage on Livedocs<http://
+        livedocs.adobe.com/flex/201/langref/mx/messaging/messages/ErrorMessage.html>}
     """
 
     #: If a message may not have been delivered, the faultCode will contain
@@ -459,8 +459,8 @@ class RemotingMessage(AbstractMessage):
     """
     I am used to send RPC requests to a remote endpoint.
 
-    @see: U{RemotingMessage on Livedocs (external)
-    <http://livedocs.adobe.com/flex/201/langref/mx/messaging/messages/RemotingMessage.html>}
+    @see: U{RemotingMessage on Livedocs<http://
+        livedocs.adobe.com/flex/201/langref/mx/messaging/messages/RemotingMessage.html>}
     """
 
     class __amf__:

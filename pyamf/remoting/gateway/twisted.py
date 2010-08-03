@@ -7,8 +7,7 @@ Twisted server implementation.
 This gateway allows you to expose functions in Twisted to AMF clients and
 servers.
 
-@see: U{Twisted homepage (external)<http://twistedmatrix.com>}
-
+@see: U{Twisted homepage<http://twistedmatrix.com>}
 @since: 0.1.0
 """
 

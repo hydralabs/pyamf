@@ -7,9 +7,8 @@ Google App Engine adapter module.
 Sets up basic type mapping and class mappings for using the Datastore API
 in Google App Engine.
 
-@see: U{Datastore API on Google App Engine (external)
-<http://code.google.com/appengine/docs/python/datastore>}
-
+@see: U{Datastore API on Google App Engine<http://
+    code.google.com/appengine/docs/python/datastore>}
 @since: 0.3.1
 """
 
@@ -23,14 +22,14 @@ from pyamf.adapters import util
 
 class ModelStub(object):
     """
-    This class represents a L{db.Model} or L{db.Expando} class as the typed
+    This class represents a C{db.Model} or C{db.Expando} class as the typed
     object is being read from the AMF stream. Once the attributes have been
     read from the stream and through the magic of Python, the instance of this
     class will be converted into the correct type.
 
-    @ivar klass: The referenced class either L{db.Model} or L{db.Expando}.
+    @ivar klass: The referenced class either C{db.Model} or C{db.Expando}.
         This is used so we can proxy some of the method calls during decoding.
-    @type klass: L{db.Model} or L{db.Expando}
+    @type klass: C{db.Model} or C{db.Expando}
     @see: L{DataStoreClassAlias.applyAttributes}
     """
 
@@ -62,7 +61,7 @@ class GAEReferenceCollection(dict):
         """
         Return an instance based on klass/key.
 
-        If an instance cannot be found then L{KeyError} is raised.
+        If an instance cannot be found then C{KeyError} is raised.
 
         @param klass: The class of the instance.
         @param key: The key of the instance.
@@ -89,7 +88,7 @@ class GAEReferenceCollection(dict):
 class DataStoreClassAlias(pyamf.ClassAlias):
     """
     This class contains all the business logic to interact with Google's
-    Datastore API's. Any L{db.Model} or L{db.Expando} classes will use this
+    Datastore API's. Any C{db.Model} or C{db.Expando} classes will use this
     class alias for encoding/decoding.
 
     We also add a number of indexes to the encoder context to aggressively
@@ -235,15 +234,11 @@ def getGAEObjects(context):
     exist then it is created.
 
     @param context: The context to load the C{gae_objects} index from.
-    @type context: Instance of L{pyamf.BaseContext}
     @return: The C{gae_objects} index reference.
     @rtype: Instance of L{GAEReferenceCollection}
     @since: 0.4.1
     """
-    if not hasattr(context.extra, 'gae_objects'):
-        context.extra['gae_objects'] = GAEReferenceCollection()
-
-    return context.extra['gae_objects']
+    return context.extra.setdefault('gae_objects', GAEReferenceCollection())
 
 
 def loadInstanceFromDatastore(klass, key, codec=None):
@@ -253,13 +248,12 @@ def loadInstanceFromDatastore(klass, key, codec=None):
     so we can check that first before accessing the datastore.
 
     @param klass: The class that will be loaded from the datastore.
-    @type klass: Sub-class of L{db.Model} or L{db.Expando}
+    @type klass: Sub-class of C{db.Model} or C{db.Expando}
     @param key: The key which is used to uniquely identify the instance in the
         datastore.
     @type key: C{str}
     @param codec: The codec to reference the C{gae_objects} index. If
         supplied,The codec must have have a context attribute.
-    @type codec: Instance of L{pyamf.BaseEncoder} or L{pyamf.BaseDecoder}
     @return: The loaded instance from the datastore.
     @rtype: Instance of C{klass}.
     @since: 0.4.1

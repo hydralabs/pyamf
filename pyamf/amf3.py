@@ -11,11 +11,11 @@ and 2.0. It adds support for sending C{int} and C{uint} objects as integers and
 supports data types that are available only in ActionScript 3.0, such as
 L{ByteArray} and L{ArrayCollection}.
 
-@see: U{Official AMF3 Specification in English (external)
+@see: U{Official AMF3 Specification in English
     <http://opensource.adobe.com/wiki/download/attachments/1114283/amf3_spec_05_05_08.pdf>}
-@see: U{Official AMF3 Specification in Japanese (external)
+@see: U{Official AMF3 Specification in Japanese
     <http://opensource.adobe.com/wiki/download/attachments/1114283/JP_amf3_spec_121207.pdf>}
-@see: U{AMF3 documentation on OSFlash (external)
+@see: U{AMF3 documentation on OSFlash
     <http://osflash.org/documentation/amf3>}
 
 @since: 0.1
@@ -37,8 +37,9 @@ __all__ = [
 ]
 
 
-#: If True encode/decode lists/tuples to L{ArrayCollection<pyamf.flex.ArrayCollection>}
-#: and dicts to L{ObjectProxy<pyamf.flex.ObjectProxy}
+#: If True encode/decode lists/tuples to L{ArrayCollection
+#: <pyamf.flex.ArrayCollection>} and dicts to L{ObjectProxy
+#: <pyamf.flex.ObjectProxy>}
 use_proxies_default = False
 
 #: The undefined type is represented by the undefined type marker. No further
@@ -551,7 +552,7 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
 
 class ClassDefinition(object):
     """
-    This is an internal class used by ``Encoder``/``Decoder`` to hold details
+    This is an internal class used by L{Encoder}/L{Decoder} to hold details
     about transient class trait definitions.
     """
 
@@ -689,11 +690,11 @@ class Context(codec.Context):
 
     def getObjectForProxy(self, proxy):
         """
-        Returns the unproxied version of `proxy` as stored in the context, or
+        Returns the unproxied version of C{proxy} as stored in the context, or
         unproxies the proxy and returns that 'raw' object.
 
-        :see: :func:`pyamf.flex.unproxy_object`
-        :since: 0.6
+        @see: L{pyamf.flex.unproxy_object}
+        @since: 0.6
         """
         obj = self.proxied_objects.get(id(proxy))
 
@@ -708,21 +709,21 @@ class Context(codec.Context):
 
     def addProxyObject(self, obj, proxied):
         """
-        Stores a reference to the unproxied and proxied versions of `obj` for
+        Stores a reference to the unproxied and proxied versions of C{obj} for
         later retrieval.
 
-        :since: 0.6
+        @since: 0.6
         """
         self.proxied_objects[id(obj)] = proxied
         self.proxied_objects[id(proxied)] = obj
 
     def getProxyForObject(self, obj):
         """
-        Returns the proxied version of `obj` as stored in the context, or
+        Returns the proxied version of C{obj} as stored in the context, or
         creates a new proxied object and returns that.
 
-        :see: func:`pyamf.flex.proxy_object`
-        :since: 0.6
+        @see: L{pyamf.flex.proxy_object}
+        @since: 0.6
         """
         proxied = self.proxied_objects.get(id(obj))
 
@@ -781,7 +782,7 @@ class Decoder(codec.Decoder):
         """
         Decodes a proxied object from the stream.
 
-        :since: 0.6
+        @since: 0.6
         """
         return self.context.getObjectForProxy(obj)
 
@@ -993,11 +994,6 @@ class Decoder(codec.Decoder):
     def readObject(self):
         """
         Reads an object from the stream.
-
-        :raise pyamf.EncodeError: Decoding an object in amf3 tagged as amf0
-            only is not allowed.
-        :raise pyamf.DecodeError: Unknown object encoding.
-        :raise pyamf.ReferenceError: Bad object reference given.
         """
         ref = self.readInteger(False)
 
@@ -1044,12 +1040,12 @@ class Decoder(codec.Decoder):
 
         return obj
 
-    def _readXML(self):
+    def readXML(self):
         """
-        Reads an object from the stream.
+        Reads an xml object from the stream.
 
-        @type legacy: C{bool}
-        @param legacy: The read XML is in 'legacy' format.
+        @return: An etree interface compatible object
+        @see: L{xml.set_default_interface}
         """
         ref = self.readInteger(False)
 
@@ -1068,19 +1064,9 @@ class Decoder(codec.Decoder):
         Reads a string from the data stream and converts it into
         an XML Tree.
 
-        @return: The XML Document.
-        @rtype: L{ET<util.ET>}
+        @see: L{readXML}
         """
-        return self._readXML()
-
-    def readXML(self):
-        """
-        Read a legacy XML Document from the stream.
-
-        @return: The XML Document.
-        @rtype: L{ET<util.ET>}
-        """
-        return self._readXML()
+        return self.readXML()
 
     def readByteArray(self):
         """
@@ -1392,8 +1378,6 @@ class Encoder(codec.Encoder):
     def writeObject(self, obj, is_proxy=False):
         """
         Writes an object to the stream.
-
-        :param obj: The object data to be encoded to the AMF3 data stream.
         """
         if self.use_proxies and not is_proxy:
             self.writeProxy(obj)
@@ -1506,7 +1490,7 @@ class Encoder(codec.Encoder):
         """
         Writes a XML string to the data stream.
 
-        @type   n: L{ET<util.ET>}
+        @type   n: L{ET<xml.ET>}
         @param  n: The XML Document to be encoded to the AMF3 data stream.
         """
         self.stream.write(TYPE_XMLSTRING)

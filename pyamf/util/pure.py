@@ -4,13 +4,11 @@
 # See LICENSE.txt for details.
 
 """
-Provides the pure Python versions of ``BufferedByteStream`` and
-``IndexedCollection``.
+Provides the pure Python versions of L{BufferedByteStream}.
 
-Do not reference directly, use ``pyamf.util.BufferedByteStream/IndexedCollection``
-instead.
+Do not reference directly, use L{pyamf.util.BufferedByteStream} instead.
 
-:since: 0.6
+@since: 0.6
 """
 
 import struct
@@ -30,9 +28,9 @@ class StringIOProxy(object):
     """
     I am a C{StringIO} type object containing byte data from the AMF stream.
 
-    @see: U{ByteArray on OSFlash (external)
+    @see: U{ByteArray on OSFlash
         <http://osflash.org/documentation/amf3#x0c_-_bytearray>}
-    @see: U{Parsing ByteArrays on OSFlash (external)
+    @see: U{Parsing ByteArrays on OSFlash
         <http://osflash.org/documentation/amf3/parsing_byte_arrays>}
     """
 
@@ -116,8 +114,7 @@ class StringIOProxy(object):
         """
         Writes the content of the specified C{s} into this buffer.
 
-        @param s:
-        @type s:
+        @param s: Raw bytes
         """
         self._buffer.write(s)
         self._len_changed = True
@@ -480,9 +477,9 @@ class DataTypeMixIn(object):
 
         @rtype: C{unicode}
         """
-        str = struct.unpack("%s%ds" % (self.endian, length), self.read(length))[0]
+        s = struct.unpack("%s%ds" % (self.endian, length), self.read(length))[0]
 
-        return unicode(str, "utf8")
+        return s.decode('utf-8')
 
     def write_utf8_string(self, u):
         """

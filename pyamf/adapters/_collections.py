@@ -2,7 +2,7 @@
 # See LICENSE.txt for details.
 
 """
-collections adapter module.
+U{collections<http://docs.python.org/library/collections.html>} adapter module.
 
 @since: 0.5
 """

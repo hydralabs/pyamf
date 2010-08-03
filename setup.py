@@ -74,7 +74,7 @@ def get_extensions():
     """
     Returns a list of extensions to be built for PyAMF.
 
-    :since: 0.4
+    @since: 0.4
     """
     if '--disable-ext' in sys.argv:
         sys.argv.remove('--disable-ext')

@@ -132,10 +132,8 @@ class Context(object):
     @type _objects: L{IndexedCollection}
     @ivar _class_aliases: Lookup of C{class} -> L{pyamf.ClassAlias} as
         determined by L{pyamf.get_class_alias}
-    @ivar _class_aliases: C{dict}
     @ivar _unicodes: Lookup of utf-8 encoded byte strings -> string objects
         (aka strings/unicodes).
-    @type _unicodes: C{dict}
     """
 
     def __init__(self):

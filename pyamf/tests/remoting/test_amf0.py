@@ -6,7 +6,7 @@
 """
 Tests for AMF Remoting AMF0 style.
 
-:since: 0.6
+@since: 0.6
 """
 
 import unittest
