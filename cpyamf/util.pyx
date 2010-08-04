@@ -467,60 +467,28 @@ cdef class cBufferedByteStream(object):
 
         return 0
 
-    cdef int unpack_int(self, int num_bytes, void *ret) except -1:
+    cdef int unpack_int(self, unsigned int num_bytes, void *ret) except -1:
         """
         Unpacks a long from C{buf}.
         """
+        if num_bytes > 4:
+            raise ValueError('Max 4 bytes to unpack')
+
         if not self.has_available(num_bytes):
             raise IOError
 
-        cdef int nb = num_bytes
-        cdef long x = 0
-        cdef int bytes_left = num_bytes
-        cdef unsigned char *bytes = <unsigned char *>(self.buffer + self.pos)
-
-        if is_big_endian(self.endian):
-            while bytes_left > 0:
-                x = (x << 8) | bytes[0]
-                bytes += 1
-                bytes_left -= 1
-        else:
-            while bytes_left > 0:
-                x = (x << 8) | bytes[bytes_left - 1]
-                bytes_left -= 1
-
-        if SIZEOF_LONG > num_bytes:
-            x |= -(x & (1L << ((8 * num_bytes) - 1)))
-
-        self.pos += nb
-        memcpy(ret, &x, nb)
-
-        return 0
-
-    cdef int unpack_uint(self, int num_bytes, void *ret) except -1:
-        """
-        Unpacks an unsigned long from C{buf}.
-        """
-        if not self.has_available(num_bytes):
-            raise IOError
-
-        cdef int nb = num_bytes
         cdef unsigned long x = 0
         cdef unsigned char *bytes = <unsigned char *>(self.buffer + self.pos)
 
         if is_big_endian(self.endian):
-            while num_bytes > 0:
-                x = (x << 8) | bytes[0]
-                bytes += 1
-                num_bytes -= 1
+            for 0 <= nb < num_bytes:
+                x = (x << 8) | bytes[nb]
         else:
-            while num_bytes > 0:
-                x = (x << 8) | bytes[num_bytes - 1]
-                num_bytes -= 1
+            for 0 <= nb < num_bytes:
+                x = (x << 8) | bytes[num_bytes - nb - 1]
 
-        self.pos += nb
-
-        memcpy(ret, &x, nb)
+        self.pos += num_bytes
+        memcpy(ret, &x, num_bytes)
 
         return 0
 
@@ -610,7 +578,7 @@ cdef class cBufferedByteStream(object):
         """
         cdef unsigned char ch = 0
 
-        self.unpack_uint(1, &ch)
+        self.unpack_int(1, &ch)
 
         return ch
 
@@ -630,7 +598,7 @@ cdef class cBufferedByteStream(object):
         """
         cdef unsigned short x = 0
 
-        self.unpack_uint(2, &x)
+        self.unpack_int(2, &x)
 
         return x
 
@@ -650,7 +618,7 @@ cdef class cBufferedByteStream(object):
         """
         cdef unsigned long x = 0
 
-        self.unpack_uint(3, &x)
+        self.unpack_int(3, &x)
 
         return x
 
@@ -661,6 +629,9 @@ cdef class cBufferedByteStream(object):
         cdef long x = 0
 
         self.unpack_int(3, &x)
+
+        if x & 0x800000:
+            x |= ~0xffffff
 
         return x
 
@@ -681,6 +652,9 @@ cdef class cBufferedByteStream(object):
         cdef long x = 0
 
         self.unpack_int(4, &x)
+
+        if x & 0x80000000:
+            x |= ~0x7fffffff
 
         return x
 

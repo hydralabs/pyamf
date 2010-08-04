@@ -380,6 +380,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
         self.assertRaises(TypeError, x.write_long, '\x00\x00\x00\x00')
 
     def test_read_long(self):
+        self._read_endian(['\xff\xff\xcf\xc7', '\xc7\xcf\xff\xff'], 'read_long', (), -12345)
         self._read_endian(['\x00\x00\x00\x00', '\x00\x00\x00\x00'], 'read_long', (), 0)
         self._read_endian(['\x01\x00\x80A', 'A\x80\x00\x01'], 'read_long', (), 16810049)
         self._read_endian(['\x7f\xff\xff\xff', '\xff\xff\xff\x7f'], 'read_long', (), 2147483647L)

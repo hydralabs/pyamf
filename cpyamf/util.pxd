@@ -31,8 +31,7 @@ cdef class cBufferedByteStream:
     cdef Py_ssize_t peek(self, char **buf, Py_ssize_t size) except -1
     cpdef int truncate(self, Py_ssize_t size=?) except -1
     cpdef int consume(self) except -1
-    cdef int unpack_int(self, int num_bytes, void *ret) except -1
-    cdef int unpack_uint(self, int num_bytes, void *ret) except -1
+    cdef int unpack_int(self, unsigned int num_bytes, void *ret) except -1
     cdef int pack_int(self, int num_bytes, long x) except -1
     cdef int pack_uint(self, int num_bytes, unsigned long x) except -1
     cpdef unsigned char read_uchar(self) except? 0
