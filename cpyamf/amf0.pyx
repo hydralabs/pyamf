@@ -90,9 +90,7 @@ cdef class Decoder(codec.Decoder):
         return i
 
     cdef object readBoolean(self):
-        cdef unsigned char b
-
-        self.stream.read_uchar(&b)
+        cdef unsigned char b = self.stream.read_uchar()
 
         if b == 1:
             return True
@@ -106,7 +104,7 @@ cdef class Decoder(codec.Decoder):
         cdef char *b = NULL
         cdef object s
 
-        self.stream.read_ushort(&l)
+        l = self.stream.read_ushort()
 
         try:
             self.stream.read(&b, l)
@@ -170,7 +168,7 @@ cdef class Decoder(codec.Decoder):
     cdef object readReference(self):
         cdef unsigned short idx
 
-        self.stream.read_ushort(&idx)
+        idx = self.stream.read_ushort()
         o = self.context.getObject(idx)
 
         if o is None:
@@ -185,7 +183,7 @@ cdef class Decoder(codec.Decoder):
         obj = pyamf.MixedArray()
         self.context.addObject(obj)
 
-        self.stream.read_ulong(&l)
+        l = self.stream.read_ulong()
 
         attrs = self.readObjectAttributes(obj)
 
@@ -205,7 +203,7 @@ cdef class Decoder(codec.Decoder):
         cdef unsigned long i
 
         self.context.addObject(obj)
-        self.stream.read_ulong(&l)
+        l = self.stream.read_ulong()
 
         for i from 0 <= i < l:
             obj.append(self.readElement())
@@ -217,7 +215,7 @@ cdef class Decoder(codec.Decoder):
         cdef short tz
 
         self.stream.read_double(&ms)
-        self.stream.read_short(&tz)
+        tz = self.stream.read_short()
 
         # Timezones are ignored
         d = util.get_datetime(ms / 1000.0)
@@ -234,7 +232,7 @@ cdef class Decoder(codec.Decoder):
         cdef char *b = NULL
         cdef object s
 
-        self.stream.read_ulong(&l)
+        l = self.stream.read_ulong()
 
         try:
             self.stream.read(&b, l)

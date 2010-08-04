@@ -364,7 +364,7 @@ cdef class Decoder(Codec):
         if self.stream.at_eof():
             raise pyamf.EOStream
 
-        self.stream.read_char(&t)
+        t = self.stream.read_char()
 
         try:
             return self.readConcreteElement(t)

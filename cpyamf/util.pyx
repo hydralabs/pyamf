@@ -493,7 +493,7 @@ cdef class cBufferedByteStream(object):
             x |= -(x & (1L << ((8 * num_bytes) - 1)))
 
         self.pos += nb
-        memcpy(ret, &x, sizeof(long))
+        memcpy(ret, &x, nb)
 
         return 0
 
@@ -520,7 +520,7 @@ cdef class cBufferedByteStream(object):
 
         self.pos += nb
 
-        memcpy(ret, &x, sizeof(unsigned long))
+        memcpy(ret, &x, nb)
 
         return 0
 
@@ -604,77 +604,85 @@ cdef class cBufferedByteStream(object):
 
         return 0
 
-    cdef int read_uchar(self, unsigned char *ret) except -1:
+    cpdef unsigned char read_uchar(self) except? 0:
         """
         Reads an C{unsigned char} from the stream.
         """
-        cdef unsigned long x = 0
+        cdef unsigned char ch = 0
 
-        self.unpack_uint(1, &x)
+        self.unpack_uint(1, &ch)
 
-        ret[0] = (&x)[0]
+        return ch
 
-        return 0
-
-    cdef int read_char(self, char *ret) except -1:
+    cpdef char read_char(self) except? 0:
         """
         Reads a C{char} from the stream.
         """
-        cdef long x = 0
+        cdef char ch = 0
 
-        self.unpack_int(1, &x)
+        self.unpack_int(1, &ch)
 
-        ret[0] = (&x)[0]
+        return ch
 
-        return 0
-
-    cdef int read_ushort(self, unsigned short *ret) except -1:
+    cpdef unsigned short read_ushort(self) except? 0:
         """
         Reads a 2 byte unsigned integer from the stream.
         """
-        cdef unsigned long x = 0
+        cdef unsigned short x = 0
 
         self.unpack_uint(2, &x)
 
-        ret[0] = (&x)[0]
+        return x
 
-        return 0
-
-    cdef int read_short(self, short *ret) except -1:
+    cpdef short read_short(self) except? 0:
         """
         Reads a 2 byte integer from the stream.
         """
-        cdef long x = 0
+        cdef short x = 0
 
         self.unpack_int(2, &x)
 
-        ret[0] = (&x)[0]
+        return x
 
-        return 0
-
-    cdef int read_ulong(self, unsigned long *ret) except -1:
-        """
-        Reads a 4 byte unsigned integer from the stream.
-        """
-        return self.unpack_uint(4, ret)
-
-    cdef int read_long(self, long *ret) except -1:
-        """
-        Reads a 4 byte integer from the stream.
-        """
-        return self.unpack_int(4, ret)
-
-    cdef int read_24bit_uint(self, unsigned long *ret) except -1:
+    cpdef unsigned long read_24bit_uint(self) except? 0:
         """
         Reads a 24 bit unsigned integer from the stream.
         """
-        return self.unpack_uint(3, ret)
+        cdef unsigned long x = 0
 
-    cdef int read_24bit_int(self, long *ret) except -1:
+        self.unpack_uint(3, &x)
+
+        return x
+
+    cpdef long read_24bit_int(self) except? 0:
         """
         Reads a 24 bit integer from the stream.
         """
-        return self.unpack_int(3, ret)
+        cdef long x = 0
+
+        self.unpack_int(3, &x)
+
+        return x
+
+    cpdef unsigned long read_ulong(self) except? 0:
+        """
+        Reads a 4 byte unsigned integer from the stream.
+        """
+        cdef unsigned long x = 0
+
+        self.unpack_int(4, &x)
+
+        return x
+
+    cpdef long read_long(self) except? 0:
+        """
+        Reads a 4 byte integer from the stream.
+        """
+        cdef long x = 0
+
+        self.unpack_int(4, &x)
+
+        return x
 
     cpdef int write_uchar(self, unsigned char ret) except -1:
         """
@@ -1057,86 +1065,6 @@ cdef class BufferedByteStream(cBufferedByteStream):
         size = cBufferedByteStream.peek(self, &buf, size)
 
         return PyString_FromStringAndSize(buf, size)
-
-    def read_uchar(self):
-        """
-        Reads an C{unsigned char} from the stream.
-        """
-        cdef unsigned char i = 0
-
-        cBufferedByteStream.read_uchar(self, &i)
-
-        return i
-
-    def read_char(self):
-        """
-        Reads a C{char} from the stream.
-        """
-        cdef char i = 0
-
-        cBufferedByteStream.read_char(self, &i)
-
-        return i
-
-    def read_ushort(self):
-        """
-        Reads a 2 byte unsigned integer from the stream.
-        """
-        cdef unsigned short i = 0
-
-        cBufferedByteStream.read_ushort(self, &i)
-
-        return i
-
-    def read_short(self):
-        """
-        Reads a 2 byte integer from the stream.
-        """
-        cdef short i = 0
-
-        cBufferedByteStream.read_short(self, &i)
-
-        return i
-
-    def read_ulong(self):
-        """
-        Reads a 4 byte unsigned integer from the stream.
-        """
-        cdef unsigned long i = 0
-
-        cBufferedByteStream.read_ulong(self, &i)
-
-        return i
-
-    def read_long(self):
-        """
-        Reads a 4 byte integer from the stream.
-        """
-        cdef long i = 0
-
-        cBufferedByteStream.read_long(self, &i)
-
-        return i
-
-    def read_24bit_uint(self):
-        """
-        Reads a 24 bit unsigned integer from the stream.
-        """
-        cdef unsigned long i = 0
-
-        cBufferedByteStream.read_24bit_uint(self, &i)
-
-        return i
-
-    def read_24bit_int(self):
-        """
-        Reads a 24 bit integer from the stream.
-        """
-        cdef long i = 0
-
-        cBufferedByteStream.read_24bit_int(self, &i)
-
-        return i
 
     def write_char(self, x):
         """
