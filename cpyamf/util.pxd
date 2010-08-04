@@ -31,8 +31,8 @@ cdef class cBufferedByteStream:
     cdef Py_ssize_t peek(self, char **buf, Py_ssize_t size) except -1
     cpdef int truncate(self, Py_ssize_t size=?) except -1
     cpdef int consume(self) except -1
-    cdef int unpack_int(self, int num_bytes, long *ret) except -1
-    cdef int unpack_uint(self, int num_bytes, unsigned long *ret) except -1
+    cdef int unpack_int(self, int num_bytes, void *ret) except -1
+    cdef int unpack_uint(self, int num_bytes, void *ret) except -1
     cdef int pack_int(self, int num_bytes, long x) except -1
     cdef int pack_uint(self, int num_bytes, unsigned long x) except -1
     cdef int read_uchar(self, unsigned char *ret) except -1
@@ -51,7 +51,7 @@ cdef class cBufferedByteStream:
     cpdef int write_24bit_int(self, long ret) except -1
     cpdef int write_ulong(self, unsigned long ret) except -1
     cpdef int write_long(self, long ret) except -1
-    cpdef object read_utf8_string(self, unsigned int l)
+    cpdef object read_utf8_string(self, Py_ssize_t)
     cpdef int write_utf8_string(self, object obj) except -1
     cdef int read_double(self, double *obj) except -1
     cpdef int write_double(self, double val) except -1

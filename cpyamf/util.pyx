@@ -467,7 +467,7 @@ cdef class cBufferedByteStream(object):
 
         return 0
 
-    cdef int unpack_int(self, int num_bytes, long *ret) except -1:
+    cdef int unpack_int(self, int num_bytes, void *ret) except -1:
         """
         Unpacks a long from C{buf}.
         """
@@ -493,11 +493,11 @@ cdef class cBufferedByteStream(object):
             x |= -(x & (1L << ((8 * num_bytes) - 1)))
 
         self.pos += nb
-        ret[0] = x
+        memcpy(ret, &x, sizeof(long))
 
         return 0
 
-    cdef int unpack_uint(self, int num_bytes, unsigned long *ret) except -1:
+    cdef int unpack_uint(self, int num_bytes, void *ret) except -1:
         """
         Unpacks an unsigned long from C{buf}.
         """
@@ -520,7 +520,7 @@ cdef class cBufferedByteStream(object):
 
         self.pos += nb
 
-        ret[0] = x
+        memcpy(ret, &x, sizeof(unsigned long))
 
         return 0
 
@@ -608,7 +608,7 @@ cdef class cBufferedByteStream(object):
         """
         Reads an C{unsigned char} from the stream.
         """
-        cdef unsigned long x
+        cdef unsigned long x = 0
 
         self.unpack_uint(1, &x)
 
@@ -620,7 +620,7 @@ cdef class cBufferedByteStream(object):
         """
         Reads a C{char} from the stream.
         """
-        cdef long x
+        cdef long x = 0
 
         self.unpack_int(1, &x)
 
@@ -632,7 +632,7 @@ cdef class cBufferedByteStream(object):
         """
         Reads a 2 byte unsigned integer from the stream.
         """
-        cdef unsigned long x
+        cdef unsigned long x = 0
 
         self.unpack_uint(2, &x)
 
@@ -644,7 +644,7 @@ cdef class cBufferedByteStream(object):
         """
         Reads a 2 byte integer from the stream.
         """
-        cdef long x
+        cdef long x = 0
 
         self.unpack_int(2, &x)
 
@@ -668,13 +668,13 @@ cdef class cBufferedByteStream(object):
         """
         Reads a 24 bit unsigned integer from the stream.
         """
-        return self.unpack_uint(3, <unsigned long *>ret)
+        return self.unpack_uint(3, ret)
 
     cdef int read_24bit_int(self, long *ret) except -1:
         """
         Reads a 24 bit integer from the stream.
         """
-        return self.unpack_int(3, <long *>ret)
+        return self.unpack_int(3, ret)
 
     cpdef int write_uchar(self, unsigned char ret) except -1:
         """
@@ -748,7 +748,7 @@ cdef class cBufferedByteStream(object):
         """
         return self.pack_int(3, ret)
 
-    cpdef object read_utf8_string(self, unsigned int l):
+    cpdef object read_utf8_string(self, Py_ssize_t l):
         """
         Reads a UTF-8 string from the stream.
 
