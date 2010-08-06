@@ -395,24 +395,15 @@ class Encoder(_Codec):
         Returns a callable that will encode C{data} to C{self.stream}. If
         C{data} is unencodable, then C{None} is returned.
         """
-        # check for any overridden types
-        for type_, func in pyamf.TYPE_MAP.iteritems():
-            try:
-                if isinstance(data, type_):
-                    return _CustomTypeFunc(self, func)
-            except TypeError:
-                if callable(type_) and type_(data):
-                    return _CustomTypeFunc(self, func)
-
         if data is None:
             return self.writeNull
 
         t = type(data)
 
         # try types that we know will work
-        if t is str:
+        if t is str or issubclass(t, str):
             return self.writeBytes
-        elif t is unicode:
+        if t is unicode or issubclass(t, unicode):
             return self.writeString
         elif t is bool:
             return self.writeBoolean
@@ -430,6 +421,15 @@ class Encoder(_Codec):
             return self.writeDate
         elif xml.is_xml(data):
             return self.writeXML
+
+        # check for any overridden types
+        for type_, func in pyamf.TYPE_MAP.iteritems():
+            try:
+                if isinstance(data, type_):
+                    return _CustomTypeFunc(self, func)
+            except TypeError:
+                if callable(type_) and type_(data):
+                    return _CustomTypeFunc(self, func)
 
         # now try some types that won't encode
         if t in python.class_types:

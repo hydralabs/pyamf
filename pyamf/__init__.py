@@ -417,7 +417,9 @@ class ClassAlias(object):
         return self.alias
 
     def __repr__(self):
-        return '<ClassAlias alias=%s class=%s @ 0x%x>' % (
+        k = self.__class__
+
+        return '<%s.%s alias=%r class=%r @ 0x%x>' % (k.__module__, k.__name__,
             self.alias, self.klass, id(self))
 
     def __eq__(self, other):
@@ -489,7 +491,7 @@ class ClassAlias(object):
             return dict(obj)
 
         if self.shortcut_encode and self.dynamic:
-            return obj.__dict__
+            return obj.__dict__.copy()
 
         attrs = {}
 
@@ -1193,6 +1195,18 @@ def register_alias_type(klass, *args):
             check_type_registered(arg)
 
     ALIAS_TYPES[klass] = args
+
+    for k, v in CLASS_CACHE.copy().iteritems():
+        new_alias = util.get_class_alias(v.klass)
+
+        if new_alias is klass:
+            meta = util.get_class_meta(v.klass)
+            meta['alias'] = v.alias
+
+            alias_klass = klass(v.klass, **meta)
+
+            CLASS_CACHE[k] = alias_klass
+            CLASS_CACHE[v.klass] = alias_klass
 
 
 def unregister_alias_type(klass):
