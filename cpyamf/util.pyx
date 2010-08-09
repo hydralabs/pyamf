@@ -488,7 +488,7 @@ cdef class cBufferedByteStream(object):
                 x = (x << 8) | bytes[num_bytes - nb - 1]
 
         self.pos += num_bytes
-        memcpy(ret, &x, num_bytes)
+        #memcpy(ret, &x, num_bytes)
 
         return 0
 
