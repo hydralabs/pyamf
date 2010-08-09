@@ -1113,6 +1113,10 @@ cdef int encode_int(long i, char **buf) except -1:
 cdef int decode_int(cBufferedByteStream stream, long *ret, int sign=0) except -1:
     cdef int n = 0
     cdef long result = 0
+
+    ret[0] = result
+
+    return 0
     cdef unsigned char b = stream.read_uchar()
 
     while b & 0x80 != 0 and n < 3:
