@@ -142,7 +142,7 @@ cdef class Decoder(codec.Decoder):
 
         self.context.addObject(obj)
 
-        PyDict_Update(obj, self.readObjectAttributes(obj))
+        obj.update(self.readObjectAttributes(obj))
 
         return obj
 
