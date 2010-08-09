@@ -1155,7 +1155,7 @@ cdef inline int _encode_integer(cBufferedByteStream stream, long i) except -1:
 
 
 cdef inline long _read_ref(cBufferedByteStream stream) except -1:
-    cdef long ref
+    cdef long ref = 0
 
     decode_int(stream, &ref, 0)
 

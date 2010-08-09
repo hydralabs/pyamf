@@ -57,7 +57,7 @@ cdef object empty_unicode = unicode('')
 cdef int _memcpy_ensure_endian(void *src, void *dest, unsigned int size) nogil:
     """
     """
-    cdef unsigned char *buf = <unsigned char *>malloc(sizeof(unsigned char *) * sizeof(double))
+    cdef unsigned char *buf = <unsigned char *>malloc(sizeof(double))
 
     if buf == NULL:
         return -1
@@ -150,7 +150,7 @@ cdef inline int is_native_endian(char endian) nogil:
 
 
 cdef inline int swap_bytes(unsigned char *buffer, Py_ssize_t size) nogil:
-    cdef unsigned char *buf = <unsigned char *>malloc(sizeof(unsigned char *) * size)
+    cdef unsigned char *buf = <unsigned char *>malloc(size)
 
     if buf == NULL:
         return -1
@@ -212,7 +212,7 @@ cdef class cBufferedByteStream(object):
         self.length = 0
         self.size = 512
 
-        self.buffer = <char *>malloc(sizeof(char *) * self.size)
+        self.buffer = <char *>malloc(self.size)
 
         if self.buffer == NULL:
             PyErr_NoMemory()
@@ -317,7 +317,7 @@ cdef class cBufferedByteStream(object):
         if not self.has_available(size):
             raise IOError
 
-        buf[0] = <char *>malloc(sizeof(char *) * size)
+        buf[0] = <char *>malloc(size)
 
         if buf[0] == NULL:
             PyErr_NoMemory()
@@ -414,7 +414,7 @@ cdef class cBufferedByteStream(object):
         cdef char *buf = NULL
         cdef Py_ssize_t cur_pos = self.pos
 
-        buf = <char *>malloc(sizeof(char *) * self.length)
+        buf = <char *>malloc(self.length)
 
         if buf == NULL:
             PyErr_NoMemory()
@@ -448,7 +448,7 @@ cdef class cBufferedByteStream(object):
 
         if size > 0:
             size = self.peek(&peek_buf, size)
-            buf = <char *>malloc(sizeof(char *) * size)
+            buf = <char *>malloc(size)
 
             if buf == NULL:
                 PyErr_NoMemory()
@@ -488,7 +488,7 @@ cdef class cBufferedByteStream(object):
                 x = (x << 8) | bytes[num_bytes - nb - 1]
 
         self.pos += num_bytes
-        #memcpy(ret, &x, num_bytes)
+        memcpy(ret, &x, num_bytes)
 
         return 0
 
@@ -547,7 +547,7 @@ cdef class cBufferedByteStream(object):
             if x >= maxint:
                 raise OverflowError('integer out of range')
 
-        cdef char *buf = <char *>malloc(sizeof(char *) * num_bytes)
+        cdef char *buf = <char *>malloc(num_bytes)
 
         if buf == NULL:
             PyErr_NoMemory()
@@ -837,7 +837,7 @@ cdef class cBufferedByteStream(object):
         cdef unsigned char *foo
         cdef int done = 0
 
-        buf = <unsigned char *>malloc(sizeof(unsigned char *) * sizeof(double))
+        buf = <unsigned char *>malloc(sizeof(double))
 
         if buf == NULL:
             PyErr_NoMemory()
@@ -903,7 +903,7 @@ cdef class cBufferedByteStream(object):
         cdef unsigned char *buf
         cdef unsigned char le = not is_big_endian(self.endian)
 
-        buf = <unsigned char *>malloc(sizeof(unsigned char *) * 4)
+        buf = <unsigned char *>malloc(4)
 
         if buf == NULL:
             PyErr_NoMemory()
