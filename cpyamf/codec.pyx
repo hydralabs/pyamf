@@ -469,9 +469,9 @@ cdef class Encoder(Codec):
         """
         cdef int ret = 1
 
-        if PyString_CheckExact(element):
+        if PyString_Check(element):
             ret = self.writeBytes(element)
-        elif PyUnicode_CheckExact(element):
+        elif PyUnicode_Check(element):
             ret = self.writeString(element)
         elif element is None:
             ret = self.writeNull(element)
