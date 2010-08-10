@@ -310,13 +310,14 @@ cdef class Decoder(codec.Decoder):
 
         try:
             self.stream.read(&buf, r)
-            s = PyString_FromStringAndSize(buf, r)
+            s = PyString_FromStringAndSize(buf, <Py_ssize_t>r)
         finally:
             if buf != NULL:
                 free(buf)
 
         self.context.addString(s)
 
+        return s
         if bytes == 1:
             return s
 
@@ -432,12 +433,15 @@ cdef class Decoder(codec.Decoder):
         return 0
 
     cdef int _readDynamic(self, ClassDefinition class_def, dict obj) except -1:
-        cdef str attr = self.readString(1)
+        cdef str attr
 
-        while len(attr) != 0:
-            obj[attr] = self.readElement()
-
+        while True:
             attr = self.readString(1)
+
+            if len(attr) == 0:
+                break
+
+            obj[attr] = self.readElement()
 
         return 0
 
@@ -1154,8 +1158,8 @@ cdef inline int _encode_integer(cBufferedByteStream stream, long i) except -1:
         free(buf)
 
 
-cdef inline long _read_ref(cBufferedByteStream stream) except -1:
-    cdef long ref = 0
+cdef inline Py_ssize_t _read_ref(cBufferedByteStream stream) except -1:
+    cdef Py_ssize_t ref = 0
 
     decode_int(stream, &ref, 0)
 
