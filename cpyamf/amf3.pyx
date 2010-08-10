@@ -269,9 +269,7 @@ cdef class Decoder(codec.Decoder):
         <http://osflash.org/amf3/parsing_integers>} for the AMF3 integer data
         format.
         """
-        cdef int r
-
-        decode_int(self.stream, &r, signed)
+        cdef int r = decode_int(self.stream, signed)
 
         return <object>r
 
@@ -286,7 +284,7 @@ cdef class Decoder(codec.Decoder):
         """
         Reads and returns a string from the stream.
         """
-        cdef int r = _read_ref(self.stream)
+        cdef Py_ssize_t r = _read_ref(self.stream)
         cdef object s
 
         if r & REFERENCE_BIT == 0:
@@ -310,7 +308,7 @@ cdef class Decoder(codec.Decoder):
 
         try:
             self.stream.read(&buf, r)
-            s = PyString_FromStringAndSize(buf, <Py_ssize_t>r)
+            s = PyString_FromStringAndSize(buf, r)
         finally:
             if buf != NULL:
                 free(buf)
@@ -328,7 +326,7 @@ cdef class Decoder(codec.Decoder):
 
         The timezone is ignored as the date is always in UTC.
         """
-        cdef int ref = _read_ref(self.stream)
+        cdef Py_ssize_t ref = _read_ref(self.stream)
 
         if ref & REFERENCE_BIT == 0:
             return self.context.getObject(ref >> 1)
@@ -1113,7 +1111,7 @@ cdef int encode_int(long i, char **buf) except -1:
     return count + 1
 
 
-cdef int decode_int(cBufferedByteStream stream, int *ret, int sign=0) except -1:
+cdef int decode_int(cBufferedByteStream stream, int sign=0) except? -1:
     cdef int n = 0
     cdef int result = 0
     cdef unsigned char b = stream.read_uchar()
@@ -1140,9 +1138,7 @@ cdef int decode_int(cBufferedByteStream stream, int *ret, int sign=0) except -1:
                 result <<= 1
                 result += 1
 
-    ret[0] = result
-
-    return 0
+    return result
 
 
 cdef inline int _encode_integer(cBufferedByteStream stream, int i) except -1:
@@ -1157,9 +1153,9 @@ cdef inline int _encode_integer(cBufferedByteStream stream, int i) except -1:
         free(buf)
 
 
-cdef inline int _read_ref(cBufferedByteStream stream) except -1:
-    cdef int ref = 0
+cdef inline Py_ssize_t _read_ref(cBufferedByteStream stream) except -1:
+    cdef Py_ssize_t ref = 0
 
-    decode_int(stream, &ref, 0)
+    ref = <Py_ssize_t>decode_int(stream, 0)
 
     return ref
