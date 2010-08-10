@@ -471,6 +471,8 @@ cdef class cBufferedByteStream(object):
         """
         Unpacks a long from C{buf}.
         """
+        cdef Py_ssize_t nb
+
         if num_bytes > 4:
             raise ValueError('Max 4 bytes to unpack')
 
