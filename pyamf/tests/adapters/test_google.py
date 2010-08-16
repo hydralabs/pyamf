@@ -1049,13 +1049,12 @@ class HelperTestCase(BaseTestCase):
 
     def test_getGAEObjects(self):
         context = Spam()
-
-        self.assertFalse(hasattr(context, 'gae_objects'))
+        context.extra = {}
 
         x = adapter_db.getGAEObjects(context)
         self.assertTrue(isinstance(x, adapter_db.GAEReferenceCollection))
-        self.assertTrue(hasattr(context, 'gae_objects'))
-        self.assertEqual(id(x), id(context.gae_objects))
+        self.assertTrue('gae_objects' in context.extra)
+        self.assertEqual(id(x), id(context.extra['gae_objects']))
 
     def test_loadInstanceFromDatastore(self):
         # not a class type
@@ -1071,14 +1070,14 @@ class HelperTestCase(BaseTestCase):
 
         codec = Spam()
         codec.context = Spam()
+        codec.context.extra = {}
         GettableModelStub.gets = []
 
-        self.assertFalse(hasattr(codec.context, 'gae_objects'))
         adapter_db.loadInstanceFromDatastore(GettableModelStub, 'foo', codec=codec)
-        self.assertTrue(hasattr(codec.context, 'gae_objects'))
+        self.assertTrue('gae_objects' in codec.context.extra)
         self.assertEqual(GettableModelStub.gets, [[('foo',), {}]])
 
-        gae_objects = codec.context.gae_objects
+        gae_objects = codec.context.extra['gae_objects']
         self.assertTrue(isinstance(gae_objects, adapter_db.GAEReferenceCollection))
         self.assertEqual(gae_objects, {GettableModelStub: {'foo': None}})
 
