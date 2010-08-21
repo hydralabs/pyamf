@@ -526,7 +526,7 @@ cdef class Encoder(Codec):
 
     cpdef int writeElement(self, object element) except -1:
         cdef int ret = 0
-        cdef py_type = type(element)
+        cdef object py_type = type(element)
         cdef object func = None
         cdef int use_proxy
 
