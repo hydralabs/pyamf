@@ -23,11 +23,14 @@ sys.path.append(os.path.abspath('html'))
 
 # -- General configuration -----------------------------------------------------
 
+# If your documentation needs a minimal Sphinx version, state it here.
+needs_sphinx = '1.0'
+
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx']
 
-# Paths that contain templates, relative to this directory.
+# Paths that contain additional templates, relative to this directory.
 templates_path = ['html']
 
 # The suffix of source filenames.
@@ -37,7 +40,7 @@ source_suffix = '.rst'
 #source_encoding = 'utf-8'
 
 # The master toctree document.
-#master_doc = 'index'
+#master_doc = 'contents'
 
 # create content template for the homepage
 from util import rst2html, copy_file
@@ -71,10 +74,9 @@ today_fmt = '%B %d, %Y'
 # List of documents that shouldn't be included in the build.
 #unused_docs = []
 
-# A list of directory paths, relative to the source directory, that are to
-# be recursively excluded from the search for source files, that is, their
-# subdirectories won’t be searched too.
-exclude_trees = ['_build', 'tutorials/examples']
+# List of patterns, relative to source directory, that match files and
+# directories to ignore when looking for source files.
+exclude_patterns = ['_build', 'tutorials/examples']
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = True
@@ -88,7 +90,7 @@ add_module_names = True
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'trac'
+#pygments_style = 'trac'
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
@@ -96,10 +98,20 @@ pygments_style = 'trac'
 
 # -- Options for HTML output ---------------------------------------------------
 
-# The style sheet to use for HTML and HTML Help pages. A file of that name
-# must exist either in Sphinx' static/ path, or in one of the custom paths
-# given in html_static_path.
-html_style = 'default.css'
+# The theme to use for HTML and HTML Help pages.  See the documentation for
+# a list of builtin themes.
+# Note: you can download the 'beam' theme from:
+# http://github.com/collab-project/sphinx-themes
+# and place it in a 'themes' directory relative to this config file.
+html_theme = 'beam'
+
+# Theme options are theme-specific and customize the look and feel of a theme
+# further.  For a list of options available for each theme, see the
+# documentation.
+#html_theme_options = {}
+
+# Add any paths that contain custom themes here, relative to this directory.
+html_theme_path = ['themes']
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -111,7 +123,7 @@ html_title = '%s - %s' % (project, description)
 html_static_path = ['html/static']
 
 # The name of an image file (.ico) that is the favicon of the docs.
-html_favicon = 'pyamf.ico'
+html_favicon = 'html/static/pyamf.ico'
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -121,20 +133,15 @@ html_last_updated_fmt = '%b %d, %Y'
 # typographically correct entities.
 #html_use_smartypants = True
 
-# Custom sidebar templates, maps document names to template names.
-html_sidebars = {
-    'toc': 'sidebartoc.html'
-}
-
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
 html_additional_pages = {
-    'index': 'indexcontent.html',
+    'index': 'defindex.html',
     'tutorials/index': 'tutorials.html',
 }
 
 # Content template for the index page, filename relative to this file.
-html_index = 'indexcontent.html'
+#html_index = 'indexcontent.html'
 
 # If false, no module index is generated.
 html_use_modindex = True
@@ -186,4 +193,4 @@ latex_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'http://python.org/': None}
+intersphinx_mapping = {'http://docs.python.org/': None}

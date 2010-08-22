@@ -3,6 +3,9 @@ _trial_temp/
 build/
 cpyamf/*.so
 doc/_build/
+doc/changelog.rst
+doc/html/intro.html
+doc/themes
 cpyamf/amf3.pyd
 cpyamf/codec.pyd
 cpyamf/util.pyd

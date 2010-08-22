@@ -31,8 +31,8 @@ clean:
 	-rm -rf $(BUILDDIR)/*
 
 html:
-	mkdir -p $(BUILDDIR)/html $(BUILDDIR)/doctrees
-	find tutorials/examples ! -name "*.svn*" | cpio -admup $(BUILDDIR)/html/
+	mkdir -p $(BUILDDIR)/html/tutorials $(BUILDDIR)/doctrees
+	cp -R tutorials/examples $(BUILDDIR)/html/tutorials/
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
