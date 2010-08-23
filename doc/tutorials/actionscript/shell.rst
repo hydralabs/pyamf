@@ -136,7 +136,7 @@ for this example client:
 .. _Flex: http://opensource.adobe.com/wiki/display/flexsdk/Flex+SDK
 .. _Django: http://djangoproject.com
 .. _Google App Engine example page: http://pyamf.appspot.com/shell
-.. _browse: http://dev.pyamf.org/browser/pyamf/master/doc/tutorials/examples/actionscript/shell
-.. _development server: http://dev.pyamf.org/browser/pyamf/masterdoc/tutorials/examples/actionscript/shell/python/manage.py
+.. _browse: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/shell
+.. _development server: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/shell/python/manage.py
 .. _SQLite: http://sqlite.org
-.. _SWF file: http://dev.pyamf.org/browser/pyamf/master/doc/tutorials/examples/actionscript/shell/flex/deploy/shell.swf
+.. _SWF file: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/shell/flex/deploy/shell.swf

@@ -5,20 +5,22 @@
 .. topic:: Introduction
 
    This page describes how to setup the UDP example application
-   using `Adobe AIR 2.0`_, PyAMF and Twisted_.
+   using `Adobe AIR`_, PyAMF and Twisted_.
 
-   Adobe AIR 2.0 now support `UDP sockets`_ allowing you to send
+   Adobe AIR >= 2.0 supports `UDP sockets`_, allowing you to send
    and receive messages using the Universal Datagram Protocol (UDP).
-   The example application also enumerates the list of hardware
-   and software network interfaces available on the client computer.
+   
+   The example application shows you how to echo a typed object
+   every x seconds and display the active hardware and software
+   network interfaces that are available on the client computer.
 
 .. contents::
 
 Download
 ========
 
-#. Download and install the `Adobe AIR 2 Runtime`_. Also download the
-   Adobe AIR 2 SDK if you want to modify and compile the application.
+#. Download and install the Adobe AIR runtime_. Also download the
+   Adobe AIR SDK_ if you want to modify and compile the application.
 
 #. Clone the PyAMF repository with:
 
@@ -27,7 +29,7 @@ Download
     git clone git://github.com/hydralabs/pyamf.git pyamf
     cd doc/tutorials/examples/actionscript/udp-example
 
-   Alternatively, if you just want to have a look, you can browse_ the example online.
+Alternatively, if you just want to have a look, you can browse_ the example online.
 
 
 Server
@@ -79,10 +81,11 @@ Right-click for the fullscreen and always on top options:
 .. image:: images/udp-options.png
 
 
-.. _Adobe AIR 2.0: http://labs.adobe.com/technologies/air2
-.. _Adobe AIR 2 Runtime: http://labs.adobe.com/downloads/air2.html
+.. _Adobe AIR: http://www.adobe.com/products/air
+.. _runtime: http://get.adobe.com/air
+.. _SDK: http://www.adobe.com/go/air_sdk
 .. _Twisted: http://twistedmatrix.com
-.. _UDP sockets: http://help.adobe.com/en_US/FlashPlatform/beta/reference/actionscript/3/flash/net/DatagramSocket.html
-.. _browse: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/udp
-.. _development server: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/udp/python/server.py
-.. _AIR file: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/udp/air/deploy/udp.air
+.. _UDP sockets: http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/net/DatagramSocket.html
+.. _browse: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/udp
+.. _development server: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/udp/python/server.py
+.. _AIR file: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/udp/air/deploy/udp.air

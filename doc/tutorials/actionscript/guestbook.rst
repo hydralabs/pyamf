@@ -96,10 +96,10 @@ for this example client:
 .. _Flex SDK: http://opensource.adobe.com/wiki/display/flexsdk/Flex+SDK
 .. _Twisted: http://twistedmatrix.com
 .. _blog: http://blog.pyamf.org/archives/twisted-guestbook
-.. _browse: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/guestbook
-.. _development server: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/guestbook/python/guestbook.tac
-.. _SWF file: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/guestbook/flex/deploy/guestbook.swf
-.. _schema file: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/guestbook/db/schema.sql
-.. _config file: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/guestbook/python/settings.cfg
+.. _browse: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/guestbook
+.. _development server: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/guestbook/python/guestbook.tac
+.. _SWF file: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/guestbook/flex/deploy/guestbook.swf
+.. _schema file: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/guestbook/db/schema.sql
+.. _config file: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/guestbook/python/settings.cfg
 .. _MySQL-Python: http://sourceforge.net/projects/mysql-python/
 .. _MySQL: http://mysql.org

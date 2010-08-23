@@ -6,8 +6,8 @@
 
 .. topic:: Introduction
 
-   This howto will show you how to use a PyAMF application (0.3.1 or newer)
-   with Google App Engine.
+   This document explains how to get a PyAMF application running on Google
+   App Engine.
 
    `Google App Engine`_ (GAE) lets you run your web applications on Google's
    infrastructure for free. You can serve your app using a free domain name
@@ -26,7 +26,7 @@ Prerequisites
 Before you can start using GAE you need to download and install:
 
 - Python 2.5 or newer for your platform from `the Python website`_. Users of
-  Mac OS X 10.5 or newer already have Python 2.5 or newer installed.
+  Mac OS X 10.5 or newer already have an up-to-date Python installed.
 - `Google App Engine SDK`_
 - :doc:`PyAMF</community/download>` 0.3.1 or newer
 

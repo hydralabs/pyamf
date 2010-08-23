@@ -39,9 +39,6 @@ source_suffix = '.rst'
 # The encoding of source files.
 #source_encoding = 'utf-8'
 
-# The master toctree document.
-#master_doc = 'contents'
-
 # create content template for the homepage
 from util import rst2html, copy_file
 readme = rst2html('../README.txt', 'html/intro.html')
@@ -90,7 +87,7 @@ add_module_names = True
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-#pygments_style = 'trac'
+#pygments_style = 'pygments'
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
@@ -140,9 +137,6 @@ html_additional_pages = {
     'tutorials/index': 'tutorials.html',
 }
 
-# Content template for the index page, filename relative to this file.
-#html_index = 'indexcontent.html'
-
 # If false, no module index is generated.
 html_use_modindex = True
 
@@ -176,7 +170,7 @@ latex_documents = [
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
-#latex_logo = None
+latex_logo = 'html/static/logo.png'
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.

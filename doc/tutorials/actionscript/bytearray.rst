@@ -154,7 +154,7 @@ for this example client:
 .. _Django: http://djangoproject.com
 .. _Python: http://python.org
 .. _blog: http://blog.pyamf.org/archives/bytearray-example
-.. _browse: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/bytearray
-.. _development server: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/bytearray/python/manage.py
-.. _SWF file: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/bytearray/flex/deploy/bytearray.swf
+.. _browse: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/bytearray
+.. _development server: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/bytearray/python/manage.py
+.. _SWF file: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/bytearray/flex/deploy/bytearray.swf
 
