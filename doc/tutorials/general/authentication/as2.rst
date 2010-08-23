@@ -13,15 +13,11 @@
 Installation
 ============
 
-First you need to install the free Flash Remoting
-components for
-`Adobe Flash MX 2004 <http://www.adobe.com/products/flashremoting/downloads/components/#flr_as2>`_
-or `Adobe Flash 8.0 <http://www.adobe.com/products/flashremoting/downloads/components/#flr_fl81>`_.
+First you need to install the free Flash Remoting components for `Adobe Flash MX 2004`_
+or `Adobe Flash 8.0`_.
 
 If you want to use Flash Remoting for |ActionScript (TM)| 2.0 in Adobe Flash CS3, 
-check this `page <http://blog.vixiom.com/2007/04/17/actionscript-20-flash-remoting-with-flash-cs3/>`_
-for more info.
-
+check this page_ for more info.
 
 Source
 ======
@@ -32,3 +28,6 @@ Source
 
 
 .. |ActionScript (TM)| unicode:: ActionScript U+2122
+.. _Adobe Flash MX 2004: http://www.adobe.com/products/flashremoting/downloads/components/#flr_as2
+.. _Adobe Flash 8.0: http://www.adobe.com/products/flashremoting/downloads/components/#flr_fl81
+.. _page: http://blog.vixiom.com/2007/04/17/actionscript-20-flash-remoting-with-flash-cs3/

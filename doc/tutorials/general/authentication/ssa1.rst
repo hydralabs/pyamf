@@ -5,7 +5,8 @@
 .. topic:: Introduction
 
    This |ActionScript (TM)| 1.0 example can be used with
-   Flash Media Server or Flash Communication Server MX.
+   Adobe Flash Media Server or Macromedia Flash
+   Communication Server MX.
 
 .. contents::
 
