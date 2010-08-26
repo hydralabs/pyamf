@@ -85,7 +85,7 @@ class RequestProcessorTestCase(unittest.TestCase):
 
     def test_error(self):
         def echo(x):
-            raise TypeError
+            raise TypeError('foo')
 
         gw = gateway.BaseGateway({'echo': echo})
         rp = amf3.RequestProcessor(gw)
@@ -100,10 +100,11 @@ class RequestProcessorTestCase(unittest.TestCase):
         self.assertEqual(response.status, remoting.STATUS_ERROR)
         self.assertTrue(isinstance(ack, messaging.ErrorMessage))
         self.assertEqual(ack.faultCode, 'TypeError')
+        self.assertEqual(ack.faultString, 'foo')
 
     def test_error_debug(self):
         def echo(x):
-            raise TypeError
+            raise TypeError('foo')
 
         gw = gateway.BaseGateway({'echo': echo}, debug=True)
         rp = amf3.RequestProcessor(gw)

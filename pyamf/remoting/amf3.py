@@ -69,10 +69,27 @@ def generate_error(request, cls, e, tb, include_traceback=False):
         details = traceback.format_exception(cls, e, tb)
         rootCause = e
 
-    return messaging.ErrorMessage(messageId=generate_random_id(),
-        clientId=generate_random_id(), timestamp=calendar.timegm(time.gmtime()),
-        correlationId = request.messageId, faultCode=code, faultString=e,
-        faultDetail=unicode(details), extendedData=details, rootCause=rootCause)
+    faultDetail = None
+    faultString = None
+
+    if hasattr(e, 'message'):
+        faultString = unicode(e.message)
+    else:
+        faultString = unicode(e)
+
+    if details:
+        faultDetail = unicode(details)
+
+    return messaging.ErrorMessage(
+        messageId=generate_random_id(),
+        clientId=generate_random_id(),
+        timestamp=calendar.timegm(time.gmtime()),
+        correlationId=request.messageId,
+        faultCode=code,
+        faultString=faultString,
+        faultDetail=faultDetail,
+        extendedData=details,
+        rootCause=rootCause)
 
 
 class RequestProcessor(object):
