@@ -12,7 +12,6 @@
    sqlalchemy.rst
    cherrypy.rst
    turbogears.rst
-   buildbot.rst
    werkzeug.rst
    stackless.rst
    web2py.rst

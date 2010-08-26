@@ -4,7 +4,7 @@
 
 .. contents::
 
-PyAMF requires Python_ 2.3 or newer. Python 3.0 isn't supported yet_.
+PyAMF requires Python_ 2.4 or newer. Python 3.0 isn't supported yet_.
 
 
 Easy Installation
@@ -34,12 +34,11 @@ use::
 Manual Installation
 ===================
 
-To use PyAMF with Python 2.3 or 2.4, the following software packages
-must be installed. The ``easy_install`` command will automatically
-install them for you, as described above, but you can also choose to
-download and install the packages manually.
+To use PyAMF with Python 2.4, the following software packages
+must be installed. You **don't** need these packages if you're using
+Python 2.5 or newer!
 
-You **don't** need these packages if you're using Python 2.5 or newer.
+The ``easy_install`` command will automatically install them for you, as described above, but you can also choose to download and install the packages manually.
 
 - ElementTree_ 1.2.6 or newer
 - uuid_ 1.30 or newer
@@ -139,7 +138,7 @@ Documentation
 
 To build the documentation you need:
 
-- Sphinx_ 0.6.3 or newer
+- Sphinx_ 1.0 or newer
 - a :doc:`copy <community/download>` of the PyAMF source distribution
 
 Unix users run the command below in the ``pyamf/doc`` directory to create the

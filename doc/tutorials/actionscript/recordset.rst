@@ -145,6 +145,6 @@ for this example client::
 .. _page: http://blog.vixiom.com/2007/04/17/actionscript-20-flash-remoting-with-flash-cs3/
 .. _SQLAlchemy: http://sqlalchemy.org
 .. _SQLite: http://sqlite.org
-.. _browse: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/recordset
-.. _development server: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/recordset/python/gateway.py
-.. _SWF file: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/recordset/flash/SoftwareInfoExample.swf
+.. _browse: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/recordset
+.. _development server: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/recordset/python/gateway.py
+.. _SWF file: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/recordset/flash/SoftwareInfoExample.swf

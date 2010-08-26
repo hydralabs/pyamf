@@ -138,6 +138,6 @@ for this example client:
 .. _Flex SDK: http://opensource.adobe.com/wiki/display/flexsdk/Flex+SDK
 .. _SQLAlchemy: http://sqlalchemy.org
 .. _blog: http://blog.pyamf.org/archives/sqlalchemy-and-flash-addressbook-example
-.. _browse: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/addressbook
-.. _development server: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/addressbook/python/server.py
-.. _SWF file: http://dev.pyamf.org/browser/master/doc/tutorials/examples/actionscript/addressbook/flex/deploy/sa_example.swf
+.. _browse: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/addressbook
+.. _development server: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/addressbook/python/server.py
+.. _SWF file: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/addressbook/flex/deploy/sa_example.swf
