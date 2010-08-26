@@ -439,6 +439,15 @@ cdef class Encoder(Codec):
     cdef int writeDict(self, dict o) except -1:
         raise NotImplementedError
 
+    cdef int writeGenerator(self, object o) except -1:
+        cdef object n = getattr(o, 'next')
+
+        while True:
+            try:
+                self.writeElement(n())
+            except StopIteration:
+                return 0
+
     cdef int writeSequence(self, object iterable) except -1:
         """
         Encodes an iterable. The default is to write If the iterable has an al
@@ -497,6 +506,8 @@ cdef class Encoder(Codec):
             ret = self.writeDate(element)
         elif py_type is MixedArray:
             ret = self.writeMixedArray(element)
+        elif py_type is GeneratorType:
+            ret = self.writeGenerator(element)
         elif PySequence_Contains(self.use_write_object, py_type):
             ret = self.writeObject(element)
         elif isinstance(element, (list, tuple)):
@@ -513,8 +524,6 @@ cdef class Encoder(Codec):
             raise pyamf.EncodeError("Cannot encode methods")
         elif PyFunction_Check(element) or py_type is BuiltinFunctionType:
             raise pyamf.EncodeError("Cannot encode functions")
-        elif py_type is GeneratorType:
-            raise pyamf.EncodeError("Cannot encode generators")
         elif PyClass_Check(element) or PyType_CheckExact(element):
             raise pyamf.EncodeError("Cannot encode class objects")
         elif PyTime_CheckExact(element):

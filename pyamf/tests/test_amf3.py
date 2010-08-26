@@ -417,9 +417,9 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
 
     def test_funcs(self):
         def x():
-            yield 2
+            pass
 
-        for f in (chr, lambda x: x, x, x(), pyamf, ''.startswith):
+        for f in (chr, lambda x: x, x, pyamf, ''.startswith):
             self.assertRaises(pyamf.EncodeError, self.encode, f)
 
     def test_29b_ints(self):
@@ -493,8 +493,6 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
 
         self.assertEncoded(Foo(), bytes)
 
-
-
     def test_timezone(self):
         d = datetime.datetime(2009, 9, 24, 14, 23, 23)
         self.encoder.timezone_offset = datetime.timedelta(hours=-5)
@@ -502,6 +500,16 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
         self.encoder.writeElement(d)
 
         self.assertEqual(self.buf.getvalue(), '\x08\x01Br>\xd8\x1f\xff\x80\x00')
+
+    def test_generator(self):
+        def foo():
+            yield [1, 2, 3]
+            yield '\xff'
+            yield pyamf.Undefined
+
+        self.assertEncoded(foo(), '\t\x07\x01\x04\x01\x04\x02\x04\x03\x06\x03'
+            '\xff\x00')
+
 
 
 class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):

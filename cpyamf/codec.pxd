@@ -101,6 +101,7 @@ cdef class Encoder(Codec):
     cpdef int writeObject(self, object o, bint is_proxy=?) except -1
     cdef int writeDict(self, dict o) except -1
     cdef int writeMixedArray(self, object o) except -1
+    cdef int writeGenerator(self, object) except -1
 
     cdef inline int handleBasicTypes(self, object element, object py_type) except -1
     cdef int checkBadTypes(self, object element, object py_type) except -1

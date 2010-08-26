@@ -390,6 +390,18 @@ class Encoder(_Codec):
 
         self.writeList(iterable)
 
+    def writeGenerator(self, gen):
+        """
+        Iterates over a generator object and encodes all that is returned.
+        """
+        n = getattr(gen, 'next')
+
+        while True:
+            try:
+                self.writeElement(n())
+            except StopIteration:
+                break
+
     def getTypeFunc(self, data):
         """
         Returns a callable that will encode C{data} to C{self.stream}. If
@@ -415,6 +427,8 @@ class Encoder(_Codec):
             return self.writeList
         elif isinstance(data, (list, tuple)):
             return self.writeSequence
+        elif t is types.GeneratorType:
+            return self.writeGenerator
         elif t is pyamf.UndefinedType:
             return self.writeUndefined
         elif t in (datetime.date, datetime.datetime, datetime.time):
