@@ -205,6 +205,13 @@ class DataStoreClassAlias(pyamf.ClassAlias):
 
                 if isinstance(prop, db.FloatProperty) and isinstance(v, (int, long)):
                     attrs[k] = float(v)
+                elif isinstance(prop, db.IntegerProperty) and isinstance(v, float):
+                    x = long(v)
+
+                    # only convert the type if there is no mantissa - otherwise
+                    # let the chips fall where they may
+                    if x == v:
+                        attrs[k] = x
                 elif isinstance(prop, db.ListProperty) and v is None:
                     attrs[k] = []
                 elif isinstance(v, datetime.datetime):
