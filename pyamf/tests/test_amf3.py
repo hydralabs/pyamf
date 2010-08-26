@@ -484,6 +484,17 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
         self.assertEncoded(pyamf.ASObject(), bytes)
         self.assertEncoded({}, bytes)
 
+    def test_proxy_non_dict(self):
+        class Foo(object):
+            pass
+
+        self.encoder.use_proxies = True
+        bytes = '\n\x0b\x01\x01'
+
+        self.assertEncoded(Foo(), bytes)
+
+
+
     def test_timezone(self):
         d = datetime.datetime(2009, 9, 24, 14, 23, 23)
         self.encoder.timezone_offset = datetime.timedelta(hours=-5)

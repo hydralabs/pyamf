@@ -246,14 +246,18 @@ def proxy_object(obj):
     Conversion
     ==========
       - C{list}: L{ArrayCollection}
-      - C{mixed}: L{ObjectProxy}
+      - C{dict}: L{ObjectProxy}
+      - Everything else: C{obj}
 
     @since: 0.6
     """
     if type(obj) in (list, tuple):
         return ArrayCollection(obj)
 
-    return ObjectProxy(obj)
+    if isinstance(obj, dict):
+        return ObjectProxy(obj)
+
+    return obj
 
 
 pyamf.register_package(globals(), package='flex.messaging.io')
