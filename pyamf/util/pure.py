@@ -491,7 +491,10 @@ class DataTypeMixIn(object):
         if not isinstance(u, python.str_types):
             raise TypeError('Expected %r, got %r' % (python.str_types, u))
 
-        bytes = u.encode("utf8")
+        bytes = u
+
+        if isinstance(bytes, unicode):
+            bytes = u.encode("utf8")
 
         self.write(struct.pack("%s%ds" % (self.endian, len(bytes)), bytes))
 

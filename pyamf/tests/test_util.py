@@ -448,6 +448,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
         self.assertRaises(TypeError, x.write_utf8_string, 1)
         self.assertRaises(TypeError, x.write_utf8_string, 1.0)
         self.assertRaises(TypeError, x.write_utf8_string, object())
+        x.write_utf8_string('\xff')
 
     def test_read_utf8_string(self):
         self._read_endian(['\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb'] * 2, 'read_utf8_string', (9,), u'ᚠᛇᚻ')
