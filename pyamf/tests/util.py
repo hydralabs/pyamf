@@ -234,6 +234,11 @@ def expectedFailureIfAppengine(func):
     except ImportError:
         return func
     else:
+        import os
+
+        if os.environ.get('SERVER_SOFTWARE', None) is None:
+            return func
+
         return unittest.expectedFailure(func)
 
 
