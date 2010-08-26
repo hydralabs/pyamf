@@ -10,6 +10,7 @@ Google Web App gateway tests.
 """
 
 import unittest
+import os
 
 from StringIO import StringIO
 
@@ -18,6 +19,12 @@ try:
     from pyamf.remoting.gateway import google as google
 except ImportError:
     webapp = None
+
+if os.environ.get('SERVER_SOFTWARE', None) is None:
+    # we're not being run in appengine environment (at one that we are known to
+    # work in)
+    webapp = None
+
 
 import pyamf
 from pyamf import remoting

@@ -10,6 +10,25 @@ PyAMF Google adapter tests.
 import unittest
 import datetime
 import struct
+import os
+
+
+class MockDBModule(object):
+    """
+    Pretends to look like the C{google.appengine.ext.db} module so this file
+    will import correctly
+    """
+
+    def __getattr__(self, name):
+        class c(object):
+            def __init__(self, *args, **kwargs):
+                pass
+
+        return c
+
+    def __nonzero__(self):
+        return False
+
 
 try:
     from google.appengine.ext import db, blobstore
@@ -18,19 +37,12 @@ try:
     from pyamf.adapters import _google_appengine_ext_db as adapter_db
     from pyamf.adapters import _google_appengine_ext_blobstore as adapter_blobstore
 except ImportError:
-    # mock it
-    class db(object):
-        def __getattr__(self, name):
-            class c(object):
-                def __init__(self, *args, **kwargs):
-                    pass
+    db = MockDBModule()
 
-            return c
-
-        def __nonzero__(self):
-            return False
-
-    db = db()
+if os.environ.get('SERVER_SOFTWARE', None) is None:
+    # we're not being run in appengine environment (at one that we are known to
+    # work in)
+    db = MockDBModule()
 
 
 import pyamf
