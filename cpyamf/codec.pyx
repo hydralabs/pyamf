@@ -379,6 +379,27 @@ cdef class Decoder(Codec):
         """
         raise NotImplementedError
 
+    cpdef int send(self, data) except -1:
+        """
+        Add data for the decoder to work on.
+        """
+        return self.stream.append(data)
+
+    def __next__(self):
+        """
+        Part of the iterator protocol.
+        """
+        try:
+            return self.readElement()
+        except pyamf.EOStream:
+            # all data was successfully decoded from the stream
+            self.stream.consume()
+
+            raise StopIteration
+
+    def __iter__(self):
+        return self
+
 
 cdef class Encoder(Codec):
     """

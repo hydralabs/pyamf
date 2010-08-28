@@ -74,6 +74,8 @@ cdef class Decoder(Codec):
     cpdef object readElement(self)
     cdef object readConcreteElement(self, char t)
 
+    cpdef int send(self, data) except -1
+
 
 cdef class Encoder(Codec):
     """

@@ -726,6 +726,21 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
     def test_bad_reference(self):
         self.assertRaises(pyamf.ReferenceError, self.decode, '\x07\x00\x03')
 
+    def test_iterate(self):
+        self.assertRaises(StopIteration, self.decoder.next)
+
+        self.decoder.send('\x02\x00\x00')
+        self.decoder.send('\x02\x00\x05hello')
+        self.decoder.send('\x02\x00\t\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb')
+
+        self.assertEqual(self.decoder.next(), '')
+        self.assertEqual(self.decoder.next(), 'hello')
+        self.assertEqual(self.decoder.next(), u'\u16a0\u16c7\u16bb')
+
+        self.assertRaises(StopIteration, self.decoder.next)
+
+        self.assertIdentical(iter(self.decoder), self.decoder)
+
 
 class RecordSetTestCase(unittest.TestCase, EncoderMixIn, DecoderMixIn):
     """

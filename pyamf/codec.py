@@ -293,6 +293,24 @@ class Decoder(_Codec):
     @type strict: C{bool}
     """
 
+    def send(self, data):
+        """
+        Add data for the decoder to work on.
+        """
+        self.stream.append(data)
+
+    def next(self):
+        """
+        Part of the iterator protocol.
+        """
+        try:
+            return self.readElement()
+        except pyamf.EOStream:
+            # all data was successfully decoded from the stream
+            self.stream.consume()
+
+            raise StopIteration
+
     def readElement(self):
         """
         Reads an AMF3 element from the data stream.
@@ -325,11 +343,7 @@ class Decoder(_Codec):
             raise
 
     def __iter__(self):
-        try:
-            while True:
-                yield self.readElement()
-        except pyamf.EOStream:
-            raise StopIteration
+        return self
 
 
 class _CustomTypeFunc(object):
