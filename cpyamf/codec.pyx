@@ -8,6 +8,7 @@ C-extension for L{pyamf.amf3} Python module in L{PyAMF<pyamf>}.
 """
 
 from cpython cimport *
+from libc.stdlib cimport free
 
 cdef extern from "datetime.h":
     void PyDateTime_IMPORT()
@@ -409,6 +410,7 @@ cdef class Encoder(Codec):
     def __cinit__(self):
         self.func_cache = {}
         self.use_write_object = []
+        self.bucket = []
 
     cpdef int serialiseString(self, u) except -1:
         raise NotImplementedError
@@ -580,6 +582,42 @@ cdef class Encoder(Codec):
             func(element)
 
         return ret
+
+    cpdef int send(self, data) except -1:
+        """
+        Add data for the decoder to work on.
+        """
+        self.bucket.append(data)
+
+    def __next__(self):
+        """
+        Part of the iterator protocol.
+        """
+        cdef Py_ssize_t start_pos, end_pos
+        cdef char *buf
+
+        try:
+            element = self.bucket.pop(0)
+        except IndexError:
+            raise StopIteration
+
+        start_pos = self.stream.tell()
+
+        self.writeElement(element)
+
+        end_pos = self.stream.tell()
+
+        self.stream.seek(start_pos)
+
+        try:
+            self.stream.read(&buf, end_pos - start_pos)
+            return PyString_FromStringAndSize(buf, end_pos - start_pos)
+        finally:
+            if buf != NULL:
+                free(buf)
+
+    def __iter__(self):
+        return self
 
 
 cdef class _CustomTypeFunc(object):

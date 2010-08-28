@@ -367,6 +367,11 @@ class Encoder(_Codec):
     Base AMF encoder.
     """
 
+    def __init__(self, *args, **kwargs):
+        _Codec.__init__(self, *args, **kwargs)
+
+        self.bucket = []
+
     def _write_type(self, obj, **kwargs):
         """
         Subclasses should override this and all write[type] functions
@@ -493,3 +498,25 @@ class Encoder(_Codec):
             self._func_cache[key] = func
 
         func(data)
+
+    def send(self, element):
+        self.bucket.append(element)
+
+    def next(self):
+        try:
+            element = self.bucket.pop(0)
+        except IndexError:
+            raise StopIteration
+
+        start_pos = self.stream.tell()
+
+        self.writeElement(element)
+
+        end_pos = self.stream.tell()
+
+        self.stream.seek(start_pos)
+
+        return self.stream.read(end_pos - start_pos)
+
+    def __iter__(self):
+        return self

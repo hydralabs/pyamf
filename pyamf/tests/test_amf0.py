@@ -431,6 +431,23 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
             '\x00\x00\x00@\x00\x00\x00\x00\x00\x00\x00\x00@\x08\x00\x00\x00\x00'
             '\x00\x00\x02\x00\x01\xff\x06')
 
+    def test_iterate(self):
+        self.assertRaises(StopIteration, self.encoder.next)
+
+        self.encoder.send('')
+        self.encoder.send('hello')
+        self.encoder.send(u'ƒøø')
+
+        self.assertEqual(self.encoder.next(), '\x02\x00\x00')
+        self.assertEqual(self.encoder.next(), '\x02\x00\x05hello')
+        self.assertEqual(self.encoder.next(), '\x02\x00\x06\xc6\x92\xc3\xb8\xc3\xb8')
+
+        self.assertRaises(StopIteration, self.encoder.next)
+
+        self.assertIdentical(iter(self.encoder), self.encoder)
+        self.assertEqual(self.buf.getvalue(),
+            '\x02\x00\x00\x02\x00\x05hello\x02\x00\x06\xc6\x92\xc3\xb8\xc3\xb8')
+
 
 class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
     """

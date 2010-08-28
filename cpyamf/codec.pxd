@@ -83,6 +83,7 @@ cdef class Encoder(Codec):
 
     cdef dict func_cache
     cdef list use_write_object
+    cdef list bucket
 
     cpdef int serialiseString(self, u) except -1
     cdef inline int writeType(self, char type) except -1
@@ -108,3 +109,5 @@ cdef class Encoder(Codec):
     cdef inline int handleBasicTypes(self, object element, object py_type) except -1
     cdef int checkBadTypes(self, object element, object py_type) except -1
     cpdef int writeElement(self, object element) except -1
+
+    cpdef int send(self, data) except -1
