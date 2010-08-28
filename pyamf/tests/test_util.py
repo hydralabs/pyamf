@@ -525,6 +525,16 @@ class BufferedByteStreamTestCase(unittest.TestCase):
         self.assertRaises(IOError, x.read, 10)
         self.assertEqual(x.read(), 'hello')
 
+    def test_read_negative(self):
+        """
+        @see: #799
+        """
+        x = util.BufferedByteStream()
+
+        x.write('*' * 6000)
+        x.seek(100)
+        self.assertRaises(IOError, x.read, -345)
+
     def test_peek(self):
         x = util.BufferedByteStream('abcdefghijklmnopqrstuvwxyz')
 

@@ -292,6 +292,8 @@ cdef class cBufferedByteStream(object):
     cdef inline bint has_available(self, Py_ssize_t size):
         if size == 0:
             return 1
+        elif size < 0:
+            return 0
 
         if self.length == self.pos:
             return 0

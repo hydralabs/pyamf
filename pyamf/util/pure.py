@@ -66,6 +66,9 @@ class StringIOProxy(object):
         """
         Reads C{n} bytes from the stream.
         """
+        if n < -1:
+            raise IOError('Cannot read backwards')
+
         bytes = self._buffer.read(n)
 
         return bytes
