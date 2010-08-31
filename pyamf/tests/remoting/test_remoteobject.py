@@ -244,3 +244,4 @@ class RequestProcessorTestCase(unittest.TestCase):
         self.assertEqual(response.status, remoting.STATUS_ERROR)
         self.assertTrue(isinstance(ack, messaging.ErrorMessage))
         self.assertEqual(ack.faultCode, 'TypeError')
+        self.assertEqual(ack.faultString, u'ƒøø')
