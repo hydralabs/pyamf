@@ -802,6 +802,9 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
 
         self.assertIdentical(iter(self.decoder), self.decoder)
 
+    def test_bad_type(self):
+        self.assertRaises(pyamf.DecodeError, self.decode, '\xff')
+
 
 class ObjectEncodingTestCase(ClassCacheClearingTestCase, EncoderMixIn):
     """

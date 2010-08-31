@@ -331,7 +331,8 @@ class Decoder(_Codec):
             func = self.getTypeFunc(t)
 
             if not func:
-                raise pyamf.DecodeError("Unsupported ActionScript type %x" % t)
+                raise pyamf.DecodeError("Unsupported ActionScript type %s" % (
+                    hex(ord(t)),))
 
             self._func_cache[t] = func
 
