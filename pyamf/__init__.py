@@ -716,8 +716,8 @@ class TypedObjectClassAlias(ClassAlias):
 
     klass = TypedObject
 
-    def __init__(self, alias, *args, **kwargs):
-        ClassAlias.__init__(self, self.klass, alias)
+    def __init__(self, *args, **kwargs):
+        ClassAlias.__init__(self, self.klass, kwargs.pop('alias', args[0]))
 
     def createInstance(self, codec=None):
         return self.klass(self.alias)
