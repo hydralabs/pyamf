@@ -50,8 +50,6 @@ Returns the version number::
 
 Make a project folder::
 
-.. code-block:: bash
-
   mkdir jython-ant
   cd jython-ant
 
@@ -60,7 +58,7 @@ Grab a copy of PyAMF and it's documentation from Git:
 .. code-block:: bash
 
   git clone git://github.com/hydralabs/pyamf.git
-  cp -R pyamf/doc/tutorials/examples/jython/ant/embedded/ .
+  cp -R pyamf/doc/tutorials/examples/jython/ant/embedded/* .
 
 Copy ``jython.jar`` from your Jython 2.5 distribution folder
 into the project's ``jython`` folder. Make sure you installed
@@ -107,6 +105,7 @@ This will do the following for you:
   PyAMF remoting gateway for WSGI
 
 It should print the build progress and application output::
+
   Buildfile: build.xml
 
   clean:
@@ -162,7 +161,7 @@ And the server running in Ant should show some debug information::
 Flash
 -----
 
-The :doc:`Hello World <../general/helloworld/index>` Flash examples should all work with this
+The :doc:`Hello World <../general/helloworld/index>` examples should all work with this
 example's ``server.py``.
 
 
