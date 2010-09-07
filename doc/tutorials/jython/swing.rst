@@ -12,12 +12,12 @@
 Download
 ========
 
-Grab the example from SVN with:
+Grab the example from Git with:
 
 .. code-block:: bash
  
-   svn export http://svn.pyamf.org/trunk/doc/tutorials/examples/jython jython-example
-   cd jython-example
+   git clone git://github.com/hydralabs/pyamf.git
+   cd pyamf/doc/tutorials/examples/actionscript/jython
 
 Alternatively, if you just want to have a look, you can browse
 the example online_.
@@ -75,4 +75,4 @@ for this example client:
 
 .. _Swing: http://en.wikipedia.org/wiki/Swing_(Java)
 .. _Jython: http://jython.org
-.. _online: http://pyamf.org/browser/trunk/doc/tutorials/examples/jython
+.. _online: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/jython

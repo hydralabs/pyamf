@@ -49,15 +49,18 @@ Returns the version number::
   Apache Ant version 1.7.0 compiled on May 21 2009
 
 Make a project folder::
-  mkdir jython-ant
-  cd jython-ant
-
-Grab the example project from Git:
 
 .. code-block:: bash
 
-  git clone git://github.com/thijstriemstra/pyamf-sandbox.git
-  cp -R pyamf-sandbox/jython-ant/embedded/* .
+  mkdir jython-ant
+  cd jython-ant
+
+Grab a copy of PyAMF and it's documentation from Git:
+
+.. code-block:: bash
+
+  git clone git://github.com/hydralabs/pyamf.git
+  cp -R pyamf/doc/tutorials/examples/jython/ant/embedded/ .
 
 Copy ``jython.jar`` from your Jython 2.5 distribution folder
 into the project's ``jython`` folder. Make sure you installed
@@ -73,13 +76,12 @@ to run without any other Jython dependencies:
 This ``jython`` folder is on the classpath of your application
 so any other ``.jar`` files you may have go in here as well.
 
-Now grab a copy of PyAMF and put it in the ``jython/Lib``
+Now copy the PyAMF source and put it in the ``jython/Lib``
 folder:
 
 .. code-block:: bash
 
   mkdir jython/Lib
-  git clone git://github.com/hydralabs/pyamf.git
   cp -R pyamf/pyamf jython/Lib/
 
 
