@@ -17,7 +17,7 @@ list if you're new, need help, or want to know more about PyAMF.
 
 `Subscribe <http://lists.pyamf.org/mailman/listinfo/users>`__ -
 `Archives <http://lists.pyamf.org/archives/users>`__ -
-`Nabble <http://www.nabble.com/pyamf-users-f35468.html>`__ -
+`Nabble <http://old.nabble.com/pyamf-users-f35468.html>`__ -
 `marc <http://marc.info/?l=pyamf-users&r=1&w=2>`__
 
 

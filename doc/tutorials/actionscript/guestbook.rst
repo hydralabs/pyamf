@@ -95,7 +95,7 @@ for this example client:
 
 .. _Flex SDK: http://opensource.adobe.com/wiki/display/flexsdk/Flex+SDK
 .. _Twisted: http://twistedmatrix.com
-.. _blog: http://blog.pyamf.org/archives/twisted-guestbook
+.. _blog: http://blog.pyamf.org/2008/04/twisted-guestbook
 .. _browse: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/guestbook
 .. _development server: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/guestbook/python/guestbook.tac
 .. _SWF file: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/guestbook/flex/deploy/guestbook.swf

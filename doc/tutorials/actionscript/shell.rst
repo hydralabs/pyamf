@@ -134,7 +134,7 @@ for this example client:
 
 
 .. _Flex: http://opensource.adobe.com/wiki/display/flexsdk/Flex+SDK
-.. _Django: http://djangoproject.com
+.. _Django: http://www.djangoproject.com
 .. _Google App Engine example page: http://pyamf.appspot.com/shell
 .. _browse: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/shell
 .. _development server: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/shell/python/manage.py

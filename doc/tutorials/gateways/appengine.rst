@@ -169,7 +169,7 @@ http://aralbalkan.com/1307
 :doc:`../actionscript/bytearray`
    ByteArray example using Django and Flex.
 
-http://blog.pyamf.org/archives/pyamf-and-google-app-engine
+http://blog.pyamf.org/2008/04/pyamf-and-google-app-engine
    Related post on PyAMF blog.
 
 http://pyamf.appspot.com/punit

@@ -61,7 +61,7 @@ Backward Incompatible API Changes
 * The dependancy on `fpconst <http://pypi.python.org/pypi/fpconst>`_ has been
   removed. This means that PyAMF will make no attempt to correct what the Python
   interpreter spits out for exceptional floats (see our `blog post
-  <http://blog.pyamf.org/archives/when-is-nan-not-a-number-with-python-24>`_
+  <http://blog.pyamf.org/2007/11/when-is-nan-not-a-number-with-python-24>`_
   about the issue).
 * Most of the arguments for ``pyamf.register_class`` were removed, due to the
   new attribute control (see above).

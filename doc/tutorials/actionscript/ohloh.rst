@@ -93,7 +93,7 @@ for that email address.
 
 .. _Ohloh: http://www.ohloh.net
 .. _Ohloh API: http://www.ohloh.net/api/getting_started
-.. _blog: http://blog.pyamf.org/archives/ohloh-api-and-python
+.. _blog: http://blog.pyamf.org/2008/04/26/ohloh-api-and-python
 .. _browse: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/ohloh
 .. _ohloh.py: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/ohloh/python/ohloh.py
 .. _development server: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/bytearray/python/manage.py

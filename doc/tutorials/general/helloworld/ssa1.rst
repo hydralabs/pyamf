@@ -32,7 +32,7 @@ References
 ==========
 
 - `SSA on Livedocs <http://livedocs.adobe.com/fms/2/docs/00000630.html>`_
-- `Mozilla core JavaScript 1.5 Reference <http://developer.mozilla.org/en/docs/Core_JavaScript_1.5_Reference>`_
+- `Mozilla core JavaScript 1.5 Reference <https://developer.mozilla.org/en/JavaScript/Reference>`_
 - `Flash Remoting for FCS <http://www.sephiroth.it/tutorials/flashPHP/flashcomm_AMFPHP>`_
 
 

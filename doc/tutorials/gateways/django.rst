@@ -76,11 +76,11 @@ Useful Resources
 :doc:`../actionscript/shell`
    Python Shell example with Flex and Django.
 
-http://api.pyamf.org/pyamf.remoting.gateway.django.html
-   DjangoGateway in the  API documentation.
+http://api.pyamf.org/0.5.1/toc-pyamf.remoting.gateway.django-module.html
+   DjangoGateway in the API documentation.
 
-http://joelhooks.com/2008/01/05/pyamf-communication-with-django-from-flex
+http://joelhooks.com/2008/09/21/django-authorization-from-flex-air-actionscript-via-pyamf
    Joel Hooks - Communication with Django from Flex
 
 
-.. _Django: http://djangoproject.com
+.. _Django: http://www.djangoproject.com

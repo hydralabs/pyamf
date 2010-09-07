@@ -21,4 +21,4 @@ The following example shows how a single method is exposed in this way:
    :linenos:
 
 
-.. _Stackless Python: http://stackless.com
+.. _Stackless Python: http://www.stackless.com
