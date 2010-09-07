@@ -124,7 +124,7 @@ for this example client:
 .. _Flex SDK: http://opensource.adobe.com/wiki/display/flexsdk/Flex+SDK
 .. _Twisted: http://twistedmatrix.com
 .. _Python: http://python.org
-.. _blog: http://blog.pyamf.org/archives/socket-example
+.. _blog: http://blog.pyamf.org/2008/01/socket-example
 .. _browse: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/socket
 .. _SWF file: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/socket/flex/deploy/socket.swf
 .. _client: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/socket/python/client.py

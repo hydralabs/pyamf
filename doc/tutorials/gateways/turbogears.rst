@@ -86,4 +86,4 @@ get your Flex app, and use it to connect to the web services you just created.
 
 
 .. _TurboGears2: http://turbogears.org
-.. _TG2: http://docs.turbogears.org/2.0/main/DownloadInstall
+.. _TG2: http://turbogears.org/2.0/docs/main/DownloadInstall.html

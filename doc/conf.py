@@ -97,6 +97,7 @@ add_module_names = True
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
+#
 # Note: you can download the 'beam' theme from:
 # http://github.com/collab-project/sphinx-themes
 # and place it in a 'themes' directory relative to this config file.

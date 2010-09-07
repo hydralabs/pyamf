@@ -4,8 +4,8 @@
 
 .. topic:: Introduction
 
-  `Twisted <http://twistedmatrix.com>`_ is a powerful Internet framework
-  allowing you to develop networked applications quickly.
+  Twisted_ is a powerful Internet framework allowing you to develop
+  networked applications quickly.
 
   PyAMF features the ``TwistedGateway`` that allows you to bridge the gap
   between your Twisted application and AMF based programs.
@@ -32,8 +32,8 @@ explain all relevant lines of code:
 
 
 The gateway supports returning a Deferred from your callable. If you are
-not familiar with Deferreds you should check out the `Twisted documentation
-<http://twistedmatrix.com/projects/core/documentation/howto/async.html#deferreds>`_.
+not familiar with Deferreds you should check out the
+`Twisted documentation`_.
 
 Hopefully this gives you a basic understanding of how to expose functions
 within Twisted.
@@ -68,10 +68,8 @@ web server with the following command:
 
    twistd -noy mytest.tac
 
-Using Twisted's
-`twistd <http://twistedmatrix.com/projects/core/documentation/howto/basics.html#auto1>`_
-commandline tool and a ``.tac`` file is good for many reasons. Here are
-some highlights:
+Using Twisted's twistd_ commandline tool and a ``.tac`` file is good for
+many reasons. Here are some highlights:
 
 - Using this infrastructure frees you from from having to write a
   large amount of boilerplate code by hooking your application into
@@ -80,8 +78,7 @@ some highlights:
 - This provides a convenient and standard methodology for separating
   Twisted services and service configuration from the rest of your
   project (i.e., the code upon which your service(s) depend).
-- It's easy to run with a daemon manager (e.g.,
-  `daemontools <http://cr.yp.to/daemontools.html>`_).
+- It's easy to run with a daemon manager (e.g. daemontools_).
 
 
 Test the example
@@ -107,3 +104,9 @@ http://www.artima.com/weblogs/viewpost.jsp?thread=230001
 
 :doc:`stackless`
    Using Stackless Python and Twisted.
+
+
+.. _Twisted:			http://twistedmatrix.com
+.. _Twisted documentation:	http://twistedmatrix.com/documents/current/core/howto/defer.html
+.. _twistd:			http://twistedmatrix.com/documents/current/core/howto/application.html#auto4
+.. _daemontools:		http://cr.yp.to/daemontools.html

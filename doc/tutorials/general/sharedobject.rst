@@ -101,5 +101,5 @@ supplying the ``encoding`` keyword to the ``save`` function.
     sol.save(lso, file, encoding=AMF3)
 
 
-.. _youtube.com: http://youtube.com
+.. _youtube.com: http://www.youtube.com
 .. _Local Shared Object: http://en.wikipedia.org/wiki/Local_Shared_Object
