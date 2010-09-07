@@ -90,13 +90,54 @@ TYPE_TYPEDOBJECT = '\x10'
 TYPE_AMF3        = '\x11'
 
 
+class Context(codec.Context):
+    """
+    """
+
+    def clear(self):
+        codec.Context.clear(self)
+
+        encoder = self.extra.get('amf3_encoder', None)
+
+        if encoder:
+            encoder.context.clear()
+
+        decoder = self.extra.get('amf3_decoder', None)
+
+        if decoder:
+            decoder.context.clear()
+
+    def getAMF3Encoder(self, amf0_encoder):
+        encoder = self.extra.get('amf3_encoder', None)
+
+        if encoder:
+            return encoder
+
+        encoder = pyamf.get_encoder(pyamf.AMF3, stream=amf0_encoder.stream,
+            timezone_offset=amf0_encoder.timezone_offset)
+        self.extra['amf3_encoder'] = encoder
+
+        return encoder
+
+    def getAMF3Decoder(self, amf0_decoder):
+        decoder = self.extra.get('amf3_decoder', None)
+
+        if decoder:
+            return decoder
+
+        decoder = pyamf.get_decoder(pyamf.AMF3, stream=amf0_decoder.stream,
+            timezone_offset=amf0_decoder.timezone_offset)
+        self.extra['amf3_decoder'] = decoder
+
+        return decoder
+
 class Decoder(codec.Decoder):
     """
     Decodes an AMF0 stream.
     """
 
     def buildContext(self):
-        return codec.Context()
+        return Context()
 
     def getTypeFunc(self, data):
         # great for coverage, sucks for readability
@@ -241,24 +282,13 @@ class Decoder(codec.Decoder):
 
         return obj
 
-    @property
-    def _amf3_decoder(self):
-        decoder = getattr(self, '__amf3_decoder', None)
-
-        if not decoder:
-            decoder = pyamf.get_decoder(pyamf.AMF3, stream=self.stream,
-                timezone_offset=self.timezone_offset)
-            self.__amf3_decoder = decoder
-
-        return decoder
-
     def readAMF3(self):
         """
         Read AMF3 elements from the data stream.
 
         @return: The AMF3 element read from the stream
         """
-        return self._amf3_decoder.readElement()
+        return self.context.getAMF3Decoder(self).readElement()
 
     def readObjectAttributes(self, obj):
         obj_attrs = {}
@@ -363,7 +393,7 @@ class Encoder(codec.Encoder):
         self.use_amf3 = kwargs.pop('use_amf3', False)
 
     def buildContext(self):
-        return codec.Context()
+        return Context()
 
     def getTypeFunc(self, data):
         if self.use_amf3:
@@ -615,23 +645,13 @@ class Encoder(codec.Encoder):
         self.stream.write_ulong(len(data))
         self.stream.write(data)
 
-    @property
-    def _amf3_encoder(self):
-        encoder = getattr(self, '__amf3_encoder', None)
-
-        if not encoder:
-            encoder = pyamf.get_encoder(pyamf.AMF3, stream=self.stream,
-                timezone_offset=self.timezone_offset)
-            self.__amf3_encoder = encoder
-
-        return encoder
-
     def writeAMF3(self, data):
         """
         Writes an element in L{AMF3<pyamf.amf3>} format.
         """
         self.writeType(TYPE_AMF3)
-        self._amf3_encoder.writeElement(data)
+
+        self.context.getAMF3Encoder(self).writeElement(data)
 
 
 class RecordSet(object):
