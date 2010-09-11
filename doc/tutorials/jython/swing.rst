@@ -17,7 +17,7 @@ Grab the example from Git with:
 .. code-block:: bash
  
    git clone git://github.com/hydralabs/pyamf.git
-   cd pyamf/doc/tutorials/examples/actionscript/jython
+   cd pyamf/doc/tutorials/examples/jython/swing
 
 Alternatively, if you just want to have a look, you can browse
 the example online_.
@@ -75,4 +75,4 @@ for this example client:
 
 .. _Swing: http://en.wikipedia.org/wiki/Swing_(Java)
 .. _Jython: http://jython.org
-.. _online: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/jython
+.. _online: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/jython/swing
