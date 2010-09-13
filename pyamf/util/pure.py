@@ -113,7 +113,7 @@ class StringIOProxy(object):
         self.seek(cur_pos)
         self._len_changed = True
 
-    def write(self, s):
+    def write(self, s, size=None):
         """
         Writes the content of the specified C{s} into this buffer.
 

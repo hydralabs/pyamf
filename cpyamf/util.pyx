@@ -1008,14 +1008,17 @@ cdef class BufferedByteStream(cBufferedByteStream):
 
         return r
 
-    def write(self, x):
+    def write(self, x, size=-1):
         """
         Writes the content of the specified C{x} into this buffer.
 
         @param x:
         @type x:
         """
-        cBufferedByteStream.write_utf8_string(self, x)
+        if size == -1:
+            cBufferedByteStream.write_utf8_string(self, x)
+        else:
+            cBufferedByteStream.write(self, x, size)
 
     def flush(self):
         # no-op
