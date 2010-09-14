@@ -59,8 +59,8 @@ Useful Resources
 :doc:`../actionscript/addressbook`
    Demonstrates the use of SQLAlchemy and Flex.
 
-http://api.pyamf.org/pyamf.adapters._sqlalchemy-module.html
+http://api.pyamf.org/0.5.1/toc-pyamf.adapters._sqlalchemy_orm-module.html
    API documentation.
 
-.. _SQLAlchemy: http://sqlalchemy.org
+.. _SQLAlchemy: http://www.sqlalchemy.org
 .. _Elixir: http://elixir.ematia.de

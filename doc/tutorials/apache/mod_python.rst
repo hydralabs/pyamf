@@ -11,7 +11,7 @@
    `mod_python <http://modpython.org>`_. Mod_python is an Apache module
    that embeds the Python interpreter within the server. This was tested
    with Python 2.4.3 and
-   `Ubuntu 6.06.1 LTS <http://www.ubuntu.com/GetUbuntu/releasenotes/606>`_. 
+   `Ubuntu 6.06.1 LTS <https://wiki.ubuntu.com/DapperReleaseNotes>`_. 
 
    This tutorial assumes you already installed the Apache webserver
    running (on 192.168.1.100). Flash applications will be able to access
@@ -73,7 +73,7 @@ Useful Resources
 http://wiki.pylonshq.com/display/pylonscookbook/Production+deployment+using+mod_python
     Production deployment using mod_python (pylonshq).
 
-http://www.aminus.net//wiki/ModPythonGateway
+http://www.aminus.net/wiki/ModPythonGateway
     ModPythonGateway.
 
 http://www.modpython.org/live/mod_python-3.2.8/doc-html/dir-other-pp.html

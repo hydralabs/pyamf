@@ -47,5 +47,5 @@ You can use the examples below with the `helloworld example server
 
 
 .. |ActionScript (TM)| unicode:: ActionScript U+2122
-.. _Hello World: http://http://en.wikipedia.org/wiki/Hello_world_program
-.. _Python: http:/python.org
+.. _Hello World: 	http://en.wikipedia.org/wiki/Hello_world_program
+.. _Python: 		http://python.org

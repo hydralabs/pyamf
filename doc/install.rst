@@ -136,7 +136,10 @@ To install PyAMF to a custom location::
 Documentation
 =============
 
-To build the documentation you need:
+Sphinx
+------
+
+To build the main documentation you need:
 
 - Sphinx_ 1.0 or newer
 - a :doc:`copy <community/download>` of the PyAMF source distribution
@@ -159,26 +162,43 @@ Sphinx from the ``pyamf/doc`` directory directly like this::
 
     sphinx-build -b html . _build
 
+Epydoc
+------
 
-.. _Python: 	http://www.python.org
-.. _yet:	http://dev.pyamf.org/milestone/0.7
-.. _setuptools:	http://peak.telecommunity.com/DevCenter/setuptools
-.. _easy_install: http://peak.telecommunity.com/DevCenter/EasyInstall#installing-easy-install
-.. _ez_setup.py: http://github.com/hydralabs/pyamf/blob/master/ez_setup.py
-.. _ElementTree: http://effbot.org/zone/element-index.htm
-.. _uuid:	http://pypi.python.org/pypi/uuid
-.. _wsgiref:	http://pypi.python.org/pypi/wsgiref
-.. _cElementTree: http://effbot.org/zone/celementtree.htm
-.. _SQLAlchemy:	http://sqlalchemy.org
-.. _Twisted:	http://twistedmatrix.com
-.. _Django:	http://djangoproject.com
-.. _Google App Engine: http://code.google.com/appengine
-.. _Elixir:	http://elixir.ematia.de
-.. _unittest2:	http://pypi.python.org/pypi/unittest2
-.. _pysqlite:	http://code.google.com/p/pysqlite
-.. _nose:	http://somethingaboutorange.com/mrl/projects/nose
-.. _Trial:	http://twistedmatrix.com/trac/wiki/TwistedTrial
-.. _Cython:	http://cython.org
-.. _Sphinx:     http://sphinx.pocoo.org
-.. _website:    http://pyamf.org
-.. _Installing Python Modules: http://docs.python.org/inst/inst.html
+To build the API documentation you need:
+
+- Epydoc_ 3.0 or newer
+- a :doc:`copy <community/download>` of the PyAMF source distribution
+
+Run the command below in the root ``pyamf`` directory to create the
+HTML version of the PyAMF API documentation::
+
+    epydoc --config=setup.cfg
+
+This will generate the HTML documentation in the ``pyamf/doc/api``
+folder.
+
+
+.. _Python: 			http://www.python.org
+.. _yet:			http://dev.pyamf.org/milestone/0.7
+.. _setuptools:			http://peak.telecommunity.com/DevCenter/setuptools
+.. _easy_install: 		http://peak.telecommunity.com/DevCenter/EasyInstall#installing-easy-install
+.. _ez_setup.py:		http://github.com/hydralabs/pyamf/blob/master/ez_setup.py
+.. _Epydoc:			http://epydoc.sourceforge.net
+.. _ElementTree:		http://effbot.org/zone/element-index.htm
+.. _uuid:			http://pypi.python.org/pypi/uuid
+.. _wsgiref:			http://pypi.python.org/pypi/wsgiref
+.. _cElementTree: 		http://effbot.org/zone/celementtree.htm
+.. _SQLAlchemy:			http://www.sqlalchemy.org
+.. _Twisted:			http://twistedmatrix.com
+.. _Django:			http://www.djangoproject.com
+.. _Google App Engine: 		http://code.google.com/appengine
+.. _Elixir:			http://elixir.ematia.de
+.. _unittest2:			http://pypi.python.org/pypi/unittest2
+.. _pysqlite:			http://code.google.com/p/pysqlite
+.. _nose:			http://somethingaboutorange.com/mrl/projects/nose
+.. _Trial:			http://twistedmatrix.com/trac/wiki/TwistedTrial
+.. _Cython:			http://cython.org
+.. _Sphinx:     		http://sphinx.pocoo.org
+.. _website:    		http://pyamf.org
+.. _Installing Python Modules: 	http://docs.python.org/install/index.html

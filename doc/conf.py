@@ -40,9 +40,10 @@ source_suffix = '.rst'
 #source_encoding = 'utf-8'
 
 # create content template for the homepage
-from util import rst2html, copy_file
+from shutil import copyfile
+from util import rst2html
 readme = rst2html('../README.txt', 'html/intro.html')
-readme = copy_file('../CHANGES.txt', 'changelog.rst')
+readme = copyfile('../CHANGES.txt', 'changelog.rst')
 
 # General substitutions.
 project = 'PyAMF'
@@ -60,7 +61,6 @@ version = str(pyamf.version)
 
 # The short X.Y version.
 release = version[:3]
-
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -97,6 +97,7 @@ add_module_names = True
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
+#
 # Note: you can download the 'beam' theme from:
 # http://github.com/collab-project/sphinx-themes
 # and place it in a 'themes' directory relative to this config file.

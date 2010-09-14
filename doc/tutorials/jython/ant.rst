@@ -9,7 +9,7 @@
     `Apache Ant`_ is a Java-based build tool. Ant build files are created
     using XML but it also support Python scripts using Jython_.
 
-    This howto was created using Jython 2.5.0 standalone, PyAMF 0.5,
+    This howto was tested with Jython 2.5.0 standalone, PyAMF 0.5,
     Ant 1.7 and Java JDK 1.6.0_13 on Mac OSX 10.5.7.
 
 .. contents::
@@ -48,11 +48,17 @@ Returns the version number::
 
   Apache Ant version 1.7.0 compiled on May 21 2009
 
-Grab the example project from SVN:
+Make a project folder::
+
+  mkdir jython-ant
+  cd jython-ant
+
+Grab a copy of PyAMF and it's documentation from Git:
 
 .. code-block:: bash
 
-  svn export http://svn.pyamf.org/sandbox/thijs/jython-ant/2.5.0/embedded jython-ant
+  git clone git://github.com/hydralabs/pyamf.git
+  cp -R pyamf/doc/tutorials/examples/jython/ant/embedded/* .
 
 Copy ``jython.jar`` from your Jython 2.5 distribution folder
 into the project's ``jython`` folder. Make sure you installed
@@ -62,26 +68,31 @@ to run without any other Jython dependencies:
 
 .. code-block:: bash
 
-  cd jython-ant/jython
-  cp /path/to/jython2.5.0/jython.jar .
+  mkdir jython
+  cp /path/to/jython2.5.x/jython.jar jython/
 
 This ``jython`` folder is on the classpath of your application
 so any other ``.jar`` files you may have go in here as well.
 
-Now grab a copy of PyAMF and put it in the ``jython/Lib``
+Now copy the PyAMF source and put it in the ``jython/Lib``
 folder:
 
 .. code-block:: bash
 
-  cd Lib
-  svn export http://svn.pyamf.org/trunk/pyamf
+  mkdir jython/Lib
+  cp -R pyamf/pyamf jython/Lib/
 
 
 Run Application
 ===============
 
-Use Ant to build and run the application. This will do the
-following for you:
+Run Ant from the project's base folder:
+
+.. code-block:: bash
+
+  ant
+
+This will do the following for you:
 
 - clean the ``build`` folder
 - compile the ``src/java/org/pyamf/HelloWorld.java`` class
@@ -90,17 +101,11 @@ following for you:
   ``build/classes/org/pyamf`` containing the compiled Java
   ``.class`` file
 - run the ``HelloWorld.jar`` application
-- try to load the ``server.py`` script that contains the
+- try to load the ``src/python/server.py`` script that contains the
   PyAMF remoting gateway for WSGI
 
-Go to the project's base folder and run Ant:
+It should print the build progress and application output::
 
-.. code-block:: bash
-
-  cd ../..
-  ant
-
-This should print the build progress and application output::
   Buildfile: build.xml
 
   clean:
@@ -156,7 +161,7 @@ And the server running in Ant should show some debug information::
 Flash
 -----
 
-The :doc:`Hello World <../general/helloworld/index>` Flash examples should all work with this
+The :doc:`Hello World <../general/helloworld/index>` examples should all work with this
 example's ``server.py``.
 
 

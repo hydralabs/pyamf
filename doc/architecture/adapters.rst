@@ -73,7 +73,7 @@ What next?
 
 :doc:`Contributions</bugs>` (including unit tests) are always welcome!
 
-.. _Elixir: http://www.elixir.ematia.de
-.. _sets: http://www.python.org/doc/2.5.2/lib/types-set.html
-.. _Contributions: http://pyamf.org/newticket
-.. _decimal: http://www.python.org/doc/2.5.2/lib/module-decimal.html
+.. _Elixir: 		http://www.elixir.ematia.de
+.. _sets: 		http://docs.python.org/release/2.5.2/lib/types-set.html
+.. _Contributions: 	http://pyamf.org/newticket
+.. _decimal: 		http://docs.python.org/release/2.5.2/lib/module-decimal.html

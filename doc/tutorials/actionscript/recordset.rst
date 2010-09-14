@@ -143,7 +143,7 @@ for this example client::
 .. _Adobe Flash MX 2004: http://www.adobe.com/products/flashremoting/downloads/components/#flr_as2
 .. _Flash 8.0: http://www.adobe.com/products/flashremoting/downloads/components/#flr_fl81
 .. _page: http://blog.vixiom.com/2007/04/17/actionscript-20-flash-remoting-with-flash-cs3/
-.. _SQLAlchemy: http://sqlalchemy.org
+.. _SQLAlchemy: http://www.sqlalchemy.org
 .. _SQLite: http://sqlite.org
 .. _browse: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/recordset
 .. _development server: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/recordset/python/gateway.py

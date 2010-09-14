@@ -128,7 +128,7 @@ for this example client:
 .. _GeoIP APIs: http://sourceforge.net/projects/geoip
 .. _GeoIP API for Python: http://www.maxmind.com/app/python
 .. _Python: http://python.org
-.. _blog: http://blog.pyamf.org/archives/geoip-example
+.. _blog: http://blog.pyamf.org/2008/01/geoip-example
 .. _browse: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/geoip
 .. _development server: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/geoip/python/server.py
 .. _SWF file: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/geoip/flex/deploy/geoip.swf

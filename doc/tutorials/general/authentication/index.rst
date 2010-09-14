@@ -45,4 +45,4 @@ Python_ AMF examples are available for:
 
 .. |ActionScript (TM)| unicode:: ActionScript U+2122
 .. _Plasma: http://plasmads.org
-.. _Python: http:/python.org
+.. _Python: http://python.org
