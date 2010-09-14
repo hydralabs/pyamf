@@ -511,10 +511,11 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
      - Allows you to C{peek()} into the stream.
     """
 
-    def __init__(self, buf=None):
+    def __init__(self, buf=None, min_buf_size=None):
         """
         @param buf: Initial byte stream.
         @type buf: C{str} or C{StringIO} instance
+        @param min_buf_size: Ignored in the pure python version.
         """
         StringIOProxy.__init__(self, buf=buf)
 

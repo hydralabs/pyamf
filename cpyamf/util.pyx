@@ -193,8 +193,8 @@ cdef class cBufferedByteStream(object):
         self.endian = ENDIAN_NETWORK
         self.closed = 0
         self.buffer = NULL
-
-        self._init_buffer()
+        self.min_buf_size = 512
+        self.size = 0
 
     def __dealloc__(self):
         if self.buffer != NULL:
@@ -210,7 +210,7 @@ cdef class cBufferedByteStream(object):
 
         self.pos = 0
         self.length = 0
-        self.size = 512
+        self.size = self.min_buf_size
 
         self.buffer = <char *>malloc(self.size)
 
@@ -237,6 +237,9 @@ cdef class cBufferedByteStream(object):
         return self.pos
 
     cdef int _actually_increase_buffer(self, Py_ssize_t new_size) except -1:
+        if self.size == 0:
+            self._init_buffer()
+
         cdef Py_ssize_t requested_size = self.size
         cdef char *buf
 
@@ -945,9 +948,11 @@ cdef class BufferedByteStream(cBufferedByteStream):
     various intricacies of Cythons cpdef (probably just user stupidity tho)
     """
 
-    def __init__(self, buf=None):
+    def __init__(self, buf=None, min_buf_size=512):
         cdef Py_ssize_t i
         cdef cBufferedByteStream x
+
+        self.min_buf_size = min_buf_size
 
         if buf is None:
             pass
