@@ -27,7 +27,6 @@ class AbstractMessageTestCase(unittest.TestCase):
             repr(a)
         except:
             raise
-            self.fail()
 
 
 class EncodingTestCase(unittest.TestCase):
@@ -40,39 +39,38 @@ class EncodingTestCase(unittest.TestCase):
         m.correlationId = '1234'
 
         self.assertEqual(pyamf.encode(m).getvalue(),
-            '\n\x81\x03Uflex.messaging.messages.AcknowledgeMessage\tbody'
-            '\x11clientId\x1bcorrelationId\x17destination\x0fheaders\x13'
-            'messageId\x15timeToLive\x13timestamp\x01\x01\x06\t1234\x01\n\x0b'
-            '\x01\x01\x01\x01\x01')
+            '\n\x81\x0bUflex.messaging.messages.AcknowledgeMessage\tbody'
+            '\x11clientId\x17destination\x0fheaders\x13messageId\x13timestamp'
+            '\x15timeToLive\x1bcorrelationId\x01\x01\x01\n\x0b\x01\x01\x01\x01'
+            '\x01\x06\t1234\x01')
 
     def test_CommandMessage(self):
         m = messaging.CommandMessage(operation='foo.bar')
 
         self.assertEqual(pyamf.encode(m).getvalue(),
-            '\n\x81\x13Mflex.messaging.messages.CommandMessage\tbody\x11'
-            'clientId\x1bcorrelationId\x17destination\x0fheaders\x13messageId'
-            '\x13operation\x15timeToLive\x13timestamp\x01\x01\x01\x01\n\x0b'
-            '\x01\x01\x01\x06\x0ffoo.bar\x01\x01')
+            '\n\x81\x1bMflex.messaging.messages.CommandMessage\x1bcorrelationId'
+            '\tbody\x11clientId\x17destination\x0fheaders\x13messageId\x13'
+            'timestamp\x15timeToLive\x13operation\x01\x01\x01\x01\n\x0b\x01\x01'
+            '\x01\x01\x01\x06\x0ffoo.bar\x01')
 
     def test_ErrorMessage(self):
         m = messaging.ErrorMessage(faultString='ValueError')
 
         self.assertEqual(pyamf.encode(m).getvalue(),
-            '\n\x81SIflex.messaging.messages.ErrorMessage\tbody\x11'
-            'clientId\x1bcorrelationId\x17destination\x19extendedData\x13'
-            'faultCode\x17faultDetail\x17faultString\x0fheaders\x13messageId'
-            '\x13rootCause\x15timeToLive\x13timestamp\x01\x01\x01\x01\n\x0b'
-            '\x01\x01\x01\x01\x06\x15ValueError\n\x05\x01\x01\n\x05\x01\x01'
-            '\x01')
+            '\n\x81[Iflex.messaging.messages.ErrorMessage\x1bcorrelationId\x15'
+            'timeToLive\x13timestamp\x13messageId\x0fheaders\x17destination'
+            '\x11clientId\tbody\x19extendedData\x13faultCode\x17faultDetail'
+            '\x17faultString\x13rootCause\x01\x01\x01\x01\n\x0b\x01\x01\x01'
+            '\x01\x01\n\x05\x01\x01\x01\x06\x15ValueError\n\x05\x01\x01')
 
     def test_RemotingMessage(self):
         m = messaging.RemotingMessage(source='foo.bar')
 
         self.assertEqual(pyamf.encode(m).getvalue(),
-            '\n\x81\x13Oflex.messaging.messages.RemotingMessage'
-            '\tbody\x11clientId\x17destination\x0fheaders\x13messageId\x13'
-            'operation\rsource\x15timeToLive\x13timestamp\x01\x01\x01\n\x0b'
-            '\x01\x01\x01\x01\x06\x0ffoo.bar\x01\x01')
+            '\n\x81\x1bOflex.messaging.messages.RemotingMessage\x15timeToLive'
+            '\x13timestamp\x13messageId\x0fheaders\x17destination\x11clientId'
+            '\tbody\x13operation\rsource\x01\x01\x01\n\x0b\x01\x01\x01\x01\x01'
+            '\x01\x06\x0ffoo.bar\x01')
 
 
 class SmallMessageTestCase(unittest.TestCase):
