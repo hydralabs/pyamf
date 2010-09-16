@@ -153,14 +153,14 @@ Windows users can run the make.bat file instead::
 
     make.bat
 
-This will generate the HTML documentation in the ``pyamf/doc/_build/html``
+This will generate the HTML documentation in the ``pyamf/doc/build/html``
 folder. This documentation is identical to the content on the main PyAMF
 website_.
 
 **Note**: if you don't have the `make` tool installed then you can invoke
 Sphinx from the ``pyamf/doc`` directory directly like this::
 
-    sphinx-build -b html . _build
+    sphinx-build -b html . build
 
 Epydoc
 ------
