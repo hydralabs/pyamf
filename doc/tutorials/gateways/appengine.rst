@@ -172,7 +172,7 @@ http://aralbalkan.com/1307
 http://blog.pyamf.org/2008/04/pyamf-and-google-app-engine
    Related post on PyAMF blog.
 
-http://pyamf.appspot.com/punit
+http://pyamf-test.appspot.com
    Run the PyAMF test suite on the Google App Engine.
 
 
