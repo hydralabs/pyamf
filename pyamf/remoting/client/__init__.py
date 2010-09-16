@@ -214,6 +214,7 @@ class RemotingService(object):
         self.request_number = 1
         self.headers = remoting.HeaderCollection()
         self.http_headers = {}
+        self.proxy_args = None
 
         self.user_agent = kwargs.pop('user_agent', DEFAULT_USER_AGENT)
         self.referer = kwargs.pop('referer', None)
@@ -239,6 +240,15 @@ class RemotingService(object):
             self.logger.info('Connecting to %r', self._root_url)
             self.logger.debug('Referer: %r', self.referer)
             self.logger.debug('User-Agent: %r', self.user_agent)
+
+    def setProxy(self, host, type='http'):
+        """
+        Set the proxy for all requests to use.
+
+        @see: U{The Python Docs<http://docs.python.org/library/urllib2.html#
+            urllib2.Request.set_proxy}
+        """
+        self.proxy_args = (host, type)
 
     def addHeader(self, name, value, must_understand=False):
         """
@@ -372,6 +382,9 @@ class RemotingService(object):
         http_request = urllib2.Request(self._root_url, body.getvalue(),
             self._get_execute_headers())
 
+        if self.proxy_args:
+            http_request.set_proxy(*self.proxy_args)
+
         envelope = self._getResponse(http_request)
 
         return envelope[request.id]
@@ -391,6 +404,9 @@ class RemotingService(object):
 
         http_request = urllib2.Request(self._root_url, body.getvalue(),
             self._get_execute_headers())
+
+        if self.proxy_args:
+            http_request.set_proxy(*self.proxy_args)
 
         envelope = self._getResponse(http_request)
 

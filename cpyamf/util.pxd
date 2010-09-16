@@ -14,11 +14,10 @@ cdef class cBufferedByteStream:
     cdef Py_ssize_t pos
     cdef Py_ssize_t size # total size of the alloc'd buffer
     cdef Py_ssize_t length
+    cdef Py_ssize_t min_buf_size
 
     cpdef inline Py_ssize_t tell(self) except -1
-    cpdef int close(self) except -1
     cdef int write(self, char *buf, Py_ssize_t size) except -1
-    cdef inline int complain_if_closed(self) except -1
     cdef inline int _init_buffer(self)
     cdef int _actually_increase_buffer(self, Py_ssize_t size) except -1
     cdef int _increase_buffer(self, Py_ssize_t size) except -1

@@ -927,8 +927,8 @@ class ObjectEncodingTestCase(ClassCacheClearingTestCase, EncoderMixIn):
         self.encoder.writeElement([x, y])
 
         self.assertEqual(self.buf.getvalue(),
-            '\t\x05\x01\n;\x01\x17description\x05id\tname\x01\x04\x01\x06\x07'
-            'foo\x01\n\x01\x01\x04\x02\x06\x07bar\x01')
+            '\t\x05\x01\n;\x01\tname\x05id\x17description\x06\x07foo\x04\x01'
+            '\x01\x01\n\x01\x06\x07bar\x04\x02\x01\x01')
 
 
 class ObjectDecodingTestCase(ClassCacheClearingTestCase, DecoderMixIn):
@@ -1316,7 +1316,7 @@ class ClassInheritanceTestCase(ClassCacheClearingTestCase, EncoderMixIn):
         x.c = 'foo'
 
         self.assertEncoded(x,
-            '\n;\x03C\x03a\x03b\x03c\x06\tspam\x06\teggs\x06\x07foo\x01')
+            '\n;\x03C\x03b\x03a\x03c\x06\teggs\x06\tspam\x06\x07foo\x01')
 
 
 class ComplexEncodingTestCase(unittest.TestCase, EncoderMixIn):

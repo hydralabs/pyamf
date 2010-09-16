@@ -113,7 +113,7 @@ class StringIOProxy(object):
         self.seek(cur_pos)
         self._len_changed = True
 
-    def write(self, s):
+    def write(self, s, size=None):
         """
         Writes the content of the specified C{s} into this buffer.
 
@@ -511,10 +511,11 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
      - Allows you to C{peek()} into the stream.
     """
 
-    def __init__(self, buf=None):
+    def __init__(self, buf=None, min_buf_size=None):
         """
         @param buf: Initial byte stream.
         @type buf: C{str} or C{StringIO} instance
+        @param min_buf_size: Ignored in the pure python version.
         """
         StringIOProxy.__init__(self, buf=buf)
 

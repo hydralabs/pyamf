@@ -589,7 +589,7 @@ class SimpleCompliationTestCase(unittest.TestCase):
 
         x.compile()
 
-        self.assertEqual(x.static_attrs, ['bar', 'foo'])
+        self.assertEqual(x.static_attrs, ['foo', 'bar'])
 
     def test_custom_properties(self):
         class A(ClassAlias):
@@ -830,7 +830,7 @@ class CompilationInheritanceTestCase(ClassCacheClearingTestCase):
 
         self.assertEqual(a.static_attrs, ['foo'])
         self.assertEqual(b.static_attrs, ['foo'])
-        self.assertEqual(c.static_attrs, ['bar', 'foo'])
+        self.assertEqual(c.static_attrs, ['foo', 'bar'])
 
     def test_static_new(self):
         class A(object):
@@ -858,7 +858,7 @@ class CompilationInheritanceTestCase(ClassCacheClearingTestCase):
 
         self.assertEqual(a.static_attrs, ['foo'])
         self.assertEqual(b.static_attrs, ['foo'])
-        self.assertEqual(c.static_attrs, ['bar', 'foo'])
+        self.assertEqual(c.static_attrs, ['foo', 'bar'])
 
     def test_amf3(self):
         class A:

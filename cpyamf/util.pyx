@@ -191,10 +191,9 @@ cdef class cBufferedByteStream(object):
 
     def __cinit__(self):
         self.endian = ENDIAN_NETWORK
-        self.closed = 0
         self.buffer = NULL
-
-        self._init_buffer()
+        self.min_buf_size = 512
+        self.size = 0
 
     def __dealloc__(self):
         if self.buffer != NULL:
@@ -210,23 +209,12 @@ cdef class cBufferedByteStream(object):
 
         self.pos = 0
         self.length = 0
-        self.size = 512
+        self.size = self.min_buf_size
 
         self.buffer = <char *>malloc(self.size)
 
         if self.buffer == NULL:
             PyErr_NoMemory()
-
-        return 0
-
-    cpdef int close(self):
-        self.closed = 1
-
-        return 0
-
-    cdef inline int complain_if_closed(self) except -1:
-        if self.closed == 1:
-            raise IOError('Buffer closed')
 
         return 0
 
@@ -237,6 +225,9 @@ cdef class cBufferedByteStream(object):
         return self.pos
 
     cdef int _actually_increase_buffer(self, Py_ssize_t new_size) except -1:
+        if self.size == 0:
+            self._init_buffer()
+
         cdef Py_ssize_t requested_size = self.size
         cdef char *buf
 
@@ -271,8 +262,6 @@ cdef class cBufferedByteStream(object):
         """
         Writes the content of the specified C{buf} into this buffer.
         """
-        self.complain_if_closed()
-
         assert buf != NULL, 'buf cannot be NULL'
 
         if size == 0:
@@ -308,8 +297,6 @@ cdef class cBufferedByteStream(object):
         Reads up to the specified number of bytes from the stream into
         the specified byte array of specified length.
         """
-        self.complain_if_closed()
-
         if size == -1:
             size = self.remaining()
 
@@ -335,16 +322,12 @@ cdef class cBufferedByteStream(object):
 
         @rtype: C{bool}
         """
-        self.complain_if_closed()
-
         return self.length == self.pos
 
     cpdef inline Py_ssize_t remaining(self) except -1:
         """
         Returns number of remaining bytes.
         """
-        self.complain_if_closed()
-
         return self.length - self.pos
 
     cpdef int seek(self, Py_ssize_t pos, int mode=0) except -1:
@@ -354,8 +337,6 @@ cdef class cBufferedByteStream(object):
 
         @param mode: mode 0: absolute; 1: relative; 2: relative to EOF
         """
-        self.complain_if_closed()
-
         if mode == 0:
             if pos < 0 or pos > self.length:
                 raise IOError
@@ -380,8 +361,6 @@ cdef class cBufferedByteStream(object):
         """
         Get raw data from buffer.
         """
-        self.complain_if_closed()
-
         return PyString_FromStringAndSize(self.buffer, self.length)
 
     cdef Py_ssize_t peek(self, char **buf, Py_ssize_t size) except -1:
@@ -389,8 +368,6 @@ cdef class cBufferedByteStream(object):
         Makes a pointer reference to the underlying buffer. Do NOT modify the
         returned value or free its contents. That would be seriously bad.
         """
-        self.complain_if_closed()
-
         if not self.has_available(size):
             size = self.length - self.pos
 
@@ -405,8 +382,6 @@ cdef class cBufferedByteStream(object):
         @param size: The length of the stream, in bytes.
         @type size: C{int}
         """
-        self.complain_if_closed()
-
         if size > self.length:
             raise IOError
 
@@ -442,8 +417,6 @@ cdef class cBufferedByteStream(object):
         Chops the tail off the stream starting at 0 and ending at C{tell()}.
         The stream pointer is set to 0 at the end of this function.
         """
-        self.complain_if_closed()
-
         cdef char *buf = NULL
         cdef char *peek_buf
         cdef Py_ssize_t size = self.remaining()
@@ -945,9 +918,11 @@ cdef class BufferedByteStream(cBufferedByteStream):
     various intricacies of Cythons cpdef (probably just user stupidity tho)
     """
 
-    def __init__(self, buf=None):
+    def __init__(self, buf=None, min_buf_size=512):
         cdef Py_ssize_t i
         cdef cBufferedByteStream x
+
+        self.min_buf_size = min_buf_size
 
         if buf is None:
             pass
@@ -1008,14 +983,17 @@ cdef class BufferedByteStream(cBufferedByteStream):
 
         return r
 
-    def write(self, x):
+    def write(self, x, size=-1):
         """
         Writes the content of the specified C{x} into this buffer.
 
         @param x:
         @type x:
         """
-        cBufferedByteStream.write_utf8_string(self, x)
+        if size == -1:
+            cBufferedByteStream.write_utf8_string(self, x)
+        else:
+            cBufferedByteStream.write(self, x, size)
 
     def flush(self):
         # no-op

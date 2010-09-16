@@ -230,7 +230,8 @@ class ClassAlias(object):
 
         self.exclude_attrs = set(self.exclude_attrs or [])
         self.readonly_attrs = set(self.readonly_attrs or [])
-        self.static_attrs = set(self.static_attrs or [])
+        self.static_attrs = list(self.static_attrs or [])
+        self.static_attrs_set = set(self.static_attrs)
         self.proxy_attrs = set(self.proxy_attrs or [])
 
         self.sealed = util.is_class_sealed(self.klass)
@@ -287,7 +288,11 @@ class ClassAlias(object):
             self.readonly_attrs.update(alias.readonly_attrs)
 
         if alias.static_attrs:
-            self.static_attrs.update(alias.static_attrs)
+            self.static_attrs_set.update(alias.static_attrs)
+
+            for a in alias.static_attrs:
+                if a not in self.static_attrs:
+                    self.static_attrs.insert(0, a)
 
         if alias.proxy_attrs:
             self.proxy_attrs.update(alias.proxy_attrs)
@@ -338,12 +343,11 @@ class ClassAlias(object):
 
         if self.static_attrs is not None:
             if self.exclude_attrs:
-                self.static_attrs.difference_update(self.exclude_attrs)
+                self.static_attrs_set.difference_update(self.exclude_attrs)
 
-            self.static_attrs = list(self.static_attrs)
-            self.static_attrs.sort()
-
-        self.static_attrs_set = set(self.static_attrs or [])
+            for a in self.static_attrs_set:
+                if a not in self.static_attrs:
+                    self.static_attrs.remove(a)
 
         if not self.exclude_attrs:
             self.exclude_attrs = None
