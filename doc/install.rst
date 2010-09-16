@@ -144,7 +144,7 @@ To build the main documentation you need:
 - Sphinx_ 1.0 or newer
 - a :doc:`copy <community/download>` of the PyAMF source distribution
 
-Unix users run the command below in the ``pyamf/doc`` directory to create the
+Unix users run the command below in the ``doc`` directory to create the
 HTML version of the PyAMF documentation::
 
     make html
@@ -153,12 +153,12 @@ Windows users can run the make.bat file instead::
 
     make.bat
 
-This will generate the HTML documentation in the ``pyamf/doc/build/html``
+This will generate the HTML documentation in the ``doc/build/html``
 folder. This documentation is identical to the content on the main PyAMF
 website_.
 
 **Note**: if you don't have the `make` tool installed then you can invoke
-Sphinx from the ``pyamf/doc`` directory directly like this::
+Sphinx from the ``doc`` directory directly like this::
 
     sphinx-build -b html . build
 
@@ -170,12 +170,12 @@ To build the API documentation you need:
 - Epydoc_ 3.0 or newer
 - a :doc:`copy <community/download>` of the PyAMF source distribution
 
-Run the command below in the root ``pyamf`` directory to create the
-HTML version of the PyAMF API documentation::
+Run the command below in the root directory to create the HTML version of
+the PyAMF API documentation::
 
     epydoc --config=setup.cfg
 
-This will generate the HTML documentation in the ``pyamf/doc/api``
+This will generate the HTML documentation in the ``doc/build/api``
 folder.
 
 
