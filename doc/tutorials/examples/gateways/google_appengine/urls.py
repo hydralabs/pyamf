@@ -51,10 +51,3 @@ urlpatterns += patterns('',
     (r'^gateway/echo/', 'echo.gateway.gateway'),
 )
 
-# PyAMF Unit test example
-
-urlpatterns += patterns('', 
-    (r'^punit/$', 'punit.views.frontpage'),
-    (r'^punit/run/([^\/]*)/([^\/]*)/([^\/]*)/$', 'punit.views.run_test_method'),
-    (r'^punit/tests/$', 'punit.views.all_tests'),
-)
