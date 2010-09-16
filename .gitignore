@@ -3,7 +3,7 @@ PyAMF.egg-info/
 _trial_temp/
 build/
 cpyamf/*.so
-doc/_build/
+doc/build/
 doc/changelog.rst
 doc/html/intro.html
 doc/themes
