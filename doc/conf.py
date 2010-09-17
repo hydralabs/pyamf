@@ -30,7 +30,7 @@ needs_sphinx = '1.0'
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 # 
 # Grab sphinxcontrib.epydoc from http://packages.python.org/sphinxcontrib-epydoc
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx', 'sphinxcontrib.epydoc']
+extensions = ['sphinx.ext.intersphinx', 'sphinxcontrib.epydoc']
 
 # Paths that contain additional templates, relative to this directory.
 templates_path = ['html']
@@ -100,7 +100,8 @@ add_module_names = True
 # documentation. Each value is a list of regular expressions, the reference
 # target must match (see re.match()) to be cross-referenced with the base url.
 epydoc_mapping = {
-   'http://api.pyamf.org/': [r'pyamf\.'],
+   # TODO: don't harcode version nr
+   'http://api.pyamf.org/0.5.1/': [r'pyamf\.'],
 }
 
 # -- Options for HTML output ---------------------------------------------------
