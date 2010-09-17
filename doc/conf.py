@@ -28,7 +28,9 @@ needs_sphinx = '1.0'
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx']
+# 
+# Grab sphinxcontrib.epydoc from http://packages.python.org/sphinxcontrib-epydoc
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx', 'sphinxcontrib.epydoc']
 
 # Paths that contain additional templates, relative to this directory.
 templates_path = ['html']
@@ -92,6 +94,14 @@ add_module_names = True
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
 
+# A dictionary mapping URIs to a list of regular expression.
+#
+# Each key of this dictionary is a base url of an epydoc-generated
+# documentation. Each value is a list of regular expressions, the reference
+# target must match (see re.match()) to be cross-referenced with the base url.
+epydoc_mapping = {
+   'http://api.pyamf.org/': [r'pyamf\.'],
+}
 
 # -- Options for HTML output ---------------------------------------------------
 
