@@ -6,7 +6,6 @@
 
    whatsnew/index.rst
    tutorials/index.rst
-   library/index.rst
    architecture/index.rst
    community/index.rst
 
