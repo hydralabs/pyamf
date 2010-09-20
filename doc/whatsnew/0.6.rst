@@ -6,8 +6,7 @@ PyAMF 0.6 represents the next step towards the holy grail that is 1.0. The focus
 of this release has mainly been about speed and providing better support for
 integrated frameworks (e.g. Django, SQLAlchemy, AppEngine). The C extensions
 have been supercharged and now 90%+ of the encoding is done in C. This has given
-some massive gains in both encoding and decoding (more about this in an upcoming
-blog post).
+some `massive gains`_ in both encoding and decoding.
 
 .. contents::
 
@@ -71,3 +70,4 @@ SQLAlchemy
 .. _#677: http://dev.pyamf.org/ticket/677
 .. _#747: http://dev.pyamf.org/ticket/747
 .. _#751: http://dev.pyamf.org/ticket/751
+.. _massive gains: http://blog.pyamf.org/2010/08/a-brief-history-of-speed
