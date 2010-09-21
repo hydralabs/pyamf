@@ -68,6 +68,7 @@ def register_adapter(mod, func):
     @param func: The function to call when C{mod} is imported. This function
         must take one arg, the newly imported C{module} object.
     @type func: callable
+    @raise TypeError: C{func} must be callable
     """
     if not hasattr(func, '__call__'):
         raise TypeError('func must be callable')
