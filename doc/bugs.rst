@@ -17,14 +17,12 @@ To do this, search the bug database using the search box on the top of the page.
 
 If the problem you're reporting is not already in the bug tracker, go back to
 the PyAMF Bug Tracker.  If you don't already have a tracker account, select the
-`Register <http://dev.pyamf.org/register>`_ link in the navigation bar and
-undergo the registration procedure. Otherwise, if you're not logged in, enter
-your credentials and select "Login". It is not possible to submit a bug report
-anonymously.
+Register_ link in the navigation bar and undergo the registration procedure.
+Otherwise, if you're not logged in, enter your credentials and select Login_.
+It is not possible to submit a bug report anonymously.
 
-Being now logged in, you can submit a bug.  Select the
-`New Ticket <http://dev.pyamf.org/newticket>`_ link in the sidebar to open the
-bug reporting form.
+Being now logged in, you can submit a bug.  Select the `New Ticket`_ link in the
+sidebar to open the bug reporting form.
 
 The submission form has a number of fields.  For the "Summary" field, enter a
 *very* short description of the problem; less than ten words is good.  In the
@@ -50,3 +48,8 @@ taken on the bug.
    `Bug Writing Guidelines <https://developer.mozilla.org/en/Bug_writing_guidelines>`_
       Information about writing a good bug report.  Some of this is specific to the
       Mozilla project, but describes general good practices.
+
+.. _Register: http://dev.pyamf.org/register
+.. _Login: http://dev.pyamf.org/login
+.. _Login: http://dev.pyamf.org/login
+.. _New Ticket: http://dev.pyamf.org/newticket
