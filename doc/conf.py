@@ -14,12 +14,34 @@
 
 import sys, os, time
 
+from docutils.core import publish_parts
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute.
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.append(os.path.abspath('.'))
 sys.path.append(os.path.abspath('html'))
+
+def rst2html(input, output):
+    """
+    Create html file from rst file.
+    
+    :param input: Path to rst source file
+    :type: `str`
+    :param output: Path to html output file
+    :type: `str`
+    """
+    file = os.path.abspath(input)
+    rst = open(file, 'r').read()
+    html = publish_parts(rst, writer_name='html')
+    body = html['html_body']
+
+    tmp = open(output, 'w')
+    tmp.write(body)
+    tmp.close()
+    
+    return body
 
 # -- General configuration -----------------------------------------------------
 
@@ -43,7 +65,6 @@ source_suffix = '.rst'
 
 # create content template for the homepage
 from shutil import copyfile
-from util import rst2html
 readme = rst2html('../README.txt', 'html/intro.html')
 readme = copyfile('../CHANGES.txt', 'changelog.rst')
 
