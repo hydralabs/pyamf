@@ -8,14 +8,23 @@ versions of PyAMF.
 
 0.6 (unreleased)
 ----------------
+- Added generator support (Ticket:793,800)
+- Fixed issue with ``amf3.use_proxy_default=True`` and Flex messaging
+  (Ticket:794)
+- Support for AppEngine's ``BlobReferenceProperty`` (Ticket:787)
+- Improved unit test discovery with unittest2 (Ticket:780)
+- Ability to define attribute synonyms (Ticket:779)
 - Provide support for AMF3 remoting packets (BlazeDS acting as a client)
   (Ticket:737,766)
 - AMF0 Remoting error tracebacks will be a list rather than a string
-  (Ticket:767)
+  (Ticket:767,663)
+- Moved documentation from the Trac wiki to a local Sphinx documentation
+  build (Ticket:752,672,670,662,661,657)
 - Switch the PyAMF client to use urllib2. Provides support for proxying and
   gzipped responses. Thanks to @PaulWinkeler for the heavy lifting.
-  (Ticket:751,622,590,566)
-- Added support for SQLAlchemy 0.6beta1 (Ticket:747,748)
+  (Ticket:751,622,590,566,778)
+- Added support for SQLAlchemy 0.6 (Ticket:747,748)
+- Added support for the lxml library (Ticket:735)
 - Introduced a new adapter for Elixir, a thin wrapper around SQLAlchemy
   (Ticket:724)
 - Simplified ``type_map`` in ``Encoder`` classes (Ticket:746)
