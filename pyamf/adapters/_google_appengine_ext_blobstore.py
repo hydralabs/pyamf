@@ -3,7 +3,7 @@
 
 """
 Adapter module for U{google.appengine.ext.blobstore<http://
-code.google.com/appengine/docs/python/blobstore/}.
+code.google.com/appengine/docs/python/blobstore/>}.
 
 @since: 0.6
 """

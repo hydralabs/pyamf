@@ -34,13 +34,17 @@ __version__ = version = v.Version(0, 6, 0, 'b2')
 #: Class alias mapping support. Contains two types of keys: The string alias
 #: related to the class and the class object itself. Both point to the linked
 #: L{ClassAlias} object.
+#: @see: L{register_class}, L{unregister_class}, and L{register_package}
 CLASS_CACHE = {}
 #: Class loaders. An iterable of callables that are handed a string alias and
 #: return a class object or C{None} it not handled.
+#: @see: L{register_class_loader} and L{unregister_class_loader}
 CLASS_LOADERS = set()
 #: Custom type map.
+#: @see: L{get_type}, L{add_type}, and L{remove_type}
 TYPE_MAP = {}
 #: Maps error classes to string codes.
+#: @see: L{add_error_class} and L{remove_error_class}
 ERROR_CLASS_MAP = {
     TypeError.__name__: TypeError,
     KeyError.__name__: KeyError,
@@ -49,7 +53,8 @@ ERROR_CLASS_MAP = {
     NameError.__name__: NameError,
     ValueError.__name__: ValueError
 }
-#: Alias mapping support
+#: Alias mapping support.
+#: @see: L{get_class_alias}, L{register_alias_type}, and L{unregister_alias_type}
 ALIAS_TYPES = {}
 
 #: Specifies that objects are serialized using AMF for ActionScript 1.0
@@ -59,6 +64,7 @@ AMF0 = 0
 #: that was introduced in the Adobe Flash Player 9.
 AMF3 = 3
 #: Supported AMF encoding types.
+#: @see: L{AMF0}, L{AMF3}, and L{DEFAULT_ENCODING}
 ENCODING_TYPES = (AMF0, AMF3)
 
 #: Default encoding
@@ -66,6 +72,9 @@ DEFAULT_ENCODING = AMF3
 
 
 class UndefinedType(object):
+    """
+    Represents the C{undefined} value in the Adobe Flash Player client.
+    """
     def __repr__(self):
         return 'pyamf.Undefined'
 
@@ -117,7 +126,7 @@ class UnknownClassAlias(BaseError):
 
 class ASObject(dict):
     """
-    This class represents a Flash Actionscript Object (typed or untyped).
+    Represents a Flash Actionscript Object (typed or untyped).
 
     I supply a C{dict} interface to support C{getattr}/C{setattr} calls.
     """
@@ -755,6 +764,7 @@ def register_class(klass, alias=None):
     to the C{[RemoteClass(alias="foobar")]} AS3 metatag.
 
     @return: The registered L{ClassAlias} instance.
+    @see: L{unregister_class}
     """
     meta = util.get_class_meta(klass)
 
@@ -836,6 +846,9 @@ def register_class_loader(loader):
                 return bar.Eggs
 
         pyamf.register_class_loader(lazy_load_from_my_module)
+
+    @raise TypeError: C{loader} must be callable
+    @see: L{unregister_class_loader}
     """
     if not hasattr(loader, '__call__'):
         raise TypeError("loader must be callable")
@@ -848,7 +861,8 @@ def unregister_class_loader(loader):
     Unregisters a class loader.
 
     @param loader: The class loader to be unregistered.
-    @raise LookupError: The {loader} was not registered.
+    @raise LookupError: The C{loader} was not registered.
+    @see: L{register_class_loader}
     """
     try:
         CLASS_LOADERS.remove(loader)
@@ -1059,6 +1073,7 @@ def add_type(type_, func=None):
 
     @raise TypeError: Unable to add as a custom type (expected a class or callable).
     @raise KeyError: Type already exists.
+    @see: L{get_type} and L{remove_type}
     """
     def _check_type(type_):
         if not (isinstance(type_, python.class_types) or
@@ -1086,6 +1101,7 @@ def get_type(type_):
     Gets the declaration for the corresponding custom type.
 
     @raise KeyError: Unknown type.
+    @see: L{add_type} and L{remove_type}
     """
     if isinstance(type_, list):
         type_ = tuple(type_)
@@ -1102,6 +1118,7 @@ def remove_type(type_):
     Removes the custom type declaration.
 
     @return: Custom type declaration.
+    @see: L{add_type} and L{get_type}
     """
     declaration = get_type(type_)
 
@@ -1115,6 +1132,22 @@ def add_error_class(klass, code):
     Maps an exception class to a string code. Used to map remoting C{onStatus}
     objects to an exception class so that an exception can be built to
     represent that error.
+
+    An example::
+
+        >>> class AuthenticationError(Exception):
+        ...     pass
+        ... 
+        >>> pyamf.add_error_class(AuthenticationError, 'Auth.Failed')
+        >>> print pyamf.ERROR_CLASS_MAP
+        {'TypeError': <type 'exceptions.TypeError'>, 'IndexError': <type 'exceptions.IndexError'>,
+        'Auth.Failed': <class '__main__.AuthenticationError'>, 'KeyError': <type 'exceptions.KeyError'>,
+        'NameError': <type 'exceptions.NameError'>, 'LookupError': <type 'exceptions.LookupError'>}
+
+    @param klass: Exception class
+    @param code: Exception code
+    @type code: C{str}
+    @see: L{remove_error_class}
     """
     if not isinstance(code, python.str_types):
         code = code.decode('utf-8')
@@ -1136,7 +1169,17 @@ def add_error_class(klass, code):
 
 def remove_error_class(klass):
     """
-    Removes a class from L{ERROR_CLASS_MAP}.
+    Removes a class from the L{ERROR_CLASS_MAP}.
+
+    An example::
+
+       >>> class AuthenticationError(Exception):
+       ...     pass
+       ...
+       >>> pyamf.add_error_class(AuthenticationError, 'Auth.Failed')
+       >>> pyamf.remove_error_class(AuthenticationError)
+
+    @see: L{add_error_class}
     """
     if isinstance(klass, python.str_types):
         if klass not in ERROR_CLASS_MAP:
@@ -1166,11 +1209,17 @@ def register_alias_type(klass, *args):
 
     Use this function if you need to do something non-standard.
 
-    @see: L{pyamf.adapters._google_appengine_ext_db.DataStoreClassAlias} for a
-        good example.
     @since: 0.4
+    @see:
+     - L{pyamf.adapters._google_appengine_ext_db.DataStoreClassAlias} for a
+       good example.
+     - L{unregister_alias_type}
+    @raise RuntimeError: alias is already registered
+    @raise TypeError: Value supplied to C{klass} is not a class
+    @raise ValueError:
+     - New aliases must subclass L{pyamf.ClassAlias}
+     - At least one type must be supplied
     """
-
     def check_type_registered(arg):
         for k, v in ALIAS_TYPES.iteritems():
             for kl in v:
@@ -1247,6 +1296,7 @@ def register_package(module=None, package=None, separator='.', ignore=[],
     @return: A dict of all the classes that were registered and their respective
         L{ClassAlias} counterparts.
     @since: 0.5
+    @raise TypeError: Cannot get a list of classes from C{module}
     """
     if isinstance(module, python.str_types):
         if module == '':
