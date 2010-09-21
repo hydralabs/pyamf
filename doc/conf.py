@@ -75,7 +75,7 @@ today_fmt = '%B %d, %Y'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build', 'tutorials/examples']
+exclude_patterns = ['build', 'tutorials/examples']
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = True
@@ -197,6 +197,5 @@ latex_logo = 'html/static/logo.png'
 # If false, no module index is generated.
 #latex_use_modindex = True
 
-
-# Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'http://docs.python.org/': None}
+# refer to the Python standard library.
+intersphinx_mapping = {'python': ('http://docs.python.org', None)}
