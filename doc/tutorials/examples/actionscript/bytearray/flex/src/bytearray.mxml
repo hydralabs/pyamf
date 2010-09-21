@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <pyamf:ByteArrayExample xmlns:mx="http://www.adobe.com/2006/mxml"
 				        xmlns:pyamf="org.pyamf.examples.bytearray.*"
-				        viewSourceURL="http://pyamf.org/browser/examples/trunk/bytearray"
 					backgroundColor="white" backgroundGradientColors="[]">
 
 	<mx:Panel title="ByteArray Example" backgroundAlpha="0">
