@@ -22,8 +22,8 @@ Highlighted Features
 Backward Incompatible API Changes
 =================================
 
-* Switched the client from ``httplib`` to ``urllib2`` to provide support for
-  gzipped responses and proper http proxying. See `#751`_.
+* Switched the client from :py:mod:`httplib` to :py:mod:`urllib2` to provide
+  support for gzipped responses and proper HTTP proxying. See `#751`_.
 * ``pyamf.util.IndexedMap`` has been removed. See `#732`_.
 * ``__new__`` is used in favour of ``__init__``. See `#700`_.
 * ``pyamf.ClientTypes`` served no purpose and was not compliant with the

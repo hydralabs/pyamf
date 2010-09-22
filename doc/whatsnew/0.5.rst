@@ -19,19 +19,19 @@ Highlighted Features
 * The lazy loading module (``pyamf.util.imports``) that powers the adapter
   modules has been completely revamped. There were too many edge cases that
   would cause problems in the import mechanism. We now supply a module
-  finder/loader in ``sys.meta_path`` so we can intercept the import calls.
+  finder/loader in :py:data:`sys.meta_path` so we can intercept the import calls.
   This has completely cleared up the problems we were seeing and it has the
   added benefit of halving the time it took to run the 650+ unit tests in
   the suite!
 * The cPyAMF extension has been completely revamped and no longer uses
-  ``cStringIO`` to handle the byte packing. The extension has also been
+  :py:mod:`cStringIO` to handle the byte packing. The extension has also been
   extended to cover more of the library. This has given a nice speed-up but
   we are by no means finished.
 * Support for non-UTC timezones has been added. If you supply ``timezone_offset``
-  to the ``pyamf.remoting.gateway.*.*Gateway`` classes then any datetimes will
-  be offset against that figure (in seconds). This is only useful for legacy
-  systems so you don't need to change anything if you are already using UTC
-  (in fact using UTC is the recommended practice).
+  to the ``pyamf.remoting.gateway.*.*Gateway`` classes then any
+  :py:mod:`datetime` instances will be offset against that figure (in seconds).
+  This is only useful for legacy systems so you don't need to change anything if
+  you are already using UTC (in fact using UTC is the recommended practice).
 * Support has been provided for decoding and encoding ISmallMessage objects.
   This means better integration with ``BlazeDS`` and sets the foundations for
   better Flex Messaging support.
@@ -84,17 +84,17 @@ Python 2.6
 Besides greater stability for the Windows platform, more types from
 the Python 2.6 standard library are now supported, including:
 
-+--------------------------------+-------------------+--------------+
-| Module                         | Encode      	     | Decode       |
-+================================+===================+==============+
-| ``collections.deque``          | ``list``    	     | ``list``     |
-+--------------------------------+-------------------+--------------+
-| ``collections.defaultdict``    | untyped object    | ``dict``     |
-+--------------------------------+-------------------+--------------+
-| ``collections.namedtuple``     | ``list``          | ``list``     |
-+--------------------------------+-------------------+--------------+
-| ``array.array``                | ``list``          | ``list``     |
-+--------------------------------+-------------------+--------------+
++----------------------------------------+-------------------+--------------+
+| Module                                 | Encode      	     | Decode       |
++========================================+===================+==============+
+| :py:class:`collections.deque`          | ``list``    	     | ``list``     |
++----------------------------------------+-------------------+--------------+
+| :py:class:`collections.defaultdict`    | untyped object    | ``dict``     |
++----------------------------------------+-------------------+--------------+
+| :py:func:`collections.namedtuple`      | ``list``          | ``list``     |
++----------------------------------------+-------------------+--------------+
+| :py:class:`array.array`                | ``list``          | ``list``     |
++----------------------------------------+-------------------+--------------+
 
 
 Flash Player

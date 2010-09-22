@@ -3,7 +3,7 @@
 # Copyright (c) The PyAMF Project.
 # See LICENSE.txt for details.
 #
-# PyAMF documentation build configuration file.
+# Documentation build configuration file.
 #
 # This file is execfile()d with the current directory set to its containing dir.
 #
@@ -13,6 +13,7 @@
 # serve to show the default value.
 
 import sys, os, time
+from shutil import copyfile
 
 from docutils.core import publish_parts
 
@@ -64,7 +65,6 @@ source_suffix = '.rst'
 #source_encoding = 'utf-8'
 
 # create content template for the homepage
-from shutil import copyfile
 readme = rst2html('../README.txt', 'html/intro.html')
 readme = copyfile('../CHANGES.txt', 'changelog.rst')
 
