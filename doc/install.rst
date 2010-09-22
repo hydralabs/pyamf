@@ -77,6 +77,7 @@ libraries:
 
 - wsgiref_ 0.1.2 or newer (included in Python 2.5 and newer)
 - cElementTree_ 1.0.5 or newer (included in Python 2.5 and newer)
+- lxml_ 2.2 or newer
 - SQLAlchemy_ 0.4 or newer
 - Twisted_ 2.5 or newer
 - Django_ 0.97 or newer
@@ -142,6 +143,7 @@ Sphinx
 To build the main documentation you need:
 
 - Sphinx_ 1.0 or newer
+- `sphinxcontrib.epydoc`_ 0.4 or newer
 - a :doc:`copy <community/download>` of the PyAMF source distribution
 
 Unix users run the command below in the ``doc`` directory to create the
@@ -186,6 +188,7 @@ folder.
 .. _ez_setup.py:		http://github.com/hydralabs/pyamf/blob/master/ez_setup.py
 .. _Epydoc:			http://epydoc.sourceforge.net
 .. _ElementTree:		http://effbot.org/zone/element-index.htm
+.. _lxml:			http://codespeak.net/lxml
 .. _uuid:			http://pypi.python.org/pypi/uuid
 .. _wsgiref:			http://pypi.python.org/pypi/wsgiref
 .. _cElementTree: 		http://effbot.org/zone/celementtree.htm
@@ -202,3 +205,4 @@ folder.
 .. _Sphinx:     		http://sphinx.pocoo.org
 .. _website:    		http://pyamf.org
 .. _Installing Python Modules: 	http://docs.python.org/install/index.html
+.. _sphinxcontrib.epydoc:       http://packages.python.org/sphinxcontrib-epydoc

@@ -17,7 +17,7 @@ Highlighted Features
 * The default AMF version has been switched from `AMF0` to `AMF3`.
 * Introduced a new adapter for Elixir_, a thin wrapper around SQLAlchemy.
 * Provide support for :doc:`property synonyms </architecture/attributecontrol>`.
-
+* Support for lxml_.
 
 Backward Incompatible API Changes
 =================================
@@ -64,6 +64,7 @@ SQLAlchemy
 
 
 .. _Elixir: http://www.elixir.ematia.de
+.. _lxml: http://codespeak.net/lxml
 .. _#732: http://dev.pyamf.org/ticket/732
 .. _#700: http://dev.pyamf.org/ticket/700
 .. _#651: http://dev.pyamf.org/ticket/651
