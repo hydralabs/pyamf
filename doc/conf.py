@@ -3,7 +3,7 @@
 # Copyright (c) The PyAMF Project.
 # See LICENSE.txt for details.
 #
-# PyAMF documentation build configuration file.
+# Documentation build configuration file.
 #
 # This file is execfile()d with the current directory set to its containing dir.
 #
@@ -13,6 +13,9 @@
 # serve to show the default value.
 
 import sys, os, time
+from shutil import copyfile
+
+from docutils.core import publish_parts
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -21,6 +24,26 @@ sys.path.insert(0, os.path.abspath('..'))
 sys.path.append(os.path.abspath('.'))
 sys.path.append(os.path.abspath('html'))
 
+def rst2html(input, output):
+    """
+    Create html file from rst file.
+    
+    :param input: Path to rst source file
+    :type: `str`
+    :param output: Path to html output file
+    :type: `str`
+    """
+    file = os.path.abspath(input)
+    rst = open(file, 'r').read()
+    html = publish_parts(rst, writer_name='html')
+    body = html['html_body']
+
+    tmp = open(output, 'w')
+    tmp.write(body)
+    tmp.close()
+    
+    return body
+
 # -- General configuration -----------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -28,7 +51,9 @@ needs_sphinx = '1.0'
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx']
+# 
+# Grab sphinxcontrib.epydoc from http://packages.python.org/sphinxcontrib-epydoc
+extensions = ['sphinx.ext.intersphinx', 'sphinxcontrib.epydoc']
 
 # Paths that contain additional templates, relative to this directory.
 templates_path = ['html']
@@ -40,8 +65,6 @@ source_suffix = '.rst'
 #source_encoding = 'utf-8'
 
 # create content template for the homepage
-from shutil import copyfile
-from util import rst2html
 readme = rst2html('../README.txt', 'html/intro.html')
 readme = copyfile('../CHANGES.txt', 'changelog.rst')
 
@@ -73,7 +96,7 @@ today_fmt = '%B %d, %Y'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build', 'tutorials/examples']
+exclude_patterns = ['build', 'tutorials/examples']
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = True
@@ -92,6 +115,15 @@ add_module_names = True
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
 
+# A dictionary mapping URIs to a list of regular expression.
+#
+# Each key of this dictionary is a base url of an epydoc-generated
+# documentation. Each value is a list of regular expressions, the reference
+# target must match (see re.match()) to be cross-referenced with the base url.
+epydoc_mapping = {
+   # TODO: don't harcode version nr
+   'http://api.pyamf.org/0.5.1/': [r'pyamf\.'],
+}
 
 # -- Options for HTML output ---------------------------------------------------
 
@@ -186,6 +218,5 @@ latex_logo = 'html/static/logo.png'
 # If false, no module index is generated.
 #latex_use_modindex = True
 
-
-# Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'http://docs.python.org/': None}
+# refer to the Python standard library.
+intersphinx_mapping = {'python': ('http://docs.python.org', None)}

@@ -163,14 +163,16 @@ def main():
         platforms = ["any"],
         cmdclass = {
             'build_ext': build_ext,
-           'test': TestCommand
+            'test': TestCommand
         },
         extras_require = {
             'wsgi': ['wsgiref'],
             'twisted': ['Twisted>=2.5.0'],
             'django': ['Django>=0.96'],
             'sqlalchemy': ['SQLAlchemy>=0.4'],
+            'elixir': ['Elixir>=0.7.1'],
             'cython': ['Cython>=0.12.1'],
+            'lxml': ['lxml>=2.2'],
         },
         classifiers = [
             "Development Status :: 5 - Production/Stable",

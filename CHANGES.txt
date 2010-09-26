@@ -8,14 +8,23 @@ versions of PyAMF.
 
 0.6 (unreleased)
 ----------------
+- Added generator support (Ticket:793,800)
+- Fixed issue with ``amf3.use_proxy_default=True`` and Flex messaging
+  (Ticket:794)
+- Support for AppEngine's ``BlobReferenceProperty`` (Ticket:787)
+- Improved unit test discovery with unittest2 (Ticket:780)
+- Ability to define attribute synonyms (Ticket:779)
 - Provide support for AMF3 remoting packets (BlazeDS acting as a client)
   (Ticket:737,766)
 - AMF0 Remoting error tracebacks will be a list rather than a string
-  (Ticket:767)
-- Switch the PyAMF client to use urllib2. Provides support for proxying and
-  gzipped responses. Thanks to @PaulWinkeler for the heavy lifting.
-  (Ticket:751,622,590,566)
-- Added support for SQLAlchemy 0.6beta1 (Ticket:747,748)
+  (Ticket:767,663)
+- Moved documentation from the Trac wiki to a local Sphinx documentation
+  build (Ticket:752,672,670,662,661,657)
+- Switch the PyAMF client to use :py:mod:`urllib2`. Provides support for
+  proxying and gzipped responses. Thanks to @PaulWinkeler for the heavy
+  lifting (Ticket:751,622,590,566,778)
+- Added support for SQLAlchemy 0.6 (Ticket:747,748)
+- Added support for the lxml library (Ticket:735)
 - Introduced a new adapter for Elixir, a thin wrapper around SQLAlchemy
   (Ticket:724)
 - Simplified ``type_map`` in ``Encoder`` classes (Ticket:746)
@@ -85,25 +94,27 @@ versions of PyAMF.
   Twisted/Django/Google have an ``amf_request`` property on the http request
   object.  WSGI has an entry in the environ dict now - ``pyamf.request``
   (Ticket:234)
-- Added support for the ``array`` module (Ticket:468)
+- Added support for the :py:mod:`array` module (Ticket:468)
 - Fixed an issue with Django model ``AutoFields`` being set to 0 by the Flex
   client (Ticket:556)
-- Added support for the ``collections`` module. (Ticket:474)
+- Added support for the :py:mod:`collections` module. (Ticket:474)
 - Added type checks for class objects. (Ticket:473)
 - GAE ``FloatProperty`` can now accept int without issue (Ticket:609)
-- Revamped the lazy imports module to use ``sys.meta_path`` instead. Fixes
-  all erroneous import errors (Ticket:485).
+- Revamped the lazy imports module to use :py:data:`sys.meta_path` instead.
+  Fixes all erroneous import errors (Ticket:485).
 - Django models will now accept dynamic properties (Ticket:575)
 - Django PK properties will be set first to allow related properties to apply
   correctly (Ticket:599)
 - p.r.encode/p.r.decode both have a new ``logger`` kwarg. Supply a
-  ``logging.Logger`` instance if you want to see debug output (Ticket:588)
+  :py:class:`logging.Logger` instance if you want to see debug output
+  (Ticket:588)
 - ``pyamf.TypedObjectClassAlias`` now forces the class type (Ticket:537)
 - If a call to ``Decoder.readElement`` results in an ``IOError`` exception,
   the original position of the stream will be restored (Ticket:573)
 - Replaced hardcoded Python implementation title in p.r.gateway.SERVER_NAME
   (Ticket:541)
-- Provide a user friendly way to handle ``datetime.time`` objects (Ticket:498)
+- Provide a user friendly way to handle :py:class:`datetime.time` objects
+  (Ticket:498)
 - Removed the useless ``pyamf.logging`` module (Ticket:577)
 - Added a new ``register_package`` helper function to make bulk class
   registration easier. Check the docstring for more info. (Ticket:576)
@@ -118,7 +129,7 @@ versions of PyAMF.
 - ``amf0.Encoder`` now supports attribute ordering (Ticket:558)
 - Removed duplicate method ``Context.reset``, in favour of ``Context.clear``
   (Ticket:527)
-- Rewrote ``cpyamf.util.BufferedByteStream`` to not depend on ``cStringIO``.
+- Rewrote ``cpyamf.util.BufferedByteStream`` to not depend on :py:mod:`cStringIO`.
   Added a C based api for stream functions (Ticket:513)
 - Unified exceptions for ``BufferedByteStream`` so that only ``IOError``
   is raised. (Ticket:520)
@@ -127,10 +138,11 @@ versions of PyAMF.
   is created per class (Ticket:524)
 - Strict type checking now on ``pyamf.util.BufferedByteStream`` (Ticket:512)
 - Removed the default loggers from p.r.gateway.*. To re-enable supply a
-  ``logger instance`` as a keyword arg to the gateway constructor (Ticket:525)
+  ``logger`` instance as a keyword arg to the gateway constructor (Ticket:525)
 - Removed ``pyamf.util.make_classic_instance`` (as it is not used)
   (Ticket:521)
-- Removed ``pyamf.util.get_mro``, in favour of ``inspect.getmro`` (Ticket:526)
+- Removed ``pyamf.util.get_mro``, in favour of :py:func:`inspect.getmro`
+  (Ticket:526)
 - Removed ``pyamf.util.Indexed[Collection|Map].remove`` (Ticket:518)
 
 0.4.2 (2009-04-20)
@@ -143,8 +155,8 @@ versions of PyAMF.
   responses. (Ticket:510)
 - Strengthened HTTP header handling in the client (Ticket:492)
 - Support for Django i18n ``ugettext_lazy`` (Ticket:496)
-- Added support for microseconds for datetime objects. Thanks to Derek Payton
-  for the patch. (Ticket:490)
+- Added support for microseconds for :py:mod:`datetime` objects. Thanks to
+  Derek Payton for the patch. (Ticket:490)
 - Added support for property types on SQLAlchemy mapped classes. (Ticket:491)
 - Added support for property types for Google AppEngine ``db.Model`` and
   ``db.Expando``. (Ticket:487)
@@ -219,8 +231,8 @@ versions of PyAMF.
 - Encoders how have a 'strict' mode. Not generally useful for the time being
   but will help with developments in the future. Type mapped functions now
   require a second 'encoder' attribute. (Ticket:378)
-- Added adapter to handle the decimal module and, if strict is set to False,
-  silently converts a Decimal instance to a float (Ticket:376)
+- Added adapter to handle the :py:mod:`decimal` module and, if strict is set
+  to False, silently converts a Decimal instance to a float (Ticket:376)
 - ClassAlias can now be subclassed and three new methods have been added:
   applyAttributes, createInstance, getAttributes all which help to provide
   fine control for object/instance manipulation (Ticket:348)
@@ -349,8 +361,8 @@ versions of PyAMF.
   http://osflash.org/documentation/amf/envelopes/remoting/headers). The only
   one missing is amf_server_debug (Ticket:39)
 - LazyImporter objects now set the __file__ attribute to None, so that
-  querying sys.modules don't accidentally import the underlying module.
-  (Ticket:147)
+  querying :py:data:`sys.modules` don't accidentally import the underlying
+  module (Ticket:147)
 - Fixed argument positioning for RemoteObject processing. Thanks akaihola!
   (Ticket:145)
 - ElementTree requirement is now ignored when using Python >= 2.5
@@ -378,7 +390,7 @@ versions of PyAMF.
 - Remoting gateways for Twisted, WSGI, and Django
 - Authentication/setCredentials support
 - zlib compression support for ByteArray
-- Remoting client with httplib
+- Remoting client with :py:mod:`httplib`
 
 0.0.1 (2007-10-19)
 ------------------

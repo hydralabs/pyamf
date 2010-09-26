@@ -77,6 +77,7 @@ libraries:
 
 - wsgiref_ 0.1.2 or newer (included in Python 2.5 and newer)
 - cElementTree_ 1.0.5 or newer (included in Python 2.5 and newer)
+- lxml_ 2.2 or newer
 - SQLAlchemy_ 0.4 or newer
 - Twisted_ 2.5 or newer
 - Django_ 0.97 or newer
@@ -142,9 +143,10 @@ Sphinx
 To build the main documentation you need:
 
 - Sphinx_ 1.0 or newer
+- `sphinxcontrib.epydoc`_ 0.4 or newer
 - a :doc:`copy <community/download>` of the PyAMF source distribution
 
-Unix users run the command below in the ``pyamf/doc`` directory to create the
+Unix users run the command below in the ``doc`` directory to create the
 HTML version of the PyAMF documentation::
 
     make html
@@ -153,14 +155,14 @@ Windows users can run the make.bat file instead::
 
     make.bat
 
-This will generate the HTML documentation in the ``pyamf/doc/_build/html``
+This will generate the HTML documentation in the ``doc/build/html``
 folder. This documentation is identical to the content on the main PyAMF
 website_.
 
 **Note**: if you don't have the `make` tool installed then you can invoke
-Sphinx from the ``pyamf/doc`` directory directly like this::
+Sphinx from the ``doc`` directory directly like this::
 
-    sphinx-build -b html . _build
+    sphinx-build -b html . build
 
 Epydoc
 ------
@@ -170,12 +172,12 @@ To build the API documentation you need:
 - Epydoc_ 3.0 or newer
 - a :doc:`copy <community/download>` of the PyAMF source distribution
 
-Run the command below in the root ``pyamf`` directory to create the
-HTML version of the PyAMF API documentation::
+Run the command below in the root directory to create the HTML version of
+the PyAMF API documentation::
 
     epydoc --config=setup.cfg
 
-This will generate the HTML documentation in the ``pyamf/doc/api``
+This will generate the HTML documentation in the ``doc/build/api``
 folder.
 
 
@@ -186,6 +188,7 @@ folder.
 .. _ez_setup.py:		http://github.com/hydralabs/pyamf/blob/master/ez_setup.py
 .. _Epydoc:			http://epydoc.sourceforge.net
 .. _ElementTree:		http://effbot.org/zone/element-index.htm
+.. _lxml:			http://codespeak.net/lxml
 .. _uuid:			http://pypi.python.org/pypi/uuid
 .. _wsgiref:			http://pypi.python.org/pypi/wsgiref
 .. _cElementTree: 		http://effbot.org/zone/celementtree.htm
@@ -202,3 +205,4 @@ folder.
 .. _Sphinx:     		http://sphinx.pocoo.org
 .. _website:    		http://pyamf.org
 .. _Installing Python Modules: 	http://docs.python.org/install/index.html
+.. _sphinxcontrib.epydoc:       http://packages.python.org/sphinxcontrib-epydoc

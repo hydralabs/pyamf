@@ -17,8 +17,8 @@ We currently have adapters for the following libraries:
 - :doc:`../tutorials/gateways/appengine`
 - :doc:`../tutorials/gateways/sqlalchemy`
 - Elixir_
-- sets_ module
-- decimal_ module
+- :py:mod:`sets` module
+- :py:mod:`decimal` module
 
 
 How It Works
@@ -27,8 +27,8 @@ How It Works
 The adapter framework works silently in the background. This means that the user
 does not need to specifically import the Django adapter module within PyAMF, it
 is all handled in the background. It works by adding a module loader and finder
-to ``sys.meta_path`` so it can intercept import calls and) to fire a callback when,
-for example the ``django`` module is imported and accessed.
+to :py:data:`sys.meta_path` so it can intercept import calls and) to fire a
+callback when, for example the ``django`` module is imported and accessed.
 
 It is important to note that PyAMF does not load all the modules when
 registering its adapters and therefore it doesn't load modules that you
@@ -74,6 +74,4 @@ What next?
 :doc:`Contributions</bugs>` (including unit tests) are always welcome!
 
 .. _Elixir: 		http://www.elixir.ematia.de
-.. _sets: 		http://docs.python.org/release/2.5.2/lib/types-set.html
 .. _Contributions: 	http://pyamf.org/newticket
-.. _decimal: 		http://docs.python.org/release/2.5.2/lib/module-decimal.html
