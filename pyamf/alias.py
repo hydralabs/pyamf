@@ -1,4 +1,10 @@
+# Copyright (c) The PyAMF Project.
+# See LICENSE.txt for details.
+
 """
+Class alias base functionality.
+
+@since: 0.6
 """
 
 import inspect
