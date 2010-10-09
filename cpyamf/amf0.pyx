@@ -205,7 +205,7 @@ cdef class Decoder(codec.Decoder):
         l = self.stream.read_ulong()
 
         for i from 0 <= i < l:
-            obj.append(self.readElement())
+            PyList_Append(obj, self.readElement())
 
         return obj
 
