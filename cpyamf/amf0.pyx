@@ -159,7 +159,10 @@ cdef class Decoder(codec.Decoder):
         obj = alias.createInstance(codec=self)
         self.context.addObject(obj)
 
-        attrs = self.readObjectAttributes(obj)
+        cdef dict attrs = {}
+
+        self.readObjectAttributes(attrs)
+
         alias.applyAttributes(obj, attrs, codec=self)
 
         return obj
