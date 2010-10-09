@@ -411,11 +411,7 @@ def decode(stream, *args, **kwargs):
     encoding = kwargs.pop('encoding', DEFAULT_ENCODING)
     decoder = get_decoder(encoding, stream, *args, **kwargs)
 
-    while True:
-        try:
-            yield decoder.readElement()
-        except EOStream:
-            break
+    return decoder
 
 
 def encode(*args, **kwargs):
