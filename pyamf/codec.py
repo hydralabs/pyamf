@@ -307,8 +307,6 @@ class Decoder(_Codec):
             return self.readElement()
         except pyamf.EOStream:
             # all data was successfully decoded from the stream
-            self.stream.consume()
-
             raise StopIteration
 
     def readElement(self):
