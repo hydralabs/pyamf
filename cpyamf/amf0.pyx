@@ -118,31 +118,30 @@ cdef class Decoder(codec.Decoder):
 
         return self.context.getStringForBytes(s)
 
-    cdef dict readObjectAttributes(self, obj):
-        cdef dict obj_attrs = {}
+    cdef dict readObjectAttributes(self, object obj_attrs):
+        cdef object key
         cdef char *peek = NULL
 
-        cdef object key = self.readString(1)
+        while True:
+            self.stream.peek(&peek, 3)
 
-        self.stream.peek(&peek, 1)
+            if memcmp(peek, b'\x00\x00\x09', 3) == 0:
+                self.stream.seek(3, 1)
 
-        while peek[0] != TYPE_OBJECTTERM:
-            obj_attrs[key] = self.readElement()
-            key = self.readString(1)
+                break
 
-            self.stream.peek(&peek, 1)
+            key = self.readString()
+
+            PyDict_SetItem(obj_attrs, key, self.readElement())
 
         # discard the end marker (TYPE_OBJECTTERM)
-        self.stream.seek(1, 1)
-
-        return obj_attrs
 
     cdef object readObject(self):
         cdef object obj = ASObject()
 
         self.context.addObject(obj)
 
-        obj.update(self.readObjectAttributes(obj))
+        self.readObjectAttributes(obj)
 
         return obj
 
