@@ -8,7 +8,6 @@ C-extension for L{pyamf.amf3} Python module in L{PyAMF<pyamf>}.
 """
 
 from cpython cimport *
-from libc.stdlib cimport free
 
 cdef extern from "datetime.h":
     void PyDateTime_IMPORT()
@@ -609,12 +608,9 @@ cdef class Encoder(Codec):
 
         self.stream.seek(start_pos)
 
-        try:
-            self.stream.read(&buf, end_pos - start_pos)
-            return PyString_FromStringAndSize(buf, end_pos - start_pos)
-        finally:
-            if buf != NULL:
-                free(buf)
+        self.stream.read(&buf, end_pos - start_pos)
+
+        return PyString_FromStringAndSize(buf, end_pos - start_pos)
 
     def __iter__(self):
         return self

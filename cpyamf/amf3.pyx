@@ -508,12 +508,8 @@ cdef class Decoder(codec.Decoder):
         cdef char *buf = NULL
         cdef object s
 
-        try:
-            self.stream.read(&buf, ref)
-            s = PyString_FromStringAndSize(buf, ref)
-        finally:
-            if buf != NULL:
-                free(buf)
+        self.stream.read(&buf, ref)
+        s = PyString_FromStringAndSize(buf, ref)
 
         x = xml.fromstring(s)
         self.context.addObject(x)
@@ -540,12 +536,8 @@ cdef class Decoder(codec.Decoder):
 
         ref >>= 1
 
-        try:
-            self.stream.read(&buf, ref)
-            s = PyString_FromStringAndSize(buf, ref)
-        finally:
-            if buf != NULL:
-                free(buf)
+        self.stream.read(&buf, ref)
+        s = PyString_FromStringAndSize(buf, ref)
 
         if zlib:
             try:
@@ -1154,8 +1146,4 @@ cdef inline int _encode_integer(cBufferedByteStream stream, int i) except -1:
 
 
 cdef inline Py_ssize_t _read_ref(cBufferedByteStream stream) except -1:
-    cdef Py_ssize_t ref = 0
-
-    ref = <Py_ssize_t>decode_int(stream, 0)
-
-    return ref
+    return <Py_ssize_t>decode_int(stream, 0)

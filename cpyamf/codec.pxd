@@ -63,7 +63,7 @@ cdef class Codec(object):
 
 cdef class Decoder(Codec):
     cdef object readDate(self)
-    cpdef object readString(self, bint bytes=?)
+    cpdef object readString(self)
     cdef object readObject(self)
     cdef object readNumber(self)
     cdef object readNull(self)

@@ -126,9 +126,6 @@ class ASObject(dict):
     class __amf__:
         dynamic = True
 
-    def __init__(self, *args, **kwargs):
-        dict.__init__(self, *args, **kwargs)
-
     def __getattr__(self, k):
         try:
             return self[k]

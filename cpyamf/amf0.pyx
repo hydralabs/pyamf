@@ -234,12 +234,8 @@ cdef class Decoder(codec.Decoder):
 
         l = self.stream.read_ulong()
 
-        try:
-            self.stream.read(&b, l)
-            s = PyString_FromStringAndSize(b, <Py_ssize_t>l)
-        finally:
-            if b != NULL:
-                free(b)
+        self.stream.read(&b, l)
+        s = PyString_FromStringAndSize(b, <Py_ssize_t>l)
 
         if bytes:
             return s
