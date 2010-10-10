@@ -1,3 +1,4 @@
+# cython: boundscheck=False
 # Copyright (c) The PyAMF Project.
 # See LICENSE.txt for details.
 
@@ -333,7 +334,7 @@ cdef class Decoder(Codec):
     cdef object readDate(self):
         raise NotImplementedError
 
-    cpdef object readString(self, bint bytes=0):
+    cpdef object readString(self):
         raise NotImplementedError
 
     cdef object readObject(self):

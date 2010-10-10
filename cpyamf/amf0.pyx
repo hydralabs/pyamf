@@ -99,22 +99,16 @@ cdef class Decoder(codec.Decoder):
 
         raise pyamf.DecodeError('Bad boolean read from stream')
 
-    cpdef object readString(self, bint bytes=0):
+    cpdef object readString(self):
         cdef unsigned short l
         cdef char *b = NULL
         cdef object s
 
         l = self.stream.read_ushort()
 
-        try:
-            self.stream.read(&b, l)
-            s = PyString_FromStringAndSize(b, <Py_ssize_t>l)
-        finally:
-            if b != NULL:
-                free(b)
+        self.stream.read(&b, l)
 
-        if bytes:
-            return s
+        s = PyString_FromStringAndSize(b, <Py_ssize_t>l)
 
         return self.context.getStringForBytes(s)
 
