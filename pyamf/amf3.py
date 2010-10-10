@@ -572,7 +572,10 @@ class ClassDefinition(object):
         if alias.external:
             self.encoding = ObjectEncoding.EXTERNAL
         elif not alias.dynamic:
-            if len(alias.static_attrs) == len(alias.encodable_properties):
+            if alias.encodable_properties is not None:
+                if len(alias.static_attrs) == len(alias.encodable_properties):
+                    self.encoding = ObjectEncoding.STATIC
+            else:
                 self.encoding = ObjectEncoding.STATIC
 
     def __repr__(self):

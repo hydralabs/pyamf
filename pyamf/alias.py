@@ -207,13 +207,11 @@ class ClassAlias(object):
         if self.external is None:
             self.external = False
 
-        if not self.static_attrs:
-            self.static_attrs = None
-        else:
+        if self.static_attrs:
             self.encodable_properties.update(self.static_attrs)
             self.decodable_properties.update(self.static_attrs)
 
-        if self.static_attrs is not None:
+        if self.static_attrs:
             if self.exclude_attrs:
                 self.static_attrs_set.difference_update(self.exclude_attrs)
 

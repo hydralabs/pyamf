@@ -35,7 +35,7 @@ class ClassAliasTestCase(ClassCacheClearingTestCase):
         self.assertFalse(x.external)
 
         self.assertEqual(x.readonly_attrs, None)
-        self.assertEqual(x.static_attrs, None)
+        self.assertEqual(x.static_attrs, [])
         self.assertEqual(x.exclude_attrs, None)
         self.assertEqual(x.proxy_attrs, None)
 
@@ -526,7 +526,7 @@ class SimpleCompliationTestCase(unittest.TestCase):
         b = ClassAlias(B, external=True)
 
         self.assertEqual(a.readonly_attrs, None)
-        self.assertEqual(a.static_attrs, None)
+        self.assertEqual(a.static_attrs, [])
         self.assertEqual(a.decodable_properties, None)
         self.assertEqual(a.encodable_properties, None)
         self.assertEqual(a.exclude_attrs, None)
@@ -541,7 +541,7 @@ class SimpleCompliationTestCase(unittest.TestCase):
         # now b
 
         self.assertEqual(b.readonly_attrs, None)
-        self.assertEqual(b.static_attrs, None)
+        self.assertEqual(b.static_attrs, [])
         self.assertEqual(b.decodable_properties, None)
         self.assertEqual(b.encodable_properties, None)
         self.assertEqual(b.exclude_attrs, None)

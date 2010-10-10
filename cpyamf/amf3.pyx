@@ -91,7 +91,10 @@ cdef class ClassDefinition(object):
         if alias.external:
             self.encoding = OBJECT_ENCODING_EXTERNAL
         elif not alias.dynamic:
-            if alias.static_attrs == alias.encodable_properties:
+            if alias.encodable_properties is not None:
+                if len(alias.static_attrs) == len(alias.encodable_properties):
+                    self.encoding = OBJECT_ENCODING_STATIC
+            else:
                 self.encoding = OBJECT_ENCODING_STATIC
 
     def __dealloc__(self):
