@@ -99,18 +99,22 @@ cdef class Decoder(codec.Decoder):
 
         raise pyamf.DecodeError('Bad boolean read from stream')
 
+    cdef object readBytes(self):
+        cdef object u
+
+        u = self.readString()
+
+        return self.context.getBytesForString(u)
+
     cpdef object readString(self):
         cdef unsigned short l
         cdef char *b = NULL
-        cdef object s
 
         l = self.stream.read_ushort()
 
         self.stream.read(&b, l)
 
-        s = PyString_FromStringAndSize(b, <Py_ssize_t>l)
-
-        return self.context.getStringForBytes(s)
+        return PyUnicode_DecodeUTF8(b, <Py_ssize_t>l, 'strict')
 
     cdef dict readObjectAttributes(self, object obj_attrs):
         cdef object key
@@ -124,7 +128,7 @@ cdef class Decoder(codec.Decoder):
 
                 break
 
-            key = self.readString()
+            key = self.readBytes()
 
             PyDict_SetItem(obj_attrs, key, self.readElement())
 
