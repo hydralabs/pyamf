@@ -46,8 +46,8 @@ cdef class Context(object):
     cpdef Py_ssize_t getObjectReference(self, object obj) except -2
     cpdef Py_ssize_t addObject(self, object obj) except -1
 
-    cpdef unicode getStringForBytes(self, object s)
-    cpdef str getBytesForString(self, object u)
+    cpdef object getStringForBytes(self, object s)
+    cpdef object getBytesForString(self, object u)
 
 
 cdef class Codec(object):
