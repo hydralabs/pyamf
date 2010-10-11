@@ -216,6 +216,7 @@ cdef class Context(object):
 
         self.class_aliases = {}
         self.unicodes = {}
+        self._strings = {}
         self.extra = {}
 
         return 0
@@ -256,41 +257,41 @@ cdef class Context(object):
 
         return alias
 
-    cpdef object getStringForBytes(self, object s):
+    cpdef unicode getStringForBytes(self, object s):
         """
         Returns the corresponding unicode object for a given string. If there
         is no unicode object, one is created.
 
         @since: 0.6
         """
-        cdef object h = hash(s)
-        cdef object ret = self.unicodes.get(h, None)
+        cdef object ret = self.unicodes.get(s, None)
 
         if ret is not None:
             return ret
 
-        cdef object u = s.decode('utf-8')
+        cdef unicode u = s.decode('utf-8')
 
-        self.unicodes[h] = u
+        self.unicodes[s] = u
+        self._strings[u] = s
 
         return u
 
-    cpdef object getBytesForString(self, object u):
+    cpdef str getBytesForString(self, object u):
         """
         Returns the corresponding utf-8 encoded string for a given unicode
         object. If there is no string, one is encoded.
 
         @since: 0.6
         """
-        cdef object h = hash(u)
-        cdef object ret = self.unicodes.get(h, None)
+        cdef object ret = self._strings.get(u, None)
 
         if ret is not None:
             return ret
 
         cdef str s = u.encode('utf-8')
 
-        self.unicodes[h] = s
+        self.unicodes[s] = u
+        self._strings[u] = s
 
         return s
 

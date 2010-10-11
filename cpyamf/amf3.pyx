@@ -282,6 +282,11 @@ cdef class Decoder(codec.Decoder):
 
         return d
 
+    cdef object readBytes(self):
+        cdef object s = self.readString()
+
+        return self.context.getBytesForString(s)
+
     cpdef object readString(self):
         """
         Reads and returns a string from the stream.
@@ -430,7 +435,7 @@ cdef class Decoder(codec.Decoder):
 
                 break
 
-            attr = self.readString()
+            attr = self.readBytes()
 
             PyDict_SetItem(obj, attr, self.readElement())
 
@@ -624,14 +629,17 @@ cdef class Encoder(codec.Encoder):
         """
         cdef Py_ssize_t l
         cdef int is_unicode = 0
+        cdef object s
 
         if PyUnicode_Check(u):
             l = PyUnicode_GET_SIZE(u)
-            is_unicode = 1
+            s = None
         elif PyString_Check(u):
-            l = PyString_GET_SIZE(u)
+            s = u
+            u = self.context.getStringForBytes(u)
+            l = PyString_GET_SIZE(s)
         else:
-            raise TypeError('expected str or unicode')
+            raise TypeError('Expected str or unicode')
 
         if l == 0:
             # '' is a special case
@@ -645,13 +653,13 @@ cdef class Encoder(codec.Encoder):
 
         self.context.addString(u)
 
-        if is_unicode:
-            u = PyUnicode_AsEncodedString(u, 'utf8', 'strict')
-            l = PyString_GET_SIZE(u)
+        if not s:
+            s = self.context.getBytesForString(u)
+            l = PyString_GET_SIZE(s)
 
         _encode_integer(self.stream, (l << 1) | REFERENCE_BIT)
 
-        return self.stream.write(PyString_AS_STRING(u), l)
+        return self.stream.write(PyString_AS_STRING(s), l)
 
     cdef int writeString(self, object s) except -1:
         self.writeType(TYPE_STRING)
@@ -659,7 +667,8 @@ cdef class Encoder(codec.Encoder):
 
     cdef int writeBytes(self, object s) except -1:
         self.writeType(TYPE_STRING)
-        self.serialiseString(s)
+
+        self.serialiseString(self.context.getStringForBytes(s))
 
     cdef int writeInt(self, object n) except -1:
         cdef long x = PyInt_AS_LONG(n)

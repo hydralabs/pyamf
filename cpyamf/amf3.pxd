@@ -47,6 +47,7 @@ cdef class Decoder(codec.Decoder):
     cdef int _readStatic(self, ClassDefinition class_def, dict obj) except -1
     cdef int _readDynamic(self, ClassDefinition class_def, dict obj) except -1
 
+    cdef object readBytes(self)
     cdef object readInteger(self, int signed=?)
     cdef object readByteArray(self)
     cdef object readProxy(self, obj)

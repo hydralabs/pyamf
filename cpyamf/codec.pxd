@@ -37,6 +37,7 @@ cdef class Context(object):
     cdef dict class_aliases
     cdef IndexedCollection objects
     cdef dict unicodes
+    cdef dict _strings
     cdef public dict extra
 
     cpdef int clear(self) except? -1
@@ -46,8 +47,8 @@ cdef class Context(object):
     cpdef Py_ssize_t getObjectReference(self, object obj) except -2
     cpdef Py_ssize_t addObject(self, object obj) except -1
 
-    cpdef object getStringForBytes(self, object s)
-    cpdef object getBytesForString(self, object u)
+    cpdef unicode getStringForBytes(self, object s)
+    cpdef str getBytesForString(self, object u)
 
 
 cdef class Codec(object):

@@ -507,8 +507,8 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
             yield u'\xff'
             yield pyamf.Undefined
 
-        self.assertEncoded(foo(), '\t\x07\x01\x04\x01\x04\x02\x04\x03\x06\x03'
-            '\xff\x00')
+        self.assertEncoded(foo(), '\t\x07\x01\x04\x01\x04\x02\x04\x03\x06\x05'
+            '\xc3\xbf\x00')
 
     def test_iterate(self):
         self.assertRaises(StopIteration, self.encoder.next)
