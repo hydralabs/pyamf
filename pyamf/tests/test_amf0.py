@@ -755,6 +755,18 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
     def test_bad_type(self):
         self.assertRaises(pyamf.DecodeError, self.decode, '\xff')
 
+    def test_kwargs(self):
+        """
+        Python <= 3 demand that kwargs keys be bytes instead of unicode/string.
+        """
+        def f(**kwargs):
+            self.assertEqual(kwargs, {'a': 'a'})
+
+        kwargs = self.decode('\x03\x00\x01a\x02\x00\x01a\x00\x00\t')
+
+        f(**kwargs)
+
+
 
 class RecordSetTestCase(unittest.TestCase, EncoderMixIn, DecoderMixIn):
     """
