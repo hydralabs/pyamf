@@ -1,4 +1,5 @@
 *.pyc
+*.class
 PyAMF.egg-info/
 _trial_temp/
 build/
