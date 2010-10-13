@@ -10,6 +10,8 @@ C-extension for L{pyamf.amf3} Python module in L{PyAMF<pyamf>}.
 from cpython cimport *
 from libc.stdlib cimport malloc, free
 
+cimport cython
+
 from cpyamf.util cimport cBufferedByteStream, BufferedByteStream
 from cpyamf cimport codec
 import pyamf
@@ -89,7 +91,10 @@ cdef class ClassDefinition(object):
         if alias.external:
             self.encoding = OBJECT_ENCODING_EXTERNAL
         elif not alias.dynamic:
-            if alias.static_attrs == alias.encodable_properties:
+            if alias.encodable_properties is not None:
+                if len(alias.static_attrs) == len(alias.encodable_properties):
+                    self.encoding = OBJECT_ENCODING_STATIC
+            else:
                 self.encoding = OBJECT_ENCODING_STATIC
 
     def __dealloc__(self):
@@ -164,13 +169,10 @@ cdef class Context(codec.Context):
     cpdef Py_ssize_t getStringReference(self, object s) except -2:
         return self.strings.getReferenceTo(s)
 
-    cpdef Py_ssize_t addString(self, str s) except -1:
+    cpdef Py_ssize_t addString(self, object s) except -1:
         """
         Returns -2 which signifies that s was empty
         """
-        if PyString_GET_SIZE(s) == 0:
-            return -2
-
         return self.strings.append(s)
 
     cpdef object getClassByReference(self, Py_ssize_t ref):
@@ -280,7 +282,12 @@ cdef class Decoder(codec.Decoder):
 
         return d
 
-    cpdef object readString(self, bint bytes=0):
+    cdef object readBytes(self):
+        cdef object s = self.readString()
+
+        return self.context.getBytesForString(s)
+
+    cpdef object readString(self):
         """
         Reads and returns a string from the stream.
         """
@@ -289,36 +296,21 @@ cdef class Decoder(codec.Decoder):
 
         if r & REFERENCE_BIT == 0:
             # read a string reference
-            s = self.context.getString(r >> 1)
-
-            if bytes == 1:
-                return s
-
-            return self.context.getStringForBytes(s)
+            return self.context.getString(r >> 1)
 
         r >>= 1
 
         if r == 0:
-            if bytes:
-                return empty_string
-
             return empty_unicode
 
         cdef char *buf = NULL
 
-        try:
-            self.stream.read(&buf, r)
-            s = PyString_FromStringAndSize(buf, r)
-        finally:
-            if buf != NULL:
-                free(buf)
+        self.stream.read(&buf, r)
+        s = PyUnicode_DecodeUTF8(buf, r, 'strict')
 
         self.context.addString(s)
 
-        if bytes == 1:
-            return s
-
-        return self.context.getStringForBytes(s)
+        return s
 
     cdef object readDate(self):
         """
@@ -352,15 +344,15 @@ cdef class Decoder(codec.Decoder):
         cdef int i
         cdef list result
         cdef object tmp
-        cdef str key
+        cdef unicode key
 
         if size & REFERENCE_BIT == 0:
             return self.context.getObject(size >> 1)
 
         size >>= 1
-        key = self.readString(1)
+        key = self.readString()
 
-        if PyString_Size(key) == 0:
+        if PyUnicode_GetSize(key) == 0:
             # integer indexes only -> python list
             result = []
             self.context.addObject(result)
@@ -373,9 +365,9 @@ cdef class Decoder(codec.Decoder):
         tmp = pyamf.MixedArray()
         self.context.addObject(result)
 
-        while PyString_Size(key):
+        while PyUnicode_GetSize(key):
             tmp[key] = self.readElement()
-            key = self.readString(1)
+            key = self.readString()
 
         for i from 0 <= i < size:
             el = self.readElement()
@@ -392,11 +384,11 @@ cdef class Decoder(codec.Decoder):
 
         ref >>= 1
 
-        cdef object name = self.readString(1)
+        cdef object name = self.readString()
         cdef object alias = None
         cdef Py_ssize_t i
 
-        if PyString_GET_SIZE(name) == 0:
+        if PyUnicode_GET_SIZE(name) == 0:
             name = pyamf.ASObject
 
         try:
@@ -415,12 +407,13 @@ cdef class Decoder(codec.Decoder):
 
         if class_def.attr_len > 0:
             for i from 0 <= i < class_def.attr_len:
-                class_def.static_properties.append(self.readString(1))
+                class_def.static_properties.append(self.readString())
 
         self.context.addClass(class_def, alias.klass)
 
         return class_def
 
+    @cython.boundscheck(False)
     cdef int _readStatic(self, ClassDefinition class_def, dict obj) except -1:
         cdef Py_ssize_t i
 
@@ -430,15 +423,21 @@ cdef class Decoder(codec.Decoder):
         return 0
 
     cdef int _readDynamic(self, ClassDefinition class_def, dict obj) except -1:
-        cdef str attr
+        cdef object attr
+        cdef char *peek
+
 
         while True:
-            attr = self.readString(1)
+            self.stream.peek(&peek, 1)
 
-            if len(attr) == 0:
+            if peek[0] == REF_CHAR:
+                self.stream.seek(1, 1)
+
                 break
 
-            obj[attr] = self.readElement()
+            attr = self.readBytes()
+
+            PyDict_SetItem(obj, attr, self.readElement())
 
         return 0
 
@@ -508,12 +507,8 @@ cdef class Decoder(codec.Decoder):
         cdef char *buf = NULL
         cdef object s
 
-        try:
-            self.stream.read(&buf, ref)
-            s = PyString_FromStringAndSize(buf, ref)
-        finally:
-            if buf != NULL:
-                free(buf)
+        self.stream.read(&buf, ref)
+        s = PyString_FromStringAndSize(buf, ref)
 
         x = xml.fromstring(s)
         self.context.addObject(x)
@@ -540,12 +535,8 @@ cdef class Decoder(codec.Decoder):
 
         ref >>= 1
 
-        try:
-            self.stream.read(&buf, ref)
-            s = PyString_FromStringAndSize(buf, ref)
-        finally:
-            if buf != NULL:
-                free(buf)
+        self.stream.read(&buf, ref)
+        s = PyString_FromStringAndSize(buf, ref)
 
         if zlib:
             try:
@@ -572,7 +563,7 @@ cdef class Decoder(codec.Decoder):
 
     cdef object readConcreteElement(self, char t):
         if t == TYPE_STRING:
-            return self.readString(0)
+            return self.readString()
         elif t == TYPE_OBJECT:
             return self.readObject()
         elif t == TYPE_UNDEFINED:
@@ -632,61 +623,52 @@ cdef class Encoder(codec.Encoder):
 
         return self.writeType(TYPE_BOOL_FALSE)
 
-    cpdef int serialiseString(self, s) except -1:
+    cpdef int serialiseString(self, u) except -1:
         """
-        Similar to L{writeString} but does not encode a type byte.
+        Serialises a unicode object.
         """
-        if PyUnicode_CheckExact(s):
-            s = self.context.getBytesForString(s)
+        cdef Py_ssize_t l
+        cdef int is_unicode = 0
+        cdef object s
 
-        l = PyString_GET_SIZE(s)
+        if PyUnicode_Check(u):
+            l = PyUnicode_GET_SIZE(u)
+            s = None
+        elif PyString_Check(u):
+            s = u
+            u = self.context.getStringForBytes(u)
+            l = PyString_GET_SIZE(s)
+        else:
+            raise TypeError('Expected str or unicode')
 
         if l == 0:
             # '' is a special case
             return self.stream.write(&REF_CHAR, 1)
 
-        r = self.context.getStringReference(s)
+        r = self.context.getStringReference(u)
 
         if r != -1:
             # we have a reference
-
             return _encode_integer(self.stream, r << 1)
 
-        self.context.addString(s)
+        self.context.addString(u)
+
+        if not s:
+            s = self.context.getBytesForString(u)
+            l = PyString_GET_SIZE(s)
 
         _encode_integer(self.stream, (l << 1) | REFERENCE_BIT)
 
         return self.stream.write(PyString_AS_STRING(s), l)
 
     cdef int writeString(self, object s) except -1:
-        s = self.context.getBytesForString(s)
-
-        return self.writeBytes(s)
+        self.writeType(TYPE_STRING)
+        self.serialiseString(s)
 
     cdef int writeBytes(self, object s) except -1:
-        cdef Py_ssize_t l
-        cdef Py_ssize_t r
-
         self.writeType(TYPE_STRING)
 
-        l = PyString_GET_SIZE(s)
-
-        if l == 0:
-            # '' is a special case
-            return self.stream.write(&REF_CHAR, 1)
-
-        r = self.context.getStringReference(s)
-
-        if r != -1:
-            # we have a reference
-
-            return _encode_integer(self.stream, r << 1)
-
-        self.context.addString(s)
-
-        _encode_integer(self.stream, (l << 1) | REFERENCE_BIT)
-
-        return self.stream.write(PyString_AS_STRING(s), l)
+        self.serialiseString(self.context.getStringForBytes(s))
 
     cdef int writeInt(self, object n) except -1:
         cdef long x = PyInt_AS_LONG(n)
@@ -1154,8 +1136,4 @@ cdef inline int _encode_integer(cBufferedByteStream stream, int i) except -1:
 
 
 cdef inline Py_ssize_t _read_ref(cBufferedByteStream stream) except -1:
-    cdef Py_ssize_t ref = 0
-
-    ref = <Py_ssize_t>decode_int(stream, 0)
-
-    return ref
+    return <Py_ssize_t>decode_int(stream, 0)

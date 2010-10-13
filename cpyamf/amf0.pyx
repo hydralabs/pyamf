@@ -99,50 +99,47 @@ cdef class Decoder(codec.Decoder):
 
         raise pyamf.DecodeError('Bad boolean read from stream')
 
-    cpdef object readString(self, bint bytes=0):
+    cdef object readBytes(self):
+        cdef object u
+
+        u = self.readString()
+
+        return self.context.getBytesForString(u)
+
+    cpdef object readString(self):
         cdef unsigned short l
         cdef char *b = NULL
-        cdef object s
 
         l = self.stream.read_ushort()
 
-        try:
-            self.stream.read(&b, l)
-            s = PyString_FromStringAndSize(b, <Py_ssize_t>l)
-        finally:
-            if b != NULL:
-                free(b)
+        self.stream.read(&b, l)
 
-        if bytes:
-            return s
+        return PyUnicode_DecodeUTF8(b, <Py_ssize_t>l, 'strict')
 
-        return self.context.getStringForBytes(s)
-
-    cdef dict readObjectAttributes(self, obj):
-        cdef dict obj_attrs = {}
+    cdef dict readObjectAttributes(self, object obj_attrs):
+        cdef object key
         cdef char *peek = NULL
 
-        cdef object key = self.readString(1)
+        while True:
+            self.stream.peek(&peek, 3)
 
-        self.stream.peek(&peek, 1)
+            if memcmp(peek, b'\x00\x00\x09', 3) == 0:
+                self.stream.seek(3, 1)
 
-        while peek[0] != TYPE_OBJECTTERM:
-            obj_attrs[key] = self.readElement()
-            key = self.readString(1)
+                break
 
-            self.stream.peek(&peek, 1)
+            key = self.readBytes()
+
+            PyDict_SetItem(obj_attrs, key, self.readElement())
 
         # discard the end marker (TYPE_OBJECTTERM)
-        self.stream.seek(1, 1)
-
-        return obj_attrs
 
     cdef object readObject(self):
         cdef object obj = ASObject()
 
         self.context.addObject(obj)
 
-        obj.update(self.readObjectAttributes(obj))
+        self.readObjectAttributes(obj)
 
         return obj
 
@@ -160,7 +157,10 @@ cdef class Decoder(codec.Decoder):
         obj = alias.createInstance(codec=self)
         self.context.addObject(obj)
 
-        attrs = self.readObjectAttributes(obj)
+        cdef dict attrs = {}
+
+        self.readObjectAttributes(attrs)
+
         alias.applyAttributes(obj, attrs, codec=self)
 
         return obj
@@ -206,7 +206,7 @@ cdef class Decoder(codec.Decoder):
         l = self.stream.read_ulong()
 
         for i from 0 <= i < l:
-            obj.append(self.readElement())
+            PyList_Append(obj, self.readElement())
 
         return obj
 
@@ -234,12 +234,8 @@ cdef class Decoder(codec.Decoder):
 
         l = self.stream.read_ulong()
 
-        try:
-            self.stream.read(&b, l)
-            s = PyString_FromStringAndSize(b, <Py_ssize_t>l)
-        finally:
-            if b != NULL:
-                free(b)
+        self.stream.read(&b, l)
+        s = PyString_FromStringAndSize(b, <Py_ssize_t>l)
 
         if bytes:
             return s

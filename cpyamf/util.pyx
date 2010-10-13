@@ -11,6 +11,7 @@ from cpython cimport *
 from libc.stdlib cimport *
 from libc.string cimport *
 
+cimport cython
 
 cdef extern from "stdio.h":
     int SIZEOF_LONG
@@ -54,10 +55,11 @@ cdef object pyamf_PosInf = python.PosInf
 cdef object empty_unicode = unicode('')
 
 
+@cython.profile(False)
 cdef int _memcpy_ensure_endian(void *src, void *dest, unsigned int size) nogil:
     """
     """
-    cdef unsigned char *buf = <unsigned char *>malloc(sizeof(double))
+    cdef unsigned char *buf = <unsigned char *>malloc(size)
 
     if buf == NULL:
         return -1
@@ -114,6 +116,7 @@ cdef int build_platform_exceptional_floats() except -1:
     return 0
 
 
+@cython.profile(False)
 cdef char get_native_endian() nogil:
     """
     A quick hack to determine the system's endian-ness ...
@@ -129,6 +132,7 @@ cdef char get_native_endian() nogil:
         return ENDIAN_LITTLE
 
 
+@cython.profile(False)
 cdef inline bint is_big_endian(char endian) nogil:
     """
     Returns a boolean value whether the supplied C{endian} is big.
@@ -139,6 +143,7 @@ cdef inline bint is_big_endian(char endian) nogil:
     return endian == ENDIAN_NETWORK or endian == ENDIAN_BIG
 
 
+@cython.profile(False)
 cdef inline int is_native_endian(char endian) nogil:
     if endian == ENDIAN_NATIVE:
         return 1
@@ -149,6 +154,7 @@ cdef inline int is_native_endian(char endian) nogil:
     return endian == SYSTEM_ENDIAN
 
 
+@cython.profile(False)
 cdef inline int swap_bytes(unsigned char *buffer, Py_ssize_t size) nogil:
     cdef unsigned char *buf = <unsigned char *>malloc(size)
 
@@ -296,6 +302,8 @@ cdef class cBufferedByteStream(object):
         """
         Reads up to the specified number of bytes from the stream into
         the specified byte array of specified length.
+
+        Do not free the results or bad things will happen
         """
         if size == -1:
             size = self.remaining()
@@ -306,12 +314,8 @@ cdef class cBufferedByteStream(object):
         if not self.has_available(size):
             raise IOError
 
-        buf[0] = <char *>malloc(size)
+        buf[0] = self.buffer + self.pos
 
-        if buf[0] == NULL:
-            PyErr_NoMemory()
-
-        memcpy(buf[0], self.buffer + self.pos, size)
         self.pos += size
 
         return 0
@@ -719,12 +723,8 @@ cdef class cBufferedByteStream(object):
         if l == 0:
             return empty_unicode
 
-        try:
-            self.read(&buf, l)
-            ret = PyUnicode_DecodeUTF8(buf, l, 'strict')
-        finally:
-            if buf != NULL:
-                free(buf)
+        self.read(&buf, l)
+        ret = PyUnicode_DecodeUTF8(buf, l, 'strict')
 
         return ret
 
@@ -758,48 +758,44 @@ cdef class cBufferedByteStream(object):
         cdef unsigned char *buf = NULL
         cdef int done = 0
 
-        try:
-            self.read(<char **>&buf, 8)
+        self.read(<char **>&buf, 8)
 
-            if float_broken == 1:
-                if is_big_endian(SYSTEM_ENDIAN):
-                    if not is_big_endian(self.endian):
-                        if swap_bytes(buf, 8) == -1:
-                            PyErr_NoMemory()
-                else:
-                    if is_big_endian(self.endian):
-                        if swap_bytes(buf, 8) == -1:
-                            PyErr_NoMemory()
+        if float_broken == 1:
+            if is_big_endian(SYSTEM_ENDIAN):
+                if not is_big_endian(self.endian):
+                    if swap_bytes(buf, 8) == -1:
+                        PyErr_NoMemory()
+            else:
+                if is_big_endian(self.endian):
+                    if swap_bytes(buf, 8) == -1:
+                        PyErr_NoMemory()
 
-                if memcmp(buf, &system_nan, 8) == 0:
-                    memcpy(obj, &system_nan, 8)
+            if memcmp(buf, &system_nan, 8) == 0:
+                memcpy(obj, &system_nan, 8)
 
-                    done = 1
-                elif memcmp(buf, &system_posinf, 8) == 0:
-                    memcpy(obj, &system_posinf, 8)
+                done = 1
+            elif memcmp(buf, &system_posinf, 8) == 0:
+                memcpy(obj, &system_posinf, 8)
 
-                    done = 1
-                elif memcmp(buf, &system_neginf, 8) == 0:
-                    memcpy(obj, &system_neginf, 8)
+                done = 1
+            elif memcmp(buf, &system_neginf, 8) == 0:
+                memcpy(obj, &system_neginf, 8)
 
-                    done = 1
+                done = 1
 
-                if done == 1:
-                    return 0
+            if done == 1:
+                return 0
 
-                if is_big_endian(SYSTEM_ENDIAN):
-                    if not is_big_endian(self.endian):
-                        if swap_bytes(buf, 8) == -1:
-                            PyErr_NoMemory()
-                else:
-                    if is_big_endian(self.endian):
-                        if swap_bytes(buf, 8) == -1:
-                            PyErr_NoMemory()
+            if is_big_endian(SYSTEM_ENDIAN):
+                if not is_big_endian(self.endian):
+                    if swap_bytes(buf, 8) == -1:
+                        PyErr_NoMemory()
+            else:
+                if is_big_endian(self.endian):
+                    if swap_bytes(buf, 8) == -1:
+                        PyErr_NoMemory()
 
-            obj[0] = _PyFloat_Unpack8(buf, not is_big_endian(self.endian))
-        finally:
-            if buf != NULL:
-                free(buf)
+        obj[0] = _PyFloat_Unpack8(buf, not is_big_endian(self.endian))
 
         return 0
 
@@ -860,13 +856,9 @@ cdef class cBufferedByteStream(object):
         cdef char *buf = NULL
         cdef unsigned char le = not is_big_endian(self.endian)
 
-        try:
-            self.read(&buf, 4)
+        self.read(&buf, 4)
 
-            x[0] = _PyFloat_Unpack4(<unsigned char *>buf, le)
-        finally:
-            if buf != NULL:
-                free(buf)
+        x[0] = _PyFloat_Unpack4(<unsigned char *>buf, le)
 
         return 0
 
@@ -973,15 +965,9 @@ cdef class BufferedByteStream(cBufferedByteStream):
 
         cdef char *buf = NULL
 
-        try:
-            cBufferedByteStream.read(self, &buf, s)
+        cBufferedByteStream.read(self, &buf, s)
 
-            r = PyString_FromStringAndSize(buf, s)
-        finally:
-            if buf != NULL:
-                free(buf)
-
-        return r
+        return PyString_FromStringAndSize(buf, s)
 
     def write(self, x, size=-1):
         """

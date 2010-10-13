@@ -37,6 +37,7 @@ cdef class Context(object):
     cdef dict class_aliases
     cdef IndexedCollection objects
     cdef dict unicodes
+    cdef dict _strings
     cdef public dict extra
 
     cpdef int clear(self) except? -1
@@ -63,7 +64,7 @@ cdef class Codec(object):
 
 cdef class Decoder(Codec):
     cdef object readDate(self)
-    cpdef object readString(self, bint bytes=?)
+    cpdef object readString(self)
     cdef object readObject(self)
     cdef object readNumber(self)
     cdef object readNull(self)

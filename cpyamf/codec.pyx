@@ -1,3 +1,4 @@
+# cython: boundscheck=False
 # Copyright (c) The PyAMF Project.
 # See LICENSE.txt for details.
 
@@ -8,7 +9,6 @@ C-extension for L{pyamf.amf3} Python module in L{PyAMF<pyamf>}.
 """
 
 from cpython cimport *
-from libc.stdlib cimport free
 
 cdef extern from "datetime.h":
     void PyDateTime_IMPORT()
@@ -216,6 +216,7 @@ cdef class Context(object):
 
         self.class_aliases = {}
         self.unicodes = {}
+        self._strings = {}
         self.extra = {}
 
         return 0
@@ -263,15 +264,15 @@ cdef class Context(object):
 
         @since: 0.6
         """
-        cdef object h = hash(s)
-        cdef object ret = self.unicodes.get(h, None)
+        cdef object ret = self.unicodes.get(s, None)
 
         if ret is not None:
             return ret
 
         cdef unicode u = s.decode('utf-8')
 
-        self.unicodes[h] = u
+        self.unicodes[s] = u
+        self._strings[u] = s
 
         return u
 
@@ -282,15 +283,15 @@ cdef class Context(object):
 
         @since: 0.6
         """
-        cdef object h = hash(u)
-        cdef object ret = self.unicodes.get(h, None)
+        cdef object ret = self._strings.get(u, None)
 
         if ret is not None:
             return ret
 
         cdef str s = u.encode('utf-8')
 
-        self.unicodes[h] = s
+        self.unicodes[s] = u
+        self._strings[u] = s
 
         return s
 
@@ -334,7 +335,7 @@ cdef class Decoder(Codec):
     cdef object readDate(self):
         raise NotImplementedError
 
-    cpdef object readString(self, bint bytes=0):
+    cpdef object readString(self):
         raise NotImplementedError
 
     cdef object readObject(self):
@@ -394,8 +395,6 @@ cdef class Decoder(Codec):
             return self.readElement()
         except pyamf.EOStream:
             # all data was successfully decoded from the stream
-            self.stream.consume()
-
             raise StopIteration
 
     def __iter__(self):
@@ -609,12 +608,9 @@ cdef class Encoder(Codec):
 
         self.stream.seek(start_pos)
 
-        try:
-            self.stream.read(&buf, end_pos - start_pos)
-            return PyString_FromStringAndSize(buf, end_pos - start_pos)
-        finally:
-            if buf != NULL:
-                free(buf)
+        self.stream.read(&buf, end_pos - start_pos)
+
+        return PyString_FromStringAndSize(buf, end_pos - start_pos)
 
     def __iter__(self):
         return self

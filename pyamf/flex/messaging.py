@@ -66,7 +66,6 @@ class AbstractMessage(object):
         amf3 = True
         static = ('body', 'clientId', 'destination', 'headers', 'messageId',
             'timestamp', 'timeToLive')
-        dynamic = False
 
     #: Each message pushed from the server will contain this header identifying
     #: the client that will receive the message.
@@ -367,10 +366,6 @@ class CommandMessage(AsyncMessage):
         AsyncMessage.__init__(self, *args, **kwargs)
 
         self.operation = kwargs.get('operation', None)
-        #: Remote destination belonging to a specific service, based upon
-        #: whether this message type matches the message type the service
-        #: handles.
-        self.messageRefType = kwargs.get('messageRefType', None)
 
     def __readamf__(self, input):
         AsyncMessage.__readamf__(self, input)

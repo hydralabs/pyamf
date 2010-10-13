@@ -28,7 +28,7 @@ cdef class Context(codec.Context):
 
     cpdef object getString(self, Py_ssize_t ref)
     cpdef Py_ssize_t getStringReference(self, object s) except -2
-    cpdef Py_ssize_t addString(self, str s) except -1
+    cpdef Py_ssize_t addString(self, object s) except -1
 
     cpdef int addProxyObject(self, object obj, object proxied) except? -1
     cpdef object getProxyForObject(self, object obj)
@@ -47,6 +47,7 @@ cdef class Decoder(codec.Decoder):
     cdef int _readStatic(self, ClassDefinition class_def, dict obj) except -1
     cdef int _readDynamic(self, ClassDefinition class_def, dict obj) except -1
 
+    cdef object readBytes(self)
     cdef object readInteger(self, int signed=?)
     cdef object readByteArray(self)
     cdef object readProxy(self, obj)

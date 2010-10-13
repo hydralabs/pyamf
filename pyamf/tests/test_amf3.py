@@ -504,11 +504,11 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
     def test_generator(self):
         def foo():
             yield [1, 2, 3]
-            yield '\xff'
+            yield u'\xff'
             yield pyamf.Undefined
 
-        self.assertEncoded(foo(), '\t\x07\x01\x04\x01\x04\x02\x04\x03\x06\x03'
-            '\xff\x00')
+        self.assertEncoded(foo(), '\t\x07\x01\x04\x01\x04\x02\x04\x03\x06\x05'
+            '\xc3\xbf\x00')
 
     def test_iterate(self):
         self.assertRaises(StopIteration, self.encoder.next)
@@ -682,8 +682,6 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         self.buf.seek(0)
         d = self.decoder.readElement()
 
-        self.assertEqual(type(d.keys()[0]), str)
-
     def test_object(self):
         pyamf.register_class(Spam, 'org.pyamf.spam')
 
@@ -804,6 +802,17 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
 
     def test_bad_type(self):
         self.assertRaises(pyamf.DecodeError, self.decode, '\xff')
+
+    def test_kwargs(self):
+        """
+        Python <= 3 demand that kwargs keys be bytes instead of unicode/string.
+        """
+        def f(**kwargs):
+            self.assertEqual(kwargs, {'spam': 'eggs'})
+
+        kwargs = self.decode('\n\x0b\x01\tspam\x06\teggs\x01')
+
+        f(**kwargs)
 
 
 class ObjectEncodingTestCase(ClassCacheClearingTestCase, EncoderMixIn):

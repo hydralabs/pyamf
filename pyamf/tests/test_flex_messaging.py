@@ -179,7 +179,7 @@ class SmallMessageTestCase(unittest.TestCase):
         m = a.getSmallMessage()
 
         k = kwargs.copy()
-        k.update({'operation': 'yay', 'correlationId': None, 'messageRefType': None})
+        k.update({'operation': 'yay', 'correlationId': None})
 
         self.assertTrue(isinstance(m, messaging.CommandMessageExt))
         self.assertEqual(m.__dict__, k)
