@@ -247,7 +247,7 @@ class ClassAliasTestCase(BaseClassAliasTestCase):
         self.assertTrue(hasattr(self.alias, 'mapper'))
         self.assertEqual(id(mapper), id(self.alias.mapper))
 
-        self.assertEqual(self.alias.static_attrs, None)
+        self.assertEqual(self.alias.static_attrs, [])
 
     def test_get_attrs(self):
         u = self._build_obj()
@@ -395,3 +395,21 @@ class AdapterTestCase(BaseTestCase):
     def test_not_mapped(self):
         self.assertRaises(adapter.UnmappedInstanceError, adapter.class_mapper, Spam)
         self.assertFalse(adapter.is_class_sa_mapped(Spam))
+
+
+class ExcludableAttrsTestCase(BaseTestCase):
+    """
+    Tests for #790
+    """
+
+    def test_core_attrs(self):
+        """
+        Ensure that sa_key and sa_lazy can be excluded
+        """
+        a = adapter.SaMappedClassAlias(Address, exclude_attrs=['sa_lazy', 'sa_key'])
+        u = Address()
+
+        attrs = a.getEncodableAttributes(u)
+
+        self.assertFalse('sa_key' in attrs)
+        self.assertFalse('sa_lazy' in attrs)

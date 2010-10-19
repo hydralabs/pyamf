@@ -56,6 +56,9 @@ class SaMappedClassAlias(pyamf.ClassAlias):
         self.encodable_properties.update(self.properties)
         self.decodable_properties.update(self.properties)
 
+        self.exclude_sa_key = self.KEY_ATTR in self.exclude_attrs
+        self.exclude_sa_lazy = self.LAZY_ATTR in self.exclude_attrs
+
     def getEncodableAttributes(self, obj, **kwargs):
         """
         Returns a C{tuple} containing a dict of static and dynamic attributes
@@ -63,20 +66,19 @@ class SaMappedClassAlias(pyamf.ClassAlias):
         """
         attrs = pyamf.ClassAlias.getEncodableAttributes(self, obj, **kwargs)
 
-        if not attrs:
-            attrs = {}
+        if not self.exclude_sa_key:
+            # primary_key_from_instance actually changes obj.__dict__ if
+            # primary key properties do not already exist in obj.__dict__
+            attrs[self.KEY_ATTR] = self.mapper.primary_key_from_instance(obj)
 
-        lazy_attrs = []
+        if not self.exclude_sa_lazy:
+            lazy_attrs = []
 
-        # primary_key_from_instance actually changes obj.__dict__ if
-        # primary key properties do not already exist in obj.__dict__
-        attrs[self.KEY_ATTR] = self.mapper.primary_key_from_instance(obj)
+            for attr in self.properties:
+                if attr not in obj.__dict__:
+                    lazy_attrs.append(attr)
 
-        for attr in self.properties:
-            if attr not in obj.__dict__:
-                lazy_attrs.append(attr)
-
-        attrs[self.LAZY_ATTR] = lazy_attrs
+            attrs[self.LAZY_ATTR] = lazy_attrs
 
         return attrs
 
