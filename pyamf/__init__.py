@@ -30,7 +30,7 @@ __all__ = [
 ]
 
 #: PyAMF version number.
-__version__ = version = v.Version(0, 6, 0, 'b2')
+__version__ = version = v.Version(0, 6)
 
 #: Class alias mapping support. Contains two types of keys: The string alias
 #: related to the class and the class object itself. Both point to the linked
@@ -596,7 +596,7 @@ def add_error_class(klass, code):
 
         >>> class AuthenticationError(Exception):
         ...     pass
-        ... 
+        ...
         >>> pyamf.add_error_class(AuthenticationError, 'Auth.Failed')
         >>> print pyamf.ERROR_CLASS_MAP
         {'TypeError': <type 'exceptions.TypeError'>, 'IndexError': <type 'exceptions.IndexError'>,
