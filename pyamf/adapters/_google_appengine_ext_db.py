@@ -139,6 +139,8 @@ class DataStoreClassAlias(pyamf.ClassAlias):
         if not self.properties:
             self.properties = None
 
+        self.no_key_attr = self.KEY_ATTR in self.exclude_attrs
+
     def getEncodableAttributes(self, obj, codec=None):
         attrs = pyamf.ClassAlias.getEncodableAttributes(self, obj, codec=codec)
 
@@ -166,7 +168,8 @@ class DataStoreClassAlias(pyamf.ClassAlias):
         for attr in obj.dynamic_properties():
             attrs[attr] = getattr(obj, attr)
 
-        attrs[self.KEY_ATTR] = str(obj.key()) if obj.is_saved() else None
+        if not self.no_key_attr:
+            attrs[self.KEY_ATTR] = str(obj.key()) if obj.is_saved() else None
 
         return attrs
 
@@ -174,11 +177,7 @@ class DataStoreClassAlias(pyamf.ClassAlias):
         return ModelStub(self.klass)
 
     def getDecodableAttributes(self, obj, attrs, codec=None):
-        try:
-            key = attrs[self.KEY_ATTR]
-        except KeyError:
-            key = attrs[self.KEY_ATTR] = None
-
+        key = attrs.setdefault(self.KEY_ATTR, None)
         attrs = pyamf.ClassAlias.getDecodableAttributes(self, obj, attrs, codec=codec)
 
         del attrs[self.KEY_ATTR]

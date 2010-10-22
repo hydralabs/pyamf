@@ -704,3 +704,30 @@ class AuthTestCase(BaseTestCase):
         self.assertEqual(alias, 'django.contrib.auth.models.User')
         self.assertEqual(alias.exclude_attrs, ('message_set', 'password'))
         self.assertEqual(alias.readonly_attrs, ('username',))
+
+
+class DBColumnTestCase(BaseTestCase):
+    """
+    Tests for #807
+    """
+
+    def setUp(self):
+        BaseTestCase.setUp(self)
+
+        self.alias = adapter.DjangoClassAlias(models.DBColumnModel, None)
+        self.model = models.DBColumnModel()
+
+    def test_encodable_attrs(self):
+        def attrs():
+            return self.alias.getEncodableAttributes(self.model)
+
+        self.assertEqual(attrs(), {'id': None})
+
+        x = models.SimplestModel()
+
+        x.save()
+        self.addCleanup(x.delete)
+
+        self.model.bar = x
+
+        self.assertEqual(attrs(), {'id': None, 'bar': x})

@@ -118,3 +118,10 @@ try:
         text = models.CharField(max_length=64)
 except ImportError:
     pass
+
+
+class DBColumnModel(models.Model):
+    """
+    @see: #807
+    """
+    bar = models.ForeignKey(SimplestModel, db_column='custom')

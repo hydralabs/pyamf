@@ -172,7 +172,7 @@ class DjangoClassAlias(pyamf.ClassAlias):
             if isinstance(relation, related.ManyToManyField):
                 attrs[name] = [x for x in getattr(obj, name).all()]
             else:
-                del attrs[relation.column]
+                del attrs[relation.attname]
 
         return attrs
 

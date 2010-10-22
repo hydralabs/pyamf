@@ -628,16 +628,13 @@ cdef class Encoder(codec.Encoder):
         Serialises a unicode object.
         """
         cdef Py_ssize_t l
-        cdef int is_unicode = 0
-        cdef object s
+        cdef bint is_unicode = 0
 
         if PyUnicode_Check(u):
             l = PyUnicode_GET_SIZE(u)
-            s = None
+            is_unicode = 1
         elif PyString_Check(u):
-            s = u
-            u = self.context.getStringForBytes(u)
-            l = PyString_GET_SIZE(s)
+            l = PyString_GET_SIZE(u)
         else:
             raise TypeError('Expected str or unicode')
 
@@ -653,13 +650,13 @@ cdef class Encoder(codec.Encoder):
 
         self.context.addString(u)
 
-        if not s:
-            s = self.context.getBytesForString(u)
-            l = PyString_GET_SIZE(s)
+        if is_unicode:
+            u = self.context.getBytesForString(u)
+            l = PyString_GET_SIZE(u)
 
         _encode_integer(self.stream, (l << 1) | REFERENCE_BIT)
 
-        return self.stream.write(PyString_AS_STRING(s), l)
+        return self.stream.write(PyString_AS_STRING(u), l)
 
     cdef int writeString(self, object s) except -1:
         self.writeType(TYPE_STRING)
@@ -667,8 +664,7 @@ cdef class Encoder(codec.Encoder):
 
     cdef int writeBytes(self, object s) except -1:
         self.writeType(TYPE_STRING)
-
-        self.serialiseString(self.context.getStringForBytes(s))
+        self.serialiseString(s)
 
     cdef int writeInt(self, object n) except -1:
         cdef long x = PyInt_AS_LONG(n)
