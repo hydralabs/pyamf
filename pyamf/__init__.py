@@ -30,7 +30,7 @@ __all__ = [
 ]
 
 #: PyAMF version number.
-__version__ = version = v.Version(0, 6, 0)
+__version__ = version = v.Version(0, 6)
 
 #: Class alias mapping support. Contains two types of keys: The string alias
 #: related to the class and the class object itself. Both point to the linked
