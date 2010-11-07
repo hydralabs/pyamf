@@ -6,7 +6,12 @@ versions of PyAMF.
 
 .. contents::
 
-0.6 (unreleased)
+
+Next version
+------------
+
+
+0.6 (21-10-2010)
 ----------------
 - Added generator support (Ticket:793,800)
 - Fixed issue with ``amf3.use_proxy_default=True`` and Flex messaging
