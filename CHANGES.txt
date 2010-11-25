@@ -6,7 +6,12 @@ versions of PyAMF.
 
 .. contents::
 
-0.6 (unreleased)
+
+Next version
+------------
+
+
+0.6 (21-10-2010)
 ----------------
 - Ability to exclude 'stock' attributes with AppEngine Datastore/SQLAlchemy
   (Ticket:790)

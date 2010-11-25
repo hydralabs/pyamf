@@ -7,8 +7,9 @@
 PyAMF is released under the :doc:`MIT license <../license>`. For installation
 instructions, see the included :doc:`Installation Guide <../install>`.
 
+
 Latest Stable Release - 0.6
-==================================
+===========================
 
 :doc:`../whatsnew/0.6`
 
