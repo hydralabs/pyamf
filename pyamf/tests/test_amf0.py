@@ -101,6 +101,11 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
     def test_dict(self):
         self.assertEncoded({'a': 'a'}, '\x03\x00\x01a\x02\x00\x01a\x00\x00\t')
 
+        self.assertEncoded({12: True, 42: "Testing"}, '\x03', (
+            '\x00\x0242\x02\x00\x07Testing',
+            '\x00\x0212\x01\x01'
+        ), '\x00\x00\t')
+
     def test_mixed_array(self):
         d = pyamf.MixedArray(a=1, b=2, c=3)
 

@@ -1461,6 +1461,9 @@ class Encoder(codec.Encoder):
         if definition.encoding == ObjectEncoding.DYNAMIC:
             if attrs:
                 for attr, value in attrs.iteritems():
+                    if type(attr) in python.int_types:
+                        attr = str(attr)
+
                     self.serialiseString(attr)
                     self.writeElement(value)
 
