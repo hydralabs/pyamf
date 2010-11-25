@@ -596,7 +596,7 @@ def add_error_class(klass, code):
 
         >>> class AuthenticationError(Exception):
         ...     pass
-        ... 
+        ...
         >>> pyamf.add_error_class(AuthenticationError, 'Auth.Failed')
         >>> print pyamf.ERROR_CLASS_MAP
         {'TypeError': <type 'exceptions.TypeError'>, 'IndexError': <type 'exceptions.IndexError'>,

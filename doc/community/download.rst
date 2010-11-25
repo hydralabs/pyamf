@@ -13,18 +13,12 @@ Latest Stable Release - 0.6
 
 :doc:`../whatsnew/0.6`
 
-The files below also include a copy of the documentation.
-
 +-----------------+-----------------------------------+
 | **Gzipped Tar** | `PyAMF-0.6.tar.gz`_               |
 +-----------------+-----------------------------------+
 
-MD5 checksums for all releases can be found here_.
-
 Latest Development Source Code
 ==============================
-
-:doc:`../whatsnew/0.6`
 
 The Git_ repository URL for the PyAMF project is at
 http://github.com/hydralabs/pyamf.
@@ -42,12 +36,10 @@ For installing this development version::
 Older releases
 ==============
 
-Older releases are archived on http://download.pyamf.org/releases.
+Older releases are archived on http://pypi.python.org/packages/source/P/PyAMF/.
 
 Each release is also tagged:
 http://github.com/hydralabs/pyamf/downloads.
 
 .. _Git: 		http://git-scm.com/
-.. _here:		http://download.pyamf.org/releases/MD5SUMS
-.. _PyAMF-0.6.tar.gz:	http://pypi.python.org/packages/source/P/PyAMF/PyAMF-0.6.tar.gz#md5=280b3f943e633f55853a00aa742ae669
-
+.. _PyAMF-0.6.tar.gz:	http://pypi.python.org/packages/source/P/PyAMF/PyAMF-0.6.tar.gz
