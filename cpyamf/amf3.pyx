@@ -781,6 +781,9 @@ cdef class Encoder(codec.Encoder):
             self.stream.write(&REF_CHAR, 1)
 
         for key, value in obj.iteritems():
+            if PyInt_Check(key) or PyLong_Check(key):
+                key = str(key)
+
             self.serialiseString(key)
             self.writeElement(value)
 
