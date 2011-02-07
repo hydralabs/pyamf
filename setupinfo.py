@@ -74,11 +74,7 @@ class MyBuildExt(build_ext):
         if self.distribution.disable_ext:
             return
 
-        # First, sanity-check the 'extensions' list
-        self.check_extensions_list(self.extensions)
-
-        for ext in self.extensions:
-            ext.sources = self.cython_sources(ext.sources, ext)
+        return build_ext.build_extensions(self)
 
 
 class MySDist(sdist.sdist):
