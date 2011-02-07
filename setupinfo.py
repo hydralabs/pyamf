@@ -87,7 +87,11 @@ class MySDist(sdist.sdist):
         ext.initialize_options()
         ext.finalize_options()
 
-        ext.build_extensions()
+        ext.check_extensions_list(ext.extensions)
+
+        for e in ext.extensions:
+            e.sources = ext.cython_sources(e.sources, e)
+
 
     def run(self):
         if not have_cython:
