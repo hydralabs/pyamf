@@ -187,10 +187,10 @@ def get_test_requirements():
     """
     Returns a list of required packages to run the test suite.
     """
-    tests_require = ['pysqlite']
+    tests_require = []
 
     if sys.version_info < (2, 7):
-        tests_require.append('unittest2')
+        tests_require.extend(['unittest2', 'pysqlite'])
 
     return tests_require
 
