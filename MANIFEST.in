@@ -1,3 +1,7 @@
 graft doc
-include ez_setup.py
-include CHANGES.txt
+prune doc/build
+prune doc/_build
+include distribute_setup.py
+include *.txt
+recursive-include cpyamf *.pxd
+global-exclude *.swf
