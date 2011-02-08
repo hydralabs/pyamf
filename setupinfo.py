@@ -149,7 +149,7 @@ def get_extras_require():
         'django': ['Django>=0.96'],
         'sqlalchemy': ['SQLAlchemy>=0.4'],
         'elixir': ['Elixir>=0.7.1'],
-        'cython': ['Cython>=0.14'],
+        'cython': ['Cython>=0.13'],
         'lxml': ['lxml>=2.2'],
     }
 
