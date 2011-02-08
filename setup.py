@@ -64,17 +64,17 @@ def setup_package():
         url=url,
         author=author,
         author_email=author_email,
-        keywords = keywords.strip(),
-        license = license,
-        packages = find_packages(exclude=['*.tests*']),
-        ext_modules = setupinfo.get_extensions(),
-        install_requires = setupinfo.get_install_requirements(),
-        tests_require = setupinfo.get_test_requirements(),
-        test_suite = "pyamf.tests.get_suite",
-        zip_safe = True,
-        extras_require = setupinfo.get_extras_require(),
-        classifiers = filter(None, classifiers.split('\n')) + \
-            setupinfo.get_trove_classifiers(),
+        keywords=keywords.strip(),
+        license=license,
+        packages=find_packages(),
+        ext_modules=setupinfo.get_extensions(),
+        install_requires= etupinfo.get_install_requirements(),
+        tests_require=setupinfo.get_test_requirements(),
+        test_suite="pyamf.tests.get_suite",
+        zip_safe=True,
+        extras_require=setupinfo.get_extras_require(),
+        classifiers=(filter(None, classifiers.split('\n')) +
+            setupinfo.get_trove_classifiers()),
         **setupinfo.extra_setup_args())
 
 
