@@ -1,4 +1,5 @@
 graft doc
+graft pyamf/tests/imports
 prune doc/build
 prune doc/_build
 include distribute_setup.py
@@ -6,3 +7,4 @@ include setupinfo.py
 include *.txt
 recursive-include cpyamf *.pxd
 global-exclude *.swf
+global-exclude *.pyc
