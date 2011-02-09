@@ -149,7 +149,6 @@ def get_extras_require():
         'django': ['Django>=0.96'],
         'sqlalchemy': ['SQLAlchemy>=0.4'],
         'elixir': ['Elixir>=0.7.1'],
-        'cython': ['Cython>=0.13'],
         'lxml': ['lxml>=2.2'],
     }
 
@@ -182,7 +181,7 @@ def get_install_requirements():
         install_requires.extend(["elementtree>=1.2.6", "uuid>=1.30"])
 
     if 'dev' in get_version():
-        install_requires.extend(['Cython>=0.14'])
+        install_requires.extend(['Cython>=0.13'])
 
     return install_requires
 
