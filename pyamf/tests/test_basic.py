@@ -602,3 +602,21 @@ class PackageTestCase(ClassCacheClearingTestCase):
             self.assertTrue(isinstance(alias, pyamf.ClassAlias))
             self.assertEqual(alias.klass, c)
             self.assertEqual(alias.alias, 'spam.eggs.' + c.__name__)
+
+
+class UndefinedTestCase(unittest.TestCase):
+    """
+    Tests for L{pyamf.Undefined}
+    """
+
+    def test_none(self):
+        """
+        L{pyamf.Undefined} is not referentially identical to C{None}.
+        """
+        self.assertFalse(pyamf.Undefined is None)
+
+    def test_non_zero(self):
+        """
+        Truth test for L{pyamf.Undefined} == C{False}.
+        """
+        self.assertFalse(pyamf.Undefined)

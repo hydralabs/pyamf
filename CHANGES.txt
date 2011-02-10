@@ -10,6 +10,9 @@ versions of PyAMF.
 0.7 (Unreleased)
 ----------------
 
+- ``pyamf.Undefined`` now evaluates to ``False`` in a boolean expression
+  (Ticket:827)
+
 0.6.1 (Unreleased)
 ------------------
 

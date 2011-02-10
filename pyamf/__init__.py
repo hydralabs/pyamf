@@ -76,8 +76,13 @@ class UndefinedType(object):
     """
     Represents the C{undefined} value in the Adobe Flash Player client.
     """
+
     def __repr__(self):
         return 'pyamf.Undefined'
+
+    def __nonzero__(self):
+        return False
+
 
 #: Represents the C{undefined} value in the Adobe Flash Player client.
 Undefined = UndefinedType()
