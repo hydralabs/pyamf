@@ -31,6 +31,8 @@ from distutils.core import Distribution
 
 _version = None
 
+jython = sys.platform.startswith('java')
+can_compile_extensions = not jython
 
 
 class MyDistribution(Distribution):
@@ -181,7 +183,8 @@ def get_install_requirements():
         install_requires.extend(["elementtree>=1.2.6", "uuid>=1.30"])
 
     if 'dev' in get_version():
-        install_requires.extend(['Cython>=0.13'])
+        if can_compile_extensions:
+            install_requires.extend(['Cython>=0.13'])
 
     return install_requires
 
@@ -250,12 +253,12 @@ def get_extensions():
     """
     Return a list of Extension instances that can be compiled.
     """
-    if sys.platform.startswith('java'):
+    if not can_compile_extensions:
         print(80 * '*')
         print('WARNING:')
         print('\tAn optional code optimization (C extension) could not be compiled.\n\n')
         print('\tOptimizations for this package will not be available!\n\n')
-        print('Compiling extensions is not supported on Jython')
+        print('Compiling extensions is not supported on %r' % (sys.platform,))
         print(80 * '*')
 
         return []
