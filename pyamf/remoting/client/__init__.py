@@ -441,7 +441,7 @@ class RemotingService(object):
             self.logger.debug('Content-Length: %r', content_length)
             self.logger.debug('Server: %r', server)
 
-        if content_type != remoting.CONTENT_TYPE:
+        if content_type.split(';')[0].strip() != remoting.CONTENT_TYPE:
             if self.logger:
                 self.logger.debug('Body = %s', fbh.read())
 
