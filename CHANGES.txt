@@ -7,8 +7,11 @@ versions of PyAMF.
 .. contents::
 
 
-0.6.1 (Unreleased)
+0.7 (Unreleased)
 ----------------
+
+0.6.1 (Unreleased)
+------------------
 
 - Switched to Distribute as the future of Python packaging (Ticket:682)
 
