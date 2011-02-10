@@ -5,6 +5,12 @@
 Python compatibility values and helpers.
 """
 
+try:
+    import __builtin__ as builtins
+except ImportError:
+    import builtins
+
+
 import types
 
 func_types = (
@@ -59,3 +65,14 @@ def isNegInf(val):
     @since: 0.5
     """
     return str(float(val)) == str(NegInf)
+
+
+
+try:
+    callable = builtins.callable
+except NameError:
+    def callable(obj):
+        """
+        Compatibility function for Python 3.x
+        """
+        return hasattr(obj, '__call__')

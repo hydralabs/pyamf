@@ -11,6 +11,7 @@ import unittest
 import copy
 
 import pyamf
+from pyamf import python
 
 
 class ClassicSpam:
@@ -152,7 +153,7 @@ class ClassCacheClearingTestCase(unittest.TestCase):
         if not raw and len(ret) == 1:
             ret = ret[0]
 
-        if callable(cb):
+        if python.callable(cb):
             cb(ret)
         else:
             self.assertEqual(ret, cb)
