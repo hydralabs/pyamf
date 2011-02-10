@@ -1539,3 +1539,27 @@ class ByteArrayTestCase(unittest.TestCase):
 
         self.assertEqual(obj, b.readObject())
         self.assertRaises(pyamf.ReferenceError, b.readObject)
+
+    def test_compressed(self):
+        """
+        ByteArrays can be compressed. Test the C{compressed} attribute for
+        validity.
+        """
+        try:
+            import zlib
+        except ImportError:
+            self.skipTest('zlib is missing')
+
+        ba = amf3.ByteArray()
+
+        self.assertFalse(ba.compressed)
+
+        z = zlib.compress('b' * 100)
+        ba = amf3.ByteArray(z)
+
+        self.assertTrue(ba.compressed)
+
+        z = zlib.compress('\x00' * 100)
+        ba = amf3.ByteArray(z)
+
+        self.assertTrue(ba.compressed)
