@@ -196,7 +196,7 @@ def get_test_requirements():
     tests_require = []
 
     if sys.version_info < (2, 7):
-        tests_require.extend(['unittest2', 'pysqlite'])
+        tests_require.extend(['unittest2'])
 
     return tests_require
 
