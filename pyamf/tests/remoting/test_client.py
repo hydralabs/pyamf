@@ -572,6 +572,21 @@ class RemotingServiceTestCase(BaseServiceTestCase):
 
         self.assertRaises(ValueError, self.gw._getResponse, None)
 
+    def test_content_type_with_charset(self):
+        """
+        The HTTP protocol dictates that the header 'Content-Type' can have a
+        '; charset=*' at the end.
+        """
+        old_headers = self.headers.copy()
+
+        self.headers['Content-Type'] = remoting.CONTENT_TYPE + '; charset=utf-8'
+
+        try:
+            self.gw._getResponse(None)
+        finally:
+            self.headers = old_headers
+
+
 
 class GZipTestCase(BaseServiceTestCase):
     """

@@ -14,7 +14,7 @@ is compatible with the Adobe U{Flash Player
 import types
 import inspect
 
-from pyamf import util, versions as v
+from pyamf import util, _version
 from pyamf.adapters import register_adapters
 from pyamf import python
 from pyamf.alias import ClassAlias, UnknownClassAlias
@@ -30,7 +30,7 @@ __all__ = [
 ]
 
 #: PyAMF version number.
-__version__ = version = v.Version(0, 6)
+__version__ = version = _version.version
 
 #: Class alias mapping support. Contains two types of keys: The string alias
 #: related to the class and the class object itself. Both point to the linked
@@ -76,8 +76,13 @@ class UndefinedType(object):
     """
     Represents the C{undefined} value in the Adobe Flash Player client.
     """
+
     def __repr__(self):
         return 'pyamf.Undefined'
+
+    def __nonzero__(self):
+        return False
+
 
 #: Represents the C{undefined} value in the Adobe Flash Player client.
 Undefined = UndefinedType()

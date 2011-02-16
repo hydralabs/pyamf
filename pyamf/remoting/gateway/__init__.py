@@ -12,7 +12,7 @@ import types
 import datetime
 
 import pyamf
-from pyamf import remoting, util
+from pyamf import remoting, util, python
 
 try:
     from platform import python_implementation
@@ -103,13 +103,13 @@ class ServiceWrapper(object):
                 raise UnknownServiceMethodError(
                     "Unknown method %s" % str(method))
 
-            if not callable(func):
+            if not python.callable(func):
                 raise InvalidServiceMethodError(
                     "Service method %s must be callable" % str(method))
 
             return func
 
-        if not callable(service):
+        if not python.callable(service):
             raise UnknownServiceMethodError(
                 "Unknown method %s" % str(self.service))
 
@@ -142,7 +142,7 @@ class ServiceWrapper(object):
         for name in dir(self.service):
             method = getattr(self.service, name)
 
-            if name.startswith('_') or not callable(method):
+            if name.startswith('_') or not python.callable(method):
                 continue
 
             callables[name] = method
@@ -150,7 +150,7 @@ class ServiceWrapper(object):
         return callables
 
     def getAuthenticator(self, service_request=None):
-        if service_request == None:
+        if service_request is None:
             return self.authenticator
 
         methods = self.getMethods()
@@ -170,7 +170,7 @@ class ServiceWrapper(object):
         return self.authenticator
 
     def mustExposeRequest(self, service_request=None):
-        if service_request == None:
+        if service_request is None:
             return self.expose_request
 
         methods = self.getMethods()
@@ -192,7 +192,7 @@ class ServiceWrapper(object):
         return self.expose_request
 
     def getPreprocessor(self, service_request=None):
-        if service_request == None:
+        if service_request is None:
             return self.preprocessor
 
         methods = self.getMethods()
@@ -272,7 +272,10 @@ class BaseGateway(object):
 
     _request_class = ServiceRequest
 
-    def __init__(self, services={}, **kwargs):
+    def __init__(self, services=None, **kwargs):
+        if services is None:
+            services = {}
+
         if not hasattr(services, 'iteritems'):
             raise TypeError("dict type required for services")
 
@@ -311,7 +314,7 @@ class BaseGateway(object):
         allowed_types = (types.ModuleType, types.FunctionType, types.DictType,
             types.MethodType, types.InstanceType, types.ObjectType)
 
-        if not callable(service) and not isinstance(service, allowed_types):
+        if not python.callable(service) and not isinstance(service, allowed_types):
             raise TypeError("Service must be a callable, module, or an object")
 
         if name is None:
@@ -520,10 +523,10 @@ def authenticate(func, c, expose_request=False):
 
     @raise TypeError: C{func} and authenticator must be callable.
     """
-    if not callable(func):
+    if not python.callable(func):
         raise TypeError('func must be callable')
 
-    if not callable(c):
+    if not python.callable(c):
         raise TypeError('Authenticator must be callable')
 
     attr = func
@@ -545,7 +548,7 @@ def expose_request(func):
 
     @raise TypeError: C{func} must be callable.
     """
-    if not callable(func):
+    if not python.callable(func):
         raise TypeError("func must be callable")
 
     if isinstance(func, types.UnboundMethodType):
@@ -566,10 +569,10 @@ def preprocess(func, c, expose_request=False):
 
     @raise TypeError: C{func} and preprocessor must be callable.
     """
-    if not callable(func):
+    if not python.callable(func):
         raise TypeError('func must be callable')
 
-    if not callable(c):
+    if not python.callable(c):
         raise TypeError('Preprocessor must be callable')
 
     attr = func

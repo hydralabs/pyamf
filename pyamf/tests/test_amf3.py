@@ -277,6 +277,10 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
         self.assertEncoded({'a': u'e', 'b': u'f', 'c': u'g', 'd': u'h'},
             '\n\x0b\x01', ('\x03c\x06\x03g', '\x03b\x06\x03f', '\x03a\x06\x03e',
             '\x03d\x06\x03h'), '\x01')
+        self.assertEncoded({12: True, 42: "Testing"}, ('\n\x0b', (
+            '\x01\x0542\x06\x0fTesting',
+            '\x0512\x03\x01'
+        )))
 
     def test_boolean(self):
         self.assertEncoded(True, '\x03')
@@ -1535,3 +1539,27 @@ class ByteArrayTestCase(unittest.TestCase):
 
         self.assertEqual(obj, b.readObject())
         self.assertRaises(pyamf.ReferenceError, b.readObject)
+
+    def test_compressed(self):
+        """
+        ByteArrays can be compressed. Test the C{compressed} attribute for
+        validity.
+        """
+        try:
+            import zlib
+        except ImportError:
+            self.skipTest('zlib is missing')
+
+        ba = amf3.ByteArray()
+
+        self.assertFalse(ba.compressed)
+
+        z = zlib.compress('b' * 100)
+        ba = amf3.ByteArray(z)
+
+        self.assertTrue(ba.compressed)
+
+        z = zlib.compress('\x00' * 100)
+        ba = amf3.ByteArray(z)
+
+        self.assertTrue(ba.compressed)

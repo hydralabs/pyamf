@@ -1,5 +1,6 @@
 *.pyc
 *.class
+*.c
 PyAMF.egg-info/
 _trial_temp/
 build/
@@ -11,3 +12,6 @@ doc/themes
 cpyamf/amf3.pyd
 cpyamf/codec.pyd
 cpyamf/util.pyd
+dist
+file_model
+pyamf/_version.py

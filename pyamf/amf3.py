@@ -505,27 +505,29 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
     <http://livedocs.adobe.com/flex/201/langref/flash/utils/ByteArray.html>}
     """
 
+    _zlib_header = '\x78\x9c'
+
     class __amf__:
         amf3 = True
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, buf=None):
         self.context = Context()
 
-        util.BufferedByteStream.__init__(self, *args, **kwargs)
+        util.BufferedByteStream.__init__(self, buf)
         DataInput.__init__(self, Decoder(self, self.context))
         DataOutput.__init__(self, Encoder(self, self.context))
 
-        self.compressed = False
+        self.compressed = self.peek(2) == ByteArray._zlib_header
 
-    def readObject(self, *args, **kwargs):
+    def readObject(self):
         self.context.clear()
 
-        return super(ByteArray, self).readObject(*args, **kwargs)
+        return super(ByteArray, self).readObject()
 
-    def writeObject(self, *args, **kwargs):
+    def writeObject(self, obj):
         self.context.clear()
 
-        return super(ByteArray, self).writeObject(*args, **kwargs)
+        return super(ByteArray, self).writeObject(obj)
 
     def __cmp__(self, other):
         if isinstance(other, ByteArray):
@@ -1087,14 +1089,13 @@ class Decoder(codec.Decoder):
 
         buffer = self.stream.read(ref >> 1)
 
-        try:
-            buffer = zlib.decompress(buffer)
-            compressed = True
-        except zlib.error:
-            compressed = False
+        if buffer[0:2] == ByteArray._zlib_header:
+            try:
+                buffer = zlib.decompress(buffer)
+            except zlib.error:
+                pass
 
         obj = ByteArray(buffer)
-        obj.compressed = compressed
 
         self.context.addObject(obj)
 
@@ -1461,6 +1462,9 @@ class Encoder(codec.Encoder):
         if definition.encoding == ObjectEncoding.DYNAMIC:
             if attrs:
                 for attr, value in attrs.iteritems():
+                    if type(attr) in python.int_types:
+                        attr = str(attr)
+
                     self.serialiseString(attr)
                     self.writeElement(value)
 

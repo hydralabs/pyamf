@@ -7,8 +7,18 @@ versions of PyAMF.
 .. contents::
 
 
-Next version
-------------
+0.7 (Unreleased)
+----------------
+
+- ``pyamf.Undefined`` now evaluates to ``False`` in a boolean expression
+  (Ticket:827)
+- Fixed an issue in the client where '; charset=utf8' would be appended to the
+  ``Content-Type`` response header. (Ticket:822)
+
+0.6.1 (Unreleased)
+------------------
+
+- Switched to Distribute as the future of Python packaging (Ticket:682)
 
 
 0.6 (21-10-2010)

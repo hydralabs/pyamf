@@ -498,6 +498,9 @@ cdef class Encoder(codec.Encoder):
         @param o: The C{dict} data to be encoded to the AMF0 data stream.
         """
         for key, value in attrs.iteritems():
+            if PyInt_Check(key) or PyLong_Check(key):
+                key = str(key)
+
             self.serialiseString(key)
             self.writeElement(value)
 

@@ -539,15 +539,13 @@ cdef class Decoder(codec.Decoder):
         s = PyString_FromStringAndSize(buf, ref)
 
         if zlib:
-            try:
-                s = zlib.decompress(s)
-                compressed = True
-            except zlib.error:
-                compressed = False
+            if ref > 2 and buf[0] == '\x78' and buf[1] == '\x9c':
+                try:
+                    s = zlib.decompress(s)
+                except zlib.error:
+                    pass
 
-            s = (<object>ByteArrayType)(s)
-
-        s.compressed = compressed
+        s = (<object>ByteArrayType)(s)
 
         self.context.addObject(s)
 
@@ -781,6 +779,9 @@ cdef class Encoder(codec.Encoder):
             self.stream.write(&REF_CHAR, 1)
 
         for key, value in obj.iteritems():
+            if PyInt_Check(key) or PyLong_Check(key):
+                key = str(key)
+
             self.serialiseString(key)
             self.writeElement(value)
 

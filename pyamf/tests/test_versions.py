@@ -22,10 +22,8 @@ class VersionTestCase(unittest.TestCase):
         self.assertEqual(versions.get_version((3, 2, 1)), '3.2.1')
 
         self.assertEqual(versions.get_version((3, 2, 1, 'alpha')), '3.2.1alpha')
-        self.assertEqual(versions.get_version((3, 2, 1, 'alpha', 0)), '3.2.1 pre-alpha')
 
         self.assertEqual(versions.get_version((3, 2, 1, 'final')), '3.2.1final')
-        self.assertEqual(versions.get_version((3, 2, 1, 'beta', 1234)), '3.2.1beta1234')
 
     def test_class(self):
         V = versions.Version

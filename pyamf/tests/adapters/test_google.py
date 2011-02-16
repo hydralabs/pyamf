@@ -12,104 +12,51 @@ import datetime
 import struct
 import os
 
-
-class MockDBModule(object):
-    """
-    Pretends to look like the C{google.appengine.ext.db} module so this file
-    will import correctly
-    """
-
-    def __getattr__(self, name):
-        class c(object):
-            def __init__(self, *args, **kwargs):
-                pass
-
-        return c
-
-    def __nonzero__(self):
-        return False
-
-
-try:
-    from google.appengine.ext import db, blobstore
-    from google.appengine.ext.db import polymodel
-
-    from pyamf.adapters import _google_appengine_ext_db as adapter_db
-    from pyamf.adapters import _google_appengine_ext_blobstore as adapter_blobstore
-except ImportError:
-    db = MockDBModule()
-
-if os.environ.get('SERVER_SOFTWARE', None) is None:
-    # we're not being run in appengine environment (at one that we are known to
-    # work in)
-    db = MockDBModule()
-
-
 import pyamf
 from pyamf import amf3
 from pyamf.tests import util
 
+try:
+    from google.appengine.ext import db
+except ImportError:
+    db = None
+
+
+blobstore = None
+polymodel = None
+adapter_db = None
+adapter_blobstore = None
+
+test_models = None
+
 Spam = util.Spam
 
 
-class PetModel(db.Model):
+def setUpModule():
     """
     """
+    global db, blobstore, polymodel, adapter_blobstore, adapter_db, test_models
 
-    # 'borrowed' from http://code.google.com/appengine/docs/datastore/entitiesandmodels.html
-    name = db.StringProperty(required=True)
-    type = db.StringProperty(required=True, choices=set(["cat", "dog", "bird"]))
-    birthdate = db.DateProperty()
-    weight_in_pounds = db.IntegerProperty()
-    spayed_or_neutered = db.BooleanProperty()
+    if db is None:
+        raise unittest.SkipTest("'google.appengine.ext.db' is not available")
 
+    if not os.environ.get('SERVER_SOFTWARE', None):
+        # this is an extra check because the AppEngine SDK may be in PYTHONPATH
+        raise unittest.SkipTest('Appengine env not bootstrapped correctly')
 
-class PetExpando(db.Expando):
-    """
-    """
+    # all looks good - we now initialise the imports we require
+    from google.appengine.ext import blobstore
+    from google.appengine.ext.db import polymodel
 
-    name = db.StringProperty(required=True)
-    type = db.StringProperty(required=True, choices=set(["cat", "dog", "bird"]))
-    birthdate = db.DateProperty()
-    weight_in_pounds = db.IntegerProperty()
-    spayed_or_neutered = db.BooleanProperty()
+    from pyamf.adapters import _google_appengine_ext_db as adapter_db
+    from pyamf.adapters import _google_appengine_ext_blobstore as adapter_blobstore
 
-
-class ListModel(db.Model):
-    """
-    """
-    numbers = db.ListProperty(long)
-
-
-class GettableModelStub(db.Model):
-    """
-    """
-
-    gets = []
-
-    @staticmethod
-    def get(*args, **kwargs):
-        GettableModelStub.gets.append([args, kwargs])
-
-
-class Author(db.Model):
-    name = db.StringProperty()
-
-
-class Novel(db.Model):
-    title = db.StringProperty()
-    author = db.ReferenceProperty(Author)
+    from pyamf.tests.adapters import _google_models as test_models
 
 
 class BaseTestCase(util.ClassCacheClearingTestCase):
     """
     """
-
-    def setUp(self):
-        if not db:
-            self.skipTest("'google.appengine.ext.db' not available")
-
-        util.ClassCacheClearingTestCase.setUp(self)
 
     def put(self, entity):
         entity.put()
@@ -127,8 +74,39 @@ class BaseTestCase(util.ClassCacheClearingTestCase):
 
         return decoded
 
+    def encodeKey(self, key, encoding):
+        """
+        Returns an AMF encoded representation of a L{db.Key} instance.
 
-class JessicaMixIn(object):
+        @param key: The L{db.Key} to be encoded.
+        @type key: L{db.Key}
+        @param encoding: The AMF version.
+        """
+        if hasattr(key, 'key'):
+            # we have a db.Model instance
+            try:
+                key = key.key()
+            except db.NotSavedError:
+                key = None
+
+        if not key:
+            # the AMF representation of None
+            if encoding == pyamf.AMF3:
+                return '\x01'
+
+            return '\x05'
+
+        k = str(key)
+
+        if encoding == pyamf.AMF3:
+            return '\x06%s%s' % (
+                amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k)
+
+        return '\x02%s%s' % (struct.pack('>H', len(k)), k)
+
+
+
+class JessicaFactory(object):
     """
     Provides jessica!
     """
@@ -141,26 +119,28 @@ class JessicaMixIn(object):
         'spayed_or_neutered': False
     }
 
-    jessica_class = None
+    @classmethod
+    def makeJessica(kls, cls, **kwargs):
+        j_kwargs = kls.jessica_attrs.copy()
 
-    def setUp(self):
-        self.jessica = self.jessica_class(**self.jessica_attrs)
+        j_kwargs.update(kwargs)
+
+        return cls(**j_kwargs)
 
 
-class EncodingModelTestCase(BaseTestCase, JessicaMixIn):
+class EncodingModelTestCase(BaseTestCase):
     """
     """
-
-    jessica_class = PetModel
 
     def setUp(self):
         BaseTestCase.setUp(self)
-        JessicaMixIn.setUp(self)
+
+        self.jessica = JessicaFactory.makeJessica(test_models.PetModel)
 
     def test_amf0(self):
         encoded = (
             '\x03', (
-                '\x00\x04_key\x05',
+                '\x00\x04_key%s' % (self.encodeKey(self.jessica, pyamf.AMF0)),
                 '\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00',
                 '\x00\x04name\x02\x00\x07Jessica',
                 '\x00\x12spayed_or_neutered\x01\x00',
@@ -176,7 +156,7 @@ class EncodingModelTestCase(BaseTestCase, JessicaMixIn):
         bytes = (
             '\n\x0b\x01', (
                 '\tname\x06\x0fJessica',
-                '\t_key\x01',
+                '\t_key%s' % (self.encodeKey(self.jessica, pyamf.AMF3)),
                 '\x13birthdate\x08\x01B^\xc4\xae\xaa\x00\x00\x00',
                 '!weight_in_pounds\x04\x05',
                 '\ttype\x06\x07cat',
@@ -188,10 +168,8 @@ class EncodingModelTestCase(BaseTestCase, JessicaMixIn):
     def test_save_amf0(self):
         self.put(self.jessica)
 
-        k = str(self.jessica.key())
-
         bytes = ('\x03', (
-            '\x00\x04_key\x02%s%s' % (struct.pack('>H', len(k)), k),
+            '\x00\x04_key%s' % self.encodeKey(self.jessica, pyamf.AMF0),
             '\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00',
             '\x00\x04name\x02\x00\x07Jessica',
             '\x00\x12spayed_or_neutered\x01\x00',
@@ -204,13 +182,10 @@ class EncodingModelTestCase(BaseTestCase, JessicaMixIn):
     def test_save_amf3(self):
         self.put(self.jessica)
 
-        k = str(self.jessica.key())
-        encoded_key = '%s%s' % (amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k)
-
         bytes = (
             '\n\x0b\x01', (
                 '\tname\x06\x0fJessica',
-                '\t_key\x06%s' % encoded_key,
+                '\t_key%s' % self.encodeKey(self.jessica, pyamf.AMF3),
                 '\x13birthdate\x08\x01B^\xc4\xae\xaa\x00\x00\x00',
                 '!weight_in_pounds\x04\x05',
                 '\ttype\x06\x07cat',
@@ -220,11 +195,11 @@ class EncodingModelTestCase(BaseTestCase, JessicaMixIn):
         self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF3)
 
     def test_alias_amf0(self):
-        pyamf.register_class(PetModel, 'Pet')
+        pyamf.register_class(test_models.PetModel, 'Pet')
 
         bytes = (
             '\x10\x00\x03Pet', (
-                '\x00\x04_key\x05',
+                '\x00\x04_key%s' % self.encodeKey(self.jessica, pyamf.AMF0),
                 '\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00',
                 '\x00\x04name\x02\x00\x07Jessica',
                 '\x00\x12spayed_or_neutered\x01\x00',
@@ -237,12 +212,12 @@ class EncodingModelTestCase(BaseTestCase, JessicaMixIn):
         self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF0)
 
     def test_alias_amf3(self):
-        pyamf.register_class(PetModel, 'Pet')
+        pyamf.register_class(test_models.PetModel, 'Pet')
 
         bytes = (
             '\n\x0b\x07Pet', (
                 '\tname\x06\x0fJessica',
-                '\t_key\x01',
+                '\t_key%s' % self.encodeKey(self.jessica, pyamf.AMF3),
                 '\x13birthdate\x08\x01B^\xc4\xae\xaa\x00\x00\x00',
                 '!weight_in_pounds\x04\x05',
                 '\x07foo\x06\x07bar',
@@ -253,25 +228,22 @@ class EncodingModelTestCase(BaseTestCase, JessicaMixIn):
         self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF3)
 
 
-class EncodingExpandoTestCase(BaseTestCase, JessicaMixIn):
+class EncodingExpandoTestCase(BaseTestCase):
     """
     Tests for encoding L{db.Expando} classes
     """
 
-    jessica_class = PetExpando
-
     def setUp(self):
         BaseTestCase.setUp(self)
-        JessicaMixIn.setUp(self)
 
-        self.jessica.foo = 'bar'
+        self.jessica = JessicaFactory.makeJessica(test_models.PetExpando, foo='bar')
 
         self.addCleanup(self.deleteEntity, self.jessica)
 
     def test_amf0(self):
         bytes = (
             '\x03', (
-                '\x00\x04_key\x05',
+                '\x00\x04_key%s' % self.encodeKey(self.jessica, pyamf.AMF0),
                 '\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00',
                 '\x00\x04name\x02\x00\x07Jessica',
                 '\x00\x12spayed_or_neutered\x01\x00',
@@ -288,7 +260,7 @@ class EncodingExpandoTestCase(BaseTestCase, JessicaMixIn):
         bytes = (
             '\n\x0b\x01', (
                 '\tname\x06\x0fJessica',
-                '\t_key\x01',
+                '\t_key%s' % self.encodeKey(self.jessica, pyamf.AMF3),
                 '\x13birthdate\x08\x01B^\xc4\xae\xaa\x00\x00\x00',
                 '!weight_in_pounds\x04\x05',
                 '\x07foo\x06\x07bar',
@@ -301,11 +273,10 @@ class EncodingExpandoTestCase(BaseTestCase, JessicaMixIn):
     def test_save_amf0(self):
         self.put(self.jessica)
 
-        k = str(self.jessica.key())
         bytes = pyamf.encode(self.jessica, encoding=pyamf.AMF0).getvalue()
 
         self.assertBuffer(bytes, ('\x03', (
-            '\x00\x04_key\x02%s%s' % (struct.pack('>H', len(k)), k),
+            '\x00\x04_key%s' % self.encodeKey(self.jessica, pyamf.AMF0),
             '\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00',
             '\x00\x04name\x02\x00\x07Jessica',
             '\x00\x12spayed_or_neutered\x01\x00',
@@ -317,13 +288,10 @@ class EncodingExpandoTestCase(BaseTestCase, JessicaMixIn):
     def test_save_amf3(self):
         self.put(self.jessica)
 
-        k = str(self.jessica.key())
-        encoded_key = '%s%s' % (amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k)
-
         bytes = (
             '\n\x0b\x01', (
                 '\tname\x06\x0fJessica',
-                '\t_key\x06%s' % encoded_key,
+                '\t_key%s' % self.encodeKey(self.jessica, pyamf.AMF3),
                 '\x13birthdate\x08\x01B^\xc4\xae\xaa\x00\x00\x00',
                 '!weight_in_pounds\x04\x05',
                 '\x07foo\x06\x07bar',
@@ -334,11 +302,11 @@ class EncodingExpandoTestCase(BaseTestCase, JessicaMixIn):
         self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF3)
 
     def test_alias_amf0(self):
-        pyamf.register_class(PetExpando, 'Pet')
+        pyamf.register_class(test_models.PetExpando, 'Pet')
         bytes = pyamf.encode(self.jessica, encoding=pyamf.AMF0).getvalue()
 
         self.assertBuffer(bytes, ('\x10\x00\x03Pet', (
-            '\x00\x04_key\x05',
+            '\x00\x04_key%s' % self.encodeKey(self.jessica, pyamf.AMF0),
             '\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00\x00\x00\x00\x00',
             '\x00\x04name\x02\x00\x07Jessica',
             '\x00\x12spayed_or_neutered\x01\x00',
@@ -348,12 +316,12 @@ class EncodingExpandoTestCase(BaseTestCase, JessicaMixIn):
             '\x00\x00\t'))
 
     def test_alias_amf3(self):
-        pyamf.register_class(PetExpando, 'Pet')
+        pyamf.register_class(test_models.PetExpando, 'Pet')
 
         bytes = (
             '\n\x0b\x07Pet', (
                 '\tname\x06\x0fJessica',
-                '\t_key\x01',
+                '\t_key%s' % self.encodeKey(self.jessica, pyamf.AMF3),
                 '\x13birthdate\x08\x01B^\xc4\xae\xaa\x00\x00\x00',
                 '!weight_in_pounds\x04\x05',
                 '\x07foo\x06\x07bar',
@@ -366,27 +334,27 @@ class EncodingExpandoTestCase(BaseTestCase, JessicaMixIn):
 
 class EncodingReferencesTestCase(BaseTestCase):
     """
-    This test case refers to
-    L{db.ReferenceProperty<http://code.google.com/appengine/docs/datastore/typesandpropertyclasses.html#ReferenceProperty>},
+    This test case refers to L{db.ReferenceProperty<http://code.google.com/app
+    engine/docs/datastore/typesandpropertyclasses.html#ReferenceProperty>},
     not AMF references.
     """
 
     def test_model(self):
-        a = Author(name='Jane Austen')
+        a = test_models.Author(name='Jane Austen')
         self.put(a)
         k = str(a.key())
 
-        amf0_k = struct.pack('>H', len(k)) + k
-        amf3_k = amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT) + k
+        amf0_k = self.encodeKey(a, pyamf.AMF0)
+        amf3_k = self.encodeKey(a, pyamf.AMF3)
 
-        b = Novel(title='Sense and Sensibility', author=a)
+        b = test_models.Novel(title='Sense and Sensibility', author=a)
 
         self.assertIdentical(b.author, a)
 
         bytes = (
             '\x03', (
                 '\x00\x05title\x02\x00\x15Sense and Sensibility',
-                '\x00\x04_key\x02' + amf0_k,
+                '\x00\x04_key' + amf0_k,
                 '\x00\x06author\x03', (
                     '\x00\x04name\x02\x00\x0bJane Austen',
                     '\x00\x04_key\x05'
@@ -400,7 +368,7 @@ class EncodingReferencesTestCase(BaseTestCase):
         bytes = (
             '\n\x0b\x01', ((
                 '\rauthor\n\x0b\x01', (
-                    '\t_key\x06' + amf3_k,
+                    '\t_key' + amf3_k,
                     '\tname\x06\x17Jane Austen'
                 ), '\x01\x06\x01'),
                 '\x0btitle\x06+Sense and Sensibility'
@@ -410,13 +378,13 @@ class EncodingReferencesTestCase(BaseTestCase):
         self.assertEncodes(b, bytes, encoding=pyamf.AMF3)
 
         # now test with aliases ..
-        pyamf.register_class(Author, 'Author')
-        pyamf.register_class(Novel, 'Novel')
+        pyamf.register_class(test_models.Author, 'Author')
+        pyamf.register_class(test_models.Novel, 'Novel')
 
         bytes = (
             '\x10\x00\x05Novel', (
                 '\x00\x05title\x02\x00\x15Sense and Sensibility',
-                '\x00\x04_key\x02' + amf0_k,
+                '\x00\x04_key' + amf0_k,
                 '\x00\x06author\x10\x00\x06Author', (
                     '\x00\x04name\x02\x00\x0bJane Austen',
                     '\x00\x04_key\x05'
@@ -430,7 +398,7 @@ class EncodingReferencesTestCase(BaseTestCase):
         bytes = (
             '\n\x0b\x0bNovel', ((
                 '\rauthor\n\x0b\rAuthor', (
-                    '\t_key\x06' + amf3_k,
+                    '\t_key' + amf3_k,
                     '\tname\x06\x17Jane Austen'
                 ), '\x01\n\x01'),
                 '\x0btitle\x06+Sense and Sensibility'
@@ -515,36 +483,34 @@ class EncodingReferencesTestCase(BaseTestCase):
         self.assertEncodes(b, bytes, encoding=pyamf.AMF3)
 
     def test_dynamic_property_referenced_object(self):
-        a = Author(name='Jane Austen')
+        a = test_models.Author(name='Jane Austen')
         self.put(a)
 
-        b = Novel(title='Sense and Sensibility', author=a)
+        b = test_models.Novel(title='Sense and Sensibility', author=a)
         self.put(b)
 
         x = db.get(b.key())
         foo = [1, 2, 3]
 
         x.author.bar = foo
-        k = str(x.key())
-        ek = '%s%s' % (struct.pack('>H', len(k)), k)
-        l = str(a.key())
-        el = '%s%s' % (struct.pack('>H', len(l)), l)
+
+        ek = self.encodeKey(x, pyamf.AMF0)
+        el = self.encodeKey(a, pyamf.AMF0)
 
         bytes = (
             '\x03', (
                 '\x00\x05title\x02\x00\x15Sense and Sensibility',
-                '\x00\x04_key\x02' + ek,
+                '\x00\x04_key' + ek,
                 '\x00\x06author\x03', (
                     '\x00\x03bar\n\x00\x00\x00\x03\x00?\xf0\x00\x00\x00\x00'
                     '\x00\x00\x00@\x00\x00\x00\x00\x00\x00\x00\x00@\x08\x00'
                     '\x00\x00\x00\x00\x00',
                     '\x00\x04name\x02\x00\x0bJane Austen',
-                    '\x00\x04_key\x02' + el
+                    '\x00\x04_key' + el
                 ),
                 '\x00\x00\t'
             ),
             '\x00\x00\t')
-
 
         self.assertEncodes(x, bytes, encoding=pyamf.AMF0)
 
@@ -557,7 +523,7 @@ class ListPropertyTestCase(BaseTestCase):
     def setUp(self):
         BaseTestCase.setUp(self)
 
-        self.obj = ListModel()
+        self.obj = test_models.ListModel()
         self.obj.numbers = [2, 4, 6, 8, 10]
 
         self.addCleanup(self.deleteEntity, self.obj)
@@ -588,7 +554,7 @@ class ListPropertyTestCase(BaseTestCase):
         self.assertEncodes(self.obj, bytes, encoding=pyamf.AMF3)
 
     def test_encode_amf0_registered(self):
-        pyamf.register_class(ListModel, 'list-model')
+        pyamf.register_class(test_models.ListModel, 'list-model')
 
         bytes = (
             '\x10\x00\nlist-model', (
@@ -604,7 +570,7 @@ class ListPropertyTestCase(BaseTestCase):
         self.assertEncodes(self.obj, bytes, encoding=pyamf.AMF0)
 
     def test_encode_amf3_registered(self):
-        pyamf.register_class(ListModel, 'list-model')
+        pyamf.register_class(test_models.ListModel, 'list-model')
 
         bytes = (
             '\n\x0b\x15list-model', (
@@ -617,12 +583,12 @@ class ListPropertyTestCase(BaseTestCase):
         self.assertEncodes(self.obj, bytes, encoding=pyamf.AMF3)
 
     def _check_list(self, x):
-        self.assertTrue(isinstance(x, ListModel))
+        self.assertTrue(isinstance(x, test_models.ListModel))
         self.assertTrue(hasattr(x, 'numbers'))
         self.assertEqual(x.numbers, [2, 4, 6, 8, 10])
 
     def test_decode_amf0(self):
-        pyamf.register_class(ListModel, 'list-model')
+        pyamf.register_class(test_models.ListModel, 'list-model')
 
         bytes = (
             '\x10\x00\nlist-model\x00\x07numbers\n\x00\x00\x00\x05\x00@\x00'
@@ -634,7 +600,7 @@ class ListPropertyTestCase(BaseTestCase):
         self._check_list(x)
 
     def test_decode_amf3(self):
-        pyamf.register_class(ListModel, 'list-model')
+        pyamf.register_class(test_models.ListModel, 'list-model')
 
         bytes = (
             '\n\x0b\x15list-model\x0fnumbers\t\x0b\x01\x04\x02\x04\x04\x04'
@@ -644,7 +610,7 @@ class ListPropertyTestCase(BaseTestCase):
         self._check_list(x)
 
     def test_none(self):
-        pyamf.register_class(ListModel, 'list-model')
+        pyamf.register_class(test_models.ListModel, 'list-model')
 
         bytes = '\x10\x00\nlist-model\x00\x07numbers\x05\x00\x00\t'
 
@@ -653,24 +619,27 @@ class ListPropertyTestCase(BaseTestCase):
         self.assertEqual(x.numbers, [])
 
 
-class DecodingModelTestCase(BaseTestCase, JessicaMixIn):
+class DecodingModelTestCase(BaseTestCase):
     """
     """
 
-    jessica_class = PetModel
+    def getModel(self):
+        return test_models.PetModel
 
     def setUp(self):
         BaseTestCase.setUp(self)
-        JessicaMixIn.setUp(self)
+        self.model_class = self.getModel()
 
-        pyamf.register_class(self.jessica_class, 'Pet')
+        self.jessica = JessicaFactory.makeJessica(self.model_class)
+
+        pyamf.register_class(self.model_class, 'Pet')
 
         self.put(self.jessica)
         self.key = str(self.jessica.key())
 
     def _check_model(self, x):
-        self.assertTrue(isinstance(x, self.jessica_class))
-        self.assertEqual(x.__class__, self.jessica_class)
+        self.assertTrue(isinstance(x, self.model_class))
+        self.assertEqual(x.__class__, self.model_class)
 
         self.assertEqual(x.type, self.jessica.type)
         self.assertEqual(x.weight_in_pounds, self.jessica.weight_in_pounds)
@@ -685,28 +654,23 @@ class DecodingModelTestCase(BaseTestCase, JessicaMixIn):
         self.assertTrue(x.is_saved())
 
     def test_amf0(self):
-        encoded_key = '%s%s' % (struct.pack('>H', len(self.key)), self.key)
-
         bytes = (
-            '\x10\x00\x03Pet\x00\x04_key\x02%s\x00\x04type\x02\x00\x03cat'
+            '\x10\x00\x03Pet\x00\x04_key%s\x00\x04type\x02\x00\x03cat'
             '\x00\x10weight_in_pounds\x00@\x14\x00\x00\x00\x00\x00\x00\x00'
             '\x04name\x02\x00\x07Jessica\x00\tbirthdate\x0bB^\xc4\xae\xaa\x00'
             '\x00\x00\x00\x00\x00\x12spayed_or_neutered\x01\x00\x00\x00\t' % (
-                encoded_key))
+                self.encodeKey(self.key, pyamf.AMF0),))
 
         x = self.decode(bytes, encoding=pyamf.AMF0)
 
         self._check_model(x)
 
     def test_amf3(self):
-        encoded_key = '%s%s' % (
-            amf3.encode_int(len(self.key) << 1 | amf3.REFERENCE_BIT), self.key)
-
         bytes = (
-            '\n\x0b\x07Pet\tname\x06\x0fJessica\t_key\x06%s\x13birthdate'
+            '\n\x0b\x07Pet\tname\x06\x0fJessica\t_key%s\x13birthdate'
             '\x08\x01B^\xc4\xae\xaa\x00\x00\x00!weight_in_pounds\x04\x05\x07'
             'foo\x06\x07bar\ttype\x06\x07cat%%spayed_or_neutered\x02\x01' % (
-                encoded_key))
+                self.encodeKey(self.key, pyamf.AMF3),))
 
         x = self.decode(bytes, encoding=pyamf.AMF3)
 
@@ -717,7 +681,8 @@ class DecodingExpandoTestCase(DecodingModelTestCase):
     """
     """
 
-    jessica_class = PetExpando
+    def getModel(self):
+        return test_models.PetExpando
 
 
 class ClassAliasTestCase(BaseTestCase):
@@ -727,28 +692,17 @@ class ClassAliasTestCase(BaseTestCase):
     def setUp(self):
         BaseTestCase.setUp(self)
 
-        self.alias = adapter_db.DataStoreClassAlias(PetModel, 'foo.bar')
+        self.alias = adapter_db.DataStoreClassAlias(test_models.PetModel, 'foo.bar')
 
-        self.jessica = PetModel(name='Jessica', type='cat')
-        self.jessica_expando = PetExpando(name='Jessica', type='cat')
+        self.jessica = test_models.PetModel(name='Jessica', type='cat')
+        self.jessica_expando = test_models.PetExpando(name='Jessica', type='cat')
         self.jessica_expando.foo = 'bar'
 
-    def tearDown(self):
-        try:
-            self.jessica.delete()
-        except:
-            pass
-
-        if self.jessica_expando.is_saved():
-            self.jessica_expando.delete()
-
-        try:
-            pyamf.unregister_class(PetModel)
-        except:
-            pass
+        self.addCleanup(self.deleteEntity, self.jessica)
+        self.addCleanup(self.deleteEntity, self.jessica_expando)
 
     def test_get_alias(self):
-        alias = pyamf.register_class(PetModel)
+        alias = pyamf.register_class(test_models.PetModel)
 
         self.assertTrue(isinstance(alias, adapter_db.DataStoreClassAlias))
 
@@ -771,7 +725,7 @@ class ClassAliasTestCase(BaseTestCase):
             'weight_in_pounds'
         ])
 
-        self.assertEqual(self.alias.static_attrs, None)
+        self.assertEqual(self.alias.static_attrs, [])
         self.assertEqual(self.alias.readonly_attrs, None)
         self.assertEqual(self.alias.exclude_attrs, None)
         self.assertEqual(self.alias.reference_properties, None)
@@ -939,7 +893,7 @@ class ReferencesTestCase(BaseTestCase):
     def setUp(self):
         BaseTestCase.setUp(self)
 
-        self.jessica = PetModel(name='Jessica', type='cat')
+        self.jessica = test_models.PetModel(name='Jessica', type='cat')
         self.jessica.birthdate = datetime.date(1986, 10, 2)
         self.jessica.weight_in_pounds = 5
         self.jessica.spayed_or_neutered = False
@@ -977,11 +931,11 @@ class ReferencesTestCase(BaseTestCase):
         self.assertEqual(stream.getvalue(), '\n\x00')
 
     def test_nullreference(self):
-        c = Novel(title='Pride and Prejudice', author=None)
+        c = test_models.Novel(title='Pride and Prejudice', author=None)
         self.put(c)
 
         encoder = pyamf.get_encoder(encoding=pyamf.AMF3)
-        alias = adapter_db.DataStoreClassAlias(Novel, None)
+        alias = adapter_db.DataStoreClassAlias(test_models.Novel, None)
 
         attrs = alias.getEncodableAttributes(c, codec=encoder)
 
@@ -1015,17 +969,17 @@ class GAEReferenceCollectionTestCase(BaseTestCase):
 
         x = self.klass()
 
-        self.assertRaises(KeyError, x.getClassKey, PetModel, 'foo')
-        self.assertEqual(x, {PetModel: {}})
+        self.assertRaises(KeyError, x.getClassKey, test_models.PetModel, 'foo')
+        self.assertEqual(x, {test_models.PetModel: {}})
 
         obj = object()
 
-        x[PetModel]['foo'] = obj
+        x[test_models.PetModel]['foo'] = obj
 
-        obj2 = x.getClassKey(PetModel, 'foo')
+        obj2 = x.getClassKey(test_models.PetModel, 'foo')
 
         self.assertEqual(id(obj), id(obj2))
-        self.assertEqual(x, {PetModel: {'foo': obj}})
+        self.assertEqual(x, {test_models.PetModel: {'foo': obj}})
 
     def test_add(self):
         x = self.klass()
@@ -1035,23 +989,23 @@ class GAEReferenceCollectionTestCase(BaseTestCase):
         # not a subclass of db.Model/db.Expando
         self.assertRaises(TypeError, x.addClassKey, Spam, '')
         # wrong type for key
-        self.assertRaises(TypeError, x.addClassKey, PetModel, 3)
+        self.assertRaises(TypeError, x.addClassKey, test_models.PetModel, 3)
 
         x = self.klass()
-        pm1 = PetModel(type='cat', name='Jessica')
-        pm2 = PetModel(type='dog', name='Sam')
-        pe1 = PetExpando(type='cat', name='Toby')
+        pm1 = test_models.PetModel(type='cat', name='Jessica')
+        pm2 = test_models.PetModel(type='dog', name='Sam')
+        pe1 = test_models.PetExpando(type='cat', name='Toby')
 
         self.assertEqual(x, {})
 
-        x.addClassKey(PetModel, 'foo', pm1)
-        self.assertEqual(x, {PetModel: {'foo': pm1}})
-        x.addClassKey(PetModel, 'bar', pm2)
-        self.assertEqual(x, {PetModel: {'foo': pm1, 'bar': pm2}})
-        x.addClassKey(PetExpando, 'baz', pe1)
+        x.addClassKey(test_models.PetModel, 'foo', pm1)
+        self.assertEqual(x, {test_models.PetModel: {'foo': pm1}})
+        x.addClassKey(test_models.PetModel, 'bar', pm2)
+        self.assertEqual(x, {test_models.PetModel: {'foo': pm1, 'bar': pm2}})
+        x.addClassKey(test_models.PetExpando, 'baz', pe1)
         self.assertEqual(x, {
-            PetModel: {'foo': pm1, 'bar': pm2},
-            PetExpando: {'baz': pe1}
+            test_models.PetModel: {'foo': pm1, 'bar': pm2},
+            test_models.PetExpando: {'baz': pe1}
         })
 
 
@@ -1068,36 +1022,11 @@ class HelperTestCase(BaseTestCase):
         self.assertTrue('gae_objects' in context.extra)
         self.assertEqual(id(x), id(context.extra['gae_objects']))
 
-    def test_loadInstanceFromDatastore(self):
-        # not a class type
-        self.assertRaises(TypeError, adapter_db.loadInstanceFromDatastore, chr, '')
-        # not a subclass of db.Model/db.Expando
-        self.assertRaises(TypeError, adapter_db.loadInstanceFromDatastore, Spam, '')
-        # not a valid key type
-        self.assertRaises(TypeError, adapter_db.loadInstanceFromDatastore, GettableModelStub, 2)
-
-        self.assertEqual(GettableModelStub.gets, [])
-        adapter_db.loadInstanceFromDatastore(GettableModelStub, 'foo', codec=None)
-        self.assertEqual(GettableModelStub.gets, [[('foo',), {}]])
-
-        codec = Spam()
-        codec.context = Spam()
-        codec.context.extra = {}
-        GettableModelStub.gets = []
-
-        adapter_db.loadInstanceFromDatastore(GettableModelStub, 'foo', codec=codec)
-        self.assertTrue('gae_objects' in codec.context.extra)
-        self.assertEqual(GettableModelStub.gets, [[('foo',), {}]])
-
-        gae_objects = codec.context.extra['gae_objects']
-        self.assertTrue(isinstance(gae_objects, adapter_db.GAEReferenceCollection))
-        self.assertEqual(gae_objects, {GettableModelStub: {'foo': None}})
-
     def test_Query_type(self):
         """
         L{db.Query} instances get converted to lists ..
         """
-        q = PetModel.all()
+        q = test_models.EmptyModel.all()
 
         self.assertTrue(isinstance(q, db.Query))
         self.assertEncodes(q, '\n\x00\x00\x00\x00', encoding=pyamf.AMF0)

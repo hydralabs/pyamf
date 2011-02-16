@@ -460,7 +460,7 @@ class Encoder(_Codec):
                 if isinstance(data, type_):
                     return _CustomTypeFunc(self, func)
             except TypeError:
-                if callable(type_) and type_(data):
+                if python.callable(type_) and type_(data):
                     return _CustomTypeFunc(self, func)
 
         # now try some types that won't encode
