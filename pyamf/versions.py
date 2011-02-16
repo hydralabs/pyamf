@@ -25,19 +25,16 @@ class Version(tuple):
         return self._version
 
 
-def get_version(v):
-    version = '%s.%s' % (v[0], v[1])
+def get_version(_version):
+    v = ''
+    prev = None
 
-    try:
-        if v[2]:
-            version = '%s.%s' % (version, v[2])
-        if v[3:] == ('alpha', 0):
-            version = '%s pre-alpha' % version
-        else:
-            version = '%s%s' % (version, v[3])
-            if v[3] != 'final':
-                version = '%s%s' % (version, v[4])
-    except IndexError:
-        pass
+    for x in _version:
+        if prev is not None:
+            if isinstance(x, int):
+                v += '.'
 
-    return version
+        prev = x
+        v += str(x)
+
+    return v.strip('.')
