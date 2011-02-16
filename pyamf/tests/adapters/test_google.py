@@ -7,7 +7,7 @@ PyAMF Google adapter tests.
 @since: 0.3.1
 """
 
-import unittest2
+import unittest
 import datetime
 import struct
 import os
@@ -38,11 +38,11 @@ def setUpModule():
     global db, blobstore, polymodel, adapter_blobstore, adapter_db, test_models
 
     if db is None:
-        raise unittest2.SkipTest("'google.appengine.ext.db' is not available")
+        raise unittest.SkipTest("'google.appengine.ext.db' is not available")
 
     if not os.environ.get('SERVER_SOFTWARE', None):
         # this is an extra check because the AppEngine SDK may be in PYTHONPATH
-        raise unittest2.SkipTest('Appengine env not bootstrapped correctly')
+        raise unittest.SkipTest('Appengine env not bootstrapped correctly')
 
     # all looks good - we now initialise the imports we require
     from google.appengine.ext import blobstore
