@@ -13,7 +13,7 @@ import setupinfo
 from setuptools import setup, find_packages
 
 
-version = (0, 6, 1, 'dev')
+version = (0, 6, 1)
 
 name = "PyAMF"
 description = "AMF support for Python"
