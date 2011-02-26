@@ -18,3 +18,9 @@ if hasattr(collections, 'deque'):
 
 if hasattr(collections, 'defaultdict'):
     pyamf.add_type(collections.defaultdict, util.to_dict)
+
+if hasattr(collections, 'Counter'):
+    pyamf.add_type(collections.Counter, util.to_dict)
+
+if hasattr(collections, 'OrderedDict'):
+    pyamf.add_type(collections.OrderedDict, util.to_dict)

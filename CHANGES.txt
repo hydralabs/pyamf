@@ -14,6 +14,8 @@ versions of PyAMF.
   (Ticket:827)
 - Fixed an issue in the client where '; charset=utf8' would be appended to the
   ``Content-Type`` response header. (Ticket:822)
+- Add support for ``collections.OrderedDict`` and ``collections.Counter``
+  (Ticket:816,815)
 
 0.6.1 (Unreleased)
 ------------------

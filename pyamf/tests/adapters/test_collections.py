@@ -68,7 +68,51 @@ class DefaultDictTestCase(CollectionsTestCase):
         self.orig = dict(self.obj)
 
     def test_amf0(self):
+        self.assertEqual(self.encdec(pyamf.AMF0), self.orig)
+
+    def test_amf3(self):
         self.assertEqual(self.encdec(pyamf.AMF3), self.orig)
+
+
+class OrderedDictTestCase(CollectionsTestCase):
+    """
+    Tests for L{collections.OrderedDict}
+    """
+
+    def setUp(self):
+        CollectionsTestCase.setUp(self)
+
+        if not hasattr(collections, 'OrderedDict'):
+            self.skipTest("'collections.OrderedDict' not available")
+
+        self.obj = collections.OrderedDict([('apple', 4), ('banana', 3), ('orange', 2), ('pear', 1)])
+        self.orig = dict(self.obj)
+
+
+    def test_amf0(self):
+        self.assertEqual(self.encdec(pyamf.AMF0), self.orig)
+
+    def test_amf3(self):
+        self.assertEqual(self.encdec(pyamf.AMF3), self.orig)
+
+
+class CounterTestCase(CollectionsTestCase):
+    """
+    Tests for L{collections.Counter}
+    """
+
+    def setUp(self):
+        CollectionsTestCase.setUp(self)
+
+        if not hasattr(collections, 'Counter'):
+            self.skipTest("'collections.Counter' not available")
+
+        self.obj = collections.Counter({'blue': 3, 'red': 2, 'green': 1})
+
+        self.orig = dict(self.obj)
+
+    def test_amf0(self):
+        self.assertEqual(self.encdec(pyamf.AMF0), self.orig)
 
     def test_amf3(self):
         self.assertEqual(self.encdec(pyamf.AMF3), self.orig)
