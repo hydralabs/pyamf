@@ -153,6 +153,12 @@ def get_extras_require():
     }
 
 
+def get_package_data():
+    return {
+        'cpyamf': ['*.pxd'],
+    }
+
+
 def extra_setup_args():
     """
     Extra kwargs to supply in the call to C{setup}.
@@ -166,7 +172,8 @@ def extra_setup_args():
             'test': TestCommand,
             'build_ext': MyBuildExt,
             'sdist': MySDist
-        }
+        },
+        'package_data': get_package_data(),
     }
 
 
