@@ -12,7 +12,6 @@ versions of PyAMF.
 
 - Switched to Distribute as the future of Python packaging (Ticket:682)
 
-
 0.6 (21-10-2010)
 ----------------
 - Ability to exclude 'stock' attributes with AppEngine Datastore/SQLAlchemy

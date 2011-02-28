@@ -18,9 +18,9 @@ simply type the following on the command-line to install PyAMF::
 `Note: you might need root permissions or equivalent for these steps.`
 
 If you don't have `setuptools` or `easy_install`, first download
-ez_setup.py_ and run::
+distribute_setup.py_ and run::
 
-    python ez_setup.py
+    python distribute_setup.py
 
 After `easy_install` is installed, run `easy_install pyamf` again. If
 you run into problems, try the manual installation instructions below.
@@ -38,7 +38,9 @@ To use PyAMF with Python 2.4, the following software packages
 must be installed. You **don't** need these packages if you're using
 Python 2.5 or newer!
 
-The ``easy_install`` command will automatically install them for you, as described above, but you can also choose to download and install the packages manually.
+The ``easy_install`` command will automatically install them for you, as
+described above, but you can also choose to download and install the packages
+manually.
 
 - ElementTree_ 1.2.6 or newer
 - uuid_ 1.30 or newer
@@ -63,7 +65,7 @@ from a command-prompt::
 This will byte-compile the Python source code and install it in the
 ``site-packages`` directory of your Python installation.
 
-To disable the installation of the C-extension, supply the
+Note: to disable the installation of the C-extension, supply the
 ``--disable-ext`` option::
 
     python setup.py install --disable-ext
@@ -94,7 +96,6 @@ install them for you, as described above, but you can also choose to
 download and install the packages manually.
 
 - unittest2_ (included in Python 2.7 and newer)
-- pysqlite_
 
 You can run the unit tests using setuptools like this::
 
@@ -111,7 +112,7 @@ C-Extension
 
 To modify the cPyAMF extension you need:
 
-- Cython_ 0.10 or newer
+- Cython_ 0.13 or newer
 
 And run the command below on the ``.pyx`` files to create the
 ``.c`` file, which contains the C source for the ``cPyAMF``
@@ -185,7 +186,7 @@ folder.
 .. _yet:			http://dev.pyamf.org/milestone/0.7
 .. _setuptools:			http://peak.telecommunity.com/DevCenter/setuptools
 .. _easy_install: 		http://peak.telecommunity.com/DevCenter/EasyInstall#installing-easy-install
-.. _ez_setup.py:		http://github.com/hydralabs/pyamf/blob/master/ez_setup.py
+.. _distribute_setup.py:		http://github.com/hydralabs/pyamf/blob/master/distribute_setup.py
 .. _Epydoc:			http://epydoc.sourceforge.net
 .. _ElementTree:		http://effbot.org/zone/element-index.htm
 .. _lxml:			http://codespeak.net/lxml
@@ -198,7 +199,6 @@ folder.
 .. _Google App Engine: 		http://code.google.com/appengine
 .. _Elixir:			http://elixir.ematia.de
 .. _unittest2:			http://pypi.python.org/pypi/unittest2
-.. _pysqlite:			http://code.google.com/p/pysqlite
 .. _nose:			http://somethingaboutorange.com/mrl/projects/nose
 .. _Trial:			http://twistedmatrix.com/trac/wiki/TwistedTrial
 .. _Cython:			http://cython.org
