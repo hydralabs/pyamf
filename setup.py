@@ -13,7 +13,7 @@ import setupinfo
 from setuptools import setup, find_packages
 
 
-version = (0, 6, 1, 'dev')
+version = (0, 6, 1)
 
 name = "PyAMF"
 description = "AMF support for Python"
@@ -71,7 +71,7 @@ def setup_package():
         install_requires=setupinfo.get_install_requirements(),
         tests_require=setupinfo.get_test_requirements(),
         test_suite="pyamf.tests.get_suite",
-        zip_safe=True,
+        zip_safe=False,
         extras_require=setupinfo.get_extras_require(),
         classifiers=(filter(None, classifiers.split('\n')) +
             setupinfo.get_trove_classifiers()),
