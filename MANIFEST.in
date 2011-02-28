@@ -7,3 +7,5 @@ include setupinfo.py
 include *.txt
 global-exclude *.swf
 global-exclude *.pyc
+include cpyamf/*.pyx
+include cpyamf/*.pxd
