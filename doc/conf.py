@@ -122,7 +122,7 @@ add_module_names = True
 # target must match (see re.match()) to be cross-referenced with the base url.
 epydoc_mapping = {
    # TODO: don't harcode version nr
-   'http://api.pyamf.org/0.5.1/': [r'pyamf\.'],
+   'http://api.pyamf.org/0.6.1/': [r'pyamf\.'],
 }
 
 # -- Options for HTML output ---------------------------------------------------
