@@ -477,7 +477,7 @@ cdef class Encoder(Codec):
         try:
             alias = self.context.getClassAlias(iterable.__class__)
         except (AttributeError, pyamf.UnknownClassAlias):
-            return self.writeList(iterable)
+            return self.writeList([x for x in iterable])
 
         if alias.external:
             # a is a subclassed list with a registered alias - push to the
@@ -486,7 +486,7 @@ cdef class Encoder(Codec):
 
             return self.writeObject(iterable)
 
-        return self.writeList(iterable)
+        return self.writeList([x for x in iterable])
 
     cpdef int writeObject(self, object o, bint is_proxy=0) except -1:
         raise NotImplementedError
