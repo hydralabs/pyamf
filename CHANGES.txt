@@ -14,6 +14,7 @@ versions of PyAMF.
 0.6.1 (28-02-2011)
 ------------------
 - Switched to Distribute as the future of Python packaging (Ticket:682)
+- Add support for weakref'd objects (Ticket:832)
 
 0.6 (21-10-2010)
 ----------------
