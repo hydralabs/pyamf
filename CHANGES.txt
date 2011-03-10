@@ -6,9 +6,13 @@ versions of PyAMF.
 
 .. contents::
 
+0.6.1 (Unreleased)
+------------------
+- Fixed a segfault (the first ever!) in cpyamf caused by encoding subclassed
+  tuples/list/sets. Thanks to wolever for the heavy lifting (Ticket:830)
 
 0.6.1 (28-02-2011)
-----------------
+------------------
 - Switched to Distribute as the future of Python packaging (Ticket:682)
 
 0.6 (21-10-2010)
