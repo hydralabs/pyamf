@@ -25,10 +25,6 @@ def get_referent(reference, **kwargs):
 pyamf.add_type(weakref_type, get_referent)
 
 
-if hasattr(weakref, 'WeakKeyDictionary'):
-    pyamf.add_type(weakref.WeakKeyDictionary, util.to_dict)
-
-
 if hasattr(weakref, 'WeakValueDictionary'):
     pyamf.add_type(weakref.WeakValueDictionary, util.to_dict)
 

@@ -69,7 +69,7 @@ class BaseTestCase(unittest.TestCase):
         obj = self.getReferent()
         ref = self.getReference(obj)
 
-        self._assertEncoding(pyamf.AMF0, obj, ref)
+        self._assertEncoding(pyamf.AMF3, obj, ref)
 
 
 
@@ -90,20 +90,6 @@ class ProxyTestCase(BaseTestCase):
 
     def getReference(self, obj):
         return weakref.proxy(obj)
-
-
-
-class WeakKeyDictionaryTestCase(BaseTestCase):
-    """
-    Tests for L{weakref.WeakKeyDictionary}
-    """
-
-    def getReferent(self):
-        return {Foo(): 'bar', Foo(): 'gak', Foo(): [1, 2, 'eggs']}
-
-
-    def getReference(self, obj):
-        return weakref.WeakKeyDictionary(obj)
 
 
 

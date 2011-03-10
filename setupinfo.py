@@ -64,17 +64,11 @@ class MyBuildExt(build_ext):
     extensions are disabled.
     """
 
-    def build_extension(self, ext):
+    def run(self, *args, **kwargs):
         if self.distribution.disable_ext:
             return
 
-        return build_ext.build_extension(self, ext)
-
-    def build_extensions(self):
-        if self.distribution.disable_ext:
-            return
-
-        return build_ext.build_extensions(self)
+        build_ext.run(self, *args, **kwargs)
 
 
 class MySDist(sdist.sdist):
