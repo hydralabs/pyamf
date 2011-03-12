@@ -6,8 +6,10 @@ versions of PyAMF.
 
 .. contents::
 
-0.6.1 (Unreleased)
+0.6.2 (2011-03-12)
 ------------------
+- Add support for weakref (Ticket:832)
+- Add support for SQLAlchemy 0.6.6 (Ticket:831)
 - Fixed a segfault (the first ever!) in cpyamf caused by encoding subclassed
   tuples/list/sets. Thanks to wolever for the heavy lifting (Ticket:830)
 
