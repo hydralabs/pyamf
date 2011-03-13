@@ -395,7 +395,7 @@ class Encoder(_Codec):
         try:
             alias = self.context.getClassAlias(iterable.__class__)
         except (AttributeError, pyamf.UnknownClassAlias):
-            self.writeList(iterable)
+            self.writeList(list(iterable))
 
             return
 
@@ -406,7 +406,7 @@ class Encoder(_Codec):
 
             return
 
-        self.writeList(iterable)
+        self.writeList(list(iterable))
 
     def writeGenerator(self, gen):
         """

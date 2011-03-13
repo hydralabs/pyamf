@@ -18,3 +18,7 @@ from pyamf.adapters import util
 pyamf.add_type(collections.InstrumentedList, util.to_list)
 pyamf.add_type(collections.InstrumentedDict, util.to_dict)
 pyamf.add_type(collections.InstrumentedSet, util.to_set)
+
+
+if hasattr(collections, 'CollectionAdapter'):
+    pyamf.add_type(collections.CollectionAdapter, util.to_list)

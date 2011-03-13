@@ -6,7 +6,6 @@ versions of PyAMF.
 
 .. contents::
 
-
 0.7 (Unreleased)
 ----------------
 - ``pyamf.Undefined`` now evaluates to ``False`` in a boolean expression
@@ -15,6 +14,12 @@ versions of PyAMF.
   ``Content-Type`` response header. (Ticket:822)
 - Add support for ``collections.OrderedDict`` and ``collections.Counter``
   (Ticket:816,815)
+
+0.6.2 (Unreleased)
+------------------
+- Fixed a segfault (the first ever!) in cpyamf caused by encoding subclassed
+  tuples/list/sets. Thanks to wolever for the heavy lifting (Ticket:830)
+- Add support for weakref'd objects (Ticket:832)
 
 0.6.1 (28-02-2011)
 ------------------

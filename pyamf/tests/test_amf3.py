@@ -532,6 +532,22 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
             '\x06\x01\x06\x0bhello\x06\r\xc6\x92\xc3\xb8\xc3\xb8')
 
 
+    def test_subclassed_tuple(self):
+        """
+        A subclassed tuple must encode an AMF list.
+
+        @see: #830
+        """
+        class Foo(tuple):
+            pass
+
+        x = Foo([1,2])
+
+        self.encoder.send(x)
+
+        self.assertEqual(self.encoder.next(), '\t\x05\x01\x04\x01\x04\x02')
+
+
 class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
     """
     Tests the output from the AMF3 L{Decoder<pyamf.amf3.Decoder>} class.
