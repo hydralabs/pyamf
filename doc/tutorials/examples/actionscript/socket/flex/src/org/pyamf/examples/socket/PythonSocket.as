@@ -10,7 +10,6 @@ package org.pyamf.examples.socket
 	import flash.events.IOErrorEvent;
 	import flash.events.ProgressEvent;
 	import flash.events.SecurityErrorEvent;
-	import flash.net.ObjectEncoding;
 	import flash.net.Socket;
 	import flash.system.Capabilities;
 	
@@ -42,7 +41,6 @@ package org.pyamf.examples.socket
 			_port = port;
 			_log = "Using Flash Player " + Capabilities.version + "\n";
 			
-			objectEncoding = ObjectEncoding.AMF0;
 			configureListeners();
 			
 			logger("Connecting to socket server on " + _host + ":" + _port);

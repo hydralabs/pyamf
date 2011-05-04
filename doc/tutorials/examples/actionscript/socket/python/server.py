@@ -25,7 +25,7 @@ import pyamf
 
 class TimerProtocol(Protocol):
     interval = 1.0 # interval in seconds to send the time
-    encoding = pyamf.AMF0
+    encoding = pyamf.AMF3
     timeout = 300 
 
     def __init__(self):
