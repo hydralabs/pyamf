@@ -13,6 +13,7 @@ package org.pyamf.examples.guestbook
 	import mx.collections.ArrayCollection;
 	import mx.core.Application;
 	import mx.events.FlexEvent;
+	import mx.utils.ObjectProxy;
 	
 	import org.pyamf.examples.guestbook.components.SubmitBox;
 	import org.pyamf.examples.guestbook.events.SubmitEvent;
