@@ -1,10 +1,9 @@
+/**
+ * Copyright (c) The PyAMF Project.
+ * See LICENSE.txt for details.
+ */
 package org.pyamf.examples.bytearray
 {
-	/**
-	 * Copyright (c) 2007-2009 The PyAMF Project.
-	 * See LICENSE.txt for details.
-	*/
-
 	import flash.display.BitmapData;
 	import flash.display.IBitmapDrawable;
 	
@@ -22,7 +21,8 @@ package org.pyamf.examples.bytearray
 		private var _jpg		: ImageSnapshot;
 		private var _image		: ImageSnapshot;
 			
-		public function Snapshot( source:IBitmapDrawable, width:int=320, height:int=240, type:String="jpg" )
+		public function Snapshot( source:IBitmapDrawable, width:int=320,
+								  height:int=240, type:String="jpg" )
 		{
 			_width = width;
 			_height = height;
