@@ -1,16 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<pyamf:SocketExample xmlns:mx="http://www.adobe.com/2006/mxml"
+<pyamf:SocketExample xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					 xmlns:s="library://ns.adobe.com/flex/spark" 
+					 xmlns:mx="library://ns.adobe.com/flex/mx"
 				     xmlns:pyamf="org.pyamf.examples.socket.*"
-				     backgroundColor="white" alpha="1">
+				     contentBackgroundColor="white" alpha="1">
 	
-	<mx:Panel title="PyAMF - Binary Socket Example">
-		<mx:TextArea id="status_txt" width="350" height="300" htmlText="{ log }" textIndent="3" editable="false"
-			         valueCommit="{status_txt.verticalScrollPosition = status_txt.maxVerticalScrollPosition}"/>
+	<pyamf:layout>
+		<s:HorizontalLayout horizontalAlign="center"
+							verticalAlign="middle"/>
+	</pyamf:layout>
+	
+	<s:Panel title="PyAMF - Binary Socket Example">
+		<s:TextArea id="status_txt" width="350" height="300" text="{ log }"
+					textIndent="3" editable="false" paddingTop="5"
+					borderVisible="false"
+					valueCommit="status_txt.scrollToRange(int.MAX_VALUE-1,int.MAX_VALUE)"/>
 		
-		<mx:ControlBar horizontalAlign="center">
-			<mx:Button id="start_btn" label="Start" click="startFeed()" enabled="false"/>
-			<mx:Button id="stop_btn" label="Stop" click="stopFeed()" enabled="false"/>
-		</mx:ControlBar>
-	</mx:Panel>
+		<s:controlBarLayout>
+			<s:HorizontalLayout paddingBottom="5"
+								paddingTop="5" verticalAlign="middle" horizontalAlign="center"/>
+		</s:controlBarLayout>
+		
+		<s:controlBarContent>
+			<s:Button id="start_btn" label="Start" click="startFeed()" enabled="false"/>
+			<s:Button id="stop_btn" label="Stop" click="stopFeed()" enabled="false"/>
+		</s:controlBarContent>
+		
+	</s:Panel>
 	
 </pyamf:SocketExample>

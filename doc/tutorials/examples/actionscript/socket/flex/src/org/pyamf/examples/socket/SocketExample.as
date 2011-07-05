@@ -1,32 +1,30 @@
+/**
+ * Copyright (c) The PyAMF Project.
+ * See LICENSE.txt for details.
+*/
 package org.pyamf.examples.socket
 {
-	/**
-	 * Copyright (c) 2007-2009 The PyAMF Project.
-	 * See LICENSE.txt for details.
-	 */
-
 	import flash.events.Event;
 	
-	import mx.controls.Button;
-	import mx.core.Application;
 	import mx.events.FlexEvent;
+	
+	import spark.components.Application;
+	import spark.components.Button;
 	
 	/**
 	 * This examples shows how to use Socket class in ActionScript 3,
 	 * that allows you to make socket connections and to read and write
 	 * raw binary data.
-	 * 
-	 * @author Thijs Triemstra (info@collab.nl)
 	 */
 	public class SocketExample extends Application
 	{
-		public var start_btn: Button;
-		public var stop_btn	: Button;
+		public var start_btn	: Button;
+		public var stop_btn		: Button;
 		
-		private var _server	: PythonSocket;
+		private var _server		: PythonSocket;
 		
 		[Bindable]
-		public var log		: String;
+		public var log			: String;
 		
 		public function SocketExample()
 		{
