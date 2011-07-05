@@ -1,15 +1,14 @@
 /**
- * Copyright (c) 2007-2009 The PyAMF Project.
+ * Copyright (c) The PyAMF Project.
  * See LICENSE.txt for details.
 */
 package org.pyamf.examples.addressbook.components
 {
 	import flash.display.DisplayObject;
+	import flash.events.MouseEvent;
 	
-	import mx.containers.TitleWindow;
 	import mx.controls.DataGrid;
-	import mx.controls.TextInput;
-	import mx.core.Application;
+	import mx.core.FlexGlobals;
 	import mx.events.FlexEvent;
 	import mx.managers.PopUpManager;
 	import mx.rpc.AbstractOperation;
@@ -19,7 +18,10 @@ package org.pyamf.examples.addressbook.components
 	import org.pyamf.examples.addressbook.models.Email;
 	import org.pyamf.examples.addressbook.models.PhoneNumber;
 	import org.pyamf.examples.addressbook.models.User;
-			
+	
+	import spark.components.TextInput;
+	import spark.components.TitleWindow;
+
 	public class EditUserDlgClass extends TitleWindow
 	{
 		[Bindable]
@@ -55,6 +57,11 @@ package org.pyamf.examples.addressbook.components
 			}
 		}
 		
+		override protected function closeButton_clickHandler(event:MouseEvent):void
+		{
+			close();
+		}
+		
 		protected function close():void
 		{
 			PopUpManager.removePopUp(this);	
@@ -69,7 +76,7 @@ package org.pyamf.examples.addressbook.components
 			user.emails.addItem(email);
 			var editEmailDlg:EditEmailDlg = new EditEmailDlg();
 			editEmailDlg.email = email;
-			PopUpManager.addPopUp(editEmailDlg, DisplayObject(Application.application));	
+			PopUpManager.addPopUp(editEmailDlg, DisplayObject(FlexGlobals.topLevelApplication));	
 		}
 		
 		/**
@@ -79,7 +86,7 @@ package org.pyamf.examples.addressbook.components
 		{
 			var editEmailDlg:EditEmailDlg = new EditEmailDlg();
 			editEmailDlg.email = Email(emails.selectedItem);
-			PopUpManager.addPopUp(editEmailDlg, DisplayObject(Application.application));	
+			PopUpManager.addPopUp(editEmailDlg, DisplayObject(FlexGlobals.topLevelApplication));	
 		}
 		
 		/**
@@ -105,7 +112,7 @@ package org.pyamf.examples.addressbook.components
 			var editPhoneDlg:EditPhoneDlg = new EditPhoneDlg();
 			editPhoneDlg.phone = phone_number;
 			
-			PopUpManager.addPopUp(editPhoneDlg, DisplayObject(Application.application));	
+			PopUpManager.addPopUp(editPhoneDlg, DisplayObject(FlexGlobals.topLevelApplication));	
 		}
 		
 		/**
@@ -116,7 +123,7 @@ package org.pyamf.examples.addressbook.components
 			var editPhoneDlg:EditPhoneDlg = new EditPhoneDlg();
 			editPhoneDlg.phone = PhoneNumber(phone_numbers.selectedItem);
 			
-			PopUpManager.addPopUp(editPhoneDlg, DisplayObject(Application.application));	
+			PopUpManager.addPopUp(editPhoneDlg, DisplayObject(FlexGlobals.topLevelApplication));	
 		}
 		
 		/**
@@ -139,7 +146,7 @@ package org.pyamf.examples.addressbook.components
 			user.first_name = firstName.text;
 			user.last_name = lastName.text;
 			
-			var remoteObj:RemoteObject = Application.application.getService();
+			var remoteObj:RemoteObject = FlexGlobals.topLevelApplication.getService();
 			var operation:AbstractOperation = remoteObj.getOperation('save');
             operation.addEventListener(ResultEvent.RESULT, save_resultHandler);
             operation.send(user);
@@ -150,7 +157,7 @@ package org.pyamf.examples.addressbook.components
 			event.target.removeEventListener(ResultEvent.RESULT, save_resultHandler);
 			if (!user.isPersistent())
 			{
-				Application.application.loadUsers();
+				FlexGlobals.topLevelApplication.loadUsers();
 			}
 			
 			close();

@@ -156,5 +156,5 @@ for this example client:
 .. _blog: http://blog.pyamf.org/2008/01/bytearray-example
 .. _browse: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/bytearray
 .. _development server: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/bytearray/python/manage.py
-.. _SWF file: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/bytearray/flex/deploy/bytearray.swf
+.. _SWF file: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/bytearray/flex/deploy/assets/bytearray.swf
 

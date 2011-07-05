@@ -1,17 +1,15 @@
 /**
- * Copyright (c) 2007-2009 The PyAMF Project.
+ * Copyright (c) The PyAMF Project.
  * See LICENSE.txt for details.
 */
 package org.pyamf.examples.addressbook
 {
 	import flash.display.DisplayObject;
 	import flash.net.registerClassAlias;
-
+	
 	import mx.collections.ArrayCollection;
 	import mx.controls.Alert;
 	import mx.controls.DataGrid;
-	import mx.controls.TextInput;
-	import mx.core.Application;
 	import mx.events.FlexEvent;
 	import mx.managers.PopUpManager;
 	import mx.messaging.ChannelSet;
@@ -20,11 +18,14 @@ package org.pyamf.examples.addressbook
 	import mx.rpc.events.FaultEvent;
 	import mx.rpc.events.ResultEvent;
 	import mx.rpc.remoting.mxml.RemoteObject;
-
+	
 	import org.pyamf.examples.addressbook.components.EditUserDlg;
 	import org.pyamf.examples.addressbook.models.Email;
 	import org.pyamf.examples.addressbook.models.PhoneNumber;
 	import org.pyamf.examples.addressbook.models.User;
+	
+	import spark.components.Application;
+	import spark.components.TextInput;
 
 	public class AddressBook extends Application
 	{

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2007-2009 The PyAMF Project.
+ * Copyright (c) The PyAMF Project.
  * See LICENSE.txt for details.
 */
 package org.pyamf.examples.addressbook.models
@@ -9,7 +9,7 @@ package org.pyamf.examples.addressbook.models
 	import flash.utils.getQualifiedClassName;
 	
 	import mx.collections.ArrayCollection;
-	import mx.core.Application;
+	import mx.core.FlexGlobals;
 	import mx.rpc.AbstractOperation;
 	import mx.rpc.events.AbstractEvent;
 	import mx.rpc.events.ResultEvent;
@@ -191,7 +191,7 @@ package org.pyamf.examples.addressbook.models
 			}
 			
 			setAttrLoading(attr);
-			var remoteObj:RemoteObject = Application.application.getService();
+			var remoteObj:RemoteObject = FlexGlobals.topLevelApplication.getService();
 			var operation:AbstractOperation = remoteObj.getOperation('loadAttr');
 			operation.addEventListener(ResultEvent.RESULT, loadAttr_resultHandler);
 			operation.send(alias, sa_key, attr);
@@ -220,7 +220,7 @@ package org.pyamf.examples.addressbook.models
 				throw new Error(SAVE_ERROR_MSG);
 			}
 				
-			var remoteObj:RemoteObject = Application.application.getService();
+			var remoteObj:RemoteObject = FlexGlobals.topLevelApplication.getService();
 			remoteObj.saveAttr(sa_key, attr, this[attr]);
 		}
 				
@@ -229,7 +229,7 @@ package org.pyamf.examples.addressbook.models
 		 */
 		public function save():void
 		{
-			var remoteObj:RemoteObject = Application.application.getService();
+			var remoteObj:RemoteObject = FlexGlobals.topLevelApplication.getService();
 			remoteObj.save(this);
 		}
 				
@@ -243,7 +243,7 @@ package org.pyamf.examples.addressbook.models
 				throw new Error(REMOVE_ERROR_MSG);
 			}
 
-			var remoteObj:RemoteObject = Application.application.getService();
+			var remoteObj:RemoteObject = FlexGlobals.topLevelApplication.getService();
 			var operation:AbstractOperation = remoteObj.getOperation('remove');
             operation.send(alias, sa_key);
 		}
