@@ -1,71 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml"
-				horizontalAlign="center" paddingBottom="10"
-				paddingRight="10" paddingLeft="10" paddingTop="10"
-				backgroundColor="white" verticalAlign="middle"
-				backgroundAlpha="1" width="100%" height="100%">
-				
-	<mx:Script>
-        <![CDATA[
-        	import org.pyamf.examples.ohloh.ApiExample;
-        	
-        	public var account: ApiExample;
-        	
-        	public function submit():void
-        	{
-        		submit_btn.enabled = false;
-        		
-        		account = new ApiExample( email.text );
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx"
+				xmlns:pyamf="org.pyamf.examples.shell.*"
+				backgroundColor="white" backgroundAlpha="1"
+				width="100%" height="100%">
+	<s:layout>
+		<s:HorizontalLayout horizontalAlign="center" paddingBottom="10"
+							paddingRight="10" paddingLeft="10" paddingTop="10"
+							verticalAlign="middle" />
+	</s:layout>
+	
+	<fx:Script>
+		<![CDATA[
+			import flashx.textLayout.conversion.TextConverter;
+			
+			import org.pyamf.examples.ohloh.ApiExample;
+			
+			public var account: ApiExample;
+			
+			public function submit():void
+			{
+				submit_btn.enabled = false;
+				account = new ApiExample( email.text );
 				account.addEventListener( ApiExample.RESPONSE, showResponse );
 				account.addEventListener( ApiExample.ERROR, showError );
-				
 				account.connect('http://localhost:8000');
-        	}
-        	
-        	private function showResponse( evt:Event ):void
-        	{
-        		submit_btn.enabled = true;
-        		results.visible = true;
-        		
-        		username.text = account.info.name;
-        		avatar.source = account.info.avatar_url;
-        		location.text = account.info.location;
-        		website.htmlText = "<a href='" + account.info.homepage_url +
-								   "'><font color='#1874CD'>" +
-								   account.info.homepage_url + "</font></a>";
-        	}
-        	
-        	private function showError( evt:Event ):void
-        	{
-        		submit_btn.enabled = true;
-        		results.visible = false;
-        	}
-        ]]>
-    </mx:Script>  
-
+			}
+			
+			private function showResponse( evt:Event ):void
+			{
+				submit_btn.enabled = true;
+				results.visible = true;
+				
+				var websiteValue:String = "<a href='" + account.info.homepage_url +
+										  "' target='_blank'>" + account.info.homepage_url +
+										  "</a>";
+				username.text = account.info.name;
+				avatar.source = account.info.avatar_url;
+				location.text = account.info.location;
+				website.textFlow = TextConverter.importToFlow( websiteValue, 
+								   TextConverter.TEXT_FIELD_HTML_FORMAT );
+			}
+			
+			private function showError( evt:Event ):void
+			{
+				submit_btn.enabled = true;
+				results.visible = false;
+			}
+		]]>
+	</fx:Script>
+	
 	<mx:Form>
-		<mx:Label text="Ohloh API Example" fontWeight="bold" fontSize="14"
+		<s:Label text="Ohloh API Example" fontWeight="bold" fontSize="14"
 				  paddingBottom="15" width="100%"/>
 		<mx:FormItem label="Email Address:">
 			<mx:TextInput id="email" text="info@ohloh.net" width="300" textIndent="3"/>
 		</mx:FormItem>
 		<mx:FormItem>
-			<mx:Button id="submit_btn" click="submit()" label="Submit"/>
+			<s:Button id="submit_btn" click="submit()" label="Submit"/>
 		</mx:FormItem>
 		<mx:FormItem label="Result:" paddingTop="20" id="results" visible="false">
-			<mx:Panel title="Ohloh Profile" paddingBottom="20" paddingRight="20"
-					  paddingLeft="20" paddingTop="20">
-				<mx:HBox width="100%">
-					<mx:Image id="avatar"/>
-					<mx:VBox paddingTop="0" verticalGap="0" height="100%">
-						<mx:Label id="username" fontWeight="bold" fontSize="12"/>
-						<mx:Spacer height="100%"/>
-						<mx:Label id="location" selectable="true"/>
-						<mx:Label id="website" fontWeight="bold"/>
-					</mx:VBox>
-				</mx:HBox>
-			</mx:Panel>
+			<s:Panel title="Ohloh Profile">
+				<s:HGroup width="100%" paddingBottom="20" paddingRight="20"
+						  paddingLeft="20" paddingTop="20" gap="10">
+					
+					<mx:SWFLoader id="avatar" complete="bitmapImage.source=avatar.content"
+								  includeInLayout="false" visible="false"/>
+					<s:BitmapImage id="bitmapImage" width="100%" height="100%" />
+					
+					<s:VGroup paddingTop="0" gap="3" height="100%">
+						<s:Label id="username" fontWeight="bold" fontSize="12"/>
+						<s:RichText id="location"/>
+						<s:RichEditableText id="website" fontWeight="bold" editable="false" />
+					</s:VGroup>
+				</s:HGroup>
+			</s:Panel>
 		</mx:FormItem>
 	</mx:Form>
 	
-</mx:Application>
+</s:Application>
