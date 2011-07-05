@@ -131,4 +131,4 @@ for this example client:
 .. _blog: http://blog.pyamf.org/2008/01/geoip-example
 .. _browse: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/geoip
 .. _development server: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/geoip/python/server.py
-.. _SWF file: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/geoip/flex/deploy/geoip.swf
+.. _SWF file: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/geoip/flex/deploy/assets/geoip.swf

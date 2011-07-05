@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<application xmlns="http://ns.adobe.com/air/application/2.0beta2">
+<application xmlns="http://ns.adobe.com/air/application/2.6">
 
 <!-- Adobe AIR Application Descriptor File Template.
 
@@ -16,15 +16,15 @@
 	     May have multiple values for each language. See samples or xsd schema file. Optional. -->
 	<name>PyAMF UDP example</name>
 
-	<!-- An application version designator (such as "v1", "2.5", or "Alpha 1"). Required. -->
-	<version>1.2</version>
+	<!-- An application version designator (string value of the format <0-999>.<0-999>.). Required. -->
+	<versionNumber>1.3</versionNumber>
 
 	<!-- Description, displayed in the AIR application installer.
 	     May have multiple values for each language. See samples or xsd schema file. Optional. -->
 	<description>UDP example using PyAMF and Twisted</description>
 
 	<!-- Copyright information. Optional -->
-	<copyright>Copyright 2009-2010 The PyAMF Project</copyright>
+	<copyright>Copyright 2009-2011 The PyAMF Project</copyright>
 
 	<!-- Settings for the application's initial window. Required. -->
 	<initialWindow>

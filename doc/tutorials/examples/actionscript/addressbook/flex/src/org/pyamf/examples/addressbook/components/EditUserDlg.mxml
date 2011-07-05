@@ -1,35 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<view:EditUserDlgClass xmlns:mx="http://www.adobe.com/2006/mxml"
+<view:EditUserDlgClass xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					   xmlns:s="library://ns.adobe.com/flex/spark" 
+					   xmlns:mx="library://ns.adobe.com/flex/mx"
 					   xmlns:view="org.pyamf.examples.addressbook.components.*"
-					   layout="vertical" title="Edit User" width="600">
-				
-	<mx:Form>
-		<mx:FormItem label="Persistent:">
-			<mx:Label text="{user.isPersistent()}" />
-		</mx:FormItem>
+					   title="Edit User" width="600">
 	
-		<mx:FormItem label="First Name:">
-			<mx:TextInput
+	<view:layout>
+		<s:VerticalLayout />
+	</view:layout>
+	
+	<s:Form>
+		<s:layout>
+			<s:FormLayout gap="-13" />
+		</s:layout>
+		
+		<s:FormItem label="Persistent:">
+			<s:CheckBox enabled="false" selected="{user.isPersistent()}" />
+		</s:FormItem>
+	
+		<s:FormItem label="First Name:">
+			<s:TextInput
 				id="firstName"
 				text="{user.first_name}" />
-		</mx:FormItem>
+		</s:FormItem>
 		
-		<mx:FormItem label="Last Name:">
-			<mx:TextInput
+		<s:FormItem label="Last Name:">
+			<s:TextInput
 				id="lastName"
 				text="{user.last_name}" />
-		</mx:FormItem>
-		<mx:FormItem label="Created:">
-			<mx:Label
+		</s:FormItem>
+		<s:FormItem label="Created:">
+			<s:Label
 				id="created"
 				text="{user.created}" />
-		</mx:FormItem>
-	</mx:Form>
+		</s:FormItem>
+	</s:Form>
 	
 	<mx:HRule width="100%"/>
 	
-	<mx:HBox width="100%">
-		<mx:VBox width="100%">
+	<s:HGroup width="100%" paddingBottom="10" paddingLeft="10" paddingTop="10" paddingRight="10">
+		<s:VGroup width="100%">
 			<mx:DataGrid
 				id="emails"
 				width="100%"
@@ -44,21 +54,21 @@
 				</mx:columns>
 			</mx:DataGrid>
 			
-			<mx:HBox width="100%" horizontalAlign="center" verticalAlign="center">
-				<mx:Button
+			<s:HGroup width="100%" horizontalAlign="center" verticalAlign="middle">
+				<s:Button
 					label="Add Email"
 					click="addEmail()"
 					toolTip="Add a new e-mail" />
-				<mx:Button
+				<s:Button
 					label="Remove Email"
 					click="removeEmails()"
 					toolTip="Remove selected emails" />
-			</mx:HBox>
-		</mx:VBox>
+			</s:HGroup>
+		</s:VGroup>
 			
 		<mx:VRule height="100%"/>
 			
-		<mx:VBox width="100%">
+		<s:VGroup width="100%">
 			<mx:DataGrid
 				id="phone_numbers"
 				width="100%"
@@ -73,30 +83,31 @@
 				</mx:columns>
 			</mx:DataGrid>
 		
-			<mx:HBox width="100%" horizontalAlign="center" verticalAlign="center">
-				<mx:Button
+			<s:HGroup width="100%" horizontalAlign="center" verticalAlign="middle">
+				<s:Button
 					label="Add Phone"
 					click="addPhone()"
 					toolTip="Add a new phone number" />
-				<mx:Button
+				<s:Button
 					label="Remove Phone"
 					click="removePhones()"
 					toolTip="Remove selected phone numbers" />
-			</mx:HBox>
-		</mx:VBox>
-	</mx:HBox>
+			</s:HGroup>
+		</s:VGroup>
+	</s:HGroup>
 
 	<mx:HRule width="100%"/>
 
-	<mx:HBox width="100%" horizontalAlign="center" verticalAlign="center">
-		<mx:Button
+	<s:HGroup width="100%" horizontalAlign="center" verticalAlign="middle"
+			  paddingBottom="10" paddingLeft="10" paddingTop="10" paddingRight="10">
+		<s:Button
 			label="Save"
 			click="save()"
 			toolTip="Save user" />
-		<mx:Button
+		<s:Button
 			label="Close"
 			click="close()"
 			toolTip="Close window" />
-	</mx:HBox>
+	</s:HGroup>
 	
 </view:EditUserDlgClass>

@@ -199,7 +199,7 @@ class ShellService:
 
     header = 'Welcome to the PyAMF %s Shell Demo!\n' \
            'Python %s on %s\n' \
-           'Type "help", "copyright", "credits" or "license" for more information.' % \
+           'Type "help", "copyright", "credits" or "license" for more information.\n' % \
            (pyamf_version, sys.version, sys.platform)
 
     return header
@@ -209,4 +209,4 @@ services = {
     'shell': ShellService()
 }
 
-gateway = DjangoGateway(services)
+gateway = DjangoGateway(services, debug=True, logger=logging)

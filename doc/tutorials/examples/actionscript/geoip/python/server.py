@@ -7,8 +7,6 @@
 """
 GeoIP example server.
 
-@see: U{GeoipExample<http://pyamf.org/wiki/GeoipExample>} wiki page.
-
 @since: 0.1
 """                                                             
 
