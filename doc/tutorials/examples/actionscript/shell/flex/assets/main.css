@@ -1,0 +1,27 @@
+/* Copyright (c) The PyAMF Project.
+ * See LICENSE.txt for details. */
+
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace mx "library://ns.adobe.com/flex/mx";
+
+s|Application
+{
+	backgroundColor:				white;
+	color:							black;
+}
+
+
+s|TextArea
+{
+	content-background-color:		white;
+	font-size:						13;
+	text-indent:					5;
+	padding-top:					5;
+	color:							black;
+}
+
+.title {
+	font-weight:					bold;
+	font-size:						18;
+	color:							black;
+}

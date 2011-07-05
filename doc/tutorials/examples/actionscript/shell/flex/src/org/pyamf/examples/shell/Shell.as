@@ -1,25 +1,26 @@
+/**
+ * Copyright (c) The PyAMF Project.
+ * See LICENSE.txt for details.
+*/
 package org.pyamf.examples.shell
 {
-	/**
-	 * Copyright (c) 2007-2009 The PyAMF Project.
-	 * See LICENSE.txt for details.
-	*/
-	
 	import flash.events.*;
 	import flash.net.NetConnection;
 	import flash.net.Responder;
 	import flash.ui.Keyboard;
 	
-	import mx.controls.ComboBox;
-	import mx.controls.TextArea;
-	import mx.core.Application;
+	import mx.collections.ArrayCollection;
 	import mx.events.FlexEvent;
 	import mx.utils.URLUtil;
+	
+	import spark.components.Application;
+	import spark.components.ComboBox;
+	import spark.components.TextArea;
 
 	/**
 	 * Interactive Python shell for Flex.
 	 * 
-	 * @since 0.3.0
+	 * @since 0.3
 	 */	
 	public class Shell extends Application
 	{
@@ -45,9 +46,15 @@ package org.pyamf.examples.shell
 			input_txt.addEventListener( KeyboardEvent.KEY_DOWN, inputKeyDownHandler );
 			input_txt.addEventListener( KeyboardEvent.KEY_UP, inputKeyUpHandler );
 
+			submitMethod.dataProvider = new ArrayCollection([
+										  {label: "Enter", data: "enter"},
+										  {label: "Ctrl-Enter", data: "ctrlenter"},
+										  {label: "Alt-Enter", data: "altenter"} ]);
+			submitMethod.selectedIndex = 1;
+			
 			// setup connection
             gateway = new NetConnection();
-			
+
 			// Setup urls
 			var host:String;
             var http_port:uint = mx.utils.URLUtil.getPort(this.url);
@@ -70,7 +77,8 @@ package org.pyamf.examples.shell
             // Listeners for remoting errors
             gateway.addEventListener( IOErrorEvent.IO_ERROR, ioErrorHandler );
             gateway.addEventListener( NetStatusEvent.NET_STATUS, netStatusHandler );
-            
+            gateway.addEventListener( SecurityErrorEvent.SECURITY_ERROR, securityHandler );
+			
             // Set responder property to the object and methods that will receive the 
             // result or fault condition that the service returns.
             var responder:Responder = new Responder( onStartupResult, onFault );
@@ -145,7 +153,6 @@ package org.pyamf.examples.shell
             submit = true;
 		}
 		
-		// Reset to start text
 		public function clear():void
 		{
 			// Set responder property to the object and methods that will receive the 
@@ -165,12 +172,12 @@ package org.pyamf.examples.shell
         {
             if (result == null)
                 return;
+			
         	shell_txt.text += result;
         }
         
         private function onFault( error:* ): void
         {
-            // notify the user of the problem
             shell_txt.text = "Remoting error: \n";
             for ( var d:String in error ) {
                shell_txt.text += error[d] + "\n";
@@ -181,22 +188,28 @@ package org.pyamf.examples.shell
 		{
 			if ( event.info.level == "error" )
 			{
-				// notify the user of the problem
                 shell_txt.text = "Remoting error: \n";
                 for ( var d:String in event.info ) {
-                   shell_txt.text += event.info[d] + "\n";
+					if ( d != "level" )
+					{
+                		shell_txt.text += event.info[d] + "\n";
+					}
                 }
 			}
 		}
 		
 		private function ioErrorHandler( error:IOErrorEvent ):void
 		{
-			// notify the user of the problem
             shell_txt.text = "IO error: \n";
             for ( var d:String in error ) {
-               shell_txt.text += error[d] + "\n";
+            	shell_txt.text += error[d] + "\n";
             }
-			shell_txt.verticalScrollPosition = shell_txt.maxVerticalScrollPosition;
+		}
+		
+		private function securityHandler( error:SecurityErrorEvent ):void
+		{
+			shell_txt.text = "Security error: \n";
+			shell_txt.text += error.text;
 		}
 		
 	}

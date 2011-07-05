@@ -1,33 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<pyamf:Shell xmlns:mx="http://www.adobe.com/2006/mxml"
+<pyamf:Shell xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			 xmlns:s="library://ns.adobe.com/flex/spark" 
+			 xmlns:mx="library://ns.adobe.com/flex/mx"
 			 xmlns:pyamf="org.pyamf.examples.shell.*"
 		     width="100%" height="100%">
-				
-	<mx:Style source="resources/main.css"/>
 	
-	<mx:VBox width="100%" height="100%">
-		<mx:Label text="Interactive Python shell" width="100%"
-				  styleName="title"/>
-		<mx:TextArea width="100%" height="100%" editable="false"
-					 id="shell_txt" styleName="prompt"
-					 valueCommit="{shell_txt.verticalScrollPosition=shell_txt.maxVerticalScrollPosition}"/>
-		<mx:TextArea width="100%" height="100" styleName="prompt"
-					 id="input_txt"/>
-		<mx:Spacer height="5"/>
-		<mx:HBox verticalAlign="middle" width="100%">
-			<mx:Label text="Ctrl-Up/Down for history  | "/>
-			<mx:ComboBox selectedIndex="1" id="submitMethod">
-				<mx:dataProvider>
-					<mx:Object label="Enter" data="enter"/>
-					<mx:Object label="Ctrl-Enter" data="ctrlenter"/>
-					<mx:Object label="Alt-Enter" data="altenter"/>
-				</mx:dataProvider>
-			</mx:ComboBox>
-			<mx:Label text="submits"/>
-			<mx:Spacer width="100%"/>
-			<mx:Button label="Clear" click="clear()"/>
-			<mx:Button label="Submit" click="evalCode();inputKeyUpHandler();"/>
-		</mx:HBox>
-	</mx:VBox>
+	<pyamf:layout>
+		<s:VerticalLayout horizontalAlign="center" paddingBottom="20"
+						  paddingTop="20" paddingLeft="20" paddingRight="20"
+						  verticalAlign="middle"/>
+	</pyamf:layout>
+	
+	<fx:Style source="../assets/main.css"/>
+	
+	<s:Label text="Interactive Python shell" width="100%"
+			  styleName="title"/>
+	<s:TextArea width="100%" height="100%" editable="false"
+				id="shell_txt" styleName="prompt" focusAlpha="0"/>
+	<s:TextArea width="100%" height="100" styleName="prompt"
+				 id="input_txt" focusAlpha="0"/>
+	
+	<s:Group height="5"/>
+	
+	<s:HGroup verticalAlign="middle" width="100%">
+		<s:Label text="Ctrl-Up/Down for history  | "/>
+		<s:ComboBox id="submitMethod" />
+		<s:Label text="submits"/>
+		<s:Group width="100%"/>
+		<s:Button label="Clear" click="clear()"/>
+		<s:Button label="Submit" click="evalCode();inputKeyUpHandler();"/>
+	</s:HGroup>
 		
 </pyamf:Shell>
