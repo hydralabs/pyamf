@@ -1,15 +1,18 @@
 /**
- * Copyright (c) 2007-2009 The PyAMF Project.
+ * Copyright (c) The PyAMF Project.
  * See LICENSE.txt for details.
 */
 package org.pyamf.examples.addressbook.components
 {
-	import mx.containers.TitleWindow;
-	import mx.controls.TextInput;
+	import flash.events.MouseEvent;
+	
 	import mx.events.FlexEvent;
 	import mx.managers.PopUpManager;
 	
 	import org.pyamf.examples.addressbook.models.Email;
+	
+	import spark.components.TextInput;
+	import spark.components.TitleWindow;
 
 	public class EditEmailDlgClass extends TitleWindow
 	{
@@ -32,6 +35,11 @@ package org.pyamf.examples.addressbook.components
 		protected function creationCompleteHandler( event:FlexEvent ):void
 		{
 			PopUpManager.centerPopUp(this);
+		}
+		
+		override protected function closeButton_clickHandler(event:MouseEvent):void
+		{
+			close();
 		}
 		
 		protected function close():void

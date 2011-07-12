@@ -140,4 +140,4 @@ for this example client:
 .. _blog: http://blog.pyamf.org/2009/03/sqlalchemy-and-flash-addressbook-example
 .. _browse: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/addressbook
 .. _development server: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/addressbook/python/server.py
-.. _SWF file: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/addressbook/flex/deploy/sa_example.swf
+.. _SWF file: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/addressbook/flex/deploy/assets/sa_example.swf

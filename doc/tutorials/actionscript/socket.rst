@@ -76,7 +76,7 @@ You can simply open the `SWF file`_ and it will connect to http://localhost:8000
 Use the 'Start' and 'Stop' buttons to control the Python socket server that sends
 the system time to the Flex application every second:
 
-.. image:: images/binarysocket.jpg
+.. image:: images/binarysocket.png
 
 
 Python
@@ -126,5 +126,5 @@ for this example client:
 .. _Python: http://python.org
 .. _blog: http://blog.pyamf.org/2008/01/socket-example
 .. _browse: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/socket
-.. _SWF file: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/socket/flex/deploy/socket.swf
+.. _SWF file: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/socket/flex/deploy/assets/socket.swf
 .. _client: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/socket/python/client.py

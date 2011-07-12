@@ -1,10 +1,9 @@
+/**
+ * Copyright (c) The PyAMF Project.
+ * See LICENSE.txt for details.
+*/
 package org.pyamf.examples.socket
 {
-	/**
-	 * Copyright (c) 2007-2009 The PyAMF Project.
-	 * See LICENSE.txt for details.
-	 */
-	 
 	import flash.errors.IOError;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
@@ -20,7 +19,7 @@ package org.pyamf.examples.socket
 	 * Socket connection to read and write raw binary data.
 	 * 
 	 * @see http://livedocs.adobe.com/flex/3/langref/flash/net/Socket.html
-	 * @since 0.1.0
+	 * @since 0.1
 	 */	
 	public class PythonSocket extends Socket
 	{
@@ -74,11 +73,14 @@ package org.pyamf.examples.socket
 	    {
 	        str += "\n";
 	        
-	        try {
+	        try
+			{
 	            writeUTFBytes(str);
 	        }
-	        catch(e:IOError) {
-	        	switch (e.errorID) {
+	        catch (e:IOError)
+			{
+	        	switch (e.errorID)
+				{
 	        		case 2002:
 	        			// reconnect when connection timed out
 	        			if (!connected) {

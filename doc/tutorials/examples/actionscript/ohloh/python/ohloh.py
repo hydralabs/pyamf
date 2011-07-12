@@ -18,24 +18,29 @@ except ImportError:
     except ImportError:
        import elementtree.ElementTree as ET
 
-def getAccount(email, api_key='123456789'):
-    # We pass the MD5 hash of the email address
-    emailhash = hashlib.md5()
-    emailhash.update(email)
 
-    # Connect to the Ohloh website and retrieve the account data.
-    params = urllib.urlencode({'api_key': api_key, 'v': 1})
-    url = "http://www.ohloh.net/accounts/%s.xml?%s" % (emailhash.hexdigest(), params)
-    f = urllib.urlopen(url)
-    
-    # Parse the response into a structured XML object
-    tree = ET.parse(f)
-    
-    # Did Ohloh return an error?
-    elem = tree.getroot()
-    error = elem.find("error")
-    if error != None:
-        raise Exception(ET.tostring(error))
-    
-    # Return raw XML data
-    return elem
+class UserAccount(object):
+    def __init__(self, api_key):
+        self.api_key = api_key
+
+    def getAccount(self, email):
+        # We pass the MD5 hash of the email address
+        emailhash = hashlib.md5()
+        emailhash.update(email)
+
+        # Connect to the Ohloh website and retrieve the account data.
+        params = urllib.urlencode({'api_key': self.api_key, 'v': 1})
+        url = "http://www.ohloh.net/accounts/%s.xml?%s" % (emailhash.hexdigest(), params)
+        f = urllib.urlopen(url)
+        
+        # Parse the response into a structured XML object
+        tree = ET.parse(f)
+        
+        # Did Ohloh return an error?
+        elem = tree.getroot()
+        error = elem.find("error")
+        if error != None:
+            raise Exception(ET.tostring(error))
+        
+        # Return raw XML data
+        return elem

@@ -48,7 +48,7 @@ package
 			try
 			{
 				// connect to UDP server using IPv4 address because
-				// Twisted doesn't support IPv6
+				// Twisted doesn't support IPv6 (yet)
 				connection = new UDPConnection( network.activeIP4Address );
 				connection.addEventListener( LogEvent.NETWORK_INFO, log, false, 0, true );
 				connection.addEventListener( LogEvent.NETWORK_TRAFFIC, log, false, 0, true );

@@ -43,9 +43,9 @@ folder:
 
 .. code-block:: bash
 
-    python server.py
+    python server.py --api-key=123456789
 
-**Note**: Make sure you replace the API key in ohloh.py_ with a valid one
+**Note**: Make sure you replace the API key with a valid one
 that you can get for free when you sign up on the Ohloh website.
 
 Options
@@ -62,6 +62,7 @@ for this example server:
       -h, --help            show this help message and exit
       -p PORT, --port=PORT  port number [default: 8000]
       --host=HOST           host address [default: localhost]
+      --api-key=API_KEY     Ohloh API key [default: 123456789]
 
 
 Clients
@@ -97,5 +98,5 @@ for that email address.
 .. _browse: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/ohloh
 .. _ohloh.py: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/ohloh/python/ohloh.py
 .. _development server: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/bytearray/python/manage.py
-.. _SWF file: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/ohloh/flex/deploy/ohloh.swf
+.. _SWF file: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/ohloh/flex/deploy/assets/OhlohApi.swf
 .. _Ohloh website: http://www.ohloh.net/api/examples

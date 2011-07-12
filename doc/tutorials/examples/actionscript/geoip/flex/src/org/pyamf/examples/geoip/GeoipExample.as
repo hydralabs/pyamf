@@ -1,21 +1,22 @@
+/**
+ * Copyright (c) The PyAMF Project.
+ * See LICENSE.txt for details.
+ */
 package org.pyamf.examples.geoip
 {
-	/**
-	 * Copyright (c) 2007-2009 The PyAMF Project.
-	 * See LICENSE.txt for details.
-	*/
-	
 	import flash.events.NetStatusEvent;
+	import flash.events.SecurityErrorEvent;
 	import flash.net.NetConnection;
 	import flash.net.Responder;
 	
 	import mx.controls.Alert;
-	import mx.controls.Image;
-	import mx.controls.Label;
-	import mx.core.Application;
+	import mx.controls.SWFLoader;
 	import mx.events.FlexEvent;
 	
 	import org.pyamf.examples.geoip.vo.GeoInfo;
+	
+	import spark.components.Application;
+	import spark.components.RichEditableText;
 
 	/**
 	 * This examples shows how to use the GeoIP Python API
@@ -25,9 +26,9 @@ package org.pyamf.examples.geoip
 	 */
 	public class GeoipExample extends Application
 	{
-		public var cc_txt			: Label;
-		public var status_txt		: Label;
-		public var flag				: Image;
+		public var cc_txt			: RichEditableText;
+		public var status_txt		: RichEditableText;
+		public var flag				: SWFLoader;
 		
 		private var _gateway		: NetConnection;
 		private var _status			: String;
@@ -38,7 +39,9 @@ package org.pyamf.examples.geoip
 		public function GeoipExample()
 		{
 			super();
+			
 			_flag = "unknown";
+			
 			addEventListener(FlexEvent.APPLICATION_COMPLETE, onInitApp);
 		}
 		
@@ -47,9 +50,10 @@ package org.pyamf.examples.geoip
 			// setup connection
             _gateway = new NetConnection();
             _gateway.addEventListener(NetStatusEvent.NET_STATUS, onNetstatusError);
+			_gateway.addEventListener(SecurityErrorEvent.SECURITY_ERROR, securityError);
 			
             // Connect to gateway
-            _gateway.connect("http://demo.pyamf.org/gateway/geoip");
+            _gateway.connect("http://localhost:8000");
             
             // Set responder property to the object and methods that will receive the 
             // result or fault condition that the service returns.
@@ -71,7 +75,12 @@ package org.pyamf.examples.geoip
         {
         	setInfo(event.info.code);
         }
-        
+		
+		private function securityError(event:SecurityErrorEvent): void
+		{
+			setInfo(event.text);
+		}
+		
         private function setInfo(errorText:String=""): void
         {
         	if (errorText.length == 0) {
@@ -91,7 +100,7 @@ package org.pyamf.examples.geoip
         	}
         	
         	status_txt.text = _status;
-        	flag.load('http://demo.pyamf.org/icons/flags/' + _flag + '.png');
+        	flag.source = 'http://www.comp.nus.edu.sg/icons/awstats/flags/' + _flag + '.png';
         }
         
         private function onFault( error:* ): void
