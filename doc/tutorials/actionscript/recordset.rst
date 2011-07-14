@@ -66,7 +66,7 @@ http://localhost:8000 when you launch the `development server`_::
 
 You should see something like::
 
-    Started RecordSet example server on http://localhost:8000
+    2011-07-14 20:58:12,491 INFO  [root] Started RecordSet example server on http://localhost:8000
 
 **Note**: When you decide not to use the default host or port you will need to
 change the Actionscript and recompile the SWF as well.
