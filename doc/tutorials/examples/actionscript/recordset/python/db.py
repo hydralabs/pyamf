@@ -11,8 +11,10 @@ import os, datetime
 
 from sqlalchemy import *
 
+
 metadata = MetaData()
 
+# Note: use absolute path when using mod_wsgi
 dsn = 'sqlite:///temp.db'
 
 if 'RECORDSET_DSN' in os.environ:
@@ -33,8 +35,10 @@ software = Table('SoftwareInfo', metadata,
     Column('Url', String(255), nullable=True, default=None)
 )
 
+
 def get_engine():
     return create_engine(dsn)
+
 
 def create(engine):
     print "Creating tables..."
