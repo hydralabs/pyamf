@@ -115,15 +115,6 @@ add_module_names = True
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
 
-# A dictionary mapping URIs to a list of regular expression.
-#
-# Each key of this dictionary is a base url of an epydoc-generated
-# documentation. Each value is a list of regular expressions, the reference
-# target must match (see re.match()) to be cross-referenced with the base url.
-epydoc_mapping = {
-   # TODO: don't harcode version nr
-   'http://api.pyamf.org/0.6.1/': [r'pyamf\.'],
-}
 
 # -- Options for HTML output ---------------------------------------------------
 
@@ -218,5 +209,22 @@ latex_logo = 'html/static/logo.png'
 # If false, no module index is generated.
 #latex_use_modindex = True
 
+
+# -- Options for external links --------------------------------------------------
+
+# A dictionary mapping URIs to a list of regular expression.
+#
+# Each key of this dictionary is a base url of an epydoc-generated
+# documentation. Each value is a list of regular expressions, the reference
+# target must match (see re.match()) to be cross-referenced with the base url.
+epydoc_mapping = {
+   # TODO: don't harcode version nr
+   'http://api.pyamf.org/0.6.1/': [r'pyamf\.'],
+}
+
 # refer to the Python standard library.
 intersphinx_mapping = {'python': ('http://docs.python.org', None)}
+
+# A list of regular expressions that match URIs that should
+# not be checked when doing a 'make linkcheck' build (since Sphinx 1.1)
+linkcheck_ignore = [r'http://localhost:\d+/']
