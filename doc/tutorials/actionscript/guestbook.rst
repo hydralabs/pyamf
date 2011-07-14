@@ -102,4 +102,4 @@ for this example client:
 .. _schema file: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/guestbook/db/schema.sql
 .. _config file: http://github.com/hydralabs/pyamf/tree/master/doc/tutorials/examples/actionscript/guestbook/python/settings.cfg
 .. _MySQL-Python: http://sourceforge.net/projects/mysql-python/
-.. _MySQL: http://mysql.org
+.. _MySQL: http://dev.mysql.com

@@ -12,10 +12,10 @@
 Installation
 ============
 
-First you need to install the free Flash Remoting
-components for
-`Flash MX <http://www.adobe.com/products/flashremoting/downloads/components/#flr_flash>`_
-or `Flash MX 2004 <http://www.adobe.com/products/flashremoting/downloads/components/#flr_as1>`_.
+First make sure you have the Flash Remoting components for
+`Flash MX <http://www.adobe.com/support/documentation/en/flash_remoting/fl8/releasenotes.html>`_
+or `Flash MX 2004 <http://www.adobe.com/support/documentation/en/flash_remoting/fl8/releasenotes.html>`_
+installed.
 
 The files are placed in your Flash MX (2004) folder under Configuration/Include.
 You can leave them there and Flash will find them.

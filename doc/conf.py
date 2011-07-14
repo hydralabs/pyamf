@@ -52,8 +52,10 @@ needs_sphinx = '1.0'
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 # 
-# Grab sphinxcontrib.epydoc from http://packages.python.org/sphinxcontrib-epydoc
-extensions = ['sphinx.ext.intersphinx', 'sphinxcontrib.epydoc']
+# Make sure to install the following Sphinx extension module as well:
+# - http://packages.python.org/sphinxcontrib-epydoc
+extensions = ['sphinx.ext.intersphinx', 'sphinx.ext.extlinks',
+              'sphinxcontrib.epydoc']
 
 # Paths that contain additional templates, relative to this directory.
 templates_path = ['html']
@@ -115,15 +117,6 @@ add_module_names = True
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
 
-# A dictionary mapping URIs to a list of regular expression.
-#
-# Each key of this dictionary is a base url of an epydoc-generated
-# documentation. Each value is a list of regular expressions, the reference
-# target must match (see re.match()) to be cross-referenced with the base url.
-epydoc_mapping = {
-   # TODO: don't harcode version nr
-   'http://api.pyamf.org/0.6.1/': [r'pyamf\.'],
-}
 
 # -- Options for HTML output ---------------------------------------------------
 
@@ -218,5 +211,29 @@ latex_logo = 'html/static/logo.png'
 # If false, no module index is generated.
 #latex_use_modindex = True
 
+
+# -- Options for external links --------------------------------------------------
+
+# A dictionary mapping URIs to a list of regular expression.
+#
+# Each key of this dictionary is a base url of an epydoc-generated
+# documentation. Each value is a list of regular expressions, the reference
+# target must match (see re.match()) to be cross-referenced with the base url.
+epydoc_mapping = {
+   # TODO: don't harcode version nr
+   'http://api.pyamf.org/0.6.1/': [r'pyamf\.'],
+}
+
 # refer to the Python standard library.
 intersphinx_mapping = {'python': ('http://docs.python.org', None)}
+
+# A list of regular expressions that match URIs that should
+# not be checked when doing a 'make linkcheck' build (since Sphinx 1.1)
+linkcheck_ignore = [r'http://localhost:\d+/']
+
+# The base url of the Trac instance you want to create links to
+trac_url = 'http://dev.pyamf.org'
+
+# Trac url mapping
+extlinks = {'ticket': (trac_url + '/ticket/%s', '#')}
+

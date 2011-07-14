@@ -14,7 +14,6 @@
 We recommend you **don't** run this example on a production server because
 it exposes major security risks. This example is for educational purposes ;)
 
-A live demo can be found on the PyAMF `Google App Engine example page`_.
 
 
 Download
