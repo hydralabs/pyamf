@@ -13,8 +13,8 @@
 Installation
 ============
 
-First you need to install the free Flash Remoting components for
-`Adobe Flash MX 2004`_ or `Flash 8.0`_.
+First make sure the Flash Remoting components for `Adobe Flash MX 2004`_ or
+`Flash 8.0`_ are installed.
 
 If you want to use Flash Remoting for Actionscript 2.0 in Adobe Flash CS3
 or newer, check this page_ for more info.
@@ -140,8 +140,8 @@ for this example client::
       --host=HOST           host address [default: localhost]
 
 
-.. _Adobe Flash MX 2004: http://www.adobe.com/products/flashremoting/downloads/components/#flr_as2
-.. _Flash 8.0: http://www.adobe.com/products/flashremoting/downloads/components/#flr_fl81
+.. _Adobe Flash MX 2004: http://www.adobe.com/support/documentation/en/flash_remoting/fl8/releasenotes.html
+.. _Flash 8.0: http://www.adobe.com/support/documentation/en/flash_remoting/fl8/releasenotes.html
 .. _page: http://blog.vixiom.com/2007/04/17/actionscript-20-flash-remoting-with-flash-cs3/
 .. _SQLAlchemy: http://www.sqlalchemy.org
 .. _SQLite: http://sqlite.org
