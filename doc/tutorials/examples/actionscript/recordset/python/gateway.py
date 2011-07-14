@@ -13,11 +13,12 @@ from pyamf import register_class, amf0
 
 import db
 
+
 def as_recordset(result):
     keys = None
 
     if hasattr(result, 'keys'):
-        keys = result.keys
+        keys = result.keys()
     elif hasattr(result, '_ResultProxy__keys'):
         keys = result._ResultProxy__keys
 
@@ -25,6 +26,7 @@ def as_recordset(result):
         raise AttributeError('Unknown keys for result')
 
     return amf0.RecordSet(keys, [list(x) for x in result])
+
 
 class SoftwareService(object):
     def __init__(self, engine):
@@ -46,6 +48,7 @@ class SoftwareService(object):
             select([db.software], db.software.c.CategoryID == lang)
         ))
 
+
 def parse_args(args):
     """
     Parse commandline options.
@@ -60,10 +63,14 @@ def parse_args(args):
 
     return parser.parse_args(args)
 
+
 if __name__ == '__main__':
-    import sys
+    import sys, logging
     from pyamf.remoting.gateway.wsgi import WSGIGateway
     from wsgiref import simple_server
+
+    logging.basicConfig(level=logging.DEBUG,
+        format='%(asctime)s %(levelname)-5.5s [%(name)s] %(message)s')
 
     options = parse_args(sys.argv[1:])[0]
     service = {'service': SoftwareService(db.get_engine())}
@@ -71,7 +78,7 @@ if __name__ == '__main__':
     host = options.host
     port = int(options.port)
 
-    gw = WSGIGateway(service)
+    gw = WSGIGateway(service, debug=True, logger=logging)
 
     httpd = simple_server.WSGIServer(
         (host, port),
@@ -80,7 +87,7 @@ if __name__ == '__main__':
 
     httpd.set_app(gw)
 
-    print 'Started RecordSet example server on http://%s:%s' % (host, str(port) )
+    logging.info('Started RecordSet example server on http://%s:%s' % (host, str(port)))
 
     try:
         httpd.serve_forever()
