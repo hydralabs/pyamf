@@ -25,7 +25,7 @@ NetConnection
 Examples for |ActionScript (TM)| 3.0 / Flex using ``NetConnection``:
 
 - `helloworld.mxml <../../examples/general/helloworld/flex/src/helloworld.mxml>`_
-- `helloworld.swf <../../examples/general/helloworld/flex/deploy/helloworld.swf>`_
+- `helloworld.swf <../../examples/general/helloworld/flex/deploy/assets/helloworld.swf>`_
 
 
 RemoteObject
@@ -34,7 +34,7 @@ RemoteObject
 Examples for |ActionScript (TM)| 3.0 / Flex using ``RemoteObject``:
 
 - `helloworld.mxml <../../examples/general/helloworld/flex/remoteobject/src/helloworld.mxml>`_
-- `helloworld.swf <../../examples/general/helloworld/flex/remoteobject/deploy/helloworld.swf>`_
+- `helloworld.swf <../../examples/general/helloworld/flex/remoteobject/deploy/assets/helloworld.swf>`_
 
 
 .. |ActionScript (TM)| unicode:: ActionScript U+2122

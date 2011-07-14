@@ -14,7 +14,7 @@ Source
 
 - `helloworld.fla <../../examples/general/helloworld/flash/as3/src/helloworld.fla>`_
 - `helloworld.as <../../examples/general/helloworld/flash/as3/src/HelloWorld.as>`_
-- `helloworld.swf <../../examples/general/helloworld/flash/as3/deploy/helloworld.swf>`_
+- `helloworld.swf <../../examples/general/helloworld/flash/as3/deploy/assets/helloworld.swf>`_
 
 
 .. |ActionScript (TM)| unicode:: ActionScript U+2122

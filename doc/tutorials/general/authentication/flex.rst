@@ -15,7 +15,7 @@ Source
 Examples for |ActionScript (TM)| 3.0 / Flex using ``NetConnection``:
 
 - `authentication.mxml <../../examples/general/authentication/flash/flex/src/authentication.mxml>`_
-- `authentication.swf <../../examples/general/authentication/flash/flex/deploy/authentication.swf>`_
+- `authentication.swf <../../examples/general/authentication/flash/flex/deploy/assets/authentication.swf>`_
 
 
 .. |ActionScript (TM)| unicode:: ActionScript U+2122

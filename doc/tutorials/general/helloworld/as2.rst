@@ -28,7 +28,7 @@ Source
 
 - `helloworld.fla <../../examples/general/helloworld/flash/as2/src/helloworld.fla>`_
 - `helloworld.as <../../examples/general/helloworld/flash/as2/src/helloworld.as>`_
-- `helloworld.swf <../../examples/general/helloworld/flash/as2/deploy/helloworld.swf>`_
+- `helloworld.swf <../../examples/general/helloworld/flash/as2/deploy/assets/helloworld.swf>`_
 
 
 References
