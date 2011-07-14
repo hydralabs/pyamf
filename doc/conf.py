@@ -12,12 +12,10 @@
 # All configuration values have a default value; values that are commented out
 # serve to show the default value.
 
-import sys, os, time, urllib
+import sys, os, time
 from shutil import copyfile
 
-from docutils import nodes, utils
 from docutils.core import publish_parts
-from docutils.parsers.rst import roles
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
