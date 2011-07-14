@@ -189,7 +189,7 @@ folder.
 .. _distribute_setup.py:		http://github.com/hydralabs/pyamf/blob/master/distribute_setup.py
 .. _Epydoc:			http://epydoc.sourceforge.net
 .. _ElementTree:		http://effbot.org/zone/element-index.htm
-.. _lxml:			http://codespeak.net/lxml
+.. _lxml:			http://lxml.de
 .. _uuid:			http://pypi.python.org/pypi/uuid
 .. _wsgiref:			http://pypi.python.org/pypi/wsgiref
 .. _cElementTree: 		http://effbot.org/zone/celementtree.htm

@@ -89,5 +89,5 @@ Example
      :linenos:
 
 
-.. _Pylons: http://pylonshq.com
+.. _Pylons: http://pylonsproject.org
 .. _supports: http://wiki.pylonshq.com/display/pylonsdocs/Web+Server+Gateway+Interface+Support
