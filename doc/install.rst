@@ -71,6 +71,16 @@ Note: to disable the installation of the C-extension, supply the
     python setup.py install --disable-ext
 
 
+Debian GNU/Linux
+================
+
+Packaged as `python-pyamf`_::
+
+	apt-get install python-pyamf
+
+`Note: you might need root permissions or equivalent for this step.`
+
+
 Optional Extras
 ===============
 
@@ -197,6 +207,7 @@ folder.
 .. _Twisted:			http://twistedmatrix.com
 .. _Django:			http://www.djangoproject.com
 .. _Google App Engine: 		http://code.google.com/appengine
+.. _`python-pyamf`: http://packages.debian.org/python-pyamf
 .. _Elixir:			http://elixir.ematia.de
 .. _unittest2:			http://pypi.python.org/pypi/unittest2
 .. _nose:			http://somethingaboutorange.com/mrl/projects/nose
