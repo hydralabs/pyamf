@@ -12,10 +12,12 @@
 # All configuration values have a default value; values that are commented out
 # serve to show the default value.
 
-import sys, os, time
+import sys, os, time, urllib
 from shutil import copyfile
 
+from docutils import nodes, utils
 from docutils.core import publish_parts
+from docutils.parsers.rst import roles
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -52,8 +54,10 @@ needs_sphinx = '1.0'
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 # 
-# Grab sphinxcontrib.epydoc from http://packages.python.org/sphinxcontrib-epydoc
-extensions = ['sphinx.ext.intersphinx', 'sphinxcontrib.epydoc']
+# Make sure to install the following Sphinx extension module as well:
+# - http://packages.python.org/sphinxcontrib-epydoc
+extensions = ['sphinx.ext.intersphinx', 'sphinx.ext.extlinks',
+              'sphinxcontrib.epydoc']
 
 # Paths that contain additional templates, relative to this directory.
 templates_path = ['html']
@@ -228,3 +232,10 @@ intersphinx_mapping = {'python': ('http://docs.python.org', None)}
 # A list of regular expressions that match URIs that should
 # not be checked when doing a 'make linkcheck' build (since Sphinx 1.1)
 linkcheck_ignore = [r'http://localhost:\d+/']
+
+# The base url of the Trac instance you want to create links to
+trac_url = 'http://dev.pyamf.org'
+
+# Trac url mapping
+extlinks = {'ticket': (trac_url + '/ticket/%s', '#')}
+

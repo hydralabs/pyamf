@@ -62,7 +62,7 @@ The following types are available in the Adobe Flash Player 9 and newer:
 Flex (AMF3)
 ===========
 
-The following types are available in `Adobe Flex 2`_ and newer:
+The following types are available in `Adobe Flex`_ 2 and newer:
 
 +-------------------------------------+---------------------------------------------------+
 | ActionScript Type                   | Python Type	                                  |
@@ -95,5 +95,5 @@ The following types are available in `Adobe Flex 2`_ and newer:
 **Note**: We plan to deprecate and move the Flex support into a new project_ before PyAMF 1.0 is released.
 
 
-.. _Adobe Flex 2: http://opensource.adobe.com/wiki/display/flexsdk
+.. _Adobe Flex: http://opensource.adobe.com/wiki/display/flexsdk
 .. _project: http://plasmads.org
