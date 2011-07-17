@@ -1253,7 +1253,7 @@ class DataInputTestCase(unittest.TestCase):
         # TODO nick: test multiple charsets
         x = amf3.DataInput(self.decoder)
 
-        self._test(u'this is a test', u'this is a test', x.readMultiByte,
+        self._test('this is a test', 'this is a test', x.readMultiByte,
             14, 'utf-8')
         self._test('\xe1\xbc\x94\xce\xb4\xcf\x89\xcf\x83\xce\xb1\xce\xbd',
             u'ἔδωσαν', x.readMultiByte, 13, 'utf-8')
