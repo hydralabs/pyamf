@@ -789,6 +789,21 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
 
         f(**kwargs)
 
+    def test_numerical_keys_mixed_array(self):
+        """
+        Numerical keys in L{pyamf.MixedArray} must not cause a KeyError on
+        decode.
+
+        @see: #843
+        """
+        x = pyamf.MixedArray({'10': u'foobar'})
+
+        bytes = pyamf.encode(x, encoding=pyamf.AMF0)
+
+        d = list(pyamf.decode(bytes, encoding=pyamf.AMF0))
+
+        self.assertEqual(d, [x])
+
 
 
 class RecordSetTestCase(unittest.TestCase, EncoderMixIn, DecoderMixIn):

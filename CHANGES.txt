@@ -8,6 +8,8 @@ versions of PyAMF.
 
 0.7 (Unreleased)
 ----------------
+- Numerical keys in a ``pyamf.MixedArray`` would cause an exception. Affects
+  pure python decoder only. (:ticket:`843`)
 - ``pyamf.Undefined`` now evaluates to ``False`` in a boolean expression
   (:ticket:`827`)
 - Fixed an issue in the client where '; charset=utf8' would be appended to the
