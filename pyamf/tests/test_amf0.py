@@ -802,7 +802,7 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
 
         d = list(pyamf.decode(bytes, encoding=pyamf.AMF0))
 
-        self.assertEqual(d, [x])
+        self.assertEqual(d, [{10: u'foobar'}])
 
 
 
