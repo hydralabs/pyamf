@@ -17,6 +17,7 @@ versions of PyAMF.
 
 0.6.2 (Unreleased)
 ------------------
+- ``pyamf.codec._Codec.__init__`` now supports duck-typing. (:ticket:`835`)
 - Enabled subclassed list/tuple to be overridden by ``pyamf.add_type`` before
   defaulting to writing a sequence. (:ticket:`834`)
 - Numerical keys in a ``pyamf.MixedArray`` would cause an exception. Affects
