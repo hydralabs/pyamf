@@ -116,7 +116,7 @@ cdef class Decoder(codec.Decoder):
 
         return PyUnicode_DecodeUTF8(b, <Py_ssize_t>l, 'strict')
 
-    cdef dict readObjectAttributes(self, object obj_attrs):
+    cdef void readObjectAttributes(self, object obj_attrs):
         cdef object key
         cdef char *peek = NULL
 
@@ -178,14 +178,14 @@ cdef class Decoder(codec.Decoder):
 
     cdef object readMixedArray(self):
         cdef unsigned long l
-        cdef dict attrs
+        cdef dict attrs = {}
 
         obj = pyamf.MixedArray()
         self.context.addObject(obj)
 
         l = self.stream.read_ulong()
 
-        attrs = self.readObjectAttributes(obj)
+        self.readObjectAttributes(attrs)
 
         for key, value in attrs.iteritems():
             try:
