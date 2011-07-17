@@ -287,6 +287,9 @@ class Decoder(_Codec):
     """
     Base AMF decoder.
 
+    Supports an generator interface. Feed the decoder data using L{send} and get
+    Python objects out by using L{next}.
+
     @ivar strict: Defines how strict the decoding should be. For the time
         being this relates to typed objects in the stream that do not have a
         registered alias. Introduced in 0.4.
@@ -364,6 +367,13 @@ class _CustomTypeFunc(object):
 class Encoder(_Codec):
     """
     Base AMF encoder.
+
+    When using this to encode arbitrary object, the only 'public' method is
+    C{writeElement} all others are private and are subject to change in future
+    versions.
+
+    The encoder also supports an generator interface. Feed the encoder Python
+    object using L{send} and get AMF bytes out using L{next}.
     """
 
     def __init__(self, *args, **kwargs):
