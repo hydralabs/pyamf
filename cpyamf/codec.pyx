@@ -532,8 +532,6 @@ cdef class Encoder(Codec):
             ret = self.writeGenerator(element)
         elif PySequence_Contains(self.use_write_object, py_type):
             ret = self.writeObject(element)
-        elif isinstance(element, (list, tuple)):
-            ret = self.writeSequence(element)
         elif xml.is_xml(element):
             ret = self.writeXML(element)
 
@@ -573,6 +571,9 @@ cdef class Encoder(Codec):
                 if func is None:
                     self.checkBadTypes(element, py_type)
                     self.use_write_object.append(py_type)
+
+                    if isinstance(element, (list, tuple)):
+                        return self.writeSequence(element)
 
                     return self.writeObject(element)
 

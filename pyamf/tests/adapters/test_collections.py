@@ -116,3 +116,28 @@ class CounterTestCase(CollectionsTestCase):
 
     def test_amf3(self):
         self.assertEqual(self.encdec(pyamf.AMF3), self.orig)
+
+
+class NamedTupleTestCase(CollectionsTestCase):
+    """
+    Tests for L{collections.namedtuple}
+    """
+
+    def setUp(self):
+        CollectionsTestCase.setUp(self)
+
+        if not hasattr(collections, 'namedtuple'):
+            self.skipTest("'collections.namedtuple' not available")
+
+        user_vo = collections.namedtuple('user_vo', 'id name age')
+
+        pyamf.add_type(user_vo, lambda obj, encoder: obj._asdict())
+
+        self.obj = user_vo(1, 'Hadrien', 30)
+        self.orig = self.obj._asdict()
+
+    def test_amf0(self):
+        self.assertEqual(self.encdec(pyamf.AMF0), self.orig)
+
+    def test_amf3(self):
+        self.assertEqual(self.encdec(pyamf.AMF3), self.orig)

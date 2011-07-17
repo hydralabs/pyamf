@@ -443,8 +443,6 @@ class Encoder(_Codec):
             return self.writeNumber
         elif t in (list, tuple):
             return self.writeList
-        elif isinstance(data, (list, tuple)):
-            return self.writeSequence
         elif t is types.GeneratorType:
             return self.writeGenerator
         elif t is pyamf.UndefinedType:
@@ -462,6 +460,9 @@ class Encoder(_Codec):
             except TypeError:
                 if python.callable(type_) and type_(data):
                     return _CustomTypeFunc(self, func)
+
+        if isinstance(data, (list, tuple)):
+            return self.writeSequence
 
         # now try some types that won't encode
         if t in python.class_types:
