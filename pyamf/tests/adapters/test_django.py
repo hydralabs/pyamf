@@ -91,7 +91,7 @@ def setUpModule():
         settings.DATABASE_NAME = create_test_db(0, True)
 
 
-def teadDownModule():
+def tearDownModule():
     # remove all the stuff that django installed
     teardown_test_environment()
 
@@ -567,10 +567,15 @@ class MockFile(object):
         return []
 
     def __len__(self):
-        return 0
+        return self.size
 
     def read(self, n):
         return ''
+
+    # support for Django 1.2.5
+    @property
+    def size(self):
+        return 0
 
 
 class FieldsTestCase(BaseTestCase):
