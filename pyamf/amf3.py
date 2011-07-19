@@ -84,7 +84,7 @@ TYPE_STRING = '\x06'
 #: C{XMLDocument} instance by using an index to the implicit object reference
 #: table.
 #: @see: U{OSFlash documentation (external)
-#: <http://osflash.org/documentation/amf3#x07_-_xml_legacy_flash.xml.xmldocument_class>}
+#: <http://osflash.org/documentation/amf3#x07_-_xml_legacy_flashxmlxmldocument_class>}
 TYPE_XML = '\x07'
 #: In AMF 3 an ActionScript Date is serialized simply as the number of
 #: milliseconds elapsed since the epoch of midnight, 1st Jan 1970 in the
@@ -159,7 +159,7 @@ class DataOutput(object):
     binary data.
 
     @see: U{IDataOutput on Livedocs (external)
-    <http://livedocs.adobe.com/flex/201/langref/flash/utils/IDataOutput.html>}
+    <http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/utils/IDataOutput.html>}
     """
 
     def __init__(self, encoder):
@@ -244,7 +244,7 @@ class DataOutput(object):
             character set strings include C{shift-jis}, C{cn-gb},
             C{iso-8859-1} and others.
         @see: U{Supported character sets on Livedocs (external)
-            <http://livedocs.adobe.com/flex/201/langref/charset-codes.html>}
+            <http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/charset-codes.html>}
         """
         if type(value) is unicode:
             value = value.encode(charset)
@@ -331,7 +331,7 @@ class DataInput(object):
     which writes binary data.
 
     @see: U{IDataInput on Livedocs (external)
-    <http://livedocs.adobe.com/flex/201/langref/flash/utils/IDataInput.html>}
+    <http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/utils/IDataInput.html>}
     """
 
     def __init__(self, decoder=None):
@@ -502,7 +502,7 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
      - Optimizing the size of your data by using custom data types.
 
     @see: U{ByteArray on Livedocs (external)
-    <http://livedocs.adobe.com/flex/201/langref/flash/utils/ByteArray.html>}
+    <http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/utils/ByteArray.html>}
     """
 
     _zlib_header = '\x78\x9c'
@@ -836,8 +836,8 @@ class Decoder(codec.Decoder):
 
         @type signed: C{bool}
         @see: U{Parsing integers on OSFlash
-        <http://osflash.org/amf3/parsing_integers>} for the AMF3 integer data
-        format.
+        <http://osflash.org/documentation/amf3/parsing_integers>} for the AMF3
+        integer data format.
         """
         return decode_int(self.stream, signed)
 

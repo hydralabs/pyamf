@@ -203,7 +203,7 @@ class RemotingService(object):
     @ivar strict: Whether to use strict AMF en/decoding or not.
     @ivar opener: The function used to power the connection to the remote
         server. Defaults to U{urllib2.urlopen<http://
-        docs.python.org/library/urllib2.html#urllib2.urlopen}.
+        docs.python.org/library/urllib2.html#urllib2.urlopen>}.
     """
 
     def __init__(self, url, amf_version=pyamf.AMF0, **kwargs):
@@ -246,7 +246,7 @@ class RemotingService(object):
         Set the proxy for all requests to use.
 
         @see: U{The Python Docs<http://docs.python.org/library/urllib2.html#
-            urllib2.Request.set_proxy}
+            urllib2.Request.set_proxy>}
         """
         self.proxy_args = (host, type)
 
