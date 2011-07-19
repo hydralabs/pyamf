@@ -42,7 +42,7 @@ class AbstractMessage(object):
     that needs to be delivered and processed by the decoder.
 
     @see: U{AbstractMessage on Livedocs<http://
-        livedocs.adobe.com/flex/201/langref/mx/messaging/messages/AbstractMessage.html>}
+        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/messaging/messages/AbstractMessage.html>}
 
     @ivar body: Specific data that needs to be delivered to the remote
         destination.
@@ -215,7 +215,7 @@ class AsyncMessage(AbstractMessage):
     I am the base class for all asynchronous Flex messages.
 
     @see: U{AsyncMessage on Livedocs<http://
-        livedocs.adobe.com/flex/201/langref/mx/messaging/messages/AsyncMessage.html>}
+        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/messaging/messages/AsyncMessage.html>}
 
     @ivar correlationId: Correlation id of the message.
     @type correlationId: C{str}
@@ -278,7 +278,7 @@ class AcknowledgeMessage(AsyncMessage):
     acknowledgement.
 
     @see: U{AcknowledgeMessage on Livedocs<http://
-        livedocs.adobe.com/flex/201/langref/mx/messaging/messages/AcknowledgeMessage.html>}
+        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/messaging/messages/AcknowledgeMessage.html>}
     """
 
     #: Used to indicate that the acknowledgement is for a message that
@@ -315,7 +315,7 @@ class CommandMessage(AsyncMessage):
     messaging, ping, and cluster operations.
 
     @see: U{CommandMessage on Livedocs<http://
-        livedocs.adobe.com/flex/201/langref/mx/messaging/messages/CommandMessage.html>}
+        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/messaging/messages/CommandMessage.html>}
 
     @ivar operation: The command
     @type operation: C{int}
@@ -410,7 +410,7 @@ class ErrorMessage(AcknowledgeMessage):
     This class is used to report errors within the messaging system.
 
     @see: U{ErrorMessage on Livedocs<http://
-        livedocs.adobe.com/flex/201/langref/mx/messaging/messages/ErrorMessage.html>}
+        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/messaging/messages/ErrorMessage.html>}
     """
 
     #: If a message may not have been delivered, the faultCode will contain
@@ -455,7 +455,7 @@ class RemotingMessage(AbstractMessage):
     I am used to send RPC requests to a remote endpoint.
 
     @see: U{RemotingMessage on Livedocs<http://
-        livedocs.adobe.com/flex/201/langref/mx/messaging/messages/RemotingMessage.html>}
+        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/messaging/messages/RemotingMessage.html>}
     """
 
     class __amf__:

@@ -19,7 +19,7 @@ essential for the Adobe Flash Player to understand the response therefore.
 @see: U{Remoting Envelope on OSFlash
     <http://osflash.org/documentation/amf/envelopes/remoting>}
 @see: U{Remoting Headers on OSFlash
-    <http://osflash.org/amf/envelopes/remoting/headers>}
+    <http://osflash.org/documentation/amf/envelopes/remoting/headers>}
 @see: U{Remoting Debug Headers on OSFlash
     <http://osflash.org/documentation/amf/envelopes/remoting/debuginfo>}
 
