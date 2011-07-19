@@ -2,7 +2,7 @@
 # See LICENSE.txt for details.
 
 """
-Compatibility classes/functions for Flex.
+Compatibility classes/functions for Adobe Flex.
 
 @note: Not available in ActionScript 1.0 and 2.0.
 @see: U{Flex on Wikipedia<http://en.wikipedia.org/wiki/Adobe_Flex>}
@@ -25,7 +25,7 @@ class ArrayCollection(list):
     interfaces in the Flex framework.
 
     @see: U{ArrayCollection on Livedocs <http://
-        livedocs.adobe.com/flex/201/langref/mx/collections/ArrayCollection.html>}
+        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/collections/ArrayCollection.html>}
     @note: This class does not implement the RemoteObject part of the
         documentation.
     @ivar length: [read-only] The number of items in this collection.
@@ -192,7 +192,7 @@ class ObjectProxy(object):
     dynamic ActionScript Object to be bindable and report change events.
 
     @see: U{ObjectProxy on Livedocs<http://
-        livedocs.adobe.com/flex/201/langref/mx/utils/ObjectProxy.html>}
+        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/utils/ObjectProxy.html>}
     """
 
     class __amf__:

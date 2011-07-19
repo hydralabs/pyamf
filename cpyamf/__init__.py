@@ -4,5 +4,5 @@
 """
 Python C-extensions for L{PyAMF<pyamf>}.
 
-:since: 0.4
+@since: 0.4
 """
