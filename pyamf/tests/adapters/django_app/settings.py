@@ -1,3 +1,6 @@
+# Copyright (c) The PyAMF Project.
+# See LICENSE.txt for details.
+
 # The simplest Django settings possible
 
 DATABASE_ENGINE = 'sqlite3'

@@ -1,3 +1,6 @@
+# Copyright (c) The PyAMF Project.
+# See LICENSE.txt for details.
+
 from django.db import models
 
 
@@ -96,6 +99,7 @@ class Student(CommonInfo):
 # foreign keys
 class NullForeignKey(models.Model):
     foobar = models.ForeignKey(SimplestModel, null=True)
+
 
 class BlankForeignKey(models.Model):
     foobar = models.ForeignKey(SimplestModel, blank=True)
