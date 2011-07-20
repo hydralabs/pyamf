@@ -11,6 +11,8 @@ import unittest
 import sys
 import os
 import datetime
+from shutil import rmtree
+from tempfile import mkdtemp  
 
 import pyamf
 from pyamf.tests import util
@@ -41,6 +43,7 @@ teardown_test_environment = None
 # test app data
 models = None
 adapter = None
+
 
 def init_django():
     """
@@ -74,7 +77,7 @@ def setUpModule():
     """
     Called to set up the module by the test runner
     """
-    global context, models, adapter
+    global context, models, storage, adapter
 
     context = {
         'sys.path': sys.path[:],
@@ -83,12 +86,14 @@ def setUpModule():
     }
 
     if init_django():
+        from django.core.files.storage import FileSystemStorage
         from pyamf.tests.adapters.django_app.adapters import models
         from pyamf.adapters import _django_db_models_base as adapter
 
         setup_test_environment()
-
-        settings.DATABASE_NAME = create_test_db(0, True)
+ 
+        settings.DATABASE_NAME = create_test_db(verbosity=0, autoclobber=True)
+        storage = FileSystemStorage(mkdtemp())
 
 
 def tearDownModule():
@@ -99,12 +104,12 @@ def tearDownModule():
     util.replace_dict(context['sys.modules'], sys.modules)
     util.replace_dict(context['os.environ'], os.environ)
 
-    destroy_test_db(settings.DATABASE_NAME, 2)
+    destroy_test_db(settings.DATABASE_NAME, verbosity=0)
+
+    rmtree(storage.location, ignore_errors=True)
 
 
 class BaseTestCase(unittest.TestCase):
-    """
-    """
 
     def setUp(self):
         if not django:
@@ -587,9 +592,8 @@ class FieldsTestCase(BaseTestCase):
         alias = adapter.DjangoClassAlias(models.FileModel)
 
         i = models.FileModel()
+        i.file.storage = storage
         i.file.save('bar', MockFile())
-        self.addCleanup(i.file.delete)
-
         i.save()
 
         attrs = alias.getEncodableAttributes(i)
@@ -618,11 +622,9 @@ class ImageTestCase(BaseTestCase):
         alias = adapter.DjangoClassAlias(models.Profile)
 
         i = models.Profile()
+        i.file.storage = storage
         i.file.save('bar', MockFile())
-        self.addCleanup(i.file.delete)
-
         i.save()
-        self.addCleanup(i.delete)
 
         attrs = alias.getEncodableAttributes(i)
 
