@@ -37,13 +37,16 @@ __version__ = version = _version.version
 #: L{ClassAlias} object.
 #: @see: L{register_class}, L{unregister_class}, and L{register_package}
 CLASS_CACHE = {}
+
 #: Class loaders. An iterable of callables that are handed a string alias and
 #: return a class object or C{None} it not handled.
 #: @see: L{register_class_loader} and L{unregister_class_loader}
 CLASS_LOADERS = set()
+
 #: Custom type map.
 #: @see: L{get_type}, L{add_type}, and L{remove_type}
 TYPE_MAP = {}
+
 #: Maps error classes to string codes.
 #: @see: L{add_error_class} and L{remove_error_class}
 ERROR_CLASS_MAP = {
@@ -61,9 +64,11 @@ ALIAS_TYPES = {}
 #: Specifies that objects are serialized using AMF for ActionScript 1.0
 #: and 2.0 that were introduced in the Adobe Flash Player 6.
 AMF0 = 0
+
 #: Specifies that objects are serialized using AMF for ActionScript 3.0
 #: that was introduced in the Adobe Flash Player 9.
 AMF3 = 3
+
 #: Supported AMF encoding types.
 #: @see: L{AMF0}, L{AMF3}, and L{DEFAULT_ENCODING}
 ENCODING_TYPES = (AMF0, AMF3)
@@ -159,11 +164,14 @@ class TypedObject(dict):
     registered class to apply it to.
 
     This object can only be used for standard streams - i.e. not externalized
-    data. If encountered, a L{DecodeError} will be raised.
+    data. If encountered, and C{strict} mode is C{False}, a L{DecodeError}
+    or L{EncodeError} will be raised.
 
     @ivar alias: The alias of the typed object.
     @type alias: C{string}
     @since: 0.4
+    @raise DecodeError: Unable to decode an externalised stream.
+    @raise EncodeError: Unable to encode an externalised stream.
     """
 
     def __init__(self, alias):
@@ -229,10 +237,13 @@ class ErrorAlias(ClassAlias):
 def register_class(klass, alias=None):
     """
     Registers a class to be used in the data streaming. This is the equivalent
-    to the C{[RemoteClass(alias="foobar")]} AS3 metatag.
+    of the C{[RemoteClass(alias="foobar")]} metatag in Adobe Flex, and the
+    C{flash.net.registerClassAlias} method in Actionscript 3.0.
 
     @return: The registered L{ClassAlias} instance.
     @see: L{unregister_class}
+    @see: U{flash.net.registerClassAlias on Adobe Help (external)
+            <http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/net/package.html#registerClassAlias%28%29>}
     """
     meta = util.get_class_meta(klass)
 
@@ -409,8 +420,9 @@ def decode(stream, *args, **kwargs):
     A generator function to decode a datastream.
 
     @param stream: AMF data to be decoded.
-    @type stream: byte data.
+    @type stream: byte data
     @kwarg encoding: AMF encoding type. One of L{ENCODING_TYPES}.
+    @type encoding: C{int}
     @return: A generator that will decode each element in the stream.
     """
     encoding = kwargs.pop('encoding', DEFAULT_ENCODING)
@@ -423,8 +435,9 @@ def encode(*args, **kwargs):
     """
     A helper function to encode an element.
 
-    @param args: The python data to be encoded.
+    @param args: The Python data to be encoded.
     @kwarg encoding: AMF encoding type. One of L{ENCODING_TYPES}.
+    @type encoding: C{int}
     @return: A L{util.BufferedByteStream} object that contains the data.
     """
     encoding = kwargs.pop('encoding', DEFAULT_ENCODING)
@@ -442,6 +455,8 @@ def get_decoder(encoding, *args, **kwargs):
     """
     Returns a L{codec.Decoder} capable of decoding AMF[C{encoding}] streams.
 
+    @param encoding: AMF encoding type. One of L{ENCODING_TYPES}.
+    @type encoding: C{int}
     @raise ValueError: Unknown C{encoding}.
     """
     def _get_decoder_class():
@@ -469,7 +484,9 @@ def get_encoder(encoding, *args, **kwargs):
     """
     Returns a L{codec.Encoder} capable of encoding AMF[C{encoding}] streams.
 
-    @raise ValueError: Unknown C{encoding}.
+    @kwarg encoding: AMF encoding type. One of L{ENCODING_TYPES}.
+    @type encoding: C{int}
+    @raise ValueError: Unknown C{encoding} type.
     """
     def _get_encoder_class():
         if encoding == AMF0:
@@ -497,7 +514,10 @@ def blaze_loader(alias):
     Loader for BlazeDS framework compatibility classes, specifically
     implementing C{ISmallMessage}.
 
+    @type alias: C{string}
     @see: U{BlazeDS<http://opensource.adobe.com/wiki/display/blazeds/BlazeDS>}
+    @see: U{ISmallMessage on Adobe Help (external)
+            <http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/messaging/messages/ISmallMessage.html>}
     @since: 0.5
     """
     if alias not in ['DSC', 'DSK']:
@@ -512,6 +532,7 @@ def flex_loader(alias):
     """
     Loader for L{Flex<pyamf.flex>} framework compatibility classes.
 
+    @type alias: C{string}
     @raise UnknownClassAlias: Trying to load an unknown Flex compatibility class.
     """
     if not alias.startswith('flex.'):
@@ -535,7 +556,8 @@ def add_type(type_, func=None):
     Adds a custom type to L{TYPE_MAP}. A custom type allows fine grain control
     of what to encode to an AMF data stream.
 
-    @raise TypeError: Unable to add as a custom type (expected a class or callable).
+    @raise TypeError: Unable to add C{_type} as a custom type (expected a class
+                      or callable).
     @raise KeyError: Type already exists.
     @see: L{get_type} and L{remove_type}
     """
@@ -612,6 +634,9 @@ def add_error_class(klass, code):
     @param code: Exception code
     @type code: C{str}
     @see: L{remove_error_class}
+    @raise TypeError: C{klass} must be of class type.
+    @raise TypeError: Error classes must subclass the C{__builtin__.Exception} class.
+    @raise ValueError: C{code} is already registered to an error class.
     """
     if not isinstance(code, python.str_types):
         code = code.decode('utf-8')
@@ -643,7 +668,10 @@ def remove_error_class(klass):
        >>> pyamf.add_error_class(AuthenticationError, 'Auth.Failed')
        >>> pyamf.remove_error_class(AuthenticationError)
 
+    @type klass: C{str} or class
     @see: L{add_error_class}
+    @raise ValueError: Cannot find registered class.
+    @raise TypeError: C{klass} is invalid type.
     """
     if isinstance(klass, python.str_types):
         if klass not in ERROR_CLASS_MAP:
@@ -751,16 +779,18 @@ def register_package(module=None, package=None, separator='.', ignore=[],
     @type package: C{string} or C{None}
     @param separator: The separator used to append to C{package} to form the
         complete alias.
+    @type separator: C{string}
     @param ignore: To give fine grain control over what gets aliased and what
         doesn't, supply a list of classes that you B{do not} want to be aliased.
     @type ignore: C{iterable}
     @param strict: Whether only classes that originate from C{module} will be
         registered.
+    @type strict: C{boolean}
 
     @return: A dict of all the classes that were registered and their respective
         L{ClassAlias} counterparts.
     @since: 0.5
-    @raise TypeError: Cannot get a list of classes from C{module}
+    @raise TypeError: Cannot get a list of classes from C{module}.
     """
     if isinstance(module, python.str_types):
         if module == '':
@@ -843,7 +873,7 @@ def set_default_etree(etree):
     return xml.set_default_interface(etree)
 
 
-#: setup some some standard class registrations and class loaders.
+# setup some some standard class registrations and class loaders.
 register_class(ASObject)
 register_class_loader(flex_loader)
 register_class_loader(blaze_loader)

@@ -122,7 +122,7 @@ class Envelope(object):
     @type headers: L{HeaderCollection}
     @ivar bodies: A list of requests/response messages
     @type bodies: C{list} containing tuples of the key of the request and the
-        L{Message}.
+        L{Message}
     """
 
     def __init__(self, amfVersion=None):
@@ -233,6 +233,7 @@ class Message(object):
     I am used to iterate over all requests in the :class:`Envelope`.
 
     @ivar envelope: The parent L{envelope<Envelope>} of this AMF Message.
+    @type envelope: L{Envelope}
     @ivar body: The body of the message.
     @ivar headers: The message headers. Dict like in behaviour.
     """
@@ -251,7 +252,7 @@ class Request(Message):
     """
     An AMF Request payload.
 
-    @ivar target: The C{string} target of the request
+    @ivar target: The C{string} target of the request.
     """
 
     def __init__(self, target, body=[], envelope=None):
@@ -294,7 +295,7 @@ class BaseFault(object):
     @ivar description: A longer description of the fault.
 
     @see: U{mx.rpc.Fault on Livedocs
-          <http://livedocs.adobe.com/flex/201/langref/mx/rpc/Fault.html>}
+          <http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/rpc/Fault.html>}
     """
 
     level = None
@@ -348,10 +349,12 @@ def _read_header(stream, decoder, strict=False):
     @param strict: Use strict decoding policy. Default is C{False}. Will raise a
         L{pyamf.DecodeError} if the data that was read from the stream does not
         match the header length.
+    @type strict: C{boolean}
     @return: A C{tuple} containing the name of the header, a C{bool}
         determining if understanding this header is required and the decoded
         data.
     @note: Quite what understanding required headers actually means is unknown.
+    @raise DecodeError: Data read from stream does not match header length.
     """
     name_len = stream.read_ushort()
     name = stream.read_utf8_string(name_len)
@@ -382,6 +385,7 @@ def _write_header(name, header, required, stream, encoder, strict=False):
     @param encoder: An encoder capable of encoding C{AMF0}.
     @param strict: Use strict encoding policy. Default is C{False}. Will write
         the correct header length after writing the header.
+    @type strict: C{boolean}
     """
     stream.write_ushort(len(name))
     stream.write_utf8_string(name)
@@ -406,10 +410,11 @@ def _read_body(stream, decoder, strict=False, logger=None):
 
     @type stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     @param decoder: An AMF0 decoder.
-    @param strict: Use strict decoding policy. Default is `False`.
+    @param strict: Use strict decoding policy. Default is C{False}.
+    @type strict: C{boolean}
     @param logger: Used to log interesting events whilst reading a remoting
         body.
-    @type logger: A C{logging.Logger} instance or C{None}.
+    @type logger: A C{logging.Logger} instance or C{None}
     @return: A C{tuple} containing the C{id} of the request and the L{Request}
         or L{Response}
     """
@@ -479,7 +484,8 @@ def _write_body(name, message, stream, encoder, strict=False):
     @param message: The AMF L{Message}
     @type stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     @param encoder: An AMF0 encoder.
-    @param strict: Use strict encoding policy. Default is `False`.
+    @param strict: Use strict encoding policy. Default is C{False}.
+    @type strict: C{boolean}
     """
     def _encode_body(message):
         if isinstance(message, Response):
@@ -538,6 +544,7 @@ def _get_status(status):
     Get status code.
 
     @see: L{STATUS_CODES}
+    @raise ValueError: Unknown C{status} code.
     """
     if status not in STATUS_CODES:
         # TODO print that status code..
@@ -576,7 +583,8 @@ def decode(stream, strict=False, logger=None, timezone_offset=None):
     Decodes the incoming stream as a remoting message.
 
     @type stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
-    @param strict: Enforce strict decoding. Default is `False`.
+    @param strict: Enforce strict decoding. Default is C{False}.
+    @type strict: C{boolean}
     @param logger: Used to log interesting events whilst decoding a remoting
         message.
     @type logger: U{logging.Logger<http://
@@ -585,9 +593,10 @@ def decode(stream, strict=False, logger=None, timezone_offset=None):
         UTC. Date/times should always be handled in UTC to avoid confusion but
         this is required for legacy systems.
     @type timezone_offset: U{datetime.datetime.timedelta<http://
-        docs.python.org/library/datetime.html#datetime.timedelta}
+        docs.python.org/library/datetime.html#datetime.timedelta>}
 
     @return: Message L{envelope<Envelope>}.
+    @rtype: L{Envelope}
     """
     if not isinstance(stream, util.BufferedByteStream):
         stream = util.BufferedByteStream(stream)
@@ -641,7 +650,8 @@ def encode(msg, strict=False, logger=None, timezone_offset=None):
 
     @param strict: Enforce strict encoding. Default is C{False}. Specifically
         header/body lengths will be written correctly, instead of the default 0.
-        Default is `False`. Introduced in 0.4.
+        Default is C{False}. Introduced in 0.4.
+    @type strict: C{boolean}
     @param logger: Used to log interesting events whilst decoding a remoting
         message.
     @type logger: U{logging.Logger<http://
@@ -650,7 +660,7 @@ def encode(msg, strict=False, logger=None, timezone_offset=None):
         UTC. Date/times should always be handled in UTC to avoid confusion but
         this is required for legacy systems.
     @type timezone_offset: U{datetime.datetime.timedelta<http://
-        docs.python.org/library/datetime.html#datetime.timedelta}
+        docs.python.org/library/datetime.html#datetime.timedelta>}
     @rtype: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     """
     stream = util.BufferedByteStream()
@@ -681,8 +691,6 @@ def encode(msg, strict=False, logger=None, timezone_offset=None):
 
 
 def get_exception_from_fault(fault):
-    """
-    """
     return pyamf.ERROR_CLASS_MAP.get(fault.code, RemotingError)
 
 

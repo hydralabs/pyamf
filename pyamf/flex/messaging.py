@@ -51,7 +51,7 @@ class AbstractMessage(object):
     @type clientId: C{str}
     @ivar destination: Message destination.
     @type destination: C{str}
-    @ivar headers: Message headers. Core header names start with DS.
+    @ivar headers: Message headers. Core header names start with C{DS}.
     @type headers: C{dict}
     @ivar messageId: Unique Message ID.
     @type messageId: C{str}
@@ -202,10 +202,12 @@ class AbstractMessage(object):
 
     def getSmallMessage(self):
         """
-        Return a ISmallMessage representation of this object. If one is not
-        available, L{NotImplementedError} will be raised.
+        Return a C{ISmallMessage} representation of this object. If one is not
+        available, C{NotImplementedError} will be raised.
 
         @since: 0.5
+        @see: U{ISmallMessage on Adobe Help (external)<http://
+            help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/messaging/messages/ISmallMessage.html>}
         """
         raise NotImplementedError
 
@@ -214,7 +216,7 @@ class AsyncMessage(AbstractMessage):
     """
     I am the base class for all asynchronous Flex messages.
 
-    @see: U{AsyncMessage on Livedocs<http://
+    @see: U{AsyncMessage on Adobe Help<http://
         help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/messaging/messages/AsyncMessage.html>}
 
     @ivar correlationId: Correlation id of the message.
@@ -263,7 +265,7 @@ class AsyncMessage(AbstractMessage):
 
     def getSmallMessage(self):
         """
-        Return a ISmallMessage representation of this async message.
+        Return a C{ISmallMessage} representation of this async message.
 
         @since: 0.5
         """
@@ -277,7 +279,7 @@ class AcknowledgeMessage(AsyncMessage):
     Every message sent within the messaging system must receive an
     acknowledgement.
 
-    @see: U{AcknowledgeMessage on Livedocs<http://
+    @see: U{AcknowledgeMessage on Adobe Help (external)<http://
         help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/messaging/messages/AcknowledgeMessage.html>}
     """
 
@@ -302,7 +304,7 @@ class AcknowledgeMessage(AsyncMessage):
 
     def getSmallMessage(self):
         """
-        Return a ISmallMessage representation of this acknowledge message.
+        Return a C{ISmallMessage} representation of this acknowledge message.
 
         @since: 0.5
         """
@@ -314,7 +316,7 @@ class CommandMessage(AsyncMessage):
     Provides a mechanism for sending commands related to publish/subscribe
     messaging, ping, and cluster operations.
 
-    @see: U{CommandMessage on Livedocs<http://
+    @see: U{CommandMessage on Adobe Help (external)<http://
         help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/messaging/messages/CommandMessage.html>}
 
     @ivar operation: The command
@@ -396,7 +398,7 @@ class CommandMessage(AsyncMessage):
 
     def getSmallMessage(self):
         """
-        Return a ISmallMessage representation of this command message.
+        Return a C{ISmallMessage} representation of this command message.
 
         @since: 0.5
         """
@@ -409,7 +411,7 @@ class ErrorMessage(AcknowledgeMessage):
 
     This class is used to report errors within the messaging system.
 
-    @see: U{ErrorMessage on Livedocs<http://
+    @see: U{ErrorMessage on Adobe Help (external)<http://
         help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/messaging/messages/ErrorMessage.html>}
     """
 
@@ -443,7 +445,7 @@ class ErrorMessage(AcknowledgeMessage):
 
     def getSmallMessage(self):
         """
-        Return a ISmallMessage representation of this error message.
+        Return a C{ISmallMessage} representation of this error message.
 
         @since: 0.5
         """
@@ -454,7 +456,7 @@ class RemotingMessage(AbstractMessage):
     """
     I am used to send RPC requests to a remote endpoint.
 
-    @see: U{RemotingMessage on Livedocs<http://
+    @see: U{RemotingMessage on Adobe Help (external)<http://
         help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/messaging/messages/RemotingMessage.html>}
     """
 
