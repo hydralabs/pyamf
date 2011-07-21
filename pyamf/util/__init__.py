@@ -107,7 +107,8 @@ def get_class_alias(klass):
 
 def is_class_sealed(klass):
     """
-    Whether or not the supplied class can accept dynamic properties.
+    Returns a boolean indicating whether or not the supplied class can accept
+    dynamic properties.
 
     @rtype: C{bool}
     @since: 0.5

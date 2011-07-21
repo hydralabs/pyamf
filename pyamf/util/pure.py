@@ -177,10 +177,13 @@ class DataTypeMixIn(object):
 
     #: Network byte order
     ENDIAN_NETWORK = "!"
+
     #: Native byte order
     ENDIAN_NATIVE = "@"
+
     #: Little endian
     ENDIAN_LITTLE = "<"
+
     #: Big endian
     ENDIAN_BIG = ">"
 
@@ -515,7 +518,7 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
         """
         @param buf: Initial byte stream.
         @type buf: C{str} or C{StringIO} instance
-        @param min_buf_size: Ignored in the pure python version.
+        @param min_buf_size: Ignored in the pure Python version.
         """
         StringIOProxy.__init__(self, buf=buf)
 
@@ -625,6 +628,7 @@ def is_float_broken():
 
     @since: 0.4
     @rtype: C{bool}
+    @return: Boolean indicating whether floats are broken on this platform.
     """
     return str(python.NaN) != str(
         struct.unpack("!d", '\xff\xf8\x00\x00\x00\x00\x00\x00')[0])
@@ -667,6 +671,8 @@ if is_float_broken():
         """
         Override the L{DataTypeMixIn.write_double} method to fix problems
         with doubles by using the third-party C{fpconst} library.
+
+        @raise TypeError: Unexpected type for float C{d}.
         """
         if type(d) is not float:
             raise TypeError('expected a float (got:%r)' % (type(d),))

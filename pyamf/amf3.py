@@ -86,7 +86,7 @@ TYPE_STRING = '\x06'
 #: @see: U{OSFlash documentation (external)
 #: <http://osflash.org/documentation/amf3#x07_-_xml_legacy_flashxmlxmldocument_class>}
 TYPE_XML = '\x07'
-#: In AMF 3 an ActionScript Date is serialized simply as the number of
+#: In AMF 3 an ActionScript Date is serialized as the number of
 #: milliseconds elapsed since the epoch of midnight, 1st Jan 1970 in the
 #: UTC time zone. Local time zone information is not sent.
 TYPE_DATE = '\x08'
@@ -112,7 +112,9 @@ TYPE_BYTEARRAY = '\x0C'
 #: Reference bit.
 REFERENCE_BIT = 0x01
 
-#: The maximum that can be represented by a signed 29 bit integer.
+#: The maximum value for an int that will avoid promotion to an
+#: ActionScript Number when sent via AMF 3 is represented by a
+#: signed 29 bit integer: 2^28 - 1.
 MAX_29B_INT = 0x0FFFFFFF
 
 #: The minimum that can be represented by a signed 29 bit integer.
@@ -151,8 +153,6 @@ class ObjectEncoding:
 class DataOutput(object):
     """
     I am a C{StringIO} type object containing byte data from the AMF stream.
-    ActionScript 3.0 introduced the C{flash.utils.ByteArray} class to support
-    the manipulation of raw data in the form of an Array of bytes.
     I provide a set of methods for writing binary data with ActionScript 3.0.
 
     This class is the I/O counterpart to the L{DataInput} class, which reads
@@ -327,8 +327,8 @@ class DataInput(object):
     """
     I provide a set of methods for reading binary data with ActionScript 3.0.
 
-    This class is the I/O counterpart to the L{DataOutput} class,
-    which writes binary data.
+    This class is the I/O counterpart to the L{DataOutput} class, which writes
+    binary data.
 
     @see: U{IDataInput on Livedocs (external)
     <http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/utils/IDataInput.html>}
@@ -670,7 +670,7 @@ class Context(codec.Context):
 
     def getClass(self, klass):
         """
-        Return class reference.
+        Returns a class reference.
 
         @return: Class reference.
         """
@@ -681,6 +681,7 @@ class Context(codec.Context):
         Creates a reference to C{class_def}.
 
         @param alias: C{ClassDefinition} instance.
+        @type alias: C{ClassDefinition}
         """
         ref = self.class_idx
 
@@ -999,6 +1000,9 @@ class Decoder(codec.Decoder):
     def readObject(self):
         """
         Reads an object from the stream.
+
+        @raise ReferenceError: Unknown reference found.
+        @raise DecodeError: Unknown object encoding detected.
         """
         ref = self.readInteger(False)
 
@@ -1242,8 +1246,13 @@ class Encoder(codec.Encoder):
         """
         Writes a C{datetime} instance to the stream.
 
+        Does not support C{datetime.time} instances because AMF3 has
+        no way to encode time objects, so please use C{datetime.datetime}
+        instead.
+
         @type n: L{datetime}
         @param n: The C{Date} data to be encoded to the AMF3 data stream.
+        @raise EncodeError: A datetime.time instance was found
         """
         if isinstance(n, datetime.time):
             raise pyamf.EncodeError('A datetime.time instance was found but '
@@ -1521,7 +1530,7 @@ def encode_int(n):
     @param n: The integer to be encoded
     @return: The encoded string
     @rtype: C{str}
-    @raise OverflowError: Out of range.
+    @raise OverflowError: C{c} is out of range.
     """
     global ENCODED_INT_CACHE
 
