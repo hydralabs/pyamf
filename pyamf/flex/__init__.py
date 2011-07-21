@@ -21,7 +21,7 @@ class ArrayCollection(list):
 
     The C{ArrayCollection} class is a wrapper class that exposes an Array
     as a collection that can be accessed and manipulated using the
-    methods and properties of the `ICollectionView` or `IList`
+    methods and properties of the C{ICollectionView} or C{IList}
     interfaces in the Flex framework.
 
     @see: U{ArrayCollection on Livedocs <http://
