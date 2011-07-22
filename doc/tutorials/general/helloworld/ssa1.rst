@@ -31,7 +31,7 @@ Source
 References
 ==========
 
-- `SSA on Livedocs <http://livedocs.adobe.com/fms/2/docs/00000630.html>`_
+- `SSA on Livedocs <http://help.adobe.com/en_US/flashmediaserver/ssaslr/index.html>`_
 - `Mozilla core JavaScript 1.5 Reference <https://developer.mozilla.org/en/JavaScript/Reference>`_
 - `Flash Remoting for FCS <http://www.sephiroth.it/tutorials/flashPHP/flashcomm_AMFPHP>`_
 
