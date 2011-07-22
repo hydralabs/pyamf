@@ -1,10 +1,8 @@
-import logging
-
-from pyramid.config import Configurator
 from pyramid_rpc.amfgateway import PyramidGateway
 
-from paste.httpserver import serve
 
+def my_view(request):
+    return {'project':'pyamf_tutorial'}
 
 def echo(request, data):
     """
@@ -19,11 +17,5 @@ services = {
     # Add other exposed functions and classes here
 }
 
-echoGateway = PyramidGateway(services, logger=logging, debug=True)
+echoGateway = PyramidGateway(services, debug=True)
 
-
-if __name__ == '__main__':
-    config = Configurator()
-    config.add_view(echoGateway, name='gateway')
-    app = config.make_wsgi_app()
-    serve(app, host='0.0.0.0')
