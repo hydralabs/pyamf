@@ -158,7 +158,7 @@ class DataOutput(object):
     This class is the I/O counterpart to the L{DataInput} class, which reads
     binary data.
 
-    @see: U{IDataOutput on Livedocs (external)
+    @see: U{IDataOutput on Adobe Help (external)
     <http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/utils/IDataOutput.html>}
     """
 
@@ -243,7 +243,7 @@ class DataOutput(object):
         @param charset: The string denoting the character set to use. Possible
             character set strings include C{shift-jis}, C{cn-gb},
             C{iso-8859-1} and others.
-        @see: U{Supported character sets on Livedocs (external)
+        @see: U{Supported character sets on Adobe Help (external)
             <http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/charset-codes.html>}
         """
         if type(value) is unicode:
@@ -330,7 +330,7 @@ class DataInput(object):
     This class is the I/O counterpart to the L{DataOutput} class, which writes
     binary data.
 
-    @see: U{IDataInput on Livedocs (external)
+    @see: U{IDataInput on Adobe Help (external)
     <http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/utils/IDataInput.html>}
     """
 
@@ -501,7 +501,7 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
      - Writing your own AMF/Remoting packet.
      - Optimizing the size of your data by using custom data types.
 
-    @see: U{ByteArray on Livedocs (external)
+    @see: U{ByteArray on Adobe Help (external)
     <http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/utils/ByteArray.html>}
     """
 
