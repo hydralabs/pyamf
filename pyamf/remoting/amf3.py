@@ -4,10 +4,10 @@
 """
 AMF3 RemoteObject support.
 
-@see: U{RemoteObject on LiveDocs
-<http://livedocs.adobe.com/flex/3/langref/mx/rpc/remoting/RemoteObject.html>}
+@see: U{RemoteObject on Adobe Help (external)
+    <http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/rpc/remoting/RemoteObject.html>}
 
-@since: 0.1.0
+@since: 0.1
 """
 
 import calendar

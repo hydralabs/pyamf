@@ -15,10 +15,11 @@ package org.pyamf.examples.socket
 	[Event(name="connected", type="flash.events.Event")]
 	[Event(name="disconnected", type="flash.events.Event")]
 	[Event(name="logUpdate", type="flash.events.Event")]
+
 	/**
 	 * Socket connection to read and write raw binary data.
 	 * 
-	 * @see http://livedocs.adobe.com/flex/3/langref/flash/net/Socket.html
+	 * @see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/net/Socket.html
 	 * @since 0.1
 	 */	
 	public class PythonSocket extends Socket
