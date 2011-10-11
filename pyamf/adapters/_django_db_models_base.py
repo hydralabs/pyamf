@@ -11,6 +11,7 @@ C{django.db.models} adapter module.
 from django.db.models.base import Model
 from django.db.models import fields
 from django.db.models.fields import related, files
+from django.contrib.contenttypes import generic
 
 import datetime
 
@@ -67,7 +68,11 @@ class DjangoClassAlias(pyamf.ClassAlias):
         self.columns = []
 
         self.meta = self.klass._meta
-
+        
+        for x in self.meta.virtual_fields:
+            if isinstance(x, generic.GenericForeignKey):
+                self.relations[x.name] = x
+                
         for name in self.meta.get_all_field_names():
             x = self.meta.get_field_by_name(name)[0]
 
@@ -171,6 +176,8 @@ class DjangoClassAlias(pyamf.ClassAlias):
 
             if isinstance(relation, related.ManyToManyField):
                 attrs[name] = [x for x in getattr(obj, name).all()]
+            elif isinstance(relation, generic.GenericForeignKey):
+                continue
             else:
                 del attrs[relation.attname]
 
