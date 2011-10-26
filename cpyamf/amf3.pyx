@@ -363,7 +363,7 @@ cdef class Decoder(codec.Decoder):
             return result
 
         tmp = pyamf.MixedArray()
-        self.context.addObject(result)
+        self.context.addObject(tmp)
 
         while PyUnicode_GetSize(key):
             tmp[key] = self.readElement()
