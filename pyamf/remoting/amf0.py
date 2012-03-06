@@ -49,6 +49,9 @@ class RequestProcessor(object):
             cls, e, tb = error
         else:
             cls, e, tb = sys.exc_info()
+        if self.gateway.logger:
+            self.gateway.logger.error("".join(
+                        traceback.format_exception(cls, e, tb)))
 
         return remoting.Response(build_fault(cls, e, tb, self.gateway.debug),
             status=remoting.STATUS_ERROR)
