@@ -389,13 +389,13 @@ class GetDecodableAttributesTestCase(unittest.TestCase):
         self.assertFalse(self.alias.shortcut_decode)
 
         attrs = {
-            'foo': 'foo',
+            'bar': 'foo',
             'spam': 'eggs'
         }
 
         ret = self.alias.getDecodableAttributes(self.obj, attrs)
 
-        self.assertEquals(ret, {'bar': 'foo', 'spam': 'eggs'})
+        self.assertEquals(ret, {'foo': 'foo', 'spam': 'eggs'})
 
 
 class ApplyAttributesTestCase(unittest.TestCase):
