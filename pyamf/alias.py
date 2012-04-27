@@ -504,12 +504,12 @@ class ClassAlias(object):
             missing = object()
 
             for k, v in self.synonym_attrs.iteritems():
-                value = attrs.pop(k, missing)
+                value = attrs.pop(v, missing)
 
                 if value is missing:
                     continue
 
-                attrs[v] = value
+                attrs[k] = value
 
         if not changed:
             return attrs
