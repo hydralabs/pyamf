@@ -347,8 +347,8 @@ class ClassAlias(object):
 
         spec = inspect.getargspec(klass_func)
 
-        raise TypeError("__init__ doesn't support additional arguments: %s"
-            % inspect.formatargspec(*spec))
+        raise TypeError("__init__ doesn't support additional arguments: %s (class %s)"
+            % ( inspect.formatargspec(*spec), klass ) )
 
     def getEncodableAttributes(self, obj, codec=None):
         """
