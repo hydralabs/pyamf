@@ -17,46 +17,40 @@ from mongoengine import (
 class MongoEngineDocumentAlias( pyamf.alias.ClassAlias ):
     """
         Encode a mongoengine document into something appropriate for transport.
-
-        * Changes the "_id" attribute to "id", and makes it into a string.
-        * Resolves any DBRef objects to their actual object
     """
-    def getEncodableAttributes( self, obj, **kwargs ):
-        data = {}
-        for field_name, field in obj._fields.items():
-            value = getattr(obj, field_name, None)
-            if value is not None:
-                data[field.db_field] = field.to_mongo(value)
-                if isinstance( data[field.db_field], ObjectId ):
-                    data[field.db_field] = str( data[field.db_field] )
-                if isinstance( data[field.db_field], DBRef ):
-                    data[field.db_field] = value
-        if '_id' in data and data['_id'] is None:
-            del data['_id']
+    def __init__( self, klass, alias=None, **kwargs ):
+        if ( klass._dynamic ):
+            kwargs["dynamic"] = True
+        kwargs["exclude_attrs"] = [ "_data", "pk", "_changed_fields", "_initialised", "_created", ]
+        super( MongoEngineDocumentAlias, self ).__init__( klass, alias, **kwargs )
 
-        # ID should be id, not _id
-        data['id'] = str(data['_id'])
-        del( data['_id'] )
+    def getCustomProperties( self ):
+        try:
+            props = [ x for x in self.klass._fields.keys() if x is not None ]
+            self.encodable_properties.update(props)
+            self.decodable_properties.update(props)
+        except AttributeError as error:
+            pass
+
+    def getEncodableAttributes( self, obj, **kwargs ):
+        attrs = pyamf.ClassAlias.getEncodableAttributes(self, obj, **kwargs)
 
         if not obj._dynamic:
-            return data
+            return attrs
 
         for name, field in obj._dynamic_fields.items():
-            data[name] = field.to_mongo(obj._data.get(name, None))
-        return data
-    def getDecodableAttributes( self, obj, attrs, codec=None ):
-        data = {}
-        fields = obj.__class__._fields
+            attrs[name] = obj.getattr(name, None)
+
+        return attrs
+
+    def getDecodableAttributes( self, obj, attrs, **kwargs ):
+        attrs = pyamf.ClassAlias.getDecodableAttributes(self, obj, attrs, **kwargs)
+        fields = obj._fields
         for key,value in attrs.items():
-            try:
-                if isinstance( fields[key], ObjectIdField ) and value:
-                    data[key] = ObjectId( value )
-                else:
-                    data[key] = value
-            except KeyError:
+            if key not in fields.keys():
                 print "Got unknown key '%s' for %r" % ( key, obj )
-        print data
-        return data
+                del attrs[key]
+        return attrs
 
 def map_mongoengine_document(klass):
     if not isinstance( klass, type ):
