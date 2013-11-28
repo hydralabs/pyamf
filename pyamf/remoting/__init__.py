@@ -102,7 +102,7 @@ class HeaderCollection(dict):
         if not idx in self:
             raise KeyError("Unknown header %s" % str(idx))
 
-        if not idx in self.required:
+        if not idx in self.required and value:
             self.required.append(idx)
 
     def __len__(self):
