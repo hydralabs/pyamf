@@ -99,6 +99,10 @@ class DjangoGateway(gateway.BaseGateway):
             request = remoting.decode(http_request.raw_post_data,
                 strict=self.strict, logger=self.logger,
                 timezone_offset=timezone_offset)
+        except AttributeError: # fix to make work with Django 1.6
+            request = remoting.decode(http_request.body,
+                strict=self.strict, logger=self.logger,
+                timezone_offset=timezone_offset)
         except (pyamf.DecodeError, IOError):
             if self.logger:
                 self.logger.exception('Error decoding AMF request')
