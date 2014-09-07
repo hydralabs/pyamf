@@ -13,7 +13,7 @@ import setupinfo
 from setuptools import setup, find_packages
 
 
-version = (0, 6, 1)
+version = (0, 6, 1, 1)
 
 name = "PyAMF"
 description = "AMF support for Python"
@@ -26,7 +26,6 @@ license = "MIT License"
 classifiers = """\
 Framework :: Django
 Framework :: Pylons
-Framework :: Turbogears
 Framework :: Twisted
 Intended Audience :: Developers
 Intended Audience :: Information Technology
