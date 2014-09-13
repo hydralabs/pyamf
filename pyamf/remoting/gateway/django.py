@@ -123,7 +123,7 @@ class DjangoGateway(gateway.BaseGateway):
 
             # support for Django 0.96
             http_response = http.HttpResponse(
-                mimetype='text/plain',
+                content_type='text/plain',
                 content=response
             )
 
@@ -145,7 +145,7 @@ class DjangoGateway(gateway.BaseGateway):
                 response += "\n\nTraceback:\n\n%s" % gateway.format_exception()
 
             return http.HttpResponseServerError(
-                mimetype='text/plain',
+                content_type='text/plain',
                 content=response
             )
 
@@ -170,7 +170,7 @@ class DjangoGateway(gateway.BaseGateway):
                 response += "\n\nTraceback:\n\n%s" % gateway.format_exception()
 
             return http.HttpResponseServerError(
-                mimetype='text/plain',
+                content_type='text/plain',
                 content=response
             )
 
@@ -198,11 +198,11 @@ class DjangoGateway(gateway.BaseGateway):
                 response += "\n\nTraceback:\n\n%s" % gateway.format_exception()
 
             return http.HttpResponseServerError(
-                mimetype='text/plain', content=response)
+                content_type='text/plain', content=response)
 
         buf = stream.getvalue()
 
-        http_response = http.HttpResponse(mimetype=remoting.CONTENT_TYPE)
+        http_response = http.HttpResponse(content_type=remoting.CONTENT_TYPE)
         http_response['Server'] = gateway.SERVER_NAME
         http_response['Content-Length'] = str(len(buf))
 
