@@ -3,11 +3,6 @@
 # Copyright (c) The PyAMF Project.
 # See LICENSE.txt for details.
 
-from distribute_setup import use_setuptools
-
-# 15 seconds is far too long ....
-use_setuptools(download_delay=3)
-
 # import ordering is important
 import setupinfo
 from setuptools import setup, find_packages
