@@ -666,7 +666,7 @@ cdef class Encoder(Codec):
         Part of the iterator protocol.
         """
         cdef Py_ssize_t start_pos, end_pos
-        cdef char *buf
+        cdef char *buf = NULL
 
         try:
             element = self.bucket.pop(0)
