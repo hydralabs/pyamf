@@ -84,9 +84,9 @@ TYPE_STRING = '\x06'
 #: C{XMLDocument} instance by using an index to the implicit object reference
 #: table.
 #: @see: U{OSFlash documentation (external)
-#: <http://osflash.org/documentation/amf3#x07_-_xml_legacy_flash.xml.xmldocument_class>}
+#: <http://osflash.org/documentation/amf3#x07_-_xml_legacy_flashxmlxmldocument_class>}
 TYPE_XML = '\x07'
-#: In AMF 3 an ActionScript Date is serialized simply as the number of
+#: In AMF 3 an ActionScript Date is serialized as the number of
 #: milliseconds elapsed since the epoch of midnight, 1st Jan 1970 in the
 #: UTC time zone. Local time zone information is not sent.
 TYPE_DATE = '\x08'
@@ -112,7 +112,9 @@ TYPE_BYTEARRAY = '\x0C'
 #: Reference bit.
 REFERENCE_BIT = 0x01
 
-#: The maximum that can be represented by a signed 29 bit integer.
+#: The maximum value for an int that will avoid promotion to an
+#: ActionScript Number when sent via AMF 3 is represented by a
+#: signed 29 bit integer: 2^28 - 1.
 MAX_29B_INT = 0x0FFFFFFF
 
 #: The minimum that can be represented by a signed 29 bit integer.
@@ -151,15 +153,13 @@ class ObjectEncoding:
 class DataOutput(object):
     """
     I am a C{StringIO} type object containing byte data from the AMF stream.
-    ActionScript 3.0 introduced the C{flash.utils.ByteArray} class to support
-    the manipulation of raw data in the form of an Array of bytes.
     I provide a set of methods for writing binary data with ActionScript 3.0.
 
     This class is the I/O counterpart to the L{DataInput} class, which reads
     binary data.
 
-    @see: U{IDataOutput on Livedocs (external)
-    <http://livedocs.adobe.com/flex/201/langref/flash/utils/IDataOutput.html>}
+    @see: U{IDataOutput on Adobe Help (external)
+    <http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/utils/IDataOutput.html>}
     """
 
     def __init__(self, encoder):
@@ -243,8 +243,8 @@ class DataOutput(object):
         @param charset: The string denoting the character set to use. Possible
             character set strings include C{shift-jis}, C{cn-gb},
             C{iso-8859-1} and others.
-        @see: U{Supported character sets on Livedocs (external)
-            <http://livedocs.adobe.com/flex/201/langref/charset-codes.html>}
+        @see: U{Supported character sets on Adobe Help (external)
+            <http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/charset-codes.html>}
         """
         if type(value) is unicode:
             value = value.encode(charset)
@@ -327,11 +327,11 @@ class DataInput(object):
     """
     I provide a set of methods for reading binary data with ActionScript 3.0.
 
-    This class is the I/O counterpart to the L{DataOutput} class,
-    which writes binary data.
+    This class is the I/O counterpart to the L{DataOutput} class, which writes
+    binary data.
 
-    @see: U{IDataInput on Livedocs (external)
-    <http://livedocs.adobe.com/flex/201/langref/flash/utils/IDataInput.html>}
+    @see: U{IDataInput on Adobe Help (external)
+    <http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/utils/IDataInput.html>}
     """
 
     def __init__(self, decoder=None):
@@ -501,31 +501,33 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
      - Writing your own AMF/Remoting packet.
      - Optimizing the size of your data by using custom data types.
 
-    @see: U{ByteArray on Livedocs (external)
-    <http://livedocs.adobe.com/flex/201/langref/flash/utils/ByteArray.html>}
+    @see: U{ByteArray on Adobe Help (external)
+    <http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/utils/ByteArray.html>}
     """
+
+    _zlib_header = '\x78\x9c'
 
     class __amf__:
         amf3 = True
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, buf=None):
         self.context = Context()
 
-        util.BufferedByteStream.__init__(self, *args, **kwargs)
+        util.BufferedByteStream.__init__(self, buf)
         DataInput.__init__(self, Decoder(self, self.context))
         DataOutput.__init__(self, Encoder(self, self.context))
 
-        self.compressed = False
+        self.compressed = self.peek(2) == ByteArray._zlib_header
 
-    def readObject(self, *args, **kwargs):
+    def readObject(self):
         self.context.clear()
 
-        return super(ByteArray, self).readObject(*args, **kwargs)
+        return super(ByteArray, self).readObject()
 
-    def writeObject(self, *args, **kwargs):
+    def writeObject(self, obj):
         self.context.clear()
 
-        return super(ByteArray, self).writeObject(*args, **kwargs)
+        return super(ByteArray, self).writeObject(obj)
 
     def __cmp__(self, other):
         if isinstance(other, ByteArray):
@@ -594,7 +596,7 @@ class Context(codec.Context):
     """
 
     def __init__(self):
-        self.strings = codec.ByteStringReferenceCollection()
+        self.strings = codec.IndexedCollection(use_hash=True)
         self.classes = {}
         self.class_ref = {}
 

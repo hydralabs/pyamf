@@ -281,7 +281,7 @@ class _Codec(object):
 
     def __init__(self, stream=None, context=None, strict=False,
                  timezone_offset=None):
-        if not isinstance(stream, util.BufferedByteStream):
+        if isinstance(stream, basestring) or stream is None:
             stream = util.BufferedByteStream(stream)
 
         self.stream = stream
@@ -308,6 +308,9 @@ class _Codec(object):
 class Decoder(_Codec):
     """
     Base AMF decoder.
+
+    Supports an generator interface. Feed the decoder data using L{send} and get
+    Python objects out by using L{next}.
 
     @ivar strict: Defines how strict the decoding should be. For the time
         being this relates to typed objects in the stream that do not have a
@@ -386,6 +389,13 @@ class _CustomTypeFunc(object):
 class Encoder(_Codec):
     """
     Base AMF encoder.
+
+    When using this to encode arbitrary object, the only 'public' method is
+    C{writeElement} all others are private and are subject to change in future
+    versions.
+
+    The encoder also supports an generator interface. Feed the encoder Python
+    object using L{send} and get AMF bytes out using L{next}.
     """
 
     def __init__(self, *args, **kwargs):
@@ -417,7 +427,7 @@ class Encoder(_Codec):
         try:
             alias = self.context.getClassAlias(iterable.__class__)
         except (AttributeError, pyamf.UnknownClassAlias):
-            self.writeList(iterable)
+            self.writeList(list(iterable))
 
             return
 
@@ -428,7 +438,7 @@ class Encoder(_Codec):
 
             return
 
-        self.writeList(iterable)
+        self.writeList(list(iterable))
 
     def writeGenerator(self, gen):
         """
@@ -465,8 +475,6 @@ class Encoder(_Codec):
             return self.writeNumber
         elif t in (list, tuple):
             return self.writeList
-        elif isinstance(data, (list, tuple)):
-            return self.writeSequence
         elif t is types.GeneratorType:
             return self.writeGenerator
         elif t is pyamf.UndefinedType:
@@ -484,6 +492,9 @@ class Encoder(_Codec):
             except TypeError:
                 if python.callable(type_) and type_(data):
                     return _CustomTypeFunc(self, func)
+
+        if isinstance(data, (list, tuple)):
+            return self.writeSequence
 
         # now try some types that won't encode
         if t in python.class_types:
