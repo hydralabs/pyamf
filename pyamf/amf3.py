@@ -596,7 +596,7 @@ class Context(codec.Context):
     """
 
     def __init__(self):
-        self.strings = codec.IndexedCollection(use_hash=True)
+        self.strings = codec.ByteStringReferenceCollection()
         self.classes = {}
         self.class_ref = {}
 
