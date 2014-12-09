@@ -203,14 +203,14 @@ cdef class ByteStringReferenceCollection(IndexedCollection):
     testing is extremely difficult.
     """
 
-    def __cinit__(self):
+    def __cinit__(self, *args, **kwargs):
         self.data = NULL
         self.refs = {}
         self.size = -1
         self.length = -1
 
-    def __init__(self):
-        self.clear()
+    def __init__(self, *args, **kwargs):
+        super(ByteStringReferenceCollection, self).__init__(*args, **kwargs)
 
     cpdef Py_ssize_t getReferenceTo(self, object obj) except -2:
         cdef object p = self.refs.get(obj, None)
