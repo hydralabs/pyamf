@@ -130,8 +130,8 @@ class ByteStringReferenceCollection(IndexedCollection):
     testing is extremely difficult.
     """
 
-    def __init__(self):
-        self.clear()
+    def __init__(self, *args, **kwargs):
+        super(ByteStringReferenceCollection, self).__init__(use_hash=False)
 
     def getReferenceTo(self, bytes):
         return self.dict.get(bytes, -1)
