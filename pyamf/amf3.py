@@ -84,7 +84,7 @@ TYPE_STRING = '\x06'
 #: C{XMLDocument} instance by using an index to the implicit object reference
 #: table.
 #: @see: U{OSFlash documentation (external)
-#: <http://osflash.org/documentation/amf3#x07_-_xml_legacy_flashxmlxmldocument_class>}
+#: <http://osflash.org/documentation/amf3#x07_-_xml_legacy_flash.xml.xmldocument_class>}
 TYPE_XML = '\x07'
 #: In AMF 3 an ActionScript Date is serialized as the number of
 #: milliseconds elapsed since the epoch of midnight, 1st Jan 1970 in the
