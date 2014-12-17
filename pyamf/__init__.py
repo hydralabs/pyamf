@@ -459,18 +459,27 @@ def get_decoder(encoding, *args, **kwargs):
     @type encoding: C{int}
     @raise ValueError: Unknown C{encoding}.
     """
+    disable_cpyamf = kwargs.pop('disable_cpyamf', False)
+
     def _get_decoder_class():
         if encoding == AMF0:
-            try:
-                from cpyamf import amf0
-            except ImportError:
+            if not disable_cpyamf:
+                try:
+                    from cpyamf import amf0
+                except ImportError:
+                    from pyamf import amf0
+            else:
                 from pyamf import amf0
 
             return amf0.Decoder
+
         elif encoding == AMF3:
-            try:
-                from cpyamf import amf3
-            except ImportError:
+            if not disable_cpyamf:
+                try:
+                    from cpyamf import amf3
+                except ImportError:
+                    from pyamf import amf3
+            else:
                 from pyamf import amf3
 
             return amf3.Decoder
@@ -488,18 +497,27 @@ def get_encoder(encoding, *args, **kwargs):
     @type encoding: C{int}
     @raise ValueError: Unknown C{encoding} type.
     """
+    disable_cpyamf = kwargs.pop('disable_cpyamf', False)
+
     def _get_encoder_class():
         if encoding == AMF0:
-            try:
-                from cpyamf import amf0
-            except ImportError:
+            if not disable_cpyamf:
+                try:
+                    from cpyamf import amf0
+                except ImportError:
+                    from pyamf import amf0
+            else:
                 from pyamf import amf0
 
             return amf0.Encoder
+
         elif encoding == AMF3:
-            try:
-                from cpyamf import amf3
-            except ImportError:
+            if not disable_cpyamf:
+                try:
+                    from cpyamf import amf3
+                except ImportError:
+                    from pyamf import amf3
+            else:
                 from pyamf import amf3
 
             return amf3.Encoder
