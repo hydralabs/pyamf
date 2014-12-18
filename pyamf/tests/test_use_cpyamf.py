@@ -2,8 +2,8 @@
 # See LICENSE.txt for details.
 
 """
-Ensure cpyamf can be toggled to use or not use cpyamf versions of
-amf coders.
+Ensure encoders and decoders are from cpyamf by default and
+from pure python pyamf if they are gotten with disable_cpyamf true.
 
 @since: 0.6.2
 """
@@ -22,6 +22,7 @@ class TestUseCpyamf(unittest.TestCase):
         import pyamf
         decoder = pyamf.get_decoder(pyamf.AMF0)
         self.assertIn('cpyamf', str(decoder))
+        self.assertIn('amf0', str(decoder))
 
     def test_use_cpyamf_for_amf3_decoder(self):
         """
@@ -32,11 +33,12 @@ class TestUseCpyamf(unittest.TestCase):
         import pyamf
         decoder = pyamf.get_decoder(pyamf.AMF3)
         self.assertIn('cpyamf', str(decoder))
+        self.assertIn('amf3', str(decoder))
 
     def test_not_use_cpyamf_for_amf0_decoder(self):
         """
         Ensure the amf0 decoder is not from cpyamf
-        when pyamf.USE_CPYAMF is False.
+        when the disable_cpyamf keyword arg is True.
 
         :return:
         """
@@ -45,11 +47,12 @@ class TestUseCpyamf(unittest.TestCase):
 
         self.assertNotIn('cpyamf', str(decoder))
         self.assertIn('pyamf', str(decoder))
+        self.assertIn('amf0', str(decoder))
 
     def test_not_use_cpyamf_for_amf3_decoder(self):
         """
         Ensure the amf3 decoder is not from cpyamf
-        when pyamf.USE_CPYAMF is False.
+        when the disable_cpyamf keyword arg is True.
 
         :return:
         """
@@ -58,6 +61,7 @@ class TestUseCpyamf(unittest.TestCase):
 
         self.assertNotIn('cpyamf', str(decoder))
         self.assertIn('pyamf', str(decoder))
+        self.assertIn('amf3', str(decoder))
 
     def test_use_cpyamf_for_amf0_encoder(self):
         """
@@ -68,6 +72,7 @@ class TestUseCpyamf(unittest.TestCase):
         import pyamf
         decoder = pyamf.get_encoder(pyamf.AMF0)
         self.assertIn('cpyamf', str(decoder))
+        self.assertIn('amf0', str(decoder))
 
     def test_use_cpyamf_for_amf3_encoder(self):
         """
@@ -78,11 +83,12 @@ class TestUseCpyamf(unittest.TestCase):
         import pyamf
         decoder = pyamf.get_decoder(pyamf.AMF3)
         self.assertIn('cpyamf', str(decoder))
+        self.assertIn('amf3', str(decoder))
 
     def test_not_use_cpyamf_for_amf0_encoder(self):
         """
         Ensure the amf0 encoder is not from cpyamf
-        when pyamf.USE_CPYAMF is False.
+        when the disable_cpyamf keyword arg is True.
 
         :return:
         """
@@ -91,11 +97,12 @@ class TestUseCpyamf(unittest.TestCase):
 
         self.assertNotIn('cpyamf', str(decoder))
         self.assertIn('pyamf', str(decoder))
+        self.assertIn('amf0', str(decoder))
 
     def test_not_use_cpyamf_for_amf3_encoder(self):
         """
         Ensure the amf3 encoder is not from cpyamf
-        when pyamf.USE_CPYAMF is False.
+        when the disable_cpyamf keyword arg is True.
 
         :return:
         """
@@ -104,3 +111,4 @@ class TestUseCpyamf(unittest.TestCase):
 
         self.assertNotIn('cpyamf', str(decoder))
         self.assertIn('pyamf', str(decoder))
+        self.assertIn('amf3', str(decoder))
