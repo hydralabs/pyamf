@@ -4,7 +4,7 @@
 """
 Remoting client implementation.
 
-@since: 0.1
+@since: 0.1.0
 """
 
 import urllib2
@@ -71,7 +71,7 @@ class ServiceProxy(object):
 
     @see: L{RequestWrapper} for more info.
 
-    @ivar _gw: The parent gateway.
+    @ivar _gw: The parent gateway
     @type _gw: L{RemotingService}
     @ivar _name: The name of the service.
     @type _name: C{string}
@@ -232,6 +232,8 @@ class RemotingService(object):
         self._setUrl(url)
 
     def _setUrl(self, url):
+        """
+        """
         self.url = urlparse.urlparse(url)
         self._root_url = url
 

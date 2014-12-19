@@ -153,6 +153,8 @@ class ObjectEncoding:
 class DataOutput(object):
     """
     I am a C{StringIO} type object containing byte data from the AMF stream.
+    ActionScript 3.0 introduced the C{flash.utils.ByteArray} class to support
+    the manipulation of raw data in the form of an Array of bytes.
     I provide a set of methods for writing binary data with ActionScript 3.0.
 
     This class is the I/O counterpart to the L{DataInput} class, which reads
@@ -327,8 +329,8 @@ class DataInput(object):
     """
     I provide a set of methods for reading binary data with ActionScript 3.0.
 
-    This class is the I/O counterpart to the L{DataOutput} class, which writes
-    binary data.
+    This class is the I/O counterpart to the L{DataOutput} class,
+    which writes binary data.
 
     @see: U{IDataInput on Adobe Help (external)
     <http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/utils/IDataInput.html>}

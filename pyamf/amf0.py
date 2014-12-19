@@ -234,13 +234,13 @@ class Decoder(codec.Decoder):
 
         attrs = self.readObjectAttributes(obj)
 
-        for key, value in attrs.iteritems():
+        for key in attrs.keys():
             try:
                 key = int(key)
             except ValueError:
                 pass
 
-            obj[key] = value
+            obj[key] = attrs[key]
 
         return obj
 

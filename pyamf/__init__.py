@@ -60,6 +60,8 @@ ERROR_CLASS_MAP = {
 #: Alias mapping support.
 #: @see: L{get_class_alias}, L{register_alias_type}, and L{unregister_alias_type}
 ALIAS_TYPES = {}
+#: A list of callbacks to execute once a decode has been successful.
+POST_DECODE_PROCESSORS = []
 
 #: Specifies that objects are serialized using AMF for ActionScript 1.0
 #: and 2.0 that were introduced in the Adobe Flash Player 6.
@@ -228,7 +230,7 @@ class ErrorAlias(ClassAlias):
     def getEncodableAttributes(self, obj, **kwargs):
         attrs = ClassAlias.getEncodableAttributes(self, obj, **kwargs)
 
-        attrs['message'] = str(obj)
+        attrs['message'] = unicode(obj)
         attrs['name'] = obj.__class__.__name__
 
         return attrs
@@ -420,7 +422,7 @@ def decode(stream, *args, **kwargs):
     A generator function to decode a datastream.
 
     @param stream: AMF data to be decoded.
-    @type stream: byte data
+    @type stream: byte data.
     @kwarg encoding: AMF encoding type. One of L{ENCODING_TYPES}.
     @type encoding: C{int}
     @return: A generator that will decode each element in the stream.
@@ -428,14 +430,22 @@ def decode(stream, *args, **kwargs):
     encoding = kwargs.pop('encoding', DEFAULT_ENCODING)
     decoder = get_decoder(encoding, stream, *args, **kwargs)
 
-    return decoder
+    while True:
+        try:
+            item = decoder.next()
+            destroy_context(decoder)
+
+            yield item
+        except StopIteration:
+            break
+
 
 
 def encode(*args, **kwargs):
     """
     A helper function to encode an element.
 
-    @param args: The Python data to be encoded.
+    @param args: The python data to be encoded.
     @kwarg encoding: AMF encoding type. One of L{ENCODING_TYPES}.
     @type encoding: C{int}
     @return: A L{util.BufferedByteStream} object that contains the data.
@@ -891,7 +901,39 @@ def set_default_etree(etree):
     return xml.set_default_interface(etree)
 
 
-# setup some some standard class registrations and class loaders.
+def add_post_processor(func):
+    """
+    """
+    if not callable(func):
+        raise TypeError('%r must be callable' % (func,))
+
+    POST_DECODE_PROCESSORS.append(func)
+
+
+def run_post_processors(extra_context):
+    """
+    """
+    for c in POST_DECODE_PROCESSORS:
+        c(extra_context)
+
+
+
+_contexts = {}
+
+
+def get_context(decoder):
+    return _contexts
+
+
+
+def destroy_context(decoder):
+    run_post_processors(_contexts)
+
+    _contexts.clear()
+
+
+
+#: setup some some standard class registrations and class loaders.
 register_class(ASObject)
 register_class_loader(flex_loader)
 register_class_loader(blaze_loader)

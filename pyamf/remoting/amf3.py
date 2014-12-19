@@ -7,7 +7,7 @@ AMF3 RemoteObject support.
 @see: U{RemoteObject on Adobe Help (external)
     <http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/rpc/remoting/RemoteObject.html>}
 
-@since: 0.1
+@since: 0.1.0
 """
 
 import calendar
@@ -63,11 +63,14 @@ def generate_error(request, cls, e, tb, include_traceback=False):
         code = cls.__name__
 
     details = None
-    rootCause = None
+    rootCause = e
 
     if include_traceback:
-        details = traceback.format_exception(cls, e, tb)
-        rootCause = e
+        buffer = pyamf.util.BufferedByteStream()
+
+        traceback.print_exception(cls, e, tb, file=buffer)
+
+        details = buffer.getvalue()
 
     faultDetail = None
     faultString = None
@@ -183,9 +186,27 @@ class RequestProcessor(object):
         ro_request = amf_request.body[0]
 
         try:
-            return self._getBody(amf_request, ro_request, **kwargs)
+            body = self._getBody(amf_request, ro_request, **kwargs)
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
-            return remoting.Response(self.buildErrorResponse(ro_request),
-                                     status=remoting.STATUS_ERROR)
+            fault = self.buildErrorResponse(ro_request)
+
+            if hasattr(self.gateway, 'onServiceError'):
+                self.gateway.onServiceError(ro_request, fault)
+
+            body = remoting.Response(fault, status=remoting.STATUS_ERROR)
+
+        ro_response = body.body
+
+        dsid = ro_request.headers.get('DSId', None)
+
+        if dsid == 'nil':
+            dsid = None
+
+        if not dsid:
+            dsid = generate_random_id()
+
+        ro_response.headers.setdefault('DSId', dsid)
+
+        return body

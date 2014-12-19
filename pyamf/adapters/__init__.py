@@ -34,11 +34,7 @@ def register_adapters():
     if adapters_registered is True:
         return
 
-    try:
-        import pkg_resources
-        packageDir = pkg_resources.resource_filename('pyamf', 'adapters')
-    except:
-        packageDir = os.path.dirname(__file__)
+    packageDir = os.path.dirname(__file__)
 
     for f in glob.glob(os.path.join(packageDir, '*.py')):
         mod = os.path.basename(f).split(os.path.extsep, 1)[0]

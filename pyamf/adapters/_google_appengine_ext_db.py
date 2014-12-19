@@ -12,9 +12,13 @@ in Google App Engine.
 @since: 0.3.1
 """
 
+import logging
+
+from google.appengine.api import datastore
 from google.appengine.ext import db
 from google.appengine.ext.db import polymodel
 import datetime
+
 
 import pyamf
 from pyamf.adapters import util
@@ -85,6 +89,78 @@ class GAEReferenceCollection(dict):
         d[key] = obj
 
 
+class StubCollection(object):
+    """
+    """
+
+
+    def __init__(self):
+        self.stubs = {}
+        self.to_fetch = []
+        self.by_key = {}
+        self.fetched_entities = None
+
+
+    def addStub(self, stub, alias, attrs, key):
+        """
+        """
+        self.stubs[stub] = (alias.klass, attrs, key)
+
+        if key:
+            self.by_key[stub] = key
+
+            self.to_fetch.append(key)
+
+
+    def transformStub(self, stub, klass, attrs, key):
+        stub.__class__ = klass
+
+        for k, v in attrs.items():
+            if not isinstance(v, ModelStub):
+                continue
+
+            self.transform(v)
+
+        if key is None:
+            stub.__init__(**attrs)
+
+            return
+
+        ds_entity = self.fetched_entities.get(key, None)
+
+        if not ds_entity:
+            attrs['key'] = key
+            stub.__init__(**attrs)
+        else:
+            stub.__dict__.update(ds_entity.__dict__)
+
+            for k, v in attrs.items():
+                setattr(stub, k, v)
+
+
+    def fetchEntities(self):
+        return dict(zip(self.to_fetch, db.get(self.to_fetch)))
+
+
+    def transform(self, stub=None):
+        if self.fetched_entities is None:
+            self.fetched_entities = self.fetchEntities()
+
+        if stub is not None:
+            klass, attrs, key = self.stubs.pop(stub)
+
+            self.transformStub(stub, klass, attrs, key)
+
+            return
+
+        while self.stubs:
+            stub = iter(self.stubs).next()
+
+            klass, attrs, key = self.stubs.pop(stub)
+
+            self.transformStub(stub, klass, attrs, key)
+
+
 class DataStoreClassAlias(pyamf.ClassAlias):
     """
     This class contains all the business logic to interact with Google's
@@ -96,7 +172,7 @@ class DataStoreClassAlias(pyamf.ClassAlias):
     """
 
     # The name of the attribute used to represent the key
-    KEY_ATTR = '_key'
+    KEY_ATTR = 'keyStr'
 
     def _compile_base_class(self, klass):
         if klass in (db.Model, polymodel.PolyModel):
@@ -107,6 +183,7 @@ class DataStoreClassAlias(pyamf.ClassAlias):
     def getCustomProperties(self):
         props = [self.KEY_ATTR]
         self.reference_properties = {}
+        self.long_properties = {}
         self.properties = {}
         reverse_props = []
 
@@ -139,27 +216,73 @@ class DataStoreClassAlias(pyamf.ClassAlias):
         if not self.properties:
             self.properties = None
 
-        self.no_key_attr = self.KEY_ATTR in self.exclude_attrs
+        if not self.long_properties:
+            self.long_properties = None
+
+    def _finalise_compile(self):
+        pyamf.ClassAlias._finalise_compile(self)
+
+        self.shortcut_decode = False
+
+    def createInstance(self, codec=None):
+        return ModelStub()
+
+    def getAttribute(self, obj, attr, default=None, codec=None):
+        """
+        """
+        def _():
+            return super(DataStoreClassAlias, self).getAttribute(
+                obj, attr, default, codec)
+
+        if codec is None:
+            return _()
+
+        if self.long_properties and attr in self.long_properties:
+            val = getattr(obj, attr, None)
+            if val is None:
+                return val
+            if isinstance(val, list):
+                return [str(x) for x in val]
+            return str(val)
+
+        if not self.reference_properties:
+            return _()
+
+        try:
+            prop = self.reference_properties[attr]
+        except KeyError:
+            return _()
+
+        context = pyamf.get_context(codec)
+        gae_objects = getGAEObjects(context)
+        klass = prop.reference_class
+        key = prop.get_value_for_datastore(obj)
+
+        if key is None:
+            return _()
+
+        try:
+            return gae_objects.getClassKey(klass, key)
+        except KeyError:
+            try:
+                ref_obj = getattr(obj, attr)
+            except db.Error, e:
+                # woo hack
+                if str(e).startswith('ReferenceProperty failed to be resolved'):
+                    logging.error(str(e))
+                    logging.info('Attempted to get %r on %r with key %r',
+                        attr, type(obj), key)
+
+                    return None
+
+                raise e
+
+            gae_objects.addClassKey(klass, key, ref_obj)
+
+            return ref_obj
 
     def getEncodableAttributes(self, obj, codec=None):
         attrs = pyamf.ClassAlias.getEncodableAttributes(self, obj, codec=codec)
-
-        gae_objects = getGAEObjects(codec.context) if codec else None
-
-        if self.reference_properties and gae_objects:
-            for name, prop in self.reference_properties.iteritems():
-                klass = prop.reference_class
-                key = prop.get_value_for_datastore(obj)
-
-                if not key:
-                    continue
-
-                try:
-                    attrs[name] = gae_objects.getClassKey(klass, key)
-                except KeyError:
-                    ref_obj = getattr(obj, name)
-                    gae_objects.addClassKey(klass, key, ref_obj)
-                    attrs[name] = ref_obj
 
         for k in attrs.keys()[:]:
             if k.startswith('_'):
@@ -168,37 +291,32 @@ class DataStoreClassAlias(pyamf.ClassAlias):
         for attr in obj.dynamic_properties():
             attrs[attr] = getattr(obj, attr)
 
-        if not self.no_key_attr:
-            attrs[self.KEY_ATTR] = str(obj.key()) if obj.is_saved() else None
+        attrs[self.KEY_ATTR] = str(obj.key()) if obj.is_saved() else None
 
         return attrs
 
-    def createInstance(self, codec=None):
-        return ModelStub(self.klass)
+    def getEntityFromAttrs(self, attrs, key=None):
+        """
+        """
+        if key is None:
+            e = datastore.Entity(self.klass.kind())
+        else:
+            raise RuntimeError('entity from key')
+
+        e.update(attrs)
+
+        return e
+
+    def getStubCollection(self):
+        return StubCollection()
 
     def getDecodableAttributes(self, obj, attrs, codec=None):
-        key = attrs.setdefault(self.KEY_ATTR, None)
+        key = attrs.pop(self.KEY_ATTR, None)
+
         attrs = pyamf.ClassAlias.getDecodableAttributes(self, obj, attrs, codec=codec)
 
-        del attrs[self.KEY_ATTR]
-        new_obj = None
-
-        # attempt to load the object from the datastore if KEY_ATTR exists.
-        if key and codec:
-            new_obj = loadInstanceFromDatastore(self.klass, key, codec)
-
-        # clean up the stub
-        if isinstance(obj, ModelStub) and hasattr(obj, 'klass'):
-            del obj.klass
-
-        if new_obj:
-            obj.__dict__ = new_obj.__dict__.copy()
-
-        obj.__class__ = self.klass
-        apply_init = True
-
         if self.properties:
-            for k in [k for k in attrs.keys() if k in self.properties.keys()]:
+            for k in [k for k in attrs if k in self.properties]:
                 prop = self.properties[k]
                 v = attrs[k]
 
@@ -211,8 +329,32 @@ class DataStoreClassAlias(pyamf.ClassAlias):
                     # let the chips fall where they may
                     if x == v:
                         attrs[k] = x
-                elif isinstance(prop, db.ListProperty) and v is None:
-                    attrs[k] = []
+                elif isinstance(prop, db.ListProperty):
+                    if v is None:
+                        attrs[k] = []
+
+                        continue
+
+                    # this will actually be given as a list of strings that
+                    # need to be converted to longs
+                    if isinstance(prop, LongIntegerListProperty):
+                        for i, x in enumerate(v):
+                            v[i] = long(x)
+
+                    # there is an issue with large ints and ListProperty(int)
+                    # AMF leaves ints > amf3.MAX_29B_INT as floats
+                    # db.ListProperty complains pretty hard in this case so
+                    # we try to work around the issue.
+                    elif prop.item_type == int:
+                        for i, x in enumerate(v):
+                            if isinstance(x, float) and x == long(x):
+                                y = long(x)
+
+                                # only convert the type if there is no mantissa
+                                # otherwise let the chips fall where they may
+                                if x == y:
+                                    v[i] = y
+
                 elif isinstance(v, datetime.datetime):
                     # Date/Time Property fields expect specific types of data
                     # whereas PyAMF only decodes into datetime.datetime objects.
@@ -221,17 +363,27 @@ class DataStoreClassAlias(pyamf.ClassAlias):
                     elif isinstance(prop, db.TimeProperty):
                         attrs[k] = v.time()
 
-                if new_obj is None and isinstance(v, ModelStub) and prop.required and k in self.reference_properties:
-                    apply_init = False
-                    del attrs[k]
+                elif isinstance(prop, LongIntegerProperty):
+                    # long in the database needs to be represented as string
+                    # in the client.  We set to 0 if the client passed in null
+                    # as this would've formerly been 0.  This will
+                    # hopefully maintain backwards compatibility.:((((((
+                    attrs[k] = long(v) if v is not None else 0
 
-        # If the object does not exist in the datastore, we must fire the
-        # class constructor. This sets internal attributes that pyamf has
-        # no business messing with ..
-        if new_obj is None and apply_init is True:
-            obj.__init__(**attrs)
 
-        return attrs
+        e = pyamf.get_context(codec)
+
+        try:
+            stubs = e['stubs']
+        except KeyError:
+            stubs = e['stubs'] = self.getStubCollection()
+
+        if key:
+            key = db.Key(key)
+
+        stubs.addStub(obj, self, attrs, key)
+
+        return {}
 
 
 def getGAEObjects(context):
@@ -244,48 +396,12 @@ def getGAEObjects(context):
     @rtype: Instance of L{GAEReferenceCollection}
     @since: 0.4.1
     """
-    return context.extra.setdefault('gae_objects', GAEReferenceCollection())
-
-
-def loadInstanceFromDatastore(klass, key, codec=None):
-    """
-    Attempt to load an instance from the datastore, based on C{klass}
-    and C{key}. We create an index on the codec's context (if it exists)
-    so we can check that first before accessing the datastore.
-
-    @param klass: The class that will be loaded from the datastore.
-    @type klass: Sub-class of C{db.Model} or C{db.Expando}
-    @param key: The key which is used to uniquely identify the instance in the
-        datastore.
-    @type key: C{str}
-    @param codec: The codec to reference the C{gae_objects} index. If
-        supplied,The codec must have have a context attribute.
-    @return: The loaded instance from the datastore.
-    @rtype: Instance of C{klass}.
-    @since: 0.4.1
-    """
-    if not issubclass(klass, (db.Model, db.Expando)):
-        raise TypeError('expected db.Model/db.Expando class, got %s' % (klass,))
-
-    if not isinstance(key, basestring):
-        raise TypeError('string expected for key, got %s', (repr(key),))
-
-    key = str(key)
-
-    if codec is None:
-        return klass.get(key)
-
-    gae_objects = getGAEObjects(codec.context)
-
     try:
-        return gae_objects.getClassKey(klass, key)
+        return context['gae_objects']
     except KeyError:
-        pass
+        r = context['gae_objects'] = GAEReferenceCollection()
 
-    obj = klass.get(key)
-    gae_objects.addClassKey(klass, key, obj)
-
-    return obj
+        return r
 
 
 def writeGAEObject(obj, encoder=None):
@@ -309,11 +425,10 @@ def writeGAEObject(obj, encoder=None):
 
         return
 
-    context = encoder.context
     kls = obj.__class__
     s = obj.key()
 
-    gae_objects = getGAEObjects(context)
+    gae_objects = getGAEObjects(encoder.context.extra)
 
     try:
         referenced_object = gae_objects.getClassKey(kls, s)
@@ -324,8 +439,34 @@ def writeGAEObject(obj, encoder=None):
     encoder.writeObject(referenced_object)
 
 
+def writeGAEKey(key, encoder=None):
+    gae_objects = getGAEObjects(encoder.context.extra)
+
+    klass = db.class_for_kind(key.kind())
+
+    try:
+        referenced_object = gae_objects.getClassKey(klass, key)
+    except KeyError:
+        referenced_object = db.get(key)
+        gae_objects.addClassKey(klass, key, referenced_object)
+
+    encoder.writeObject(referenced_object)
+
+
+def post_process(context):
+    """
+    """
+    stubs = context.get('stubs', None)
+
+    if not stubs:
+        return
+
+    stubs.transform()
+
 # initialise the module here: hook into pyamf
 
 pyamf.register_alias_type(DataStoreClassAlias, db.Model)
 pyamf.add_type(db.Query, util.to_list)
 pyamf.add_type(db.Model, writeGAEObject)
+pyamf.add_post_processor(post_process)
+pyamf.add_type(db.Key, writeGAEKey)
