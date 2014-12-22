@@ -917,13 +917,11 @@ def run_post_processors(extra_context):
         c(extra_context)
 
 
-
 _contexts = {}
 
 
 def get_context(decoder):
     return _contexts
-
 
 
 def destroy_context(decoder):
