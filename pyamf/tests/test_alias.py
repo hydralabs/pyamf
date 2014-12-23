@@ -35,6 +35,7 @@ class ClassAliasTestCase(ClassCacheClearingTestCase):
         self.assertFalse(x.external)
 
         self.assertEqual(x.readonly_attrs, None)
+        self.assertEqual(x.as_bytes_attrs, set([]))
         self.assertEqual(x.static_attrs, [])
         self.assertEqual(x.exclude_attrs, None)
         self.assertEqual(x.proxy_attrs, None)
@@ -59,6 +60,7 @@ class ClassAliasTestCase(ClassCacheClearingTestCase):
         self.assertFalse(x.external)
 
         self.assertEqual(x.readonly_attrs, None)
+        self.assertEqual(x.as_bytes_attrs, None)
         self.assertEqual(x.static_attrs, None)
         self.assertEqual(x.exclude_attrs, None)
         self.assertEqual(x.proxy_attrs, None)
@@ -73,7 +75,8 @@ class ClassAliasTestCase(ClassCacheClearingTestCase):
     def test_init_kwargs(self):
         x = ClassAlias(Spam, alias='foo', static_attrs=('bar',),
             exclude_attrs=('baz',), readonly_attrs='gak', amf3='spam',
-            external='eggs', dynamic='goo', proxy_attrs=('blarg',))
+            external='eggs', dynamic='goo', proxy_attrs=('blarg',),
+            as_bytes_attrs=('flarg',))
 
         self.assertFalse(x.anonymous)
         self.assertEqual(x.dynamic, 'goo')
@@ -84,6 +87,7 @@ class ClassAliasTestCase(ClassCacheClearingTestCase):
         self.assertEqual(x.static_attrs, ['bar'])
         self.assertEqual(x.exclude_attrs, ['baz'])
         self.assertEqual(x.proxy_attrs, ['blarg'])
+        self.assertEqual(x.as_bytes_attrs, set(['flarg']))
 
         self.assertEqual(x.alias, 'foo')
         self.assertEqual(x.klass, Spam)
@@ -180,6 +184,25 @@ class GetEncodableAttributesTestCase(unittest.TestCase):
 
         attrs = self.alias.getEncodableAttributes(self.obj)
         self.assertEqual(attrs, {'foo': 'bar', 'bar': 'foo'})
+
+    def test_as_bytes(self):
+        """
+        Ensure attributes designated by as_bytes_attrs
+        are coerced to bytes.
+
+        """
+        c = pyamf.get_encoder(pyamf.AMF3)
+
+        self.alias.as_bytes_attrs = ('foo', 'bar')
+        self.alias.compile()
+
+        self.obj.foo = 123
+        self.obj.bar = ['foo', 1234]
+        self.obj.car = None
+        attrs = self.alias.getEncodableAttributes(self.obj)
+        self.assertEqual(attrs, {'foo': '123',
+                                 'bar': ['foo', '1234'],
+                                 'car': None})
 
     def test_proxy(self):
         from pyamf import flex

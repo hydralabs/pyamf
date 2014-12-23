@@ -122,7 +122,7 @@ class Envelope(object):
     @type headers: L{HeaderCollection}
     @ivar bodies: A list of requests/response messages
     @type bodies: C{list} containing tuples of the key of the request and the
-        L{Message}
+        L{Message}.
     """
 
     def __init__(self, amfVersion=None):
@@ -635,6 +635,8 @@ def decode(stream, strict=False, logger=None, timezone_offset=None):
         target, payload = _read_body(stream, decoder, strict, logger)
         msg[target] = payload
 
+        pyamf.destroy_context(decoder)
+
     if strict and stream.remaining() > 0:
         raise RuntimeError("Unable to fully consume the buffer")
 
@@ -691,6 +693,8 @@ def encode(msg, strict=False, logger=None, timezone_offset=None):
 
 
 def get_exception_from_fault(fault):
+    """
+    """
     return pyamf.ERROR_CLASS_MAP.get(fault.code, RemotingError)
 
 

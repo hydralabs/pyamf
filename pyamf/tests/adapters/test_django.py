@@ -12,7 +12,7 @@ import sys
 import os
 import datetime
 from shutil import rmtree
-from tempfile import mkdtemp  
+from tempfile import mkdtemp
 
 import pyamf
 from pyamf.tests import util
@@ -25,11 +25,6 @@ except ImportError:
 if django and django.VERSION < (1, 0):
     django = None
 
-try:
-    reload(settings)
-except NameError:
-    from pyamf.tests.adapters.django_app import settings
-
 
 context = None
 
@@ -40,9 +35,12 @@ management = None
 setup_test_environment = None
 teardown_test_environment = None
 
+from unittest import TestCase
+
 # test app data
 models = None
 adapter = None
+
 
 
 def init_django():
@@ -55,11 +53,11 @@ def init_django():
     if not django:
         return
 
-    from django.core import management
-
-    project_dir = management.setup_environ(settings)
-    sys.path.insert(0, project_dir)
-
+    # from django.core import management
+    #
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'django_app'))
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE",
+                          "pyamf.tests.adapters.django_app.settings")
     try:
         from django.test.utils import create_test_db, destroy_test_db
     except ImportError:
@@ -91,25 +89,25 @@ def setUpModule():
         from pyamf.adapters import _django_db_models_base as adapter
 
         setup_test_environment()
- 
-        settings.DATABASE_NAME = create_test_db(verbosity=0, autoclobber=True)
+        create_test_db(verbosity=0, autoclobber=True)
         storage = FileSystemStorage(mkdtemp())
 
 
 def tearDownModule():
     # remove all the stuff that django installed
-    teardown_test_environment()
+    if destroy_test_db:
+        destroy_test_db(':memory:', verbosity=0)
+        rmtree(storage.location, ignore_errors=True)
+
+    if teardown_test_environment:
+        teardown_test_environment()
 
     sys.path = context['sys.path']
     util.replace_dict(context['sys.modules'], sys.modules)
     util.replace_dict(context['os.environ'], os.environ)
 
-    destroy_test_db(settings.DATABASE_NAME, verbosity=0)
 
-    rmtree(storage.location, ignore_errors=True)
-
-
-class BaseTestCase(unittest.TestCase):
+class BaseTestCase(TestCase):
 
     def setUp(self):
         if not django:

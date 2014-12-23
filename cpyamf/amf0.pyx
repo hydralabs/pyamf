@@ -77,7 +77,7 @@ cdef class Decoder(codec.Decoder):
         codec.Codec.__init__(self, *args, **kwargs)
 
     cdef object readNumber(self):
-        cdef double i
+        cdef double i = -1
 
         self.stream.read_double(&i)
 
@@ -211,7 +211,7 @@ cdef class Decoder(codec.Decoder):
         return obj
 
     cdef object readDate(self):
-        cdef double ms
+        cdef double ms = -1
         cdef short tz
 
         self.stream.read_double(&ms)

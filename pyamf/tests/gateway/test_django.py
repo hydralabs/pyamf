@@ -93,7 +93,7 @@ class DjangoGatewayTestCase(BaseTestCase):
 
         http_request = http.HttpRequest()
         http_request.method = 'POST'
-        http_request.raw_post_data = request.getvalue()
+        http_request._body = request.getvalue()
 
         http_response = gw(http_request)
         self.assertEqual(http_response.status_code, 400)
@@ -109,7 +109,7 @@ class DjangoGatewayTestCase(BaseTestCase):
 
         http_request = http.HttpRequest()
         http_request.method = 'POST'
-        http_request.raw_post_data = request.getvalue()
+        http_request._body = request.getvalue()
 
         http_response = gw(http_request)
         envelope = remoting.decode(http_response.content)
@@ -139,7 +139,7 @@ class DjangoGatewayTestCase(BaseTestCase):
         request.seek(0, 0)
 
         http_request.method = 'POST'
-        http_request.raw_post_data = request.getvalue()
+        http_request._body = request.getvalue()
 
         gw(http_request)
 
@@ -154,7 +154,7 @@ class DjangoGatewayTestCase(BaseTestCase):
 
         http_request = http.HttpRequest()
         http_request.method = 'POST'
-        http_request.raw_post_data = ''
+        http_request._body = ''
 
         gw = django.DjangoGateway()
 
@@ -178,7 +178,7 @@ class DjangoGatewayTestCase(BaseTestCase):
 
         http_request = http.HttpRequest()
         http_request.method = 'POST'
-        http_request.raw_post_data = ''
+        http_request._body = ''
 
         try:
             for x in (KeyboardInterrupt, SystemExit):
@@ -213,7 +213,7 @@ class DjangoGatewayTestCase(BaseTestCase):
         msg['/1'] = remoting.Request(target='test.test', body=[now])
 
         http_request.method = 'POST'
-        http_request.raw_post_data = remoting.encode(msg).getvalue()
+        http_request._body = remoting.encode(msg).getvalue()
 
         res = remoting.decode(gw(http_request).content)
         self.assertTrue(self.executed)

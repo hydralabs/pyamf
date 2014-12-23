@@ -11,10 +11,12 @@ import unittest
 import datetime
 import struct
 import os
+import sys
 
 import pyamf
 from pyamf import amf3
 from pyamf.tests import util
+from pyamf.amf3 import Encoder
 
 try:
     from google.appengine.ext import db
@@ -103,7 +105,6 @@ class BaseTestCase(util.ClassCacheClearingTestCase):
                 amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k)
 
         return '\x02%s%s' % (struct.pack('>H', len(k)), k)
-
 
 
 class JessicaFactory(object):
@@ -1151,3 +1152,105 @@ class BlobStoreTestCase(BaseTestCase):
             self.assertEqual(ret.key(), self.key)
 
         self.assertDecodes(self.bytes, check)
+
+
+class LongIntegerEncodeDecodeTestCase(BaseTestCase):
+    def get_dct_from_stubs(self):
+        e = pyamf.get_context(self.codec)
+        item = e['stubs'].stubs.popitem()
+        return item[1][1]
+
+    def setUp(self):
+        self.model = test_models.ModelStub()
+        self.alias = adapter_db.DataStoreClassAlias(test_models.ModelStub)
+        self.alias.compile()
+        self.codec = Encoder()
+
+    def test_long_properties_found(self):
+        self.assertEqual(2, len(self.alias.as_bytes_attrs))
+        self.assertTrue(
+            isinstance(
+                self.alias.as_bytes_attrs['test'],
+                test_models.LongIntegerProperty
+            )
+        )
+        self.assertTrue(
+            isinstance(
+                self.alias.as_bytes_attrs['test_list'],
+                test_models.LongIntegerListProperty
+            )
+        )
+
+    def test_get_long_attribute(self):
+        self.model.test = 10
+        val = self.alias.getAttribute(self.model, 'test', codec=self.codec)
+        self.assertEqual(str(self.model.test), val)
+
+    def test_get_none_long_attribute(self):
+        val = self.alias.getAttribute(self.model, 'test', codec=self.codec)
+        self.assertIsNone(val)
+
+    def test_get_long_list_attribute(self):
+        self.model.test_list = [1, 2, 3]
+        val = self.alias.getAttribute(
+            self.model, 'test_list', codec=self.codec
+        )
+        self.assertListEqual([str(x) for x in self.model.test_list], val)
+
+    def test_get_none_long_list(self):
+        val = self.alias.getAttribute(
+            self.model, 'test_list', codec=self.codec
+        )
+        self.assertListEqual([], val)
+
+    def test_decode_string_as_long(self):
+        self.alias.getDecodableAttributes(
+            self.model,
+            {
+                'test': '32'
+            },
+            codec=self.codec
+        )
+        dct = self.get_dct_from_stubs()
+        self.assertEqual(32, dct['test'])
+        self.assertIsInstance(dct['test'], long)
+
+    def test_decode_null_string_as_long(self):
+        self.alias.getDecodableAttributes(
+            self.model,
+            {
+                'test': None
+            },
+            codec=self.codec
+        )
+        dct = self.get_dct_from_stubs()
+        self.assertEqual(0, dct['test'])
+
+    def test_decode_string_list_as_long(self):
+        self.alias.getDecodableAttributes(
+            self.model,
+            {
+                'test_list': ['32', '33']
+            },
+            codec=self.codec
+        )
+        dct = self.get_dct_from_stubs()
+        self.assertListEqual([32, 33], dct['test_list'])
+
+    def test_decode_empty_string_list_as_long(self):
+        self.alias.getDecodableAttributes(
+            self.model,
+            {
+                'test_list': []
+            },
+            codec=self.codec
+        )
+        dct = self.get_dct_from_stubs()
+        self.assertListEqual([], dct['test_list'])
+
+    def test_largest_int_to_string(self):
+        self.model.test = sys.maxint
+        val = self.alias.getAttribute(
+            self.model, 'test', codec=self.codec
+        )
+        self.assertEqual(str(sys.maxint), val)

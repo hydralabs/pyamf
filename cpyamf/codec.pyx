@@ -193,6 +193,78 @@ cdef class IndexedCollection(object):
         return n
 
 
+cdef class ByteStringReferenceCollection(IndexedCollection):
+    """
+    There have been rare hash collisions within a single AMF payload causing
+    corrupt payloads.
+
+    Which strings cause collisions is dependent on the python runtime, each
+    platform might have a slightly different implementation which means that
+    testing is extremely difficult.
+    """
+
+    def __cinit__(self, *args, **kwargs):
+        self.data = NULL
+        self.refs = {}
+        self.size = -1
+        self.length = -1
+
+    def __init__(self, *args, **kwargs):
+        super(ByteStringReferenceCollection, self).__init__(*args, **kwargs)
+
+    cpdef Py_ssize_t getReferenceTo(self, object obj) except -2:
+        cdef object p = self.refs.get(obj, None)
+
+        if p is None:
+            return -1
+
+        return <Py_ssize_t>PyInt_AS_LONG(<object>p)
+
+    cpdef Py_ssize_t append(self, object obj) except -1:
+        self._increase_size()
+
+        self.refs[obj] = <object>self.length
+        self.data[self.length] = <PyObject *>obj
+        Py_INCREF(obj)
+
+        self.length += 1
+
+        return self.length - 1
+
+    def __richcmp__(self, object other, int op):
+        cdef int equal
+        cdef Py_ssize_t i
+        cdef ByteStringReferenceCollection s = self # this is necessary because cython does not see the c-space vars of the class for this func
+
+        if PyDict_Check(other) == 1:
+            equal = s.refs == other
+        elif PyList_Check(other) != 1:
+            equal = 0
+        else:
+            equal = 0
+
+            if PyList_GET_SIZE(other) == s.length:
+                equal = 1
+
+                for i from 0 <= i < s.length:
+                    if <object>PyList_GET_ITEM(other, i) != <object>s.data[i]:
+                        equal = 0
+
+                        break
+
+        if op == 2: # ==
+            return equal
+        elif op == 3: # !=
+            return not equal
+        else:
+            raise NotImplementedError
+
+    def __copy__(self):
+        cdef ByteStringReferenceCollection n = ByteStringReferenceCollection()
+
+        return n
+
+
 cdef class Context(object):
     """
     I hold the AMF context for en/decoding streams.
@@ -594,7 +666,7 @@ cdef class Encoder(Codec):
         Part of the iterator protocol.
         """
         cdef Py_ssize_t start_pos, end_pos
-        cdef char *buf
+        cdef char *buf = NULL
 
         try:
             element = self.bucket.pop(0)

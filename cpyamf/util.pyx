@@ -422,7 +422,7 @@ cdef class cBufferedByteStream(object):
         The stream pointer is set to 0 at the end of this function.
         """
         cdef char *buf = NULL
-        cdef char *peek_buf
+        cdef char *peek_buf = NULL
         cdef Py_ssize_t size = self.remaining()
 
         if size > 0:
@@ -1067,7 +1067,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         """
         Reads an 8 byte float from the stream.
         """
-        cdef double x
+        cdef double x = -1
 
         cBufferedByteStream.read_double(self, &x)
 
@@ -1122,7 +1122,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         """
         Reads a 4 byte float from the stream.
         """
-        cdef float x
+        cdef float x = -1
 
         cBufferedByteStream.read_float(self, &x)
 

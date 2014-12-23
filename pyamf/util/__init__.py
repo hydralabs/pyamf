@@ -107,8 +107,7 @@ def get_class_alias(klass):
 
 def is_class_sealed(klass):
     """
-    Returns a boolean indicating whether or not the supplied class can accept
-    dynamic properties.
+    Whether or not the supplied class can accept dynamic properties.
 
     @rtype: C{bool}
     @since: 0.5
@@ -150,7 +149,8 @@ def get_class_meta(klass):
         'dynamic': None,
         'alias': None,
         'external': None,
-        'synonym_attrs': None
+        'synonym_attrs': None,
+        'as_bytes_attrs': None
     }
 
     if not hasattr(klass, '__amf__'):
@@ -169,7 +169,8 @@ def get_class_meta(klass):
         if in_func(prop):
             meta[prop] = get_func(prop)
 
-    for prop in ['static', 'exclude', 'readonly', 'proxy', 'synonym']:
+    for prop in ['static', 'exclude', 'readonly',
+                 'proxy', 'synonym', 'as_bytes']:
         if in_func(prop):
             meta[prop + '_attrs'] = get_func(prop)
 

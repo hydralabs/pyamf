@@ -3,7 +3,14 @@
 
 # The simplest Django settings possible
 
-DATABASE_ENGINE = 'sqlite3'
-DATABASE_NAME = ':memory:'
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:',
+    }
+}
+
+SECRET_KEY = "wat"
 
 INSTALLED_APPS = ('adapters',)
+

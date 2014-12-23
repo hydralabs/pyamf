@@ -518,7 +518,7 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
         """
         @param buf: Initial byte stream.
         @type buf: C{str} or C{StringIO} instance
-        @param min_buf_size: Ignored in the pure Python version.
+        @param min_buf_size: Ignored in the pure python version.
         """
         StringIOProxy.__init__(self, buf=buf)
 
