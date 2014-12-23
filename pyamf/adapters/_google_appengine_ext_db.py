@@ -24,6 +24,7 @@ import pyamf
 from pyamf.adapters import util
 
 
+
 class ModelStub(object):
     """
     This class represents a C{db.Model} or C{db.Expando} class as the typed
@@ -183,7 +184,6 @@ class DataStoreClassAlias(pyamf.ClassAlias):
     def getCustomProperties(self):
         props = [self.KEY_ATTR]
         self.reference_properties = {}
-        self.long_properties = {}
         self.properties = {}
         reverse_props = []
 
@@ -216,9 +216,6 @@ class DataStoreClassAlias(pyamf.ClassAlias):
         if not self.properties:
             self.properties = None
 
-        if not self.long_properties:
-            self.long_properties = None
-
     def _finalise_compile(self):
         pyamf.ClassAlias._finalise_compile(self)
 
@@ -231,19 +228,14 @@ class DataStoreClassAlias(pyamf.ClassAlias):
         """
         """
         def _():
-            return super(DataStoreClassAlias, self).getAttribute(
-                obj, attr, default, codec)
+            try:
+                return super(DataStoreClassAlias, self).getAttribute(
+                    obj, attr, default, codec)
+            except db.ReferencePropertyResolveError:
+                return None
 
         if codec is None:
             return _()
-
-        if self.long_properties and attr in self.long_properties:
-            val = getattr(obj, attr, None)
-            if val is None:
-                return val
-            if isinstance(val, list):
-                return [str(x) for x in val]
-            return str(val)
 
         if not self.reference_properties:
             return _()
@@ -322,12 +314,17 @@ class DataStoreClassAlias(pyamf.ClassAlias):
 
                 if isinstance(prop, db.FloatProperty) and isinstance(v, (int, long)):
                     attrs[k] = float(v)
-                elif isinstance(prop, db.IntegerProperty) and isinstance(v, float):
+                elif isinstance(prop, db.IntegerProperty):
+                    if v is None:
+                        v = 0
                     x = long(v)
 
                     # only convert the type if there is no mantissa - otherwise
                     # let the chips fall where they may
-                    if x == v:
+                    if isinstance(v, float):
+                        if x == v:
+                            attrs[k] = x
+                    else:
                         attrs[k] = x
                 elif isinstance(prop, db.ListProperty):
                     if v is None:
@@ -337,7 +334,7 @@ class DataStoreClassAlias(pyamf.ClassAlias):
 
                     # this will actually be given as a list of strings that
                     # need to be converted to longs
-                    if isinstance(prop, LongIntegerListProperty):
+                    if prop.item_type == long:
                         for i, x in enumerate(v):
                             v[i] = long(x)
 
@@ -362,14 +359,6 @@ class DataStoreClassAlias(pyamf.ClassAlias):
                         attrs[k] = v.date()
                     elif isinstance(prop, db.TimeProperty):
                         attrs[k] = v.time()
-
-                elif isinstance(prop, LongIntegerProperty):
-                    # long in the database needs to be represented as string
-                    # in the client.  We set to 0 if the client passed in null
-                    # as this would've formerly been 0.  This will
-                    # hopefully maintain backwards compatibility.:((((((
-                    attrs[k] = long(v) if v is not None else 0
-
 
         e = pyamf.get_context(codec)
 

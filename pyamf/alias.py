@@ -48,6 +48,7 @@ class ClassAlias(object):
         self.external = kwargs.pop('external', None)
         self.dynamic = kwargs.pop('dynamic', None)
         self.synonym_attrs = kwargs.pop('synonym_attrs', {})
+        self.as_bytes_attrs = kwargs.pop('as_bytes_attrs', None)
 
         self._compiled = False
         self.anonymous = False
@@ -105,6 +106,7 @@ class ClassAlias(object):
         self.static_attrs = list(self.static_attrs or [])
         self.static_attrs_set = set(self.static_attrs)
         self.proxy_attrs = set(self.proxy_attrs or [])
+        self.as_bytes_attrs = set(self.as_bytes_attrs or [])
 
         self.sealed = util.is_class_sealed(self.klass)
 
@@ -269,7 +271,7 @@ class ClassAlias(object):
 
         if (self.encodable_properties or self.static_attrs or
                 self.exclude_attrs or self.proxy_attrs or self.external or
-                self.synonym_attrs):
+                self.synonym_attrs or self.as_bytes_attrs):
             self.shortcut_encode = False
 
         if (self.decodable_properties or self.static_attrs or
@@ -350,6 +352,17 @@ class ClassAlias(object):
         raise TypeError("__init__ doesn't support additional arguments: %s"
             % inspect.formatargspec(*spec))
 
+    def getAttribute(self, obj, attr, default=None, codec=None):
+        if self.as_bytes_attrs and attr in self.as_bytes_attrs:
+            val = getattr(obj, attr, None)
+            if val is None:
+                return val
+            if isinstance(val, list):
+                return [bytes(x) for x in val]
+            return bytes(val)
+
+        return getattr(obj, attr, default)
+
     def getEncodableAttributes(self, obj, codec=None):
         """
         Must return a C{dict} of attributes to be encoded, even if its empty.
@@ -371,12 +384,12 @@ class ClassAlias(object):
 
         if self.static_attrs:
             for attr in self.static_attrs:
-                attrs[attr] = getattr(obj, attr, pyamf.Undefined)
+                attrs[attr] = self.getAttribute(obj, attr, pyamf.Undefined, codec=codec)
 
         if not self.dynamic:
             if self.non_static_encodable_properties:
                 for attr in self.non_static_encodable_properties:
-                    attrs[attr] = getattr(obj, attr)
+                    attrs[attr] = self.getAttribute(obj, attr, codec=codec)
 
             return attrs
 
@@ -395,7 +408,7 @@ class ClassAlias(object):
                 dynamic_props.difference_update(self.exclude_attrs)
 
         for attr in dynamic_props:
-            attrs[attr] = getattr(obj, attr)
+            attrs[attr] = self.getAttribute(obj, attr, None, codec=codec)
 
         if self.proxy_attrs is not None and attrs and codec:
             context = codec.context

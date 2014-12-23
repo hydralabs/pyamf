@@ -7,7 +7,6 @@ Google App Engine ndb adapter module.
 
 import datetime
 
-from google.appengine.ext import db
 from google.appengine.ext import ndb
 from google.appengine.ext.ndb import polymodel
 from google.appengine.ext.ndb import GeoPt
@@ -223,8 +222,6 @@ class NewDataStoreClassAlias(pyamf.ClassAlias):
                 return datetime.datetime.combine(value,datetime.time(0,0))
 
         return value
-
-
 
     def getEncodableAttributes(self, obj, codec=None):
         """encode a python object to an amf stream
