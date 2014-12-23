@@ -24,28 +24,13 @@ import pyamf
 from pyamf.adapters import util
 
 
-
 class ModelStub(object):
     """
     This class represents a C{db.Model} or C{db.Expando} class as the typed
     object is being read from the AMF stream. Once the attributes have been
     read from the stream and through the magic of Python, the instance of this
     class will be converted into the correct type.
-
-    @ivar klass: The referenced class either C{db.Model} or C{db.Expando}.
-        This is used so we can proxy some of the method calls during decoding.
-    @type klass: C{db.Model} or C{db.Expando}
-    @see: L{DataStoreClassAlias.applyAttributes}
     """
-
-    def __init__(self, klass):
-        self.klass = klass
-
-    def properties(self):
-        return self.klass.properties()
-
-    def dynamic_properties(self):
-        return []
 
 
 class GAEReferenceCollection(dict):
