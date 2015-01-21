@@ -460,6 +460,35 @@ def encode(*args, **kwargs):
     return stream
 
 
+def _get_amf_module(version, use_ext=None):
+    """
+    Returns a module for a specific version of AMF.
+
+    @param use_ext: Whether to use the extensions. If `None` (the default) the
+        extension will be attempted before falling back to the pure python
+        version. If `False`, only the pure python version will be returned. If
+        `True` the extension will be returned. If the extension does not exist
+        L{ImportError} will be raised.
+    """
+    module_name = 'amf%s' % (version,)
+
+    if module_name not in ['amf0', 'amf3']:
+        raise ValueError('Invalid AMF version: %r specified' % (version,))
+
+    if use_ext is None:
+        # try to use the extension but fallback gracefully
+        try:
+            module = __import__('cpyamf.' + module_name)
+        except ImportError:
+            module = __import__('pyamf.' + module_name)
+    elif not use_ext:
+        module = __import__('pyamf.' + module_name)
+    else:
+        module = __import__('cpyamf.' + module_name)
+
+    return getattr(module, module_name)
+
+
 def get_decoder(encoding, *args, **kwargs):
     """
     Returns a L{codec.Decoder} capable of decoding AMF[C{encoding}] streams.
@@ -468,19 +497,15 @@ def get_decoder(encoding, *args, **kwargs):
     @type encoding: C{int}
     @raise ValueError: Unknown C{encoding}.
     """
+    use_ext = kwargs.pop('use_ext', None)
+
     def _get_decoder_class():
         if encoding == AMF0:
-            try:
-                from cpyamf import amf0
-            except ImportError:
-                from pyamf import amf0
+            amf0 = _get_amf_module(0, use_ext=use_ext)
 
             return amf0.Decoder
         elif encoding == AMF3:
-            try:
-                from cpyamf import amf3
-            except ImportError:
-                from pyamf import amf3
+            amf3 = _get_amf_module(3, use_ext=use_ext)
 
             return amf3.Decoder
 
@@ -497,19 +522,15 @@ def get_encoder(encoding, *args, **kwargs):
     @type encoding: C{int}
     @raise ValueError: Unknown C{encoding} type.
     """
+    use_ext = kwargs.pop('use_ext', None)
+
     def _get_encoder_class():
         if encoding == AMF0:
-            try:
-                from cpyamf import amf0
-            except ImportError:
-                from pyamf import amf0
+            amf0 = _get_amf_module(0, use_ext=use_ext)
 
             return amf0.Encoder
         elif encoding == AMF3:
-            try:
-                from cpyamf import amf3
-            except ImportError:
-                from pyamf import amf3
+            amf3 = _get_amf_module(3, use_ext=use_ext)
 
             return amf3.Encoder
 
@@ -525,8 +546,9 @@ def blaze_loader(alias):
 
     @type alias: C{string}
     @see: U{BlazeDS<http://opensource.adobe.com/wiki/display/blazeds/BlazeDS>}
-    @see: U{ISmallMessage on Adobe Help (external)
-            <http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/messaging/messages/ISmallMessage.html>}
+    @see: U{ISmallMessage on Adobe Help (external) <http://help.adobe.com/en_US
+        /FlashPlatform/reference/actionscript/3/mx/messaging/messages/
+        ISmallMessage.html>}
     @since: 0.5
     """
     if alias not in ['DSC', 'DSK']:
@@ -781,7 +803,7 @@ def unregister_alias_type(klass):
     return ALIAS_TYPES.pop(klass, None)
 
 
-def register_package(module=None, package=None, separator='.', ignore=[],
+def register_package(module=None, package=None, separator='.', ignore=None,
                      strict=True):
     """
     This is a helper function that takes the concept of Actionscript packages
@@ -811,6 +833,8 @@ def register_package(module=None, package=None, separator='.', ignore=[],
     @since: 0.5
     @raise TypeError: Cannot get a list of classes from C{module}.
     """
+    ignore = ignore or []
+
     if isinstance(module, python.str_types):
         if module == '':
             raise TypeError('Cannot get list of classes from %r' % (module,))
