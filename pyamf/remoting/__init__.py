@@ -90,7 +90,7 @@ class HeaderCollection(dict):
         """
         @raise KeyError: Unknown header found.
         """
-        if not idx in self:
+        if idx not in self:
             raise KeyError("Unknown header %s" % str(idx))
 
         return idx in self.required
@@ -99,10 +99,10 @@ class HeaderCollection(dict):
         """
         @raise KeyError: Unknown header found.
         """
-        if not idx in self:
+        if idx not in self:
             raise KeyError("Unknown header %s" % str(idx))
 
-        if not idx in self.required and value:
+        if idx not in self.required and value:
             self.required.append(idx)
 
     def __len__(self):
@@ -202,9 +202,11 @@ class Envelope(object):
 
     def __eq__(self, other):
         if isinstance(other, Envelope):
-            return (self.amfVersion == other.amfVersion and
+            return (
+                self.amfVersion == other.amfVersion and
                 self.headers == other.headers and
-                self.bodies == other.bodies)
+                self.bodies == other.bodies
+            )
 
         if hasattr(other, 'keys') and hasattr(other, 'items'):
             keys, o_keys = self.keys(), other.keys()
@@ -262,7 +264,11 @@ class Request(Message):
 
     def __repr__(self):
         return "<%s target=%s>%s</%s>" % (
-            type(self).__name__, repr(self.target), repr(self.body), type(self).__name__)
+            type(self).__name__,
+            repr(self.target),
+            repr(self.body),
+            type(self).__name__
+        )
 
 
 class Response(Message):
@@ -346,9 +352,9 @@ def _read_header(stream, decoder, strict=False):
 
     @type stream: L{BufferedByteStream<pyamf.util.BufferedByteStream>}
     @param decoder: An AMF0 decoder.
-    @param strict: Use strict decoding policy. Default is C{False}. Will raise a
-        L{pyamf.DecodeError} if the data that was read from the stream does not
-        match the header length.
+    @param strict: Use strict decoding policy. Default is C{False}. Will raise
+        a L{pyamf.DecodeError} if the data that was read from the stream does
+        not match the header length.
     @type strict: C{boolean}
     @return: A C{tuple} containing the name of the header, a C{bool}
         determining if understanding this header is required and the decoded
@@ -464,8 +470,11 @@ def _read_body(stream, decoder, strict=False, logger=None):
         data = decoder.readElement()
 
     if strict and pos + data_len != stream.tell():
-        raise pyamf.DecodeError("Data read from stream does not match body "
-            "length (%d != %d)" % (pos + data_len, stream.tell(),))
+        raise pyamf.DecodeError(
+            "Data read from stream does not match body length (%d != %d)" % (
+                pos + data_len, stream.tell(),
+            )
+        )
 
     if is_request:
         return response, Request(target, body=data)
@@ -610,11 +619,18 @@ def decode(stream, strict=False, logger=None, timezone_offset=None):
     # see http://osflash.org/documentation/amf/envelopes/remoting#preamble
     # why we are doing this...
     if msg.amfVersion > 0x09:
-        raise pyamf.DecodeError("Malformed stream (amfVersion=%d)" %
-            msg.amfVersion)
+        raise pyamf.DecodeError(
+            "Malformed stream (amfVersion=%d)" % (
+                msg.amfVersion,
+            )
+        )
 
-    decoder = pyamf.get_decoder(pyamf.AMF0, stream, strict=strict,
-        timezone_offset=timezone_offset)
+    decoder = pyamf.get_decoder(
+        pyamf.AMF0,
+        stream,
+        strict=strict,
+        timezone_offset=timezone_offset
+    )
     context = decoder.context
 
     decoder.use_amf3 = msg.amfVersion == pyamf.AMF3
@@ -649,8 +665,8 @@ def encode(msg, strict=False, logger=None, timezone_offset=None):
     Encodes and returns the L{msg<Envelope>} as an AMF stream.
 
     @param strict: Enforce strict encoding. Default is C{False}. Specifically
-        header/body lengths will be written correctly, instead of the default 0.
-        Default is C{False}. Introduced in 0.4.
+        header/body lengths will be written correctly, instead of the default
+        0. Default is C{False}. Introduced in 0.4.
     @type strict: C{boolean}
     @param logger: Used to log interesting events whilst decoding a remoting
         message.
@@ -665,8 +681,12 @@ def encode(msg, strict=False, logger=None, timezone_offset=None):
     """
     stream = util.BufferedByteStream()
 
-    encoder = pyamf.get_encoder(pyamf.AMF0, stream, strict=strict,
-        timezone_offset=timezone_offset)
+    encoder = pyamf.get_encoder(
+        pyamf.AMF0,
+        stream,
+        strict=strict,
+        timezone_offset=timezone_offset,
+    )
 
     if msg.amfVersion == pyamf.AMF3:
         encoder.use_amf3 = True
@@ -675,8 +695,14 @@ def encode(msg, strict=False, logger=None, timezone_offset=None):
     stream.write_ushort(len(msg.headers))
 
     for name, header in msg.headers.iteritems():
-        _write_header(name, header, int(msg.headers.is_required(name)),
-            stream, encoder, strict)
+        _write_header(
+            name,
+            header,
+            int(msg.headers.is_required(name)),
+            stream,
+            encoder,
+            strict,
+        )
 
     stream.write_short(len(msg))
 

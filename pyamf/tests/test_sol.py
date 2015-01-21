@@ -25,7 +25,10 @@ warnings.simplefilter('ignore', RuntimeWarning)
 
 class DecoderTestCase(unittest.TestCase):
     def test_header(self):
-        bytes = '\x00\xbf\x00\x00\x00\x15TCSO\x00\x04\x00\x00\x00\x00\x00\x05hello\x00\x00\x00\x00'
+        bytes = (
+            '\x00\xbf\x00\x00\x00\x15TCSO\x00\x04\x00\x00\x00\x00\x00\x05hello'
+            '\x00\x00\x00\x00'
+        )
 
         try:
             sol.decode(bytes)
@@ -33,15 +36,24 @@ class DecoderTestCase(unittest.TestCase):
             self.fail("Error occurred during decoding stream")
 
     def test_invalid_header(self):
-        bytes = '\x00\x00\x00\x00\x00\x15TCSO\x00\x04\x00\x00\x00\x00\x00\x05hello\x00\x00\x00\x00'
+        bytes = (
+            '\x00\x00\x00\x00\x00\x15TCSO\x00\x04\x00\x00\x00\x00\x00\x05hello'
+            '\x00\x00\x00\x00'
+        )
         self.assertRaises(pyamf.DecodeError, sol.decode, bytes)
 
     def test_invalid_header_length(self):
-        bytes = '\x00\xbf\x00\x00\x00\x05TCSO\x00\x04\x00\x00\x00\x00\x00\x05hello\x00\x00\x00\x00'
+        bytes = (
+            '\x00\xbf\x00\x00\x00\x05TCSO\x00\x04\x00\x00\x00\x00\x00\x05hello'
+            '\x00\x00\x00\x00'
+        )
         self.assertRaises(pyamf.DecodeError, sol.decode, bytes)
 
     def test_strict_header_length(self):
-        bytes = '\x00\xbf\x00\x00\x00\x00TCSO\x00\x04\x00\x00\x00\x00\x00\x05hello\x00\x00\x00\x00'
+        bytes = (
+            '\x00\xbf\x00\x00\x00\x00TCSO\x00\x04\x00\x00\x00\x00\x00\x05hello'
+            '\x00\x00\x00\x00'
+        )
 
         try:
             sol.decode(bytes, strict=False)
@@ -49,59 +61,92 @@ class DecoderTestCase(unittest.TestCase):
             self.fail("Error occurred during decoding stream")
 
     def test_invalid_signature(self):
-        bytes = '\x00\xbf\x00\x00\x00\x15ABCD\x00\x04\x00\x00\x00\x00\x00\x05hello\x00\x00\x00\x00'
+        bytes = (
+            '\x00\xbf\x00\x00\x00\x15ABCD\x00\x04\x00\x00\x00\x00\x00\x05hello'
+            '\x00\x00\x00\x00'
+        )
         self.assertRaises(pyamf.DecodeError, sol.decode, bytes)
 
     def test_invalid_header_name_length(self):
-        bytes = '\x00\xbf\x00\x00\x00\x15TCSO\x00\x04\x00\x00\x00\x00\x00\x01hello\x00\x00\x00\x00'
+        bytes = (
+            '\x00\xbf\x00\x00\x00\x15TCSO\x00\x04\x00\x00\x00\x00\x00\x01hello'
+            '\x00\x00\x00\x00'
+        )
         self.assertRaises(pyamf.DecodeError, sol.decode, bytes)
 
     def test_invalid_header_padding(self):
-        bytes = '\x00\xbf\x00\x00\x00\x15TCSO\x00\x04\x00\x00\x00\x00\x00\x05hello\x00\x00\x01\x00'
+        bytes = (
+            '\x00\xbf\x00\x00\x00\x15TCSO\x00\x04\x00\x00\x00\x00\x00\x05hello'
+            '\x00\x00\x01\x00'
+        )
         self.assertRaises(pyamf.DecodeError, sol.decode, bytes)
 
     def test_unknown_encoding(self):
-        bytes = '\x00\xbf\x00\x00\x00\x15TCSO\x00\x04\x00\x00\x00\x00\x00\x05hello\x00\x00\x00\x01'
+        bytes = (
+            '\x00\xbf\x00\x00\x00\x15TCSO\x00\x04\x00\x00\x00\x00\x00\x05hello'
+            '\x00\x00\x00\x01'
+        )
         self.assertRaises(ValueError, sol.decode, bytes)
 
     def test_amf3(self):
-        bytes = ('\x00\xbf\x00\x00\x00aTCSO\x00\x04\x00\x00\x00\x00\x00\x08'
+        bytes = (
+            '\x00\xbf\x00\x00\x00aTCSO\x00\x04\x00\x00\x00\x00\x00\x08'
             'EchoTest\x00\x00\x00\x03\x0fhttpUri\x06=http://localhost:8000'
-            '/gateway/\x00\x0frtmpUri\x06+rtmp://localhost/echo\x00')
+            '/gateway/\x00\x0frtmpUri\x06+rtmp://localhost/echo\x00'
+        )
 
-        self.assertEqual(sol.decode(bytes), (u'EchoTest',
-            {u'httpUri': u'http://localhost:8000/gateway/', u'rtmpUri': u'rtmp://localhost/echo'}))
+        self.assertEqual(
+            sol.decode(bytes), (
+                u'EchoTest',
+                {
+                    u'httpUri': u'http://localhost:8000/gateway/',
+                    u'rtmpUri': u'rtmp://localhost/echo'
+                }
+            )
+        )
 
 
 class EncoderTestCase(unittest.TestCase):
     def test_encode_header(self):
         stream = sol.encode('hello', {})
 
-        self.assertEqual(stream.getvalue(),
-            '\x00\xbf\x00\x00\x00\x15TCSO\x00\x04\x00\x00\x00\x00\x00\x05hello\x00\x00\x00\x00')
+        self.assertEqual(
+            stream.getvalue(),
+            '\x00\xbf\x00\x00\x00\x15TCSO\x00\x04\x00\x00\x00\x00\x00\x05hello'
+            '\x00\x00\x00\x00'
+        )
 
     def test_multiple_values(self):
         stream = sol.encode('hello', {'name': 'value', 'spam': 'eggs'})
 
-        self.assertTrue(check_buffer(stream.getvalue(), HelperTestCase.contents))
+        self.assertTrue(
+            check_buffer(stream.getvalue(), HelperTestCase.contents)
+        )
 
     def test_amf3(self):
-        bytes = ('\x00\xbf\x00\x00\x00aTCSO\x00\x04\x00\x00\x00\x00\x00\x08' + \
+        bytes = (
+            '\x00\xbf\x00\x00\x00aTCSO\x00\x04\x00\x00\x00\x00\x00\x08'
             'EchoTest\x00\x00\x00\x03', (
                 '\x0fhttpUri\x06=http://localhost:8000/gateway/\x00',
                 '\x0frtmpUri\x06+rtmp://localhost/echo\x00'
             )
         )
 
-        stream = sol.encode(u'EchoTest',
-            {u'httpUri': u'http://localhost:8000/gateway/', u'rtmpUri': u'rtmp://localhost/echo'}, encoding=pyamf.AMF3)
+        stream = sol.encode(
+            u'EchoTest', {
+                u'httpUri': u'http://localhost:8000/gateway/',
+                u'rtmpUri': u'rtmp://localhost/echo'
+            },
+            encoding=pyamf.AMF3
+        )
 
         self.assertTrue(check_buffer(stream.getvalue(), bytes))
 
 
 class HelperTestCase(unittest.TestCase):
     contents = (
-        '\x00\xbf\x00\x00\x002TCSO\x00\x04\x00\x00\x00\x00\x00\x05hello\x00\x00\x00\x00', (
+        '\x00\xbf\x00\x00\x002TCSO\x00\x04\x00\x00\x00\x00\x00\x05hello'
+        '\x00\x00\x00\x00', (
             '\x00\x04name\x02\x00\x05value\x00',
             '\x00\x04spam\x02\x00\x04eggs\x00'
         )
@@ -117,7 +162,7 @@ class HelperTestCase(unittest.TestCase):
             self.fp, self.file_name = tempfile.mkstemp()
         except NotImplementedError:
             try:
-                import google.appengine
+                import google.appengine  # noqa
             except ImportError:
                 raise
             else:
@@ -217,7 +262,9 @@ class SOLTestCase(unittest.TestCase):
             self.assertTrue(check_buffer(fp.read(), HelperTestCase.contents))
             self.assertEqual(fp.closed, False)
 
-            self.assertTrue(check_buffer(open(x, 'rb').read(), HelperTestCase.contents))
+            self.assertTrue(
+                check_buffer(open(x, 'rb').read(), HelperTestCase.contents)
+            )
         except:
             if os.path.isfile(x):
                 os.unlink(x)

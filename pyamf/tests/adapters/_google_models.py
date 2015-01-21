@@ -5,9 +5,12 @@ class PetModel(db.Model):
     """
     """
 
-    # 'borrowed' from http://code.google.com/appengine/docs/datastore/entitiesandmodels.html
+    # 'borrowed' from
+    # http://code.google.com/appengine/docs/datastore/entitiesandmodels.html
     name = db.StringProperty(required=True)
-    type = db.StringProperty(required=True, choices=set(["cat", "dog", "bird"]))
+    type = db.StringProperty(
+        required=True, choices=set(["cat", "dog", "bird"])
+    )
     birthdate = db.DateProperty()
     weight_in_pounds = db.IntegerProperty()
     spayed_or_neutered = db.BooleanProperty()
@@ -18,7 +21,9 @@ class PetExpando(db.Expando):
     """
 
     name = db.StringProperty(required=True)
-    type = db.StringProperty(required=True, choices=set(["cat", "dog", "bird"]))
+    type = db.StringProperty(
+        required=True, choices=set(["cat", "dog", "bird"])
+    )
     birthdate = db.DateProperty()
     weight_in_pounds = db.IntegerProperty()
     spayed_or_neutered = db.BooleanProperty()

@@ -135,7 +135,9 @@ class ServiceProxyTestCase(unittest.TestCase):
                 self.tc.assertEqual(method_proxy, self.method_proxy)
                 self.tc.assertEqual(args, self.args)
 
-                self.request = pyamf.ASObject(method_proxy=method_proxy, args=args)
+                self.request = pyamf.ASObject(
+                    method_proxy=method_proxy, args=args
+                )
 
                 return self.request
 
@@ -161,14 +163,20 @@ class ServiceProxyTestCase(unittest.TestCase):
                 self.tc = tc
 
             def addRequest(self, method_proxy, *args):
-                self.request = pyamf.ASObject(method_proxy=method_proxy, args=args)
+                self.request = pyamf.ASObject(
+                    method_proxy=method_proxy, args=args
+                )
 
                 return self.request
 
             def execute_single(self, request):
-                body = remoting.ErrorFault(code='TypeError', description='foobar')
+                body = remoting.ErrorFault(
+                    code='TypeError', description='foobar'
+                )
 
-                return remoting.Response(status=remoting.STATUS_ERROR, body=body)
+                return remoting.Response(
+                    status=remoting.STATUS_ERROR, body=body
+                )
 
         gw = DummyGateway(self)
 
@@ -256,10 +264,12 @@ class BaseServiceTestCase(unittest.TestCase):
     """
     """
 
-    canned_response = ('\x00\x00\x00\x00\x00\x01\x00\x0b/1/onResult\x00'
+    canned_response = (
+        '\x00\x00\x00\x00\x00\x01\x00\x0b/1/onResult\x00'
         '\x04null\x00\x00\x00\x00\n\x00\x00\x00\x03\x00?\xf0\x00\x00'
         '\x00\x00\x00\x00\x00@\x00\x00\x00\x00\x00\x00\x00\x00@\x08\x00'
-        '\x00\x00\x00\x00\x00')
+        '\x00\x00\x00\x00\x00'
+    )
 
     headers = {
         'Content-Type': 'application/x-amf',
@@ -271,7 +281,9 @@ class BaseServiceTestCase(unittest.TestCase):
         self.response = MockResponse()
         self.opener = MockOpener(self, self.response)
 
-        self.gw = client.RemotingService('http://example.org/amf-gateway', opener=self.opener.open)
+        self.gw = client.RemotingService(
+            'http://example.org/amf-gateway', opener=self.opener.open
+        )
 
         self.headers = self.__class__.headers.copy()
         self.headers['Content-Length'] = len(self.canned_response)
@@ -307,8 +319,9 @@ class RemotingServiceTestCase(BaseServiceTestCase):
         x = client.RemotingService('https://example.org')
         self.assertEqual(x.url, ('https', 'example.org', '', '', '', ''))
 
-        self.assertRaises(ValueError, client.RemotingService,
-            'ftp://example.org')
+        self.assertRaises(
+            ValueError, client.RemotingService, 'ftp://example.org'
+        )
 
     def test_port(self):
         x = client.RemotingService('http://example.org:8080')
@@ -436,8 +449,11 @@ class RemotingServiceTestCase(BaseServiceTestCase):
         self.assertEqual(r.get_method(), 'POST')
         self.assertEqual(r.get_full_url(), 'http://example.org/amf-gateway')
 
-        self.assertEqual(r.get_data(), '\x00\x00\x00\x00\x00\x01\x00\x07'
-            'baz.gak\x00\x02/1\x00\x00\x00\x00\x0a\x00\x00\x00\x00')
+        self.assertEqual(
+            r.get_data(),
+            '\x00\x00\x00\x00\x00\x01\x00\x07baz.gak\x00\x02/1\x00\x00\x00'
+            '\x00\x0a\x00\x00\x00\x00'
+        )
 
         self.assertEqual(response.status, remoting.STATUS_OK)
         self.assertEqual(response.body, [1, 2, 3])
@@ -464,9 +480,12 @@ class RemotingServiceTestCase(BaseServiceTestCase):
         self.assertEqual(r.get_method(), 'POST')
         self.assertEqual(r.get_full_url(), 'http://example.org/amf-gateway')
 
-        self.assertEqual(r.get_data(), '\x00\x00\x00\x00\x00\x02\x00\x07'
-            'baz.gak\x00\x02/1\x00\x00\x00\x00\n\x00\x00\x00\x00\x00\tspam.'
-            'eggs\x00\x02/2\x00\x00\x00\x00\n\x00\x00\x00\x00')
+        self.assertEqual(
+            r.get_data(),
+            '\x00\x00\x00\x00\x00\x02\x00\x07baz.gak\x00\x02/1\x00\x00\x00\x00'
+            '\n\x00\x00\x00\x00\x00\tspam.eggs\x00\x02/2\x00\x00\x00\x00\n\x00'
+            '\x00\x00\x00'
+        )
 
     def test_get_response(self):
         self.setResponse(200, '\x00\x00\x00\x00\x00\x00\x00\x00')
@@ -486,8 +505,10 @@ class RemotingServiceTestCase(BaseServiceTestCase):
         self.assertFalse('Credentials' in self.gw.headers)
         self.gw.setCredentials('spam', 'eggs')
         self.assertTrue('Credentials' in self.gw.headers)
-        self.assertEqual(self.gw.headers['Credentials'],
-            {'userid': u'spam', 'password': u'eggs'})
+        self.assertEqual(
+            self.gw.headers['Credentials'],
+            {'userid': u'spam', 'password': u'eggs'}
+        )
 
         envelope = self.gw.getAMFRequest([])
         self.assertTrue('Credentials' in envelope.headers)
@@ -497,20 +518,28 @@ class RemotingServiceTestCase(BaseServiceTestCase):
         self.assertEqual(cred, self.gw.headers['Credentials'])
 
     def test_append_url_header(self):
-        self.setResponse(200, '\x00\x00\x00\x01\x00\x12AppendToGatewayUrl'
-            '\x01\x00\x00\x00\x00\x02\x00\x05hello\x00\x00\x00\x00', {
-            'Content-Type': 'application/x-amf'})
+        self.setResponse(
+            200,
+            '\x00\x00\x00\x01\x00\x12AppendToGatewayUrl\x01\x00\x00\x00\x00'
+            '\x02\x00\x05hello\x00\x00\x00\x00',
+            {'Content-Type': 'application/x-amf'}
+        )
 
         response = self.gw._getResponse(None)
         self.assertTrue(response)
 
-        self.assertEqual(self.gw.original_url,
-            'http://example.org/amf-gatewayhello')
+        self.assertEqual(
+            self.gw.original_url,
+            'http://example.org/amf-gatewayhello'
+        )
 
     def test_replace_url_header(self):
-        self.setResponse(200, '\x00\x00\x00\x01\x00\x11ReplaceGatewayUrl\x01'
-            '\x00\x00\x00\x00\x02\x00\x10http://spam.eggs\x00\x00\x00\x00',
-            {'Content-Type': 'application/x-amf'})
+        self.setResponse(
+            200,
+            '\x00\x00\x00\x01\x00\x11ReplaceGatewayUrl\x01\x00\x00\x00\x00\x02'
+            '\x00\x10http://spam.eggs\x00\x00\x00\x00',
+            {'Content-Type': 'application/x-amf'}
+        )
 
         response = self.gw._getResponse(None)
         self.assertTrue(response)
@@ -544,8 +573,11 @@ class RemotingServiceTestCase(BaseServiceTestCase):
             'User-agent': self.gw.user_agent
         }
 
-        self.setResponse(200, '\x00\x00\x00\x01\x00\x11ReplaceGatewayUrl'
-            '\x01\x00\x00\x00\x00\x02\x00\x10http://spam.eggs\x00\x00\x00\x00')
+        self.setResponse(
+            200,
+            '\x00\x00\x00\x01\x00\x11ReplaceGatewayUrl\x01\x00\x00\x00\x00\x02'
+            '\x00\x10http://spam.eggs\x00\x00\x00\x00'
+        )
 
         self.gw.execute()
 
@@ -554,11 +586,15 @@ class RemotingServiceTestCase(BaseServiceTestCase):
         self.assertEqual(expected_headers, request.headers)
 
     def test_empty_content_length(self):
-        self.setResponse(200, '\x00\x00\x00\x01\x00\x11ReplaceGatewayUrl\x01'
-            '\x00\x00\x00\x00\x02\x00\x10http://spam.eggs\x00\x00\x00\x00', {
-            'Content-Type': 'application/x-amf',
-            'Content-Length': ''
-        })
+        self.setResponse(
+            200,
+            '\x00\x00\x00\x01\x00\x11ReplaceGatewayUrl\x01\x00\x00\x00\x00\x02'
+            '\x00\x10http://spam.eggs\x00\x00\x00\x00',
+            {
+                'Content-Type': 'application/x-amf',
+                'Content-Length': ''
+            }
+        )
 
         response = self.gw._getResponse(None)
         self.assertTrue(response)
@@ -579,13 +615,14 @@ class RemotingServiceTestCase(BaseServiceTestCase):
         """
         old_headers = self.headers.copy()
 
-        self.headers['Content-Type'] = remoting.CONTENT_TYPE + '; charset=utf-8'
+        self.headers['Content-Type'] = (
+            remoting.CONTENT_TYPE + '; charset=utf-8'
+        )
 
         try:
             self.gw._getResponse(None)
         finally:
             self.headers = old_headers
-
 
 
 class GZipTestCase(BaseServiceTestCase):

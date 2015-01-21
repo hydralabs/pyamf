@@ -44,7 +44,10 @@ class StringIOProxy(object):
             self._buffer.write(buf)
         elif hasattr(buf, 'getvalue'):
             self._buffer.write(buf.getvalue())
-        elif hasattr(buf, 'read') and hasattr(buf, 'seek') and hasattr(buf, 'tell'):
+        elif (
+                hasattr(buf, 'read') and
+                hasattr(buf, 'seek') and
+                hasattr(buf, 'tell')):
             old_pos = buf.tell()
             buf.seek(0)
             self._buffer.write(buf.read())
@@ -75,8 +78,8 @@ class StringIOProxy(object):
 
     def seek(self, pos, mode=0):
         """
-        Sets the file-pointer offset, measured from the beginning of this stream,
-        at which the next write operation will occur.
+        Sets the file-pointer offset, measured from the beginning of this
+        stream, at which the next write operation will occur.
 
         @param pos:
         @type pos: C{int}
@@ -210,7 +213,10 @@ class DataTypeMixIn(object):
         if self.endian == DataTypeMixIn.ENDIAN_NATIVE:
             return SYSTEM_ENDIAN == DataTypeMixIn.ENDIAN_BIG
 
-        return self.endian in (DataTypeMixIn.ENDIAN_BIG, DataTypeMixIn.ENDIAN_NETWORK)
+        return self.endian in (
+            DataTypeMixIn.ENDIAN_BIG,
+            DataTypeMixIn.ENDIAN_NETWORK
+        )
 
     def read_uchar(self):
         """
@@ -483,9 +489,12 @@ class DataTypeMixIn(object):
 
         @rtype: C{unicode}
         """
-        s = struct.unpack("%s%ds" % (self.endian, length), self.read(length))[0]
+        s = struct.unpack("%s%ds" % (
+            self.endian, length),
+            self.read(length)
+        )
 
-        return s.decode('utf-8')
+        return s[0].decode('utf-8')
 
     def write_utf8_string(self, u):
         """
@@ -533,8 +542,10 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
             raise IOError(
                 'Attempted to read from the buffer but already at the end')
         elif length > 0 and self.tell() + length > len(self):
-            raise IOError('Attempted to read %d bytes from the buffer but '
-                'only %d remain' % (length, len(self) - self.tell()))
+            raise IOError(
+                'Attempted to read %d bytes from the buffer but only %d '
+                'remain' % (length, len(self) - self.tell())
+            )
 
         return StringIOProxy.read(self, length)
 

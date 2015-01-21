@@ -50,7 +50,9 @@ class ExceptionTestCase(BaseTestCase):
     def test_debug(self):
         self.assertTrue(self.gateway.debug)
 
-        response = self.processor.buildErrorResponse(None, error=self.generate_exception())
+        response = self.processor.buildErrorResponse(
+            None, error=self.generate_exception()
+        )
 
         self.assertEqual(response.status, remoting.STATUS_ERROR)
 
@@ -64,7 +66,9 @@ class ExceptionTestCase(BaseTestCase):
     def test_no_debug(self):
         self.gateway.debug = False
 
-        response = self.processor.buildErrorResponse(None, error=self.generate_exception())
+        response = self.processor.buildErrorResponse(
+            None, error=self.generate_exception()
+        )
 
         self.assertEqual(response.status, remoting.STATUS_ERROR)
 

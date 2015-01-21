@@ -81,4 +81,3 @@ for mod in pyamf.xml.ETREE_MODULES:
     check_etree.__name__ = name
 
     setattr(ElementTreeTestCase, name, check_etree)
-

@@ -2,7 +2,8 @@
 # See LICENSE for details.
 
 """
-Elixir adapter module. Elixir adds a number of properties to the mapped instances.
+Elixir adapter module. Elixir adds a number of properties to the mapped
+instances.
 
 @see: U{Elixir homepage<http://elixir.ematia.de>}
 @since: 0.6
@@ -42,7 +43,9 @@ class ElixirAdapter(adapter.SaMappedClassAlias):
                     foreign_constraints.append(col)
                 else:
                     if col.startswith(self.descriptor.tablename + '.'):
-                        foreign_constraints.append(col[len(self.descriptor.tablename) + 1:])
+                        foreign_constraints.append(
+                            col[len(self.descriptor.tablename) + 1:]
+                        )
 
         if self.descriptor.polymorphic:
             self.exclude_attrs.update([self.descriptor.polymorphic])

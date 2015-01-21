@@ -41,7 +41,10 @@ class TimestampTestCase(unittest.TestCase):
     """
 
     def test_get_timestamp(self):
-        self.assertEqual(util.get_timestamp(datetime(2007, 11, 12)), 1194825600)
+        self.assertEqual(
+            util.get_timestamp(datetime(2007, 11, 12)),
+            1194825600
+        )
 
     def test_get_datetime(self):
         self.assertEqual(util.get_datetime(1194825600), datetime(2007, 11, 12))
@@ -258,7 +261,7 @@ class StringIOTestCase(unittest.TestCase):
 
 
 class DataTypeMixInTestCase(unittest.TestCase):
-    endians = ('>', '<') # big, little
+    endians = ('>', '<')  # big, little
 
     def _write_endian(self, obj, func, args, expected):
         old_endian = obj.endian
@@ -326,7 +329,12 @@ class DataTypeMixInTestCase(unittest.TestCase):
 
         self._write_endian(x, x.write_ushort, (0,), ('\x00\x00', '\x00\x00'))
         self._write_endian(x, x.write_ushort, (12345,), ('09', '90'))
-        self._write_endian(x, x.write_ushort, (65535,), ('\xff\xff', '\xff\xff'))
+        self._write_endian(
+            x,
+            x.write_ushort,
+            (65535,),
+            ('\xff\xff', '\xff\xff')
+        )
 
         self.assertRaises(OverflowError, x.write_ushort, 65536)
         self.assertRaises(OverflowError, x.write_ushort, -1)
@@ -340,8 +348,17 @@ class DataTypeMixInTestCase(unittest.TestCase):
     def test_write_short(self):
         x = util.BufferedByteStream()
 
-        self._write_endian(x, x.write_short, (-5673,), ('\xe9\xd7', '\xd7\xe9'))
-        self._write_endian(x, x.write_short, (32767,), ('\x7f\xff', '\xff\x7f'))
+        self._write_endian(
+            x,
+            x.write_short,
+            (-5673,),
+            ('\xe9\xd7', '\xd7\xe9')
+        )
+        self._write_endian(
+            x, x.write_short,
+            (32767,),
+            ('\x7f\xff', '\xff\x7f')
+        )
 
         self.assertRaises(OverflowError, x.write_ushort, 65537)
         self.assertRaises(OverflowError, x.write_ushort, -1)
@@ -354,104 +371,243 @@ class DataTypeMixInTestCase(unittest.TestCase):
     def test_write_ulong(self):
         x = util.BufferedByteStream()
 
-        self._write_endian(x, x.write_ulong, (0,), ('\x00\x00\x00\x00', '\x00\x00\x00\x00'))
-        self._write_endian(x, x.write_ulong, (16810049,), ('\x01\x00\x80A', 'A\x80\x00\x01'))
-        self._write_endian(x, x.write_ulong, (4294967295L,), ('\xff\xff\xff\xff', '\xff\xff\xff\xff'))
+        self._write_endian(
+            x,
+            x.write_ulong,
+            (0,),
+            ('\x00\x00\x00\x00', '\x00\x00\x00\x00')
+        )
+        self._write_endian(
+            x,
+            x.write_ulong,
+            (16810049,),
+            ('\x01\x00\x80A', 'A\x80\x00\x01')
+        )
+        self._write_endian(
+            x,
+            x.write_ulong,
+            (4294967295L,),
+            ('\xff\xff\xff\xff', '\xff\xff\xff\xff')
+        )
 
         self.assertRaises(OverflowError, x.write_ulong, 4294967296L)
         self.assertRaises(OverflowError, x.write_ulong, -1)
         self.assertRaises(TypeError, x.write_ulong, '\x00\x00\x00\x00')
 
     def test_read_ulong(self):
-        self._read_endian(['\x00\x00\x00\x00', '\x00\x00\x00\x00'], 'read_ulong', (), 0)
-        self._read_endian(['\x01\x00\x80A', 'A\x80\x00\x01'], 'read_ulong', (), 16810049)
-        self._read_endian(['\xff\xff\xff\xff', '\xff\xff\xff\xff'], 'read_ulong', (), 4294967295L)
+        self._read_endian(
+            ['\x00\x00\x00\x00', '\x00\x00\x00\x00'],
+            'read_ulong',
+            (),
+            0
+        )
+        self._read_endian(
+            ['\x01\x00\x80A', 'A\x80\x00\x01'],
+            'read_ulong',
+            (),
+            16810049
+        )
+        self._read_endian(
+            ['\xff\xff\xff\xff', '\xff\xff\xff\xff'],
+            'read_ulong',
+            (),
+            4294967295L
+        )
 
     def test_write_long(self):
         x = util.BufferedByteStream()
 
-        self._write_endian(x, x.write_long, (0,), ('\x00\x00\x00\x00', '\x00\x00\x00\x00'))
-        self._write_endian(x, x.write_long, (16810049,), ('\x01\x00\x80A', 'A\x80\x00\x01'))
-        self._write_endian(x, x.write_long, (2147483647L,), ('\x7f\xff\xff\xff', '\xff\xff\xff\x7f'))
-        self._write_endian(x, x.write_long, (-2147483648,), ('\x80\x00\x00\x00', '\x00\x00\x00\x80'))
+        self._write_endian(
+            x,
+            x.write_long,
+            (0,),
+            ('\x00\x00\x00\x00', '\x00\x00\x00\x00')
+        )
+        self._write_endian(
+            x,
+            x.write_long,
+            (16810049,),
+            ('\x01\x00\x80A', 'A\x80\x00\x01')
+        )
+        self._write_endian(
+            x,
+            x.write_long,
+            (2147483647L,),
+            ('\x7f\xff\xff\xff', '\xff\xff\xff\x7f')
+        )
+        self._write_endian(
+            x,
+            x.write_long,
+            (-2147483648,),
+            ('\x80\x00\x00\x00', '\x00\x00\x00\x80')
+        )
 
         self.assertRaises(OverflowError, x.write_long, 2147483648)
         self.assertRaises(OverflowError, x.write_long, -2147483649)
         self.assertRaises(TypeError, x.write_long, '\x00\x00\x00\x00')
 
     def test_read_long(self):
-        self._read_endian(['\xff\xff\xcf\xc7', '\xc7\xcf\xff\xff'], 'read_long', (), -12345)
-        self._read_endian(['\x00\x00\x00\x00', '\x00\x00\x00\x00'], 'read_long', (), 0)
-        self._read_endian(['\x01\x00\x80A', 'A\x80\x00\x01'], 'read_long', (), 16810049)
-        self._read_endian(['\x7f\xff\xff\xff', '\xff\xff\xff\x7f'], 'read_long', (), 2147483647L)
+        self._read_endian(
+            ['\xff\xff\xcf\xc7', '\xc7\xcf\xff\xff'],
+            'read_long',
+            (),
+            -12345
+        )
+        self._read_endian(
+            ['\x00\x00\x00\x00', '\x00\x00\x00\x00'],
+            'read_long',
+            (),
+            0
+        )
+        self._read_endian(
+            ['\x01\x00\x80A', 'A\x80\x00\x01'],
+            'read_long',
+            (),
+            16810049
+        )
+        self._read_endian(
+            ['\x7f\xff\xff\xff', '\xff\xff\xff\x7f'],
+            'read_long',
+            (),
+            2147483647L
+        )
 
     def test_write_u24bit(self):
         x = util.BufferedByteStream()
 
-        self._write_endian(x, x.write_24bit_uint, (0,), ('\x00\x00\x00', '\x00\x00\x00'))
-        self._write_endian(x, x.write_24bit_uint, (4292609,), ('A\x80\x01', '\x01\x80A'))
-        self._write_endian(x, x.write_24bit_uint, (16777215,), ('\xff\xff\xff', '\xff\xff\xff'))
+        self._write_endian(
+            x,
+            x.write_24bit_uint,
+            (0,),
+            ('\x00\x00\x00', '\x00\x00\x00')
+        )
+        self._write_endian(
+            x,
+            x.write_24bit_uint,
+            (4292609,),
+            ('A\x80\x01', '\x01\x80A')
+        )
+        self._write_endian(
+            x,
+            x.write_24bit_uint,
+            (16777215,),
+            ('\xff\xff\xff', '\xff\xff\xff')
+        )
 
         self.assertRaises(OverflowError, x.write_24bit_uint, 16777216)
         self.assertRaises(OverflowError, x.write_24bit_uint, -1)
         self.assertRaises(TypeError, x.write_24bit_uint, '\x00\x00\x00')
 
     def test_read_u24bit(self):
-        self._read_endian(['\x00\x00\x00', '\x00\x00\x00'], 'read_24bit_uint', (), 0)
-        self._read_endian(['\x00\x00\x80', '\x80\x00\x00'], 'read_24bit_uint', (), 128)
-        self._read_endian(['\x80\x00\x00', '\x00\x00\x80'], 'read_24bit_uint', (), 8388608)
-        self._read_endian(['\xff\xff\x7f', '\x7f\xff\xff'], 'read_24bit_uint', (), 16777087)
-        self._read_endian(['\x7f\xff\xff', '\xff\xff\x7f'], 'read_24bit_uint', (), 8388607)
+        self._read_endian(
+            ['\x00\x00\x00', '\x00\x00\x00'], 'read_24bit_uint', (), 0
+        )
+        self._read_endian(
+            ['\x00\x00\x80', '\x80\x00\x00'], 'read_24bit_uint', (), 128
+        )
+        self._read_endian(
+            ['\x80\x00\x00', '\x00\x00\x80'], 'read_24bit_uint', (), 8388608
+        )
+        self._read_endian(
+            ['\xff\xff\x7f', '\x7f\xff\xff'], 'read_24bit_uint', (), 16777087
+        )
+        self._read_endian(
+            ['\x7f\xff\xff', '\xff\xff\x7f'], 'read_24bit_uint', (), 8388607
+        )
 
     def test_write_24bit(self):
         x = util.BufferedByteStream()
 
-        self._write_endian(x, x.write_24bit_int, (0,), ('\x00\x00\x00', '\x00\x00\x00'))
-        self._write_endian(x, x.write_24bit_int, (128,), ('\x00\x00\x80', '\x80\x00\x00'))
-        self._write_endian(x, x.write_24bit_int, (8388607,), ('\x7f\xff\xff', '\xff\xff\x7f'))
-        self._write_endian(x, x.write_24bit_int, (-1,), ('\xff\xff\xff', '\xff\xff\xff'))
-        self._write_endian(x, x.write_24bit_int, (-8388608,), ('\x80\x00\x00', '\x00\x00\x80'))
+        self._write_endian(
+            x, x.write_24bit_int, (0,), ('\x00\x00\x00', '\x00\x00\x00')
+        )
+        self._write_endian(
+            x, x.write_24bit_int, (128,), ('\x00\x00\x80', '\x80\x00\x00')
+        )
+        self._write_endian(
+            x, x.write_24bit_int, (8388607,), ('\x7f\xff\xff', '\xff\xff\x7f')
+        )
+        self._write_endian(
+            x, x.write_24bit_int, (-1,), ('\xff\xff\xff', '\xff\xff\xff')
+        )
+        self._write_endian(
+            x, x.write_24bit_int, (-8388608,), ('\x80\x00\x00', '\x00\x00\x80')
+        )
 
         self.assertRaises(OverflowError, x.write_24bit_int, 8388608)
         self.assertRaises(OverflowError, x.write_24bit_int, -8388609)
         self.assertRaises(TypeError, x.write_24bit_int, '\x00\x00\x00')
 
     def test_read_24bit(self):
-        self._read_endian(['\x00\x00\x00', '\x00\x00\x00'], 'read_24bit_int', (), 0)
-        self._read_endian(['\x00\x00\x80', '\x80\x00\x00'], 'read_24bit_int', (), 128)
-        self._read_endian(['\x80\x00\x00', '\x00\x00\x80'], 'read_24bit_int', (), -8388608)
-        self._read_endian(['\xff\xff\x7f', '\x7f\xff\xff'], 'read_24bit_int', (), -129)
-        self._read_endian(['\x7f\xff\xff', '\xff\xff\x7f'], 'read_24bit_int', (), 8388607)
+        self._read_endian(
+            ['\x00\x00\x00', '\x00\x00\x00'], 'read_24bit_int', (), 0
+        )
+        self._read_endian(
+            ['\x00\x00\x80', '\x80\x00\x00'], 'read_24bit_int', (), 128
+        )
+        self._read_endian(
+            ['\x80\x00\x00', '\x00\x00\x80'], 'read_24bit_int', (), -8388608
+        )
+        self._read_endian(
+            ['\xff\xff\x7f', '\x7f\xff\xff'], 'read_24bit_int', (), -129
+        )
+        self._read_endian(
+            ['\x7f\xff\xff', '\xff\xff\x7f'], 'read_24bit_int', (), 8388607
+        )
 
     def test_write_float(self):
         x = util.BufferedByteStream()
 
-        self._write_endian(x, x.write_float, (0.2,), ('>L\xcc\xcd', '\xcd\xccL>'))
+        self._write_endian(
+            x, x.write_float, (0.2,), ('>L\xcc\xcd', '\xcd\xccL>')
+        )
         self.assertRaises(TypeError, x.write_float, 'foo')
 
     def test_read_float(self):
-        self._read_endian(['?\x00\x00\x00', '\x00\x00\x00?'], 'read_float', (), 0.5)
+        self._read_endian(
+            ['?\x00\x00\x00', '\x00\x00\x00?'], 'read_float', (), 0.5
+        )
 
     def test_write_double(self):
         x = util.BufferedByteStream()
 
-        self._write_endian(x, x.write_double, (0.2,), ('?\xc9\x99\x99\x99\x99\x99\x9a', '\x9a\x99\x99\x99\x99\x99\xc9?'))
+        self._write_endian(
+            x,
+            x.write_double,
+            (0.2,),
+            ('?\xc9\x99\x99\x99\x99\x99\x9a', '\x9a\x99\x99\x99\x99\x99\xc9?')
+        )
         self.assertRaises(TypeError, x.write_double, 'foo')
 
     def test_read_double(self):
-        self._read_endian(['?\xc9\x99\x99\x99\x99\x99\x9a', '\x9a\x99\x99\x99\x99\x99\xc9?'], 'read_double', (), 0.2)
+        self._read_endian(
+            ['?\xc9\x99\x99\x99\x99\x99\x9a', '\x9a\x99\x99\x99\x99\x99\xc9?'],
+            'read_double',
+            (),
+            0.2
+        )
 
     def test_write_utf8_string(self):
         x = util.BufferedByteStream()
 
-        self._write_endian(x, x.write_utf8_string, (u'ᚠᛇᚻ',), ['\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb'] * 2)
+        self._write_endian(
+            x,
+            x.write_utf8_string,
+            (u'ᚠᛇᚻ',),
+            ['\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb'] * 2
+        )
         self.assertRaises(TypeError, x.write_utf8_string, 1)
         self.assertRaises(TypeError, x.write_utf8_string, 1.0)
         self.assertRaises(TypeError, x.write_utf8_string, object())
         x.write_utf8_string('\xff')
 
     def test_read_utf8_string(self):
-        self._read_endian(['\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb'] * 2, 'read_utf8_string', (9,), u'ᚠᛇᚻ')
+        self._read_endian(
+            ['\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb'] * 2,
+            'read_utf8_string',
+            (9,),
+            u'ᚠᛇᚻ'
+        )
 
     def test_nan(self):
         x = util.BufferedByteStream('\xff\xf8\x00\x00\x00\x00\x00\x00')
@@ -617,7 +773,7 @@ class BufferedByteStreamTestCase(unittest.TestCase):
         a.append('foo')
 
         self.assertEqual(a.getvalue(), 'foo')
-        self.assertEqual(a.tell(), 0) # <-- pointer hasn't moved
+        self.assertEqual(a.tell(), 0)  # <-- pointer hasn't moved
         self.assertEqual(len(a), 3)
 
         # test pointer beginning, some data
@@ -631,7 +787,7 @@ class BufferedByteStreamTestCase(unittest.TestCase):
         a.append('gak')
 
         self.assertEqual(a.getvalue(), 'bargak')
-        self.assertEqual(a.tell(), 0) # <-- pointer hasn't moved
+        self.assertEqual(a.tell(), 0)  # <-- pointer hasn't moved
         self.assertEqual(len(a), 6)
 
         # test pointer middle, some data
@@ -646,7 +802,7 @@ class BufferedByteStreamTestCase(unittest.TestCase):
         a.append('gak')
 
         self.assertEqual(a.getvalue(), 'bargak')
-        self.assertEqual(a.tell(), 2) # <-- pointer hasn't moved
+        self.assertEqual(a.tell(), 2)  # <-- pointer hasn't moved
         self.assertEqual(len(a), 6)
 
         # test pointer end, some data
@@ -661,7 +817,7 @@ class BufferedByteStreamTestCase(unittest.TestCase):
         a.append('gak')
 
         self.assertEqual(a.getvalue(), 'bargak')
-        self.assertEqual(a.tell(), 3) # <-- pointer hasn't moved
+        self.assertEqual(a.tell(), 3)  # <-- pointer hasn't moved
         self.assertEqual(len(a), 6)
 
         class Foo(object):
@@ -697,7 +853,7 @@ class BufferedByteStreamTestCase(unittest.TestCase):
         a.append(u'foo')
 
         self.assertEqual(a.getvalue(), 'foo')
-        self.assertEqual(a.tell(), 0) # <-- pointer hasn't moved
+        self.assertEqual(a.tell(), 0)  # <-- pointer hasn't moved
         self.assertEqual(len(a), 3)
 
         # test pointer beginning, some data
@@ -711,7 +867,7 @@ class BufferedByteStreamTestCase(unittest.TestCase):
         a.append(u'gak')
 
         self.assertEqual(a.getvalue(), 'bargak')
-        self.assertEqual(a.tell(), 0) # <-- pointer hasn't moved
+        self.assertEqual(a.tell(), 0)  # <-- pointer hasn't moved
         self.assertEqual(len(a), 6)
 
         # test pointer middle, some data
@@ -726,7 +882,7 @@ class BufferedByteStreamTestCase(unittest.TestCase):
         a.append(u'gak')
 
         self.assertEqual(a.getvalue(), 'bargak')
-        self.assertEqual(a.tell(), 2) # <-- pointer hasn't moved
+        self.assertEqual(a.tell(), 2)  # <-- pointer hasn't moved
         self.assertEqual(len(a), 6)
 
         # test pointer end, some data
@@ -741,7 +897,7 @@ class BufferedByteStreamTestCase(unittest.TestCase):
         a.append(u'gak')
 
         self.assertEqual(a.getvalue(), 'bargak')
-        self.assertEqual(a.tell(), 3) # <-- pointer hasn't moved
+        self.assertEqual(a.tell(), 3)  # <-- pointer hasn't moved
         self.assertEqual(len(a), 6)
 
         class Foo(object):
@@ -762,7 +918,6 @@ class BufferedByteStreamTestCase(unittest.TestCase):
         self.assertEqual(a.getvalue(), 'foo')
         self.assertEqual(a.tell(), 0)
         self.assertEqual(len(a), 3)
-
 
 
 class DummyAlias(pyamf.ClassAlias):
@@ -1167,4 +1322,3 @@ class GetClassMetaTestCase(unittest.TestCase):
 
         self.assertEqual(util.get_class_meta(A), meta)
         self.assertEqual(util.get_class_meta(B), meta)
-

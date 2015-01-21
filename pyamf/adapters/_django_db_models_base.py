@@ -116,10 +116,24 @@ class DjangoClassAlias(pyamf.ClassAlias):
         if isinstance(field, fields.DateTimeField):
             return value
         elif isinstance(field, fields.DateField):
-            return datetime.datetime(value.year, value.month, value.day, 0, 0, 0)
+            return datetime.datetime(
+                value.year,
+                value.month,
+                value.day,
+                0,  # hour
+                0,  # minute
+                0,  # second
+            )
         elif isinstance(field, fields.TimeField):
-            return datetime.datetime(1970, 1, 1,
-                value.hour, value.minute, value.second, value.microsecond)
+            return datetime.datetime(
+                1970,  # year
+                1,  # month
+                1,  # day
+                value.hour,
+                value.minute,
+                value.second,
+                value.microsecond
+            )
         elif isinstance(value, files.FieldFile):
             return value.name
 
@@ -143,7 +157,12 @@ class DjangoClassAlias(pyamf.ClassAlias):
             if not value:
                 return None
 
-            return datetime.time(value.hour, value.minute, value.second, value.microsecond)
+            return datetime.time(
+                value.hour,
+                value.minute,
+                value.second,
+                value.microsecond,
+            )
 
         return value
 
@@ -177,7 +196,12 @@ class DjangoClassAlias(pyamf.ClassAlias):
         return attrs
 
     def getDecodableAttributes(self, obj, attrs, **kwargs):
-        attrs = pyamf.ClassAlias.getDecodableAttributes(self, obj, attrs, **kwargs)
+        attrs = pyamf.ClassAlias.getDecodableAttributes(
+            self,
+            obj,
+            attrs,
+            **kwargs
+        )
 
         for n in self.decodable_properties:
             if n in self.relations:

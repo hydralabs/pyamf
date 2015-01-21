@@ -84,7 +84,8 @@ TYPE_STRING = '\x06'
 #: C{XMLDocument} instance by using an index to the implicit object reference
 #: table.
 #: @see: U{OSFlash documentation (external)
-#: <http://osflash.org/documentation/amf3#x07_-_xml_legacy_flashxmlxmldocument_class>}
+#: <http://osflash.org/documentation/amf3
+#:     #x07_-_xml_legacy_flashxmlxmldocument_class>}
 TYPE_XML = '\x07'
 #: In AMF 3 an ActionScript Date is serialized as the number of
 #: milliseconds elapsed since the epoch of midnight, 1st Jan 1970 in the
@@ -411,7 +412,7 @@ class DataInput(object):
         @rtype: C{str}
         @return: UTF-8 encoded string.
         """
-        #FIXME nick: how to work out the code point byte size (on the fly)?
+        # FIXME nick: how to work out the code point byte size (on the fly)?
         bytes = self.stream.read(length)
 
         return unicode(bytes, charset)
@@ -542,7 +543,7 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
             return buf
 
         buf = zlib.compress(buf)
-        #FIXME nick: hacked
+        # FIXME nick: hacked
         return buf[0] + '\xda' + buf[2:]
 
     def compress(self):
@@ -581,8 +582,17 @@ class ClassDefinition(object):
                 self.encoding = ObjectEncoding.STATIC
 
     def __repr__(self):
-        return '<%s.ClassDefinition reference=%r encoding=%r alias=%r at 0x%x>' % (
-            self.__class__.__module__, self.reference, self.encoding, self.alias, id(self))
+        my_repr = (
+            '<%s.ClassDefinition reference=%r encoding=%r alias=%r at 0x%x>'
+        )
+
+        return my_repr % (
+            self.__class__.__module__,
+            self.reference,
+            self.encoding,
+            self.alias,
+            id(self)
+        )
 
 
 class Context(codec.Context):
@@ -1010,7 +1020,9 @@ class Decoder(codec.Decoder):
             obj = self.context.getObject(ref >> 1)
 
             if obj is None:
-                raise pyamf.ReferenceError('Unknown reference %d' % (ref >> 1,))
+                raise pyamf.ReferenceError(
+                    'Unknown reference %d' % (ref >> 1,)
+                )
 
             if self.use_proxies is True:
                 obj = self.readProxy(obj)
@@ -1027,7 +1039,9 @@ class Decoder(codec.Decoder):
 
         self.context.addObject(obj)
 
-        if class_def.encoding in (ObjectEncoding.EXTERNAL, ObjectEncoding.PROXY):
+        if class_def.encoding in (
+                ObjectEncoding.EXTERNAL,
+                ObjectEncoding.PROXY):
             obj.__readamf__(DataInput(self))
 
             if self.use_proxies is True:
@@ -1255,9 +1269,11 @@ class Encoder(codec.Encoder):
         @raise EncodeError: A datetime.time instance was found
         """
         if isinstance(n, datetime.time):
-            raise pyamf.EncodeError('A datetime.time instance was found but '
-                'AMF3 has no way to encode time objects. Please use '
-                'datetime.datetime instead (got:%r)' % (n,))
+            raise pyamf.EncodeError(
+                'A datetime.time instance was found but AMF3 has no way to '
+                'encode time objects. Please use datetime.datetime instead '
+                '(got:%r)' % (n,)
+            )
 
         self.stream.write(TYPE_DATE)
 
@@ -1412,7 +1428,7 @@ class Encoder(codec.Encoder):
         kls = obj.__class__
         definition = self.context.getClass(kls)
         alias = None
-        class_ref = False # if the class definition is a reference
+        class_ref = False  # if the class definition is a reference
 
         if definition:
             class_ref = True
@@ -1431,8 +1447,12 @@ class Encoder(codec.Encoder):
             if definition.encoding != ObjectEncoding.EXTERNAL:
                 ref += definition.attr_len << 4
 
-            final_reference = encode_int(ref | definition.encoding << 2 |
-                REFERENCE_BIT << 1 | REFERENCE_BIT)
+            final_reference = encode_int(
+                ref |
+                definition.encoding << 2 |
+                REFERENCE_BIT << 1 |
+                REFERENCE_BIT
+            )
 
             self.stream.write(final_reference)
 

@@ -13,7 +13,6 @@ import pyamf
 from pyamf.adapters import util
 
 
-
 class Foo(object):
     pass
 

@@ -92,6 +92,7 @@ class CommonInfo(models.Model):
     class Meta:
         abstract = True
 
+
 class Student(CommonInfo):
     home_group = models.CharField(max_length=5)
 
@@ -121,7 +122,7 @@ try:
         file = models.ImageField(upload_to='profile')
         text = models.CharField(max_length=64)
 except ImportError:
-    pass
+    PIL = None
 
 
 class DBColumnModel(models.Model):

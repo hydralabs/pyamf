@@ -20,6 +20,19 @@ except ImportError:
     from pyamf.util.pure import BufferedByteStream
 
 
+__all__ = [
+    'BufferedByteStream',
+    'get_timestamp',
+    'get_datetime',
+    'get_properties',
+    'set_attrs',
+    'get_class_alias',
+    'is_class_sealed',
+    'get_class_meta',
+    'get_module',
+]
+
+
 #: On some Python versions retrieving a negative timestamp, like
 #: C{datetime.datetime.utcfromtimestamp(-31536000.0)} is broken.
 negative_timestamp_broken = False

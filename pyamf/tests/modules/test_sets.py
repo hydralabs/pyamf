@@ -18,11 +18,12 @@ class ImmutableSetTestCase(unittest.TestCase):
 
         self.assertTrue(check_buffer(
             pyamf.encode(x, encoding=pyamf.AMF0).getvalue(), (
-            '\n\x00\x00\x00\x03', (
-                '\x02\x00\x011',
-                '\x02\x00\x013',
-                '\x02\x00\x012'
-            ))
+                '\n\x00\x00\x00\x03', (
+                    '\x02\x00\x011',
+                    '\x02\x00\x013',
+                    '\x02\x00\x012'
+                )
+            )
         ))
 
     def test_amf3_encode(self):
@@ -30,9 +31,10 @@ class ImmutableSetTestCase(unittest.TestCase):
 
         self.assertTrue(check_buffer(
             pyamf.encode(x, encoding=pyamf.AMF3).getvalue(), (
-            '\t\x07\x01', (
-                '\x06\x031',
-                '\x06\x033',
-                '\x06\x032'
-            ))
+                '\t\x07\x01', (
+                    '\x06\x031',
+                    '\x06\x033',
+                    '\x06\x032'
+                )
+            )
         ))

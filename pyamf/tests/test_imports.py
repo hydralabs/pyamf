@@ -94,7 +94,7 @@ class WhenImportedTestCase(ImportsTestCase):
         imports.when_imported('spam', h)
 
         try:
-            import spam
+            import spam  # noqa
         except Exception, e:
             pass
         else:

@@ -63,7 +63,7 @@ class ServiceWrapper(object):
     @type description: C{str}
     """
     def __init__(self, service, description=None, authenticator=None,
-        expose_request=None, preprocessor=None):
+                 expose_request=None, preprocessor=None):
         self.service = service
         self.description = description
         self.authenticator = authenticator
@@ -296,7 +296,7 @@ class BaseGateway(object):
             self.addService(service, name)
 
     def addService(self, service, name=None, description=None,
-        authenticator=None, expose_request=None, preprocessor=None):
+                   authenticator=None, expose_request=None, preprocessor=None):
         """
         Adds a service to the gateway.
 
@@ -311,10 +311,17 @@ class BaseGateway(object):
         if isinstance(service, (int, long, float, basestring)):
             raise TypeError("Service cannot be a scalar value")
 
-        allowed_types = (types.ModuleType, types.FunctionType, types.DictType,
-            types.MethodType, types.InstanceType, types.ObjectType)
+        allowed_types = (
+            types.ModuleType,
+            types.FunctionType,
+            types.DictType,
+            types.MethodType,
+            types.InstanceType,
+            types.ObjectType,
+        )
 
-        if not python.callable(service) and not isinstance(service, allowed_types):
+        if not python.callable(service) and \
+                not isinstance(service, allowed_types):
             raise TypeError("Service must be a callable, module, or an object")
 
         if name is None:
@@ -331,8 +338,13 @@ class BaseGateway(object):
         if name in self.services:
             raise remoting.RemotingError("Service %s already exists" % name)
 
-        self.services[name] = ServiceWrapper(service, description,
-            authenticator, expose_request, preprocessor)
+        self.services[name] = ServiceWrapper(
+            service,
+            description,
+            authenticator,
+            expose_request,
+            preprocessor
+        )
 
     def _get_timezone_offset(self):
         if self.timezone_offset is None:
@@ -424,7 +436,9 @@ class BaseGateway(object):
 
         @rtype: C{bool}
         """
-        expose_request = service_request.service.mustExposeRequest(service_request)
+        expose_request = service_request.service.mustExposeRequest(
+            service_request
+        )
 
         if expose_request is None:
             if self.expose_request is None:
@@ -448,7 +462,8 @@ class BaseGateway(object):
 
         return auth
 
-    def authenticateRequest(self, service_request, username, password, **kwargs):
+    def authenticateRequest(self, service_request, username, password,
+                            **kwargs):
         """
         Processes an authentication request. If no authenticator is supplied,
         then authentication succeeds.
@@ -469,7 +484,7 @@ class BaseGateway(object):
             http_request = kwargs.get('http_request', None)
             args = (http_request,) + args
 
-        return authenticator(*args) == True
+        return authenticator(*args) is True
 
     def getPreprocessor(self, service_request):
         """

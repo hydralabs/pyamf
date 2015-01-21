@@ -102,9 +102,11 @@ class DjangoGatewayTestCase(BaseTestCase):
         gw = django.DjangoGateway()
 
         request = util.BufferedByteStream()
-        request.write('\x00\x00\x00\x00\x00\x01\x00\x09test.test\x00'
+        request.write(
+            '\x00\x00\x00\x00\x00\x01\x00\x09test.test\x00'
             '\x02/1\x00\x00\x00\x14\x0a\x00\x00\x00\x01\x08\x00\x00\x00\x00'
-            '\x00\x01\x61\x02\x00\x01\x61\x00\x00\x09')
+            '\x00\x01\x61\x02\x00\x01\x61\x00\x00\x09'
+        )
         request.seek(0, 0)
 
         http_request = http.HttpRequest()
@@ -134,8 +136,10 @@ class DjangoGatewayTestCase(BaseTestCase):
         gw = django.DjangoGateway({'test.test': test}, expose_request=True)
 
         request = util.BufferedByteStream()
-        request.write('\x00\x00\x00\x00\x00\x01\x00\x09test.test\x00'
-            '\x02/1\x00\x00\x00\x05\x0a\x00\x00\x00\x00')
+        request.write(
+            '\x00\x00\x00\x00\x00\x01\x00\x09test.test\x00'
+            '\x02/1\x00\x00\x00\x05\x0a\x00\x00\x00\x00'
+        )
         request.seek(0, 0)
 
         http_request.method = 'POST'
@@ -150,7 +154,9 @@ class DjangoGatewayTestCase(BaseTestCase):
 
     def test_really_bad_decode(self):
         self.old_method = remoting.decode
-        remoting.decode = lambda *args, **kwargs: self._raiseException(Exception, *args, **kwargs)
+        remoting.decode = lambda *args, **kwargs: self._raiseException(
+            Exception, *args, **kwargs
+        )
 
         http_request = http.HttpRequest()
         http_request.method = 'POST'
@@ -167,9 +173,14 @@ class DjangoGatewayTestCase(BaseTestCase):
 
         remoting.decode = self.old_method
 
-        self.assertTrue(isinstance(http_response, http.HttpResponseServerError))
+        self.assertTrue(
+            isinstance(http_response, http.HttpResponseServerError)
+        )
         self.assertEqual(http_response.status_code, 500)
-        self.assertEqual(http_response.content, '500 Internal Server Error\n\nAn unexpected error occurred.')
+        self.assertEqual(
+            http_response.content,
+            '500 Internal Server Error\n\nAn unexpected error occurred.'
+        )
 
     def test_expected_exceptions_decode(self):
         self.old_method = remoting.decode
@@ -182,7 +193,9 @@ class DjangoGatewayTestCase(BaseTestCase):
 
         try:
             for x in (KeyboardInterrupt, SystemExit):
-                remoting.decode = lambda *args, **kwargs: self._raiseException(x, *args, **kwargs)
+                remoting.decode = lambda *args, **kwargs: self._raiseException(
+                    x, *args, **kwargs
+                )
                 self.assertRaises(x, gw, http_request)
         except:
             remoting.decode = self.old_method
@@ -206,8 +219,11 @@ class DjangoGatewayTestCase(BaseTestCase):
 
             return d
 
-        gw = django.DjangoGateway({'test.test': echo}, timezone_offset=-18000,
-            expose_request=False)
+        gw = django.DjangoGateway(
+            {'test.test': echo},
+            timezone_offset=-18000,
+            expose_request=False
+        )
 
         msg = remoting.Envelope(amfVersion=pyamf.AMF0)
         msg['/1'] = remoting.Request(target='test.test', body=[now])

@@ -31,7 +31,11 @@ class FaultTestCase(unittest.TestCase):
         self.assertEqual(x.details, '')
         self.assertEqual(x.description, '')
 
-        x = remoting.ErrorFault(code=404, details='Not Found', description='Spam eggs')
+        x = remoting.ErrorFault(
+            code=404,
+            details='Not Found',
+            description='Spam eggs'
+        )
 
         self.assertEqual(x.code, 404)
         self.assertEqual(x.details, 'Not Found')
@@ -300,8 +304,8 @@ class BaseGatewayTestCase(unittest.TestCase):
         envelope = remoting.Envelope()
 
         message = remoting.Request('spam', [], envelope=envelope)
-        self.assertRaises(gateway.UnknownServiceError, gw.getServiceRequest,
-            message, 'spam')
+        with self.assertRaises(gateway.UnknownServiceError):
+            gw.getServiceRequest(message, 'spam')
 
         message = remoting.Request('test.spam', [], envelope=envelope)
         sr = gw.getServiceRequest(message, 'test.spam')
@@ -332,8 +336,8 @@ class BaseGatewayTestCase(unittest.TestCase):
 
         # try to access an unknown service
         message = remoting.Request('spam')
-        self.assertRaises(gateway.UnknownServiceError, gw.getServiceRequest,
-            message, 'spam')
+        with self.assertRaises(gateway.UnknownServiceError):
+            gw.getServiceRequest(message, 'spam')
 
         # check x.x calls
         message = remoting.Request('test.test')
@@ -629,7 +633,11 @@ class ExposeRequestTestCase(unittest.TestCase):
         request = remoting.Request('test')
         envelope['/1'] = request
 
-        service_request = gateway.ServiceRequest(envelope, gw.services['test'], None)
+        service_request = gateway.ServiceRequest(
+            envelope,
+            gw.services['test'],
+            None
+        )
 
         self.assertFalse(gw.mustExposeRequest(service_request))
 
@@ -642,7 +650,11 @@ class ExposeRequestTestCase(unittest.TestCase):
         request = remoting.Request('test')
         envelope['/1'] = request
 
-        service_request = gateway.ServiceRequest(envelope, gw.services['test'], None)
+        service_request = gateway.ServiceRequest(
+            envelope,
+            gw.services['test'],
+            None
+        )
 
         self.assertTrue(gw.mustExposeRequest(service_request))
 
@@ -655,7 +667,11 @@ class ExposeRequestTestCase(unittest.TestCase):
         request = remoting.Request('test')
         envelope['/1'] = request
 
-        service_request = gateway.ServiceRequest(envelope, gw.services['test'], None)
+        service_request = gateway.ServiceRequest(
+            envelope,
+            gw.services['test'],
+            None
+        )
 
         self.assertTrue(gw.mustExposeRequest(service_request))
 
@@ -673,7 +689,11 @@ class ExposeRequestTestCase(unittest.TestCase):
         request = remoting.Request('test')
         envelope['/1'] = request
 
-        service_request = gateway.ServiceRequest(envelope, gw.services['test'], None)
+        service_request = gateway.ServiceRequest(
+            envelope,
+            gw.services['test'],
+            None
+        )
 
         self.assertTrue(gw.mustExposeRequest(service_request))
 
@@ -691,7 +711,11 @@ class PreProcessingTestCase(unittest.TestCase):
         request = remoting.Request('test')
         envelope['/1'] = request
 
-        service_request = gateway.ServiceRequest(envelope, gw.services['test'], None)
+        service_request = gateway.ServiceRequest(
+            envelope,
+            gw.services['test'],
+            None
+        )
 
         self.assertEqual(gw.getPreprocessor(service_request), None)
 
@@ -704,7 +728,11 @@ class PreProcessingTestCase(unittest.TestCase):
         request = remoting.Request('test')
         envelope['/1'] = request
 
-        service_request = gateway.ServiceRequest(envelope, gw.services['test'], None)
+        service_request = gateway.ServiceRequest(
+            envelope,
+            gw.services['test'],
+            None
+        )
 
         self.assertEqual(gw.getPreprocessor(service_request), self._preproc)
 
@@ -717,7 +745,11 @@ class PreProcessingTestCase(unittest.TestCase):
         request = remoting.Request('test')
         envelope['/1'] = request
 
-        service_request = gateway.ServiceRequest(envelope, gw.services['test'], None)
+        service_request = gateway.ServiceRequest(
+            envelope,
+            gw.services['test'],
+            None
+        )
 
         self.assertEqual(gw.getPreprocessor(service_request), self._preproc)
 
@@ -735,7 +767,11 @@ class PreProcessingTestCase(unittest.TestCase):
         request = remoting.Request('test')
         envelope['/1'] = request
 
-        service_request = gateway.ServiceRequest(envelope, gw.services['test'], None)
+        service_request = gateway.ServiceRequest(
+            envelope,
+            gw.services['test'],
+            None
+        )
 
         self.assertEqual(gw.getPreprocessor(service_request), self._preproc)
 

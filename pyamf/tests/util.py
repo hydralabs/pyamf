@@ -231,7 +231,7 @@ def get_fqcn(klass):
 
 def expectedFailureIfAppengine(func):
     try:
-        from google import appengine
+        from google import appengine  # noqa
     except ImportError:
         return func
     else:

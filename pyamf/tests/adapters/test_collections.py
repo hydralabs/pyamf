@@ -26,7 +26,8 @@ class CollectionsTestCase(unittest.TestCase):
             self.skipTest("'collections' not available")
 
     def encdec(self, encoding):
-        return pyamf.decode(pyamf.encode(self.obj, encoding=encoding),
+        return pyamf.decode(
+            pyamf.encode(self.obj, encoding=encoding),
             encoding=encoding).next()
 
 
@@ -85,9 +86,10 @@ class OrderedDictTestCase(CollectionsTestCase):
         if not hasattr(collections, 'OrderedDict'):
             self.skipTest("'collections.OrderedDict' not available")
 
-        self.obj = collections.OrderedDict([('apple', 4), ('banana', 3), ('orange', 2), ('pear', 1)])
+        self.obj = collections.OrderedDict(
+            [('apple', 4), ('banana', 3), ('orange', 2), ('pear', 1)]
+        )
         self.orig = dict(self.obj)
-
 
     def test_amf0(self):
         self.assertEqual(self.encdec(pyamf.AMF0), self.orig)

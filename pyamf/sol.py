@@ -88,7 +88,8 @@ def encode(name, values, strict=True, encoding=pyamf.AMF0):
 
     @param name: The root name of the SharedObject.
     @param values: A `dict` of name value pairs to be encoded in the stream.
-    @param strict: Ensure that the SOL stream is as spec compatible as possible.
+    @param strict: Ensure that the SOL stream is as spec compatible as
+        possible.
     @return: A SharedObject encoded stream.
     @rtype: L{BufferedByteStream<pyamf.util.BufferedByteStream>}, a file like
         object.
@@ -195,7 +196,11 @@ class SOL(dict):
         save(self, name_or_file, encoding)
 
     def __repr__(self):
-        return '<%s %s %s at 0x%x>' % (self.__class__.__name__,
-            self.name, dict.__repr__(self), id(self))
+        return '<%s %s %s at 0x%x>' % (
+            self.__class__.__name__,
+            self.name,
+            dict.__repr__(self),
+            id(self)
+        )
 
 LSO = SOL

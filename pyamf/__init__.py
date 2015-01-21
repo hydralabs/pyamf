@@ -58,7 +58,8 @@ ERROR_CLASS_MAP = {
     ValueError.__name__: ValueError
 }
 #: Alias mapping support.
-#: @see: L{get_class_alias}, L{register_alias_type}, and L{unregister_alias_type}
+#: @see: L{get_class_alias}, L{register_alias_type}, and
+#: L{unregister_alias_type}
 ALIAS_TYPES = {}
 
 #: Specifies that objects are serialized using AMF for ActionScript 1.0
@@ -180,20 +181,26 @@ class TypedObject(dict):
         self.alias = alias
 
     def __readamf__(self, o):
-        raise DecodeError('Unable to decode an externalised stream with '
-            'class alias \'%s\'.\n\nA class alias was found and because '
-            'strict mode is False an attempt was made to decode the object '
-            'automatically. To decode this stream, a registered class with '
-            'the alias and a corresponding __readamf__ method will be '
-            'required.' % (self.alias,))
+        raise DecodeError(
+            'Unable to decode an externalised stream with class alias \'%s\'.'
+            '\n\nA class alias was found and because strict mode is False an '
+            'attempt was made to decode the object automatically. To decode '
+            'this stream, a registered class with the alias and a '
+            'corresponding __readamf__ method will be required.' % (
+                self.alias,
+            )
+        )
 
     def __writeamf__(self, o):
-        raise EncodeError('Unable to encode an externalised stream with '
-            'class alias \'%s\'.\n\nA class alias was found and because '
-            'strict mode is False an attempt was made to encode the object '
-            'automatically. To encode this stream, a registered class with '
-            'the alias and a corresponding __writeamf__ method will be '
-            'required.' % (self.alias,))
+        raise EncodeError(
+            'Unable to encode an externalised stream with class alias \'%s\'.'
+            '\n\nA class alias was found and because strict mode is False an '
+            'attempt was made to encode the object automatically. To encode '
+            'this stream, a registered class with the alias and a '
+            'corresponding __writeamf__ method will be required.' % (
+                self.alias,
+            )
+        )
 
 
 class TypedObjectClassAlias(ClassAlias):
@@ -409,7 +416,9 @@ def load_class(alias):
 
                 return klass.klass
             else:
-                raise TypeError("Expecting class type or ClassAlias from loader")
+                raise TypeError(
+                    "Expecting class type or ClassAlias from loader"
+                )
 
     # All available methods for finding the class have been exhausted
     raise UnknownClassAlias("Unknown alias for %r" % (alias,))
@@ -523,7 +532,7 @@ def blaze_loader(alias):
     if alias not in ['DSC', 'DSK']:
         return
 
-    import pyamf.flex.messaging
+    import pyamf.flex.messaging  # noqa
 
     return CLASS_CACHE[alias]
 
@@ -533,7 +542,8 @@ def flex_loader(alias):
     Loader for L{Flex<pyamf.flex>} framework compatibility classes.
 
     @type alias: C{string}
-    @raise UnknownClassAlias: Trying to load an unknown Flex compatibility class.
+    @raise UnknownClassAlias: Trying to load an unknown Flex compatibility
+        class.
     """
     if not alias.startswith('flex.'):
         return
@@ -544,7 +554,7 @@ def flex_loader(alias):
         elif alias.startswith('flex.messaging.io'):
             import pyamf.flex
         elif alias.startswith('flex.data.messages'):
-            import pyamf.flex.data
+            import pyamf.flex.data  # noqa
 
         return CLASS_CACHE[alias]
     except KeyError:
@@ -564,8 +574,10 @@ def add_type(type_, func=None):
     def _check_type(type_):
         if not (isinstance(type_, python.class_types) or
                 hasattr(type_, '__call__')):
-            raise TypeError(r'Unable to add '%r' as a custom type (expected a '
-                'class or callable)' % (type_,))
+            raise TypeError(
+                'Unable to add %r as a custom type (expected a class or '
+                'callable)' % (type_,)
+            )
 
     if isinstance(type_, list):
         type_ = tuple(type_)
@@ -626,16 +638,22 @@ def add_error_class(klass, code):
         ...
         >>> pyamf.add_error_class(AuthenticationError, 'Auth.Failed')
         >>> print pyamf.ERROR_CLASS_MAP
-        {'TypeError': <type 'exceptions.TypeError'>, 'IndexError': <type 'exceptions.IndexError'>,
-        'Auth.Failed': <class '__main__.AuthenticationError'>, 'KeyError': <type 'exceptions.KeyError'>,
-        'NameError': <type 'exceptions.NameError'>, 'LookupError': <type 'exceptions.LookupError'>}
+        {
+            'TypeError': <type 'exceptions.TypeError'>,
+            'IndexError': <type 'exceptions.IndexError'>,
+            'Auth.Failed': <class '__main__.AuthenticationError'>,
+            'KeyError': <type 'exceptions.KeyError'>,
+            'NameError': <type 'exceptions.NameError'>,
+            'LookupError': <type 'exceptions.LookupError'>
+        }
 
     @param klass: Exception class
     @param code: Exception code
     @type code: C{str}
     @see: L{remove_error_class}
     @raise TypeError: C{klass} must be of class type.
-    @raise TypeError: Error classes must subclass the C{__builtin__.Exception} class.
+    @raise TypeError: Error classes must subclass the C{__builtin__.Exception}
+        class.
     @raise ValueError: C{code} is already registered to an error class.
     """
     if not isinstance(code, python.str_types):
@@ -646,7 +664,7 @@ def add_error_class(klass, code):
 
     mro = inspect.getmro(klass)
 
-    if not Exception in mro:
+    if Exception not in mro:
         raise TypeError(
             'Error classes must subclass the __builtin__.Exception class')
 
@@ -693,11 +711,11 @@ def register_alias_type(klass, *args):
     This function allows you to map subclasses of L{ClassAlias} to classes
     listed in C{args}.
 
-    When an object is read/written from/to the AMF stream, a paired L{ClassAlias}
-    instance is created (or reused), based on the Python class of that object.
-    L{ClassAlias} provides important metadata for the class and can also control
-    how the equivalent Python object is created, how the attributes are applied
-    etc.
+    When an object is read/written from/to the AMF stream, a paired
+    L{ClassAlias} instance is created (or reused), based on the Python class of
+    that object. L{ClassAlias} provides important metadata for the class and
+    can also control how the equivalent Python object is created, how the
+    attributes are applied etc.
 
     Use this function if you need to do something non-standard.
 
@@ -781,14 +799,15 @@ def register_package(module=None, package=None, separator='.', ignore=[],
         complete alias.
     @type separator: C{string}
     @param ignore: To give fine grain control over what gets aliased and what
-        doesn't, supply a list of classes that you B{do not} want to be aliased.
+        doesn't, supply a list of classes that you B{do not} want to be
+        aliased.
     @type ignore: C{iterable}
     @param strict: Whether only classes that originate from C{module} will be
         registered.
     @type strict: C{boolean}
 
-    @return: A dict of all the classes that were registered and their respective
-        L{ClassAlias} counterparts.
+    @return: A dict of all the classes that were registered and their
+        respective L{ClassAlias} counterparts.
     @since: 0.5
     @raise TypeError: Cannot get a list of classes from C{module}.
     """
@@ -864,7 +883,8 @@ def register_package(module=None, package=None, separator='.', ignore=[],
 def set_default_etree(etree):
     """
     Sets the default interface that will called apon to both de/serialise XML
-    entities. This means providing both C{tostring} and C{fromstring} functions.
+    entities. This means providing both C{tostring} and C{fromstring}
+    functions.
 
     For testing purposes, will return the previous value for this (if any).
     """

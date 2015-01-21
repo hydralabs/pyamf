@@ -104,8 +104,10 @@ class IndexedCollectionTestCase(unittest.TestCase):
     def test_repr(self):
         x = "0x%x" % id(self.collection)
 
-        self.assertEqual(repr(self.collection),
-            '<pyamf.codec.IndexedCollection size=0 %s>' % (x,))
+        self.assertEqual(
+            repr(self.collection),
+            '<pyamf.codec.IndexedCollection size=0 %s>' % (x,)
+        )
 
     def test_contains(self):
         o = object()

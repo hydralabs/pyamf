@@ -69,7 +69,8 @@ def init_django():
         create_test_db = connection.creation.create_test_db
         destroy_test_db = connection.creation.destroy_test_db
 
-    from django.test.utils import setup_test_environment, teardown_test_environment
+    from django.test.utils import setup_test_environment  # noqa
+    from django.test.utils import teardown_test_environment  # noqa
 
     return True
 
@@ -88,8 +89,8 @@ def setUpModule():
 
     if init_django():
         from django.core.files.storage import FileSystemStorage
-        from pyamf.tests.adapters.django_app.adapters import models
-        from pyamf.adapters import _django_db_models_base as adapter
+        from pyamf.tests.adapters.django_app.adapters import models  # noqa
+        from pyamf.adapters import _django_db_models_base as adapter  # noqa
 
         setup_test_environment()
 
@@ -138,8 +139,10 @@ class TypeMapTestCase(BaseTestCase):
     def test_NOT_PROVIDED(self):
         from django.db.models import fields
 
-        self.assertEqual(pyamf.encode(fields.NOT_PROVIDED, encoding=pyamf.AMF0).getvalue(),
-            '\x06')
+        self.assertEqual(
+            pyamf.encode(fields.NOT_PROVIDED, encoding=pyamf.AMF0).getvalue(),
+            '\x06'
+        )
 
         encoder = pyamf.get_encoder(pyamf.AMF3)
         encoder.writeElement(fields.NOT_PROVIDED)
@@ -228,8 +231,10 @@ class ClassAliasTestCase(BaseTestCase):
 
         x = Book()
 
-        self.assertEqual(alias.getEncodableAttributes(x),
-            {'numberOfOddPages': 234, 'id': None})
+        self.assertEqual(
+            alias.getEncodableAttributes(x),
+            {'numberOfOddPages': 234, 'id': None}
+        )
 
         # now we test sending the numberOfOddPages attribute
         alias.applyAttributes(x, {'numberOfOddPages': 24, 'id': None})
@@ -246,8 +251,10 @@ class ClassAliasTestCase(BaseTestCase):
         x = models.SimplestModel()
         x.spam = 'eggs'
 
-        self.assertEqual(alias.getEncodableAttributes(x),
-            {'spam': 'eggs', 'id': None})
+        self.assertEqual(
+            alias.getEncodableAttributes(x),
+            {'spam': 'eggs', 'id': None}
+        )
 
         # now we test sending the numberOfOddPages attribute
         alias.applyAttributes(x, {'spam': 'foo', 'id': None})
@@ -276,8 +283,10 @@ class ClassAliasTestCase(BaseTestCase):
 
         self.assertEqual(x.days, 1)
 
-        self.assertEqual(alias.getEncodableAttributes(x),
-            {'days': 1, 'id': None})
+        self.assertEqual(
+            alias.getEncodableAttributes(x),
+            {'days': 1, 'id': None}
+        )
 
         # now we test sending the numberOfOddPages attribute
         alias.applyAttributes(x, {'id': None})
@@ -286,11 +295,19 @@ class ClassAliasTestCase(BaseTestCase):
 class ForeignKeyTestCase(BaseTestCase):
     def test_one_to_many(self):
         # initialise the db ..
-        r = models.Reporter(first_name='John', last_name='Smith', email='john@example.com')
+        r = models.Reporter(
+            first_name='John',
+            last_name='Smith',
+            email='john@example.com'
+        )
         r.save()
         self.addCleanup(r.delete)
 
-        r2 = models.Reporter(first_name='Paul', last_name='Jones', email='paul@example.com')
+        r2 = models.Reporter(
+            first_name='Paul',
+            last_name='Jones',
+            email='paul@example.com'
+        )
         r2.save()
         self.addCleanup(r2.delete)
 
@@ -324,9 +341,11 @@ class ForeignKeyTestCase(BaseTestCase):
         })
 
         self.assertFalse('_reporter_cache' in a.__dict__)
-        self.assertEqual(pyamf.encode(a, encoding=pyamf.AMF3).getvalue(),
+        self.assertEqual(
+            pyamf.encode(a, encoding=pyamf.AMF3).getvalue(),
             '\n\x0b\x01\x11headline\x06\x1dThis is a test\x05id\x04\x01'
-            '\x19publications\t\x01\x01\x01')
+            '\x19publications\t\x01\x01\x01'
+        )
 
         del a
 
@@ -344,11 +363,13 @@ class ForeignKeyTestCase(BaseTestCase):
         })
 
         self.assertTrue('_reporter_cache' in a.__dict__)
-        self.assertEqual(pyamf.encode(a, encoding=pyamf.AMF3).getvalue(),
+        self.assertEqual(
+            pyamf.encode(a, encoding=pyamf.AMF3).getvalue(),
             '\n\x0b\x01\x11reporter\n\x0b\x01\x15first_name\x06\tJohn\x13'
             'last_name\x06\x0bSmith\x05id\x04\x01\x0bemail\x06!john'
             '@example.com\x01\x11headline\x06\x1dThis is a test\x19'
-            'publications\t\x01\x01\n\x04\x01\x01')
+            'publications\t\x01\x01\n\x04\x01\x01'
+        )
 
     def test_many_to_many(self):
         # install some test data - taken from
@@ -365,7 +386,10 @@ class ForeignKeyTestCase(BaseTestCase):
         self.addCleanup(p3.delete)
 
         # Create an Article.
-        a1 = models.Article(id=None, headline='Django lets you build Web apps easily')
+        a1 = models.Article(
+            id=None,
+            headline='Django lets you build Web apps easily'
+        )
         a1.save()
         self.addCleanup(a1.delete)
         self.assertEqual(a1.id, 1)
@@ -408,7 +432,10 @@ class ForeignKeyTestCase(BaseTestCase):
             'publications': []
         })
 
-        self.assertEqual(attrs, {'headline': u'Django lets you build Web apps easily'})
+        self.assertEqual(
+            attrs,
+            {'headline': u'Django lets you build Web apps easily'}
+        )
 
     def test_nullable_foreign_keys(self):
         x = models.SimplestModel()
@@ -432,11 +459,13 @@ class ForeignKeyTestCase(BaseTestCase):
         """
         @see: #693
         """
-        from pyamf import util
+        from pyamf import util  # noqa
 
         pyamf.register_class(models.StaticRelation)
-        alias = adapter.DjangoClassAlias(models.StaticRelation,
-            static_attrs=('gak',))
+        alias = adapter.DjangoClassAlias(
+            models.StaticRelation,
+            static_attrs=('gak',)
+        )
 
         alias.compile()
 
@@ -454,8 +483,10 @@ class I18NTestCase(BaseTestCase):
     def test_encode(self):
         from django.utils.translation import ugettext_lazy
 
-        self.assertEqual(pyamf.encode(ugettext_lazy('Hello')).getvalue(),
-            '\x06\x0bHello')
+        self.assertEqual(
+            pyamf.encode(ugettext_lazy('Hello')).getvalue(),
+            '\x06\x0bHello'
+        )
 
 
 class PKTestCase(BaseTestCase):
@@ -466,7 +497,10 @@ class PKTestCase(BaseTestCase):
 
     def test_behaviour(self):
         p = models.Publication(id=None, title='The Python Journal')
-        a = models.Article(id=None, headline='Django lets you build Web apps easily')
+        a = models.Article(
+            id=None,
+            headline='Django lets you build Web apps easily'
+        )
 
         # Associate the Article with a Publication.
         self.assertRaises(ValueError, lambda a, p: a.publications.add(p), a, p)
@@ -524,7 +558,8 @@ class PKTestCase(BaseTestCase):
 
 class ModelInheritanceTestCase(BaseTestCase):
     """
-    Tests for L{Django model inheritance<http://docs.djangoproject.com/en/dev/topics/db/models/#model-inheritance>}
+    Tests for L{Django model inheritance<http://docs.djangoproject.com/en/dev/
+    topics/db/models/#model-inheritance>}
     """
 
     def test_abstract(self):
@@ -602,7 +637,10 @@ class FieldsTestCase(BaseTestCase):
 
         attrs = alias.getEncodableAttributes(i)
 
-        self.assertEqual(attrs, {'text': '', 'id': 1, 'file': u'file_model/bar'})
+        self.assertEqual(
+            attrs,
+            {'text': '', 'id': 1, 'file': u'file_model/bar'}
+        )
 
         attrs = alias.getDecodableAttributes(i, attrs)
 
@@ -616,7 +654,7 @@ class ImageTestCase(BaseTestCase):
 
     def setUp(self):
         try:
-            import PIL
+            import PIL  # noqa
         except ImportError:
             self.skipTest("'PIL' is not available")
 
@@ -698,8 +736,11 @@ class ReferenceTestCase(BaseTestCase, util.EncoderMixIn):
         # ensure the referenced attribute resolves
         foo.bar.foo
 
-        self.assertEncoded(foo, '\n\x0b\x01\x07bar\n\x0b\x01\x07foo\n\x00\x05'
-            'id\x04\x01\tname\x06\x00\x01\x04\x04\x01\x06\x06\x02\x01')
+        self.assertEncoded(
+            foo,
+            '\n\x0b\x01\x07bar\n\x0b\x01\x07foo\n\x00\x05'
+            'id\x04\x01\tname\x06\x00\x01\x04\x04\x01\x06\x06\x02\x01'
+        )
 
 
 class AuthTestCase(BaseTestCase):

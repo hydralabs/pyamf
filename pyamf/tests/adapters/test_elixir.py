@@ -26,7 +26,6 @@ if e:
         def __repr__(self):
             return '<Genre "%s">' % self.name
 
-
     class Movie(e.Entity):
         title = e.Field(e.Unicode(30), primary_key=True)
         year = e.Field(e.Integer, primary_key=True)
@@ -34,15 +33,12 @@ if e:
         director = e.ManyToOne('Director')
         genres = e.ManyToMany('Genre')
 
-
     class Person(e.Entity):
         name = e.Field(e.Unicode(60), primary_key=True)
-
 
     class Director(Person):
         movies = e.OneToMany('Movie')
         e.using_options(inheritance='multi')
-
 
     # set up
     e.metadata.bind = "sqlite://"
@@ -79,12 +75,23 @@ class BaseTestCase(unittest.TestCase):
         scifi = Genre(name=u"Science-Fiction")
         rscott = Director(name=u"Ridley Scott")
         glucas = Director(name=u"George Lucas")
-        alien = Movie(title=u"Alien", year=1979, director=rscott, genres=[scifi, Genre(name=u"Horror")])
-        brunner = Movie(title=u"Blade Runner", year=1982, director=rscott, genres=[scifi])
-        swars = Movie(title=u"Star Wars", year=1977, director=glucas, genres=[scifi])
+        alien = Movie(
+            title=u"Alien",
+            year=1979,
+            director=rscott,
+            genres=[scifi, Genre(name=u"Horror")]
+        )
+        brunner = Movie(
+            title=u"Blade Runner", year=1982, director=rscott, genres=[scifi]
+        )
+        swars = Movie(
+            title=u"Star Wars", year=1977, director=glucas, genres=[scifi]
+        )
 
         e.session.commit()
         e.session.expunge_all()
+
+        del alien, brunner, swars
 
 
 class ClassAliasTestCase(BaseTestCase):

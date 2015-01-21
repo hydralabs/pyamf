@@ -62,9 +62,11 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.headers['Server'] = gateway.SERVER_NAME
         self.error(405)
-        self.response.out.write("405 Method Not Allowed\n\n"
+        self.response.out.write(
+            "405 Method Not Allowed\n\n"
             "To access this PyAMF gateway you must use POST requests "
-            "(%s received)" % self.request.method)
+            "(%s received)" % self.request.method
+        )
 
     def post(self):
         body = self.request.body_file.read()
@@ -73,14 +75,20 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
 
         # Decode the request
         try:
-            request = remoting.decode(body, strict=self.strict,
-                logger=self.logger, timezone_offset=timezone_offset)
+            request = remoting.decode(
+                body,
+                strict=self.strict,
+                logger=self.logger,
+                timezone_offset=timezone_offset
+            )
         except (DecodeError, IOError):
             if self.logger:
                 self.logger.exception('Error decoding AMF request')
 
-            response = ("400 Bad Request\n\nThe request body was unable to "
-                "be successfully decoded.")
+            response = (
+                "400 Bad Request\n\nThe request body was unable to "
+                "be successfully decoded."
+            )
 
             if self.debug:
                 response += "\n\nTraceback:\n\n%s" % gateway.format_exception()
@@ -97,8 +105,10 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
             if self.logger:
                 self.logger.exception('Unexpected error decoding AMF request')
 
-            response = ('500 Internal Server Error\n\n'
-                'An unexpected error occurred.')
+            response = (
+                '500 Internal Server Error\n\n'
+                'An unexpected error occurred.'
+            )
 
             if self.debug:
                 response += "\n\nTraceback:\n\n%s" % gateway.format_exception()
@@ -122,8 +132,10 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
             if self.logger:
                 self.logger.exception('Error processing AMF request')
 
-            response = ("500 Internal Server Error\n\nThe request was " \
-                "unable to be successfully processed.")
+            response = (
+                "500 Internal Server Error\n\nThe request was "
+                "unable to be successfully processed."
+            )
 
             if self.debug:
                 response += "\n\nTraceback:\n\n%s" % gateway.format_exception()
@@ -140,14 +152,20 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
 
         # Encode the response
         try:
-            stream = remoting.encode(response, strict=self.strict,
-                logger=self.logger, timezone_offset=timezone_offset)
+            stream = remoting.encode(
+                response,
+                strict=self.strict,
+                logger=self.logger,
+                timezone_offset=timezone_offset
+            )
         except:
             if self.logger:
                 self.logger.exception('Error encoding AMF request')
 
-            response = ("500 Internal Server Error\n\nThe request was " \
-                "unable to be encoded.")
+            response = (
+                "500 Internal Server Error\n\nThe request was "
+                "unable to be encoded."
+            )
 
             if self.debug:
                 response += "\n\nTraceback:\n\n%s" % gateway.format_exception()

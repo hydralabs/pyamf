@@ -306,8 +306,12 @@ class RemotingService(object):
         """
         Adds a request to be sent to the remoting gateway.
         """
-        wrapper = RequestWrapper(self, '/%d' % self.request_number,
-            service, *args)
+        wrapper = RequestWrapper(
+            self,
+            '/%d' % self.request_number,
+            service,
+            *args
+        )
 
         self.request_number += 1
         self.requests.append(wrapper)
@@ -325,8 +329,10 @@ class RemotingService(object):
         """
         if isinstance(service, RequestWrapper):
             if self.logger:
-                self.logger.debug('Removing request: %s',
-                    self.requests[self.requests.index(service)])
+                self.logger.debug(
+                    'Removing request: %s',
+                    self.requests[self.requests.index(service)]
+                )
             del self.requests[self.requests.index(service)]
 
             return
@@ -334,8 +340,10 @@ class RemotingService(object):
         for request in self.requests:
             if request.service == service and request.args == args:
                 if self.logger:
-                    self.logger.debug('Removing request: %s',
-                        self.requests[self.requests.index(request)])
+                    self.logger.debug(
+                        'Removing request: %s',
+                        self.requests[self.requests.index(request)]
+                    )
                 del self.requests[self.requests.index(request)]
 
                 return
@@ -385,10 +393,15 @@ class RemotingService(object):
 
         self.removeRequest(request)
 
-        body = remoting.encode(self.getAMFRequest([request]), strict=self.strict)
+        body = remoting.encode(
+            self.getAMFRequest([request]),
+            strict=self.strict
+        )
 
-        http_request = urllib2.Request(self._root_url, body.getvalue(),
-            self._get_execute_headers())
+        http_request = urllib2.Request(
+            self._root_url, body.getvalue(),
+            self._get_execute_headers()
+        )
 
         if self.proxy_args:
             http_request.set_proxy(*self.proxy_args)
@@ -407,11 +420,15 @@ class RemotingService(object):
         for r in requests:
             self.removeRequest(r)
 
-        body = remoting.encode(self.getAMFRequest(requests),
-            strict=self.strict)
+        body = remoting.encode(
+            self.getAMFRequest(requests),
+            strict=self.strict
+        )
 
-        http_request = urllib2.Request(self._root_url, body.getvalue(),
-            self._get_execute_headers())
+        http_request = urllib2.Request(
+            self._root_url, body.getvalue(),
+            self._get_execute_headers()
+        )
 
         if self.proxy_args:
             http_request.set_proxy(*self.proxy_args)
@@ -431,8 +448,7 @@ class RemotingService(object):
             fbh = self.opener(http_request)
         except urllib2.URLError, e:
             if self.logger:
-                self.logger.exception('Failed request for %s',
-                    self._root_url)
+                self.logger.exception('Failed request for %s', self._root_url)
 
             raise remoting.RemotingError(str(e))
 
@@ -453,8 +469,9 @@ class RemotingService(object):
             if self.logger:
                 self.logger.debug('Body = %s', fbh.read())
 
-            raise remoting.RemotingError('Incorrect MIME type received. '
-                '(got: %s)' % (content_type,))
+            raise remoting.RemotingError(
+                'Incorrect MIME type received. (got: %s)' % (content_type,)
+            )
 
         bytes = fbh.read(int(content_length))
 
@@ -478,7 +495,9 @@ class RemotingService(object):
             self.logger.debug('Response: %s', response)
 
         if remoting.APPEND_TO_GATEWAY_URL in response.headers:
-            self.original_url += response.headers[remoting.APPEND_TO_GATEWAY_URL]
+            self.original_url += response.headers[
+                remoting.APPEND_TO_GATEWAY_URL
+            ]
 
             self._setUrl(self.original_url)
 
@@ -499,5 +518,11 @@ class RemotingService(object):
         """
         Sets authentication credentials for accessing the remote gateway.
         """
-        self.addHeader('Credentials', dict(userid=username.decode('utf-8'),
-            password=password.decode('utf-8')), True)
+        self.addHeader(
+            'Credentials',
+            dict(
+                userid=username.decode('utf-8'),
+                password=password.decode('utf-8')
+            ),
+            True
+        )
