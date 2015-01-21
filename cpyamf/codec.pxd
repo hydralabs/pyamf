@@ -29,6 +29,17 @@ cdef class IndexedCollection(object):
     cpdef Py_ssize_t append(self, object obj) except -1
 
 
+cdef class ByteStringReferenceCollection(IndexedCollection):
+    """
+    There have been rare hash collisions within a single AMF payload causing
+    corrupt payloads.
+
+    Which strings cause collisions is dependent on the python runtime, each
+    platform might have a slightly different implementation which means that
+    testing is extremely difficult.
+    """
+
+
 cdef class Context(object):
     """
     C based version of ``pyamf.BaseContext``
