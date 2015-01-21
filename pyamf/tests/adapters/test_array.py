@@ -34,7 +34,8 @@ class ArrayTestCase(unittest.TestCase):
         self.obj.append('o')
 
     def encdec(self, encoding):
-        return pyamf.decode(pyamf.encode(self.obj, encoding=encoding),
+        return pyamf.decode(
+            pyamf.encode(self.obj, encoding=encoding),
             encoding=encoding).next()
 
     def test_amf0(self):

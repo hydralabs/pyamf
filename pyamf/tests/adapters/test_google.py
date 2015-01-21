@@ -45,13 +45,15 @@ def setUpModule():
         raise unittest.SkipTest('Appengine env not bootstrapped correctly')
 
     # all looks good - we now initialise the imports we require
-    from google.appengine.ext import blobstore
-    from google.appengine.ext.db import polymodel
+    from google.appengine.ext import blobstore  # noqa
+    from google.appengine.ext.db import polymodel  # noqa
 
-    from pyamf.adapters import _google_appengine_ext_db as adapter_db
-    from pyamf.adapters import _google_appengine_ext_blobstore as adapter_blobstore
+    from pyamf.adapters import _google_appengine_ext_db as adapter_db  # noqa
+    from pyamf.adapters import (  # noqa
+        _google_appengine_ext_blobstore as adapter_blobstore
+    )
 
-    from pyamf.tests.adapters import _google_models as test_models
+    from pyamf.tests.adapters import _google_models as test_models  # noqa
 
 
 class BaseTestCase(util.ClassCacheClearingTestCase):
@@ -109,7 +111,6 @@ class BaseTestCase(util.ClassCacheClearingTestCase):
                 amf3.encode_int(len(k) << 1 | amf3.REFERENCE_BIT), k)
 
         return '\x02%s%s' % (struct.pack('>H', len(k)), k)
-
 
 
 class JessicaFactory(object):
@@ -242,7 +243,9 @@ class EncodingExpandoTestCase(BaseTestCase):
     def setUp(self):
         BaseTestCase.setUp(self)
 
-        self.jessica = JessicaFactory.makeJessica(test_models.PetExpando, foo='bar')
+        self.jessica = JessicaFactory.makeJessica(
+            test_models.PetExpando, foo='bar'
+        )
 
         self.addCleanup(self.deleteEntity, self.jessica)
 
@@ -348,7 +351,6 @@ class EncodingReferencesTestCase(BaseTestCase):
     def test_model(self):
         a = test_models.Author(name='Jane Austen')
         self.put(a)
-        k = str(a.key())
 
         amf0_k = self.encodeKey(a, pyamf.AMF0)
         amf3_k = self.encodeKey(a, pyamf.AMF3)
@@ -553,7 +555,7 @@ class ListPropertyTestCase(BaseTestCase):
             '\n\x0b\x01', (
                 '\t_key\x01',
                 '\x0fnumbers\t\x0b\x01\x04\x02\x04\x04\x04\x06\x04\x08\x04\n'
-                    '\x01'
+                '\x01'
             )
         )
 
@@ -582,7 +584,7 @@ class ListPropertyTestCase(BaseTestCase):
             '\n\x0b\x15list-model', (
                 '\t_key\x01',
                 '\x0fnumbers\t\x0b\x01\x04\x02\x04\x04\x04\x06\x04\x08\x04\n'
-                    '\x01'
+                '\x01'
             )
         )
 
@@ -698,10 +700,14 @@ class ClassAliasTestCase(BaseTestCase):
     def setUp(self):
         BaseTestCase.setUp(self)
 
-        self.alias = adapter_db.DataStoreClassAlias(test_models.PetModel, 'foo.bar')
+        self.alias = adapter_db.DataStoreClassAlias(
+            test_models.PetModel, 'foo.bar'
+        )
 
         self.jessica = test_models.PetModel(name='Jessica', type='cat')
-        self.jessica_expando = test_models.PetExpando(name='Jessica', type='cat')
+        self.jessica_expando = test_models.PetExpando(
+            name='Jessica', type='cat'
+        )
         self.jessica_expando.foo = 'bar'
 
         self.addCleanup(self.deleteEntity, self.jessica)
@@ -908,7 +914,7 @@ class ReferencesTestCase(BaseTestCase):
 
         self.jessica2 = db.get(self.jessica.key())
 
-        self.assertNotIdentical(self.jessica,self.jessica2)
+        self.assertNotIdentical(self.jessica, self.jessica2)
         self.assertEqual(str(self.jessica.key()), str(self.jessica2.key()))
 
     def failOnGet(self, *args, **kwargs):
@@ -1147,7 +1153,10 @@ class BlobStoreTestCase(BaseTestCase):
     def test_class_alias(self):
         alias_klass = pyamf.get_class_alias(blobstore.BlobInfo)
 
-        self.assertIdentical(alias_klass.__class__, adapter_blobstore.BlobInfoClassAlias)
+        self.assertIdentical(
+            alias_klass.__class__,
+            adapter_blobstore.BlobInfoClassAlias
+        )
 
     def test_encode(self):
         self.assertEncodes(self.info, self.bytes)

@@ -287,8 +287,8 @@ class Decoder(_Codec):
     """
     Base AMF decoder.
 
-    Supports an generator interface. Feed the decoder data using L{send} and get
-    Python objects out by using L{next}.
+    Supports an generator interface. Feed the decoder data using L{send} and
+    get Python objects out by using L{next}.
 
     @ivar strict: Defines how strict the decoding should be. For the time
         being this relates to typed objects in the stream that do not have a
@@ -453,7 +453,7 @@ class Encoder(_Codec):
             return self.writeNumber
         elif t in (list, tuple):
             return self.writeList
-        elif t is types.GeneratorType:
+        elif t is types.GeneratorType:  # flake8: noqa
             return self.writeGenerator
         elif t is pyamf.UndefinedType:
             return self.writeUndefined

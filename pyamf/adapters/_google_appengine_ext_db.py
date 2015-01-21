@@ -53,7 +53,9 @@ class GAEReferenceCollection(dict):
 
     def _getClass(self, klass):
         if not issubclass(klass, (db.Model, db.Expando)):
-            raise TypeError('expected db.Model/db.Expando class, got %s' % (klass,))
+            raise TypeError('expected db.Model/db.Expando class, got %s' % (
+                klass,
+            ))
 
         return self.setdefault(klass, {})
 
@@ -178,7 +180,12 @@ class DataStoreClassAlias(pyamf.ClassAlias):
 
     def getDecodableAttributes(self, obj, attrs, codec=None):
         key = attrs.setdefault(self.KEY_ATTR, None)
-        attrs = pyamf.ClassAlias.getDecodableAttributes(self, obj, attrs, codec=codec)
+        attrs = pyamf.ClassAlias.getDecodableAttributes(
+            self,
+            obj,
+            attrs,
+            codec=codec
+        )
 
         del attrs[self.KEY_ATTR]
         new_obj = None
@@ -202,9 +209,11 @@ class DataStoreClassAlias(pyamf.ClassAlias):
                 prop = self.properties[k]
                 v = attrs[k]
 
-                if isinstance(prop, db.FloatProperty) and isinstance(v, (int, long)):
+                if isinstance(prop, db.FloatProperty) and \
+                        isinstance(v, (int, long)):
                     attrs[k] = float(v)
-                elif isinstance(prop, db.IntegerProperty) and isinstance(v, float):
+                elif isinstance(prop, db.IntegerProperty) and \
+                        isinstance(v, float):
                     x = long(v)
 
                     # only convert the type if there is no mantissa - otherwise
@@ -215,13 +224,15 @@ class DataStoreClassAlias(pyamf.ClassAlias):
                     attrs[k] = []
                 elif isinstance(v, datetime.datetime):
                     # Date/Time Property fields expect specific types of data
-                    # whereas PyAMF only decodes into datetime.datetime objects.
+                    # whereas PyAMF only decodes into datetime.datetime objects
                     if isinstance(prop, db.DateProperty):
                         attrs[k] = v.date()
                     elif isinstance(prop, db.TimeProperty):
                         attrs[k] = v.time()
 
-                if new_obj is None and isinstance(v, ModelStub) and prop.required and k in self.reference_properties:
+                if new_obj is None and isinstance(v, ModelStub) and \
+                        prop.required and \
+                        k in self.reference_properties:
                     apply_init = False
                     del attrs[k]
 
@@ -265,7 +276,9 @@ def loadInstanceFromDatastore(klass, key, codec=None):
     @since: 0.4.1
     """
     if not issubclass(klass, (db.Model, db.Expando)):
-        raise TypeError('expected db.Model/db.Expando class, got %s' % (klass,))
+        raise TypeError(
+            'expected db.Model/db.Expando class, got %s' % (klass,)
+        )
 
     if not isinstance(key, basestring):
         raise TypeError('string expected for key, got %s', (repr(key),))

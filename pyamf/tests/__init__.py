@@ -22,7 +22,8 @@ if not hasattr(unittest.TestCase, 'assertIdentical'):
     def assertIdentical(self, first, second, msg=None):
         """
         Fail the test if C{first} is not C{second}.  This is an
-        obect-identity-equality test, not an object equality (i.e. C{__eq__}) test.
+        obect-identity-equality test, not an object equality (i.e. C{__eq__})
+        test.
 
         @param msg: if msg is None, then the failure message will be
             '%r is not %r' % (first, second)

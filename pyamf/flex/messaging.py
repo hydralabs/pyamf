@@ -42,7 +42,8 @@ class AbstractMessage(object):
     that needs to be delivered and processed by the decoder.
 
     @see: U{AbstractMessage on Livedocs<http://
-        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/messaging/messages/AbstractMessage.html>}
+        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/
+        messaging/messages/AbstractMessage.html>}
 
     @ivar body: Specific data that needs to be delivered to the remote
         destination.
@@ -64,8 +65,15 @@ class AbstractMessage(object):
 
     class __amf__:
         amf3 = True
-        static = ('body', 'clientId', 'destination', 'headers', 'messageId',
-            'timestamp', 'timeToLive')
+        static = (
+            'body',
+            'clientId',
+            'destination',
+            'headers',
+            'messageId',
+            'timestamp',
+            'timeToLive'
+        )
 
     #: Each message pushed from the server will contain this header identifying
     #: the client that will receive the message.
@@ -150,16 +158,23 @@ class AbstractMessage(object):
         flags = read_flags(input)
 
         if len(flags) > 2:
-            raise pyamf.DecodeError('Expected <=2 (got %d) flags for the '
-                'AbstractMessage portion of the small message for %r' % (
-                    len(flags), self.__class__))
+            raise pyamf.DecodeError(
+                'Expected <=2 (got %d) flags for the AbstractMessage portion '
+                'of the small message for %r' % (
+                    len(flags), self.__class__
+                )
+            )
 
         for index, byte in enumerate(flags):
             if index == 0:
                 for flag in self.SMALL_ATTRIBUTE_FLAGS:
                     if flag & byte:
                         attr = self.SMALL_ATTRIBUTES[flag]
-                        setattr(self, attr, self.decodeSmallAttribute(attr, input))
+                        setattr(
+                            self,
+                            attr,
+                            self.decodeSmallAttribute(attr, input)
+                        )
             elif index == 1:
                 for flag in self.SMALL_UUID_FLAGS:
                     if flag & byte:
@@ -191,6 +206,8 @@ class AbstractMessage(object):
             byte |= flag
             uuid_attrs.append(amf3.ByteArray(value.bytes))
 
+        del attr
+
         if not byte:
             output.writeUnsignedByte(flags)
         else:
@@ -207,7 +224,8 @@ class AbstractMessage(object):
 
         @since: 0.5
         @see: U{ISmallMessage on Adobe Help (external)<http://
-            help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/messaging/messages/ISmallMessage.html>}
+            help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/
+            messaging/messages/ISmallMessage.html>}
         """
         raise NotImplementedError
 
@@ -217,7 +235,8 @@ class AsyncMessage(AbstractMessage):
     I am the base class for all asynchronous Flex messages.
 
     @see: U{AsyncMessage on Adobe Help<http://
-        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/messaging/messages/AsyncMessage.html>}
+        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/
+        messaging/messages/AsyncMessage.html>}
 
     @ivar correlationId: Correlation id of the message.
     @type correlationId: C{str}
@@ -241,9 +260,12 @@ class AsyncMessage(AbstractMessage):
         flags = read_flags(input)
 
         if len(flags) > 1:
-            raise pyamf.DecodeError('Expected <=1 (got %d) flags for the '
-                'AsyncMessage portion of the small message for %r' % (
-                    len(flags), self.__class__))
+            raise pyamf.DecodeError(
+                'Expected <=1 (got %d) flags for the AsyncMessage portion of '
+                'the small message for %r' % (
+                    len(flags), self.__class__
+                )
+            )
 
         byte = flags[0]
 
@@ -280,7 +302,8 @@ class AcknowledgeMessage(AsyncMessage):
     acknowledgement.
 
     @see: U{AcknowledgeMessage on Adobe Help (external)<http://
-        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/messaging/messages/AcknowledgeMessage.html>}
+        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/
+        messaging/messages/AcknowledgeMessage.html>}
     """
 
     #: Used to indicate that the acknowledgement is for a message that
@@ -293,9 +316,12 @@ class AcknowledgeMessage(AsyncMessage):
         flags = read_flags(input)
 
         if len(flags) > 1:
-            raise pyamf.DecodeError('Expected <=1 (got %d) flags for the '
-                'AcknowledgeMessage portion of the small message for %r' % (
-                    len(flags), self.__class__))
+            raise pyamf.DecodeError(
+                'Expected <=1 (got %d) flags for the AcknowledgeMessage '
+                'portion of the small message for %r' % (
+                    len(flags), self.__class__
+                )
+            )
 
     def __writeamf__(self, output):
         AsyncMessage.__writeamf__(self, output)
@@ -317,7 +343,8 @@ class CommandMessage(AsyncMessage):
     messaging, ping, and cluster operations.
 
     @see: U{CommandMessage on Adobe Help (external)<http://
-        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/messaging/messages/CommandMessage.html>}
+        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/
+        messaging/messages/CommandMessage.html>}
 
     @ivar operation: The command
     @type operation: C{int}
@@ -326,7 +353,9 @@ class CommandMessage(AsyncMessage):
     """
 
     #: The server message type for authentication commands.
-    AUTHENTICATION_MESSAGE_REF_TYPE = "flex.messaging.messages.AuthenticationMessage"
+    AUTHENTICATION_MESSAGE_REF_TYPE = (
+        "flex.messaging.messages.AuthenticationMessage"
+    )
     #: This is used to test connectivity over the current channel to the remote
     #: endpoint.
     PING_OPERATION = 5
@@ -378,9 +407,12 @@ class CommandMessage(AsyncMessage):
             return
 
         if len(flags) > 1:
-            raise pyamf.DecodeError('Expected <=1 (got %d) flags for the '
-                'CommandMessage portion of the small message for %r' % (
-                    len(flags), self.__class__))
+            raise pyamf.DecodeError(
+                'Expected <=1 (got %d) flags for the CommandMessage portion '
+                'of the small message for %r' % (
+                    len(flags), self.__class__
+                )
+            )
 
         byte = flags[0]
 
@@ -412,7 +444,8 @@ class ErrorMessage(AcknowledgeMessage):
     This class is used to report errors within the messaging system.
 
     @see: U{ErrorMessage on Adobe Help (external)<http://
-        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/messaging/messages/ErrorMessage.html>}
+        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/
+        messaging/messages/ErrorMessage.html>}
     """
 
     #: If a message may not have been delivered, the faultCode will contain
@@ -425,8 +458,13 @@ class ErrorMessage(AcknowledgeMessage):
     RETRYABLE_HINT_HEADER = "DSRetryableErrorHint"
 
     class __amf__:
-        static = ('extendedData', 'faultCode', 'faultDetail', 'faultString',
-            'rootCause')
+        static = (
+            'extendedData',
+            'faultCode',
+            'faultDetail',
+            'faultString',
+            'rootCause'
+        )
 
     def __init__(self, *args, **kwargs):
         AcknowledgeMessage.__init__(self, *args, **kwargs)

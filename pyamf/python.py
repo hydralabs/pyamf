@@ -15,7 +15,8 @@ import types
 
 func_types = (
     types.BuiltinFunctionType, types.BuiltinMethodType, types.CodeType,
-    types.FunctionType, types.GeneratorType, types.LambdaType, types.MethodType)
+    types.FunctionType, types.GeneratorType, types.LambdaType, types.MethodType
+)
 class_types = [type]
 int_types = [int]
 str_types = [str]
@@ -65,7 +66,6 @@ def isNegInf(val):
     @since: 0.5
     """
     return str(float(val)) == str(NegInf)
-
 
 
 try:

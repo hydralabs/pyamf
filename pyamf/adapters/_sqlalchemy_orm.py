@@ -85,7 +85,12 @@ class SaMappedClassAlias(pyamf.ClassAlias):
     def getDecodableAttributes(self, obj, attrs, **kwargs):
         """
         """
-        attrs = pyamf.ClassAlias.getDecodableAttributes(self, obj, attrs, **kwargs)
+        attrs = pyamf.ClassAlias.getDecodableAttributes(
+            self,
+            obj,
+            attrs,
+            **kwargs
+        )
 
         # Delete lazy-loaded attrs.
         #

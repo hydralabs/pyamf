@@ -24,47 +24,47 @@ from pyamf import util, codec, xml, python
 
 #: Represented as 9 bytes: 1 byte for C{0x00} and 8 bytes a double
 #: representing the value of the number.
-TYPE_NUMBER      = '\x00'
+TYPE_NUMBER = '\x00'
 #: Represented as 2 bytes: 1 byte for C{0x01} and a second, C{0x00}
 #: for C{False}, C{0x01} for C{True}.
-TYPE_BOOL        = '\x01'
+TYPE_BOOL = '\x01'
 #: Represented as 3 bytes + len(String): 1 byte C{0x02}, then a UTF8 string,
 #: including the top two bytes representing string length as a C{int}.
-TYPE_STRING      = '\x02'
+TYPE_STRING = '\x02'
 #: Represented as 1 byte, C{0x03}, then pairs of UTF8 string, the key, and
 #: an AMF element, ended by three bytes, C{0x00} C{0x00} C{0x09}.
-TYPE_OBJECT      = '\x03'
+TYPE_OBJECT = '\x03'
 #: MovieClip does not seem to be supported by Remoting.
 #: It may be used by other AMF clients such as SharedObjects.
-TYPE_MOVIECLIP   = '\x04'
+TYPE_MOVIECLIP = '\x04'
 #: 1 single byte, C{0x05} indicates null.
-TYPE_NULL        = '\x05'
+TYPE_NULL = '\x05'
 #: 1 single byte, C{0x06} indicates null.
-TYPE_UNDEFINED   = '\x06'
+TYPE_UNDEFINED = '\x06'
 #: When an ActionScript object refers to itself, such C{this.self = this},
 #: or when objects are repeated within the same scope (for example, as the
 #: two parameters of the same function called), a code of C{0x07} and an
 #: C{int}, the reference number, are written.
-TYPE_REFERENCE   = '\x07'
+TYPE_REFERENCE = '\x07'
 #: A MixedArray is indicated by code C{0x08}, then a Long representing the
 #: highest numeric index in the array, or 0 if there are none or they are
 #: all negative. After that follow the elements in key : value pairs.
-TYPE_MIXEDARRAY  = '\x08'
+TYPE_MIXEDARRAY = '\x08'
 #: @see: L{TYPE_OBJECT}
-TYPE_OBJECTTERM  = '\x09'
+TYPE_OBJECTTERM = '\x09'
 #: An array is indicated by C{0x0A}, then a Long for array length, then the
 #: array elements themselves. Arrays are always sparse; values for
 #: inexistant keys are set to null (C{0x06}) to maintain sparsity.
-TYPE_ARRAY       = '\x0A'
+TYPE_ARRAY = '\x0A'
 #: Date is represented as C{0x0B}, then a double, then an C{int}. The double
-#: represents the number of milliseconds since 01/01/1970. The C{int} represents
-#: the timezone offset in minutes between GMT. Note for the latter than values
-#: greater than 720 (12 hours) are represented as M{2^16} - the value. Thus GMT+1
-#: is 60 while GMT-5 is 65236.
-TYPE_DATE        = '\x0B'
+#: represents the number of milliseconds since 01/01/1970. The C{int}
+#: represents the timezone offset in minutes between GMT. Note for the latter
+#: than values greater than 720 (12 hours) are represented as M{2^16} - the
+#: value. Thus GMT+1 is 60 while GMT-5 is 65236.
+TYPE_DATE = '\x0B'
 #: LongString is reserved for strings larger then M{2^16} characters long. It
 #: is represented as C{0x0C} then a LongUTF.
-TYPE_LONGSTRING  = '\x0C'
+TYPE_LONGSTRING = '\x0C'
 #: Trying to send values which don't make sense, such as prototypes, functions,
 #: built-in objects, etc. will be indicated by a single C{00x0D} byte.
 TYPE_UNSUPPORTED = '\x0D'
@@ -72,12 +72,12 @@ TYPE_UNSUPPORTED = '\x0D'
 #: @see: L{RecordSet}
 #: @see: U{RecordSet structure on OSFlash
 #: <http://osflash.org/documentation/amf/recordset>}
-TYPE_RECORDSET   = '\x0E'
+TYPE_RECORDSET = '\x0E'
 #: The XML element is indicated by C{0x0F} and followed by a LongUTF containing
 #: the string representation of the XML object. The receiving gateway may which
-#: to wrap this string inside a language-specific standard XML object, or simply
-#: pass as a string.
-TYPE_XML         = '\x0F'
+#: to wrap this string inside a language-specific standard XML object, or
+#: simply pass as a string.
+TYPE_XML = '\x0F'
 #: A typed object is indicated by C{0x10}, then a UTF string indicating class
 #: name, and then the same structure as a normal C{0x03} Object. The receiving
 #: gateway may use a mapping scheme, or send back as a vanilla object or
@@ -87,7 +87,7 @@ TYPE_TYPEDOBJECT = '\x10'
 #: out into L{AMF3<pyamf.amf3>} mode. In this case the next byte will be the
 #: AMF3 type code and the data will be in AMF3 format until the decoded object
 #: reaches it's logical conclusion (for example, an object has no more keys).
-TYPE_AMF3        = '\x11'
+TYPE_AMF3 = '\x11'
 
 
 class Context(codec.Context):
@@ -113,8 +113,12 @@ class Context(codec.Context):
         if encoder:
             return encoder
 
-        encoder = pyamf.get_encoder(pyamf.AMF3, stream=amf0_encoder.stream,
-            timezone_offset=amf0_encoder.timezone_offset)
+        encoder = pyamf.get_encoder(
+            pyamf.AMF3,
+            stream=amf0_encoder.stream,
+            timezone_offset=amf0_encoder.timezone_offset
+        )
+
         self.extra['amf3_encoder'] = encoder
 
         return encoder
@@ -125,11 +129,16 @@ class Context(codec.Context):
         if decoder:
             return decoder
 
-        decoder = pyamf.get_decoder(pyamf.AMF3, stream=amf0_decoder.stream,
-            timezone_offset=amf0_decoder.timezone_offset)
+        decoder = pyamf.get_decoder(
+            pyamf.AMF3,
+            stream=amf0_decoder.stream,
+            timezone_offset=amf0_decoder.timezone_offset
+        )
+
         self.extra['amf3_decoder'] = decoder
 
         return decoder
+
 
 class Decoder(codec.Decoder):
     """
@@ -176,8 +185,8 @@ class Decoder(codec.Decoder):
         """
         Reads a ActionScript C{Number} value.
 
-        In ActionScript 1 and 2 the C{NumberASTypes} type represents all numbers,
-        both floats and integers.
+        In ActionScript 1 and 2 the C{NumberASTypes} type represents all
+        numbers, both floats and integers.
 
         @rtype: C{int} or C{float}
         """
@@ -194,8 +203,8 @@ class Decoder(codec.Decoder):
 
     def readString(self, bytes=False):
         """
-        Reads a C{string} from the stream. If bytes is C{True} then you will get
-        the raw data read from the stream, otherwise a string that has been
+        Reads a C{string} from the stream. If bytes is C{True} then you will
+        get the raw data read from the stream, otherwise a string that has been
         B{utf-8} decoded.
         """
         l = self.stream.read_ushort()
@@ -227,7 +236,7 @@ class Decoder(codec.Decoder):
         @rtype: L{pyamf.MixedArray}
         """
         # TODO: something with the length/strict
-        self.stream.read_ulong() # length
+        self.stream.read_ulong()  # length
 
         obj = pyamf.MixedArray()
         self.context.addObject(obj)
@@ -344,7 +353,7 @@ class Decoder(codec.Decoder):
         minutes.
         """
         ms = self.stream.read_double() / 1000.0
-        self.stream.read_short() # tz
+        self.stream.read_short()  # tz
 
         # Timezones are ignored
         d = util.get_datetime(ms)
@@ -555,8 +564,10 @@ class Encoder(codec.Encoder):
         # work out the highest integer index
         try:
             # list comprehensions to save the day
-            max_index = max([y[0] for y in o.items()
-                if isinstance(y[0], (int, long))])
+            max_index = max([
+                y[0] for y in o.items()
+                if isinstance(y[0], (int, long))
+            ])
 
             if max_index < 0:
                 max_index = 0
@@ -618,9 +629,11 @@ class Encoder(codec.Encoder):
         @param d: The date to be encoded to the AMF0 data stream.
         """
         if isinstance(d, datetime.time):
-            raise pyamf.EncodeError('A datetime.time instance was found but '
-                'AMF0 has no way to encode time objects. Please use '
-                'datetime.datetime instead (got:%r)' % (d,))
+            raise pyamf.EncodeError(
+                'A datetime.time instance was found but AMF0 has no way to '
+                'encode time objects. Please use datetime.datetime instead '
+                '(got:%r)' % (d,)
+            )
 
         # According to the Red5 implementation of AMF0, dates references are
         # created, but not used.
@@ -688,14 +701,19 @@ class RecordSet(object):
         self.id = id
 
     def _get_server_info(self):
-        ret = pyamf.ASObject(totalCount=len(self.items), cursor=1, version=1,
-            initialData=self.items, columnNames=self.columns)
+        ret = pyamf.ASObject(
+            totalCount=len(self.items),
+            cursor=1,
+            version=1,
+            initialData=self.items,
+            columnNames=self.columns
+        )
 
         if self.service is not None:
             ret.update({'serviceName': str(self.service['name'])})
 
         if self.id is not None:
-            ret.update({'id':str(self.id)})
+            ret.update({'id': str(self.id)})
 
         return ret
 
@@ -734,8 +752,8 @@ pyamf.register_class(RecordSet)
 
 def _check_for_int(x):
     """
-    This is a compatibility function that takes a C{float} and converts it to an
-    C{int} if the values are equal.
+    This is a compatibility function that takes a C{float} and converts it to
+    an C{int} if the values are equal.
     """
     try:
         y = int(x)

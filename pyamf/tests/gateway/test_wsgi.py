@@ -56,8 +56,9 @@ class WSGIServerTestCase(unittest.TestCase):
         self.gw({'REQUEST_METHOD': 'GET'}, bad_response)
         self.assertTrue(self.executed)
 
-        self.assertRaises(KeyError, self.gw, {'REQUEST_METHOD': 'POST'},
-            lambda *args: None)
+        self.assertRaises(
+            KeyError, self.gw, {'REQUEST_METHOD': 'POST'}, lambda *args: None
+        )
 
     def test_bad_request(self):
         request = util.BufferedByteStream()
@@ -100,7 +101,13 @@ class WSGIServerTestCase(unittest.TestCase):
 
         response = self.doRequest(request, start_response)
 
-        self.assertEqual(response, ['400 Bad Request\n\nThe request body was unable to be successfully decoded.'])
+        self.assertEqual(
+            response,
+            [
+                '400 Bad Request\n\nThe request body was unable to be '
+                'successfully decoded.'
+            ]
+        )
         self.assertTrue(self.executed)
 
     def _raiseException(self, e, *args, **kwargs):
@@ -111,7 +118,9 @@ class WSGIServerTestCase(unittest.TestCase):
 
     def test_really_bad_decode(self):
         self.old_method = remoting.decode
-        remoting.decode = lambda *args, **kwargs: self._raiseException(Exception, *args, **kwargs)
+        remoting.decode = lambda *args, **kwargs: self._raiseException(
+            Exception, *args, **kwargs
+        )
         self.addCleanup(self._restoreDecode)
 
         request = util.BufferedByteStream()
@@ -122,8 +131,13 @@ class WSGIServerTestCase(unittest.TestCase):
 
         response = self.doRequest(request, start_response)
 
-        self.assertEqual(response, ['500 Internal Server Error\n\nAn unexpec'
-            'ted error occurred whilst decoding.'])
+        self.assertEqual(
+            response,
+            [
+                '500 Internal Server Error\n\nAn unexpected error occurred '
+                'whilst decoding.'
+            ]
+        )
         self.assertTrue(self.executed)
 
     def test_expected_exceptions_decode(self):
@@ -132,7 +146,9 @@ class WSGIServerTestCase(unittest.TestCase):
         request = util.BufferedByteStream()
 
         for x in (KeyboardInterrupt, SystemExit):
-            remoting.decode = lambda *args, **kwargs: self._raiseException(x, *args, **kwargs)
+            remoting.decode = lambda *args, **kwargs: self._raiseException(
+                x, *args, **kwargs
+            )
 
             self.assertRaises(x, self.doRequest, request, None)
 

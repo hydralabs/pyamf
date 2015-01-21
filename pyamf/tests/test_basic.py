@@ -118,8 +118,10 @@ class HelperTestCase(unittest.TestCase):
         self.assertTrue(encoder.strict)
 
     def test_encode(self):
-        self.assertEqual('\x06\x0fconnect\x05?\xf0\x00\x00\x00\x00\x00\x00',
-            pyamf.encode(u'connect', 1.0).getvalue())
+        self.assertEqual(
+            '\x06\x0fconnect\x05?\xf0\x00\x00\x00\x00\x00\x00',
+            pyamf.encode(u'connect', 1.0).getvalue()
+        )
 
     def test_decode(self):
         expected = [u'connect', 1.0]
@@ -198,7 +200,8 @@ class ClassLoaderTestCase(ClassCacheClearingTestCase):
 
         pyamf.register_class_loader(class_loader)
 
-        self.assertRaises(pyamf.UnknownClassAlias, pyamf.load_class, 'spam.eggs')
+        with self.assertRaises(pyamf.UnknownClassAlias):
+            pyamf.load_class('spam.eggs')
 
     def test_load_class_by_alias(self):
         def class_loader(x):
@@ -223,8 +226,8 @@ class ClassLoaderTestCase(ClassCacheClearingTestCase):
         pyamf.load_class('__builtin__.tuple')
 
     def test_load_class_by_module_bad(self):
-        self.assertRaises(pyamf.UnknownClassAlias, pyamf.load_class,
-            '__builtin__.tuple.')
+        with self.assertRaises(pyamf.UnknownClassAlias):
+            pyamf.load_class('__builtin__.tuple.')
 
 
 class TypeMapTestCase(unittest.TestCase):
@@ -293,10 +296,10 @@ class TypeMapTestCase(unittest.TestCase):
         td = pyamf.add_type((chr,))
         self.assertRaises(KeyError, pyamf.get_type, chr)
 
-        td2 = pyamf.get_type((chr,))
+        td2 = pyamf.get_type((chr, ))
         self.assertEqual(td, td2)
 
-        td2 = pyamf.get_type([chr,])
+        td2 = pyamf.get_type([chr, ])
         self.assertEqual(td, td2)
 
     def test_remove(self):
@@ -376,7 +379,8 @@ class RegisterAliasTypeTestCase(unittest.TestCase):
 
     def test_subclass(self):
         self.assertFalse(issubclass(self.__class__, pyamf.ClassAlias))
-        self.assertRaises(ValueError, pyamf.register_alias_type, self.__class__)
+        with self.assertRaises(ValueError):
+            pyamf.register_alias_type(self.__class__)
 
     def test_no_args(self):
         self.assertTrue(issubclass(DummyAlias, pyamf.ClassAlias))
@@ -402,7 +406,8 @@ class RegisterAliasTypeTestCase(unittest.TestCase):
         class B(object):
             pass
 
-        self.assertRaises(TypeError, pyamf.register_alias_type, DummyAlias, A, 'hello')
+        with self.assertRaises(TypeError):
+            pyamf.register_alias_type(DummyAlias, A, 'hello')
 
         pyamf.register_alias_type(DummyAlias, A, B)
         self.assertTrue(DummyAlias in pyamf.ALIAS_TYPES)
@@ -414,7 +419,8 @@ class RegisterAliasTypeTestCase(unittest.TestCase):
 
         pyamf.register_alias_type(DummyAlias, A)
 
-        self.assertRaises(RuntimeError, pyamf.register_alias_type, DummyAlias, A)
+        with self.assertRaises(RuntimeError):
+            pyamf.register_alias_type(DummyAlias, A)
 
     def test_unregister(self):
         """

@@ -5,7 +5,8 @@
 AMF3 RemoteObject support.
 
 @see: U{RemoteObject on Adobe Help (external)
-    <http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/rpc/remoting/RemoteObject.html>}
+    <http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/rpc/
+    remoting/RemoteObject.html>}
 
 @since: 0.1
 """
@@ -118,31 +119,49 @@ class RequestProcessor(object):
         @raise ServerCallFailed: Unknown request.
         """
         if isinstance(ro_request, messaging.CommandMessage):
-            return self._processCommandMessage(amf_request, ro_request, **kwargs)
+            return self._processCommandMessage(
+                amf_request,
+                ro_request,
+                **kwargs
+            )
         elif isinstance(ro_request, messaging.RemotingMessage):
-            return self._processRemotingMessage(amf_request, ro_request, **kwargs)
+            return self._processRemotingMessage(
+                amf_request,
+                ro_request,
+                **kwargs
+            )
         elif isinstance(ro_request, messaging.AsyncMessage):
-            return self._processAsyncMessage(amf_request, ro_request, **kwargs)
+            return self._processAsyncMessage(
+                amf_request,
+                ro_request,
+                **kwargs
+            )
         else:
             raise ServerCallFailed("Unknown request: %s" % ro_request)
 
     def _processCommandMessage(self, amf_request, ro_request, **kwargs):
         """
         @raise ServerCallFailed: Unknown Command operation.
-        @raise ServerCallFailed: Authorization is not supported in RemoteObject.
+        @raise ServerCallFailed: Authorization is not supported in
+            RemoteObject.
         """
         ro_response = generate_acknowledgement(ro_request)
+        operation = ro_request.operation
 
-        if ro_request.operation == messaging.CommandMessage.PING_OPERATION:
+        if operation == messaging.CommandMessage.PING_OPERATION:
             ro_response.body = True
 
             return remoting.Response(ro_response)
-        elif ro_request.operation == messaging.CommandMessage.LOGIN_OPERATION:
-            raise ServerCallFailed("Authorization is not supported in RemoteObject")
-        elif ro_request.operation == messaging.CommandMessage.DISCONNECT_OPERATION:
+        elif operation == messaging.CommandMessage.LOGIN_OPERATION:
+            raise ServerCallFailed(
+                "Authorization is not supported in RemoteObject"
+            )
+        elif operation == messaging.CommandMessage.DISCONNECT_OPERATION:
             return remoting.Response(ro_response)
         else:
-            raise ServerCallFailed("Unknown Command operation %s" % ro_request.operation)
+            raise ServerCallFailed("Unknown Command operation %s" % (
+                operation,
+            ))
 
     def _processAsyncMessage(self, amf_request, ro_request, **kwargs):
         ro_response = generate_acknowledgement(ro_request)
@@ -165,8 +184,11 @@ class RequestProcessor(object):
         self.gateway.preprocessRequest(service_request, *ro_request.body,
                                        **kwargs)
 
-        ro_response.body = self.gateway.callServiceRequest(service_request,
-                                                *ro_request.body, **kwargs)
+        ro_response.body = self.gateway.callServiceRequest(
+            service_request,
+            *ro_request.body,
+            **kwargs
+        )
 
         return remoting.Response(ro_response)
 

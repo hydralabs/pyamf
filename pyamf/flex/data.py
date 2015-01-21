@@ -37,7 +37,8 @@ class DataMessage(AsyncMessage):
     conflicts.
 
     @see: U{DataMessage on Livedocs<http://
-        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/data/messages/DataMessage.html>}
+        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/data/
+        messages/DataMessage.html>}
     """
 
     def __init__(self):
@@ -58,7 +59,8 @@ class SequencedMessage(AcknowledgeMessage):
     Response to L{DataMessage} requests.
 
     @see: U{SequencedMessage on Livedocs<http://
-        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/data/messages/SequencedMessage.html>}
+        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/data/
+        messages/SequencedMessage.html>}
     """
 
     def __init__(self):
@@ -85,7 +87,8 @@ class PagedMessage(SequencedMessage):
     This messsage provides information about a partial sequence result.
 
     @see: U{PagedMessage on Livedocs<http://
-        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/data/messages/PagedMessage.html>}
+        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/data/
+        messages/PagedMessage.html>}
     """
 
     def __init__(self):
@@ -106,7 +109,8 @@ class DataErrorMessage(ErrorMessage):
     the L{ErrorMessage<pyamf.flex.messaging.ErrorMessage>} information.
 
     @see: U{DataErrorMessage on Livedocs<http://
-        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/data/messages/DataErrorMessage.html>}
+        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/data/
+        messages/DataErrorMessage.html>}
     """
 
     def __init__(self):

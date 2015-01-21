@@ -72,7 +72,9 @@ class RequestProcessorTestCase(unittest.TestCase):
 
         gw = gateway.BaseGateway({'echo': echo})
         rp = amf3.RequestProcessor(gw)
-        message = messaging.RemotingMessage(body=['spam.eggs'], operation='echo')
+        message = messaging.RemotingMessage(
+            body=['spam.eggs'], operation='echo'
+        )
         request = remoting.Request('null', body=[message])
 
         response = rp(request)
@@ -89,7 +91,9 @@ class RequestProcessorTestCase(unittest.TestCase):
 
         gw = gateway.BaseGateway({'echo': echo})
         rp = amf3.RequestProcessor(gw)
-        message = messaging.RemotingMessage(body=['spam.eggs'], operation='echo')
+        message = messaging.RemotingMessage(
+            body=['spam.eggs'], operation='echo'
+        )
         request = remoting.Request('null', body=[message])
 
         response = rp(request)
@@ -108,7 +112,9 @@ class RequestProcessorTestCase(unittest.TestCase):
 
         gw = gateway.BaseGateway({'echo': echo}, debug=True)
         rp = amf3.RequestProcessor(gw)
-        message = messaging.RemotingMessage(body=['spam.eggs'], operation='echo')
+        message = messaging.RemotingMessage(
+            body=['spam.eggs'], operation='echo'
+        )
         request = remoting.Request('null', body=[message])
 
         response = rp(request)
@@ -127,7 +133,9 @@ class RequestProcessorTestCase(unittest.TestCase):
 
         gw = gateway.BaseGateway({'spam': spam})
         rp = amf3.RequestProcessor(gw)
-        message = messaging.RemotingMessage(body=['eggs', 'baz'], operation='spam')
+        message = messaging.RemotingMessage(
+            body=['eggs', 'baz'], operation='spam'
+        )
         request = remoting.Request('null', body=[message])
 
         response = rp(request)
@@ -152,7 +160,9 @@ class RequestProcessorTestCase(unittest.TestCase):
 
         gw = gateway.BaseGateway({'echo': echo}, preprocessor=preproc)
         rp = amf3.RequestProcessor(gw)
-        message = messaging.RemotingMessage(body=['spam.eggs'], operation='echo')
+        message = messaging.RemotingMessage(
+            body=['spam.eggs'], operation='echo'
+        )
         request = remoting.Request('null', body=[message])
 
         response = rp(request)
@@ -173,7 +183,9 @@ class RequestProcessorTestCase(unittest.TestCase):
 
         gw = gateway.BaseGateway({'echo': echo}, preprocessor=preproc)
         rp = amf3.RequestProcessor(gw)
-        message = messaging.RemotingMessage(body=['spam.eggs'], operation='echo')
+        message = messaging.RemotingMessage(
+            body=['spam.eggs'], operation='echo'
+        )
         request = remoting.Request('null', body=[message])
 
         response = rp(request)
@@ -189,7 +201,9 @@ class RequestProcessorTestCase(unittest.TestCase):
 
         gw = gateway.BaseGateway({'spam.eggs': echo})
         rp = amf3.RequestProcessor(gw)
-        message = messaging.RemotingMessage(body=[None], destination='spam', operation='eggs')
+        message = messaging.RemotingMessage(
+            body=[None], destination='spam', operation='eggs'
+        )
         request = remoting.Request('null', body=[message])
 
         response = rp(request)
@@ -233,7 +247,9 @@ class RequestProcessorTestCase(unittest.TestCase):
 
         gw = gateway.BaseGateway({'echo': echo})
         rp = amf3.RequestProcessor(gw)
-        message = messaging.RemotingMessage(body=['spam.eggs'], operation='echo')
+        message = messaging.RemotingMessage(
+            body=['spam.eggs'], operation='echo'
+        )
         request = remoting.Request('null', body=[message])
 
         response = rp(request)

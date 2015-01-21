@@ -99,8 +99,10 @@ class WebAppGatewayTestCase(BaseTestCase):
         self.gw.expose_request = True
         self.gw.addService(test, 'test.test')
 
-        self.environ['wsgi.input'].write('\x00\x00\x00\x00\x00\x01\x00\x09'
-            'test.test\x00\x02/1\x00\x00\x00\x05\x0a\x00\x00\x00\x00')
+        self.environ['wsgi.input'].write(
+            '\x00\x00\x00\x00\x00\x01\x00\x09'
+            'test.test\x00\x02/1\x00\x00\x00\x05\x0a\x00\x00\x00\x00'
+        )
         self.environ['wsgi.input'].seek(0, 0)
 
         self.gw.post()

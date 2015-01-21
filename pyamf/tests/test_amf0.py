@@ -71,7 +71,9 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
         self.assertEncoded('', '\x02\x00\x00')
         self.assertEncoded('hello', '\x02\x00\x05hello')
         # unicode taken from http://www.columbia.edu/kermit/utf8.html
-        self.assertEncoded(u'ᚠᛇᚻ', '\x02\x00\t\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb')
+        self.assertEncoded(
+            u'ᚠᛇᚻ', '\x02\x00\t\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb'
+        )
 
     def test_null(self):
         self.assertEncoded(None, '\x05')
@@ -81,12 +83,16 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
 
     def test_list(self):
         self.assertEncoded([], '\x0a\x00\x00\x00\x00')
-        self.assertEncoded([1, 2, 3],
+        self.assertEncoded(
+            [1, 2, 3],
             '\x0a\x00\x00\x00\x03\x00\x3f\xf0\x00\x00\x00\x00\x00\x00\x00\x40'
-            '\x00\x00\x00\x00\x00\x00\x00\x00\x40\x08\x00\x00\x00\x00\x00\x00')
-        self.assertEncoded((1, 2, 3), '\x0a\x00\x00\x00\x03\x00\x3f\xf0\x00'
-            '\x00\x00\x00\x00\x00\x00\x40\x00\x00\x00\x00\x00\x00\x00\x00'
-            '\x40\x08\x00\x00\x00\x00\x00\x00')
+            '\x00\x00\x00\x00\x00\x00\x00\x00\x40\x08\x00\x00\x00\x00\x00\x00'
+        )
+        self.assertEncoded(
+            (1, 2, 3),
+            '\x0a\x00\x00\x00\x03\x00\x3f\xf0\x00\x00\x00\x00\x00\x00\x00\x40'
+            '\x00\x00\x00\x00\x00\x00\x00\x00\x40\x08\x00\x00\x00\x00\x00\x00'
+        )
 
     def test_list_references(self):
         x = []
@@ -121,30 +127,43 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
         self.assertEqual(self.encode(d), '\x07\x00\x00')
 
     def test_date(self):
-        self.assertEncoded(datetime.datetime(2005, 3, 18, 1, 58, 31),
-            '\x0bBp+6!\x15\x80\x00\x00\x00')
-        self.assertEncoded(datetime.date(2003, 12, 1),
-            '\x0bBo%\xe2\xb2\x80\x00\x00\x00\x00')
-        self.assertEncoded(datetime.datetime(2009, 3, 8, 23, 30, 47, 770122),
-            '\x0bBq\xfe\x86\xca5\xa1\xf4\x00\x00')
+        self.assertEncoded(
+            datetime.datetime(2005, 3, 18, 1, 58, 31),
+            '\x0bBp+6!\x15\x80\x00\x00\x00'
+        )
+        self.assertEncoded(
+            datetime.date(2003, 12, 1),
+            '\x0bBo%\xe2\xb2\x80\x00\x00\x00\x00'
+        )
+        self.assertEncoded(
+            datetime.datetime(2009, 3, 8, 23, 30, 47, 770122),
+            '\x0bBq\xfe\x86\xca5\xa1\xf4\x00\x00'
+        )
 
         self.assertRaises(pyamf.EncodeError, self.encode, datetime.time(22, 3))
 
     def test_xml(self):
         blob = '<a><b>hello world</b></a>'
 
-        self.assertEncoded(xml.fromstring(blob),
-            '\x0f\x00\x00\x00\x19' + blob)
+        self.assertEncoded(
+            xml.fromstring(blob),
+            '\x0f\x00\x00\x00\x19' + blob
+        )
 
     def test_xml_references(self):
         blob = '<a><b>hello world</b></a>'
         x = xml.fromstring(blob)
 
-        self.assertEncoded([x, x], '\n\x00\x00\x00\x02' +
-                ('\x0f\x00\x00\x00\x19' + blob) * 2)
+        self.assertEncoded(
+            [x, x],
+            '\n\x00\x00\x00\x02' + ('\x0f\x00\x00\x00\x19' + blob) * 2
+        )
 
     def test_object(self):
-        self.assertEncoded({'a': 'b'}, '\x03\x00\x01a\x02\x00\x01b\x00\x00\x09')
+        self.assertEncoded(
+            {'a': 'b'},
+            '\x03\x00\x01a\x02\x00\x01b\x00\x00\x09'
+        )
 
     def test_force_amf3(self):
         alias = pyamf.register_class(Spam, 'spam.eggs')
@@ -161,21 +180,31 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
         x = Spam()
         x.baz = 'hello'
 
-        self.assertEncoded(x, '\x10\x00\x0eorg.pyamf.spam\x00\x03baz'
-            '\x02\x00\x05hello\x00\x00\t')
+        self.assertEncoded(
+            x,
+            '\x10\x00\x0eorg.pyamf.spam\x00\x03baz\x02\x00\x05hello\x00\x00\t'
+        )
 
     def test_complex_list(self):
-        self.assertEncoded([[1.0]], '\x0a\x00\x00\x00\x01\x0a\x00\x00\x00\x01'
-            '\x00\x3f\xf0\x00\x00\x00\x00\x00\x00')
+        self.assertEncoded(
+            [[1.0]],
+            '\x0a\x00\x00\x00\x01\x0a\x00\x00\x00\x01\x00\x3f\xf0\x00\x00\x00'
+            '\x00\x00\x00'
+        )
 
-        self.assertEncoded([['test', 'test', 'test', 'test']],
-            '\x0a\x00\x00\x00\x01\x0a\x00\x00\x00\x04' + ('\x02\x00\x04test' * 4))
+        self.assertEncoded(
+            [['test', 'test', 'test', 'test']],
+            '\x0a\x00\x00\x00\x01\x0a\x00\x00\x00\x04' +
+            ('\x02\x00\x04test' * 4)
+        )
 
         x = {'a': 'spam', 'b': 'eggs'}
 
-        self.assertEncoded([[x, x]], '\n\x00\x00\x00\x01\n\x00\x00\x00\x02'
-            '\x03\x00\x01a\x02\x00\x04spam\x00\x01b\x02\x00\x04eggs\x00\x00'
-            '\t\x07\x00\x02')
+        self.assertEncoded(
+            [[x, x]],
+            '\n\x00\x00\x00\x01\n\x00\x00\x00\x02\x03\x00\x01a\x02\x00\x04spam'
+            '\x00\x01b\x02\x00\x04eggs\x00\x00\t\x07\x00\x02'
+        )
 
     def test_amf3(self):
         self.encoder.use_amf3 = True
@@ -191,8 +220,12 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
         x.spam = 'eggs'
         x.hello = 'world'
 
-        self.assertEncoded(x, '\x03', ('\x00\x05hello\x02\x00\x05world',
-            '\x00\x04spam\x02\x00\x04eggs'), '\x00\x00\t')
+        self.assertEncoded(
+            x,
+            '\x03',
+            ('\x00\x05hello\x02\x00\x05world', '\x00\x04spam\x02\x00\x04eggs'),
+            '\x00\x00\t'
+        )
 
     def test_dynamic(self):
         x = Spam()
@@ -223,8 +256,12 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
 
         self.assertTrue(alias.dynamic)
 
-        self.assertEncoded(x, '\x03', ('\x00\x05hello\x02\x00\x05world',
-            '\x00\x03foo\x02\x00\x03bar'), '\x00\x00\t')
+        self.assertEncoded(
+            x,
+            '\x03',
+            ('\x00\x05hello\x02\x00\x05world', '\x00\x03foo\x02\x00\x03bar'),
+            '\x00\x00\t'
+        )
 
     def test_dynamic_registered(self):
         x = Spam()
@@ -240,8 +277,12 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
 
         self.assertTrue(alias.dynamic)
 
-        self.assertEncoded(x, '\x10\x00\x01x', '\x00\x05hello\x02\x00\x05world',
-            '\x00\x00\t')
+        self.assertEncoded(
+            x,
+            '\x10\x00\x01x',
+            '\x00\x05hello\x02\x00\x05world',
+            '\x00\x00\t'
+        )
 
     def test_custom_type(self):
         def write_as_list(list_interface_obj, encoder):
@@ -262,9 +303,11 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
         self.encoder.writeElement(x)
         self.assertEqual(x.ran, True)
 
-        self.assertEqual(self.buf.getvalue(), '\n\x00\x00\x00\x03\x00?\xf0'
-            '\x00\x00\x00\x00\x00\x00\x00@\x00\x00\x00\x00\x00\x00\x00\x00@'
-            '\x08\x00\x00\x00\x00\x00\x00')
+        self.assertEqual(
+            self.buf.getvalue(),
+            '\n\x00\x00\x00\x03\x00?\xf0\x00\x00\x00\x00\x00\x00\x00@\x00\x00'
+            '\x00\x00\x00\x00\x00\x00@\x08\x00\x00\x00\x00\x00\x00'
+        )
 
     def test_old_style_classes(self):
         class Person:
@@ -327,11 +370,15 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
         foo.text = 'bar'
         foo.tail = None
 
-        self.assertEncoded(foo, '\x03', (
-            '\x00\x04text\x02\x00\x03bar',
-            '\x00\x04tail\x05',
-            '\x00\x03tag\x02\x00\x03foo',
-        ), '\x00\x00\t')
+        self.assertEncoded(
+            foo,
+            '\x03', (
+                '\x00\x04text\x02\x00\x03bar',
+                '\x00\x04tail\x05',
+                '\x00\x03tag\x02\x00\x03foo',
+            ),
+            '\x00\x00\t'
+        )
 
     def test_funcs(self):
         def x():
@@ -371,7 +418,9 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
         a.append('foo')
         a.append('bar')
 
-        self.assertEncoded(a, '\n\x00\x00\x00\x02\x02\x00\x03foo\x02\x00\x03bar')
+        self.assertEncoded(
+            a, '\n\x00\x00\x00\x02\x02\x00\x03foo\x02\x00\x03bar'
+        )
 
     def test_amf3_xml(self):
         self.encoder.use_amf3 = True
@@ -393,8 +442,11 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
 
         x = {'foo': 'bar', 'baz': 'gak'}
 
-        self.assertEncoded(x, '\x11\n\x0b', ('\x01\x07foo\x06\x07bar',
-            '\x07baz\x06\x07gak\x01'))
+        self.assertEncoded(
+            x,
+            '\x11\n\x0b',
+            ('\x01\x07foo\x06\x07bar', '\x07baz\x06\x07gak\x01')
+        )
 
     def test_static_attrs(self):
         class Foo(object):
@@ -407,8 +459,12 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
         x.foo = 'baz'
         x.bar = 'gak'
 
-        self.assertEncoded(x, '\x03', ('\x00\x03bar\x02\x00\x03gak',
-            '\x00\x03foo\x02\x00\x03baz'), '\x00\x00\t')
+        self.assertEncoded(
+            x,
+            '\x03',
+            ('\x00\x03bar\x02\x00\x03gak', '\x00\x03foo\x02\x00\x03baz'),
+            '\x00\x00\t'
+        )
 
     def test_class(self):
         class Classic:
@@ -417,8 +473,11 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
         class New(object):
             pass
 
-        self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, Classic)
-        self.assertRaises(pyamf.EncodeError, self.encoder.writeElement, New)
+        with self.assertRaises(pyamf.EncodeError):
+            self.encoder.writeElement(Classic)
+
+        with self.assertRaises(pyamf.EncodeError):
+            self.encoder.writeElement(New)
 
     def test_timezone(self):
         d = datetime.datetime(2009, 9, 24, 14, 23, 23)
@@ -432,9 +491,12 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
             yield '\xff'
             yield pyamf.Undefined
 
-        self.assertEncoded(foo(), '\n\x00\x00\x00\x03\x00?\xf0\x00\x00\x00\x00'
-            '\x00\x00\x00@\x00\x00\x00\x00\x00\x00\x00\x00@\x08\x00\x00\x00\x00'
-            '\x00\x00\x02\x00\x01\xff\x06')
+        self.assertEncoded(
+            foo(),
+            '\n\x00\x00\x00\x03\x00?\xf0\x00\x00\x00\x00\x00\x00\x00@\x00\x00'
+            '\x00\x00\x00\x00\x00\x00@\x08\x00\x00\x00\x00\x00\x00\x02\x00\x01'
+            '\xff\x06'
+        )
 
     def test_iterate(self):
         self.assertRaises(StopIteration, self.encoder.next)
@@ -445,14 +507,18 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
 
         self.assertEqual(self.encoder.next(), '\x02\x00\x00')
         self.assertEqual(self.encoder.next(), '\x02\x00\x05hello')
-        self.assertEqual(self.encoder.next(), '\x02\x00\x06\xc6\x92\xc3\xb8\xc3\xb8')
+        self.assertEqual(
+            self.encoder.next(),
+            '\x02\x00\x06\xc6\x92\xc3\xb8\xc3\xb8'
+        )
 
         self.assertRaises(StopIteration, self.encoder.next)
 
         self.assertIdentical(iter(self.encoder), self.encoder)
-        self.assertEqual(self.buf.getvalue(),
-            '\x02\x00\x00\x02\x00\x05hello\x02\x00\x06\xc6\x92\xc3\xb8\xc3\xb8')
-
+        self.assertEqual(
+            self.buf.getvalue(),
+            '\x02\x00\x00\x02\x00\x05hello\x02\x00\x06\xc6\x92\xc3\xb8\xc3\xb8'
+        )
 
     def test_subclassed_tuple(self):
         """
@@ -463,13 +529,15 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
         class Foo(tuple):
             pass
 
-        x = Foo([1,2])
+        x = Foo([1, 2])
 
         self.encoder.send(x)
 
-        self.assertEqual(self.encoder.next(), '\n\x00\x00\x00\x02\x00?\xf0\x00'
-            '\x00\x00\x00\x00\x00\x00@\x00\x00\x00\x00\x00\x00\x00')
-
+        self.assertEqual(
+            self.encoder.next(),
+            '\n\x00\x00\x00\x02\x00?\xf0\x00\x00\x00\x00\x00\x00\x00@\x00\x00'
+            '\x00\x00\x00\x00\x00'
+        )
 
 
 class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
@@ -502,9 +570,9 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
             ('\x00\x40\x45\x00\x00\x00\x00\x00\x00', int),
             ('\x00\xc0\x5e\xc0\x00\x00\x00\x00\x00', int),
             ('\x00\x3f\xf3\xc0\xca\x42\x83\xde\x1b', float),
-            ('\x00\xff\xf8\x00\x00\x00\x00\x00\x00', float), # nan
-            ('\x00\xff\xf0\x00\x00\x00\x00\x00\x00', float), # -inf
-            ('\x00\x7f\xf0\x00\x00\x00\x00\x00\x00', float), # inf
+            ('\x00\xff\xf8\x00\x00\x00\x00\x00\x00', float),  # nan
+            ('\x00\xff\xf0\x00\x00\x00\x00\x00\x00', float),  # -inf
+            ('\x00\x7f\xf0\x00\x00\x00\x00\x00\x00', float),  # inf
         ]
 
         for t in nr_types:
@@ -540,8 +608,10 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
     def test_string(self):
         self.assertDecoded('', '\x02\x00\x00')
         self.assertDecoded('hello', '\x02\x00\x05hello')
-        self.assertDecoded(u'ᚠᛇᚻ',
-            '\x02\x00\t\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb')
+        self.assertDecoded(
+            u'ᚠᛇᚻ',
+            '\x02\x00\t\xe1\x9a\xa0\xe1\x9b\x87\xe1\x9a\xbb'
+        )
 
     def test_longstring(self):
         a = 'a' * 65537
@@ -553,9 +623,11 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
 
     def test_list(self):
         self.assertDecoded([], '\x0a\x00\x00\x00\x00')
-        self.assertDecoded([1, 2, 3], '\x0a\x00\x00\x00\x03\x00\x3f\xf0\x00'
-            '\x00\x00\x00\x00\x00\x00\x40\x00\x00\x00\x00\x00\x00\x00\x00\x40'
-            '\x08\x00\x00\x00\x00\x00\x00')
+        self.assertDecoded(
+            [1, 2, 3],
+            '\x0a\x00\x00\x00\x03\x00\x3f\xf0\x00\x00\x00\x00\x00\x00\x00\x40'
+            '\x00\x00\x00\x00\x00\x00\x00\x00\x40\x08\x00\x00\x00\x00\x00\x00'
+        )
 
     def test_dict(self):
         bytes = '\x08\x00\x00\x00\x00\x00\x01\x61\x02\x00\x01\x61\x00\x00\x09'
@@ -564,24 +636,30 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
 
         self.buf.write(bytes)
         self.buf.seek(0)
-        d = self.decoder.readElement()
+        self.decoder.readElement()
 
     def test_mixed_array(self):
-        bytes = ('\x08\x00\x00\x00\x00\x00\x01a\x00?\xf0\x00\x00\x00\x00\x00'
-            '\x00\x00\x01c\x00@\x08\x00\x00\x00\x00\x00\x00\x00\x01b\x00@\x00'
-            '\x00\x00\x00\x00\x00\x00\x00\x00\t')
+        bytes = (
+            '\x08\x00\x00\x00\x00\x00\x01a\x00?\xf0\x00\x00\x00\x00\x00\x00'
+            '\x00\x01c\x00@\x08\x00\x00\x00\x00\x00\x00\x00\x01b\x00@\x00\x00'
+            '\x00\x00\x00\x00\x00\x00\x00\t'
+        )
 
         self.assertDecoded(pyamf.MixedArray(a=1, b=2, c=3), bytes)
 
         self.buf.write(bytes)
         self.buf.seek(0)
-        d = self.decoder.readElement()
+        self.decoder.readElement()
 
     def test_date(self):
-        self.assertDecoded(datetime.datetime(2005, 3, 18, 1, 58, 31),
-            '\x0bBp+6!\x15\x80\x00\x00\x00')
-        self.assertDecoded(datetime.datetime(2009, 3, 8, 23, 30, 47, 770122),
-            '\x0bBq\xfe\x86\xca5\xa1\xf4\x00\x00')
+        self.assertDecoded(
+            datetime.datetime(2005, 3, 18, 1, 58, 31),
+            '\x0bBp+6!\x15\x80\x00\x00\x00'
+        )
+        self.assertDecoded(
+            datetime.datetime(2009, 3, 8, 23, 30, 47, 770122),
+            '\x0bBq\xfe\x86\xca5\xa1\xf4\x00\x00'
+        )
 
     def test_xml(self):
         e = '<a><b>hello world</b></a>'
@@ -591,8 +669,9 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
 
     def test_xml_references(self):
         self.buf.truncate(0)
-        self.buf.write('\x0f\x00\x00\x00\x19<a><b>hello world</b></a>'
-            '\x07\x00\x00')
+        self.buf.write(
+            '\x0f\x00\x00\x00\x19<a><b>hello world</b></a>\x07\x00\x00'
+        )
         self.buf.seek(0)
 
         self.assertEqual(
@@ -610,13 +689,15 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
 
         self.buf.write(bytes)
         self.buf.seek(0)
-        d = self.decoder.readElement()
+        self.decoder.readElement()
 
     def test_registered_class(self):
         pyamf.register_class(Spam, alias='org.pyamf.spam')
 
-        bytes = ('\x10\x00\x0eorg.pyamf.spam\x00\x03baz'
-            '\x02\x00\x05hello\x00\x00\x09')
+        bytes = (
+            '\x10\x00\x0eorg.pyamf.spam\x00\x03baz\x02\x00\x05hello\x00\x00'
+            '\x09'
+        )
 
         obj = self.decode(bytes)
 
@@ -628,18 +709,25 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
     def test_complex_list(self):
         x = datetime.datetime(2007, 11, 3, 8, 7, 37, 437000)
 
-        self.assertDecoded([['test','test','test','test']],
+        self.assertDecoded(
+            [['test', 'test', 'test', 'test']],
             '\x0A\x00\x00\x00\x01\x0A\x00\x00\x00\x04\x02\x00\x04\x74\x65\x73'
             '\x74\x02\x00\x04\x74\x65\x73\x74\x02\x00\x04\x74\x65\x73\x74\x02'
-            '\x00\x04\x74\x65\x73\x74')
-        self.assertDecoded([x], '\x0a\x00\x00\x00\x01\x0b\x42\x71\x60\x48\xcf'
-            '\xed\xd0\x00\x00\x00')
+            '\x00\x04\x74\x65\x73\x74'
+        )
+        self.assertDecoded(
+            [x],
+            '\x0a\x00\x00\x00\x01\x0b\x42\x71\x60\x48\xcf\xed\xd0\x00\x00\x00'
+        )
         self.assertDecoded(
             [[{u'a': u'spam', u'b': u'eggs'}, {u'a': u'spam', u'b': u'eggs'}]],
             '\n\x00\x00\x00\x01\n\x00\x00\x00\x02\x08\x00\x00\x00\x00\x00\x01'
             'a\x02\x00\x04spam\x00\x01b\x02\x00\x04eggs\x00\x00\t\x07\x00\x02')
-        self.assertDecoded([[1.0]], '\x0A\x00\x00\x00\x01\x0A\x00\x00\x00\x01'
-            '\x00\x3F\xF0\x00\x00\x00\x00\x00\x00')
+        self.assertDecoded(
+            [[1.0]],
+            '\x0A\x00\x00\x00\x01\x0A\x00\x00\x00\x01\x00\x3F\xF0\x00\x00\x00'
+            '\x00\x00\x00'
+        )
 
     def test_amf3(self):
         self.buf.write('\x11\x04\x01')
@@ -658,13 +746,18 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         alias = pyamf.register_class(Foo, 'x')
         alias.exclude_attrs = ['hello']
 
-        self.assertDecoded(x, '\x10\x00\x01x\x00\x03foo\x02\x00\x03bar\x00'
-            '\x05hello\x02\x00\x05world\x00\x00\t')
+        self.assertDecoded(
+            x,
+            '\x10\x00\x01x\x00\x03foo\x02\x00\x03bar\x00\x05hello\x02\x00\x05w'
+            'orld\x00\x00\t'
+        )
 
     def test_classic_class(self):
         pyamf.register_class(ClassicSpam, 'spam.eggs')
 
-        self.buf.write('\x10\x00\tspam.eggs\x00\x03foo\x02\x00\x03bar\x00\x00\t')
+        self.buf.write(
+            '\x10\x00\tspam.eggs\x00\x03foo\x02\x00\x03bar\x00\x00\t'
+        )
         self.buf.seek(0)
 
         foo = self.decoder.readElement()
@@ -675,7 +768,9 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         self.assertFalse(self.decoder.strict)
 
         # write a typed object to the stream
-        self.buf.write('\x10\x00\tspam.eggs\x00\x03foo\x02\x00\x03bar\x00\x00\t')
+        self.buf.write(
+            '\x10\x00\tspam.eggs\x00\x03foo\x02\x00\x03bar\x00\x00\t'
+        )
         self.buf.seek(0)
 
         self.assertFalse('spam.eggs' in pyamf.CLASS_CACHE)
@@ -692,7 +787,9 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         self.assertTrue(self.decoder.strict)
 
         # write a typed object to the stream
-        self.buf.write('\x10\x00\tspam.eggs\x00\x03foo\x02\x00\x03bar\x00\x00\t')
+        self.buf.write(
+            '\x10\x00\tspam.eggs\x00\x03foo\x02\x00\x03bar\x00\x00\t'
+        )
         self.buf.seek(0)
 
         self.assertFalse('spam.eggs' in pyamf.CLASS_CACHE)
@@ -703,8 +800,10 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         class Person(object):
             __slots__ = ('family_name', 'given_name')
 
-        self.buf.write('\x03\x00\x0bfamily_name\x02\x00\x03Doe\x00\n'
-            'given_name\x02\x00\x04Jane\x00\x00\t')
+        self.buf.write(
+            '\x03\x00\x0bfamily_name\x02\x00\x03Doe\x00\ngiven_name\x02\x00'
+            '\x04Jane\x00\x00\t'
+        )
         self.buf.seek(0)
 
         foo = self.decoder.readElement()
@@ -718,8 +817,10 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
 
         pyamf.register_class(Person, 'spam.eggs.Person')
 
-        self.buf.write('\x10\x00\x10spam.eggs.Person\x00\x0bfamily_name\x02'
-            '\x00\x03Doe\x00\ngiven_name\x02\x00\x04Jane\x00\x00\t')
+        self.buf.write(
+            '\x10\x00\x10spam.eggs.Person\x00\x0bfamily_name\x02\x00\x03Doe'
+            '\x00\ngiven_name\x02\x00\x04Jane\x00\x00\t'
+        )
         self.buf.seek(0)
 
         foo = self.decoder.readElement()
@@ -805,7 +906,6 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
         self.assertEqual(d, [{10: u'foobar'}])
 
 
-
 class RecordSetTestCase(unittest.TestCase, EncoderMixIn, DecoderMixIn):
     """
     Tests for L{amf0.RecordSet}
@@ -815,17 +915,20 @@ class RecordSetTestCase(unittest.TestCase, EncoderMixIn, DecoderMixIn):
     blob = (
         '\x10\x00\tRecordSet\x00\nserverInfo\x03', (
             '\x00\x06cursor\x00?\xf0\x00\x00\x00\x00\x00\x00',
-            '\x00\x0bcolumnNames\n\x00\x00\x00\x03\x02\x00\x01a\x02\x00\x01b\x02\x00\x01c',
+            '\x00\x0bcolumnNames\n\x00\x00\x00\x03\x02\x00\x01a\x02\x00\x01b'
+            '\x02\x00\x01c',
             '\x00\x0binitialData\n\x00\x00\x00\x03\n\x00\x00\x00\x03\x00?\xf0'
-                '\x00\x00\x00\x00\x00\x00\x00@\x00\x00\x00\x00\x00\x00\x00\x00'
-                '@\x08\x00\x00\x00\x00\x00\x00\n\x00\x00\x00\x03\x00@\x10\x00'
-                '\x00\x00\x00\x00\x00\x00@\x14\x00\x00\x00\x00\x00\x00\x00@\x18'
-                '\x00\x00\x00\x00\x00\x00\n\x00\x00\x00\x03\x00@\x1c\x00\x00'
-                '\x00\x00\x00\x00\x00@ \x00\x00\x00\x00\x00\x00\x00@"\x00\x00'
-                '\x00\x00\x00\x00',
+            '\x00\x00\x00\x00\x00\x00\x00@\x00\x00\x00\x00\x00\x00\x00\x00'
+            '@\x08\x00\x00\x00\x00\x00\x00\n\x00\x00\x00\x03\x00@\x10\x00'
+            '\x00\x00\x00\x00\x00\x00@\x14\x00\x00\x00\x00\x00\x00\x00@\x18'
+            '\x00\x00\x00\x00\x00\x00\n\x00\x00\x00\x03\x00@\x1c\x00\x00'
+            '\x00\x00\x00\x00\x00@ \x00\x00\x00\x00\x00\x00\x00@"\x00\x00'
+            '\x00\x00\x00\x00',
             '\x00\x07version\x00?\xf0\x00\x00\x00\x00\x00\x00',
-            '\x00\ntotalCount\x00@\x08\x00\x00\x00\x00\x00\x00'),
-        '\x00\x00\t\x00\x00\t')
+            '\x00\ntotalCount\x00@\x08\x00\x00\x00\x00\x00\x00'
+        ),
+        '\x00\x00\t\x00\x00\t'
+    )
 
     def setUp(self):
         unittest.TestCase.setUp(self)
@@ -903,8 +1006,9 @@ class RecordSetTestCase(unittest.TestCase, EncoderMixIn, DecoderMixIn):
         # with service & id
         service = {'name': 'baz'}
 
-        x = amf0.RecordSet(columns=['spam'], items=[['eggs']],
-            service=service, id='asdfasdf')
+        x = amf0.RecordSet(
+            columns=['spam'], items=[['eggs']], service=service, id='asdfasdf'
+        )
 
         si = x.serverInfo
 
@@ -936,11 +1040,18 @@ class RecordSetTestCase(unittest.TestCase, EncoderMixIn, DecoderMixIn):
         self.assertEqual(x.id, None)
 
     def test_repr(self):
-        x = amf0.RecordSet(columns=['spam'], items=[['eggs']],
-            service={'name': 'baz'}, id='asdfasdf')
+        x = amf0.RecordSet(
+            columns=['spam'],
+            items=[['eggs']],
+            service={'name': 'baz'},
+            id='asdfasdf',
+        )
 
-        self.assertEqual(repr(x), "<pyamf.amf0.RecordSet id=asdfasdf "
-            "service={'name': 'baz'} at 0x%x>" % (id(x),))
+        self.assertEqual(
+            repr(x),
+            "<pyamf.amf0.RecordSet id=asdfasdf service={'name': 'baz'} at "
+            "0x%x>" % (id(x),)
+        )
 
 
 class ClassInheritanceTestCase(ClassCacheClearingTestCase, EncoderMixIn):
@@ -957,7 +1068,6 @@ class ClassInheritanceTestCase(ClassCacheClearingTestCase, EncoderMixIn):
             class __amf__:
                 static = ('a')
 
-
         class B(A):
             class __amf__:
                 static = ('b')
@@ -969,8 +1079,14 @@ class ClassInheritanceTestCase(ClassCacheClearingTestCase, EncoderMixIn):
         x.a = 'spam'
         x.b = 'eggs'
 
-        self.assertEncoded(x, '\x10\x00\x01B', ('\x00\x01a\x02\x00\x04spam',
-            '\x00\x01b\x02\x00\x04eggs'), '\x00\x00\t')
+        self.assertEncoded(
+            x,
+            '\x10\x00\x01B', (
+                '\x00\x01a\x02\x00\x04spam',
+                '\x00\x01b\x02\x00\x04eggs'
+            ),
+            '\x00\x00\t'
+        )
 
     def test_deep(self):
         class A(object):
@@ -994,9 +1110,15 @@ class ClassInheritanceTestCase(ClassCacheClearingTestCase, EncoderMixIn):
         x.b = 'eggs'
         x.c = 'foo'
 
-        self.assertEncoded(x, '\x10\x00\x01C', ('\x00\x01a\x02\x00\x04spam',
-            '\x00\x01c\x02\x00\x03foo', '\x00\x01b\x02\x00\x04eggs'),
-            '\x00\x00\t')
+        self.assertEncoded(
+            x,
+            '\x10\x00\x01C', (
+                '\x00\x01a\x02\x00\x04spam',
+                '\x00\x01c\x02\x00\x03foo',
+                '\x00\x01b\x02\x00\x04eggs'
+            ),
+            '\x00\x00\t'
+        )
 
 
 class ExceptionEncodingTestCase(ClassCacheClearingTestCase):
@@ -1016,8 +1138,11 @@ class ExceptionEncodingTestCase(ClassCacheClearingTestCase):
         except Exception, e:
             self.encoder.writeElement(e)
 
-        self.assertEqual(self.buffer.getvalue(), '\x03\x00\x07message\x02'
-            '\x00\x07foo bar\x00\x04name\x02\x00\tException\x00\x00\t')
+        self.assertEqual(
+            self.buffer.getvalue(),
+            '\x03\x00\x07message\x02\x00\x07foo bar\x00\x04name\x02\x00\t'
+            'Exception\x00\x00\t'
+        )
 
     def test_user_defined(self):
         class FooBar(Exception):
@@ -1028,8 +1153,11 @@ class ExceptionEncodingTestCase(ClassCacheClearingTestCase):
         except Exception, e:
             self.encoder.writeElement(e)
 
-        self.assertEqual(self.buffer.getvalue(), '\x03\x00\x07message\x02'
-            '\x00\x07foo bar\x00\x04name\x02\x00\x06FooBar\x00\x00\t')
+        self.assertEqual(
+            self.buffer.getvalue(),
+            '\x03\x00\x07message\x02\x00\x07foo bar\x00\x04name\x02\x00\x06Foo'
+            'Bar\x00\x00\t'
+        )
 
     def test_typed(self):
         class XYZ(Exception):
@@ -1042,29 +1170,34 @@ class ExceptionEncodingTestCase(ClassCacheClearingTestCase):
         except Exception, e:
             self.encoder.writeElement(e)
 
-        self.assertEqual(self.buffer.getvalue(), '\x10\x00\x07foo.bar\x00'
-            '\x07message\x02\x00\x05blarg\x00\x04name\x02\x00\x03XYZ\x00\x00\t')
+        self.assertEqual(
+            self.buffer.getvalue(),
+            '\x10\x00\x07foo.bar\x00\x07message\x02\x00\x05blarg\x00\x04name'
+            '\x02\x00\x03XYZ\x00\x00\t'
+        )
 
 
 class AMF0ContextTestCase(unittest.TestCase):
     """
     """
 
-    bytes = ('\x00\x03\x00\x02\x00\x0eServiceLicense\x00\x00\x00\x00O\x11\n\x0b'
-        '\x01-serviceConfigurationId\x06\t1234\x15licenseKey\x06Axxxxxxxxxxxxxx'
-        'xxxxxxxxxxxxxxxxxx\x01\x00\tSessionId\x00\x00\x00\x00\xb2\x11\n\x0b'
-        '\x01\x0bToken\x06\x82Iyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy'
-        'yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy'
-        'yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy\x01\x00\x01\x00\x0cRegi'
-        'sterUser\x00\x02/3\x00\x00\x01k\n\x00\x00\x00\x07\x11\n#\x01\rformat'
-        '\x0bvalue\x069urn:TribalDDB:identity:email\x06!tester@trial.com\x11\n'
-        '#\x01\x02\ttype\x06\x0fpasswrd\x06Kurn:TribalDDB:authentication:passwo'
-        'rd\x11\nS\x01\x19EmailAddress\x15PostalCode\x17DateOfBirth\x11LastName'
-        '\x13FirstName\x06\x06\x06\x0b12345\n3\x12\x0bmonth\x07day\tyear\x04'
-        '\x04\x04\x0f\x04\x8fF\x06\rewrwer\x06\x07wer\x11\n3\x1fSectionTracking'
-        '\tCsId\x11TrtmntId\x13LocalCsId\x04\x00\x04\x86\x94z\x04\x00\x11\n'
-        '\x13\x11Tracking\x07CTC\x06\x07555\x11\t\x03\x01\n#\x13UserOptIn\x1dli'
-        'veModeEnable\x05id\x02\x04\x884\x02\x00\x10wwwwwwwwwwwwwwww')
+    bytes = (
+        '\x00\x03\x00\x02\x00\x0eServiceLicense\x00\x00\x00\x00O\x11\n\x0b'
+        '\x01-serviceConfigurationId\x06\t1234\x15licenseKey\x06Axxxxxxxxxxxxx'
+        'xxxxxxxxxxxxxxxxxxx\x01\x00\tSessionId\x00\x00\x00\x00\xb2\x11\n\x0b'
+        '\x01\x0bToken\x06\x82Iyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy'
+        'yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy'
+        'yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy\x01\x00\x01\x00\x0cR'
+        'egisterUser\x00\x02/3\x00\x00\x01k\n\x00\x00\x00\x07\x11\n#\x01\rform'
+        'at\x0bvalue\x069urn:TribalDDB:identity:email\x06!tester@trial.com\x11'
+        '\n#\x01\x02\ttype\x06\x0fpasswrd\x06Kurn:TribalDDB:authentication:pas'
+        'sword\x11\nS\x01\x19EmailAddress\x15PostalCode\x17DateOfBirth\x11Last'
+        'Name\x13FirstName\x06\x06\x06\x0b12345\n3\x12\x0bmonth\x07day\tyear'
+        '\x04\x04\x04\x0f\x04\x8fF\x06\rewrwer\x06\x07wer\x11\n3\x1fSectionTra'
+        'cking\tCsId\x11TrtmntId\x13LocalCsId\x04\x00\x04\x86\x94z\x04\x00\x11'
+        '\n\x13\x11Tracking\x07CTC\x06\x07555\x11\t\x03\x01\n#\x13UserOptIn'
+        '\x1dliveModeEnable\x05id\x02\x04\x884\x02\x00\x10wwwwwwwwwwwwwwww'
+    )
 
     def test_decode(self):
         from pyamf.remoting import decode
@@ -1073,15 +1206,21 @@ class AMF0ContextTestCase(unittest.TestCase):
 
         a, b, c, d, e, f, g = e['/3'].body
 
-        self.assertEqual(a, {'value': u'tester@trial.com',
-            'format': u'urn:TribalDDB:identity:email'})
-        self.assertEqual(b, {'type': u'urn:TribalDDB:authentication:password',
-            'value': u'passwrd'})
-        self.assertEqual(c, {'PostalCode': u'12345',
+        self.assertEqual(a, {
+            'value': u'tester@trial.com',
+            'format': u'urn:TribalDDB:identity:email'
+        })
+        self.assertEqual(b, {
+            'type': u'urn:TribalDDB:authentication:password',
+            'value': u'passwrd'}
+        )
+        self.assertEqual(c, {
+            'PostalCode': u'12345',
             'DateOfBirth': {'month': 4, 'day': 15, 'year': 1990},
             'EmailAddress': u'tester@trial.com',
             'FirstName': u'wer',
-            'LastName': u'ewrwer'})
+            'LastName': u'ewrwer'}
+        )
         self.assertEqual(d, {'CsId': 0, 'TrtmntId': 100986, 'LocalCsId': 0})
         self.assertEqual(e, {'CTC': u'555'})
         self.assertEqual(f, [{'liveModeEnable': False, 'id': 1076}])

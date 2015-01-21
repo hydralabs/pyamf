@@ -73,12 +73,16 @@ class ClassAlias(object):
         k = self.klass
 
         if not hasattr(k, '__readamf__'):
-            raise AttributeError("An externalised class was specified, but"
-                " no __readamf__ attribute was found for %r" % (k,))
+            raise AttributeError(
+                "An externalised class was specified, but"
+                " no __readamf__ attribute was found for %r" % (k,)
+            )
 
         if not hasattr(k, '__writeamf__'):
-            raise AttributeError("An externalised class was specified, but"
-                " no __writeamf__ attribute was found for %r" % (k,))
+            raise AttributeError(
+                "An externalised class was specified, but"
+                " no __writeamf__ attribute was found for %r" % (k,)
+            )
 
         if not hasattr(k.__readamf__, '__call__'):
             raise TypeError("%s.__readamf__ must be callable" % (k.__name__,))
@@ -185,7 +189,8 @@ class ClassAlias(object):
             self.inherited_sealed = alias.sealed
 
         if alias.synonym_attrs:
-            self.synonym_attrs, x = alias.synonym_attrs.copy(), self.synonym_attrs
+            x = self.synonym_attrs
+            self.synonym_attrs = alias.synonym_attrs.copy()
             self.synonym_attrs.update(x)
 
     def _finalise_compile(self):
@@ -193,7 +198,9 @@ class ClassAlias(object):
             self.dynamic = True
 
             if self.inherited_dynamic is not None:
-                if self.inherited_dynamic is False and not self.sealed and self.inherited_sealed:
+                if (not self.inherited_dynamic
+                        and not self.sealed
+                        and self.inherited_sealed):
                     self.dynamic = True
                 else:
                     self.dynamic = self.inherited_dynamic
@@ -259,10 +266,14 @@ class ClassAlias(object):
         self.non_static_encodable_properties = None
 
         if self.encodable_properties:
-            self.non_static_encodable_properties = set(self.encodable_properties)
+            self.non_static_encodable_properties = set(
+                self.encodable_properties
+            )
 
             if self.static_attrs:
-                self.non_static_encodable_properties.difference_update(self.static_attrs)
+                self.non_static_encodable_properties.difference_update(
+                    self.static_attrs
+                )
 
         self.shortcut_encode = True
         self.shortcut_decode = True
@@ -293,8 +304,13 @@ class ClassAlias(object):
     def __repr__(self):
         k = self.__class__
 
-        return '<%s.%s alias=%r class=%r @ 0x%x>' % (k.__module__, k.__name__,
-            self.alias, self.klass, id(self))
+        return '<%s.%s alias=%r class=%r @ 0x%x>' % (
+            k.__module__,
+            k.__name__,
+            self.alias,
+            self.klass,
+            id(self)
+        )
 
     def __eq__(self, other):
         if isinstance(other, basestring):
@@ -325,7 +341,9 @@ class ClassAlias(object):
 
         # Check that the constructor of the class doesn't require any additonal
         # arguments.
-        if not (hasattr(klass, '__init__') and hasattr(klass.__init__, '__call__')):
+        if not (
+            hasattr(klass, '__init__') and hasattr(klass.__init__, '__call__')
+        ):
             return
 
         klass_func = klass.__init__.im_func
@@ -347,8 +365,11 @@ class ClassAlias(object):
 
         spec = inspect.getargspec(klass_func)
 
-        raise TypeError("__init__ doesn't support additional arguments: %s"
-            % inspect.formatargspec(*spec))
+        raise TypeError(
+            "__init__ doesn't support additional arguments: %s" % (
+                inspect.formatargspec(*spec)
+            )
+        )
 
     def getEncodableAttributes(self, obj, codec=None):
         """
@@ -441,8 +462,11 @@ class ClassAlias(object):
             missing_attrs = self.static_attrs_set.difference(props)
 
             if missing_attrs:
-                raise AttributeError('Static attributes %r expected '
-                    'when decoding %r' % (missing_attrs, self.klass))
+                raise AttributeError(
+                    'Static attributes %r expected when decoding %r' % (
+                        missing_attrs, self.klass
+                    )
+                )
 
             props.difference_update(self.static_attrs)
 

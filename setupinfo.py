@@ -88,7 +88,6 @@ class MySDist(sdist.sdist):
         for e in ext.extensions:
             e.sources = ext.cython_sources(e.sources, e)
 
-
     def run(self):
         if not have_cython:
             print('ERROR - Cython is required to build source distributions')
@@ -257,7 +256,10 @@ def get_extensions():
     if not can_compile_extensions:
         print(80 * '*')
         print('WARNING:')
-        print('\tAn optional code optimization (C extension) could not be compiled.\n\n')
+        print(
+            '\tAn optional code optimization (C extension) could not be '
+            'compiled.\n\n'
+        )
         print('\tOptimizations for this package will not be available!\n\n')
         print('Compiling extensions is not supported on %r' % (sys.platform,))
         print(80 * '*')

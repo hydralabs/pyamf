@@ -25,7 +25,8 @@ class ArrayCollection(list):
     interfaces in the Flex framework.
 
     @see: U{ArrayCollection on Livedocs <http://
-        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/collections/ArrayCollection.html>}
+        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/
+        collections/ArrayCollection.html>}
     @note: This class does not implement the RemoteObject part of the
         documentation.
     @ivar length: [read-only] The number of items in this collection.
@@ -57,8 +58,9 @@ class ArrayCollection(list):
             data = data.source
         else:
             if not hasattr(data, '__iter__'):
-                raise pyamf.DecodeError('Unable to read a list when decoding '
-                    'ArrayCollection')
+                raise pyamf.DecodeError(
+                    'Unable to read a list when decoding ArrayCollection'
+                )
 
         self.extend(data)
 
@@ -188,11 +190,13 @@ class ArrayCollection(list):
 class ObjectProxy(object):
     """
     I represent the ActionScript 3 based class C{flex.messaging.io.ObjectProxy}
-    used in the Flex framework. Flex's C{ObjectProxy} class allows an anonymous,
-    dynamic ActionScript Object to be bindable and report change events.
+    used in the Flex framework. Flex's C{ObjectProxy} class allows an
+    anonymous, dynamic ActionScript Object to be bindable and report change
+    events.
 
     @see: U{ObjectProxy on Livedocs<http://
-        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/utils/ObjectProxy.html>}
+        help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/mx/utils/
+        ObjectProxy.html>}
     """
 
     class __amf__:

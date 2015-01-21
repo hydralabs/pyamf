@@ -18,7 +18,7 @@ author = "The PyAMF Project"
 author_email = "users@pyamf.org"
 license = "MIT License"
 
-classifiers = """\
+classifiers = """
 Framework :: Django
 Framework :: Pylons
 Framework :: Twisted
@@ -38,10 +38,10 @@ Topic :: Internet :: WWW/HTTP :: WSGI :: Application
 Topic :: Software Development :: Libraries :: Python Modules
 """
 
-keywords = """\
-amf amf0 amf3 flex flash remoting rpc http flashplayer air bytearray objectproxy
-arraycollection recordset actionscript decoder encoder gateway remoteobject
-twisted pylons django sharedobject lso sol
+keywords = """
+amf amf0 amf3 flex flash remoting rpc http flashplayer air bytearray
+objectproxy arraycollection recordset actionscript decoder encoder gateway
+remoteobject twisted pylons django sharedobject lso sol
 """
 
 
@@ -67,8 +67,10 @@ def setup_package():
         test_suite="pyamf.tests.get_suite",
         zip_safe=False,
         extras_require=setupinfo.get_extras_require(),
-        classifiers=(filter(None, classifiers.split('\n')) +
-            setupinfo.get_trove_classifiers()),
+        classifiers=(
+            filter(None, classifiers.strip().split('\n')) +
+            setupinfo.get_trove_classifiers()
+        ),
         **setupinfo.extra_setup_args())
 
 

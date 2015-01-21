@@ -11,8 +11,8 @@ import unittest
 
 try:
     import sqlalchemy
-    from sqlalchemy import MetaData, Table, Column, Integer, String, ForeignKey, \
-        create_engine
+    from sqlalchemy import MetaData, Table, Column, Integer, String
+    from sqlalchemy import ForeignKey, create_engine
     from sqlalchemy.orm import mapper, relation, sessionmaker, clear_mappers
 
     from pyamf.adapters import _sqlalchemy_orm as adapter
@@ -65,36 +65,55 @@ class BaseTestCase(unittest.TestCase):
         self.session = Session()
         self.tables = {}
 
-        self.tables['users'] = Table('users', self.metadata,
+        self.tables['users'] = Table(
+            'users',
+            self.metadata,
             Column('id', Integer, primary_key=True),
-            Column('name', String(64)))
+            Column('name', String(64))
+        )
 
-        self.tables['addresses'] = Table('addresses', self.metadata,
+        self.tables['addresses'] = Table(
+            'addresses',
+            self.metadata,
             Column('id', Integer, primary_key=True),
             Column('user_id', Integer, ForeignKey('users.id')),
-            Column('email_address', String(128)))
+            Column('email_address', String(128))
+        )
 
-        self.tables['lazy_loaded'] = Table('lazy_loaded', self.metadata,
+        self.tables['lazy_loaded'] = Table(
+            'lazy_loaded',
+            self.metadata,
             Column('id', Integer, primary_key=True),
-            Column('user_id', Integer, ForeignKey('users.id')))
+            Column('user_id', Integer, ForeignKey('users.id'))
+        )
 
-        self.tables['another_lazy_loaded'] = Table('another_lazy_loaded', self.metadata,
+        self.tables['another_lazy_loaded'] = Table(
+            'another_lazy_loaded',
+            self.metadata,
             Column('id', Integer, primary_key=True),
-            Column('user_id', Integer, ForeignKey('users.id')))
+            Column('user_id', Integer, ForeignKey('users.id'))
+        )
 
         self.mappers = {}
 
-        self.mappers['user'] = mapper(User, self.tables['users'], properties={
-            'addresses': relation(Address, backref='user', lazy=False),
-            'lazy_loaded': relation(LazyLoaded, lazy=True),
-            'another_lazy_loaded': relation(AnotherLazyLoaded, lazy=True)
-        })
+        self.mappers['user'] = mapper(
+            User,
+            self.tables['users'],
+            properties={
+                'addresses': relation(Address, backref='user', lazy=False),
+                'lazy_loaded': relation(LazyLoaded, lazy=True),
+                'another_lazy_loaded': relation(AnotherLazyLoaded, lazy=True)
+            }
+        )
 
         self.mappers['addresses'] = mapper(Address, self.tables['addresses'])
-        self.mappers['lazy_loaded'] = mapper(LazyLoaded,
-            self.tables['lazy_loaded'])
-        self.mappers['another_lazy_loaded'] = mapper(AnotherLazyLoaded,
-            self.tables['another_lazy_loaded'])
+        self.mappers['lazy_loaded'] = mapper(
+            LazyLoaded, self.tables['lazy_loaded']
+        )
+        self.mappers['another_lazy_loaded'] = mapper(
+            AnotherLazyLoaded,
+            self.tables['another_lazy_loaded']
+        )
 
         self.metadata.create_all(self.engine)
 
@@ -139,7 +158,10 @@ class SATestCase(BaseTestCase):
     def _test_obj(self, encoded, decoded):
         self.assertEqual(User, decoded.__class__)
         self.assertEqual(encoded.name, decoded.name)
-        self.assertEqual(encoded.addresses[0].email_address, decoded.addresses[0].email_address)
+        self.assertEqual(
+            encoded.addresses[0].email_address,
+            decoded.addresses[0].email_address
+        )
 
     def test_encode_decode_transient(self):
         user = self._build_obj()
@@ -270,7 +292,10 @@ class ClassAliasTestCase(BaseClassAliasTestCase):
         u = self._build_obj()
 
         self.assertFalse(u in self.session)
-        self.assertEqual([None], self.mappers['user'].primary_key_from_instance(u))
+        self.assertEqual(
+            [None],
+            self.mappers['user'].primary_key_from_instance(u)
+        )
         attrs = self.alias.getEncodableAttributes(u)
 
         self.assertEqual(attrs, {
@@ -335,7 +360,7 @@ class ApplyAttributesTestCase(BaseClassAliasTestCase):
             'sa_key': [None],
             'addresses': [],
             'lazy_loaded': [],
-            'another_lazy_loaded': pyamf.Undefined, # <-- the important bit
+            'another_lazy_loaded': pyamf.Undefined,  # <-- the important bit
             'id': None,
             'name': 'test_user'
         }
@@ -369,7 +394,9 @@ class ApplyAttributesTestCase(BaseClassAliasTestCase):
             # this is important because we haven't registered AnotherLazyLoaded
             # as an alias and the decoded object for an untyped object is an
             # instance of pyamf.ASObject
-            'another_lazy_loaded': [pyamf.ASObject({'id': 1, 'user_id': None})],
+            'another_lazy_loaded': [
+                pyamf.ASObject({'id': 1, 'user_id': None})
+            ],
             'id': None,
             'name': 'test_user'
         }
@@ -393,7 +420,11 @@ class AdapterTestCase(BaseTestCase):
         self.assertTrue(adapter.is_class_sa_mapped(u))
 
     def test_not_mapped(self):
-        self.assertRaises(adapter.UnmappedInstanceError, adapter.class_mapper, Spam)
+        self.assertRaises(
+            adapter.UnmappedInstanceError,
+            adapter.class_mapper,
+            Spam
+        )
         self.assertFalse(adapter.is_class_sa_mapped(Spam))
 
 
@@ -406,7 +437,9 @@ class ExcludableAttrsTestCase(BaseTestCase):
         """
         Ensure that sa_key and sa_lazy can be excluded
         """
-        a = adapter.SaMappedClassAlias(Address, exclude_attrs=['sa_lazy', 'sa_key'])
+        a = adapter.SaMappedClassAlias(
+            Address, exclude_attrs=['sa_lazy', 'sa_key']
+        )
         u = Address()
 
         attrs = a.getEncodableAttributes(u)
