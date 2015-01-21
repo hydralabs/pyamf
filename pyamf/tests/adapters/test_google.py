@@ -38,7 +38,7 @@ def setUpModule():
     global db, blobstore, polymodel, adapter_blobstore, adapter_db, test_models
 
     if db is None:
-        raise unittest.SkipTest("'google.appengine.ext.db' is not available")
+        return
 
     if not os.environ.get('SERVER_SOFTWARE', None):
         # this is an extra check because the AppEngine SDK may be in PYTHONPATH
@@ -57,6 +57,12 @@ def setUpModule():
 class BaseTestCase(util.ClassCacheClearingTestCase):
     """
     """
+
+    def setUp(self):
+        if db is None:
+            self.skipTest('google appengine sdk not found')
+
+        util.ClassCacheClearingTestCase.setUp(self)
 
     def put(self, entity):
         entity.put()

@@ -12,7 +12,7 @@ import sys
 import os
 import datetime
 from shutil import rmtree
-from tempfile import mkdtemp  
+from tempfile import mkdtemp
 
 import pyamf
 from pyamf.tests import util
@@ -43,6 +43,7 @@ teardown_test_environment = None
 # test app data
 models = None
 adapter = None
+storage = None
 
 
 def init_django():
@@ -91,22 +92,25 @@ def setUpModule():
         from pyamf.adapters import _django_db_models_base as adapter
 
         setup_test_environment()
- 
+
         settings.DATABASE_NAME = create_test_db(verbosity=0, autoclobber=True)
         storage = FileSystemStorage(mkdtemp())
 
 
 def tearDownModule():
     # remove all the stuff that django installed
-    teardown_test_environment()
+    if teardown_test_environment:
+        teardown_test_environment()
 
     sys.path = context['sys.path']
     util.replace_dict(context['sys.modules'], sys.modules)
     util.replace_dict(context['os.environ'], os.environ)
 
-    destroy_test_db(settings.DATABASE_NAME, verbosity=0)
+    if destroy_test_db:
+        destroy_test_db(settings.DATABASE_NAME, verbosity=0)
 
-    rmtree(storage.location, ignore_errors=True)
+    if storage:
+        rmtree(storage.location, ignore_errors=True)
 
 
 class BaseTestCase(unittest.TestCase):
