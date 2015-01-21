@@ -16,7 +16,7 @@ cdef class cBufferedByteStream:
     cdef Py_ssize_t length
     cdef Py_ssize_t min_buf_size
 
-    cpdef inline Py_ssize_t tell(self) except -1
+    cpdef Py_ssize_t tell(self) except -1
     cdef int write(self, char *buf, Py_ssize_t size) except -1
     cdef inline int _init_buffer(self)
     cdef int _actually_increase_buffer(self, Py_ssize_t size) except -1
@@ -24,7 +24,7 @@ cdef class cBufferedByteStream:
     cdef inline bint has_available(self, Py_ssize_t size) except -1
     cdef int read(self, char **buf, Py_ssize_t size) except -1
     cpdef bint at_eof(self) except -1
-    cpdef inline Py_ssize_t remaining(self) except -1
+    cpdef Py_ssize_t remaining(self) except -1
     cpdef int seek(self, Py_ssize_t pos, int mode=*) except -1
     cpdef object getvalue(self)
     cdef Py_ssize_t peek(self, char **buf, Py_ssize_t size) except -1

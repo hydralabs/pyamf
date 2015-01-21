@@ -107,7 +107,7 @@ cdef class ClassDefinition(object):
             return stream.write(self.encoded_ref, self.encoded_ref_size)
 
         cdef Py_ssize_t ref = 0
-        cdef char *buf
+        cdef char *buf = NULL
         cdef int ret = 0
 
         if self.encoding != OBJECT_ENCODING_EXTERNAL:
@@ -276,7 +276,7 @@ cdef class Decoder(codec.Decoder):
         return <object>r
 
     cdef object readNumber(self):
-        cdef double d
+        cdef double d = -1
 
         self.stream.read_double(&d)
 
@@ -424,7 +424,7 @@ cdef class Decoder(codec.Decoder):
 
     cdef int _readDynamic(self, ClassDefinition class_def, dict obj) except -1:
         cdef object attr
-        cdef char *peek
+        cdef char *peek = NULL
 
 
         while True:
@@ -1026,7 +1026,7 @@ cdef class Encoder(codec.Encoder):
 
         return self.writeObject(proxy, 1)
 
-    cdef inline int handleBasicTypes(self, object element, object py_type) except -1:
+    cdef int handleBasicTypes(self, object element, object py_type) except -1:
         cdef int ret = codec.Encoder.handleBasicTypes(self, element, py_type)
 
         if ret == 1: # not handled

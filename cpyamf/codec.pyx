@@ -79,7 +79,10 @@ cdef class IndexedCollection(object):
         if current_size != self.size:
             self.size = current_size
 
-            cpy = <PyObject **>PyMem_Realloc(self.data, sizeof(PyObject *) * self.size)
+            cpy = <PyObject **>PyMem_Realloc(
+                self.data,
+                sizeof(PyObject *) * self.size
+            )
 
             if cpy == NULL:
                 self._clear()
@@ -159,7 +162,9 @@ cdef class IndexedCollection(object):
     def __richcmp__(self, object other, int op):
         cdef int equal
         cdef Py_ssize_t i
-        cdef IndexedCollection s = self # this is necessary because cython does not see the c-space vars of the class for this func
+        # this is necessary because cython does not see the c-space vars of the
+        # class for this func
+        cdef IndexedCollection s = self
 
         if PyDict_Check(other) == 1:
             equal = s.refs == other
@@ -221,13 +226,13 @@ cdef class Context(object):
 
         return 0
 
-    cpdef inline object getObject(self, Py_ssize_t ref):
+    cpdef object getObject(self, Py_ssize_t ref):
         return self.objects.getByReference(ref)
 
-    cpdef inline Py_ssize_t getObjectReference(self, object obj) except -2:
+    cpdef Py_ssize_t getObjectReference(self, object obj) except -2:
         return self.objects.getReferenceTo(obj)
 
-    cpdef inline Py_ssize_t addObject(self, object obj) except -1:
+    cpdef Py_ssize_t addObject(self, object obj) except -1:
         return self.objects.append(obj)
 
     cpdef object getClassAlias(self, object klass):
@@ -494,7 +499,7 @@ cdef class Encoder(Codec):
     cdef int writeMixedArray(self, object o) except -1:
         raise NotImplementedError
 
-    cdef inline int handleBasicTypes(self, object element, object py_type) except -1:
+    cdef int handleBasicTypes(self, object element, object py_type) except -1:
         """
         @return: 0 = handled, -1 = error, 1 = not handled
         """
@@ -539,13 +544,17 @@ cdef class Encoder(Codec):
 
     cdef int checkBadTypes(self, object element, object py_type) except -1:
         if PyModule_CheckExact(element):
-            raise pyamf.EncodeError("Cannot encode modules")
+            raise pyamf.EncodeError("Cannot encode modules %r" % (element,))
         elif PyMethod_Check(element):
-            raise pyamf.EncodeError("Cannot encode methods")
+            raise pyamf.EncodeError("Cannot encode methods %r" % (element,))
         elif PyFunction_Check(element) or py_type is BuiltinFunctionType:
-            raise pyamf.EncodeError("Cannot encode functions")
+            raise pyamf.EncodeError("Cannot encode functions %r" % (
+                element,
+            ))
         elif PyClass_Check(element) or PyType_CheckExact(element):
-            raise pyamf.EncodeError("Cannot encode class objects")
+            raise pyamf.EncodeError("Cannot encode class objects %r" % (
+                element,
+            ))
         elif PyTime_CheckExact(element):
             raise pyamf.EncodeError('A datetime.time instance was found but '
                 'AMF has no way to encode time objects. Please use '
@@ -594,7 +603,7 @@ cdef class Encoder(Codec):
         Part of the iterator protocol.
         """
         cdef Py_ssize_t start_pos, end_pos
-        cdef char *buf
+        cdef char *buf = NULL
 
         try:
             element = self.bucket.pop(0)
