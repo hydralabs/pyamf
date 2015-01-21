@@ -12,3 +12,5 @@ before_script:
 
 script:
   - python setup.py test
+  - pip install Cython
+  - python setup.py test

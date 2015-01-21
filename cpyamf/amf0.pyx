@@ -77,7 +77,7 @@ cdef class Decoder(codec.Decoder):
         codec.Codec.__init__(self, *args, **kwargs)
 
     cdef object readNumber(self):
-        cdef double i
+        cdef double i = -1
 
         self.stream.read_double(&i)
 
@@ -211,8 +211,8 @@ cdef class Decoder(codec.Decoder):
         return obj
 
     cdef object readDate(self):
-        cdef double ms
-        cdef short tz
+        cdef double ms = -1
+        cdef short tz = -1
 
         self.stream.read_double(&ms)
         tz = self.stream.read_short()
@@ -228,7 +228,7 @@ cdef class Decoder(codec.Decoder):
         return d
 
     cdef object readLongString(self, bint bytes=0):
-        cdef unsigned long l
+        cdef unsigned long l = 0
         cdef char *b = NULL
         cdef object s
 
@@ -352,8 +352,8 @@ cdef class Encoder(codec.Encoder):
         """
         Write array to the stream.
         """
-        cdef Py_ssize_t size, i
-        cdef PyObject *x
+        cdef Py_ssize_t size = -1, i = -1
+        cdef PyObject *x = NULL
 
         if self.writeReference(a) != -1:
             return 0
@@ -373,8 +373,8 @@ cdef class Encoder(codec.Encoder):
         return 0
 
     cdef int writeTuple(self, object a) except -1:
-        cdef Py_ssize_t size, i
-        cdef PyObject *x
+        cdef Py_ssize_t size = -1, i = -1
+        cdef PyObject *x = NULL
 
         if self.writeReference(a) != -1:
             return 0

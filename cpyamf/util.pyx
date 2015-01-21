@@ -224,7 +224,7 @@ cdef class cBufferedByteStream(object):
 
         return 0
 
-    cpdef inline Py_ssize_t tell(self):
+    cpdef Py_ssize_t tell(self):
         """
         Returns the position of the stream pointer.
         """
@@ -320,7 +320,7 @@ cdef class cBufferedByteStream(object):
 
         return 0
 
-    cpdef inline bint at_eof(self) except -1:
+    cpdef bint at_eof(self) except -1:
         """
         Returns C{True} if the internal pointer is at the end of the stream.
 
@@ -328,7 +328,7 @@ cdef class cBufferedByteStream(object):
         """
         return self.length == self.pos
 
-    cpdef inline Py_ssize_t remaining(self) except -1:
+    cpdef Py_ssize_t remaining(self) except -1:
         """
         Returns number of remaining bytes.
         """
@@ -1093,6 +1093,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
             raise TypeError('Expecting float for val')
 
         cdef double d = val
+        cdef int done = 0
 
         if float_broken == 1:
             if memcmp(&d, &platform_nan, 8) == 0:
