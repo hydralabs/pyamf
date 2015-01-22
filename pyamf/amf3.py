@@ -600,13 +600,13 @@ class Context(codec.Context):
     I hold the AMF3 context for en/decoding streams.
 
     @ivar strings: A list of string references.
-    @type strings: C{list}
+    @type strings: L{codec.ByteStringReferenceCollection}
     @ivar classes: A list of L{ClassDefinition}.
     @type classes: C{list}
     """
 
     def __init__(self):
-        self.strings = codec.IndexedCollection(use_hash=True)
+        self.strings = codec.ByteStringReferenceCollection()
         self.classes = {}
         self.class_ref = {}
 

@@ -20,7 +20,7 @@ cdef class ClassDefinition(object):
 
 
 cdef class Context(codec.Context):
-    cdef codec.IndexedCollection strings
+    cdef codec.ByteStringReferenceCollection strings
     cdef dict classes
     cdef dict class_ref
     cdef dict proxied_objects

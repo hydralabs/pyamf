@@ -120,7 +120,7 @@ cdef class IndexedCollection(object):
 
         return <object>self.data[ref]
 
-    cdef inline object _ref(self, object obj):
+    cdef object _ref(self, object obj):
         if self.use_hash:
             return hash(obj)
 
@@ -194,6 +194,25 @@ cdef class IndexedCollection(object):
 
     def __copy__(self):
         cdef IndexedCollection n = IndexedCollection(self.use_hash)
+
+        return n
+
+
+cdef class ByteStringReferenceCollection(IndexedCollection):
+    """
+    There have been rare hash collisions within a single AMF payload causing
+    corrupt payloads.
+
+    Which strings cause collisions is dependent on the python runtime, each
+    platform might have a slightly different implementation which means that
+    testing is extremely difficult.
+    """
+
+    cdef object _ref(self, object obj):
+        return obj
+
+    def __copy__(self):
+        cdef ByteStringReferenceCollection n = ByteStringReferenceCollection()
 
         return n
 
