@@ -209,13 +209,12 @@ class Context(object):
 
         @since: 0.6
         """
-        h = hash(s)
-        u = self._unicodes.get(h, None)
+        u = self._unicodes.get(s, None)
 
         if u is not None:
             return u
 
-        u = self._unicodes[h] = s.decode('utf-8')
+        u = self._unicodes[s] = s.decode('utf-8')
 
         return u
 
@@ -226,13 +225,12 @@ class Context(object):
 
         @since: 0.6
         """
-        h = hash(u)
-        s = self._unicodes.get(h, None)
+        s = self._unicodes.get(u, None)
 
         if s is not None:
             return s
 
-        s = self._unicodes[h] = u.encode('utf-8')
+        s = self._unicodes[u] = u.encode('utf-8')
 
         return s
 
