@@ -14,6 +14,12 @@ import sys
 import os
 
 try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
+
+try:
+    import django as _django
     from django import http
     from pyamf.remoting.gateway import django
 except ImportError:
@@ -21,6 +27,22 @@ except ImportError:
 
 import pyamf
 from pyamf import remoting, util
+
+
+def make_http_request(method, body=''):
+    http_request = http.HttpRequest()
+    http_request.method = method
+
+    version = _django.VERSION[:2]
+
+    if version <= (1, 2):
+        http_request.raw_post_data = body
+    else:
+        http_request._stream = StringIO(body)
+        # fix a django 1.3 bug where this would not be set
+        http_request._read_started = False
+
+    return http_request
 
 
 class BaseTestCase(unittest.TestCase):
@@ -39,11 +61,13 @@ class DjangoGatewayTestCase(BaseTestCase):
         import new
 
         self.mod_name = '%s.%s' % (__name__, 'settings')
-        sys.modules[self.mod_name] = new.module(self.mod_name)
+        self.settings = sys.modules[self.mod_name] = new.module(self.mod_name)
 
         self.old_env = os.environ.get('DJANGO_SETTINGS_MODULE', None)
 
         os.environ['DJANGO_SETTINGS_MODULE'] = self.mod_name
+
+        self.settings.SECRET_KEY = 'unittest'
 
     def tearDown(self):
         if self.old_env is not None:
@@ -78,8 +102,7 @@ class DjangoGatewayTestCase(BaseTestCase):
     def test_request_method(self):
         gw = django.DjangoGateway()
 
-        http_request = http.HttpRequest()
-        http_request.method = 'GET'
+        http_request = make_http_request('GET')
 
         http_response = gw(http_request)
         self.assertEqual(http_response.status_code, 405)
@@ -91,9 +114,7 @@ class DjangoGatewayTestCase(BaseTestCase):
         request.write('Bad request')
         request.seek(0, 0)
 
-        http_request = http.HttpRequest()
-        http_request.method = 'POST'
-        http_request.raw_post_data = request.getvalue()
+        http_request = make_http_request('POST', request.getvalue())
 
         http_response = gw(http_request)
         self.assertEqual(http_response.status_code, 400)
@@ -109,9 +130,7 @@ class DjangoGatewayTestCase(BaseTestCase):
         )
         request.seek(0, 0)
 
-        http_request = http.HttpRequest()
-        http_request.method = 'POST'
-        http_request.raw_post_data = request.getvalue()
+        http_request = make_http_request('POST', request.getvalue())
 
         http_response = gw(http_request)
         envelope = remoting.decode(http_response.content)
@@ -125,7 +144,6 @@ class DjangoGatewayTestCase(BaseTestCase):
         self.assertEqual(body.code, 'Service.ResourceNotFound')
 
     def test_expose_request(self):
-        http_request = http.HttpRequest()
         self.executed = False
 
         def test(request):
@@ -142,8 +160,7 @@ class DjangoGatewayTestCase(BaseTestCase):
         )
         request.seek(0, 0)
 
-        http_request.method = 'POST'
-        http_request.raw_post_data = request.getvalue()
+        http_request = make_http_request('POST', request.getvalue())
 
         gw(http_request)
 
@@ -158,9 +175,7 @@ class DjangoGatewayTestCase(BaseTestCase):
             Exception, *args, **kwargs
         )
 
-        http_request = http.HttpRequest()
-        http_request.method = 'POST'
-        http_request.raw_post_data = ''
+        http_request = make_http_request('POST', '')
 
         gw = django.DjangoGateway()
 
@@ -187,9 +202,7 @@ class DjangoGatewayTestCase(BaseTestCase):
 
         gw = django.DjangoGateway()
 
-        http_request = http.HttpRequest()
-        http_request.method = 'POST'
-        http_request.raw_post_data = ''
+        http_request = make_http_request('POST', '')
 
         try:
             for x in (KeyboardInterrupt, SystemExit):
@@ -207,7 +220,6 @@ class DjangoGatewayTestCase(BaseTestCase):
     def test_timezone(self):
         import datetime
 
-        http_request = http.HttpRequest()
         self.executed = False
 
         td = datetime.timedelta(hours=-5)
@@ -228,8 +240,10 @@ class DjangoGatewayTestCase(BaseTestCase):
         msg = remoting.Envelope(amfVersion=pyamf.AMF0)
         msg['/1'] = remoting.Request(target='test.test', body=[now])
 
-        http_request.method = 'POST'
-        http_request.raw_post_data = remoting.encode(msg).getvalue()
+        http_request = make_http_request(
+            'POST',
+            remoting.encode(msg).getvalue()
+        )
 
         res = remoting.decode(gw(http_request).content)
         self.assertTrue(self.executed)

@@ -7,25 +7,28 @@ PyAMF Google adapter tests.
 @since: 0.3.1
 """
 
-import unittest
 import datetime
 import struct
-import os
 
 import pyamf
 from pyamf import amf3
 from pyamf.tests import util
 
+
 try:
-    from google.appengine.ext import db
+    import dev_appserver
+
+    dev_appserver.fix_sys_path()
 except ImportError:
-    db = None
+    dev_appserver = None
 
 
+db = None
 blobstore = None
 polymodel = None
 adapter_db = None
 adapter_blobstore = None
+testbed = None
 
 test_models = None
 
@@ -36,17 +39,17 @@ def setUpModule():
     """
     """
     global db, blobstore, polymodel, adapter_blobstore, adapter_db, test_models
+    global dev_appserver, testbed
 
-    if db is None:
+    if dev_appserver is None:
         return
 
-    if not os.environ.get('SERVER_SOFTWARE', None):
-        # this is an extra check because the AppEngine SDK may be in PYTHONPATH
-        raise unittest.SkipTest('Appengine env not bootstrapped correctly')
-
     # all looks good - we now initialise the imports we require
+
+    from google.appengine.ext import db  # noqa
     from google.appengine.ext import blobstore  # noqa
     from google.appengine.ext.db import polymodel  # noqa
+    from google.appengine.ext import testbed  # noqa
 
     from pyamf.adapters import _google_appengine_ext_db as adapter_db  # noqa
     from pyamf.adapters import (  # noqa
@@ -61,10 +64,16 @@ class BaseTestCase(util.ClassCacheClearingTestCase):
     """
 
     def setUp(self):
-        if db is None:
+        if dev_appserver is None:
             self.skipTest('google appengine sdk not found')
 
         util.ClassCacheClearingTestCase.setUp(self)
+        self.testbed = testbed.Testbed()
+
+        self.testbed.activate()
+        # Next, declare which service stubs you want to use.
+        self.testbed.init_datastore_v3_stub()
+        self.testbed.init_memcache_stub()
 
     def put(self, entity):
         entity.put()

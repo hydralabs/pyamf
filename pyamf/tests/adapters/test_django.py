@@ -25,12 +25,8 @@ except ImportError:
 if django and django.VERSION < (1, 0):
     django = None
 
-try:
-    reload(settings)
-except NameError:
-    from pyamf.tests.adapters.django_app import settings
 
-
+settings = None
 context = None
 
 #: django modules/functions used once bootstrapped
@@ -50,11 +46,13 @@ def init_django():
     """
     Bootstrap Django and initialise this module
     """
-    global django, management, create_test_db, destroy_test_db
+    global django, management, create_test_db, destroy_test_db, settings
     global setup_test_environment, teardown_test_environment
 
     if not django:
         return
+
+    from pyamf.tests.adapters.django_app import settings
 
     from django.core import management
 
