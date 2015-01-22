@@ -1,4 +1,5 @@
-.. image:: https://coveralls.io/repos/hydralabs/pyamf/badge.svg :target: https://coveralls.io/r/hydralabs/pyamf
+.. image:: https://coveralls.io/repos/hydralabs/pyamf/badge.svg
+   :target: https://coveralls.io/r/hydralabs/pyamf
 
 PyAMF_ provides Action Message Format (AMF_) support for Python_ that is
 compatible with the `Adobe Flash Player`_. It includes integration with
