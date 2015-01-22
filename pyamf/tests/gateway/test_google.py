@@ -10,7 +10,6 @@ Google Web App gateway tests.
 """
 
 import unittest
-import os
 
 from StringIO import StringIO
 
@@ -18,11 +17,6 @@ try:
     from google.appengine.ext import webapp
     from pyamf.remoting.gateway import google as google
 except ImportError:
-    webapp = None
-
-if os.environ.get('SERVER_SOFTWARE', None) is None:
-    # we're not being run in appengine environment (at one that we are known to
-    # work in)
     webapp = None
 
 
@@ -47,7 +41,8 @@ class WebAppGatewayTestCase(BaseTestCase):
 
         self.environ = {
             'wsgi.input': StringIO(),
-            'wsgi.output': StringIO()
+            'wsgi.output': StringIO(),
+            'webob.is_body_readable': True
         }
 
         self.request = webapp.Request(self.environ)
@@ -58,25 +53,26 @@ class WebAppGatewayTestCase(BaseTestCase):
     def test_get(self):
         self.gw.get()
 
-        self.assertEqual(self.response.__dict__['_Response__status'][0], 405)
+        self.assertEqual(self.response.status, 405)
 
     def test_bad_request(self):
         self.environ['wsgi.input'].write('Bad request')
         self.environ['wsgi.input'].seek(0, 0)
 
         self.gw.post()
-        self.assertEqual(self.response.__dict__['_Response__status'][0], 400)
+        self.assertEqual(self.response.status, 400)
 
     def test_unknown_request(self):
         self.environ['wsgi.input'].write(
             '\x00\x00\x00\x00\x00\x01\x00\x09test.test\x00\x02/1\x00\x00\x00'
             '\x14\x0a\x00\x00\x00\x01\x08\x00\x00\x00\x00\x00\x01\x61\x02\x00'
-            '\x01\x61\x00\x00\x09')
+            '\x01\x61\x00\x00\x09'
+        )
         self.environ['wsgi.input'].seek(0, 0)
 
         self.gw.post()
 
-        self.assertEqual(self.response.__dict__['_Response__status'][0], 200)
+        self.assertEqual(self.response.status, 200)
 
         envelope = remoting.decode(self.response.out.getvalue())
         message = envelope['/1']

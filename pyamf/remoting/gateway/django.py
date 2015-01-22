@@ -94,17 +94,15 @@ class DjangoGateway(gateway.BaseGateway):
         stream = None
         timezone_offset = self._get_timezone_offset()
 
+        try:
+            body = http_request.body
+        except AttributeError:
+            body = http_request.raw_post_data
+
         # Decode the request
         try:
             request = remoting.decode(
-                http_request.raw_post_data,
-                strict=self.strict,
-                logger=self.logger,
-                timezone_offset=timezone_offset
-            )
-        except AttributeError:  # fix to make work with Django 1.6
-            request = remoting.decode(
-                http_request.body,
+                body,
                 strict=self.strict,
                 logger=self.logger,
                 timezone_offset=timezone_offset

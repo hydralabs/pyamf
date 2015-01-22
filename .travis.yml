@@ -3,18 +3,41 @@ python:
   - "2.6"
   - "2.7"
 
+env:
+  global:
+    - PYTHONPATH=/tmp/gaesdk
+
+  matrix:
+    - USE_EXTENSIONS=true # no dependencies
+    - USE_EXTENSIONS=false
+    - USE_EXTENSIONS=true DJANGO_VERSION=1.2.7
+    - USE_EXTENSIONS=false DJANGO_VERSION=1.2.7
+    - USE_EXTENSIONS=true DJANGO_VERSION=1.3.7
+    - USE_EXTENSIONS=false DJANGO_VERSION=1.3.7
+    - USE_EXTENSIONS=true DJANGO_VERSION=1.5.12
+    - USE_EXTENSIONS=false DJANGO_VERSION=1.5.12
+    - USE_EXTENSIONS=true SQLALCHEMY_VERSION=0.7.10
+    - USE_EXTENSIONS=false SQLALCHEMY_VERSION=0.7.10
+    - USE_EXTENSIONS=true SQLALCHEMY_VERSION=0.8.7
+    - USE_EXTENSIONS=false SQLALCHEMY_VERSION=0.8.7
+    - USE_EXTENSIONS=true SQLALCHEMY_VERSION=0.9.8
+    - USE_EXTENSIONS=false SQLALCHEMY_VERSION=0.9.8
+    - USE_EXTENSIONS=true TWISTED_VERSION=14.0.2
+    - USE_EXTENSIONS=false TWISTED_VERSION=14.0.2
+    - USE_EXTENSIONS=true GAESDK_VERSION=1.9.17
+    - USE_EXTENSIONS=false GAESDK_VERSION=1.9.17
+
 install:
   - pip install flake8 coverage coveralls
   - pip install -e .
+  - ./install_optional_dependencies.sh
 
 before_script:
   - flake8
+  - ./maybe_install_cython.sh
 
 script:
-  - coverage run -p --source=pyamf setup.py test
-  - pip install Cython
-  - coverage run -p --source=pyamf setup.py test
-  - coverage combine
+  - coverage run --source=pyamf setup.py test
 
 after_success:
   - coveralls
