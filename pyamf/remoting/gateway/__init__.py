@@ -277,7 +277,7 @@ class BaseGateway(object):
         if services is None:
             services = {}
 
-        if not hasattr(services, 'iteritems'):
+        if not hasattr(services, 'items'):
             raise TypeError("dict type required for services")
 
         self.services = ServiceCollection()
