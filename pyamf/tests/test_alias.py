@@ -193,9 +193,7 @@ class GetEncodableAttributesTestCase(unittest.TestCase):
 
         attrs = self.alias.getEncodableAttributes(self.obj, c)
 
-        k = attrs.keys()
-
-        k.sort()
+        k = sorted(attrs.keys())
 
         self.assertEqual(k, ['bar', 'foo'])
 
