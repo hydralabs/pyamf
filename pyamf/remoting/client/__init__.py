@@ -20,7 +20,7 @@ try:
 except ImportError:
     GzipFile = False
 
-from six import StringIO
+from six import BytesIO
 
 
 #: Default user agent is `PyAMF/x.x(.x)`.
@@ -483,7 +483,7 @@ class RemotingService(object):
                     'Decompression of Content-Encoding: %s not available.' % (
                         content_encoding,))
 
-            compressedstream = StringIO(bytes)
+            compressedstream = BytesIO(bytes)
             gzipper = GzipFile(fileobj=compressedstream)
             bytes = gzipper.read()
             gzipper.close()
@@ -520,8 +520,8 @@ class RemotingService(object):
         self.addHeader(
             'Credentials',
             dict(
-                userid=username.decode('utf-8'),
-                password=password.decode('utf-8')
+                userid=username,
+                password=password
             ),
             True
         )

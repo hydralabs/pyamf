@@ -92,24 +92,24 @@ class HelperTestCase(unittest.TestCase):
     def test_get_decoder(self):
         self.assertRaises(ValueError, pyamf.get_decoder, 'spam')
 
-        decoder = pyamf.get_decoder(pyamf.AMF0, stream='123', strict=True)
-        self.assertEqual(decoder.stream.getvalue(), '123')
+        decoder = pyamf.get_decoder(pyamf.AMF0, stream=b'123', strict=True)
+        self.assertEqual(decoder.stream.getvalue(), b'123')
         self.assertTrue(decoder.strict)
 
-        decoder = pyamf.get_decoder(pyamf.AMF3, stream='456', strict=True)
-        self.assertEqual(decoder.stream.getvalue(), '456')
+        decoder = pyamf.get_decoder(pyamf.AMF3, stream=b'456', strict=True)
+        self.assertEqual(decoder.stream.getvalue(), b'456')
         self.assertTrue(decoder.strict)
 
     def test_get_encoder(self):
         pyamf.get_encoder(pyamf.AMF0)
         pyamf.get_encoder(pyamf.AMF3)
-        self.assertRaises(ValueError, pyamf.get_encoder, 'spam')
+        self.assertRaises(ValueError, pyamf.get_encoder, b'spam')
 
-        encoder = pyamf.get_encoder(pyamf.AMF0, stream='spam')
-        self.assertEqual(encoder.stream.getvalue(), 'spam')
+        encoder = pyamf.get_encoder(pyamf.AMF0, stream=b'spam')
+        self.assertEqual(encoder.stream.getvalue(), b'spam')
         self.assertFalse(encoder.strict)
 
-        encoder = pyamf.get_encoder(pyamf.AMF3, stream='eggs')
+        encoder = pyamf.get_encoder(pyamf.AMF3, stream=b'eggs')
         self.assertFalse(encoder.strict)
 
         encoder = pyamf.get_encoder(pyamf.AMF0, strict=True)
@@ -120,13 +120,13 @@ class HelperTestCase(unittest.TestCase):
 
     def test_encode(self):
         self.assertEqual(
-            '\x06\x0fconnect\x05?\xf0\x00\x00\x00\x00\x00\x00',
+            b'\x06\x0fconnect\x05?\xf0\x00\x00\x00\x00\x00\x00',
             pyamf.encode(u'connect', 1.0).getvalue()
         )
 
     def test_decode(self):
         expected = [u'connect', 1.0]
-        bytes = '\x06\x0fconnect\x05?\xf0\x00\x00\x00\x00\x00\x00'
+        bytes = b'\x06\x0fconnect\x05?\xf0\x00\x00\x00\x00\x00\x00'
 
         returned = [x for x in pyamf.decode(bytes)]
 
@@ -137,13 +137,13 @@ class HelperTestCase(unittest.TestCase):
 
         x = pyamf.encode('foo').getvalue()
 
-        self.assertEqual(x, '\x06\x07foo')
+        self.assertEqual(x, b'\x06\x07foo')
 
         pyamf.DEFAULT_ENCODING = pyamf.AMF0
 
         x = pyamf.encode('foo').getvalue()
 
-        self.assertEqual(x, '\x02\x00\x03foo')
+        self.assertEqual(x, b'\x02\x00\x03foo')
 
 
 class UnregisterClassTestCase(ClassCacheClearingTestCase):

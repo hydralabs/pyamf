@@ -50,7 +50,7 @@ class ArrayCollectionTestCase(unittest.TestCase, EncoderMixIn):
 
         self.assertEncoded(
             x,
-            '\n\x07Cflex.messaging.io.ArrayCollection\t\x03\x01\x06\teggs'
+            b'\n\x07Cflex.messaging.io.ArrayCollection\t\x03\x01\x06\teggs'
         )
 
     def test_encode_amf0(self):
@@ -62,12 +62,12 @@ class ArrayCollectionTestCase(unittest.TestCase, EncoderMixIn):
 
         self.assertEncoded(
             x,
-            '\x11\n\x07Cflex.messaging.io.ArrayCollection\t\x03\x01\x06\teggs'
+            b'\x11\n\x07Cflex.messaging.io.ArrayCollection\t\x03\x01\x06\teggs'
         )
 
     def test_decode_amf3(self):
         stream = util.BufferedByteStream(
-            '\n\x07Cflex.messaging.io.ArrayCollection\t\x03\x01\x06\teggs'
+            b'\n\x07Cflex.messaging.io.ArrayCollection\t\x03\x01\x06\teggs'
         )
         decoder = amf3.Decoder(stream)
         x = decoder.readElement()
@@ -77,8 +77,8 @@ class ArrayCollectionTestCase(unittest.TestCase, EncoderMixIn):
 
     def test_decode_proxy(self):
         stream = util.BufferedByteStream(
-            '\x0a\x07;flex.messaging.io.ObjectProxy\x09\x01\x03a\x06\x09spam'
-            '\x03b\x04\x05\x01')
+            b'\x0a\x07;flex.messaging.io.ObjectProxy\x09\x01\x03a\x06\x09spam'
+            b'\x03b\x04\x05\x01')
         decoder = amf3.Decoder(stream)
         decoder.use_proxies = True
 
@@ -89,7 +89,7 @@ class ArrayCollectionTestCase(unittest.TestCase, EncoderMixIn):
 
     def test_decode_amf0(self):
         stream = util.BufferedByteStream(
-            '\x11\n\x07Cflex.messaging.io.ArrayCollection\t\x03\x01\x06\teggs')
+            b'\x11\n\x07Cflex.messaging.io.ArrayCollection\t\x03\x01\x06\teggs')
         decoder = amf0.Decoder(stream)
         x = decoder.readElement()
 
@@ -98,8 +98,8 @@ class ArrayCollectionTestCase(unittest.TestCase, EncoderMixIn):
 
     def test_source_attr(self):
         s = (
-            '\n\x07Cflex.messaging.io.ArrayCollection\n\x0b\x01\rsource'
-            '\t\x05\x01\x06\x07foo\x06\x07bar\x01'
+            b'\n\x07Cflex.messaging.io.ArrayCollection\n\x0b\x01\rsource'
+            b'\t\x05\x01\x06\x07foo\x06\x07bar\x01'
         )
 
         x = pyamf.decode(s, encoding=pyamf.AMF3).next()
@@ -200,14 +200,14 @@ class ObjectProxyTestCase(unittest.TestCase, EncoderMixIn):
 
         self.assertEncoded(
             x,
-            '\n\x07;flex.messaging.io.ObjectProxy\n\x0b\x01',
-            ('\x03a\x06\tspam', '\x03b\x04\x05', '\x01')
+            b'\n\x07;flex.messaging.io.ObjectProxy\n\x0b\x01',
+            (b'\x03a\x06\tspam', b'\x03b\x04\x05', b'\x01')
         )
 
     def test_decode(self):
         stream = util.BufferedByteStream(
-            '\x0a\x07;flex.messaging.io.ObjectProxy\x09\x01\x03a\x06\x09spam'
-            '\x03b\x04\x05\x01')
+            b'\x0a\x07;flex.messaging.io.ObjectProxy\x09\x01\x03a\x06\x09spam'
+            b'\x03b\x04\x05\x01')
         decoder = amf3.Decoder(stream)
 
         x = decoder.readElement()
@@ -217,8 +217,8 @@ class ObjectProxyTestCase(unittest.TestCase, EncoderMixIn):
 
     def test_decode_proxy(self):
         stream = util.BufferedByteStream(
-            '\x0a\x07;flex.messaging.io.ObjectProxy\x09\x01\x03a\x06\x09spam'
-            '\x03b\x04\x05\x01')
+            b'\x0a\x07;flex.messaging.io.ObjectProxy\x09\x01\x03a\x06\x09spam'
+            b'\x03b\x04\x05\x01')
         decoder = amf3.Decoder(stream)
         decoder.use_proxies = True
 

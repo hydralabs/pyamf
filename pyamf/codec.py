@@ -7,7 +7,7 @@ Provides basic functionality for all pyamf.amf?.[De|E]ncoder classes.
 
 import types
 import datetime
-from six import binary_type, string_types, text_type, iteritems
+from six import binary_type, text_type, iteritems
 
 import pyamf
 from pyamf import util, python, xml
@@ -251,7 +251,7 @@ class _Codec(object):
 
     def __init__(self, stream=None, context=None, strict=False,
                  timezone_offset=None):
-        if isinstance(stream, string_types) or stream is None:
+        if isinstance(stream, binary_type) or stream is None:
             stream = util.BufferedByteStream(stream)
 
         self.stream = stream

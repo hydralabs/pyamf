@@ -19,11 +19,11 @@ from pyamf import util
 from six import iteritems, string_types
 
 #: Magic Number - 2 bytes
-HEADER_VERSION = '\x00\xbf'
+HEADER_VERSION = b'\x00\xbf'
 #: Marker - 10 bytes
-HEADER_SIGNATURE = 'TCSO\x00\x04\x00\x00\x00\x00'
+HEADER_SIGNATURE = b'TCSO\x00\x04\x00\x00\x00\x00'
 #: Padding - 4 bytes
-PADDING_BYTE = '\x00'
+PADDING_BYTE = b'\x00'
 
 
 def decode(stream, strict=True):

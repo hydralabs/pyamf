@@ -12,7 +12,7 @@ Do not reference directly, use L{pyamf.util.BufferedByteStream} instead.
 """
 
 import struct
-from six import StringIO, text_type
+from six import BytesIO, binary_type, text_type
 
 from pyamf import python
 
@@ -20,9 +20,9 @@ from pyamf import python
 SYSTEM_ENDIAN = None
 
 
-class StringIOProxy(object):
+class BytesIOProxy(object):
     """
-    I am a C{StringIO} type object containing byte data from the AMF stream.
+    I am a C{BytesIO} type object containing byte data from the AMF stream.
 
     @see: U{ByteArray on OSFlash
         <http://osflash.org/documentation/amf3#x0c_-_bytearray>}
@@ -32,11 +32,11 @@ class StringIOProxy(object):
 
     def __init__(self, buf=None):
         """
-        @raise TypeError: Unable to coerce C{buf} to C{StringIO}.
+        @raise TypeError: Unable to coerce C{buf} to C{BytesIO}.
         """
-        self._buffer = StringIO()
+        self._buffer = BytesIO()
 
-        if isinstance(buf, python.str_types):
+        if isinstance(buf, binary_type):
             self._buffer.write(buf)
         elif hasattr(buf, 'getvalue'):
             self._buffer.write(buf.getvalue())
@@ -49,7 +49,7 @@ class StringIOProxy(object):
             self._buffer.write(buf.read())
             buf.seek(old_pos)
         elif buf is not None:
-            raise TypeError("Unable to coerce buf->StringIO got %r" % (buf,))
+            raise TypeError("Unable to coerce buf->BytesIO got %r" % (buf,))
 
         self._get_len()
         self._len_changed = False
@@ -98,7 +98,7 @@ class StringIOProxy(object):
         @type size: C{int}
         """
         if size == 0:
-            self._buffer = StringIO()
+            self._buffer = BytesIO()
             self._len_changed = True
 
             return
@@ -106,7 +106,7 @@ class StringIOProxy(object):
         cur_pos = self.tell()
         self.seek(0)
         buf = self.read(size)
-        self._buffer = StringIO()
+        self._buffer = BytesIO()
 
         self._buffer.write(buf)
         self.seek(cur_pos)
@@ -510,9 +510,9 @@ class DataTypeMixIn(object):
         self.write(struct.pack("%s%ds" % (self.endian, len(bytes)), bytes))
 
 
-class BufferedByteStream(StringIOProxy, DataTypeMixIn):
+class BufferedByteStream(BytesIOProxy, DataTypeMixIn):
     """
-    An extension of C{StringIO}.
+    An extension of C{BytesIO}.
 
     Features:
      - Raises L{IOError} if reading past end.
@@ -522,10 +522,10 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
     def __init__(self, buf=None, min_buf_size=None):
         """
         @param buf: Initial byte stream.
-        @type buf: C{str} or C{StringIO} instance
+        @type buf: C{str} or C{BytesIO} instance
         @param min_buf_size: Ignored in the pure Python version.
         """
-        StringIOProxy.__init__(self, buf=buf)
+        BytesIOProxy.__init__(self, buf=buf)
 
     def read(self, length=-1):
         """
@@ -543,7 +543,7 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
                 'remain' % (length, len(self) - self.tell())
             )
 
-        return StringIOProxy.read(self, length)
+        return BytesIOProxy.read(self, length)
 
     def peek(self, size=1):
         """
@@ -562,7 +562,7 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
         if size < -1:
             raise ValueError("Cannot peek backwards")
 
-        bytes = ''
+        bytes = b''
         pos = self.tell()
 
         while not self.at_eof() and len(bytes) != size:
@@ -604,9 +604,12 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
         self.seek(0, 2)
 
         if hasattr(data, 'getvalue'):
-            self.write_utf8_string(data.getvalue())
-        else:
-            self.write_utf8_string(data)
+            data = data.getvalue()
+        if isinstance(data, text_type):
+            data = data.encode('utf-8')
+        if not isinstance(data, binary_type):
+            raise TypeError
+        self.write(data)
 
         self.seek(t)
 

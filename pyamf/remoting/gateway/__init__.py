@@ -10,7 +10,7 @@ Remoting server implementations.
 import sys
 import types
 import datetime
-from six import integer_types, iteritems, string_types
+from six import class_types, integer_types, iteritems, string_types
 
 import pyamf
 from pyamf import remoting, util, python
@@ -86,7 +86,7 @@ class ServiceWrapper(object):
         """
         service = None
 
-        if isinstance(self.service, (type, types.ClassType)):
+        if isinstance(self.service, class_types):
             service = self.service()
         else:
             service = self.service

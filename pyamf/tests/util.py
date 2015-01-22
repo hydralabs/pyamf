@@ -245,7 +245,7 @@ def expectedFailureIfAppengine(func):
 
 
 def _join(parts):
-    ret = ''
+    ret = b''
 
     for p in parts:
         if not isinstance(p, string_types):

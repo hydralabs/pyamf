@@ -8,7 +8,7 @@ Tests for AMF utilities.
 """
 
 import unittest
-from six import text_type
+from six import binary_type, text_type
 
 import pyamf
 from pyamf import codec
@@ -248,11 +248,11 @@ class ContextTestCase(unittest.TestCase):
         self.assertFalse(u is i)
 
     def test_bytes(self):
-        s = 'foo'.decode('ascii')
+        s = u'foo'
 
         b = self.context.getBytesForString(s)
 
-        self.assertTrue(type(b) is str)
+        self.assertTrue(type(b) is binary_type)
         self.assertEqual(b, s.encode('ascii'))
 
         i = self.context.getBytesForString(s)
