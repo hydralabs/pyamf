@@ -71,11 +71,11 @@ class ServiceWrapper(object):
         self.expose_request = expose_request
         self.preprocessor = preprocessor
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         if isinstance(other, ServiceWrapper):
-            return cmp(self.__dict__, other.__dict__)
+            return self.__dict__ == other.__dict__
 
-        return cmp(self.service, other)
+        return self.service == other
 
     def _get_service_func(self, method, params):
         """

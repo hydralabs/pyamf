@@ -532,11 +532,11 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
 
         return super(ByteArray, self).writeObject(obj)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         if isinstance(other, ByteArray):
-            return cmp(self.getvalue(), other.getvalue())
+            return self.getvalue() == other.getvalue()
 
-        return cmp(self.getvalue(), other)
+        return self.getvalue() == other
 
     def encode(self):
         buf = self.getvalue()
