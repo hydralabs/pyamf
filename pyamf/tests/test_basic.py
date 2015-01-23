@@ -224,11 +224,11 @@ class ClassLoaderTestCase(ClassCacheClearingTestCase):
         self.assertRaises(TypeError, pyamf.load_class, 'spam.eggs')
 
     def test_load_class_by_module(self):
-        pyamf.load_class('__builtin__.tuple')
+        pyamf.load_class('unittest.TestCase')
 
     def test_load_class_by_module_bad(self):
         with self.assertRaises(pyamf.UnknownClassAlias):
-            pyamf.load_class('__builtin__.tuple.')
+            pyamf.load_class('unittest.TestCase.')
 
 
 class TypeMapTestCase(unittest.TestCase):
