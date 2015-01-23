@@ -242,9 +242,9 @@ class BaseGatewayTestCase(unittest.TestCase):
 
         self.assertRaises(TypeError, gw.addService, 1)
 
-        import new
+        import types
 
-        temp = new.module('temp')
+        temp = types.ModuleType('temp')
         gw.addService(temp)
 
         self.assertTrue(temp in gw.services)
