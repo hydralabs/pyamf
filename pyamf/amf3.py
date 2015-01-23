@@ -1480,9 +1480,9 @@ class Encoder(codec.Encoder):
 
         if alias.static_attrs:
             if not class_ref:
-                [self.serialiseString(attr) for attr in alias.static_attrs]
+                [self.serialiseString(attr) for attr in sorted(alias.static_attrs)]
 
-            for attr in alias.static_attrs:
+            for attr in sorted(alias.static_attrs):
                 value = attrs.pop(attr)
 
                 self.writeElement(value)
@@ -1492,11 +1492,19 @@ class Encoder(codec.Encoder):
 
         if definition.encoding == ObjectEncoding.DYNAMIC:
             if attrs:
-                for attr, value in iteritems(attrs):
-                    if type(attr) in python.int_types:
-                        attr = str(attr)
+                e = pyamf.EncodeError('Unable to encode %r (type %r)' % (obj, type(obj)))
+                try:
+                    keys = sorted(attrs)
+                except TypeError:
+                    raise e
+                for key in keys:
+                    value = attrs[key]
+                    if isinstance(key, python.int_types):
+                        key = str(key)
+                    elif not isinstance(key, python.str_types):
+                        raise e
 
-                    self.serialiseString(attr)
+                    self.serialiseString(key)
                     self.writeElement(value)
 
             self.stream.write(b'\x01')

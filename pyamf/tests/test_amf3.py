@@ -288,8 +288,8 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
             b'\x01'
         )
         self.assertEncoded({12: True, 42: "Testing"}, (b'\n\x0b', (
-            b'\x01\x0542\x06\x0fTesting',
-            b'\x0512\x03\x01'
+            b'\x01\x0512\x03'
+            b'\x0542\x06\x0fTesting\x01',
         )))
 
     def test_boolean(self):
@@ -1060,8 +1060,8 @@ class ObjectEncodingTestCase(ClassCacheClearingTestCase, EncoderMixIn):
 
         self.assertEqual(
             self.buf.getvalue(),
-            b'\t\x05\x01\n;\x01\tname\x05id\x17description\x06\x07foo\x04\x01'
-            b'\x01\x01\n\x01\x06\x07bar\x04\x02\x01\x01'
+            b'\t\x05\x01\n;\x01\x17description\x05id\tname\x01\x04\x01\x06\x07f'
+            b'oo\x01\n\x01\x01\x04\x02\x06\x07bar\x01'
         )
 
 
@@ -1489,7 +1489,7 @@ class ClassInheritanceTestCase(ClassCacheClearingTestCase, EncoderMixIn):
 
         self.assertEncoded(
             x,
-            b'\n;\x03C\x03b\x03a\x03c\x06\teggs\x06\tspam\x06\x07foo\x01'
+            b'\n;\x03C\x03a\x03b\x03c\x06\tspam\x06\teggs\x06\x07foo\x01'
         )
 
 

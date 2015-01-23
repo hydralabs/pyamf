@@ -445,7 +445,7 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
         self.assertEncoded(
             x,
             b'\x11\n\x0b',
-            (b'\x01\x07foo\x06\x07bar', b'\x07baz\x06\x07gak\x01')
+            (b'\x01\x07baz\x06\x07gak', b'\x07foo\x06\x07bar\x01')
         )
 
     def test_static_attrs(self):

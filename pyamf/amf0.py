@@ -543,12 +543,20 @@ class Encoder(codec.Encoder):
 
         @param o: The C{dict} data to be encoded to the AMF0 data stream.
         """
-        for key, val in iteritems(o):
-            if type(key) in python.int_types:
+        e = pyamf.EncodeError('Unable to encode %r (type %r)' % (o, type(o)))
+        try:
+            keys = sorted(o)
+        except TypeError:
+            raise e
+        for key in keys:
+            value = o[key]
+            if isinstance(key, python.int_types):
                 key = str(key)
+            elif not isinstance(key, python.str_types):
+                raise e
 
             self.serialiseString(key)
-            self.writeElement(val)
+            self.writeElement(value)
 
     def writeMixedArray(self, o):
         """
@@ -612,7 +620,7 @@ class Encoder(codec.Encoder):
         attrs = alias.getEncodableAttributes(o, codec=self)
 
         if alias.static_attrs and attrs:
-            for key in alias.static_attrs:
+            for key in sorted(alias.static_attrs):
                 value = attrs.pop(key)
 
                 self.serialiseString(key)
