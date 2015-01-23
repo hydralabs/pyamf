@@ -9,7 +9,7 @@ Test utilities.
 
 import unittest
 import copy
-from six import string_types
+from six import integer_types, string_types
 
 import pyamf
 from pyamf import python
@@ -245,14 +245,14 @@ def expectedFailureIfAppengine(func):
 
 
 def _join(parts):
-    ret = b''
+    ret = bytearray()
 
     for p in parts:
-        if not isinstance(p, string_types):
-            ret += _join(p)
+        if isinstance(p, integer_types):
+            ret.append(p)
+        elif not isinstance(p, string_types):
+            ret.extend(_join(p))
+        else:
+            ret.extend(p)
 
-            continue
-
-        ret += p
-
-    return ret
+    return bytes(ret)
