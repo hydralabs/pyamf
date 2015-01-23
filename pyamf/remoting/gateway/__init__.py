@@ -534,7 +534,7 @@ def authenticate(func, c, expose_request=False):
 
     attr = func
 
-    if isinstance(func, types.UnboundMethodType):
+    if isinstance(func, types.MethodType):
         attr = func.im_func
 
     if expose_request is True:
@@ -554,7 +554,7 @@ def expose_request(func):
     if not python.callable(func):
         raise TypeError("func must be callable")
 
-    if isinstance(func, types.UnboundMethodType):
+    if isinstance(func, types.MethodType):
         setattr(func.im_func, '_pyamf_expose_request', True)
     else:
         setattr(func, '_pyamf_expose_request', True)
@@ -580,7 +580,7 @@ def preprocess(func, c, expose_request=False):
 
     attr = func
 
-    if isinstance(func, types.UnboundMethodType):
+    if isinstance(func, types.MethodType):
         attr = func.im_func
 
     if expose_request is True:
