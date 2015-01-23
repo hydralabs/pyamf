@@ -312,22 +312,9 @@ class BaseGateway(object):
         if isinstance(service, integer_types + (float,) + string_types):
             raise TypeError("Service cannot be a scalar value")
 
-        allowed_types = (
-            types.ModuleType,
-            types.FunctionType,
-            types.DictType,
-            types.MethodType,
-            types.InstanceType,
-            types.ObjectType,
-        )
-
-        if not python.callable(service) and \
-                not isinstance(service, allowed_types):
-            raise TypeError("Service must be a callable, module, or an object")
-
         if name is None:
             # TODO: include the module in the name
-            if isinstance(service, (type, types.ClassType)):
+            if isinstance(service, class_types):
                 name = service.__name__
             elif isinstance(service, types.FunctionType):
                 name = service.func_name
