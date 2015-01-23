@@ -8,6 +8,7 @@ Controller for SQLAlchemy Addressbook example.
 """
 
 from datetime import datetime
+from six import iteritems
 
 import pyamf
 
@@ -59,13 +60,13 @@ class SAObject(object):
         user.first_name = 'Bill'
         user.last_name = 'Lumbergh'
         user.created = datetime.utcnow()
-        for label, email in {'personal': 'bill@yahoo.com', 'work': 'bill@initech.com'}.iteritems():
+        for label, email in iteritems({'personal': 'bill@yahoo.com', 'work': 'bill@initech.com'}):
             email_obj = models.Email()
             email_obj.label = label
             email_obj.email = email
             user.emails.append(email_obj)
 
-        for label, number in {'personal': '1-800-555-5555', 'work': '1-555-555-5555'}.iteritems():
+        for label, number in iteritems({'personal': '1-800-555-5555', 'work': '1-555-555-5555'}):
             phone_obj = models.PhoneNumber()
             phone_obj.label = label
             phone_obj.number = number

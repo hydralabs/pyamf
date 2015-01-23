@@ -9,6 +9,7 @@ Test utilities.
 
 import unittest
 import copy
+from six import string_types
 
 import pyamf
 from pyamf import python
@@ -86,7 +87,7 @@ class DecoderMixIn(object):
         pass
 
     def decode(self, bytes, raw=False):
-        if not isinstance(bytes, basestring):
+        if not isinstance(bytes, string_types):
             bytes = _join(bytes)
 
         self.buf.seek(0, 0)
@@ -137,7 +138,7 @@ class ClassCacheClearingTestCase(unittest.TestCase):
     def assertEncodes(self, obj, buffer, encoding=pyamf.AMF3):
         bytes = pyamf.encode(obj, encoding=encoding).getvalue()
 
-        if isinstance(buffer, basestring):
+        if isinstance(buffer, string_types):
             self.assertEqual(bytes, buffer)
 
             return
@@ -145,7 +146,7 @@ class ClassCacheClearingTestCase(unittest.TestCase):
         self.assertBuffer(bytes, buffer)
 
     def assertDecodes(self, bytes, cb, encoding=pyamf.AMF3, raw=False):
-        if not isinstance(bytes, basestring):
+        if not isinstance(bytes, string_types):
             bytes = _join(bytes)
 
         ret = list(pyamf.decode(bytes, encoding=encoding))
@@ -247,7 +248,7 @@ def _join(parts):
     ret = ''
 
     for p in parts:
-        if not isinstance(p, basestring):
+        if not isinstance(p, string_types):
             ret += _join(p)
 
             continue

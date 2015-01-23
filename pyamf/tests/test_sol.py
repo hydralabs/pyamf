@@ -14,7 +14,7 @@ import os.path
 import warnings
 import tempfile
 
-from StringIO import StringIO
+from six import StringIO
 
 import pyamf
 from pyamf import sol

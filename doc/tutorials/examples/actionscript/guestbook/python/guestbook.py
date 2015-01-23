@@ -8,9 +8,9 @@ Guestbook remoting service.
 """
 
 
-from datetime import datetime
-from urlparse import urlparse
 import re
+from urlparse import urlparse
+from six import string_types
 
 try:
     from genshi.input import HTML
@@ -33,12 +33,12 @@ EMAIL_RE = r"^.+\@(\[?)[a-zA-Z0-9\-\.]+\.([a-zA-Z]{2,3}|[0-9]{1,3})(\]?)$"
 # This is MySQL specific, make sure that if you use a different database server
 # this is updated to ensure sql injection attacks don't occur 
 def sql_safe(value):
-    if isinstance(value, basestring):
+    if isinstance(value, string_types):
         return value.replace("'", "\\'")
     elif isinstance(type(value), (int, float)):
         return value
 
-    raise TypeError, 'basestring, int or float expected' 
+    raise TypeError('basestring, int or float expected')
 
 
 def is_valid_url(url):
@@ -93,8 +93,8 @@ class GuestBookService(object):
         self.conn_pool = pool
         LoopingCall(self._keepAlive).start(3600, False)
         
-    def _keepAlive():
-        print 'Running Keep Alive...'
+    def _keepAlive(self):
+        print('Running Keep Alive...')
         self.conn_pool.runOperation('SELECT 1')
 
     def getMessages(self):
@@ -135,35 +135,35 @@ class GuestBookService(object):
         email = msg._amf_object.email
         message = msg._amf_object.message
  
-        if not isinstance(name, basestring):
+        if not isinstance(name, string_types):
             name = str(name)
 
         if len(name) > 50:
-            raise IOError, "Name exceeds maximum length (50 chars max)"
+            raise IOError("Name exceeds maximum length (50 chars max)")
 
-        if not isinstance(url, basestring):
+        if not isinstance(url, string_types):
             url = str(url)
 
         if len(url) > 255:
-            raise IOError, "Website url exceeds maximum length (255 chars max)"
+            raise IOError("Website url exceeds maximum length (255 chars max)")
 
         if len(url) > 0:
             valid_url, reason = is_valid_url(url)
 
             if not valid_url:
-                raise ValueError, "Website url not valid"
+                raise ValueError("Website url not valid")
 
-        if not isinstance(email, basestring):
+        if not isinstance(email, string_types):
             email = str(email)
 
         if not is_valid_email(email):
-            raise ValueError, "Email address is not valid"
+            raise ValueError("Email address is not valid")
 
-        if not isinstance(message, basestring):
+        if not isinstance(message, string_types):
             message = str(message)
 
         if len(message) == 0:
-            raise ValueError, "Message is required"
+            raise ValueError("Message is required")
 
         message = strip_message(message)
         response_deferred = defer.Deferred()

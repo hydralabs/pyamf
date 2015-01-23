@@ -8,16 +8,10 @@ Tests for AMF utilities.
 """
 
 import unittest
+from six import text_type
 
 import pyamf
 from pyamf import codec
-
-try:
-    unicode
-except NameError:
-    # py3k
-    unicode = str
-    str = bytes
 
 
 class TestObject(object):
@@ -240,7 +234,7 @@ class ContextTestCase(unittest.TestCase):
         s = 'foo'.encode('ascii')
         u = self.context.getStringForBytes(s)
 
-        self.assertTrue(type(u) is unicode)
+        self.assertTrue(isinstance(u, text_type))
         self.assertEqual(u, s.decode('ascii'))
 
         i = self.context.getStringForBytes(s)

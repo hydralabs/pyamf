@@ -12,11 +12,7 @@ Do not reference directly, use L{pyamf.util.BufferedByteStream} instead.
 """
 
 import struct
-
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
+from six import StringIO, text_type
 
 from pyamf import python
 
@@ -508,7 +504,7 @@ class DataTypeMixIn(object):
 
         bytes = u
 
-        if isinstance(bytes, unicode):
+        if isinstance(bytes, text_type):
             bytes = u.encode("utf8")
 
         self.write(struct.pack("%s%ds" % (self.endian, len(bytes)), bytes))
@@ -642,7 +638,7 @@ def is_float_broken():
     @return: Boolean indicating whether floats are broken on this platform.
     """
     return str(python.NaN) != str(
-        struct.unpack("!d", '\xff\xf8\x00\x00\x00\x00\x00\x00')[0])
+        struct.unpack("!d", b'\xff\xf8\x00\x00\x00\x00\x00\x00')[0])
 
 
 # init the module from here ..
@@ -656,22 +652,22 @@ if is_float_broken():
         bytes = self.read(8)
 
         if self._is_big_endian():
-            if bytes == '\xff\xf8\x00\x00\x00\x00\x00\x00':
+            if bytes == b'\xff\xf8\x00\x00\x00\x00\x00\x00':
                 return python.NaN
 
-            if bytes == '\xff\xf0\x00\x00\x00\x00\x00\x00':
+            if bytes == b'\xff\xf0\x00\x00\x00\x00\x00\x00':
                 return python.NegInf
 
-            if bytes == '\x7f\xf0\x00\x00\x00\x00\x00\x00':
+            if bytes == b'\x7f\xf0\x00\x00\x00\x00\x00\x00':
                 return python.PosInf
         else:
-            if bytes == '\x00\x00\x00\x00\x00\x00\xf8\xff':
+            if bytes == b'\x00\x00\x00\x00\x00\x00\xf8\xff':
                 return python.NaN
 
-            if bytes == '\x00\x00\x00\x00\x00\x00\xf0\xff':
+            if bytes == b'\x00\x00\x00\x00\x00\x00\xf0\xff':
                 return python.NegInf
 
-            if bytes == '\x00\x00\x00\x00\x00\x00\xf0\x7f':
+            if bytes == b'\x00\x00\x00\x00\x00\x00\xf0\x7f':
                 return python.PosInf
 
         return struct.unpack("%sd" % self.endian, bytes)[0]

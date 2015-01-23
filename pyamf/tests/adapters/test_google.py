@@ -1140,7 +1140,7 @@ class BlobStoreTestCase(BaseTestCase):
         'content_type': 'text/plain',
         'size': 1234567,
         'filename': 'not-telling.ogg',
-        'creation': datetime.datetime(2010, 07, 11, 14, 15, 01)
+        'creation': datetime.datetime(2010, 7, 11, 14, 15, 1)
     }
 
     def setUp(self):

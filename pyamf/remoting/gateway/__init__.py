@@ -10,6 +10,7 @@ Remoting server implementations.
 import sys
 import types
 import datetime
+from six import integer_types, iteritems, string_types
 
 import pyamf
 from pyamf import remoting, util, python
@@ -238,7 +239,7 @@ class ServiceCollection(dict):
     I hold a collection of services, mapping names to objects.
     """
     def __contains__(self, value):
-        if isinstance(value, basestring):
+        if isinstance(value, string_types):
             return value in self.keys()
 
         return value in self.values()
@@ -292,7 +293,7 @@ class BaseGateway(object):
         if kwargs:
             raise TypeError('Unknown kwargs: %r' % (kwargs,))
 
-        for name, service in services.iteritems():
+        for name, service in iteritems(services):
             self.addService(service, name)
 
     def addService(self, service, name=None, description=None,
@@ -308,7 +309,7 @@ class BaseGateway(object):
         @raise TypeError: C{service} cannot be a scalar value.
         @raise TypeError: C{service} must be C{callable} or a module.
         """
-        if isinstance(service, (int, long, float, basestring)):
+        if isinstance(service, integer_types + (float,) + string_types):
             raise TypeError("Service cannot be a scalar value")
 
         allowed_types = (
@@ -364,7 +365,7 @@ class BaseGateway(object):
         @type service: C{callable} or a class instance
         @raise NameError: Service not found.
         """
-        for name, wrapper in self.services.iteritems():
+        for name, wrapper in iteritems(self.services):
             if service in (name, wrapper.service):
                 del self.services[name]
                 return

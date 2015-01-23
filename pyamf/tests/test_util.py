@@ -12,7 +12,7 @@ Tests for AMF utilities.
 import unittest
 
 from datetime import datetime
-from StringIO import StringIO
+from six import StringIO
 
 import pyamf
 from pyamf import util
@@ -386,11 +386,11 @@ class DataTypeMixInTestCase(unittest.TestCase):
         self._write_endian(
             x,
             x.write_ulong,
-            (4294967295L,),
+            (4294967295,),
             ('\xff\xff\xff\xff', '\xff\xff\xff\xff')
         )
 
-        self.assertRaises(OverflowError, x.write_ulong, 4294967296L)
+        self.assertRaises(OverflowError, x.write_ulong, 4294967296)
         self.assertRaises(OverflowError, x.write_ulong, -1)
         self.assertRaises(TypeError, x.write_ulong, '\x00\x00\x00\x00')
 
@@ -411,7 +411,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
             ['\xff\xff\xff\xff', '\xff\xff\xff\xff'],
             'read_ulong',
             (),
-            4294967295L
+            4294967295
         )
 
     def test_write_long(self):
@@ -432,7 +432,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
         self._write_endian(
             x,
             x.write_long,
-            (2147483647L,),
+            (2147483647,),
             ('\x7f\xff\xff\xff', '\xff\xff\xff\x7f')
         )
         self._write_endian(
@@ -469,7 +469,7 @@ class DataTypeMixInTestCase(unittest.TestCase):
             ['\x7f\xff\xff\xff', '\xff\xff\xff\x7f'],
             'read_long',
             (),
-            2147483647L
+            2147483647
         )
 
     def test_write_u24bit(self):
@@ -752,7 +752,7 @@ class BufferedByteStreamTestCase(unittest.TestCase):
 
         self.assertRaises(TypeError, a.append, 234234)
         self.assertRaises(TypeError, a.append, 234.0)
-        self.assertRaises(TypeError, a.append, 234234L)
+        self.assertRaises(TypeError, a.append, 234234)
         self.assertRaises(TypeError, a.append, [])
         self.assertRaises(TypeError, a.append, {})
         self.assertRaises(TypeError, a.append, lambda _: None)
@@ -1040,7 +1040,7 @@ class GetClassMetaTestCase(unittest.TestCase):
         class B(object):
             pass
 
-        for t in ['', u'', 1, 1.0, 1L, [], {}, object, object(), A(), B()]:
+        for t in ['', u'', 1, 1.0, 1, [], {}, object, object(), A(), B()]:
             self.assertRaises(TypeError, util.get_class_meta, t)
 
     def test_no_meta(self):
@@ -1059,7 +1059,6 @@ class GetClassMetaTestCase(unittest.TestCase):
             'alias': None,
             'amf3': None,
             'exclude_attrs': None,
-            'proxy_attrs': None,
             'external': None
         }
 
@@ -1083,7 +1082,6 @@ class GetClassMetaTestCase(unittest.TestCase):
             'dynamic': None,
             'alias': 'foo.bar.Spam',
             'amf3': None,
-            'proxy_attrs': None,
             'exclude_attrs': None,
             'external': None
         }
@@ -1133,7 +1131,6 @@ class GetClassMetaTestCase(unittest.TestCase):
             'alias': None,
             'amf3': None,
             'static_attrs': None,
-            'proxy_attrs': None,
             'external': None
         }
 
@@ -1159,7 +1156,6 @@ class GetClassMetaTestCase(unittest.TestCase):
             'amf3': None,
             'static_attrs': None,
             'external': None,
-            'proxy_attrs': None,
         }
 
         self.assertEqual(util.get_class_meta(A), meta)
@@ -1179,7 +1175,6 @@ class GetClassMetaTestCase(unittest.TestCase):
             'proxy_attrs': None,
             'synonym_attrs': None,
             'readonly_attrs': None,
-            'proxy_attrs': None,
             'dynamic': None,
             'alias': None,
             'amf3': True,
@@ -1204,7 +1199,6 @@ class GetClassMetaTestCase(unittest.TestCase):
             'proxy_attrs': None,
             'synonym_attrs': None,
             'readonly_attrs': None,
-            'proxy_attrs': None,
             'dynamic': False,
             'alias': None,
             'amf3': None,
@@ -1229,7 +1223,6 @@ class GetClassMetaTestCase(unittest.TestCase):
             'proxy_attrs': None,
             'synonym_attrs': None,
             'readonly_attrs': None,
-            'proxy_attrs': None,
             'dynamic': None,
             'alias': None,
             'amf3': None,
@@ -1268,7 +1261,6 @@ class GetClassMetaTestCase(unittest.TestCase):
             'amf3': True,
             'exclude_attrs': ['foo'],
             'synonym_attrs': None,
-            'proxy_attrs': None,
             'external': True
         }
 

@@ -15,6 +15,7 @@ in Google App Engine.
 from google.appengine.ext import db
 from google.appengine.ext.db import polymodel
 import datetime
+from six import integer_types, iteritems, string_types
 
 import pyamf
 from pyamf.adapters import util
@@ -112,7 +113,7 @@ class DataStoreClassAlias(pyamf.ClassAlias):
         self.properties = {}
         reverse_props = []
 
-        for name, prop in self.klass.properties().iteritems():
+        for name, prop in iteritems(self.klass.properties()):
             self.properties[name] = prop
 
             props.append(name)
@@ -127,7 +128,7 @@ class DataStoreClassAlias(pyamf.ClassAlias):
         # check if the property is a defined as a collection_name. These types
         # of properties are read-only and the datastore freaks out if you
         # attempt to meddle with it. We delete the attribute entirely ..
-        for name, value in self.klass.__dict__.iteritems():
+        for name, value in iteritems(self.klass.__dict__):
             if isinstance(value, db._ReverseReferenceProperty):
                 reverse_props.append(name)
 
@@ -149,7 +150,7 @@ class DataStoreClassAlias(pyamf.ClassAlias):
         gae_objects = getGAEObjects(codec.context) if codec else None
 
         if self.reference_properties and gae_objects:
-            for name, prop in self.reference_properties.iteritems():
+            for name, prop in iteritems(self.reference_properties):
                 klass = prop.reference_class
                 key = prop.get_value_for_datastore(obj)
 
@@ -210,11 +211,11 @@ class DataStoreClassAlias(pyamf.ClassAlias):
                 v = attrs[k]
 
                 if isinstance(prop, db.FloatProperty) and \
-                        isinstance(v, (int, long)):
+                        isinstance(v, integer_types):
                     attrs[k] = float(v)
                 elif isinstance(prop, db.IntegerProperty) and \
                         isinstance(v, float):
-                    x = long(v)
+                    x = int(v)
 
                     # only convert the type if there is no mantissa - otherwise
                     # let the chips fall where they may
@@ -280,7 +281,7 @@ def loadInstanceFromDatastore(klass, key, codec=None):
             'expected db.Model/db.Expando class, got %s' % (klass,)
         )
 
-    if not isinstance(key, basestring):
+    if not isinstance(key, string_types):
         raise TypeError('string expected for key, got %s', (repr(key),))
 
     key = str(key)

@@ -8,6 +8,7 @@ Class alias base functionality.
 """
 
 import inspect
+from six import iteritems, string_types
 
 import pyamf
 from pyamf import python, util
@@ -123,7 +124,7 @@ class ClassAlias(object):
             self.decodable_properties.update(self.klass.__slots__)
             self.encodable_properties.update(self.klass.__slots__)
 
-        for k, v in self.klass.__dict__.iteritems():
+        for k, v in iteritems(self.klass.__dict__):
             if not isinstance(v, property):
                 continue
 
@@ -313,7 +314,7 @@ class ClassAlias(object):
         )
 
     def __eq__(self, other):
-        if isinstance(other, basestring):
+        if isinstance(other, string_types):
             return self.alias == other
         elif isinstance(other, self.__class__):
             return self.klass == other.klass
@@ -421,14 +422,14 @@ class ClassAlias(object):
         if self.proxy_attrs is not None and attrs and codec:
             context = codec.context
 
-            for k, v in attrs.copy().iteritems():
+            for k, v in iteritems(attrs.copy()):
                 if k in self.proxy_attrs:
                     attrs[k] = context.getProxyForObject(v)
 
         if self.synonym_attrs:
             missing = object()
 
-            for k, v in self.synonym_attrs.iteritems():
+            for k, v in iteritems(self.synonym_attrs):
                 value = attrs.pop(k, missing)
 
                 if value is missing:
@@ -503,7 +504,7 @@ class ClassAlias(object):
         if self.synonym_attrs:
             missing = object()
 
-            for k, v in self.synonym_attrs.iteritems():
+            for k, v in iteritems(self.synonym_attrs):
                 value = attrs.pop(k, missing)
 
                 if value is missing:

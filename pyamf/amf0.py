@@ -17,6 +17,8 @@ LocalConnection, SharedObjects and other classes in the Adobe Flash Player.
 """
 
 import datetime
+from six import iteritems, integer_types, text_type
+from six.moves import xrange
 
 import pyamf
 from pyamf import util, codec, xml, python
@@ -243,7 +245,7 @@ class Decoder(codec.Decoder):
 
         attrs = self.readObjectAttributes(obj)
 
-        for key, value in attrs.iteritems():
+        for key, value in iteritems(attrs):
             try:
                 key = int(key)
             except ValueError:
@@ -481,7 +483,7 @@ class Encoder(codec.Encoder):
         """
         Similar to L{writeString} but does not encode a type byte.
         """
-        if type(s) is unicode:
+        if isinstance(s, text_type):
             s = self.context.getBytesForString(s)
 
         l = len(s)
@@ -541,7 +543,7 @@ class Encoder(codec.Encoder):
 
         @param o: The C{dict} data to be encoded to the AMF0 data stream.
         """
-        for key, val in o.iteritems():
+        for key, val in iteritems(o):
             if type(key) in python.int_types:
                 key = str(key)
 
@@ -566,7 +568,7 @@ class Encoder(codec.Encoder):
             # list comprehensions to save the day
             max_index = max([
                 y[0] for y in o.items()
-                if isinstance(y[0], (int, long))
+                if isinstance(y[0], integer_types)
             ])
 
             if max_index < 0:
@@ -655,7 +657,7 @@ class Encoder(codec.Encoder):
 
         data = xml.tostring(e)
 
-        if isinstance(data, unicode):
+        if isinstance(data, text_type):
             data = data.encode('utf-8')
 
         self.stream.write_ulong(len(data))

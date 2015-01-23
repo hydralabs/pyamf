@@ -8,14 +8,9 @@ Tests for the adapters.util module.
 """
 
 import unittest
+from six.moves import builtins
 
 from pyamf.adapters import util
-
-# check for set function in python 2.3
-import __builtin__
-
-if not hasattr(__builtin__, 'set'):
-    from sets import Set as set
 
 
 class Iterable(object):

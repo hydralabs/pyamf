@@ -15,11 +15,6 @@ import pyamf
 from pyamf import ClassAlias
 from pyamf.tests.util import ClassCacheClearingTestCase, Spam, get_fqcn
 
-try:
-    set
-except NameError:
-    from sets import Set as set
-
 
 class ClassAliasTestCase(ClassCacheClearingTestCase):
     """

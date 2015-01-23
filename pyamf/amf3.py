@@ -23,6 +23,8 @@ L{ByteArray} and L{ArrayCollection}.
 
 import datetime
 import zlib
+from six import iteritems, string_types, text_type
+from six.moves import xrange
 
 import pyamf
 from pyamf import codec, util, xml, python
@@ -247,7 +249,7 @@ class DataOutput(object):
         @see: U{Supported character sets on Adobe Help (external)
             <http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/charset-codes.html>}
         """
-        if type(value) is unicode:
+        if isinstance(value, text_type):
             value = value.encode(charset)
 
         self.stream.write(value)
@@ -316,10 +318,10 @@ class DataOutput(object):
         """
         val = None
 
-        if isinstance(value, unicode):
+        if isinstance(value, text_type):
             val = value
         else:
-            val = unicode(value, 'utf8')
+            val = value.decode('utf8')
 
         self.stream.write_utf8_string(val)
 
@@ -415,7 +417,7 @@ class DataInput(object):
         # FIXME nick: how to work out the code point byte size (on the fly)?
         bytes = self.stream.read(length)
 
-        return unicode(bytes, charset)
+        return bytes.decode(charset)
 
     def readObject(self):
         """
@@ -662,7 +664,7 @@ class Context(codec.Context):
 
         @raise TypeError: The parameter C{s} is not of C{basestring} type.
         """
-        if not isinstance(s, basestring):
+        if not isinstance(s, string_types):
             raise TypeError
 
         if len(s) == 0:
@@ -1235,7 +1237,7 @@ class Encoder(codec.Encoder):
         @type   s: C{str}
         @param  s: The string data to be encoded to the AMF3 data stream.
         """
-        if type(s) is unicode:
+        if isinstance(s, text_type):
             s = self.context.getBytesForString(s)
 
         self.serialiseBytes(s)
@@ -1490,7 +1492,7 @@ class Encoder(codec.Encoder):
 
         if definition.encoding == ObjectEncoding.DYNAMIC:
             if attrs:
-                for attr, value in attrs.iteritems():
+                for attr, value in iteritems(attrs):
                     if type(attr) in python.int_types:
                         attr = str(attr)
 

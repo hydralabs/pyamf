@@ -15,10 +15,10 @@ import pyamf
 
 def convert_lazy(l, encoder=None):
     if l.__class__._delegate_unicode:
-        return unicode(l)
+        return u'1'
 
     if l.__class__._delegate_str:
-        return str(l)
+        return b'1'
 
     raise ValueError('Don\'t know how to convert lazy value %s' % (repr(l),))
 

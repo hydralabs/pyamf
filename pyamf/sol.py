@@ -16,6 +16,7 @@ a per-domain basis.
 
 import pyamf
 from pyamf import util
+from six import iteritems, string_types
 
 #: Magic Number - 2 bytes
 HEADER_VERSION = '\x00\xbf'
@@ -118,7 +119,7 @@ def encode(name, values, strict=True, encoding=pyamf.AMF0):
     stream.write(PADDING_BYTE * 3)
     stream.write_uchar(encoding)
 
-    for n, v in values.iteritems():
+    for n, v in iteritems(values):
         encoder.serialiseString(n)
         encoder.writeElement(v)
 
@@ -144,7 +145,7 @@ def load(name_or_file):
     f = name_or_file
     opened = False
 
-    if isinstance(name_or_file, basestring):
+    if isinstance(name_or_file, string_types):
         f = open(name_or_file, 'rb')
         opened = True
     elif not hasattr(f, 'read'):
@@ -153,7 +154,7 @@ def load(name_or_file):
     name, values = decode(f.read())
     s = SOL(name)
 
-    for n, v in values.iteritems():
+    for n, v in iteritems(values):
         s[n] = v
 
     if opened is True:
@@ -172,7 +173,7 @@ def save(sol, name_or_file, encoding=pyamf.AMF0):
     f = name_or_file
     opened = False
 
-    if isinstance(name_or_file, basestring):
+    if isinstance(name_or_file, string_types):
         f = open(name_or_file, 'wb+')
         opened = True
     elif not hasattr(f, 'write'):

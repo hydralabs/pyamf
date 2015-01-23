@@ -10,6 +10,7 @@ AMF Utilities.
 import calendar
 import datetime
 import inspect
+from six import iteritems
 
 import pyamf
 from pyamf import python
@@ -99,14 +100,14 @@ def set_attrs(obj, attrs):
     if hasattr(obj, '__setitem__'):
         o = type(obj).__setitem__
 
-    [o(obj, k, v) for k, v in attrs.iteritems()]
+    [o(obj, k, v) for k, v in iteritems(attrs)]
 
 
 def get_class_alias(klass):
     """
     Tries to find a suitable L{pyamf.ClassAlias} subclass for C{klass}.
     """
-    for k, v in pyamf.ALIAS_TYPES.iteritems():
+    for k, v in iteritems(pyamf.ALIAS_TYPES):
         for kl in v:
             try:
                 if issubclass(klass, kl):

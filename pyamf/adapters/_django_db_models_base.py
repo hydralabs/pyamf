@@ -13,6 +13,7 @@ from django.db.models import fields
 from django.db.models.fields import related, files
 
 import datetime
+from six import iteritems
 
 import pyamf
 
@@ -172,7 +173,7 @@ class DjangoClassAlias(pyamf.ClassAlias):
         if not attrs:
             attrs = {}
 
-        for name, prop in self.fields.iteritems():
+        for name, prop in iteritems(self.fields):
             if name not in attrs.keys():
                 continue
 
@@ -184,7 +185,7 @@ class DjangoClassAlias(pyamf.ClassAlias):
             if key.startswith('_'):
                 del attrs[key]
 
-        for name, relation in self.relations.iteritems():
+        for name, relation in iteritems(self.relations):
             if '_%s_cache' % name in obj.__dict__:
                 attrs[name] = getattr(obj, name)
 
@@ -235,7 +236,7 @@ class DjangoClassAlias(pyamf.ClassAlias):
                     pass
 
         if not getattr(obj, pk_attr):
-            for name, relation in self.relations.iteritems():
+            for name, relation in iteritems(self.relations):
                 if isinstance(relation, related.ManyToManyField):
                     try:
                         if len(attrs[name]) == 0:

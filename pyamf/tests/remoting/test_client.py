@@ -10,7 +10,7 @@ Tests for Remoting client.
 """
 
 import unittest
-import urllib2
+from six.moves.urllib.error import URLError
 
 import pyamf
 from pyamf import remoting, util
@@ -226,7 +226,7 @@ class MockOpener(object):
 
     def open(self, request, data=None, timeout=None):
         if self.response.code != 200:
-            raise urllib2.URLError(self.response.code)
+            raise URLError(self.response.code)
 
         self.request = request
         self.data = data
