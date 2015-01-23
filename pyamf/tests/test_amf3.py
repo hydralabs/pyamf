@@ -1539,7 +1539,7 @@ class ComplexEncodingTestCase(unittest.TestCase, EncoderMixIn):
 
         return test_objects
 
-    def complex_test(self):
+    def complex_trial(self):
         to_cd = self.context.getClass(self.TestObject)
         tso_cd = self.context.getClass(self.TestSubObject)
 
@@ -1557,7 +1557,7 @@ class ComplexEncodingTestCase(unittest.TestCase, EncoderMixIn):
         complex = {'element': 'ignore', 'objects': self.build_complex()}
 
         self.encoder.writeElement(complex)
-        self.complex_test()
+        self.complex_trial()
 
     def test_complex_encode_decode_dict(self):
         complex = {'element': 'ignore', 'objects': self.build_complex()}
