@@ -407,7 +407,6 @@ class GetDecodableAttributesTestCase(unittest.TestCase):
         self.alias.exclude_attrs = ['baz', 'gak']
         self.alias.readonly_attrs = ['spam_rd_1', 'spam_rd_2']
 
-
         self.assertFalse(self.alias.shortcut_encode)
         self.assertFalse(self.alias.shortcut_decode)
 
