@@ -1108,14 +1108,17 @@ class Decoder(codec.Decoder):
             return self.context.getObject(ref >> 1)
 
         buffer = self.stream.read(ref >> 1)
+        compressed = False
 
         if buffer[0:2] == ByteArray._zlib_header:
             try:
                 buffer = zlib.decompress(buffer)
+                compressed = True
             except zlib.error:
                 pass
 
         obj = ByteArray(buffer)
+        obj.compressed = compressed
 
         self.context.addObject(obj)
 
