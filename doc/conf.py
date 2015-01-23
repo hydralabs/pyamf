@@ -17,12 +17,19 @@ from shutil import copyfile
 
 from docutils.core import publish_parts
 
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute.
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.append(os.path.abspath('.'))
 sys.path.append(os.path.abspath('html'))
+
+
+# When ReaTheDocs.org builds your project, it sets the READTHEDOCS environment
+# variable to the string True.
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+
 
 def rst2html(input, output):
     """
@@ -57,8 +64,9 @@ needs_sphinx = '1.0'
 extensions = ['sphinx.ext.intersphinx', 'sphinx.ext.extlinks',
               'sphinxcontrib.epydoc']
 
-# Paths that contain additional templates, relative to this directory.
-templates_path = ['html']
+if on_rtd == False:
+    # Paths that contain additional templates, relative to this directory.
+    templates_path = ['html']
 
 # The suffix of source filenames.
 source_suffix = '.rst'
@@ -74,8 +82,12 @@ readme = copyfile('../CHANGES.txt', 'changelog.rst')
 project = 'PyAMF'
 url = 'http://pyamf.org'
 description = 'AMF for Python'
-copyright = "Copyright &#169; 2007-%s The <a href='%s'>%s</a> Project. All rights reserved." % (
-            time.strftime('%Y'), url, project)
+
+if on_rtd == False:
+    copyright = "Copyright &#169; 2007-%s The <a href='%s'>%s</a> Project. All rights reserved." % (
+        time.strftime('%Y'), url, project)
+else:
+    copyright = "2007-%s The %s Project" % (time.strftime('%Y'), project)
 
 # We look for the __init__.py file in the current PyAMF source tree
 # and replace the values accordingly.
@@ -122,19 +134,29 @@ add_module_names = True
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#
-# Note: you can download the 'beam' theme from:
-# http://github.com/collab-project/sphinx-themes
-# and place it in a 'themes' directory relative to this config file.
-html_theme = 'beam'
+if on_rtd:
+    # default theme for readthedocs.org
+    html_theme = 'default'
+else:
+    # Note: you can download the 'beam' theme from:
+    # http://github.com/collab-project/sphinx-themes
+    # and place it in a 'themes' directory relative to this config file.
+    html_theme = 'beam'
+
+    # Custom themes here, relative to this directory.
+    html_theme_path = ['themes']
+
+    # Additional templates that should be rendered to pages, maps page names to
+    # template names.
+    html_additional_pages = {
+        'index': 'defindex.html',
+        'tutorials/index': 'tutorials.html',
+    }
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 #html_theme_options = {}
-
-# Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = ['themes']
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -155,13 +177,6 @@ html_last_updated_fmt = '%b %d, %Y'
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
 #html_use_smartypants = True
-
-# Additional templates that should be rendered to pages, maps page names to
-# template names.
-html_additional_pages = {
-    'index': 'defindex.html',
-    'tutorials/index': 'tutorials.html',
-}
 
 # If false, no module index is generated.
 html_use_modindex = True
