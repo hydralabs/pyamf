@@ -431,17 +431,22 @@ class ReprTestCase(unittest.TestCase):
     def test_response(self):
         r = remoting.Response(u'€±')
 
-        self.assertEqual(
-            repr(r),
-            "<Response status=/onResult>u'\\u20ac\\xb1'</Response>"
+        self.assertIn(
+            repr(r), (
+                "<Response status=/onResult>u'\\u20ac\\xb1'</Response>",
+                "<Response status=/onResult>'\u20ac\xb1'</Response>",
+            )
         )
 
     def test_request(self):
         r = remoting.Request(u'€±', [u'å∫ç'])
 
-        self.assertEqual(
-            repr(r),
-            "<Request target=u'\\u20ac\\xb1'>[u'\\xe5\\u222b\\xe7']</Request>"
+        self.assertIn(
+            repr(r), (
+                "<Request target=u'\\u20ac\\xb1'>[u'\\xe5\\u222b\\xe7']</Reques"
+                "t>",
+                "<Request target='\u20ac\xb1'>['\xe5\u222b\xe7']</Request>",
+            )
         )
 
     def test_base_fault(self):
@@ -452,8 +457,11 @@ class ReprTestCase(unittest.TestCase):
             details=u'å'
         )
 
-        self.assertEqual(
-            repr(r),
-            "BaseFault level=None code=u'\\xe5' type=u'\\xe5' description="
-            "u'\\xe5'\nTraceback:\nu'\\xe5'"
+        self.assertIn(
+            repr(r), (
+                "BaseFault level=None code=u'\\xe5' type=u'\\xe5' description="
+                "u'\\xe5'\nTraceback:\nu'\\xe5'",
+                "BaseFault level=None code='\xe5' type='\xe5' description="
+                "'\xe5'\nTraceback:\n'\xe5'",
+            )
         )

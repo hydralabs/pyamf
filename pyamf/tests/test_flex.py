@@ -242,7 +242,9 @@ class ObjectProxyTestCase(unittest.TestCase, EncoderMixIn):
 
         x = flex.ObjectProxy(u'ƒøø')
 
-        self.assertEqual(
-            repr(x),
-            "<flex.messaging.io.ObjectProxy u'\\u0192\\xf8\\xf8'>"
+        self.assertIn(
+            repr(x), (
+                "<flex.messaging.io.ObjectProxy u'\\u0192\\xf8\\xf8'>",
+                "<flex.messaging.io.ObjectProxy '\u0192\xf8\xf8'>"
+            )
         )
