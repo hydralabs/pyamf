@@ -8,7 +8,7 @@ function install_django {
       return 0
   fi
 
-  pip install Django==${DJANGO_VERSION}
+  pip install "Django==${DJANGO_VERSION}"
 }
 
 function install_sqlalchemy {
@@ -16,7 +16,7 @@ function install_sqlalchemy {
       return 0
   fi
 
-  pip install SQLAlchemy==${SQLALCHEMY_VERSION}
+  pip install "SQLAlchemy==${SQLALCHEMY_VERSION}"
 }
 
 function install_twisted {
@@ -24,7 +24,7 @@ function install_twisted {
       return 0
   fi
 
-  pip install Twisted==${TWISTED_VERSION}
+  pip install "Twisted==${TWISTED_VERSION}"
 }
 
 function install_gae_sdk {
@@ -33,8 +33,8 @@ function install_gae_sdk {
   fi
 
   wget https://storage.googleapis.com/appengine-sdks/featured/google_appengine_${GAESDK_VERSION}.zip -nv
-  mkdir -p /tmp/gaesdk
-  unzip -q google_appengine_${GAESDK_VERSION}.zip -d /tmp/gaesdk
+  unzip -q google_appengine_${GAESDK_VERSION}.zip -d ~/gaesdk
+  python -c "import dev_appserver"
 }
 
 install_django

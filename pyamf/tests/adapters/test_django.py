@@ -23,41 +23,60 @@ except ImportError:
     django = None
 
 if django and django.VERSION < (1, 0):
+    # don't support Django < 1.0
     django = None
 
 
-settings = None
-context = None
-
-#: django modules/functions used once bootstrapped
-create_test_db = None
-destroy_test_db = None
-management = None
+# django specific imports
 setup_test_environment = None
 teardown_test_environment = None
+create_test_db = None
+destroy_test_db = None
 
-# test app data
-models = None
-adapter = None
+context = None
 storage = None
+
+# will be pyamf.adapters._django_db_models_base
+adapter = None
+
+models = None
 
 
 def init_django():
     """
     Bootstrap Django and initialise this module
     """
-    global django, management, create_test_db, destroy_test_db, settings
-    global setup_test_environment, teardown_test_environment
+    global django, create_test_db, destroy_test_db, setup_test_environment
+    global teardown_test_environment, adapter
 
     if not django:
         return
 
-    from pyamf.tests.adapters.django_app import settings
+    os.environ['DJANGO_SETTINGS_MODULE'] = (
+        'pyamf.tests.adapters.django_app.settings'
+    )
 
-    from django.core import management
+    from django.conf import settings
 
-    project_dir = management.setup_environ(settings)
-    sys.path.insert(0, project_dir)
+    from pyamf.tests.adapters.django_app import settings as app_settings
+
+    try:
+        settings.configure(**app_settings.__dict__)
+    except RuntimeError:
+        for attr in dir(app_settings):
+            if not attr.isupper():
+                continue
+
+            setattr(settings, attr, getattr(app_settings, attr))
+
+    try:
+        django.setup()
+    except AttributeError:
+        pass
+
+    from django.test.utils import setup_test_environment  # noqa
+    from django.test.utils import teardown_test_environment  # noqa
+    from pyamf.adapters import _django_db_models_base as adapter  # noqa
 
     try:
         from django.test.utils import create_test_db, destroy_test_db
@@ -67,8 +86,7 @@ def init_django():
         create_test_db = connection.creation.create_test_db
         destroy_test_db = connection.creation.destroy_test_db
 
-    from django.test.utils import setup_test_environment  # noqa
-    from django.test.utils import teardown_test_environment  # noqa
+        del connection
 
     return True
 
@@ -77,7 +95,10 @@ def setUpModule():
     """
     Called to set up the module by the test runner
     """
-    global context, models, storage, adapter
+    if not django:
+        return
+
+    global context, models, storage
 
     context = {
         'sys.path': sys.path[:],
@@ -88,21 +109,23 @@ def setUpModule():
     if init_django():
         from django.core.files.storage import FileSystemStorage
         from pyamf.tests.adapters.django_app.adapters import models  # noqa
-        from pyamf.adapters import _django_db_models_base as adapter  # noqa
 
         setup_test_environment()
 
-        settings.DATABASE_NAME = create_test_db(verbosity=0, autoclobber=True)
+        context['DB_NAME'] = create_test_db(verbosity=0, autoclobber=True)
         storage = FileSystemStorage(mkdtemp())
 
 
 def tearDownModule():
+    if not django:
+        return
+
     # remove all the stuff that django installed
     if teardown_test_environment:
         teardown_test_environment()
 
     if destroy_test_db:
-        destroy_test_db(settings.DATABASE_NAME, verbosity=0)
+        destroy_test_db(context['DB_NAME'], verbosity=0)
 
     if storage:
         rmtree(storage.location, ignore_errors=True)
@@ -313,11 +336,11 @@ class ForeignKeyTestCase(BaseTestCase):
         a.save()
         self.addCleanup(a.delete)
 
-        self.assertEqual(a.id, 1)
+        article_id = a.id
 
         del a
 
-        a = models.Article.objects.filter(pk=1)[0]
+        a = models.Article.objects.filter(pk=article_id)[0]
 
         self.assertFalse('_reporter_cache' in a.__dict__)
         a.reporter
@@ -325,7 +348,7 @@ class ForeignKeyTestCase(BaseTestCase):
 
         del a
 
-        a = models.Article.objects.filter(pk=1)[0]
+        a = models.Article.objects.filter(pk=article_id)[0]
         alias = adapter.DjangoClassAlias(models.Article, defer=True)
 
         self.assertFalse(hasattr(alias, 'fields'))
@@ -334,28 +357,34 @@ class ForeignKeyTestCase(BaseTestCase):
         # note that the reporter attribute does not exist.
         self.assertEqual(attrs, {
             'headline': u'This is a test',
-            'id': 1,
+            'id': article_id,
             'publications': []
         })
 
         self.assertFalse('_reporter_cache' in a.__dict__)
         self.assertEqual(
             pyamf.encode(a, encoding=pyamf.AMF3).getvalue(),
-            '\n\x0b\x01\x11headline\x06\x1dThis is a test\x05id\x04\x01'
-            '\x19publications\t\x01\x01\x01'
+            '\n\x0b\x01\x11headline\x06\x1dThis is a test\x05id\x04%s'
+            '\x19publications\t\x01\x01\x01' % (chr(article_id),)
         )
 
         del a
 
         # now with select_related to pull in the reporter object
-        a = models.Article.objects.select_related('reporter').filter(pk=1)[0]
+        a = (
+            models
+            .Article
+            .objects
+            .select_related('reporter')
+            .filter(pk=article_id)[0]
+        )
 
         alias = adapter.DjangoClassAlias(models.Article, defer=True)
 
         self.assertFalse(hasattr(alias, 'fields'))
         self.assertEqual(alias.getEncodableAttributes(a), {
             'headline': u'This is a test',
-            'id': 1,
+            'id': article_id,
             'reporter': r,
             'publications': []
         })
@@ -366,7 +395,7 @@ class ForeignKeyTestCase(BaseTestCase):
             '\n\x0b\x01\x11reporter\n\x0b\x01\x15first_name\x06\tJohn\x13'
             'last_name\x06\x0bSmith\x05id\x04\x01\x0bemail\x06!john'
             '@example.com\x01\x11headline\x06\x1dThis is a test\x19'
-            'publications\t\x01\x01\n\x04\x01\x01'
+            'publications\t\x01\x01\n\x04%s\x01' % (chr(article_id),)
         )
 
     def test_many_to_many(self):
@@ -506,22 +535,22 @@ class PKTestCase(BaseTestCase):
         p.save()
         a.save()
 
+        article_id = a.id
+
         self.addCleanup(p.delete)
         self.addCleanup(a.delete)
-
-        self.assertEqual(a.id, 1)
 
         article_alias = adapter.DjangoClassAlias(models.Article, None)
         x = models.Article()
 
         article_alias.applyAttributes(x, {
             'headline': 'Foo bar!',
-            'id': 1,
+            'id': article_id,
             'publications': [p]
         })
 
         self.assertEqual(x.headline, 'Foo bar!')
-        self.assertEqual(x.id, 1)
+        self.assertEqual(x.id, article_id)
         self.assertEqual(list(x.publications.all()), [p])
 
     def test_none(self):
@@ -725,19 +754,24 @@ class ReferenceTestCase(BaseTestCase, util.EncoderMixIn):
         f.bar = b
         f.save()
 
+        ref_id = f.id
+
         self.addCleanup(f.delete)
         self.addCleanup(b.delete)
 
-        self.assertEqual(f.id, 1)
-        foo = models.ParentReference.objects.select_related().get(id=1)
+        foo = models.ParentReference.objects.select_related().get(id=ref_id)
 
         # ensure the referenced attribute resolves
         foo.bar.foo
 
         self.assertEncoded(
             foo,
-            '\n\x0b\x01\x07bar\n\x0b\x01\x07foo\n\x00\x05'
-            'id\x04\x01\tname\x06\x00\x01\x04\x04\x01\x06\x06\x02\x01'
+            (
+                '\n\x0b\x01\x07bar',
+                '\n\x0b\x01\x07foo',
+                '\n\x00\x05id\x04%s' % chr(ref_id),
+                '\tname\x06\x00\x01\x04\x04%s\x06\x06\x02\x01' % chr(ref_id),
+            )
         )
 
 
