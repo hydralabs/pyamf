@@ -69,7 +69,7 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
         )
 
     def post(self):
-        body = self.request.body_file.read()
+        body = self.request.body
         stream = None
         timezone_offset = self._get_timezone_offset()
 

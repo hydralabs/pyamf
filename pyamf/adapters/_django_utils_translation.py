@@ -14,8 +14,12 @@ import pyamf
 
 
 def convert_lazy(l, encoder=None):
-    if l.__class__._delegate_unicode:
-        return u'1'
+    try:
+        if l.__class__._delegate_text:
+            return u'l'
+    except AttributeError:
+        if l.__class__._delegate_unicode:
+            return u'l'
 
     if l.__class__._delegate_str:
         return b'1'

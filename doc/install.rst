@@ -4,31 +4,15 @@
 
 .. contents::
 
-PyAMF requires Python_ 2.4 or newer. Python 3.0 isn't supported yet_.
+PyAMF requires Python_ 2.4 or newer. Python 3.0 isn't supported.
 
 
 Easy Installation
 =================
 
-If you have setuptools_ or the `easy_install`_ tool already installed,
-simply type the following on the command-line to install PyAMF::
+Pretty simple::
 
-    easy_install pyamf
-
-`Note: you might need root permissions or equivalent for these steps.`
-
-If you don't have `setuptools` or `easy_install`, first download
-distribute_setup.py_ and run::
-
-    python distribute_setup.py
-
-After `easy_install` is installed, run `easy_install pyamf` again. If
-you run into problems, try the manual installation instructions below.
-
-To upgrade your existing PyAMF installation to the latest version
-use::
-
-    easy_install -U pyamf
+    pip install pyamf
 
 
 Manual Installation
@@ -193,10 +177,8 @@ folder.
 
 
 .. _Python: 			http://www.python.org
-.. _yet:			http://dev.pyamf.org/milestone/0.7
 .. _setuptools:			http://peak.telecommunity.com/DevCenter/setuptools
 .. _easy_install: 		http://peak.telecommunity.com/DevCenter/EasyInstall#installing-easy-install
-.. _distribute_setup.py:		http://github.com/hydralabs/pyamf/blob/master/distribute_setup.py
 .. _Epydoc:			http://epydoc.sourceforge.net
 .. _ElementTree:		http://effbot.org/zone/element-index.htm
 .. _lxml:			http://lxml.de
@@ -214,6 +196,6 @@ folder.
 .. _Trial:			http://twistedmatrix.com/trac/wiki/TwistedTrial
 .. _Cython:			http://cython.org
 .. _Sphinx:     		http://sphinx.pocoo.org
-.. _website:    		http://pyamf.org
+.. _website:    		https://github.com/hydralabs/pyamf
 .. _Installing Python Modules: 	http://docs.python.org/install/index.html
 .. _sphinxcontrib.epydoc:       http://packages.python.org/sphinxcontrib-epydoc

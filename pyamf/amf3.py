@@ -87,7 +87,7 @@ TYPE_STRING = b'\x06'
 #: table.
 #: @see: U{OSFlash documentation (external)
 #: <http://osflash.org/documentation/amf3
-#:     #x07_-_xml_legacy_flashxmlxmldocument_class>}
+#:     #x07_-_xml_legacy_flash.xml.xmldocument_class>}
 TYPE_XML = b'\x07'
 #: In AMF 3 an ActionScript Date is serialized as the number of
 #: milliseconds elapsed since the epoch of midnight, 1st Jan 1970 in the
@@ -156,6 +156,8 @@ class ObjectEncoding:
 class DataOutput(object):
     """
     I am a C{StringIO} type object containing byte data from the AMF stream.
+    ActionScript 3.0 introduced the C{flash.utils.ByteArray} class to support
+    the manipulation of raw data in the form of an Array of bytes.
     I provide a set of methods for writing binary data with ActionScript 3.0.
 
     This class is the I/O counterpart to the L{DataInput} class, which reads
@@ -602,13 +604,13 @@ class Context(codec.Context):
     I hold the AMF3 context for en/decoding streams.
 
     @ivar strings: A list of string references.
-    @type strings: C{list}
+    @type strings: L{codec.ByteStringReferenceCollection}
     @ivar classes: A list of L{ClassDefinition}.
     @type classes: C{list}
     """
 
     def __init__(self):
-        self.strings = codec.IndexedCollection(use_hash=True)
+        self.strings = codec.ByteStringReferenceCollection()
         self.classes = {}
         self.class_ref = {}
 
@@ -1108,14 +1110,17 @@ class Decoder(codec.Decoder):
             return self.context.getObject(ref >> 1)
 
         buffer = self.stream.read(ref >> 1)
+        compressed = False
 
         if buffer[0:2] == ByteArray._zlib_header:
             try:
                 buffer = zlib.decompress(buffer)
+                compressed = True
             except zlib.error:
                 pass
 
         obj = ByteArray(buffer)
+        obj.compressed = compressed
 
         self.context.addObject(obj)
 

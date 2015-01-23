@@ -238,7 +238,7 @@ class ErrorAlias(ClassAlias):
     def getEncodableAttributes(self, obj, **kwargs):
         attrs = ClassAlias.getEncodableAttributes(self, obj, **kwargs)
 
-        attrs['message'] = str(obj)
+        attrs['message'] = unicode(obj)
         attrs['name'] = obj.__class__.__name__
 
         return attrs

@@ -141,7 +141,7 @@ cdef class Context(codec.Context):
     """
 
     def __cinit__(self):
-        self.strings = codec.IndexedCollection(use_hash=1)
+        self.strings = codec.ByteStringReferenceCollection()
         self.classes = {}
         self.class_ref = {}
         self.proxied_objects = {}

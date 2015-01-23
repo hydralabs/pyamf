@@ -385,13 +385,37 @@ class GetDecodableAttributesTestCase(unittest.TestCase):
         self.assertFalse(self.alias.shortcut_decode)
 
         attrs = {
-            'foo': 'foo',
+            'bar': 'foo',
             'spam': 'eggs'
         }
 
         ret = self.alias.getDecodableAttributes(self.obj, attrs)
 
-        self.assertEquals(ret, {'bar': 'foo', 'spam': 'eggs'})
+        self.assertEquals(ret, {'foo': 'foo', 'spam': 'eggs'})
+
+    def test_complex_synonym(self):
+        self.alias.synonym_attrs = {'foo_syn': 'bar_syn'}
+        self.alias.compile()
+
+        self.alias.static_properties = ['foo_syn', ]
+        self.alias.exclude_attrs = ['baz', 'gak']
+        self.alias.readonly_attrs = ['spam_rd_1', 'spam_rd_2']
+
+        self.assertFalse(self.alias.shortcut_encode)
+        self.assertFalse(self.alias.shortcut_decode)
+
+        attrs = {
+            'bar_syn': 'foo',
+            'spam': 'eggs',
+            'spam_rd_1': 'eggs',
+            'spam_rd_2': 'eggs',
+            'baz': 'remove me',
+            'gak': 'remove me'
+        }
+
+        ret = self.alias.getDecodableAttributes(self.obj, attrs)
+
+        self.assertEquals(ret, {'foo_syn': 'foo', 'spam': 'eggs'})
 
 
 class ApplyAttributesTestCase(unittest.TestCase):

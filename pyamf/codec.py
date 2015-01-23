@@ -114,6 +114,30 @@ class IndexedCollection(object):
             id(self))
 
 
+class ByteStringReferenceCollection(IndexedCollection):
+    """
+    There have been rare hash collisions within a single AMF payload causing
+    corrupt payloads.
+
+    Which strings cause collisions is dependent on the python runtime, each
+    platform might have a slightly different implementation which means that
+    testing is extremely difficult.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super(ByteStringReferenceCollection, self).__init__(use_hash=False)
+
+    def getReferenceTo(self, byte_string):
+        return self.dict.get(byte_string, -1)
+
+    def append(self, byte_string):
+        self.list.append(byte_string)
+        idx = len(self.list) - 1
+        self.dict[byte_string] = idx
+
+        return idx
+
+
 class Context(object):
     """
     The base context for all AMF [de|en]coding.

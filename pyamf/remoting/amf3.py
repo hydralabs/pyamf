@@ -65,11 +65,14 @@ def generate_error(request, cls, e, tb, include_traceback=False):
         code = cls.__name__
 
     details = None
-    rootCause = None
+    rootCause = e
 
     if include_traceback:
-        details = traceback.format_exception(cls, e, tb)
-        rootCause = e
+        buffer = pyamf.util.BufferedByteStream()
+
+        traceback.print_exception(cls, e, tb, file=buffer)
+
+        details = buffer.getvalue()
 
     faultDetail = None
     faultString = None

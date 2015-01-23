@@ -501,25 +501,25 @@ class ClassAlias(object):
 
                 attrs[k] = context.getObjectForProxy(v)
 
+        if changed:
+            # apply all filters before synonyms
+            a = {}
+
+            [a.__setitem__(p, attrs[p]) for p in props]
+            attrs = a
+
         if self.synonym_attrs:
             missing = object()
 
             for k, v in iteritems(self.synonym_attrs):
-                value = attrs.pop(k, missing)
+                value = attrs.pop(v, missing)
 
                 if value is missing:
                     continue
 
-                attrs[v] = value
+                attrs[k] = value
 
-        if not changed:
-            return attrs
-
-        a = {}
-
-        [a.__setitem__(p, attrs[p]) for p in props]
-
-        return a
+        return attrs
 
     def applyAttributes(self, obj, attrs, codec=None):
         """
