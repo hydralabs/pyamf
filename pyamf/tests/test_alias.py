@@ -102,7 +102,8 @@ class ClassAliasTestCase(ClassCacheClearingTestCase):
             def __init__(self, foo, bar):
                 pass
 
-        self.assertRaises(TypeError, ClassAlias, ClassicFoo)
+        if not isinstance(ClassicFoo, type):
+            self.assertRaises(TypeError, ClassAlias, ClassicFoo)
         ClassAlias(NewFoo)
 
     def test_createInstance(self):
