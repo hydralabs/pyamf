@@ -101,15 +101,15 @@ def tearDownModule():
     if teardown_test_environment:
         teardown_test_environment()
 
-    sys.path = context['sys.path']
-    util.replace_dict(context['sys.modules'], sys.modules)
-    util.replace_dict(context['os.environ'], os.environ)
-
     if destroy_test_db:
         destroy_test_db(settings.DATABASE_NAME, verbosity=0)
 
     if storage:
         rmtree(storage.location, ignore_errors=True)
+
+    sys.path = context['sys.path']
+    util.replace_dict(context['sys.modules'], sys.modules)
+    util.replace_dict(context['os.environ'], os.environ)
 
 
 class BaseTestCase(unittest.TestCase):
