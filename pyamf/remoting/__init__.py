@@ -175,6 +175,8 @@ class Envelope(object):
     def __nonzero__(self):
         return len(self.bodies) != 0 or len(self.headers) != 0
 
+    __bool__ = __nonzero__
+
     def __iter__(self):
         for body in self.bodies:
             yield body[0], body[1]
