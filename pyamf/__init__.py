@@ -720,11 +720,11 @@ def remove_error_class(klass):
         if klass not in ERROR_CLASS_MAP:
             raise ValueError('Code %s is not registered' % (klass,))
     elif isinstance(klass, python.class_types):
-        classes = ERROR_CLASS_MAP.values()
+        classes = list(ERROR_CLASS_MAP.values())
         if klass not in classes:
             raise ValueError('Class %s is not registered' % (klass,))
 
-        klass = ERROR_CLASS_MAP.keys()[classes.index(klass)]
+        klass = list(ERROR_CLASS_MAP.keys())[classes.index(klass)]
     else:
         raise TypeError("Invalid type, expected class or string")
 
