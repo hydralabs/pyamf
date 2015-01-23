@@ -304,6 +304,8 @@ class Decoder(_Codec):
             # all data was successfully decoded from the stream
             raise StopIteration
 
+    __next__ = next
+
     def readElement(self):
         """
         Reads an AMF3 element from the data stream.
@@ -414,11 +416,9 @@ class Encoder(_Codec):
         """
         Iterates over a generator object and encodes all that is returned.
         """
-        n = getattr(gen, 'next')
-
         while True:
             try:
-                self.writeElement(n())
+                self.writeElement(next(gen))
             except StopIteration:
                 break
 
@@ -519,6 +519,8 @@ class Encoder(_Codec):
         self.stream.seek(start_pos)
 
         return self.stream.read(end_pos - start_pos)
+
+    __next__ = next
 
     def __iter__(self):
         return self
