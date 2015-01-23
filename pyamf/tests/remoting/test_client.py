@@ -450,7 +450,7 @@ class RemotingServiceTestCase(BaseServiceTestCase):
         self.assertEqual(r.get_full_url(), 'http://example.org/amf-gateway')
 
         self.assertEqual(
-            r.get_data(),
+            r.data,
             b'\x00\x00\x00\x00\x00\x01\x00\x07baz.gak\x00\x02/1\x00\x00\x00'
             b'\x00\x0a\x00\x00\x00\x00'
         )
@@ -481,7 +481,7 @@ class RemotingServiceTestCase(BaseServiceTestCase):
         self.assertEqual(r.get_full_url(), 'http://example.org/amf-gateway')
 
         self.assertEqual(
-            r.get_data(),
+            r.data,
             b'\x00\x00\x00\x00\x00\x02\x00\x07baz.gak\x00\x02/1\x00\x00\x00\x00'
             b'\n\x00\x00\x00\x00\x00\tspam.eggs\x00\x02/2\x00\x00\x00\x00\n\x00'
             b'\x00\x00\x00'
