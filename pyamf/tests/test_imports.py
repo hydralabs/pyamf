@@ -10,6 +10,7 @@ Tests pyamf.util.imports
 import unittest
 import sys
 import os.path
+from six import iteritems
 
 from pyamf.util import imports
 
@@ -43,7 +44,7 @@ class ImportsTestCase(unittest.TestCase):
 
     def _clearModules(self, *args):
         for mod in args:
-            for k, v in sys.modules.copy().iteritems():
+            for k, v in iteritems(sys.modules.copy()):
                 if k.startswith(mod) or k == 'pyamf.tests.%s' % (mod,):
                     del sys.modules[k]
 
@@ -95,8 +96,8 @@ class WhenImportedTestCase(ImportsTestCase):
 
         try:
             import spam  # noqa
-        except Exception, e:
-            pass
+        except Exception as e_:
+            e = e_
         else:
             self.fail('expected exception')
 

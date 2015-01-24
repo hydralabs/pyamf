@@ -11,7 +11,7 @@ Google Web App gateway tests.
 
 import unittest
 
-from StringIO import StringIO
+from six import StringIO
 
 try:
     from google.appengine.ext import webapp

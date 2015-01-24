@@ -7,6 +7,7 @@ Provides basic functionality for all pyamf.amf?.[De|E]ncoder classes.
 
 import types
 import datetime
+from six import binary_type, text_type, iteritems
 
 import pyamf
 from pyamf import util, python, xml
@@ -17,13 +18,6 @@ __all__ = [
     'Decoder',
     'Encoder'
 ]
-
-try:
-    unicode
-except NameError:
-    # py3k support
-    unicode = str
-    str = bytes
 
 
 class IndexedCollection(object):
@@ -281,7 +275,7 @@ class _Codec(object):
 
     def __init__(self, stream=None, context=None, strict=False,
                  timezone_offset=None):
-        if isinstance(stream, basestring) or stream is None:
+        if isinstance(stream, binary_type) or stream is None:
             stream = util.BufferedByteStream(stream)
 
         self.stream = stream
@@ -333,6 +327,8 @@ class Decoder(_Codec):
         except pyamf.EOStream:
             # all data was successfully decoded from the stream
             raise StopIteration
+
+    __next__ = next
 
     def readElement(self):
         """
@@ -444,11 +440,9 @@ class Encoder(_Codec):
         """
         Iterates over a generator object and encodes all that is returned.
         """
-        n = getattr(gen, 'next')
-
         while True:
             try:
-                self.writeElement(n())
+                self.writeElement(next(gen))
             except StopIteration:
                 break
 
@@ -463,9 +457,9 @@ class Encoder(_Codec):
         t = type(data)
 
         # try types that we know will work
-        if t is str or issubclass(t, str):
+        if t is binary_type or issubclass(t, binary_type):
             return self.writeBytes
-        if t is unicode or issubclass(t, unicode):
+        if t is text_type or issubclass(t, text_type):
             return self.writeString
         elif t is bool:
             return self.writeBoolean
@@ -485,7 +479,7 @@ class Encoder(_Codec):
             return self.writeXML
 
         # check for any overridden types
-        for type_, func in pyamf.TYPE_MAP.iteritems():
+        for type_, func in iteritems(pyamf.TYPE_MAP):
             try:
                 if isinstance(data, type_):
                     return _CustomTypeFunc(self, func)
@@ -549,6 +543,8 @@ class Encoder(_Codec):
         self.stream.seek(start_pos)
 
         return self.stream.read(end_pos - start_pos)
+
+    __next__ = next
 
     def __iter__(self):
         return self

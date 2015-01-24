@@ -9,6 +9,7 @@ Test utilities.
 
 import unittest
 import copy
+from six import integer_types, string_types
 
 import pyamf
 from pyamf import python
@@ -86,7 +87,7 @@ class DecoderMixIn(object):
         pass
 
     def decode(self, bytes, raw=False):
-        if not isinstance(bytes, basestring):
+        if not isinstance(bytes, string_types):
             bytes = _join(bytes)
 
         self.buf.seek(0, 0)
@@ -137,7 +138,7 @@ class ClassCacheClearingTestCase(unittest.TestCase):
     def assertEncodes(self, obj, buffer, encoding=pyamf.AMF3):
         bytes = pyamf.encode(obj, encoding=encoding).getvalue()
 
-        if isinstance(buffer, basestring):
+        if isinstance(buffer, string_types):
             self.assertEqual(bytes, buffer)
 
             return
@@ -145,7 +146,7 @@ class ClassCacheClearingTestCase(unittest.TestCase):
         self.assertBuffer(bytes, buffer)
 
     def assertDecodes(self, bytes, cb, encoding=pyamf.AMF3, raw=False):
-        if not isinstance(bytes, basestring):
+        if not isinstance(bytes, string_types):
             bytes = _join(bytes)
 
         ret = list(pyamf.decode(bytes, encoding=encoding))
@@ -244,14 +245,14 @@ def expectedFailureIfAppengine(func):
 
 
 def _join(parts):
-    ret = ''
+    ret = bytearray()
 
     for p in parts:
-        if not isinstance(p, basestring):
-            ret += _join(p)
+        if isinstance(p, integer_types):
+            ret.append(p)
+        elif not isinstance(p, string_types):
+            ret.extend(_join(p))
+        else:
+            ret.extend(p)
 
-            continue
-
-        ret += p
-
-    return ret
+    return bytes(ret)

@@ -3,6 +3,7 @@ Implementation of JSONDecoder
 """
 import re
 import sys
+from six import text_type
 
 from simplejson.scanner import Scanner, pattern
 try:
@@ -92,8 +93,8 @@ def scanstring(s, end, encoding=None, _b=BACKSLASH, _m=STRINGCHUNK.match):
         end = chunk.end()
         content, terminator = chunk.groups()
         if content:
-            if not isinstance(content, unicode):
-                content = unicode(content, encoding)
+            if not isinstance(content, text_type):
+                content = content.decode(encoding)
             _append(content)
         if terminator == '"':
             break

@@ -7,6 +7,8 @@ Provides XML support.
 @since: 0.6
 """
 
+from six import binary_type
+
 #: list of supported third party packages that support the C{etree}
 #: interface. At least enough for our needs anyway.
 ETREE_MODULES = [

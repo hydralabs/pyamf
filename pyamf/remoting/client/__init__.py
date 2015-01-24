@@ -7,8 +7,10 @@ Remoting client implementation.
 @since: 0.1
 """
 
-import urllib2
-import urlparse
+from six import iteritems, string_types
+from six.moves.urllib.error import URLError
+from six.moves.urllib.parse import urlparse
+from six.moves.urllib.request import Request, urlopen
 
 import pyamf
 from pyamf import remoting
@@ -18,10 +20,7 @@ try:
 except ImportError:
     GzipFile = False
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
+from six import BytesIO
 
 
 #: Default user agent is `PyAMF/x.x(.x)`.
@@ -224,7 +223,7 @@ class RemotingService(object):
         self.referer = kwargs.pop('referer', None)
         self.strict = kwargs.pop('strict', False)
         self.logger = kwargs.pop('logger', None)
-        self.opener = kwargs.pop('opener', urllib2.urlopen)
+        self.opener = kwargs.pop('opener', urlopen)
 
         if kwargs:
             raise TypeError('Unexpected keyword arguments %r' % (kwargs,))
@@ -232,7 +231,7 @@ class RemotingService(object):
         self._setUrl(url)
 
     def _setUrl(self, url):
-        self.url = urlparse.urlparse(url)
+        self.url = urlparse(url)
         self._root_url = url
 
         if not self.url[0] in ('http', 'https'):
@@ -285,7 +284,7 @@ class RemotingService(object):
         @rtype: L{ServiceProxy}
         @raise TypeError: Unexpected type for string C{name}.
         """
-        if not isinstance(name, basestring):
+        if not isinstance(name, string_types):
             raise TypeError('string type required')
 
         return ServiceProxy(self, name, auto_execute)
@@ -398,7 +397,7 @@ class RemotingService(object):
             strict=self.strict
         )
 
-        http_request = urllib2.Request(
+        http_request = Request(
             self._root_url, body.getvalue(),
             self._get_execute_headers()
         )
@@ -425,7 +424,7 @@ class RemotingService(object):
             strict=self.strict
         )
 
-        http_request = urllib2.Request(
+        http_request = Request(
             self._root_url, body.getvalue(),
             self._get_execute_headers()
         )
@@ -446,7 +445,7 @@ class RemotingService(object):
 
         try:
             fbh = self.opener(http_request)
-        except urllib2.URLError, e:
+        except URLError as e:
             if self.logger:
                 self.logger.exception('Failed request for %s', self._root_url)
 
@@ -484,7 +483,7 @@ class RemotingService(object):
                     'Decompression of Content-Encoding: %s not available.' % (
                         content_encoding,))
 
-            compressedstream = StringIO(bytes)
+            compressedstream = BytesIO(bytes)
             gzipper = GzipFile(fileobj=compressedstream)
             bytes = gzipper.read()
             gzipper.close()
@@ -509,7 +508,7 @@ class RemotingService(object):
         if remoting.REQUEST_PERSISTENT_HEADER in response.headers:
             data = response.headers[remoting.REQUEST_PERSISTENT_HEADER]
 
-            for k, v in data.iteritems():
+            for k, v in iteritems(data):
                 self.headers[k] = v
 
         return response
@@ -521,8 +520,8 @@ class RemotingService(object):
         self.addHeader(
             'Credentials',
             dict(
-                userid=username.decode('utf-8'),
-                password=password.decode('utf-8')
+                userid=username,
+                password=password
             ),
             True
         )

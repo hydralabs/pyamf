@@ -10,6 +10,8 @@ AMF Utilities.
 import calendar
 import datetime
 import inspect
+import math
+from six import iteritems
 
 import pyamf
 from pyamf import python
@@ -35,7 +37,8 @@ __all__ = [
 
 #: On some Python versions retrieving a negative timestamp, like
 #: C{datetime.datetime.utcfromtimestamp(-31536000.0)} is broken.
-negative_timestamp_broken = False
+#: On python 3 timestamps are always rounded down.
+fromtimestamp_broken = False
 
 
 def get_timestamp(d):
@@ -65,9 +68,8 @@ def get_datetime(secs):
     @return: UTC timestamp.
     @rtype: C{datetime.datetime}
     """
-    if negative_timestamp_broken and secs < 0:
+    if fromtimestamp_broken:
         return datetime.datetime(1970, 1, 1) + datetime.timedelta(seconds=secs)
-
     return datetime.datetime.utcfromtimestamp(secs)
 
 
@@ -99,14 +101,14 @@ def set_attrs(obj, attrs):
     if hasattr(obj, '__setitem__'):
         o = type(obj).__setitem__
 
-    [o(obj, k, v) for k, v in attrs.iteritems()]
+    [o(obj, k, v) for k, v in iteritems(attrs)]
 
 
 def get_class_alias(klass):
     """
     Tries to find a suitable L{pyamf.ClassAlias} subclass for C{klass}.
     """
-    for k, v in pyamf.ALIAS_TYPES.iteritems():
+    for k, v in iteritems(pyamf.ALIAS_TYPES):
         for kl in v:
             try:
                 if issubclass(klass, kl):
@@ -208,4 +210,6 @@ def get_module(mod_name):
 try:
     datetime.datetime.utcfromtimestamp(-31536000.0)
 except ValueError:
-    negative_timestamp_broken = True
+    fromtimestamp_broken = True
+if datetime.datetime.utcfromtimestamp(100000000.0005).microsecond != 5000:
+    fromtimestamp_broken = True

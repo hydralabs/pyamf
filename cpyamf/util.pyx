@@ -903,6 +903,8 @@ cdef class cBufferedByteStream(object):
     def __nonzero__(self):
         return self.length > 0
 
+    __bool__ = __nonzero__
+
 
 cdef class BufferedByteStream(cBufferedByteStream):
     """

@@ -7,10 +7,7 @@ Useful helpers for adapters.
 @since: 0.4
 """
 
-import __builtin__
-
-if not hasattr(__builtin__, 'set'):
-    from sets import Set as set
+from six.moves import builtins
 
 
 def to_list(obj, encoder):

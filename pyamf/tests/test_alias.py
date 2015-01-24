@@ -15,11 +15,6 @@ import pyamf
 from pyamf import ClassAlias
 from pyamf.tests.util import ClassCacheClearingTestCase, Spam, get_fqcn
 
-try:
-    set
-except NameError:
-    from sets import Set as set
-
 
 class ClassAliasTestCase(ClassCacheClearingTestCase):
     """
@@ -107,7 +102,8 @@ class ClassAliasTestCase(ClassCacheClearingTestCase):
             def __init__(self, foo, bar):
                 pass
 
-        self.assertRaises(TypeError, ClassAlias, ClassicFoo)
+        if not isinstance(ClassicFoo, type):
+            self.assertRaises(TypeError, ClassAlias, ClassicFoo)
         ClassAlias(NewFoo)
 
     def test_createInstance(self):
@@ -198,9 +194,7 @@ class GetEncodableAttributesTestCase(unittest.TestCase):
 
         attrs = self.alias.getEncodableAttributes(self.obj, c)
 
-        k = attrs.keys()
-
-        k.sort()
+        k = sorted(attrs.keys())
 
         self.assertEqual(k, ['bar', 'foo'])
 
@@ -1015,6 +1009,9 @@ class CompilationIntegrationTestCase(unittest.TestCase):
 
         class D(C, B):
             __slots__ = ('spam',)
+
+        if isinstance(A, object):
+            return
 
         a = ClassAlias(A)
 

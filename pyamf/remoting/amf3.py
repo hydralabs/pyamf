@@ -15,6 +15,7 @@ import calendar
 import time
 import uuid
 import sys
+from six import text_type
 
 import pyamf.python
 from pyamf import remoting
@@ -77,13 +78,13 @@ def generate_error(request, cls, e, tb, include_traceback=False):
     faultString = None
 
     if hasattr(e, 'message'):
-        faultString = unicode(e.message)
+        faultString = text_type(e.message)
     elif hasattr(e, 'args') and e.args:
         if isinstance(e.args[0], pyamf.python.str_types):
-            faultString = unicode(e.args[0])
+            faultString = text_type(e.args[0])
 
     if details:
-        faultDetail = unicode(details)
+        faultDetail = text_type(details)
 
     return messaging.ErrorMessage(
         messageId=generate_random_id(),
