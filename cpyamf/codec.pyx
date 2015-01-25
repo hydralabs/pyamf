@@ -356,6 +356,9 @@ cdef class Decoder(Codec):
     Base AMF decoder.
     """
 
+    def __cinit__(self):
+        self.depth = 0
+
     cdef object readDate(self):
         raise NotImplementedError
 
@@ -380,7 +383,7 @@ cdef class Decoder(Codec):
     cdef object readXML(self):
         raise NotImplementedError
 
-    cpdef object readElement(self):
+    cdef object _readElement(self):
         """
         Reads an element from the data stream.
         """
@@ -398,6 +401,21 @@ cdef class Decoder(Codec):
             self.stream.seek(pos)
 
             raise
+
+    cpdef object readElement(self):
+        cdef object element
+
+        self.depth += 1
+
+        try:
+            element = self._readElement()
+        finally:
+            self.depth -= 1
+
+        if self.depth == 0:
+            self.finalise(element)
+
+        return element
 
     cdef object readConcreteElement(self, char t):
         """
@@ -423,6 +441,18 @@ cdef class Decoder(Codec):
 
     def __iter__(self):
         return self
+
+    cdef int finalise(self, object payload) except? -1:
+        """
+        Finalise the payload.
+
+        This provides a useful hook to adapters to modify the payload that was
+        decoded.
+        """
+        for c in pyamf.POST_DECODE_PROCESSORS:
+            c(payload, self.context.extra)
+
+        return 0
 
 
 cdef class Encoder(Codec):

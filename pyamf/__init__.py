@@ -62,6 +62,9 @@ ERROR_CLASS_MAP = {
 #: L{unregister_alias_type}
 ALIAS_TYPES = {}
 
+#: A list of callbacks to execute once a decode has been successful.
+POST_DECODE_PROCESSORS = []
+
 #: Specifies that objects are serialized using AMF for ActionScript 1.0
 #: and 2.0 that were introduced in the Adobe Flash Player 6.
 AMF0 = 0
@@ -915,6 +918,22 @@ def set_default_etree(etree):
     from pyamf import xml
 
     return xml.set_default_interface(etree)
+
+
+def add_post_decode_processor(func):
+    """
+    Adds a function to be called when a payload has been successfully decoded.
+
+    This is useful for adapter as the last chance to modify the Python graph
+    before it enters user land.
+
+    @see: L{pyamf.codec.Decoder.finalise}
+    @since: 0.7.0
+    """
+    if not python.callable(func):
+        raise TypeError('%r must be callable' % (func,))
+
+    POST_DECODE_PROCESSORS.append(func)
 
 
 # setup some some standard class registrations and class loaders.

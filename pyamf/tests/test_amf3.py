@@ -921,6 +921,36 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
 
         f(**kwargs)
 
+    def test_post_process(self):
+        """
+        Ensure that postprocessing happens when data has been decoded.
+        """
+        self.executed = False
+
+        post_procs = pyamf.POST_DECODE_PROCESSORS[:]
+
+        def restore_post_procs():
+            pyamf.POST_DECODE_PROCESSORS = post_procs
+
+        self.addCleanup(restore_post_procs)
+        pyamf.POST_DECODE_PROCESSORS = []
+
+        def postprocess(payload, context):
+            self.assertEqual(payload, u'foo')
+            self.assertEqual(context, {})
+
+            self.executed = True
+
+        pyamf.add_post_decode_processor(postprocess)
+
+        # setup complete
+        bytes = pyamf.encode(u'foo', encoding=pyamf.AMF3).getvalue()
+
+        self.decoder.send(bytes)
+        self.decoder.next()
+
+        self.assertTrue(self.executed)
+
 
 class ObjectEncodingTestCase(ClassCacheClearingTestCase, EncoderMixIn):
     """

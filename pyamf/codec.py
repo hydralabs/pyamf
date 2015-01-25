@@ -318,6 +318,11 @@ class Decoder(_Codec):
     @type strict: C{bool}
     """
 
+    def __init__(self, *args, **kwargs):
+        _Codec.__init__(self, *args, **kwargs)
+
+        self.__depth = 0
+
     def send(self, data):
         """
         Add data for the decoder to work on.
@@ -334,7 +339,20 @@ class Decoder(_Codec):
             # all data was successfully decoded from the stream
             raise StopIteration
 
-    def readElement(self):
+    def finalise(self, payload):
+        """
+        Finalise the payload.
+
+        This provides a useful hook to adapters to modify the payload that was
+        decoded.
+
+        Note that this is an advanced feature and is NOT directly called by the
+        decoder.
+        """
+        for c in pyamf.POST_DECODE_PROCESSORS:
+            c(payload, self.context.extra)
+
+    def _readElement(self):
         """
         Reads an AMF3 element from the data stream.
 
@@ -365,6 +383,25 @@ class Decoder(_Codec):
             self.stream.seek(pos)
 
             raise
+
+    def readElement(self):
+        """
+        Reads an AMF3 element from the data stream.
+
+        @raise DecodeError: The ActionScript type is unsupported.
+        @raise EOStream: No more data left to decode.
+        """
+        self.__depth += 1
+
+        try:
+            element = self._readElement()
+        finally:
+            self.__depth -= 1
+
+        if self.__depth == 0:
+            self.finalise(element)
+
+        return element
 
     def __iter__(self):
         return self
