@@ -12,11 +12,11 @@ supports data types that are available only in ActionScript 3.0, such as
 L{ByteArray} and L{ArrayCollection}.
 
 @see: U{Official AMF3 Specification in English
-    <http://opensource.adobe.com/wiki/download/attachments/1114283/amf3_spec_05_05_08.pdf>}
+<http://opensource.adobe.com/wiki/download/attachments/1114283/amf3_spec_05_05_08.pdf>}
 @see: U{Official AMF3 Specification in Japanese
-    <http://opensource.adobe.com/wiki/download/attachments/1114283/JP_amf3_spec_121207.pdf>}
+<http://opensource.adobe.com/wiki/download/attachments/1114283/JP_amf3_spec_121207.pdf>}
 @see: U{AMF3 documentation on OSFlash
-    <http://osflash.org/documentation/amf3>}
+<http://osflash.org/documentation/amf3>}
 
 @since: 0.1
 """
@@ -59,7 +59,7 @@ TYPE_BOOL_TRUE = '\x03'
 #: In AMF 3 integers are serialized using a variable length signed 29-bit
 #: integer.
 #: @see: U{Parsing Integers on OSFlash (external)
-#: <http://osflash.org/documentation/amf3/parsing_integers>}
+#: <http://osflash.org/amf3/parsing_integers>}
 TYPE_INTEGER = '\x04'
 #: This type is used to encode an ActionScript Number or an ActionScript
 #: C{int} of value greater than or equal to 2^28 or an ActionScript uint of
@@ -849,8 +849,8 @@ class Decoder(codec.Decoder):
 
         @type signed: C{bool}
         @see: U{Parsing integers on OSFlash
-        <http://osflash.org/documentation/amf3/parsing_integers>} for the AMF3
-        integer data format.
+        <http://osflash.org/amf3/parsing_integers>} for the AMF3 integer data
+        format.
         """
         return decode_int(self.stream, signed)
 

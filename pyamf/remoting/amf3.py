@@ -216,18 +216,32 @@ class RequestProcessor(object):
         ro_request = amf_request.body[0]
 
         try:
-            return self._getBody(amf_request, ro_request, **kwargs)
+            body = self._getBody(amf_request, ro_request, **kwargs)
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
-            if self.logger:
+            fault = self.buildErrorResponse(ro_request)
+
+            if hasattr(self.gateway, 'onServiceError'):
+                self.gateway.onServiceError(ro_request, fault)
+            elif self.logger:
                 self.logger.exception(
                     'Unexpected error while processing request %r',
                     get_service_name(ro_request)
                 )
 
-            return remoting.Response(self.buildErrorResponse(ro_request),
-                                     status=remoting.STATUS_ERROR)
+            body = remoting.Response(fault, status=remoting.STATUS_ERROR)
+
+        ro_response = body.body
+
+        dsid = ro_request.headers.get('DSId', None)
+
+        if not dsid or dsid == 'nil':
+            dsid = generate_random_id()
+
+        ro_response.headers.setdefault('DSId', dsid)
+
+        return body
 
 
 def get_service_name(ro_request):
