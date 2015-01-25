@@ -74,6 +74,8 @@ cdef class Codec(object):
 
 
 cdef class Decoder(Codec):
+    cdef unsigned int depth
+
     cdef object readDate(self)
     cpdef object readString(self)
     cdef object readObject(self)
@@ -83,10 +85,12 @@ cdef class Decoder(Codec):
     cdef object readList(self)
     cdef object readXML(self)
 
+    cdef object _readElement(self)
     cpdef object readElement(self)
     cdef object readConcreteElement(self, char t)
 
     cpdef int send(self, data) except -1
+    cdef int finalise(self, object payload) except? -1
 
 
 cdef class Encoder(Codec):
