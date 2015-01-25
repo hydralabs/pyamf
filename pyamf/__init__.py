@@ -927,6 +927,9 @@ def add_post_decode_processor(func):
     This is useful for adapter as the last chance to modify the Python graph
     before it enters user land.
 
+    The function takes two arguments, the decoded payload and the context's
+    `extra` dict. It MUST return the payload that will be finally returned.
+
     @see: L{pyamf.codec.Decoder.finalise}
     @since: 0.7.0
     """

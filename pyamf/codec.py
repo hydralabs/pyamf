@@ -350,7 +350,9 @@ class Decoder(_Codec):
         decoder.
         """
         for c in pyamf.POST_DECODE_PROCESSORS:
-            c(payload, self.context.extra)
+            payload = c(payload, self.context.extra)
+
+        return payload
 
     def _readElement(self):
         """
@@ -399,7 +401,7 @@ class Decoder(_Codec):
             self.__depth -= 1
 
         if self.__depth == 0:
-            self.finalise(element)
+            element = self.finalise(element)
 
         return element
 

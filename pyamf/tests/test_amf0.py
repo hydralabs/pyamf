@@ -925,15 +925,18 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
 
             self.executed = True
 
+            return payload
+
         pyamf.add_post_decode_processor(postprocess)
 
         # setup complete
         bytes = pyamf.encode(u'foo', encoding=pyamf.AMF0).getvalue()
 
         self.decoder.send(bytes)
-        self.decoder.next()
+        ret = self.decoder.next()
 
         self.assertTrue(self.executed)
+        self.assertEqual(ret, u'foo')
 
 
 class RecordSetTestCase(unittest.TestCase, EncoderMixIn, DecoderMixIn):

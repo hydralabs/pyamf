@@ -90,7 +90,7 @@ cdef class Decoder(Codec):
     cdef object readConcreteElement(self, char t)
 
     cpdef int send(self, data) except -1
-    cdef int finalise(self, object payload) except? -1
+    cdef object finalise(self, object payload)
 
 
 cdef class Encoder(Codec):

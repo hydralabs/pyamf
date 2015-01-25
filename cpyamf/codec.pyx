@@ -413,7 +413,7 @@ cdef class Decoder(Codec):
             self.depth -= 1
 
         if self.depth == 0:
-            self.finalise(element)
+            element = self.finalise(element)
 
         return element
 
@@ -442,7 +442,7 @@ cdef class Decoder(Codec):
     def __iter__(self):
         return self
 
-    cdef int finalise(self, object payload) except? -1:
+    cdef object finalise(self, object payload):
         """
         Finalise the payload.
 
@@ -450,9 +450,9 @@ cdef class Decoder(Codec):
         decoded.
         """
         for c in pyamf.POST_DECODE_PROCESSORS:
-            c(payload, self.context.extra)
+            payload = c(payload, self.context.extra)
 
-        return 0
+        return payload
 
 
 cdef class Encoder(Codec):
