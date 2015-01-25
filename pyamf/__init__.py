@@ -504,11 +504,11 @@ def get_decoder(encoding, *args, **kwargs):
 
     def _get_decoder_class():
         if encoding == AMF0:
-            amf0 = _get_amf_module(0, use_ext=use_ext)
+            amf0 = _get_amf_module(AMF0, use_ext=use_ext)
 
             return amf0.Decoder
         elif encoding == AMF3:
-            amf3 = _get_amf_module(3, use_ext=use_ext)
+            amf3 = _get_amf_module(AMF3, use_ext=use_ext)
 
             return amf3.Decoder
 
@@ -529,11 +529,11 @@ def get_encoder(encoding, *args, **kwargs):
 
     def _get_encoder_class():
         if encoding == AMF0:
-            amf0 = _get_amf_module(0, use_ext=use_ext)
+            amf0 = _get_amf_module(AMF0, use_ext=use_ext)
 
             return amf0.Encoder
         elif encoding == AMF3:
-            amf3 = _get_amf_module(3, use_ext=use_ext)
+            amf3 = _get_amf_module(AMF3, use_ext=use_ext)
 
             return amf3.Encoder
 
