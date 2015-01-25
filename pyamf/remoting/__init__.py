@@ -458,9 +458,6 @@ def _read_body(stream, decoder, strict=False, logger=None):
         status = code
         target = target[:0 - len(s)]
 
-    if logger:
-        logger.debug('Remoting target: %r' % (target,))
-
     data_len = stream.read_ulong()
     pos = stream.tell()
 
@@ -610,9 +607,6 @@ def decode(stream, strict=False, logger=None, timezone_offset=None):
     if not isinstance(stream, util.BufferedByteStream):
         stream = util.BufferedByteStream(stream)
 
-    if logger:
-        logger.debug('remoting.decode start')
-
     msg = Envelope()
     msg.amfVersion = stream.read_ushort()
 
@@ -653,9 +647,6 @@ def decode(stream, strict=False, logger=None, timezone_offset=None):
 
     if strict and stream.remaining() > 0:
         raise RuntimeError("Unable to fully consume the buffer")
-
-    if logger:
-        logger.debug('remoting.decode end')
 
     return msg
 
