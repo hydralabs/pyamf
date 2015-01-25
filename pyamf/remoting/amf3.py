@@ -220,14 +220,17 @@ class RequestProcessor(object):
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
-            if self.logger:
+            fault = self.buildErrorResponse(ro_request)
+
+            if hasattr(self.gateway, 'onServiceError'):
+                self.gateway.onServiceError(ro_request, fault)
+            elif self.logger:
                 self.logger.exception(
                     'Unexpected error while processing request %r',
                     get_service_name(ro_request)
                 )
 
-            return remoting.Response(self.buildErrorResponse(ro_request),
-                                     status=remoting.STATUS_ERROR)
+            body = remoting.Response(fault, status=remoting.STATUS_ERROR)
 
         ro_response = body.body
 
