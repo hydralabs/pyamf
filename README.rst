@@ -1,3 +1,5 @@
+.. image:: https://travis-ci.org/hydralabs/pyamf.svg?branch=master
+    :target: https://travis-ci.org/hydralabs/pyamf
 .. image:: https://coveralls.io/repos/hydralabs/pyamf/badge.svg
    :target: https://coveralls.io/r/hydralabs/pyamf
 
