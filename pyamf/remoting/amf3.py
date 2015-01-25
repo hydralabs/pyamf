@@ -101,6 +101,13 @@ class RequestProcessor(object):
     def __init__(self, gateway):
         self.gateway = gateway
 
+    @property
+    def logger(self):
+        if not self.gateway.logger:
+            return None
+
+        return self.gateway.logger
+
     def buildErrorResponse(self, request, error=None):
         """
         Builds an error response.
@@ -175,17 +182,18 @@ class RequestProcessor(object):
     def _processRemotingMessage(self, amf_request, ro_request, **kwargs):
         ro_response = generate_acknowledgement(ro_request)
 
-        service_name = ro_request.operation
-
-        if hasattr(ro_request, 'destination') and ro_request.destination:
-            service_name = '%s.%s' % (ro_request.destination, service_name)
-
-        service_request = self.gateway.getServiceRequest(amf_request,
-                                                         service_name)
+        service_name = get_service_name(ro_request)
+        service_request = self.gateway.getServiceRequest(
+            amf_request,
+            service_name
+        )
 
         # fire the preprocessor (if there is one)
-        self.gateway.preprocessRequest(service_request, *ro_request.body,
-                                       **kwargs)
+        self.gateway.preprocessRequest(
+            service_request,
+            *ro_request.body,
+            **kwargs
+        )
 
         ro_response.body = self.gateway.callServiceRequest(
             service_request,
@@ -212,5 +220,23 @@ class RequestProcessor(object):
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
+            if self.logger:
+                self.logger.exception(
+                    'Unexpected error while processing request %r',
+                    get_service_name(ro_request)
+                )
+
             return remoting.Response(self.buildErrorResponse(ro_request),
                                      status=remoting.STATUS_ERROR)
+
+
+def get_service_name(ro_request):
+    """
+    Returns the full service name of a RemoteObject request.
+    """
+    service_name = ro_request.operation
+
+    if hasattr(ro_request, 'destination') and ro_request.destination:
+        service_name = '%s.%s' % (ro_request.destination, service_name)
+
+    return service_name

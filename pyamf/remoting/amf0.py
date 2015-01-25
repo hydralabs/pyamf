@@ -18,6 +18,13 @@ class RequestProcessor(object):
     def __init__(self, gateway):
         self.gateway = gateway
 
+    @property
+    def logger(self):
+        if not self.gateway.logger:
+            return None
+
+        return self.gateway.logger
+
     def authenticateRequest(self, request, service_request, *args, **kwargs):
         """
         Authenticates the request against the service.
@@ -87,6 +94,11 @@ class RequestProcessor(object):
                 request.target
             )
         except gateway.UnknownServiceError:
+            if self.logger:
+                self.logger.error(
+                    'Unknown endpoint %r' % (request.target,)
+                )
+
             return self.buildErrorResponse(request)
 
         # we have a valid service, now attempt authentication
@@ -100,6 +112,12 @@ class RequestProcessor(object):
         except (SystemExit, KeyboardInterrupt):
             raise
         except:
+            if self.logger:
+                self.logger.exception(
+                    'Unexpected error while authenticating request %r',
+                    request.target
+                )
+
             return self.buildErrorResponse(request)
 
         if not authd:
@@ -118,6 +136,12 @@ class RequestProcessor(object):
         except (SystemExit, KeyboardInterrupt):
             raise
         except:
+            if self.logger:
+                self.logger.exception(
+                    'Unexpected error while pre-processing request %r',
+                    request.target
+                )
+
             return self.buildErrorResponse(request)
 
         try:
@@ -133,6 +157,12 @@ class RequestProcessor(object):
         except (SystemExit, KeyboardInterrupt):
             raise
         except:
+            if self.logger:
+                self.logger.exception(
+                    'Unexpected error while processing request %r',
+                    request.target
+                )
+
             return self.buildErrorResponse(request)
 
 
