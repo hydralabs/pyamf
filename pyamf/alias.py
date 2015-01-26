@@ -371,6 +371,16 @@ class ClassAlias(object):
             )
         )
 
+    def getAttribute(self, obj, attr, codec=None):
+        """
+        Get the attribute `attr` from `obj`. If no attribute exists,
+        `pyamf.Undefined` is returned.
+
+        @param codec: The current `pyamf.codec.Codec` getting the attribute
+            (if there is one).
+        """
+        return getattr(obj, attr)
+
     def getEncodableAttributes(self, obj, codec=None):
         """
         Must return a C{dict} of attributes to be encoded, even if its empty.
@@ -392,12 +402,15 @@ class ClassAlias(object):
 
         if self.static_attrs:
             for attr in self.static_attrs:
-                attrs[attr] = getattr(obj, attr, pyamf.Undefined)
+                try:
+                    attrs[attr] = self.getAttribute(obj, attr, codec=codec)
+                except AttributeError:
+                    attrs[attr] = pyamf.Undefined
 
         if not self.dynamic:
             if self.non_static_encodable_properties:
                 for attr in self.non_static_encodable_properties:
-                    attrs[attr] = getattr(obj, attr)
+                    attrs[attr] = self.getAttribute(obj, attr, codec=codec)
 
             return attrs
 
