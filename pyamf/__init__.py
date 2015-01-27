@@ -23,6 +23,7 @@ from pyamf.alias import ClassAlias, UnknownClassAlias
 __all__ = [
     'register_class',
     'register_class_loader',
+    'get_adapter',
     'encode',
     'decode',
     '__version__',

@@ -72,10 +72,10 @@ class BaseTestCase(util.ClassCacheClearingTestCase):
         # Next, declare which service stubs you want to use.
         self.testbed.init_datastore_v3_stub()
         self.testbed.init_memcache_stub()
+        self.addCleanup(self.testbed.deactivate)
 
     def put(self, entity):
         entity.put()
-        self.addCleanup(self.deleteEntity, entity)
 
     def deleteEntity(self, entity):
         if entity.is_saved():
@@ -180,7 +180,7 @@ class EncodingModelTestCase(BaseTestCase):
         self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF3)
 
     def test_save_amf0(self):
-        self.put(self.jessica)
+        self.jessica.put()
 
         bytes = ('\x03', (
             '\x00\x04_key%s' % self.encodeKey(self.jessica, pyamf.AMF0),
@@ -194,7 +194,7 @@ class EncodingModelTestCase(BaseTestCase):
         self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF0)
 
     def test_save_amf3(self):
-        self.put(self.jessica)
+        self.jessica.put()
 
         bytes = (
             '\n\x0b\x01', (
@@ -287,7 +287,7 @@ class EncodingExpandoTestCase(BaseTestCase):
         self.assertEncodes(self.jessica, bytes, encoding=pyamf.AMF3)
 
     def test_save_amf0(self):
-        self.put(self.jessica)
+        self.jessica.put()
 
         bytes = pyamf.encode(self.jessica, encoding=pyamf.AMF0).getvalue()
 
@@ -302,7 +302,7 @@ class EncodingExpandoTestCase(BaseTestCase):
             '\x00\x00\t'))
 
     def test_save_amf3(self):
-        self.put(self.jessica)
+        self.jessica.put()
 
         bytes = (
             '\n\x0b\x01', (
@@ -357,7 +357,7 @@ class EncodingReferencesTestCase(BaseTestCase):
 
     def test_model(self):
         a = test_models.Author(name='Jane Austen')
-        self.put(a)
+        a.put()
 
         amf0_k = self.encodeKey(a, pyamf.AMF0)
         amf3_k = self.encodeKey(a, pyamf.AMF3)
@@ -431,7 +431,7 @@ class EncodingReferencesTestCase(BaseTestCase):
             author = db.ReferenceProperty(Author)
 
         a = Author(name='Jane Austen')
-        self.put(a)
+        a.put()
         k = str(a.key())
 
         amf0_k = struct.pack('>H', len(k)) + k
@@ -499,10 +499,10 @@ class EncodingReferencesTestCase(BaseTestCase):
 
     def test_dynamic_property_referenced_object(self):
         a = test_models.Author(name='Jane Austen')
-        self.put(a)
+        a.put()
 
         b = test_models.Novel(title='Sense and Sensibility', author=a)
-        self.put(b)
+        b.put()
 
         x = db.get(b.key())
         foo = [1, 2, 3]
@@ -649,7 +649,7 @@ class DecodingModelTestCase(BaseTestCase):
 
         pyamf.register_class(self.model_class, 'Pet')
 
-        self.put(self.jessica)
+        self.jessica.put()
         self.key = str(self.jessica.key())
 
     def _check_model(self, x):
@@ -719,6 +719,7 @@ class ClassAliasTestCase(BaseTestCase):
 
         self.addCleanup(self.deleteEntity, self.jessica)
         self.addCleanup(self.deleteEntity, self.jessica_expando)
+        self.decoder = pyamf.get_decoder(pyamf.AMF3)
 
     def test_get_alias(self):
         alias = pyamf.register_class(test_models.PetModel)
@@ -813,7 +814,7 @@ class ClassAliasTestCase(BaseTestCase):
         })
 
     def test_get_attributes_saved(self):
-        self.put(self.jessica)
+        self.jessica.put()
 
         attrs = self.alias.getEncodableAttributes(self.jessica)
 
@@ -840,7 +841,7 @@ class ClassAliasTestCase(BaseTestCase):
         })
 
     def test_get_attributes_saved_expando(self):
-        self.put(self.jessica_expando)
+        self.jessica_expando.put()
 
         attrs = self.alias.getEncodableAttributes(self.jessica_expando)
 
@@ -900,7 +901,7 @@ class ClassAliasTestCase(BaseTestCase):
             '_key': None,
             'readonly': False,
             'read_write': 'foo'
-        })
+        }, codec=self.decoder)
 
         self.assertEqual(obj.prop, 'foo')
 
@@ -917,7 +918,7 @@ class ReferencesTestCase(BaseTestCase):
         self.jessica.weight_in_pounds = 5
         self.jessica.spayed_or_neutered = False
 
-        self.put(self.jessica)
+        self.jessica.put()
 
         self.jessica2 = db.get(self.jessica.key())
 
@@ -951,7 +952,7 @@ class ReferencesTestCase(BaseTestCase):
 
     def test_nullreference(self):
         c = test_models.Novel(title='Pride and Prejudice', author=None)
-        self.put(c)
+        c.put()
 
         encoder = pyamf.get_encoder(encoding=pyamf.AMF3)
         alias = adapter_db.DataStoreClassAlias(test_models.Novel, None)
