@@ -547,7 +547,9 @@ class ClassAlias(object):
         if not self._compiled:
             self.compile()
 
-        if self.shortcut_decode:
+        if not self.shortcut_decode:
+            attrs = self.getDecodableAttributes(obj, attrs, codec=codec)
+        else:
             if self.is_dict:
                 obj.update(attrs)
 
@@ -557,9 +559,6 @@ class ClassAlias(object):
                 obj.__dict__.update(attrs)
 
                 return
-
-        else:
-            attrs = self.getDecodableAttributes(obj, attrs, codec=codec)
 
         util.set_attrs(obj, attrs)
 
