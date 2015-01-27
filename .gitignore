@@ -15,3 +15,8 @@ cpyamf/util.pyd
 dist
 file_model
 pyamf/_version.py
+# coverage
+.coverage
+.noseids
+cover
+htmlcov
