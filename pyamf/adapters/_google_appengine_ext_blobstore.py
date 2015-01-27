@@ -13,9 +13,6 @@ from google.appengine.ext import blobstore
 import pyamf
 
 
-bi = blobstore.BlobInfo
-
-
 class BlobInfoStub(object):
     """
     Since C{blobstore.BlobInfo} requires __init__ args, we stub the object
@@ -75,7 +72,8 @@ class BlobInfoClassAlias(pyamf.ClassAlias):
         obj.__init__(key)
 
 
-pyamf.register_alias_type(BlobInfoClassAlias, bi)
-pyamf.register_class(bi, '.'.join([blobstore.__name__, bi.__name__]))
-
-del bi
+pyamf.register_alias_type(BlobInfoClassAlias, blobstore.BlobInfo)
+pyamf.register_class(blobstore.BlobInfo, '.'.join([
+    blobstore.__name__,
+    blobstore.BlobInfo.__name__
+]))
