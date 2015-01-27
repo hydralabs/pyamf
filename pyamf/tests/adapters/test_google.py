@@ -755,29 +755,6 @@ class ClassAliasTestCase(BaseTestCase):
 
         self.assertTrue(isinstance(x, adapter_db.ModelStub))
 
-        self.assertTrue(hasattr(x, 'klass'))
-        self.assertEqual(x.klass, self.alias.klass)
-
-        # test some stub functions
-        self.assertEqual(x.properties(), self.alias.klass.properties())
-        self.assertEqual(x.dynamic_properties(), [])
-
-    def test_apply(self):
-        x = self.alias.createInstance()
-
-        self.assertTrue(hasattr(x, 'klass'))
-
-        self.alias.applyAttributes(x, {
-            adapter_db.DataStoreClassAlias.KEY_ATTR: None,
-            'name': 'Jessica',
-            'type': 'cat',
-            'birthdate': None,
-            'weight_in_pounds': None,
-            'spayed_or_neutered': None
-        })
-
-        self.assertFalse(hasattr(x, 'klass'))
-
     def test_get_attrs(self):
         attrs = self.alias.getEncodableAttributes(self.jessica)
         self.assertEqual(attrs, {
@@ -1044,13 +1021,12 @@ class HelperTestCase(BaseTestCase):
     """
 
     def test_getGAEObjects(self):
-        context = Spam()
-        context.extra = {}
+        context = {}
 
         x = adapter_db.getGAEObjects(context)
         self.assertTrue(isinstance(x, adapter_db.GAEReferenceCollection))
-        self.assertTrue('gae_objects' in context.extra)
-        self.assertEqual(id(x), id(context.extra['gae_objects']))
+        self.assertTrue('gae_db_ref_collection' in context)
+        self.assertEqual(id(x), id(context['gae_db_ref_collection']))
 
     def test_Query_type(self):
         """
@@ -1077,12 +1053,7 @@ class FloatPropertyTestCase(BaseTestCase):
         self.klass = FloatModel
         self.f = FloatModel()
         self.alias = adapter_db.DataStoreClassAlias(self.klass, None)
-
-    def tearDown(self):
-        BaseTestCase.tearDown(self)
-
-        if self.f.is_saved():
-            self.f.delete()
+        self.decoder = pyamf.get_decoder(pyamf.AMF3)
 
     def test_behaviour(self):
         """
@@ -1096,7 +1067,7 @@ class FloatPropertyTestCase(BaseTestCase):
         self.assertEqual(self.f.f, 3.0)
 
     def test_apply_attributes(self):
-        self.alias.applyAttributes(self.f, {'f': 3})
+        self.alias.applyAttributes(self.f, {'f': 3}, codec=self.decoder)
 
         self.assertEqual(self.f.f, 3.0)
 
