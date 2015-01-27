@@ -15,7 +15,7 @@ import types
 import inspect
 
 from pyamf import util, _version
-from pyamf.adapters import register_adapters
+from pyamf.adapters import register_adapters, get_adapter
 from pyamf import python
 from pyamf.alias import ClassAlias, UnknownClassAlias
 
