@@ -983,13 +983,18 @@ class GAEReferenceCollectionTestCase(BaseTestCase):
         x = self.klass()
 
         # not a class type
-        self.assertRaises(TypeError, x.getClassKey, chr, '')
+        with self.assertRaises(TypeError):
+            x.getClassKey(chr, '')
+
         # not a subclass of db.Model/db.Expando
-        self.assertRaises(TypeError, x.getClassKey, Spam, '')
+        with self.assertRaises(TypeError):
+            x.getClassKey(Spam, '')
 
         x = self.klass()
 
-        self.assertRaises(KeyError, x.getClassKey, test_models.PetModel, 'foo')
+        with self.assertRaises(KeyError):
+            x.getClassKey(test_models.PetModel, 'foo')
+
         self.assertEqual(x, {test_models.PetModel: {}})
 
         obj = object()
@@ -1005,11 +1010,16 @@ class GAEReferenceCollectionTestCase(BaseTestCase):
         x = self.klass()
 
         # not a class type
-        self.assertRaises(TypeError, x.addClassKey, chr, '')
+        with self.assertRaises(TypeError):
+            x.addClassKey(chr, '')
+
         # not a subclass of db.Model/db.Expando
-        self.assertRaises(TypeError, x.addClassKey, Spam, '')
+        with self.assertRaises(TypeError):
+            x.addClassKey(Spam, '')
+
         # wrong type for key
-        self.assertRaises(TypeError, x.addClassKey, test_models.PetModel, 3)
+        with self.assertRaises(TypeError):
+            x.addClassKey(test_models.PetModel, 3)
 
         x = self.klass()
         pm1 = test_models.PetModel(type='cat', name='Jessica')
@@ -1078,7 +1088,8 @@ class FloatPropertyTestCase(BaseTestCase):
         """
         Test the behaviour of the Google SDK not handling ints gracefully
         """
-        self.assertRaises(db.BadValueError, setattr, self.f, 'f', 3)
+        with self.assertRaises(db.BadValueError):
+            setattr(self.f, 'f', 3)
 
         self.f.f = 3.0
 
