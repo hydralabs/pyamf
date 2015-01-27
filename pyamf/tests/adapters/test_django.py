@@ -76,7 +76,8 @@ def init_django():
 
     from django.test.utils import setup_test_environment  # noqa
     from django.test.utils import teardown_test_environment  # noqa
-    from pyamf.adapters import _django_db_models_base as adapter  # noqa
+
+    adapter = pyamf.get_adapter('django.db.models.base')
 
     try:
         from django.test.utils import create_test_db, destroy_test_db

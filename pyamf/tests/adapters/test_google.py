@@ -51,10 +51,8 @@ def setUpModule():
     from google.appengine.ext.db import polymodel  # noqa
     from google.appengine.ext import testbed  # noqa
 
-    from pyamf.adapters import _google_appengine_ext_db as adapter_db  # noqa
-    from pyamf.adapters import (  # noqa
-        _google_appengine_ext_blobstore as adapter_blobstore
-    )
+    adapter_db = pyamf.get_adapter('google.appengine.ext.db')
+    adapter_blobstore = pyamf.get_adapter('google.appengine.ext.blobstore')
 
     from pyamf.tests.adapters import _google_models as test_models  # noqa
 
