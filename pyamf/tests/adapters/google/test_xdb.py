@@ -12,23 +12,14 @@ import struct
 
 import pyamf
 from pyamf import amf3
+
 from pyamf.tests import util
-
-
-try:
-    import dev_appserver
-
-    dev_appserver.fix_sys_path()
-except ImportError:
-    dev_appserver = None
+from pyamf.tests.adapters import google
 
 
 db = None
-blobstore = None
 polymodel = None
-adapter_db = None
-adapter_blobstore = None
-testbed = None
+adapter = None
 
 models = None
 
@@ -36,51 +27,23 @@ Spam = util.Spam
 
 
 def setUpModule():
-    """
-    """
-    global db, blobstore, polymodel, adapter_blobstore, adapter_db, models
-    global dev_appserver, testbed
+    global db, polymodel, adapter, models
 
-    if dev_appserver is None:
+    if not google.has_appengine_sdk():
         return
 
     # all looks good - we now initialise the imports we require
 
     from google.appengine.ext import db  # noqa
-    from google.appengine.ext import blobstore  # noqa
     from google.appengine.ext.db import polymodel  # noqa
     from google.appengine.ext import testbed  # noqa
 
-    adapter_db = pyamf.get_adapter('google.appengine.ext.db')
-    adapter_blobstore = pyamf.get_adapter('google.appengine.ext.blobstore')
+    adapter = pyamf.get_adapter('google.appengine.ext.db')
 
     from pyamf.tests.adapters.google import _ext_models as models  # noqa
 
 
-class BaseTestCase(util.ClassCacheClearingTestCase):
-    """
-    """
-
-    def setUp(self):
-        if dev_appserver is None:
-            self.skipTest('google appengine sdk not found')
-
-        util.ClassCacheClearingTestCase.setUp(self)
-        self.testbed = testbed.Testbed()
-
-        self.testbed.activate()
-        # Next, declare which service stubs you want to use.
-        self.testbed.init_datastore_v3_stub()
-        self.testbed.init_memcache_stub()
-        self.addCleanup(self.testbed.deactivate)
-
-    def put(self, entity):
-        entity.put()
-
-    def deleteEntity(self, entity):
-        if entity.is_saved():
-            entity.delete()
-
+class BaseTestCase(google.BaseTestCase):
     def decode(self, bytes, encoding=pyamf.AMF3):
         decoded = list(pyamf.decode(bytes, encoding=encoding))
 
@@ -143,9 +106,6 @@ class JessicaFactory(object):
 
 
 class EncodingModelTestCase(BaseTestCase):
-    """
-    """
-
     def setUp(self):
         BaseTestCase.setUp(self)
 
@@ -253,8 +213,6 @@ class EncodingExpandoTestCase(BaseTestCase):
         self.jessica = JessicaFactory.makeJessica(
             models.PetExpando, foo='bar'
         )
-
-        self.addCleanup(self.deleteEntity, self.jessica)
 
     def test_amf0(self):
         bytes = (
@@ -541,8 +499,6 @@ class ListPropertyTestCase(BaseTestCase):
         self.obj = models.ListModel()
         self.obj.numbers = [2, 4, 6, 8, 10]
 
-        self.addCleanup(self.deleteEntity, self.obj)
-
     def test_encode_amf0(self):
         bytes = (
             '\x03', (
@@ -707,7 +663,7 @@ class ClassAliasTestCase(BaseTestCase):
     def setUp(self):
         BaseTestCase.setUp(self)
 
-        self.alias = adapter_db.DataStoreClassAlias(
+        self.alias = adapter.DataStoreClassAlias(
             models.PetModel, 'foo.bar'
         )
 
@@ -717,14 +673,12 @@ class ClassAliasTestCase(BaseTestCase):
         )
         self.jessica_expando.foo = 'bar'
 
-        self.addCleanup(self.deleteEntity, self.jessica)
-        self.addCleanup(self.deleteEntity, self.jessica_expando)
         self.decoder = pyamf.get_decoder(pyamf.AMF3)
 
     def test_get_alias(self):
         alias = pyamf.register_class(models.PetModel)
 
-        self.assertTrue(isinstance(alias, adapter_db.DataStoreClassAlias))
+        self.assertTrue(isinstance(alias, adapter.DataStoreClassAlias))
 
     def test_alias(self):
         self.alias.compile()
@@ -753,7 +707,7 @@ class ClassAliasTestCase(BaseTestCase):
     def test_create_instance(self):
         x = self.alias.createInstance()
 
-        self.assertTrue(isinstance(x, adapter_db.ModelStub))
+        self.assertTrue(isinstance(x, adapter.ModelStub))
 
     def test_get_attrs(self):
         attrs = self.alias.getEncodableAttributes(self.jessica)
@@ -861,7 +815,7 @@ class ClassAliasTestCase(BaseTestCase):
 
             read_write = property(_get_prop, _set_prop)
 
-        alias = adapter_db.DataStoreClassAlias(PropertyTypeModel, 'foo.bar')
+        alias = adapter.DataStoreClassAlias(PropertyTypeModel, 'foo.bar')
 
         obj = PropertyTypeModel()
 
@@ -932,7 +886,7 @@ class ReferencesTestCase(BaseTestCase):
         c.put()
 
         encoder = pyamf.get_encoder(encoding=pyamf.AMF3)
-        alias = adapter_db.DataStoreClassAlias(models.Novel, None)
+        alias = adapter.DataStoreClassAlias(models.Novel, None)
 
         attrs = alias.getEncodableAttributes(c, codec=encoder)
 
@@ -949,7 +903,7 @@ class GAEReferenceCollectionTestCase(BaseTestCase):
 
     def setUp(self):
         BaseTestCase.setUp(self)
-        self.klass = adapter_db.GAEReferenceCollection
+        self.klass = adapter.GAEReferenceCollection
 
     def test_init(self):
         x = self.klass()
@@ -1023,8 +977,8 @@ class HelperTestCase(BaseTestCase):
     def test_getGAEObjects(self):
         context = {}
 
-        x = adapter_db.getGAEObjects(context)
-        self.assertTrue(isinstance(x, adapter_db.GAEReferenceCollection))
+        x = adapter.getGAEObjects(context)
+        self.assertTrue(isinstance(x, adapter.GAEReferenceCollection))
         self.assertTrue('gae_db_ref_collection' in context)
         self.assertEqual(id(x), id(context['gae_db_ref_collection']))
 
@@ -1052,7 +1006,7 @@ class FloatPropertyTestCase(BaseTestCase):
 
         self.klass = FloatModel
         self.f = FloatModel()
-        self.alias = adapter_db.DataStoreClassAlias(self.klass, None)
+        self.alias = adapter.DataStoreClassAlias(self.klass, None)
         self.decoder = pyamf.get_decoder(pyamf.AMF3)
 
     def test_behaviour(self):
@@ -1085,7 +1039,7 @@ class PolyModelTestCase(BaseTestCase):
 
         self.klass = Poly
         self.p = Poly()
-        self.alias = adapter_db.DataStoreClassAlias(self.klass, None)
+        self.alias = adapter.DataStoreClassAlias(self.klass, None)
 
     def test_encode(self):
         self.p.s = 'foo'
@@ -1098,7 +1052,7 @@ class PolyModelTestCase(BaseTestCase):
         class DeepPoly(self.klass):
             d = db.IntegerProperty()
 
-        self.alias = adapter_db.DataStoreClassAlias(DeepPoly, None)
+        self.alias = adapter.DataStoreClassAlias(DeepPoly, None)
         self.dp = DeepPoly()
         self.dp.s = 'bar'
         self.dp.d = 92
@@ -1110,49 +1064,3 @@ class PolyModelTestCase(BaseTestCase):
             's': 'bar',
             'd': 92
         })
-
-
-class BlobStoreTestCase(BaseTestCase):
-    """
-    Tests for L{blobstore}
-    """
-
-    bytes = (
-        '\n\x0bOgoogle.appengine.ext.blobstore.BlobInfo', (
-            '\tsize\x04\xcb\xad\x07',
-            '\x11creation\x08\x01Br\x9c\x1d\xbeh\x80\x00',
-            '\x07key\x06\rfoobar',
-            '\x19content_type\x06\x15text/plain',
-            '\x11filename\x06\x1fnot-telling.ogg'
-        ), '\x01')
-
-    values = {
-        'content_type': 'text/plain',
-        'size': 1234567,
-        'filename': 'not-telling.ogg',
-        'creation': datetime.datetime(2010, 07, 11, 14, 15, 01)
-    }
-
-    def setUp(self):
-        BaseTestCase.setUp(self)
-
-        self.key = blobstore.BlobKey('foobar')
-
-        self.info = blobstore.BlobInfo(self.key, self.values)
-
-    def test_class_alias(self):
-        alias_klass = pyamf.get_class_alias(blobstore.BlobInfo)
-
-        self.assertIdentical(
-            alias_klass.__class__,
-            adapter_blobstore.BlobInfoClassAlias
-        )
-
-    def test_encode(self):
-        self.assertEncodes(self.info, self.bytes)
-
-    def test_decode(self):
-        def check(ret):
-            self.assertEqual(ret.key(), self.key)
-
-        self.assertDecodes(self.bytes, check)
