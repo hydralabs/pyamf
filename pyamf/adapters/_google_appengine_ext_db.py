@@ -126,7 +126,6 @@ class StubCollection(object):
     def __init__(self):
         self.stubs = {}
         self.to_fetch = []
-        self.by_key = {}
         self.fetched_entities = None
 
     def addStub(self, stub, alias, attrs, key):
@@ -135,8 +134,6 @@ class StubCollection(object):
         self.stubs[stub] = (alias.klass, attrs, key)
 
         if key:
-            self.by_key[stub] = key
-
             self.to_fetch.append(key)
 
     def transformStub(self, stub, klass, attrs, key):
