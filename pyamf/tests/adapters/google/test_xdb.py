@@ -16,31 +16,15 @@ from pyamf import amf3
 from pyamf.tests import util
 from pyamf.tests.adapters import google
 
-
-db = None
-polymodel = None
-adapter = None
-
-models = None
-
 Spam = util.Spam
 
 
-def setUpModule():
-    global db, polymodel, adapter, models
+if google.has_appengine_sdk():
+    from google.appengine.ext import db
+    from google.appengine.ext.db import polymodel
 
-    if not google.has_appengine_sdk():
-        return
-
-    # all looks good - we now initialise the imports we require
-
-    from google.appengine.ext import db  # noqa
-    from google.appengine.ext.db import polymodel  # noqa
-    from google.appengine.ext import testbed  # noqa
-
+    from pyamf.tests.adapters.google import _ext_models as models
     adapter = pyamf.get_adapter('google.appengine.ext.db')
-
-    from pyamf.tests.adapters.google import _ext_models as models  # noqa
 
 
 class BaseTestCase(google.BaseTestCase):

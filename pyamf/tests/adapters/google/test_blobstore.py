@@ -11,18 +11,8 @@ import pyamf
 
 from pyamf.tests.adapters import google
 
-blobstore = None
-adapter = None
-
-
-def setUpModule():
-    global blobstore, adapter
-
-    if not google.has_appengine_sdk():
-        return
-
-    # all looks good - we now initialise the imports we require
-    from google.appengine.ext import blobstore  # noqa
+if google.has_appengine_sdk():
+    from google.appengine.ext import blobstore
 
     adapter = pyamf.get_adapter('google.appengine.ext.blobstore')
 
@@ -59,7 +49,7 @@ class BlobStoreTestCase(google.BaseTestCase):
 
         self.assertIdentical(
             alias_klass.__class__,
-            blobstore.BlobInfoClassAlias
+            adapter.BlobInfoClassAlias
         )
 
     def test_encode(self):
