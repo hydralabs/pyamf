@@ -14,7 +14,7 @@ import pyamf
 from pyamf import amf3
 
 from pyamf.tests import util
-from pyamf.tests.adapters import google
+from pyamf.adapters.tests import google
 
 Spam = util.Spam
 
@@ -23,7 +23,8 @@ if google.has_appengine_sdk():
     from google.appengine.ext import db
     from google.appengine.ext.db import polymodel
 
-    from pyamf.tests.adapters.google import _ext_models as models
+    from . import _ext_models as models
+
     adapter = pyamf.get_adapter('google.appengine.ext.db')
 
 

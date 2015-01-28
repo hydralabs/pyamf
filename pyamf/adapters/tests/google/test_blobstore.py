@@ -9,7 +9,7 @@ import datetime
 
 import pyamf
 
-from pyamf.tests.adapters import google
+from pyamf.adapters.tests import google
 
 if google.has_appengine_sdk():
     from google.appengine.ext import blobstore

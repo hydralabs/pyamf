@@ -18,5 +18,5 @@ DATABASES = {
 }
 
 
-INSTALLED_APPS = ('pyamf.tests.adapters.django_app.adapters',)
+INSTALLED_APPS = ('django_app.adapters',)
 MIDDLEWARE_CLASSES = ()
