@@ -23,7 +23,7 @@ if google.has_appengine_sdk():
     from google.appengine.ext import db
     from google.appengine.ext.db import polymodel
 
-    from . import _ext_models as models
+    from . import _xdb_models as models
 
     adapter = pyamf.get_adapter('google.appengine.ext.db')
 
