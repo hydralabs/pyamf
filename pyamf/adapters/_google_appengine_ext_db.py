@@ -315,7 +315,7 @@ class DataStoreClassAlias(pyamf.ClassAlias):
                 del attrs[k]
 
         for attr in obj.dynamic_properties():
-            attrs[attr] = getattr(obj, attr)
+            attrs[attr] = self.getAttribute(obj, attr, codec=codec)
 
         attrs[self.KEY_ATTR] = unicode(obj.key()) if obj.is_saved() else None
 
