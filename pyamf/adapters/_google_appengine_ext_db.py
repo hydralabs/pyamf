@@ -171,7 +171,6 @@ class DataStoreClassAlias(pyamf.ClassAlias):
         pyamf.ClassAlias._compile_base_class(self, klass)
 
     def getCustomProperties(self):
-        props = [self.KEY_ATTR]
         self.reference_properties = {}
         self.properties = {}
         reverse_props = []
@@ -179,14 +178,11 @@ class DataStoreClassAlias(pyamf.ClassAlias):
         for name, prop in self.klass.properties().iteritems():
             self.properties[name] = prop
 
-            props.append(name)
-
             if isinstance(prop, db.ReferenceProperty):
                 self.reference_properties[name] = prop
 
         if issubclass(self.klass, polymodel.PolyModel):
             del self.properties['_class']
-            props.remove('_class')
 
         # check if the property is a defined as a collection_name. These types
         # of properties are read-only and the datastore freaks out if you
