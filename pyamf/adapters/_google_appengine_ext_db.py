@@ -289,10 +289,10 @@ class DataStoreClassAlias(pyamf.ClassAlias):
     def getStubCollection(self, codec):
         extra = codec.context.extra
 
-        stubs = extra.get('gae_db_stubs', None)
+        stubs = extra.get('gae_xdb_stubs', None)
 
         if not stubs:
-            stubs = extra['gae_db_stubs'] = self.makeStubCollection()
+            stubs = extra['gae_xdb_stubs'] = self.makeStubCollection()
 
         return stubs
 
@@ -331,14 +331,14 @@ def getGAEObjects(context):
     @rtype: Instance of L{GAEReferenceCollection}
     @since: 0.4.1
     """
-    ref_collection = context.get('gae_db_ref_collection', None)
+    ref_collection = context.get('gae_xdb_context', None)
 
     if ref_collection:
         return ref_collection
 
-    context['gae_db_ref_collection'] = GAEReferenceCollection()
+    context['gae_xdb_context'] = GAEReferenceCollection()
 
-    return context['gae_db_ref_collection']
+    return context['gae_xdb_context']
 
 
 def write_entity(obj, encoder=None):
@@ -464,7 +464,7 @@ def transform_stubs(payload, context):
     Called when a successful decode has been performed. Transform the stubs
     within the payload to proper db.Model instances.
     """
-    stubs = context.get('gae_db_stubs', None)
+    stubs = context.get('gae_xdb_stubs', None)
 
     if not stubs:
         return payload
