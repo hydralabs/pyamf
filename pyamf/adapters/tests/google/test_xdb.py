@@ -964,8 +964,8 @@ class HelperTestCase(BaseTestCase):
 
         x = adapter.getGAEObjects(context)
         self.assertTrue(isinstance(x, adapter.GAEReferenceCollection))
-        self.assertTrue('gae_db_ref_collection' in context)
-        self.assertEqual(id(x), id(context['gae_db_ref_collection']))
+        self.assertTrue('gae_xdb_context' in context)
+        self.assertEqual(id(x), id(context['gae_xdb_context']))
 
     def test_Query_type(self):
         """
