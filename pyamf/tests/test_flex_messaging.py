@@ -41,9 +41,9 @@ class EncodingTestCase(unittest.TestCase):
         self.assertEqual(
             pyamf.encode(m).getvalue(),
             '\n\x81\x0bUflex.messaging.messages.AcknowledgeMessage\tbody'
-            '\x11clientId\x17destination\x0fheaders\x13messageId\x13timestamp'
-            '\x15timeToLive\x1bcorrelationId\x01\x01\x01\n\x0b\x01\x01\x01\x01'
-            '\x01\x06\t1234\x01'
+            '\x11clientId\x1bcorrelationId\x17destination\x0fheaders\x13'
+            'messageId\x15timeToLive\x13timestamp\x01\x01\x06\t1234\x01\n\x0b'
+            '\x01\x01\x01\x01\x01\x01'
         )
 
     def test_CommandMessage(self):
@@ -51,10 +51,10 @@ class EncodingTestCase(unittest.TestCase):
 
         self.assertEqual(
             pyamf.encode(m).getvalue(),
-            '\n\x81\x1bMflex.messaging.messages.CommandMessage\x1bcorrelationI'
-            'd\tbody\x11clientId\x17destination\x0fheaders\x13messageId\x13'
-            'timestamp\x15timeToLive\x13operation\x01\x01\x01\x01\n\x0b\x01'
-            '\x01\x01\x01\x01\x06\x0ffoo.bar\x01'
+            '\n\x81\x1bMflex.messaging.messages.CommandMessage\tbody\x11client'
+            'Id\x1bcorrelationId\x17destination\x0fheaders\x13messageId\x13ope'
+            'ration\x15timeToLive\x13timestamp\x01\x01\x01\x01\n\x0b\x01\x01'
+            '\x01\x06\x0ffoo.bar\x01\x01\x01'
         )
 
     def test_ErrorMessage(self):
@@ -62,11 +62,11 @@ class EncodingTestCase(unittest.TestCase):
 
         self.assertEqual(
             pyamf.encode(m).getvalue(),
-            '\n\x81[Iflex.messaging.messages.ErrorMessage\x1bcorrelationId\x15'
-            'timeToLive\x13timestamp\x13messageId\x0fheaders\x17destination'
-            '\x11clientId\tbody\x19extendedData\x13faultCode\x17faultDetail'
-            '\x17faultString\x13rootCause\x01\x01\x01\x01\n\x0b\x01\x01\x01'
-            '\x01\x01\n\x05\x01\x01\x01\x06\x15ValueError\n\x05\x01\x01'
+            '\n\x81[Iflex.messaging.messages.ErrorMessage\tbody\x11clientId'
+            '\x1bcorrelationId\x17destination\x19extendedData\x13faultCode'
+            '\x17faultDetail\x17faultString\x0fheaders\x13messageId\x13rootCau'
+            'se\x15timeToLive\x13timestamp\x01\x01\x01\x01\n\x0b\x01\x01\x01'
+            '\x01\x06\x15ValueError\n\x05\x01\x01\n\x05\x01\x01\x01\x01'
         )
 
     def test_RemotingMessage(self):
@@ -74,10 +74,10 @@ class EncodingTestCase(unittest.TestCase):
 
         self.assertEqual(
             pyamf.encode(m).getvalue(),
-            '\n\x81\x1bOflex.messaging.messages.RemotingMessage\x15timeToLive'
-            '\x13timestamp\x13messageId\x0fheaders\x17destination\x11clientId'
-            '\tbody\x13operation\rsource\x01\x01\x01\n\x0b\x01\x01\x01\x01\x01'
-            '\x01\x06\x0ffoo.bar\x01'
+            '\n\x81\x1bOflex.messaging.messages.RemotingMessage\tbody\x11clien'
+            'tId\x17destination\x0fheaders\x13messageId\x13operation\rsource'
+            '\x15timeToLive\x13timestamp\x01\x01\x01\n\x0b\x01\x01\x01\x01\x06'
+            '\x0ffoo.bar\x01\x01\x01'
         )
 
 

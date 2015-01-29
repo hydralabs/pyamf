@@ -215,6 +215,9 @@ class ClassAlias(object):
             self.external = False
 
         if self.static_attrs:
+            self.static_attrs = list(self.static_attrs)
+            self.static_attrs.sort()
+
             self.encodable_properties.update(self.static_attrs)
             self.decodable_properties.update(self.static_attrs)
 
