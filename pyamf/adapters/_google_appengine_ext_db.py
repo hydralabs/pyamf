@@ -376,17 +376,7 @@ def write_db_key(key, encoder=None):
     """
     Convert the `db.Key` to it's entity and endcode it.
     """
-    gae_objects = getGAEObjects(encoder.context.extra)
-
-    klass = db.class_for_kind(key.kind())
-
-    try:
-        referenced_object = gae_objects.getClassKey(klass, key)
-    except KeyError:
-        referenced_object = db.get(key)
-        gae_objects.addClassKey(klass, key, referenced_object)
-
-    encoder.writeObject(referenced_object)
+    return unicode(key)
 
 
 @adapter_models.register_property_decoder(db.FloatProperty)

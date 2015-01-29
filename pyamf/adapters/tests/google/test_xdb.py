@@ -959,6 +959,15 @@ class HelperTestCase(BaseTestCase):
     """
     """
 
+    def test_encode_key(self):
+        key = db.Key.from_path('PetModel', 'jessica')
+
+        self.assertEncodes(
+            key,
+            '\x02\x002agx0ZXN0YmVkLXRlc3RyFQsSCFBldE1vZGVsIgdqZXNzaWNhDA',
+            encoding=pyamf.AMF0
+        )
+
     def test_getGAEObjects(self):
         context = {}
 
