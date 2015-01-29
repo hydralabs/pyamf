@@ -13,6 +13,12 @@ import glob
 
 from pyamf.util import imports
 
+__all__ = [
+    'register_adapters',
+    'register_adapter',
+    'get_adapter',
+]
+
 
 adapters_registered = False
 
@@ -78,6 +84,10 @@ def register_adapter(mod, func):
 
 def get_adapter(mod):
     """
+    Return the PyAMF adapter for the supplied module.
+
+    Usage::
+        adapter = pyamf.get_adapter('django.contrib.auth.models')
     """
     base_name = '_' + mod.replace('.', '_')
 
