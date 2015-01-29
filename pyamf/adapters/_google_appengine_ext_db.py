@@ -19,49 +19,11 @@ from google.appengine.ext import db
 from google.appengine.ext.db import polymodel
 
 import pyamf
-from pyamf.adapters import util
+from pyamf.adapters import util, models as adapter_models
 
 __all__ = [
     'DataStoreClassAlias',
-    'register_property_handler',
 ]
-
-
-#: mapping of db.*Property -> handler
-_property_handlers = {}
-
-
-def register_property_handler(prop_class, replace=False):
-    """
-    Decorator that will call the handler when decoding an attribute.
-
-    The handler will be given 2 parameters: The property instance being decoded
-    and the value of the property that has been decoded. It is the job of the
-    handler to return the value.
-
-    @param prop_class: A L{db.Property} class.
-    @param replace: Whether to replace an existing handler for a given
-        property.
-    """
-    if not issubclass(prop_class, db.Property):
-        raise TypeError(
-            '%r must be a subclass of google.appengine.ext.db.Property' % (
-                prop_class,
-            )
-        )
-
-    def wrapped(handler):
-        if not replace and prop_class in _property_handlers:
-            raise KeyError('Handler %r already exists for prop %r' % (
-                _property_handlers[prop_class],
-                prop_class,
-            ))
-
-        _property_handlers[prop_class] = handler
-
-        return wrapped
-
-    return wrapped
 
 
 class ModelStub(object):
@@ -334,26 +296,6 @@ class DataStoreClassAlias(pyamf.ClassAlias):
 
         return stubs
 
-    def handleProperties(self, attrs):
-        """
-        Some ext.db properties require special manipulation. This is the place
-        to do it. For custom functionality either override and existing
-        handler or register custom properties with
-        L{register_property_handler}.
-
-        @param attrs: Mapping of name -> value of decoded attributes.
-        """
-        property_attrs = [k for k in attrs if k in self.properties]
-
-        for name in property_attrs:
-            prop = self.properties[name]
-            handler = _property_handlers.get(prop.__class__, None)
-
-            if not handler:
-                continue
-
-            attrs[name] = handler(prop, attrs[name])
-
     def getDecodableAttributes(self, obj, attrs, codec=None):
         key = attrs.pop(self.KEY_ATTR, None)
 
@@ -365,7 +307,7 @@ class DataStoreClassAlias(pyamf.ClassAlias):
         )
 
         if self.properties:
-            self.handleProperties(attrs)
+            adapter_models.decode_model_properties(self.properties, attrs)
 
         if key:
             key = db.Key(key)
@@ -451,7 +393,7 @@ def write_db_key(key, encoder=None):
     encoder.writeObject(referenced_object)
 
 
-@register_property_handler(db.FloatProperty)
+@adapter_models.register_property_decoder(db.FloatProperty)
 def handle_float_property(prop, value):
     if isinstance(value, (int, long)):
         return float(value)
@@ -459,7 +401,7 @@ def handle_float_property(prop, value):
     return value
 
 
-@register_property_handler(db.IntegerProperty)
+@adapter_models.register_property_decoder(db.IntegerProperty)
 def handle_integer_property(prop, value):
     if isinstance(value, float):
         x = int(value)
@@ -472,7 +414,7 @@ def handle_integer_property(prop, value):
     return value
 
 
-@register_property_handler(db.ListProperty)
+@adapter_models.register_property_decoder(db.ListProperty)
 def handle_list_property(prop, value):
     if value is None:
         return []
@@ -495,7 +437,7 @@ def handle_list_property(prop, value):
     return value
 
 
-@register_property_handler(db.DateProperty)
+@adapter_models.register_property_decoder(db.DateProperty)
 def handle_date_property(prop, value):
     if not isinstance(value, datetime.datetime):
         return value
@@ -506,7 +448,7 @@ def handle_date_property(prop, value):
     return value.date()
 
 
-@register_property_handler(db.TimeProperty)
+@adapter_models.register_property_decoder(db.TimeProperty)
 def handle_time_property(prop, value):
     if not isinstance(value, datetime.datetime):
         return value
