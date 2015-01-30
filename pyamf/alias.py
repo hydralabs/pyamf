@@ -222,6 +222,8 @@ class ClassAlias(object):
             self.decodable_properties.update(self.static_attrs)
 
         if self.static_attrs:
+            self.static_attrs_set.update(self.static_attrs)
+
             if self.exclude_attrs:
                 self.static_attrs_set.difference_update(self.exclude_attrs)
 
