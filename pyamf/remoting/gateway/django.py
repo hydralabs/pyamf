@@ -147,9 +147,6 @@ class DjangoGateway(gateway.BaseGateway):
                 content=response
             )
 
-        if self.logger:
-            self.logger.debug("AMF Request: %r" % request)
-
         # Process the request
         try:
             response = self.getResponse(http_request, request)
@@ -171,9 +168,6 @@ class DjangoGateway(gateway.BaseGateway):
                 content_type='text/plain',
                 content=response
             )
-
-        if self.logger:
-            self.logger.debug("AMF Response: %r" % response)
 
         # Encode the response
         try:

@@ -120,9 +120,6 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
 
             return
 
-        if self.logger:
-            self.logger.debug("AMF Request: %r" % request)
-
         # Process the request
         try:
             response = self.getResponse(request)
@@ -146,9 +143,6 @@ class WebAppGateway(webapp.RequestHandler, gateway.BaseGateway):
             self.response.out.write(response)
 
             return
-
-        if self.logger:
-            self.logger.debug("AMF Response: %r" % response)
 
         # Encode the response
         try:
