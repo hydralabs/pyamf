@@ -293,37 +293,6 @@ class NdbClassAlias(pyamf.ClassAlias):
 
         return attrs
 
-    def getDecodableValue(self, prop, value, single_of_repeated=False):
-        """decode an amf stream to a python object
-        """
-        # repeat decoding for repeated values
-        if prop._repeated and not single_of_repeated:
-            decodable_value = []
-
-            if value is None:
-                return decodable_value
-
-            for single_value in value:
-                decodable_value.append(
-                    self.getDecodableValue(
-                        prop,
-                        single_value,
-                        single_of_repeated=True))
-
-            return decodable_value
-
-        if isinstance(prop, ndb.FloatProperty) \
-                and isinstance(value, (int, long)):
-            return float(value)
-        elif isinstance(prop, ndb.IntegerProperty) \
-                and isinstance(value, float) \
-                and long(value) == value:
-            # only convert the type if there is no mantissa - otherwise
-            # let the chips fall where they may
-            return long(value)
-
-        return value
-
 
 def get_ndb_context(context):
     """
@@ -410,6 +379,27 @@ def decode_key_property(prop, value):
 @adapter_models.register_property_decoder(ndb.DateProperty)
 def decode_time_property(prop, value):
     return value.date()
+
+
+@adapter_models.register_property_decoder(ndb.FloatProperty)
+def decode_float_property(prop, value):
+    if isinstance(value, (int, long)):
+        return float(value)
+
+    return value
+
+
+@adapter_models.register_property_decoder(ndb.IntegerProperty)
+def decode_int_property(prop, value):
+    if isinstance(value, float):
+        long_val = long(value)
+
+        # only convert the type if there is no mantissa - otherwise
+        # let the chips fall where they may
+        if long_val == value:
+            return long_val
+
+    return value
 
 
 @adapter_models.register_property_encoder(ndb.TimeProperty)
