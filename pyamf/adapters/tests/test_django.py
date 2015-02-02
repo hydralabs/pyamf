@@ -7,6 +7,8 @@ PyAMF Django adapter tests.
 @since: 0.3.1
 """
 
+from __future__ import absolute_import
+
 import unittest
 import sys
 import os
