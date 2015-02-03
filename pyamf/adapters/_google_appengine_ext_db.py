@@ -231,7 +231,7 @@ class DataStoreClassAlias(pyamf.ClassAlias):
         except KeyError:
             return _()
 
-        gae_objects = getGAEObjects(codec.extra)
+        gae_objects = getGAEObjects(codec.context.extra)
         klass = prop.reference_class
         key = prop.get_value_for_datastore(obj)
 
@@ -245,21 +245,15 @@ class DataStoreClassAlias(pyamf.ClassAlias):
 
         try:
             ref_obj = _()
-        except db.Error as e:
-            # woo hack
-            msg = unicode(e)
+        except db.ReferencePropertyResolveError:
+            logging.warn(
+                'Attempted to get %r on %r with key %r',
+                attr,
+                type(obj),
+                key
+            )
 
-            if msg.startswith(u'ReferenceProperty failed to be resolved'):
-                logging.warn(
-                    'Attempted to get %r on %r with key %r',
-                    attr,
-                    type(obj),
-                    key
-                )
-
-                return None
-
-            raise
+            return None
 
         gae_objects.addClassKey(klass, key, ref_obj)
 
@@ -408,7 +402,7 @@ def handle_list_property(prop, value):
     # there is an issue with large ints and ListProperty(int) AMF leaves
     # ints > amf3.MAX_29B_INT as floats db.ListProperty complains pretty
     # hard in this case so we try to work around the issue.
-    if prop.item_type in (int, long):
+    if prop.item_type in (float, basestring):
         return value
 
     for i, x in enumerate(value):
