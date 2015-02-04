@@ -224,8 +224,6 @@ class NdbClassAlias(pyamf.ClassAlias):
         self.repeated_properties = repeated_props or None
         self.computed_properties = computed_props or None
 
-        self.static_attrs.append(self.KEY_ATTR)
-
     def getDecodableAttributes(self, obj, attrs, codec=None):
         attrs = pyamf.ClassAlias.getDecodableAttributes(
             self, obj, attrs, codec=codec
@@ -348,6 +346,9 @@ def encode_ndb_key(key, encoder=None):
     When encountering an L{ndb.Key} instance, find the entity in the datastore
     and encode that.
     """
+    if not key:
+        return key
+
     if key.id():
         return key.urlsafe()
 
@@ -378,6 +379,9 @@ def decode_key_property(prop, value):
 
 @adapter_models.register_property_decoder(ndb.DateProperty)
 def decode_time_property(prop, value):
+    if not hasattr(value, 'date'):
+        return value
+
     return value.date()
 
 
@@ -411,6 +415,9 @@ def encode_time_property(prop, value):
 
 @adapter_models.register_property_encoder(ndb.DateProperty)
 def encode_date_property(prop, value):
+    if not value:
+        return value
+
     return datetime.datetime.combine(
         value,
         datetime.time(0, 0, 0)

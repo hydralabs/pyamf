@@ -28,15 +28,15 @@ class EncodeModelTestCase(google.BaseTestCase):
         entity = models.SimpleEntity()
 
         self.assertEncodes(entity, (
-            '\x03\x00',
-            '\x04_key\x05\x00'
-            '\x00\t'
+            b'\x03\x00',
+            b'\x04_key\x05\x00'
+            b'\x00\t'
         ), encoding=pyamf.AMF0)
 
         self.assertEncodes(entity, (
-            '\n\x1b'
-            '\x01\t_key\x01'
-            '\x01'
+            b'\n\x0b'
+            b'\x01\t_key\x01'
+            b'\x01'
         ), encoding=pyamf.AMF3)
 
     def test_simple_named_alias(self):
@@ -48,14 +48,14 @@ class EncodeModelTestCase(google.BaseTestCase):
         entity = models.SimpleEntity()
 
         self.assertEncodes(entity, (
-            '\x10\x00'
-            '\x07foo.bar'
-            '\x00\x04_key\x05'
-            '\x00\x00\t'
+            b'\x10\x00'
+            b'\x07foo.bar'
+            b'\x00\x04_key\x05'
+            b'\x00\x00\t'
         ), encoding=pyamf.AMF0)
 
         self.assertEncodes(entity, (
-            '\n\x1b\x0ffoo.bar\t_key\x01\x01'
+            b'\n\x0b\x0ffoo.bar\t_key\x01\x01'
         ), encoding=pyamf.AMF3)
 
     def test_encode_properties(self):
@@ -85,8 +85,9 @@ class EncodeModelTestCase(google.BaseTestCase):
         ), encoding=pyamf.AMF0)
 
         self.assertEncodes(heidi_klum, (
-            b'\n\x1b\x01\t_key', (
-                b'\x01\tname\x06\x15Heidi Klum'
+            b'\n\x0b\x01', (
+                b'\tname\x06\x15Heidi Klum',
+                b'\t_key\x01',
                 b'\x19measurements\t\x07\x01\x04\x01\x04\x02\x04\x03',
                 b'\rheight\x05?\xfc=p\xa3\xd7\n=',
                 b'\x15birth_date\x08\x01B9\x15\xda$\x00\x00\x00',
@@ -94,6 +95,21 @@ class EncodeModelTestCase(google.BaseTestCase):
             ),
             b'\x01'
         ), encoding=pyamf.AMF3)
+
+    def test_ref_model(self):
+        """
+        Encoding a reference to an entity must work
+        """
+        entity = models.SimpleEntity()
+
+        entity.put()
+
+        self.assertEncodes([entity, entity], (
+            '\t\x05\x01',
+            '\n\x0b\x01\t_key\x06]agx0ZXN0YmVkLXRlc3RyEgsSDFNpbXBsZUVudGl0eRg'
+            'BDA\x01',
+            '\n\x02'
+        ))
 
 
 class EncodeTestCase(google.BaseTestCase):
@@ -108,11 +124,11 @@ class EncodeTestCase(google.BaseTestCase):
         key = ndb.Key('SimpleEntity', 'bar')
 
         self.assertEncodes(key, (
-            '\x02\x002agx0ZXN0YmVkLXRlc3RyFQsSDFNpbXBsZUVudGl0eSIDYmFyDA'
+            b'\x02\x002agx0ZXN0YmVkLXRlc3RyFQsSDFNpbXBsZUVudGl0eSIDYmFyDA'
         ), encoding=pyamf.AMF0)
 
         self.assertEncodes(key, (
-            '\x06eagx0ZXN0YmVkLXRlc3RyFQsSDFNpbXBsZUVudGl0eSIDYmFyDA'
+            b'\x06eagx0ZXN0YmVkLXRlc3RyFQsSDFNpbXBsZUVudGl0eSIDYmFyDA'
         ), encoding=pyamf.AMF3)
 
     def test_query(self):
@@ -124,11 +140,11 @@ class EncodeTestCase(google.BaseTestCase):
         self.assertIsInstance(query, ndb.Query)
 
         self.assertEncodes(query, (
-            '\n\x00\x00\x00\x00'
+            b'\n\x00\x00\x00\x00'
         ), encoding=pyamf.AMF0)
 
         self.assertEncodes(query, (
-            '\t\x01\x01'
+            b'\t\x01\x01'
         ), encoding=pyamf.AMF3)
 
 
