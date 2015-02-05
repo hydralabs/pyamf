@@ -7,6 +7,8 @@ PyAMF Django adapter tests.
 @since: 0.3.1
 """
 
+from __future__ import absolute_import
+
 import unittest
 import sys
 import os
@@ -52,13 +54,14 @@ def init_django():
     if not django:
         return
 
+    sys.path.insert(0, os.path.dirname(__file__))
     os.environ['DJANGO_SETTINGS_MODULE'] = (
-        'pyamf.tests.adapters.django_app.settings'
+        'django_app.settings'
     )
 
     from django.conf import settings
 
-    from pyamf.tests.adapters.django_app import settings as app_settings
+    from django_app import settings as app_settings
 
     try:
         settings.configure(**app_settings.__dict__)
@@ -109,7 +112,7 @@ def setUpModule():
 
     if init_django():
         from django.core.files.storage import FileSystemStorage
-        from pyamf.tests.adapters.django_app.adapters import models  # noqa
+        from django_app.adapters import models  # noqa
 
         setup_test_environment()
 
