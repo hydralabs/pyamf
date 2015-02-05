@@ -13,6 +13,12 @@ import glob
 
 from pyamf.util import imports
 
+__all__ = [
+    'register_adapters',
+    'register_adapter',
+    'get_adapter',
+]
+
 
 adapters_registered = False
 
