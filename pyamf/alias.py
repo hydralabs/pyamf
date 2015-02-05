@@ -434,7 +434,7 @@ class ClassAlias(object):
                 dynamic_props.difference_update(self.exclude_attrs)
 
         for attr in dynamic_props:
-            attrs[attr] = getattr(obj, attr)
+            attrs[attr] = self.getAttribute(obj, attr, codec=codec)
 
         if self.proxy_attrs is not None and attrs and codec:
             context = codec.context
