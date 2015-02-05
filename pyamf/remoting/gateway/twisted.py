@@ -74,9 +74,6 @@ class AMF0RequestProcessor(amf0.RequestProcessor):
                 request, (failure.type, failure.value, failure.tb)))
 
         def response_cb(result):
-            if self.gateway.logger:
-                self.gateway.logger.debug("AMF Response: %s" % (result,))
-
             response.body = result
 
             deferred_response.callback(response)
@@ -161,9 +158,6 @@ class AMF3RequestProcessor(amf3.RequestProcessor):
         def response_cb(result):
             ro_response.body = result
             res = remoting.Response(ro_response)
-
-            if self.gateway.logger:
-                self.gateway.logger.debug("AMF Response: %r" % (res,))
 
             deferred_response.callback(res)
 
@@ -302,9 +296,6 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         )
 
         def cb(amf_request):
-            if self.logger:
-                self.logger.debug("AMF Request: %r" % amf_request)
-
             x = self.getResponse(request, amf_request)
 
             x.addCallback(self.sendResponse, request)
@@ -425,9 +416,6 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         """
         authenticator = self.getAuthenticator(service_request)
 
-        if self.logger:
-            self.logger.debug('Authenticator expands to: %r' % authenticator)
-
         if authenticator is None:
             return defer.succeed(True)
 
@@ -444,9 +432,6 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
         Preprocesses a request.
         """
         processor = self.getPreprocessor(service_request)
-
-        if self.logger:
-            self.logger.debug('Preprocessor expands to: %r' % processor)
 
         if processor is None:
             return

@@ -126,9 +126,6 @@ class WSGIGateway(gateway.BaseGateway):
 
             return [response]
 
-        if self.logger:
-            self.logger.debug("AMF Request: %r" % request)
-
         # Process the request
         try:
             response = self.getResponse(request, environ)
@@ -153,9 +150,6 @@ class WSGIGateway(gateway.BaseGateway):
             ])
 
             return [response]
-
-        if self.logger:
-            self.logger.debug("AMF Response: %r" % response)
 
         # Encode the response
         try:
