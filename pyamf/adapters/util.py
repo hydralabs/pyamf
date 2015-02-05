@@ -7,11 +7,6 @@ Useful helpers for adapters.
 @since: 0.4
 """
 
-import __builtin__
-
-if not hasattr(__builtin__, 'set'):
-    from sets import Set as set
-
 
 def to_list(obj, encoder):
     """
@@ -34,17 +29,28 @@ def to_set(obj, encoder):
     return set(obj)
 
 
-def to_tuple(x, encoder):
+def to_tuple(obj, encoder):
     """
     Converts an arbitrary object C{obj} to a C{tuple}.
     """
-    return tuple(x)
+    return tuple(obj)
 
 
-def to_string(x, encoder):
+def to_string(obj, encoder):
     """
     Converts an arbitrary object C{obj} to a string.
 
+    Change in 0.7: This now returns a unicode object for Python 2
+
     @since: 0.5
     """
-    return str(x)
+    return unicode(obj)
+
+
+def to_bytes(obj, encoder):
+    """
+    Converts an arbitrary object C{obj} to a byte string.
+
+    @since: 0.7
+    """
+    return str(obj)
