@@ -19,49 +19,11 @@ from google.appengine.ext import db
 from google.appengine.ext.db import polymodel
 
 import pyamf
-from pyamf.adapters import util
+from pyamf.adapters import util, models as adapter_models
 
 __all__ = [
     'DataStoreClassAlias',
-    'register_property_handler',
 ]
-
-
-#: mapping of db.*Property -> handler
-_property_handlers = {}
-
-
-def register_property_handler(prop_class, replace=False):
-    """
-    Decorator that will call the handler when decoding an attribute.
-
-    The handler will be given 2 parameters: The property instance being decoded
-    and the value of the property that has been decoded. It is the job of the
-    handler to return the value.
-
-    @param prop_class: A L{db.Property} class.
-    @param replace: Whether to replace an existing handler for a given
-        property.
-    """
-    if not issubclass(prop_class, db.Property):
-        raise TypeError(
-            '%r must be a subclass of google.appengine.ext.db.Property' % (
-                prop_class,
-            )
-        )
-
-    def wrapped(handler):
-        if not replace and prop_class in _property_handlers:
-            raise KeyError('Handler %r already exists for prop %r' % (
-                _property_handlers[prop_class],
-                prop_class,
-            ))
-
-        _property_handlers[prop_class] = handler
-
-        return wrapped
-
-    return wrapped
 
 
 class ModelStub(object):
@@ -126,7 +88,6 @@ class StubCollection(object):
     def __init__(self):
         self.stubs = {}
         self.to_fetch = []
-        self.by_key = {}
         self.fetched_entities = None
 
     def addStub(self, stub, alias, attrs, key):
@@ -135,8 +96,6 @@ class StubCollection(object):
         self.stubs[stub] = (alias.klass, attrs, key)
 
         if key:
-            self.by_key[stub] = key
-
             self.to_fetch.append(key)
 
     def transformStub(self, stub, klass, attrs, key):
@@ -212,7 +171,6 @@ class DataStoreClassAlias(pyamf.ClassAlias):
         pyamf.ClassAlias._compile_base_class(self, klass)
 
     def getCustomProperties(self):
-        props = [self.KEY_ATTR]
         self.reference_properties = {}
         self.properties = {}
         reverse_props = []
@@ -220,14 +178,11 @@ class DataStoreClassAlias(pyamf.ClassAlias):
         for name, prop in self.klass.properties().iteritems():
             self.properties[name] = prop
 
-            props.append(name)
-
             if isinstance(prop, db.ReferenceProperty):
                 self.reference_properties[name] = prop
 
         if issubclass(self.klass, polymodel.PolyModel):
             del self.properties['_class']
-            props.remove('_class')
 
         # check if the property is a defined as a collection_name. These types
         # of properties are read-only and the datastore freaks out if you
@@ -276,7 +231,7 @@ class DataStoreClassAlias(pyamf.ClassAlias):
         except KeyError:
             return _()
 
-        gae_objects = getGAEObjects(codec.extra)
+        gae_objects = getGAEObjects(codec.context.extra)
         klass = prop.reference_class
         key = prop.get_value_for_datastore(obj)
 
@@ -290,21 +245,15 @@ class DataStoreClassAlias(pyamf.ClassAlias):
 
         try:
             ref_obj = _()
-        except db.Error as e:
-            # woo hack
-            msg = unicode(e)
+        except db.ReferencePropertyResolveError:
+            logging.warn(
+                'Attempted to get %r on %r with key %r',
+                attr,
+                type(obj),
+                key
+            )
 
-            if msg.startswith(u'ReferenceProperty failed to be resolved'):
-                logging.warn(
-                    'Attempted to get %r on %r with key %r',
-                    attr,
-                    type(obj),
-                    key
-                )
-
-                return None
-
-            raise
+            return None
 
         gae_objects.addClassKey(klass, key, ref_obj)
 
@@ -318,7 +267,7 @@ class DataStoreClassAlias(pyamf.ClassAlias):
                 del attrs[k]
 
         for attr in obj.dynamic_properties():
-            attrs[attr] = getattr(obj, attr)
+            attrs[attr] = self.getAttribute(obj, attr, codec=codec)
 
         attrs[self.KEY_ATTR] = unicode(obj.key()) if obj.is_saved() else None
 
@@ -330,32 +279,12 @@ class DataStoreClassAlias(pyamf.ClassAlias):
     def getStubCollection(self, codec):
         extra = codec.context.extra
 
-        stubs = extra.get('gae_db_stubs', None)
+        stubs = extra.get('gae_xdb_stubs', None)
 
         if not stubs:
-            stubs = extra['gae_db_stubs'] = self.makeStubCollection()
+            stubs = extra['gae_xdb_stubs'] = self.makeStubCollection()
 
         return stubs
-
-    def handleProperties(self, attrs):
-        """
-        Some ext.db properties require special manipulation. This is the place
-        to do it. For custom functionality either override and existing
-        handler or register custom properties with
-        L{register_property_handler}.
-
-        @param attrs: Mapping of name -> value of decoded attributes.
-        """
-        property_attrs = [k for k in attrs if k in self.properties]
-
-        for name in property_attrs:
-            prop = self.properties[name]
-            handler = _property_handlers.get(prop.__class__, None)
-
-            if not handler:
-                continue
-
-            attrs[name] = handler(prop, attrs[name])
 
     def getDecodableAttributes(self, obj, attrs, codec=None):
         key = attrs.pop(self.KEY_ATTR, None)
@@ -368,7 +297,7 @@ class DataStoreClassAlias(pyamf.ClassAlias):
         )
 
         if self.properties:
-            self.handleProperties(attrs)
+            adapter_models.decode_model_properties(self.properties, attrs)
 
         if key:
             key = db.Key(key)
@@ -392,14 +321,14 @@ def getGAEObjects(context):
     @rtype: Instance of L{GAEReferenceCollection}
     @since: 0.4.1
     """
-    ref_collection = context.get('gae_db_ref_collection', None)
+    ref_collection = context.get('gae_xdb_context', None)
 
     if ref_collection:
         return ref_collection
 
-    context['gae_db_ref_collection'] = GAEReferenceCollection()
+    context['gae_xdb_context'] = GAEReferenceCollection()
 
-    return context['gae_db_ref_collection']
+    return context['gae_xdb_context']
 
 
 def write_entity(obj, encoder=None):
@@ -441,20 +370,10 @@ def write_db_key(key, encoder=None):
     """
     Convert the `db.Key` to it's entity and endcode it.
     """
-    gae_objects = getGAEObjects(encoder.context.extra)
-
-    klass = db.class_for_kind(key.kind())
-
-    try:
-        referenced_object = gae_objects.getClassKey(klass, key)
-    except KeyError:
-        referenced_object = db.get(key)
-        gae_objects.addClassKey(klass, key, referenced_object)
-
-    encoder.writeObject(referenced_object)
+    return unicode(key)
 
 
-@register_property_handler(db.FloatProperty)
+@adapter_models.register_property_decoder(db.FloatProperty)
 def handle_float_property(prop, value):
     if isinstance(value, (int, long)):
         return float(value)
@@ -462,7 +381,7 @@ def handle_float_property(prop, value):
     return value
 
 
-@register_property_handler(db.IntegerProperty)
+@adapter_models.register_property_decoder(db.IntegerProperty)
 def handle_integer_property(prop, value):
     if isinstance(value, float):
         x = int(value)
@@ -475,7 +394,7 @@ def handle_integer_property(prop, value):
     return value
 
 
-@register_property_handler(db.ListProperty)
+@adapter_models.register_property_decoder(db.ListProperty)
 def handle_list_property(prop, value):
     if value is None:
         return []
@@ -483,7 +402,7 @@ def handle_list_property(prop, value):
     # there is an issue with large ints and ListProperty(int) AMF leaves
     # ints > amf3.MAX_29B_INT as floats db.ListProperty complains pretty
     # hard in this case so we try to work around the issue.
-    if prop.item_type in (int, long):
+    if prop.item_type in (float, basestring):
         return value
 
     for i, x in enumerate(value):
@@ -498,7 +417,7 @@ def handle_list_property(prop, value):
     return value
 
 
-@register_property_handler(db.DateProperty)
+@adapter_models.register_property_decoder(db.DateProperty)
 def handle_date_property(prop, value):
     if not isinstance(value, datetime.datetime):
         return value
@@ -509,7 +428,7 @@ def handle_date_property(prop, value):
     return value.date()
 
 
-@register_property_handler(db.TimeProperty)
+@adapter_models.register_property_decoder(db.TimeProperty)
 def handle_time_property(prop, value):
     if not isinstance(value, datetime.datetime):
         return value
@@ -525,7 +444,7 @@ def transform_stubs(payload, context):
     Called when a successful decode has been performed. Transform the stubs
     within the payload to proper db.Model instances.
     """
-    stubs = context.get('gae_db_stubs', None)
+    stubs = context.get('gae_xdb_stubs', None)
 
     if not stubs:
         return payload
