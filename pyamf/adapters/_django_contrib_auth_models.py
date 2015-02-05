@@ -12,6 +12,6 @@ models.User.__amf__ = {
 }
 
 # ensure that the adapter that we depend on is loaded ..
-pyamf.adapters.get_adapter('django.db.models.base')
+pyamf.get_adapter('django.db.models.base')
 
 pyamf.register_package(models, models.__name__)
