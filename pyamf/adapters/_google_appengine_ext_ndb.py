@@ -229,34 +229,44 @@ class NdbClassAlias(pyamf.ClassAlias):
             self, obj, attrs, codec=codec
         )
 
-        key = attrs.get(self.KEY_ATTR, None)
+        key = attrs.pop(self.KEY_ATTR, None)
 
         if key:
             key = ndb.Key(urlsafe=key)
 
         if self.model_properties:
-            adapter_models.decode_model_properties(
-                self.model_properties,
-                attrs
-            )
+            property_attrs = [k for k in attrs if k in self.model_properties]
+
+            for name in property_attrs:
+                prop = self.model_properties[name]
+                value = attrs[name]
+
+                if not prop._repeated:
+                    attrs[name] = adapter_models.decode_model_property(
+                        prop,
+                        value
+                    )
+
+                    continue
+
+                if not value:
+                    attrs[name] = []
+
+                    continue
+
+                for idx, val in enumerate(value):
+                    value[idx] = adapter_models.decode_model_property(
+                        prop,
+                        val
+                    )
+
+                attrs[name] = value
 
         stubs = self.getStubCollection(codec)
 
         stubs.addStub(obj, self, attrs, key)
 
         return attrs
-
-    def encode_key(self, key):
-        """
-        Convert the ndb.Model's key to something PyAMF can encode
-        """
-        if not key:
-            return None
-
-        if key.id():
-            return key.urlsafe()
-
-        return None
 
     def getEncodableAttributes(self, obj, codec=None):
         attrs = pyamf.ClassAlias.getEncodableAttributes(
