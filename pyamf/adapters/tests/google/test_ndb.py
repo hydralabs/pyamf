@@ -124,11 +124,11 @@ class EncodeTestCase(google.BaseTestCase):
         key = ndb.Key('SimpleEntity', 'bar')
 
         self.assertEncodes(key, (
-            b'\x02\x002agx0ZXN0YmVkLXRlc3RyFQsSDFNpbXBsZUVudGl0eSIDYmFyDA'
+            b'\x05',
         ), encoding=pyamf.AMF0)
 
         self.assertEncodes(key, (
-            b'\x06eagx0ZXN0YmVkLXRlc3RyFQsSDFNpbXBsZUVudGl0eSIDYmFyDA'
+            b'\x01'
         ), encoding=pyamf.AMF3)
 
     def test_query(self):

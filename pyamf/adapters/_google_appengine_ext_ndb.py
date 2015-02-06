@@ -235,10 +235,16 @@ class NdbClassAlias(pyamf.ClassAlias):
             key = ndb.Key(urlsafe=key)
 
         if self.model_properties:
-            property_attrs = [k for k in attrs if k in self.model_properties]
+            property_attrs = [
+                k for k in attrs if k in self.decodable_properties
+            ]
 
             for name in property_attrs:
-                prop = self.model_properties[name]
+                prop = self.model_properties.get(name, None)
+
+                if not prop:
+                    continue
+
                 value = attrs[name]
 
                 if not prop._repeated:
@@ -278,7 +284,12 @@ class NdbClassAlias(pyamf.ClassAlias):
                 del attrs[k]
 
         if self.model_properties:
-            for name, prop in self.model_properties.iteritems():
+            for name in self.encodable_properties:
+                prop = self.model_properties.get(name, None)
+
+                if not prop:
+                    continue
+
                 attrs[name] = self.getAttribute(obj, name, codec=codec)
 
                 if prop._repeated:
@@ -297,7 +308,7 @@ class NdbClassAlias(pyamf.ClassAlias):
                     attrs[name],
                 )
 
-        attrs[self.KEY_ATTR] = obj.key
+        attrs[self.KEY_ATTR] = unicode(obj.key.urlsafe()) if obj.key else None
 
         return attrs
 
@@ -356,13 +367,20 @@ def encode_ndb_key(key, encoder=None):
     When encountering an L{ndb.Key} instance, find the entity in the datastore
     and encode that.
     """
-    if not key:
-        return key
+    klass = ndb.Model._kind_map.get(key.kind())
 
-    if key.id():
-        return key.urlsafe()
+    referenced_object = _get_by_class_key(
+        encoder,
+        klass,
+        key,
+    )
 
-    return None
+    if not referenced_object:
+        encoder.writeNull(None)
+
+        return
+
+    encoder.writeObject(referenced_object)
 
 
 def _get_by_class_key(codec, klass, key, obj=None):
@@ -414,6 +432,14 @@ def decode_int_property(prop, value):
             return long_val
 
     return value
+
+
+@adapter_models.register_property_encoder(ndb.KeyProperty)
+def encode_key_property(prop, value):
+    if not hasattr(value, 'urlsafe'):
+        return value
+
+    return value.urlsafe()
 
 
 @adapter_models.register_property_encoder(ndb.TimeProperty)
