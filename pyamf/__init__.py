@@ -853,15 +853,22 @@ def register_package(module=None, package=None, separator='.', ignore=None,
         module = prev_frame.f_locals
 
     if type(module) is dict:
-        has = lambda x: x in module
+        def has(x):
+            return x in module
+
         get = module.__getitem__
     elif type(module) is list:
-        has = lambda x: x in module
+        def has(x):
+            return x in module
+
         get = module.__getitem__
         strict = False
     else:
-        has = lambda x: hasattr(module, x)
-        get = lambda x: getattr(module, x)
+        def has(x):
+            return hasattr(module, x)
+
+        def get(x):
+            return getattr(module, x)
 
     if package is None:
         if has('__name__'):

@@ -429,7 +429,8 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
 
     def test_elementtree_tag(self):
         class NotAnElement(object):
-            items = lambda self: []
+            def items(self):
+                return []
 
             def __iter__(self):
                 return iter([])
@@ -473,20 +474,20 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
 
     def test_number(self):
         vals = [
-            (0,        '\x04\x00'),
-            (0.2,      '\x05\x3f\xc9\x99\x99\x99\x99\x99\x9a'),
-            (1,        '\x04\x01'),
-            (127,      '\x04\x7f'),
-            (128,      '\x04\x81\x00'),
-            (0x3fff,   '\x04\xff\x7f'),
-            (0x4000,   '\x04\x81\x80\x00'),
+            (0, '\x04\x00'),
+            (0.2, '\x05\x3f\xc9\x99\x99\x99\x99\x99\x9a'),
+            (1, '\x04\x01'),
+            (127, '\x04\x7f'),
+            (128, '\x04\x81\x00'),
+            (0x3fff, '\x04\xff\x7f'),
+            (0x4000, '\x04\x81\x80\x00'),
             (0x1FFFFF, '\x04\xff\xff\x7f'),
             (0x200000, '\x04\x80\xc0\x80\x00'),
             (0x3FFFFF, '\x04\x80\xff\xff\xff'),
             (0x400000, '\x04\x81\x80\x80\x00'),
-            (-1,       '\x04\xff\xff\xff\xff'),
-            (42,       '\x04\x2a'),
-            (-123,     '\x04\xff\xff\xff\x85'),
+            (-1, '\x04\xff\xff\xff\xff'),
+            (42, '\x04\x2a'),
+            (-123, '\x04\xff\xff\xff\x85'),
             (amf3.MIN_29B_INT, '\x04\xc0\x80\x80\x00'),
             (amf3.MAX_29B_INT, '\x04\xbf\xff\xff\xff'),
             (1.23456789, '\x05\x3f\xf3\xc0\xca\x42\x83\xde\x1b')

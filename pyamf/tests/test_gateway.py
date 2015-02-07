@@ -472,7 +472,9 @@ class BaseGatewayTestCase(unittest.TestCase):
 class QueryBrowserTestCase(unittest.TestCase):
     def test_request(self):
         gw = gateway.BaseGateway()
-        echo = lambda x: x
+
+        def echo(x):
+            return x
 
         gw.addService(echo, 'echo', description='This is a test')
 
@@ -507,7 +509,9 @@ class AuthenticatorTestCase(unittest.TestCase):
 
     def test_gateway(self):
         gw = gateway.BaseGateway(authenticator=self._auth)
-        echo = lambda x: x
+
+        def echo(x):
+            return x
 
         gw.addService(echo, 'echo')
 
@@ -524,7 +528,9 @@ class AuthenticatorTestCase(unittest.TestCase):
 
     def test_service(self):
         gw = gateway.BaseGateway()
-        echo = lambda x: x
+
+        def echo(x):
+            return x
 
         gw.addService(echo, 'echo', authenticator=self._auth)
 

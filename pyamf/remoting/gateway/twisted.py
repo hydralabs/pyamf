@@ -14,6 +14,9 @@ servers.
 import sys
 import os.path
 
+from pyamf import remoting
+from pyamf.remoting import gateway, amf0, amf3
+
 try:
     sys.path.remove('')
 except ValueError:
@@ -34,9 +37,6 @@ defer = twisted.internet.defer
 threads = twisted.internet.threads
 resource = twisted.web.resource
 server = twisted.web.server
-
-from pyamf import remoting
-from pyamf.remoting import gateway, amf0, amf3
 
 __all__ = ['TwistedGateway']
 
@@ -324,8 +324,10 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
                 self.logger.error(errMesg)
                 self.logger.error(failure.getTraceback())
 
-            body = "500 Internal Server Error\n\nThere was an error encoding " \
+            body = (
+                "500 Internal Server Error\n\nThere was an error encoding "
                 "the response."
+            )
 
             if self.debug:
                 body += "\n\nTraceback:\n\n%s" % failure.getTraceback()

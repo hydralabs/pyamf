@@ -15,6 +15,9 @@ applications to AMF clients and servers.
 import sys
 import os.path
 
+from pyamf import remoting, DecodeError
+from pyamf.remoting import gateway
+
 try:
     sys.path.remove(os.path.dirname(os.path.abspath(__file__)))
 except ValueError:
@@ -22,9 +25,6 @@ except ValueError:
 
 google = __import__('google.appengine.ext.webapp')
 webapp = google.appengine.ext.webapp
-
-from pyamf import remoting, DecodeError
-from pyamf.remoting import gateway
 
 __all__ = ['WebAppGateway']
 

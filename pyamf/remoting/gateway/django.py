@@ -11,14 +11,15 @@ servers.
 @since: 0.1.0
 """
 
+import pyamf
+from pyamf import remoting
+from pyamf.remoting import gateway
+
+
 django = __import__('django.http')
 http = django.http
 conf = __import__('django.conf')
 conf = conf.conf
-
-import pyamf
-from pyamf import remoting
-from pyamf.remoting import gateway
 
 __all__ = ['DjangoGateway']
 

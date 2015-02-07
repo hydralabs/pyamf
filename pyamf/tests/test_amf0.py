@@ -360,7 +360,8 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
         encoding an xml type.
         """
         class NotAnElement(object):
-            items = lambda self: []
+            def items(self):
+                return []
 
             def __iter__(self):
                 return iter([])

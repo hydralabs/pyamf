@@ -41,7 +41,7 @@ STATUS_DEBUG = 2
 
 #: List of available status response codes.
 STATUS_CODES = {
-    STATUS_OK:    '/onResult',
+    STATUS_OK: '/onResult',
     STATUS_ERROR: '/onStatus',
     STATUS_DEBUG: '/onDebugEvents'
 }
