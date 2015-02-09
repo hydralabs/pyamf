@@ -5,26 +5,19 @@
 Google App Engine ndb adapter module.
 """
 
-import collections
 import datetime
 
 from google.appengine.ext import ndb
 from google.appengine.ext.ndb import polymodel
 
 import pyamf
-from pyamf.adapters import util, models as adapter_models
+from pyamf.adapters import util, models as adapter_models, gae_base
 
 
-class NdbModelStub(object):
-    """
-    This class represents a C{ndb.Model} or C{ndb.Expando} class as the typed
-    object is being read from the AMF stream. Once the attributes have been
-    read from the stream and through the magic of Python, the instance of this
-    class will be converted into the correct type.
-    """
+NDB_STUB_NAME = 'gae_ndb_stub'
 
 
-class GAEReferenceCollection(dict):
+class NDBReferenceCollection(gae_base.EntityReferenceCollection):
     """
     This helper class holds a dict of klass to key/objects loaded from the
     Datastore.
@@ -32,121 +25,15 @@ class GAEReferenceCollection(dict):
     @since: 0.4.1
     """
 
-    def _getClass(self, klass):
-        if not issubclass(klass, (ndb.Model, ndb.Expando)):
-            raise TypeError('expected ndb.Model/ndb.Expando class, got %s' % (
-                klass,
-            ))
-
-        return self.setdefault(klass, {})
-
-    def getClassKey(self, klass, key):
-        """
-        Return an instance based on klass/key.
-
-        If an instance cannot be found then C{KeyError} is raised.
-
-        @param klass: The class of the instance.
-        @param key: The key of the instance.
-        @return: The instance linked to the C{klass}/C{key}.
-        @rtype: Instance of L{klass}.
-        """
-        d = self._getClass(klass)
-
-        return d[key]
-
-    def addClassKey(self, klass, key, obj):
-        """
-        Adds an object to the collection, based on klass and key.
-
-        @param klass: The class of the object.
-        @param key: The datastore key of the object.
-        @param obj: The loaded instance from the datastore.
-        """
-        d = self._getClass(klass)
-
-        d[key] = obj
+    base_classes = (ndb.Model, ndb.Expando)
 
 
-class StubCollection(object):
-    """
-    A mapping of `NdbModelStub` instances to key/id. As the AMF graph is
-    decoded, L{NdbModelStub} instances are created as markers to be replaced
-    in the finalise stage of decoding. At that point all the ndb entities are
-    fetched from the datastore and hydrated in to proper Python objects and
-    the stubs are transformed in to this objects so that referential integrity
-    is maintained.
-
-    A complete hack because of the flexibility of Python but it works ..
-
-    @ivar stubs:
-    """
-
-    def __init__(self):
-        self.stubs = collections.OrderedDict()
-        self.to_fetch = []
-        self.fetched_entities = None
-
-    def addStub(self, stub, alias, attrs, key):
-        """
-        Add a stub to this collection.
-
-        @param stub: The L{NdbModelStub} instance.
-        @param alias: The L{pyamf.ClassAlias} linked to this stub.
-        @param attrs: The decoded name -> value mapping of attributes.
-        @param key: The ndb key string if known.
-        """
-        if stub not in self.stubs:
-            self.stubs[stub] = (alias.klass, attrs, key)
-
-        if key:
-            self.to_fetch.append(key)
-
-    def transformStub(self, stub, klass, attrs, key):
-        stub.__dict__.clear()
-        stub.__class__ = klass
-
-        for k, v in attrs.items():
-            if not isinstance(v, NdbModelStub):
-                continue
-
-            self.transform(v)
-
-        if key is None:
-            stub.__init__(**attrs)
-
-            return
-
-        ds_entity = self.fetched_entities.get(key, None)
-
-        if not ds_entity:
-            attrs['key'] = key
-            stub.__init__(**attrs)
-        else:
-            stub.__dict__.update(ds_entity.__dict__)
-
-            for k, v in attrs.items():
-                setattr(stub, k, v)
-
+class NDBStubCollection(gae_base.StubCollection):
     def fetchEntities(self):
         return dict(zip(self.to_fetch, ndb.get_multi(self.to_fetch)))
 
-    def transform(self, stub=None):
-        if self.fetched_entities is None:
-            self.fetched_entities = self.fetchEntities()
 
-        if stub is not None:
-            stub, klass, attrs, key = self.stubs.pop(self.stubs.index(stub))
-
-            self.transformStub(stub, klass, attrs, key)
-
-            return
-
-        for stub, (klass, attrs, key) in self.stubs.iteritems():
-            self.transformStub(stub, klass, attrs, key)
-
-
-class NdbClassAlias(pyamf.ClassAlias):
+class NDBClassAlias(gae_base.BaseDatastoreClassAlias):
     """
     This class contains all the business logic to interact with Google's
     Datastore API's. Any C{ndb.Model} or C{ndb.Expando} classes will use this
@@ -156,41 +43,32 @@ class NdbClassAlias(pyamf.ClassAlias):
     decrease the number of Datastore API's that we need to complete.
     """
 
-    # The name of the attribute used to represent the key
-    KEY_ATTR = '_key'
+    base_classes = (ndb.Model, polymodel.PolyModel)
+    context_stub_name = NDB_STUB_NAME
 
-    def _compile_base_class(self, klass):
-        if klass in (ndb.Model, polymodel.PolyModel):
-            return
-
-        pyamf.ClassAlias._compile_base_class(self, klass)
-
-    def _finalise_compile(self):
-        pyamf.ClassAlias._finalise_compile(self)
-
-        self.shortcut_decode = False
-
-    def createInstance(self, codec=None):
-        return NdbModelStub()
+    def getEntityRefCollection(self, codec):
+        return get_ndb_context(codec)
 
     def makeStubCollection(self):
-        return StubCollection()
+        return NDBStubCollection()
 
-    def getStubCollection(self, codec):
-        extra = codec.context.extra
+    def encode_key(self, obj):
+        key = obj.key
 
-        stubs = extra.get('gae_ndb_entities', None)
+        if not key:
+            return None
 
-        if not stubs:
-            stubs = extra['gae_ndb_entities'] = self.makeStubCollection()
+        return key.urlsafe()
 
-        return stubs
+    def decode_key(self, key):
+        return ndb.Key(urlsafe=key)
 
     def getCustomProperties(self):
         props = {}
         # list of property names that are considered read only
         read_only_props = []
         repeated_props = {}
+        non_repeated_props = {}
         # list of property names that are computed
         computed_props = {}
 
@@ -199,6 +77,8 @@ class NdbClassAlias(pyamf.ClassAlias):
 
             if prop._repeated:
                 repeated_props[name] = prop
+            else:
+                non_repeated_props[name] = prop
 
             if isinstance(prop, ndb.ComputedProperty):
                 computed_props[name] = prop
@@ -207,8 +87,7 @@ class NdbClassAlias(pyamf.ClassAlias):
             del props['class']
 
         # check if the property is a defined as a computed property. These
-        # types of properties are read-only and the datastore freaks out if
-        # you attempt to meddle with it. We delete the attribute entirely ..
+        # types of properties are read-only
         for name, value in self.klass.__dict__.iteritems():
             if isinstance(value, ndb.ComputedProperty):
                 read_only_props.append(name)
@@ -222,37 +101,19 @@ class NdbClassAlias(pyamf.ClassAlias):
 
         self.model_properties = props or None
         self.repeated_properties = repeated_props or None
+        self.non_repeated_properties = non_repeated_props or None
         self.computed_properties = computed_props or None
 
     def getDecodableAttributes(self, obj, attrs, codec=None):
-        attrs = pyamf.ClassAlias.getDecodableAttributes(
-            self, obj, attrs, codec=codec
+        attrs = super(NDBClassAlias, self).getDecodableAttributes(
+            obj, attrs, codec=codec
         )
 
-        key = attrs.pop(self.KEY_ATTR, None)
-
-        if key:
-            key = ndb.Key(urlsafe=key)
-
-        if self.model_properties:
-            property_attrs = [
-                k for k in attrs if k in self.decodable_properties
-            ]
-
-            for name in property_attrs:
-                prop = self.model_properties.get(name, None)
-
-                if not prop:
-                    continue
-
-                value = attrs[name]
-
-                if not prop._repeated:
-                    attrs[name] = adapter_models.decode_model_property(
-                        prop,
-                        value
-                    )
-
+        if self.repeated_properties:
+            for name, prop in self.repeated_properties.iteritems():
+                try:
+                    value = attrs[name]
+                except KeyError:
                     continue
 
                 if not value:
@@ -262,26 +123,46 @@ class NdbClassAlias(pyamf.ClassAlias):
 
                 for idx, val in enumerate(value):
                     value[idx] = adapter_models.decode_model_property(
+                        obj,
                         prop,
                         val
                     )
 
                 attrs[name] = value
 
-        stubs = self.getStubCollection(codec)
-
-        stubs.addStub(obj, self, attrs, key)
+        if self.non_repeated_properties:
+            adapter_models.decode_model_properties(
+                obj,
+                self.non_repeated_properties,
+                attrs,
+            )
 
         return attrs
 
-    def getEncodableAttributes(self, obj, codec=None):
-        attrs = pyamf.ClassAlias.getEncodableAttributes(
-            self, obj, codec=codec
-        )
+    def encode_property(self, obj, prop, value):
+        if not prop._repeated:
+            return adapter_models.encode_model_property(
+                obj,
+                prop,
+                value
+            )
 
-        for k in attrs.keys()[:]:
-            if k.startswith('_'):
-                del attrs[k]
+        if not value:
+            return []
+
+        for idx, val in enumerate(value):
+            value[idx] = adapter_models.encode_model_property(
+                obj,
+                prop,
+                val
+            )
+
+        return value
+
+    def getEncodableAttributes(self, obj, codec=None):
+        attrs = super(NDBClassAlias, self).getEncodableAttributes(
+            obj, codec=codec
+        )
 
         if self.model_properties:
             for name in self.encodable_properties:
@@ -290,25 +171,29 @@ class NdbClassAlias(pyamf.ClassAlias):
                 if not prop:
                     continue
 
-                attrs[name] = self.getAttribute(obj, name, codec=codec)
+                try:
+                    value = attrs[name]
+                except KeyError:
+                    value = self.getAttribute(obj, name, codec=codec)
 
-                if prop._repeated:
-                    prop_value = attrs[name]
-
-                    for idx, value in enumerate(prop_value):
-                        prop_value[idx] = adapter_models.encode_model_property(
-                            prop,
-                            value,
-                        )
-
-                    continue
-
-                attrs[name] = adapter_models.encode_model_property(
+                attrs[name] = self.encode_property(
+                    obj,
                     prop,
-                    attrs[name],
+                    value
                 )
 
-        attrs[self.KEY_ATTR] = unicode(obj.key.urlsafe()) if obj.key else None
+        if isinstance(obj, ndb.Expando):
+            for name, prop in obj._properties.iteritems():
+                if name in self.model_properties:
+                    continue
+
+                value = self.getAttribute(obj, name, codec=codec)
+
+                attrs[name] = self.encode_property(
+                    obj,
+                    prop,
+                    value
+                )
 
         return attrs
 
@@ -326,7 +211,7 @@ def get_ndb_context(context):
     try:
         return context['gae_ndb_context']
     except KeyError:
-        r = context['gae_ndb_context'] = GAEReferenceCollection()
+        r = context['gae_ndb_context'] = NDBReferenceCollection()
 
         return r
 
@@ -359,6 +244,11 @@ def encode_ndb_instance(obj, encoder=None):
         obj
     )
 
+    if not referenced_object:
+        encoder.writeNull(None)
+
+        return
+
     encoder.writeObject(referenced_object)
 
 
@@ -387,18 +277,18 @@ def _get_by_class_key(codec, klass, key, obj=None):
     gae_objects = get_ndb_context(codec.context.extra)
 
     try:
-        return gae_objects.getClassKey(klass, key)
+        return gae_objects.get(klass, key)
     except KeyError:
         if not obj:
             obj = key.get()
 
-        gae_objects.addClassKey(klass, key, obj)
+        gae_objects.set(klass, key, obj)
 
         return obj
 
 
 @adapter_models.register_property_decoder(ndb.KeyProperty)
-def decode_key_property(prop, value):
+def decode_key_property(obj, prop, value):
     if not value:
         return None
 
@@ -406,7 +296,7 @@ def decode_key_property(prop, value):
 
 
 @adapter_models.register_property_decoder(ndb.DateProperty)
-def decode_time_property(prop, value):
+def decode_time_property(obj, prop, value):
     if not hasattr(value, 'date'):
         return value
 
@@ -414,7 +304,7 @@ def decode_time_property(prop, value):
 
 
 @adapter_models.register_property_decoder(ndb.FloatProperty)
-def decode_float_property(prop, value):
+def decode_float_property(obj, prop, value):
     if isinstance(value, (int, long)):
         return float(value)
 
@@ -422,7 +312,7 @@ def decode_float_property(prop, value):
 
 
 @adapter_models.register_property_decoder(ndb.IntegerProperty)
-def decode_int_property(prop, value):
+def decode_int_property(obj, prop, value):
     if isinstance(value, float):
         long_val = long(value)
 
@@ -435,7 +325,7 @@ def decode_int_property(prop, value):
 
 
 @adapter_models.register_property_encoder(ndb.KeyProperty)
-def encode_key_property(prop, value):
+def encode_key_property(obj, prop, value):
     if not hasattr(value, 'urlsafe'):
         return value
 
@@ -443,14 +333,14 @@ def encode_key_property(prop, value):
 
 
 @adapter_models.register_property_encoder(ndb.TimeProperty)
-def encode_time_property(prop, value):
+def encode_time_property(obj, prop, value):
     # PyAMF supports datetime.datetime objects and won't decide what date to
     # add to this time value. Users will have to figure it out themselves
     raise pyamf.EncodeError('ndb.TimeProperty is not supported by PyAMF')
 
 
 @adapter_models.register_property_encoder(ndb.DateProperty)
-def encode_date_property(prop, value):
+def encode_date_property(obj, prop, value):
     if not value:
         return value
 
@@ -463,7 +353,7 @@ def encode_date_property(prop, value):
 def post_ndb_process(payload, context):
     """
     """
-    stubs = context.get('gae_ndb_entities', None)
+    stubs = context.get(NDB_STUB_NAME, None)
 
     if not stubs:
         return payload
@@ -481,7 +371,7 @@ if hasattr(ndb.model, '_NotEqualMixin'):
     del not_equal_mixin
 
 # initialise the module here: hook into pyamf
-pyamf.register_alias_type(NdbClassAlias, ndb.Model, ndb.Expando)
+pyamf.register_alias_type(NDBClassAlias, ndb.Model, ndb.Expando)
 pyamf.add_type(ndb.Query, util.to_list)
 pyamf.add_type(ndb.Model, encode_ndb_instance)
 pyamf.add_post_decode_processor(post_ndb_process)
