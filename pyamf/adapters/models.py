@@ -72,41 +72,41 @@ def register_property_encoder(prop_class, replace=False):
     return wrapped
 
 
-def decode_model_property(prop, value):
+def decode_model_property(obj, prop, value):
     """
     """
     handler = _property_decoders.get(prop.__class__, None)
 
     if handler:
-        return handler(prop, value)
+        return handler(obj, prop, value)
 
     for model_prop, handler in _property_decoders.iteritems():
         if isinstance(prop, model_prop):
             _property_decoders[prop.__class__] = handler
 
-            return handler(prop, value)
+            return handler(obj, prop, value)
 
     return value
 
 
-def encode_model_property(prop, value):
+def encode_model_property(obj, prop, value):
     """
     """
     handler = _property_encoders.get(prop.__class__, None)
 
     if handler:
-        return handler(prop, value)
+        return handler(obj, prop, value)
 
     for model_prop, handler in _property_encoders.iteritems():
         if isinstance(prop, model_prop):
             _property_encoders[prop.__class__] = handler
 
-            return handler(prop, value)
+            return handler(obj, prop, value)
 
     return value
 
 
-def decode_model_properties(model_properties, attrs):
+def decode_model_properties(obj, model_properties, attrs):
     """
     Given a dict of model properties (name -> property instance), and a set
     of decoded attributes (name -> value); apply each handler to a property, if
@@ -117,12 +117,12 @@ def decode_model_properties(model_properties, attrs):
     for name in property_attrs:
         prop = model_properties[name]
 
-        attrs[name] = decode_model_property(prop, attrs[name])
+        attrs[name] = decode_model_property(obj, prop, attrs[name])
 
     return attrs
 
 
-def encode_model_properties(model_properties, attrs):
+def encode_model_properties(obj, model_properties, attrs):
     """
     Given a dict of model properties (name -> property instance), and a set
     of encodable attributes (name -> value); apply each handler to a property,
@@ -133,6 +133,6 @@ def encode_model_properties(model_properties, attrs):
     for name in property_attrs:
         prop = model_properties[name]
 
-        attrs[name] = encode_model_property(prop, attrs[name])
+        attrs[name] = encode_model_property(obj, prop, attrs[name])
 
     return attrs

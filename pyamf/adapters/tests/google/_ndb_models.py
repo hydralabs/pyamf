@@ -38,10 +38,8 @@ class SimpleEntity(ndb.Model):
 
 class SuperHero(ndb.Expando):
     name = ndb.StringProperty()
-    hidden_identity = ndb.KeyProperty(kind='Person')
     can_fly = ndb.BooleanProperty()
     slogan = ndb.TextProperty()
-    hideout_location = ndb.GeoPtProperty()
 
 
 class Contact(polymodel.PolyModel):
@@ -52,9 +50,23 @@ class Contact(polymodel.PolyModel):
 class Person(Contact):
     first_name = ndb.StringProperty()
     last_name = ndb.StringProperty()
-    mobile_number = ndb.StringProperty()
 
 
 class Company(Contact):
     name = ndb.StringProperty()
-    fax_number = ndb.StringProperty()
+
+
+class SPAddress(ndb.Model):
+    type = ndb.StringProperty()  # E.g., 'home', 'work'
+    street = ndb.StringProperty()
+    city = ndb.StringProperty()
+
+
+class SPContact(ndb.Model):
+    name = ndb.StringProperty()
+    addresses = ndb.StructuredProperty(SPAddress, repeated=True)
+
+
+class LSPContact(ndb.Model):
+    name = ndb.StringProperty()
+    addresses = ndb.LocalStructuredProperty(SPAddress, repeated=True)

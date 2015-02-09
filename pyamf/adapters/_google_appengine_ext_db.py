@@ -12,141 +12,32 @@ in Google App Engine.
 @since: 0.3.1
 """
 
-import datetime
 import logging
 
 from google.appengine.ext import db
 from google.appengine.ext.db import polymodel
 
 import pyamf
-from pyamf.adapters import util, models as adapter_models
+from pyamf.adapters import util, models as adapter_models, gae_base
 
 __all__ = [
     'DataStoreClassAlias',
 ]
 
-
-class ModelStub(object):
-    """
-    This class represents a C{db.Model} or C{db.Expando} class as the typed
-    object is being read from the AMF stream. Once the attributes have been
-    read from the stream and through the magic of Python, the instance of this
-    class will be converted into the correct type.
-    """
+XDB_CONTEXT_NAME = 'gae_xdb_context'
+XDB_STUB_NAME = 'gae_xdb_stubs'
 
 
-class GAEReferenceCollection(dict):
-    """
-    This helper class holds a dict of klass to key/objects loaded from the
-    Datastore.
-
-    @since: 0.4.1
-    """
-
-    def _getClass(self, klass):
-        if not issubclass(klass, (db.Model, db.Expando)):
-            raise TypeError('expected db.Model/db.Expando class, got %s' % (
-                klass,
-            ))
-
-        return self.setdefault(klass, {})
-
-    def getClassKey(self, klass, key):
-        """
-        Return an instance based on klass/key.
-
-        If an instance cannot be found then C{KeyError} is raised.
-
-        @param klass: The class of the instance.
-        @param key: The key of the instance.
-        @return: The instance linked to the C{klass}/C{key}.
-        @rtype: Instance of L{klass}.
-        """
-        d = self._getClass(klass)
-
-        return d[key]
-
-    def addClassKey(self, klass, key, obj):
-        """
-        Adds an object to the collection, based on klass and key.
-
-        @param klass: The class of the object.
-        @param key: The datastore key of the object.
-        @param obj: The loaded instance from the datastore.
-        """
-        d = self._getClass(klass)
-
-        d[key] = obj
+class XDBReferenceCollection(gae_base.EntityReferenceCollection):
+    base_classes = (db.Model, db.Expando)
 
 
-class StubCollection(object):
-    """
-    Does the job of maintaining a list of stubs -> object and transforms them
-    when appropriate.
-    """
-
-    def __init__(self):
-        self.stubs = {}
-        self.to_fetch = []
-        self.fetched_entities = None
-
-    def addStub(self, stub, alias, attrs, key):
-        """
-        """
-        self.stubs[stub] = (alias.klass, attrs, key)
-
-        if key:
-            self.to_fetch.append(key)
-
-    def transformStub(self, stub, klass, attrs, key):
-        stub.__dict__.clear()
-        stub.__class__ = klass
-
-        for k, v in attrs.items():
-            if not isinstance(v, ModelStub):
-                continue
-
-            self.transform(v)
-
-        if key is None:
-            stub.__init__(**attrs)
-
-            return
-
-        ds_entity = self.fetched_entities.get(key, None)
-
-        if not ds_entity:
-            attrs['key'] = key
-            stub.__init__(**attrs)
-        else:
-            stub.__dict__.update(ds_entity.__dict__)
-
-            for k, v in attrs.items():
-                setattr(stub, k, v)
-
+class XDBStubCollection(gae_base.StubCollection):
     def fetchEntities(self):
         return dict(zip(self.to_fetch, db.get(self.to_fetch)))
 
-    def transform(self, stub=None):
-        if self.fetched_entities is None:
-            self.fetched_entities = self.fetchEntities()
 
-        if stub is not None:
-            klass, attrs, key = self.stubs.pop(stub)
-
-            self.transformStub(stub, klass, attrs, key)
-
-            return
-
-        while self.stubs:
-            stub = iter(self.stubs).next()
-
-            klass, attrs, key = self.stubs.pop(stub)
-
-            self.transformStub(stub, klass, attrs, key)
-
-
-class DataStoreClassAlias(pyamf.ClassAlias):
+class DataStoreClassAlias(gae_base.BaseDatastoreClassAlias):
     """
     This class contains all the business logic to interact with Google's
     Datastore API's. Any C{db.Model} or C{db.Expando} classes will use this
@@ -160,15 +51,23 @@ class DataStoreClassAlias(pyamf.ClassAlias):
         which hold special significance when en/decoding.
     """
 
-    # The name of the attribute used to represent the key
-    KEY_ATTR = '_key'
+    base_classes = (db.Model, polymodel.PolyModel)
+    context_stub_name = XDB_STUB_NAME
 
-    def _compile_base_class(self, klass):
-        if klass in (db.Model, polymodel.PolyModel):
-            # can't compile these classes, so this is as far as we go
-            return
+    def encode_key(self, obj):
+        if not obj.is_saved():
+            return None
 
-        pyamf.ClassAlias._compile_base_class(self, klass)
+        return unicode(obj.key())
+
+    def decode_key(self, key):
+        return db.Key(key)
+
+    def getEntityRefCollection(self, codec):
+        return getGAEObjects(codec.context.extra)
+
+    def makeStubCollection(self):
+        return XDBStubCollection()
 
     def getCustomProperties(self):
         self.reference_properties = {}
@@ -201,50 +100,43 @@ class DataStoreClassAlias(pyamf.ClassAlias):
         if not self.properties:
             self.properties = None
 
-    def _finalise_compile(self):
-        pyamf.ClassAlias._finalise_compile(self)
-
-        self.shortcut_decode = False
-
-    def createInstance(self, codec=None):
-        """
-        Called when PyAMF needs an object to use as part of the decoding
-        process. This is sort of a hack but an POPO is returned which can then
-        be transformed in to the db.Model instance.
-        """
-        return ModelStub()
-
     def getAttribute(self, obj, attr, codec=None):
-        def _():
+        if codec is None:
             return super(DataStoreClassAlias, self).getAttribute(
                 obj, attr, codec=codec,
             )
 
-        if codec is None:
-            return _()
-
         if not self.reference_properties:
-            return _()
+            return super(DataStoreClassAlias, self).getAttribute(
+                obj, attr, codec=codec,
+            )
 
         try:
             prop = self.reference_properties[attr]
         except KeyError:
-            return _()
+            return super(DataStoreClassAlias, self).getAttribute(
+                obj, attr, codec=codec,
+            )
 
-        gae_objects = getGAEObjects(codec.context.extra)
-        klass = prop.reference_class
         key = prop.get_value_for_datastore(obj)
 
         if key is None:
-            return _()
+            return super(DataStoreClassAlias, self).getAttribute(
+                obj, attr, codec=codec,
+            )
+
+        klass = prop.reference_class
+        entity_ref_collection = self.getEntityRefCollection(codec)
 
         try:
-            return gae_objects.getClassKey(klass, key)
+            return entity_ref_collection.get(klass, key)
         except KeyError:
             pass
 
         try:
-            ref_obj = _()
+            ref_obj = super(DataStoreClassAlias, self).getAttribute(
+                obj, attr, codec=codec,
+            )
         except db.ReferencePropertyResolveError:
             logging.warn(
                 'Attempted to get %r on %r with key %r',
@@ -255,59 +147,31 @@ class DataStoreClassAlias(pyamf.ClassAlias):
 
             return None
 
-        gae_objects.addClassKey(klass, key, ref_obj)
+        entity_ref_collection.set(klass, key, ref_obj)
 
         return ref_obj
 
     def getEncodableAttributes(self, obj, codec=None):
-        attrs = pyamf.ClassAlias.getEncodableAttributes(self, obj, codec=codec)
-
-        for k in attrs.keys()[:]:
-            if k.startswith('_'):
-                del attrs[k]
+        attrs = super(DataStoreClassAlias, self).getEncodableAttributes(
+            obj,
+            codec=codec
+        )
 
         for attr in obj.dynamic_properties():
             attrs[attr] = self.getAttribute(obj, attr, codec=codec)
 
-        attrs[self.KEY_ATTR] = unicode(obj.key()) if obj.is_saved() else None
-
         return attrs
 
-    def makeStubCollection(self):
-        return StubCollection()
-
-    def getStubCollection(self, codec):
-        extra = codec.context.extra
-
-        stubs = extra.get('gae_xdb_stubs', None)
-
-        if not stubs:
-            stubs = extra['gae_xdb_stubs'] = self.makeStubCollection()
-
-        return stubs
-
     def getDecodableAttributes(self, obj, attrs, codec=None):
-        key = attrs.pop(self.KEY_ATTR, None)
-
-        attrs = pyamf.ClassAlias.getDecodableAttributes(
-            self,
+        attrs = super(DataStoreClassAlias, self).getDecodableAttributes(
             obj,
             attrs,
             codec=codec
         )
 
         if self.properties:
-            adapter_models.decode_model_properties(self.properties, attrs)
+            adapter_models.decode_model_properties(obj, self.properties, attrs)
 
-        if key:
-            key = db.Key(key)
-
-        stubs = self.getStubCollection(codec)
-
-        stubs.addStub(obj, self, attrs, key)
-
-        # don't return any decodable properties as they will be set when the
-        # stubs are transformed.
         return attrs
 
 
@@ -321,17 +185,17 @@ def getGAEObjects(context):
     @rtype: Instance of L{GAEReferenceCollection}
     @since: 0.4.1
     """
-    ref_collection = context.get('gae_xdb_context', None)
+    ref_collection = context.get(XDB_CONTEXT_NAME, None)
 
     if ref_collection:
         return ref_collection
 
-    context['gae_xdb_context'] = GAEReferenceCollection()
+    ret = context[XDB_CONTEXT_NAME] = XDBReferenceCollection()
 
-    return context['gae_xdb_context']
+    return ret
 
 
-def write_entity(obj, encoder=None):
+def encode_xdb_entity(obj, encoder=None):
     """
     The GAE Datastore creates new instances of objects for each get request.
     This is a problem for PyAMF as it uses the id(obj) of the object to do
@@ -358,23 +222,39 @@ def write_entity(obj, encoder=None):
     gae_objects = getGAEObjects(encoder.context.extra)
 
     try:
-        referenced_object = gae_objects.getClassKey(kls, s)
+        referenced_object = gae_objects.get(kls, s)
     except KeyError:
         referenced_object = obj
-        gae_objects.addClassKey(kls, s, obj)
+        gae_objects.set(kls, s, obj)
 
-    encoder.writeObject(referenced_object)
+    if not referenced_object:
+        encoder.writeNull(None)
+    else:
+        encoder.writeObject(referenced_object)
 
 
-def write_db_key(key, encoder=None):
+def encode_xdb_key(key, encoder=None):
     """
-    Convert the `db.Key` to it's entity and endcode it.
+    Convert the `db.Key` to it's entity and encode it.
     """
-    return unicode(key)
+    gae_objects = getGAEObjects(encoder.context.extra)
+
+    klass = db.class_for_kind(key.kind())
+
+    try:
+        referenced_object = gae_objects.get(klass, key)
+    except KeyError:
+        referenced_object = db.get(key)
+        gae_objects.set(klass, key, referenced_object)
+
+    if not referenced_object:
+        encoder.writeNull(None)
+    else:
+        encoder.writeObject(referenced_object)
 
 
 @adapter_models.register_property_decoder(db.FloatProperty)
-def handle_float_property(prop, value):
+def decode_float_property(obj, prop, value):
     if isinstance(value, (int, long)):
         return float(value)
 
@@ -382,7 +262,7 @@ def handle_float_property(prop, value):
 
 
 @adapter_models.register_property_decoder(db.IntegerProperty)
-def handle_integer_property(prop, value):
+def decode_integer_property(obj, prop, value):
     if isinstance(value, float):
         x = int(value)
 
@@ -395,31 +275,29 @@ def handle_integer_property(prop, value):
 
 
 @adapter_models.register_property_decoder(db.ListProperty)
-def handle_list_property(prop, value):
+def decode_list_property(obj, prop, value):
     if value is None:
         return []
 
     # there is an issue with large ints and ListProperty(int) AMF leaves
     # ints > amf3.MAX_29B_INT as floats db.ListProperty complains pretty
     # hard in this case so we try to work around the issue.
-    if prop.item_type in (float, basestring):
-        return value
+    if prop.item_type in (int, long):
+        for i, x in enumerate(value):
+            if isinstance(x, float):
+                y = int(x)
 
-    for i, x in enumerate(value):
-        if isinstance(x, float):
-            y = int(x)
-
-            # only convert the type if there is no mantissa
-            # otherwise let the chips fall where they may
-            if x == y:
-                value[i] = y
+                # only convert the type if there is no mantissa
+                # otherwise let the chips fall where they may
+                if x == y:
+                    value[i] = y
 
     return value
 
 
 @adapter_models.register_property_decoder(db.DateProperty)
-def handle_date_property(prop, value):
-    if not isinstance(value, datetime.datetime):
+def decode_date_property(obj, prop, value):
+    if not hasattr(value, 'date'):
         return value
 
     # DateProperty fields expect specific types of data
@@ -429,8 +307,8 @@ def handle_date_property(prop, value):
 
 
 @adapter_models.register_property_decoder(db.TimeProperty)
-def handle_time_property(prop, value):
-    if not isinstance(value, datetime.datetime):
+def decode_time_property(obj, prop, value):
+    if not hasattr(value, 'time'):
         return value
 
     # TimeProperty fields expect specific types of data
@@ -439,12 +317,12 @@ def handle_time_property(prop, value):
     return value.time()
 
 
-def transform_stubs(payload, context):
+def transform_xdb_stubs(payload, context):
     """
     Called when a successful decode has been performed. Transform the stubs
     within the payload to proper db.Model instances.
     """
-    stubs = context.get('gae_xdb_stubs', None)
+    stubs = context.get(XDB_STUB_NAME, None)
 
     if not stubs:
         return payload
@@ -457,6 +335,7 @@ def transform_stubs(payload, context):
 # initialise the module here: hook into pyamf
 pyamf.register_alias_type(DataStoreClassAlias, db.Model)
 pyamf.add_type(db.Query, util.to_list)
-pyamf.add_type(db.Model, write_entity)
-pyamf.add_post_decode_processor(transform_stubs)
-pyamf.add_type(db.Key, write_db_key)
+pyamf.add_type(db.Key, encode_xdb_key)
+pyamf.add_type(db.Model, encode_xdb_entity)
+
+pyamf.add_post_decode_processor(transform_xdb_stubs)

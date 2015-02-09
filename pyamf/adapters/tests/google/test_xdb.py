@@ -689,11 +689,6 @@ class ClassAliasTestCase(BaseTestCase):
         self.assertEqual(self.alias.exclude_attrs, None)
         self.assertEqual(self.alias.reference_properties, None)
 
-    def test_create_instance(self):
-        x = self.alias.createInstance()
-
-        self.assertTrue(isinstance(x, adapter.ModelStub))
-
     def test_get_attrs(self):
         attrs = self.alias.getEncodableAttributes(self.jessica)
         self.assertEqual(attrs, {
@@ -882,13 +877,13 @@ class ReferencesTestCase(BaseTestCase):
         })
 
 
-class GAEReferenceCollectionTestCase(BaseTestCase):
+class XDBReferenceCollectionTestCase(BaseTestCase):
     """
     """
 
     def setUp(self):
         BaseTestCase.setUp(self)
-        self.klass = adapter.GAEReferenceCollection
+        self.klass = adapter.XDBReferenceCollection
 
     def test_init(self):
         x = self.klass()
@@ -900,16 +895,16 @@ class GAEReferenceCollectionTestCase(BaseTestCase):
 
         # not a class type
         with self.assertRaises(TypeError):
-            x.getClassKey(chr, '')
+            x.get(chr, '')
 
         # not a subclass of db.Model/db.Expando
         with self.assertRaises(TypeError):
-            x.getClassKey(Spam, '')
+            x.get(Spam, '')
 
         x = self.klass()
 
         with self.assertRaises(KeyError):
-            x.getClassKey(models.PetModel, 'foo')
+            x.get(models.PetModel, 'foo')
 
         self.assertEqual(x, {models.PetModel: {}})
 
@@ -917,7 +912,7 @@ class GAEReferenceCollectionTestCase(BaseTestCase):
 
         x[models.PetModel]['foo'] = obj
 
-        obj2 = x.getClassKey(models.PetModel, 'foo')
+        obj2 = x.get(models.PetModel, 'foo')
 
         self.assertEqual(id(obj), id(obj2))
         self.assertEqual(x, {models.PetModel: {'foo': obj}})
@@ -927,15 +922,15 @@ class GAEReferenceCollectionTestCase(BaseTestCase):
 
         # not a class type
         with self.assertRaises(TypeError):
-            x.addClassKey(chr, '')
+            x.set(chr, '')
 
         # not a subclass of db.Model/db.Expando
         with self.assertRaises(TypeError):
-            x.addClassKey(Spam, '')
+            x.set(Spam, '')
 
         # wrong type for key
         with self.assertRaises(TypeError):
-            x.addClassKey(models.PetModel, 3)
+            x.set(models.PetModel, 3)
 
         x = self.klass()
         pm1 = models.PetModel(type='cat', name='Jessica')
@@ -944,11 +939,11 @@ class GAEReferenceCollectionTestCase(BaseTestCase):
 
         self.assertEqual(x, {})
 
-        x.addClassKey(models.PetModel, 'foo', pm1)
+        x.set(models.PetModel, 'foo', pm1)
         self.assertEqual(x, {models.PetModel: {'foo': pm1}})
-        x.addClassKey(models.PetModel, 'bar', pm2)
+        x.set(models.PetModel, 'bar', pm2)
         self.assertEqual(x, {models.PetModel: {'foo': pm1, 'bar': pm2}})
-        x.addClassKey(models.PetExpando, 'baz', pe1)
+        x.set(models.PetExpando, 'baz', pe1)
         self.assertEqual(x, {
             models.PetModel: {'foo': pm1, 'bar': pm2},
             models.PetExpando: {'baz': pe1}
@@ -962,17 +957,17 @@ class HelperTestCase(BaseTestCase):
     def test_encode_key(self):
         key = db.Key.from_path('PetModel', 'jessica')
 
-        self.assertEncodes(
-            key,
-            '\x02\x002agx0ZXN0YmVkLXRlc3RyFQsSCFBldE1vZGVsIgdqZXNzaWNhDA',
-            encoding=pyamf.AMF0
+        self.assertIsNone(db.get(key))
+        self.assertEncodes(key, (
+            '\x05'
+        ), encoding=pyamf.AMF0
         )
 
     def test_getGAEObjects(self):
         context = {}
 
         x = adapter.getGAEObjects(context)
-        self.assertTrue(isinstance(x, adapter.GAEReferenceCollection))
+        self.assertTrue(isinstance(x, adapter.XDBReferenceCollection))
         self.assertTrue('gae_xdb_context' in context)
         self.assertEqual(id(x), id(context['gae_xdb_context']))
 
@@ -983,8 +978,8 @@ class HelperTestCase(BaseTestCase):
         q = models.EmptyModel.all()
 
         self.assertTrue(isinstance(q, db.Query))
-        self.assertEncodes(q, '\n\x00\x00\x00\x00', encoding=pyamf.AMF0)
-        self.assertEncodes(q, '\t\x01\x01', encoding=pyamf.AMF3)
+        self.assertEncodes(q, b'\n\x00\x00\x00\x00', encoding=pyamf.AMF0)
+        self.assertEncodes(q, b'\t\x01\x01', encoding=pyamf.AMF3)
 
 
 class FloatPropertyTestCase(BaseTestCase):
