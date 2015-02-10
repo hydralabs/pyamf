@@ -6,7 +6,7 @@ versions of PyAMF.
 
 .. contents::
 
-0.7 (Unreleased)
+0.7 (2015-02-10)
 ----------------
 - Dropped support for Python 2.5. A Python 3 port is underway.
 - Fix a rare string collision bug with AMF3 #36
@@ -20,9 +20,6 @@ versions of PyAMF.
   ``Content-Type`` response header (:ticket:`822`)
 - Add support for :py:class:`collections.OrderedDict` and
   :py:class:`collections.Counter` (:ticket:`816`, :ticket:`815`)
-
-0.6.2 (Unreleased)
-------------------
 - ``pyamf.codec._Codec.__init__`` now supports duck-typing. (:ticket:`835`)
 - Enabled subclassed list/tuple to be overridden by ``pyamf.add_type`` before
   defaulting to writing a sequence. (:ticket:`834`)
