@@ -160,6 +160,24 @@ class DataStoreClassAlias(gae_base.BaseDatastoreClassAlias):
         for attr in obj.dynamic_properties():
             attrs[attr] = self.getAttribute(obj, attr, codec=codec)
 
+        if self.properties:
+            for name in self.encodable_properties:
+                prop = self.properties.get(name, None)
+
+                if not prop:
+                    continue
+
+                try:
+                    value = attrs[name]
+                except KeyError:
+                    value = self.getAttribute(obj, name, codec=codec)
+
+                attrs[name] = adapter_models.encode_model_property(
+                    obj,
+                    prop,
+                    value
+                )
+
         return attrs
 
     def getDecodableAttributes(self, obj, attrs, codec=None):
