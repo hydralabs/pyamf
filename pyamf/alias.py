@@ -198,9 +198,9 @@ class ClassAlias(object):
             self.dynamic = True
 
             if self.inherited_dynamic is not None:
-                if (not self.inherited_dynamic
-                        and not self.sealed
-                        and self.inherited_sealed):
+                if not self.inherited_dynamic \
+                        and not self.sealed \
+                        and self.inherited_sealed:
                     self.dynamic = True
                 else:
                     self.dynamic = self.inherited_dynamic
