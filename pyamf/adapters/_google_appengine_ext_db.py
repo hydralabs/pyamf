@@ -160,6 +160,24 @@ class DataStoreClassAlias(gae_base.BaseDatastoreClassAlias):
         for attr in obj.dynamic_properties():
             attrs[attr] = self.getAttribute(obj, attr, codec=codec)
 
+        if self.properties:
+            for name in self.encodable_properties:
+                prop = self.properties.get(name, None)
+
+                if not prop:
+                    continue
+
+                try:
+                    value = attrs[name]
+                except KeyError:
+                    value = self.getAttribute(obj, name, codec=codec)
+
+                attrs[name] = adapter_models.encode_model_property(
+                    obj,
+                    prop,
+                    value
+                )
+
         return attrs
 
     def getDecodableAttributes(self, obj, attrs, codec=None):
@@ -228,7 +246,7 @@ def encode_xdb_entity(obj, encoder=None):
         gae_objects.set(kls, s, obj)
 
     if not referenced_object:
-        encoder.writeNull(None)
+        encoder.writeElement(None)
     else:
         encoder.writeObject(referenced_object)
 
@@ -248,7 +266,7 @@ def encode_xdb_key(key, encoder=None):
         gae_objects.set(klass, key, referenced_object)
 
     if not referenced_object:
-        encoder.writeNull(None)
+        encoder.writeElement(None)
     else:
         encoder.writeObject(referenced_object)
 
