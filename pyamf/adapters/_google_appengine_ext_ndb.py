@@ -245,7 +245,7 @@ def encode_ndb_instance(obj, encoder=None):
     )
 
     if not referenced_object:
-        encoder.writeNull(None)
+        encoder.writeElement(None)
 
         return
 
@@ -266,7 +266,7 @@ def encode_ndb_key(key, encoder=None):
     )
 
     if not referenced_object:
-        encoder.writeNull(None)
+        encoder.writeElement(None)
 
         return
 

@@ -246,7 +246,7 @@ def encode_xdb_entity(obj, encoder=None):
         gae_objects.set(kls, s, obj)
 
     if not referenced_object:
-        encoder.writeNull(None)
+        encoder.writeElement(None)
     else:
         encoder.writeObject(referenced_object)
 
@@ -266,7 +266,7 @@ def encode_xdb_key(key, encoder=None):
         gae_objects.set(klass, key, referenced_object)
 
     if not referenced_object:
-        encoder.writeNull(None)
+        encoder.writeElement(None)
     else:
         encoder.writeObject(referenced_object)
 
