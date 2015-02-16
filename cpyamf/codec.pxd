@@ -20,7 +20,7 @@ cdef class IndexedCollection(object):
     cdef Py_ssize_t length
 
     cdef int _actually_increase_size(self) except -1
-    cdef int _increase_size(self) except? -1
+    cdef int _increase_size(self) except -1
     cdef void _clear(self)
     cpdef int clear(self) except -1
     cdef object _ref(self, object obj)
@@ -51,7 +51,7 @@ cdef class Context(object):
     cdef dict _strings
     cdef public dict extra
 
-    cpdef int clear(self) except? -1
+    cpdef int clear(self) except -1
     cpdef object getClassAlias(self, object klass)
 
     cpdef object getObject(self, Py_ssize_t ref)

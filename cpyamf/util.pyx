@@ -224,7 +224,7 @@ cdef class cBufferedByteStream(object):
 
         return 0
 
-    cpdef Py_ssize_t tell(self):
+    cpdef Py_ssize_t tell(self) except -1:
         """
         Returns the position of the stream pointer.
         """
@@ -284,7 +284,7 @@ cdef class cBufferedByteStream(object):
 
         return 0
 
-    cdef inline bint has_available(self, Py_ssize_t size):
+    cdef inline bint has_available(self, Py_ssize_t size) except -1:
         if size == 0:
             return 1
         elif size < 0:

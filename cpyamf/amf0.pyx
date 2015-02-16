@@ -403,7 +403,7 @@ cdef class Encoder(codec.Encoder):
 
         return self.stream.write_double(n)
 
-    cdef int writeLong(self, object a):
+    cdef int writeLong(self, object a) except -1:
         self.writeType(TYPE_NUMBER)
 
         return self.stream.write_double(a)
