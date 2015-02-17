@@ -6,6 +6,11 @@ versions of PyAMF.
 
 .. contents::
 
+0.7.1 (2015-02-16)
+------------------
+- Add support for Cython <= 0.22
+- Fix a bug in the AppEngine adapters where ``writeNull`` doesn't exist in the C extensions
+
 0.7 (2015-02-10)
 ----------------
 - Dropped support for Python 2.5. A Python 3 port is underway.
