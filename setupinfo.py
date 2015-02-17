@@ -19,11 +19,6 @@ except ImportError:
     have_cython = False
 
 
-if have_cython:
-    # may need to work around setuptools bug by providing a fake Pyrex
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "fake_pyrex"))
-
-
 from setuptools.command import test, sdist
 from setuptools import Extension
 from distutils.core import Distribution
