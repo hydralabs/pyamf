@@ -277,7 +277,7 @@ cdef class Context(object):
             meta = util.get_class_meta(klass)
             alias = alias(klass, defer=True, **meta)
 
-            self.class_aliases[klass] = alias
+        self.class_aliases[klass] = alias
 
         return alias
 
