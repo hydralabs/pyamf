@@ -179,7 +179,7 @@ def get_install_requirements():
 
     if 'dev' in get_version():
         if can_compile_extensions:
-            install_requires.extend(['Cython>=0.13, <=0.15'])
+            install_requires.extend(['Cython>=0.13'])
 
     return install_requires
 
