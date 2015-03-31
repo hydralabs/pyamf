@@ -109,6 +109,14 @@ TYPE_XMLSTRING = '\x0B'
 #: @see: U{Parsing ByteArrays on OSFlash (external)
 #: <http://osflash.org/documentation/amf3/parsing_byte_arrays>}
 TYPE_BYTEARRAY = '\x0C'
+#: Vector types were added to ActionScript 3.0 in Flash Player 10.
+TYPE_INT_VECTOR = '\x0D'
+TYPE_UINT_VECTOR = '\x0E'
+TYPE_DOUBLE_VECTOR = '\x0F'
+TYPE_OBJECT_VECTOR = '\x10'
+#: A native Dictionary type with object keys and values was added in
+#: Flash Player 10 as well.
+TYPE_DICTIONARY = '\x11'
 
 #: Reference bit.
 REFERENCE_BIT = 0x01
@@ -555,6 +563,53 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
         self.compressed = True
 
 
+class BaseVector(list):
+    fixed = False
+    def __repr__(self):
+        return "%s(%s, %s)" % (self.__class__.__name__,
+            super(BaseVector, self).__repr__(), self._get_attributes())
+
+    def _get_attributes(self):
+        return 'fixed=%s' % repr(self.fixed)
+
+
+class IntVector(BaseVector):
+    datatype = TYPE_INT_VECTOR
+    reader = lambda self, decoder: decoder.stream.read_long
+    writer = lambda self, encoder: encoder.stream.write_long
+
+
+class UintVector(BaseVector):
+    datatype = TYPE_UINT_VECTOR
+    reader = lambda self, decoder: decoder.stream.read_ulong
+    writer = lambda self, encoder: encoder.stream.write_ulong
+
+
+class DoubleVector(BaseVector):
+    datatype = TYPE_DOUBLE_VECTOR
+    reader = lambda self, decoder: decoder.stream.read_double
+    writer = lambda self, encoder: encoder.stream.write_double
+
+
+class ObjectVector(BaseVector):
+    classname = None
+    datatype = TYPE_OBJECT_VECTOR
+    reader = lambda self, decoder: decoder.readElement
+    writer = lambda self, encoder: encoder.writeElement
+
+    def _get_attributes(self):
+        return (super(ObjectVector, self)._get_attributes() +
+            ', classname=' + repr(self.classname))
+
+
+class ASDictionary(dict):
+    weak_keys = False
+
+    def __repr__(self):
+        return '%s(%s)' % (self.__class__.__name__,
+            super(ASDictionary, self).__repr__())
+
+
 class ClassDefinition(object):
     """
     This is an internal class used by L{Encoder}/L{Decoder} to hold details
@@ -795,6 +850,16 @@ class Decoder(codec.Decoder):
             return self.readXMLString
         elif data == TYPE_BYTEARRAY:
             return self.readByteArray
+        elif data == TYPE_INT_VECTOR:
+            return self.readIntVector
+        elif data == TYPE_UINT_VECTOR:
+            return self.readUintVector
+        elif data == TYPE_DOUBLE_VECTOR:
+            return self.readDoubleVector
+        elif data == TYPE_OBJECT_VECTOR:
+            return self.readObjectVector
+        elif data == TYPE_DICTIONARY:
+            return self.readASDictionary
 
     def readProxy(self, obj):
         """
@@ -953,6 +1018,27 @@ class Decoder(codec.Decoder):
         for i in xrange(size):
             el = self.readElement()
             result[i] = el
+
+        return result
+
+    def readASDictionary(self):
+        length, is_reference = self._readLength()
+
+        # AS3 does not allow Dictionary types to have references
+        assert not is_reference
+
+        result = ASDictionary()
+
+        # Set weak-keys property
+        weak_keys = self.stream.read_uchar()
+        assert weak_keys in [0x00, 0x01]
+        result.weak_keys = bool(weak_keys)
+
+        # Read key-value pairs
+        for i in xrange(length):
+            key = self.readElement()
+            value = self.readElement()
+            result[key] = value
 
         return result
 
@@ -1124,6 +1210,47 @@ class Decoder(codec.Decoder):
 
         return obj
 
+    def readVector(self, vector_class):
+        """
+        Reads an array of a specific datatype.
+
+        @see: L{TypedVector}
+        @note: This is not supported in ActionScript 1.0, 2.0, or early
+        versions of 3.0
+        """
+        ref = self.readInteger(False)
+
+        if ref & REFERENCE_BIT == 0:
+            return self.context.getObject(ref >> 1)
+
+        obj = vector_class()
+
+        # This metadata indicates whether the (de)serialized object should
+        # use a fixed memory allocation.  For python, this is semi-pointless,
+        # but we will need it to properly re-serialize the data.
+        obj.fixed = self.stream.read_uchar()
+
+        if isinstance(obj, ObjectVector):
+            obj.classname = self.readString()
+
+        num_items = ref >> 1
+        for i in xrange(num_items):
+            obj.append(obj.reader(self)())
+
+        return obj
+
+    def readIntVector(self):
+        return self.readVector(IntVector)
+
+    def readUintVector(self):
+        return self.readVector(UintVector)
+
+    def readDoubleVector(self):
+        return self.readVector(DoubleVector)
+
+    def readObjectVector(self):
+        return self.readVector(ObjectVector)
+
 
 class Encoder(codec.Encoder):
     """
@@ -1151,6 +1278,10 @@ class Encoder(codec.Encoder):
             return self.writeByteArray
         elif t is pyamf.MixedArray:
             return self.writeDict
+        elif isinstance(data, BaseVector):
+            return self.writeVector
+        elif t is ASDictionary:
+            return self.writeASDictionary
 
         return codec.Encoder.getTypeFunc(self, data)
 
@@ -1526,6 +1657,40 @@ class Encoder(codec.Encoder):
         l = len(buf)
         self._writeInteger(l << 1 | REFERENCE_BIT)
         self.stream.write(buf)
+
+    def writeVector(self, n):
+        assert isinstance(n, BaseVector)
+
+        self.stream.write(n.datatype)
+
+        ref = self.context.getObjectReference(n)
+
+        if ref != -1:
+            self._writeInteger(ref << 1)
+
+            return
+
+        self.context.addObject(n)
+
+        self._writeInteger(len(n) << 1 | REFERENCE_BIT)
+        self.stream.write_uchar(1 if n.fixed else 0)
+
+        if isinstance(n, ObjectVector):
+            self.writeString(n.classname)
+
+        for item in n:
+            n.writer(self)(item)
+
+    def writeASDictionary(self, n):
+        assert isinstance(n, ASDictionary)
+
+        self.stream.write(TYPE_DICTIONARY)
+        self._writeInteger(len(n) << 1 | REFERENCE_BIT)
+        self.stream.write_uchar(0x01 if n.weak_keys else 0x00)
+
+        for key, value in n.iteritems():
+            self.writeElement(key)
+            self.writeElement(value)
 
     def writeXML(self, n):
         """
