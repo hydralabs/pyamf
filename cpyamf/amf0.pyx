@@ -45,8 +45,6 @@ cdef object UnknownClassAlias = pyamf.UnknownClassAlias
 
 
 cdef class Context(codec.Context):
-    cdef amf3.Context amf3_context
-
     cpdef int clear(self) except -1:
         codec.Context.clear(self)
 
@@ -60,10 +58,6 @@ cdef class Decoder(codec.Decoder):
     """
     """
 
-    cdef public bint use_amf3
-    cdef readonly Context context
-    cdef amf3.Decoder amf3_decoder
-
     def __cinit__(self):
         self.use_amf3 = 0
 
@@ -72,7 +66,7 @@ cdef class Decoder(codec.Decoder):
         self.context = kwargs.pop('context', None)
 
         if self.context is None:
-            self.context = Context()
+            self.context = Context(**kwargs)
 
         codec.Codec.__init__(self, *args, **kwargs)
 
@@ -244,7 +238,11 @@ cdef class Decoder(codec.Decoder):
 
     cdef object readXML(self):
         cdef object data = self.readLongString()
-        cdef object root = xml.fromstring(data)
+        cdef object root = xml.fromstring(
+            data,
+            forbid_dtd=self.context.forbid_dtd,
+            forbid_entities=self.context.forbid_entities
+        )
 
         self.context.addObject(root)
 
@@ -301,10 +299,6 @@ cdef class Encoder(codec.Encoder):
     The AMF0 Encoder.
     """
 
-    cdef public bint use_amf3
-    cdef readonly Context context
-    cdef amf3.Encoder amf3_encoder
-
     def __cinit__(self):
         self.use_amf3 = 0
 
@@ -314,7 +308,7 @@ cdef class Encoder(codec.Encoder):
         self.context = kwargs.pop('context', None)
 
         if self.context is None:
-            self.context = Context()
+            self.context = Context(**kwargs)
 
         codec.Codec.__init__(self, *args, **kwargs)
 

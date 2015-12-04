@@ -148,8 +148,8 @@ class Context(object):
     """
     The base context for all AMF [de|en]coding.
 
-    @ivar extra: The only public attribute. This is a placeholder for any extra
-        contextual data that required for different adapters.
+    @ivar extra: This is a placeholder for any extra contextual data that
+        required for different adapters.
     @type extra: C{dict}
     @ivar _objects: A collection of stored references to objects that have
         already been visited by this context.
@@ -158,10 +158,19 @@ class Context(object):
         determined by L{pyamf.get_class_alias}
     @ivar _unicodes: Lookup of utf-8 encoded byte strings -> string objects
         (aka strings/unicodes).
+    @ivar forbid_dtd: Don't allow DTD in XML documents (decode only). By
+        default PyAMF will not support potentially malicious XML documents
+        - e.g. XXE.
+    @ivar forbid_entities: Don't allow entities in XML documents (decode only).
+        By default PyAMF will not support potentially malicious XML documents
+        - e.g. XXE.
     """
 
-    def __init__(self):
+    def __init__(self, forbid_dtd=True, forbid_entities=True):
         self._objects = IndexedCollection()
+
+        self.forbid_entities = forbid_entities
+        self.forbid_dtd = forbid_dtd
 
         self.clear()
 
@@ -280,18 +289,21 @@ class _Codec(object):
     """
 
     def __init__(self, stream=None, context=None, strict=False,
-                 timezone_offset=None):
+                 timezone_offset=None, forbid_dtd=True, forbid_entities=True):
         if isinstance(stream, basestring) or stream is None:
             stream = util.BufferedByteStream(stream)
 
         self.stream = stream
-        self.context = context or self.buildContext()
+        self.context = context or self.buildContext(
+            forbid_dtd=forbid_dtd,
+            forbid_entities=forbid_entities
+        )
         self.strict = strict
         self.timezone_offset = timezone_offset
 
         self._func_cache = {}
 
-    def buildContext(self):
+    def buildContext(self, **kwargs):
         """
         A context factory.
         """

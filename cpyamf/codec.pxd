@@ -50,6 +50,8 @@ cdef class Context(object):
     cdef dict unicodes
     cdef dict _strings
     cdef public dict extra
+    cdef public bint forbid_dtd
+    cdef public bint forbid_entities
 
     cpdef int clear(self) except -1
     cpdef object getClassAlias(self, object klass)

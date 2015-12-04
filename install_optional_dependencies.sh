@@ -27,6 +27,14 @@ function install_twisted {
   pip install "Twisted${TWISTED_VERSION}"
 }
 
+function install_lxml {
+  if [ -z "${LXML_VERSION}" ]; then
+      return 0
+  fi
+
+  pip install "lxml${LXML_VERSION}"
+}
+
 function install_gae_sdk {
   if [ -z "${GAESDK_VERSION}" ]; then
       return 0
@@ -40,4 +48,5 @@ function install_gae_sdk {
 install_django
 install_sqlalchemy
 install_twisted
+install_lxml
 install_gae_sdk
