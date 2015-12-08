@@ -8,11 +8,24 @@ C{django.db.models} adapter module.
 @since: 0.4.1
 """
 
+import datetime
+import sys
+
 from django.db.models.base import Model
 from django.db.models import fields
-from django.db.models.fields import related, files
+from django.db.models.fields import files
 
-import datetime
+models = sys.modules['django.db.models']
+
+try:
+    from django.db.models import related
+
+    ForeignObjectRel = related.RelatedObject
+except ImportError:
+    # django 1.8+
+    from django.db.models.fields import related
+
+    ForeignObjectRel = related.ForeignObjectRel
 
 import pyamf
 
@@ -74,12 +87,12 @@ class DjangoClassAlias(pyamf.ClassAlias):
             if isinstance(x, files.FileField):
                 self.readonly_attrs.update([name])
 
-            if isinstance(x, related.RelatedObject):
+            if isinstance(x, ForeignObjectRel):
                 continue
 
-            if isinstance(x, related.ManyToManyField):
+            if isinstance(x, models.ManyToManyField):
                 self.relations[name] = x
-            elif not isinstance(x, related.ForeignKey):
+            elif not isinstance(x, models.ForeignKey):
                 self.fields[name] = x
             else:
                 self.relations[name] = x
@@ -188,7 +201,7 @@ class DjangoClassAlias(pyamf.ClassAlias):
             if '_%s_cache' % name in obj.__dict__:
                 attrs[name] = getattr(obj, name)
 
-            if isinstance(relation, related.ManyToManyField):
+            if isinstance(relation, models.ManyToManyField):
                 attrs[name] = [x for x in getattr(obj, name).all()]
             else:
                 attrs.pop(relation.attname, None)
@@ -237,7 +250,7 @@ class DjangoClassAlias(pyamf.ClassAlias):
 
         if not getattr(obj, pk_attr):
             for name, relation in self.relations.iteritems():
-                if isinstance(relation, related.ManyToManyField):
+                if isinstance(relation, models.ManyToManyField):
                     try:
                         if len(attrs[name]) == 0:
                             del attrs[name]

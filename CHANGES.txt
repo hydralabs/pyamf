@@ -6,6 +6,10 @@ versions of PyAMF.
 
 .. contents::
 
+0.8 (Unreleased)
+----------------
+- Add support for Django>=1.8
+
 0.7.2 (2015-02-18)
 ------------------
 - Add support for Cython >= 0.15 (should be backward compatible with future

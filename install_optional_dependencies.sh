@@ -8,7 +8,7 @@ function install_django {
       return 0
   fi
 
-  pip install "Django==${DJANGO_VERSION}"
+  pip install "Django${DJANGO_VERSION}"
 }
 
 function install_sqlalchemy {
@@ -16,7 +16,7 @@ function install_sqlalchemy {
       return 0
   fi
 
-  pip install "SQLAlchemy==${SQLALCHEMY_VERSION}"
+  pip install "SQLAlchemy${SQLALCHEMY_VERSION}"
 }
 
 function install_twisted {
@@ -24,7 +24,7 @@ function install_twisted {
       return 0
   fi
 
-  pip install "Twisted==${TWISTED_VERSION}"
+  pip install "Twisted${TWISTED_VERSION}"
 }
 
 function install_gae_sdk {

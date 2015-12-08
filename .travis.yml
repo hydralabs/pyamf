@@ -2,6 +2,7 @@ language: python
 python:
   - "2.6"
   - "2.7"
+sudo: false
 
 env:
   global:
@@ -10,21 +11,35 @@ env:
   matrix:
     - USE_EXTENSIONS=true # no dependencies
     - USE_EXTENSIONS=false # no dependencies
-    - DJANGO_VERSION=1.2.7
-    - DJANGO_VERSION=1.3.7
-    - DJANGO_VERSION=1.5.12
-    - DJANGO_VERSION=1.7.3
-    - SQLALCHEMY_VERSION=0.7.10
-    - SQLALCHEMY_VERSION=0.8.7
-    - SQLALCHEMY_VERSION=0.9.8
-    - TWISTED_VERSION=14.0.2
+    # used as part of the pip command
+    - DJANGO_VERSION=">=1.2,<1.3"
+    - DJANGO_VERSION=">=1.3,<1.4"
+    - DJANGO_VERSION=">=1.4,<1.5"
+    - DJANGO_VERSION=">=1.5,<1.6"
+    - DJANGO_VERSION=">=1.6,<1.7"
+    - DJANGO_VERSION=">=1.7,<1.8"
+    - DJANGO_VERSION=">=1.8,<1.9"
+    - DJANGO_VERSION=">=1.9,<2.0"
+    - SQLALCHEMY_VERSION=">=0.7,<0.8"
+    - SQLALCHEMY_VERSION=">=0.8,<0.9"
+    - SQLALCHEMY_VERSION=">=0.9,<1.0"
+    - TWISTED_VERSION=">=14,<15"
+    - TWISTED_VERSION=">=15,<16"
+    # special, see install_optional_dependencies.sh
     - GAESDK_VERSION=1.9.30
 
 matrix:
   exclude:
     # Django 1.7 dropped support for python 2.6
     - python: "2.6"
-      env: DJANGO_VERSION=1.7.3
+      env: DJANGO_VERSION=">=1.7,<1.8"
+    - python: "2.6"
+      env: DJANGO_VERSION=">=1.8,<1.9"
+    - python: "2.6"
+      env: DJANGO_VERSION=">=1.9,<2.0"
+    # Twisted 15+ dropped support for Python 2.6
+    - python: "2.6"
+      env: TWISTED_VERSION=">=15,<16"
     # Google AppEngine SDK dropped support for python 2.6
     - python: "2.6"
       env: GAESDK_VERSION=1.9.30

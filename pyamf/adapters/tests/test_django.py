@@ -43,6 +43,9 @@ adapter = None
 
 models = None
 
+# required for django <1.6 + python2.6
+__path__ = []
+
 
 def init_django():
     """
@@ -62,6 +65,10 @@ def init_django():
     from django.conf import settings
 
     from django_app import settings as app_settings
+
+    app_settings.INSTALLED_APPS = tuple(
+        list(app_settings.INSTALLED_APPS) + [__name__]
+    )
 
     try:
         settings.configure(**app_settings.__dict__)

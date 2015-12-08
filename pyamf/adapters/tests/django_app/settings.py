@@ -18,5 +18,9 @@ DATABASES = {
 }
 
 
-INSTALLED_APPS = ('django_app.adapters',)
+INSTALLED_APPS = (
+    'django_app.adapters',
+    'django.contrib.contenttypes',
+    'django.contrib.auth',
+)
 MIDDLEWARE_CLASSES = ()
