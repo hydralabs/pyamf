@@ -6,10 +6,17 @@ versions of PyAMF.
 
 .. contents::
 
+0.7.2 (2015-02-18)
+------------------
+- Add support for Cython >= 0.15 (should be backward compatible with future
+  releases)
+- Fix an issue in cpyamf where the class alias would not be cached correctly.
+
 0.7.1 (2015-02-16)
 ------------------
 - Add support for Cython <= 0.22
-- Fix a bug in the AppEngine adapters where ``writeNull`` doesn't exist in the C extensions
+- Fix a bug in the AppEngine adapters where ``writeNull`` doesn't exist in the
+  C extensions
 
 0.7 (2015-02-10)
 ----------------
