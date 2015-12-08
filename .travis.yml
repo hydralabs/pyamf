@@ -18,7 +18,7 @@ env:
     - SQLALCHEMY_VERSION=0.8.7
     - SQLALCHEMY_VERSION=0.9.8
     - TWISTED_VERSION=14.0.2
-    - GAESDK_VERSION=1.9.17
+    - GAESDK_VERSION=1.9.30
 
 matrix:
   exclude:
@@ -27,7 +27,7 @@ matrix:
       env: DJANGO_VERSION=1.7.3
     # Google AppEngine SDK dropped support for python 2.6
     - python: "2.6"
-      env: GAESDK_VERSION=1.9.17
+      env: GAESDK_VERSION=1.9.30
 
 before_install:
   - pip install flake8
