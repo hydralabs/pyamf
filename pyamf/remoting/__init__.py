@@ -249,6 +249,12 @@ class Message(object):
 
     headers = property(_get_headers)
 
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+
+        return self.body == other.body
+
 
 class Request(Message):
     """
@@ -257,8 +263,8 @@ class Request(Message):
     @ivar target: The C{string} target of the request.
     """
 
-    def __init__(self, target, body=[], envelope=None):
-        Message.__init__(self, envelope, body)
+    def __init__(self, target, body=None, envelope=None):
+        Message.__init__(self, envelope, body or [])
 
         self.target = target
 
@@ -269,6 +275,12 @@ class Request(Message):
             repr(self.body),
             type(self).__name__
         )
+
+    def __eq__(self, other):
+        if not super(Request, self).__eq__(other):
+            return False
+
+        return self.target == other.target
 
 
 class Response(Message):
@@ -289,6 +301,12 @@ class Response(Message):
             type(self).__name__, _get_status(self.status), repr(self.body),
             type(self).__name__
         )
+
+    def __eq__(self, other):
+        if not super(Response, self).__eq__(other):
+            return False
+
+        return self.status == other.status
 
 
 class BaseFault(object):
