@@ -6,7 +6,7 @@ versions of PyAMF.
 
 .. contents::
 
-0.8 (Unreleased)
+0.8 (2015-12-17)
 ----------------
 - Add support for Django>=1.8
 - *Backward incompatible* Wrapped all xml parsing in ``defusedxml`` to protect
