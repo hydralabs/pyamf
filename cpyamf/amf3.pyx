@@ -510,7 +510,11 @@ cdef class Decoder(codec.Decoder):
         self.stream.read(&buf, ref)
         s = PyString_FromStringAndSize(buf, ref)
 
-        x = xml.fromstring(s)
+        x = xml.fromstring(
+            s,
+            forbid_dtd=self.context.forbid_dtd,
+            forbid_entities=self.context.forbid_entities
+        )
         self.context.addObject(x)
 
         return x

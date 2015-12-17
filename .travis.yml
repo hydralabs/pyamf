@@ -4,6 +4,10 @@ python:
   - "2.7"
 sudo: false
 
+cache:
+  directories:
+      - $HOME/.cache/pip
+
 env:
   global:
     - PYTHONPATH=~/gaesdk/google_appengine
@@ -25,6 +29,8 @@ env:
     - SQLALCHEMY_VERSION=">=0.9,<1.0"
     - TWISTED_VERSION=">=14,<15"
     - TWISTED_VERSION=">=15,<16"
+    - LXML_VERSION=">=3.4,<3.5"
+    - LXML_VERSION=">=3.5,<3.6"
     # special, see install_optional_dependencies.sh
     - GAESDK_VERSION=1.9.30
 

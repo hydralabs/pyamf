@@ -10,11 +10,9 @@ Provides XML support.
 #: list of supported third party packages that support the C{etree}
 #: interface. At least enough for our needs anyway.
 ETREE_MODULES = [
-    'lxml.etree',
-    'xml.etree.cElementTree',
-    'cElementTree',
-    'xml.etree.ElementTree',
-    'elementtree.ElementTree'
+    'defusedxml.lxml',
+    'defusedxml.cElementTree',
+    'defusedxml.ElementTree',
 ]
 
 #: A tuple of class/type objects that are used to represent XML objects.
@@ -165,5 +163,8 @@ def fromstring(*args, **kwargs):
     global ET
 
     _bootstrap()
+
+    kwargs.setdefault('forbid_dtd', True)
+    kwargs.setdefault('forbid_entities', True)
 
     return ET.fromstring(*args, **kwargs)

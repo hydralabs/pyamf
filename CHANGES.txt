@@ -9,6 +9,10 @@ versions of PyAMF.
 0.8 (Unreleased)
 ----------------
 - Add support for Django>=1.8
+- *Backward incompatible* Wrapped all xml parsing in ``defusedxml`` to protect
+  against any XML entity attacks. See
+  https://www.owasp.org/index.php/XML_External_Entity_(XXE)_Processing for more
+  details. Thanks to Nicolas Grégoire (@Agarri_FR) for the report.
 
 0.7.2 (2015-02-18)
 ------------------

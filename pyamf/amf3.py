@@ -607,14 +607,14 @@ class Context(codec.Context):
     @type classes: C{list}
     """
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.strings = codec.ByteStringReferenceCollection()
         self.classes = {}
         self.class_ref = {}
 
         self.class_idx = 0
 
-        codec.Context.__init__(self)
+        codec.Context.__init__(self, **kwargs)
 
     def clear(self):
         """
@@ -765,8 +765,8 @@ class Decoder(codec.Decoder):
 
         codec.Decoder.__init__(self, *args, **kwargs)
 
-    def buildContext(self):
-        return Context()
+    def buildContext(self, **kwargs):
+        return Context(**kwargs)
 
     def getTypeFunc(self, data):
         if data == TYPE_UNDEFINED:
@@ -1079,7 +1079,11 @@ class Decoder(codec.Decoder):
 
         xmlstring = self.stream.read(ref >> 1)
 
-        x = xml.fromstring(xmlstring)
+        x = xml.fromstring(
+            xmlstring,
+            forbid_dtd=self.context.forbid_dtd,
+            forbid_entities=self.context.forbid_entities,
+        )
         self.context.addObject(x)
 
         return x
@@ -1136,8 +1140,8 @@ class Encoder(codec.Encoder):
 
         codec.Encoder.__init__(self, *args, **kwargs)
 
-    def buildContext(self):
-        return Context()
+    def buildContext(self, **kwargs):
+        return Context(**kwargs)
 
     def getTypeFunc(self, data):
         """

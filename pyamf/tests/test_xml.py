@@ -14,6 +14,8 @@ import unittest
 import pyamf.xml
 from pyamf import util
 
+import defusedxml
+
 
 class _BaseTestCase(unittest.TestCase):
     """
@@ -61,8 +63,8 @@ class _BaseTestCase(unittest.TestCase):
         self.assertEqual(l >> 1, b.remaining())
         self.assertEqual(b.read(), xml)
 
-    def fromstring(self, xml):
-        return self.etree.fromstring(xml)
+    def fromstring(self, xml, **kwargs):
+        return pyamf.xml.fromstring(xml, **kwargs)
 
     def tostring(self, element):
         return self.etree.tostring(element)
@@ -90,6 +92,51 @@ class ElementTreeTestCase(_BaseTestCase):
 
         new_element = pyamf.decode(bytes, encoding=pyamf.AMF3).next()
         self.assertIdentical(type(element), type(new_element))
+
+
+class XXETestCaseTestCase(_BaseTestCase):
+    """
+    See http://codewhitesec.blogspot.fr/2015/08/cve-2015-3269-apache-flex-
+    blazeds-xxe.html
+
+    DTD processing can inadvertently change the payload that is provided to
+    the application.
+
+    :see: https://www.owasp.org/index.php/XML_External_Entity_(XXE)_
+        Processing
+    """
+
+    def test_system_entity(self):
+        """
+        Ensure that any SYSTEM entities fail by default
+        """
+        xml = """
+<!DOCTYPE x [ <!ENTITY foo SYSTEM "file:///etc/group"> ]>
+<x>External entity 1: &foo;</x>
+"""
+
+        with self.assertRaises(defusedxml.EntitiesForbidden):
+            self.fromstring(xml.strip(), forbid_dtd=False)
+
+    def test_param_entity(self):
+        """
+        Ensure that any xml params that are decdoed into SYSTEM entities fail.
+        """
+        xml = """
+<!DOCTYPE x [ <!ENTITY % foo SYSTEM "file:///etc/group"> %foo; ]>
+<x>Parameter entity 1</x>
+"""
+        with self.assertRaises(defusedxml.EntitiesForbidden):
+            self.fromstring(xml.strip(), forbid_dtd=False)
+
+    def test_dtd(self):
+        """
+        Any DTD urls must fail by default.
+        """
+        xml = '<!DOCTYPE x SYSTEM "file:///etc/group"><x>Remote DTD 1</x>'
+
+        with self.assertRaises(defusedxml.DTDForbidden):
+            self.fromstring(xml.strip())
 
 
 """

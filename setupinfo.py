@@ -172,7 +172,7 @@ def get_install_requirements():
     Returns a list of dependencies for PyAMF to function correctly on the
     target platform.
     """
-    install_requires = []
+    install_requires = ['defusedxml']
 
     if sys.version_info < (2, 5):
         install_requires.extend(["elementtree>=1.2.6", "uuid>=1.30"])

@@ -229,11 +229,16 @@ cdef class Context(object):
 
     def __cinit__(self):
         self.objects = IndexedCollection()
+        self.forbid_entities = True
+        self.forbid_dtd = True
 
         self.clear()
 
-    def __init__(self):
+    def __init__(self, forbid_dtd=True, forbid_entities=True, **kwargs):
         self.clear()
+
+        self.forbid_entities = forbid_entities
+        self.forbid_dtd = forbid_dtd
 
     cpdef int clear(self) except -1:
         self.objects.clear()
@@ -341,7 +346,8 @@ cdef class Codec(object):
         self.strict = 0
         self.timezone_offset = None
 
-    def __init__(self, stream=None, strict=False, timezone_offset=None):
+    def __init__(self, stream=None, strict=False, timezone_offset=None,
+                 forbid_entities=True, forbid_dtd=True):
         if not isinstance(stream, BufferedByteStream):
             stream = BufferedByteStream(stream)
 
@@ -349,6 +355,9 @@ cdef class Codec(object):
         self.strict = strict
 
         self.timezone_offset = timezone_offset
+
+        self.context.forbid_entities = <bint>forbid_entities
+        self.context.forbid_dtd = <bint>forbid_dtd
 
 
 cdef class Decoder(Codec):

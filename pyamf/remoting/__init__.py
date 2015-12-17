@@ -602,7 +602,8 @@ def get_fault(data):
     return get_fault_class(level, **e)(**e)
 
 
-def decode(stream, strict=False, logger=None, timezone_offset=None):
+def decode(stream, strict=False, logger=None, timezone_offset=None,
+           **kwargs):
     """
     Decodes the incoming stream as a remoting message.
 
@@ -641,7 +642,8 @@ def decode(stream, strict=False, logger=None, timezone_offset=None):
         pyamf.AMF0,
         stream,
         strict=strict,
-        timezone_offset=timezone_offset
+        timezone_offset=timezone_offset,
+        **kwargs
     )
     context = decoder.context
 
@@ -669,7 +671,7 @@ def decode(stream, strict=False, logger=None, timezone_offset=None):
     return msg
 
 
-def encode(msg, strict=False, logger=None, timezone_offset=None):
+def encode(msg, strict=False, logger=None, timezone_offset=None, **kwargs):
     """
     Encodes and returns the L{msg<Envelope>} as an AMF stream.
 
@@ -695,6 +697,7 @@ def encode(msg, strict=False, logger=None, timezone_offset=None):
         stream,
         strict=strict,
         timezone_offset=timezone_offset,
+        **kwargs
     )
 
     if msg.amfVersion == pyamf.AMF3:

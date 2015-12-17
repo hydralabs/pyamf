@@ -145,8 +145,8 @@ class Decoder(codec.Decoder):
     Decodes an AMF0 stream.
     """
 
-    def buildContext(self):
-        return Context()
+    def buildContext(self, **kwargs):
+        return Context(**kwargs)
 
     def getTypeFunc(self, data):
         # great for coverage, sucks for readability
@@ -380,7 +380,11 @@ class Decoder(codec.Decoder):
         Read XML.
         """
         data = self.readLongString()
-        root = xml.fromstring(data)
+        root = xml.fromstring(
+            data,
+            forbid_dtd=self.context.forbid_dtd,
+            forbid_entities=self.context.forbid_entities,
+        )
 
         self.context.addObject(root)
 
@@ -401,8 +405,8 @@ class Encoder(codec.Encoder):
 
         self.use_amf3 = kwargs.pop('use_amf3', False)
 
-    def buildContext(self):
-        return Context()
+    def buildContext(self, **kwargs):
+        return Context(**kwargs)
 
     def getTypeFunc(self, data):
         if self.use_amf3:
