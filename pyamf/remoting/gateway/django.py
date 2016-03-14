@@ -198,6 +198,9 @@ class DjangoGateway(gateway.BaseGateway):
         http_response = http.HttpResponse(content_type=remoting.CONTENT_TYPE)
         http_response['Server'] = gateway.SERVER_NAME
         http_response['Content-Length'] = str(len(buf))
+        if hasattr(conf.settings, 'ADDITIONAL_HEADERS'):
+            for key, item in conf.settings.ADDITIONAL_HEADERS:
+                http_response[key] = value
 
         http_response.write(buf)
 
