@@ -38,6 +38,11 @@ cdef char TYPE_ARRAY = '\x09'
 cdef char TYPE_OBJECT = '\x0A'
 cdef char TYPE_XMLSTRING = '\x0B'
 cdef char TYPE_BYTEARRAY = '\x0C'
+cdef char TYPE_INT_VECTOR = '\x0D'
+cdef char TYPE_UINT_VECTOR = '\x0E'
+cdef char TYPE_DOUBLE_VECTOR = '\x0F'
+cdef char TYPE_OBJECT_VECTOR = '\x10'
+cdef char TYPE_DICTIONARY = '\x11'
 
 cdef unsigned int REFERENCE_BIT = 0x01
 cdef char REF_CHAR = '\x01'
@@ -54,6 +59,12 @@ cdef int OBJECT_ENCODING_DYNAMIC = 0x02
 cdef int OBJECT_ENCODING_PROXY = 0x03
 
 cdef object ByteArrayType = amf3.ByteArray
+cdef object BaseVectorType = amf3.BaseVector
+cdef object IntVectorType = amf3.IntVector
+cdef object UintVectorType = amf3.UintVector
+cdef object DoubleVectorType = amf3.DoubleVector
+cdef object ObjectVectorType = amf3.ObjectVector
+cdef object ASDictionaryType = amf3.ASDictionary
 cdef object DataInput = amf3.DataInput
 cdef object DataOutput = amf3.DataOutput
 cdef str empty_string = str('')
@@ -563,6 +574,62 @@ cdef class Decoder(codec.Decoder):
         """
         return self.context.getObjectForProxy(obj)
 
+    cdef object readVector(self, vector_class):
+        """
+        Reads a vector of a specific datatype.
+
+        @note: This is not supported in ActionScript 1.0, 2.0 or early
+          versions of 3.0.
+        """
+        cdef int ref = _read_ref(self.stream)
+        cdef int i
+
+        if ref & REFERENCE_BIT == 0:
+            return self.context.getObject(ref >> 1)
+
+        cdef object obj = vector_class()
+        obj.fixed = self.stream.read_uchar()
+
+        if isinstance(obj, ObjectVectorType):
+            obj.classname = self.readString()
+
+        cdef int num_items = ref >> 1
+        for 0 <= i < num_items:
+            obj.append(obj.reader(self)())
+
+        return obj
+
+    cdef object readIntVector(self):
+        return self.readVector(IntVectorType)
+
+    cdef object readUintVector(self):
+        return self.readVector(UintVectorType)
+
+    cdef object readDoubleVector(self):
+        return self.readVector(DoubleVectorType)
+
+    cdef object readObjectVector(self):
+        return self.readVector(ObjectVectorType)
+
+    cdef object readASDictionary(self):
+        cdef int ref = _read_ref(self.stream)
+        cdef int i
+        assert ref & REFERENCE_BIT
+
+        ref >>= 1
+
+        result = ASDictionaryType()
+        weak_keys = self.stream.read_uchar()
+        assert weak_keys in [0x00, 0x01]
+        result.weak_keys = bool(weak_keys)
+
+        for 0 <= i < ref:
+            key = self.readElement()
+            value = self.readElement()
+            result[key] = value
+
+        return result
+
     cdef object readConcreteElement(self, char t):
         if t == TYPE_STRING:
             return self.readString()
@@ -590,6 +657,16 @@ cdef class Decoder(codec.Decoder):
             return self.readXML()
         elif t == TYPE_XMLSTRING:
             return self.readXML()
+        elif t == TYPE_INT_VECTOR:
+            return self.readIntVector()
+        elif t == TYPE_UINT_VECTOR:
+            return self.readUintVector()
+        elif t == TYPE_DOUBLE_VECTOR:
+            return self.readDoubleVector()
+        elif t == TYPE_OBJECT_VECTOR:
+            return self.readObjectVector()
+        elif t == TYPE_DICTIONARY:
+            return self.readASDictionary()
 
         raise pyamf.DecodeError("Unsupported ActionScript type")
 
@@ -1030,12 +1107,50 @@ cdef class Encoder(codec.Encoder):
 
         return self.writeObject(proxy, 1)
 
+    cdef int writeVector(self, object n) except -1:
+        cdef Py_ssize_t ref = self.context.getObjectReference(n)
+
+        self.writeType(ord(n.datatype))
+
+        if ref != -1:
+            _encode_integer(self.stream, ref << 1)
+            return 0
+
+        self.context.addObject(n)
+        _encode_integer(self.stream, (len(n) << 1) | REFERENCE_BIT)
+        self.stream.write_uchar(1 if n.fixed else 0)
+
+        if isinstance(n, ObjectVectorType):
+            self.serialiseString(n.classname)
+
+        for item in n:
+            n.writer(self)(item)
+
+    cdef int writeASDictionary(self, object n) except -1:
+        self.writeType(TYPE_DICTIONARY)
+        _encode_integer(self.stream, (len(n) << 1) | REFERENCE_BIT)
+        self.stream.write_uchar(1 if n.weak_keys else 0)
+
+        for key, value in n.iteritems():
+            self.writeElement(key)
+            self.writeElement(value)
+
     cdef int handleBasicTypes(self, object element, object py_type) except -1:
         cdef int ret = codec.Encoder.handleBasicTypes(self, element, py_type)
 
         if ret == 1: # not handled
             if py_type is ByteArrayType:
                 return self.writeByteArray(element)
+            elif py_type is IntVectorType:
+                return self.writeVector(element)
+            elif py_type is UintVectorType:
+                return self.writeVector(element)
+            elif py_type is DoubleVectorType:
+                return self.writeVector(element)
+            elif py_type is ObjectVectorType:
+                return self.writeVector(element)
+            elif py_type is ASDictionaryType:
+                return self.writeASDictionary(element)
 
         return ret
 
