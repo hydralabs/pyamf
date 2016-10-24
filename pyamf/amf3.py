@@ -565,9 +565,12 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
 
 class BaseVector(list):
     fixed = False
+
     def __repr__(self):
-        return "%s(%s, %s)" % (self.__class__.__name__,
-            super(BaseVector, self).__repr__(), self._get_attributes())
+        return "%s(%s, %s)" % (
+            self.__class__.__name__,
+            super(BaseVector, self).__repr__(),
+            self._get_attributes())
 
     def _get_attributes(self):
         return 'fixed=%s' % repr(self.fixed)
@@ -575,30 +578,47 @@ class BaseVector(list):
 
 class IntVector(BaseVector):
     datatype = TYPE_INT_VECTOR
-    reader = lambda self, decoder: decoder.stream.read_long
-    writer = lambda self, encoder: encoder.stream.write_long
+
+    def reader(self, decoder):
+        return decoder.stream.read_long
+
+    def writer(self, encoder):
+        return encoder.stream.write_long
 
 
 class UintVector(BaseVector):
     datatype = TYPE_UINT_VECTOR
-    reader = lambda self, decoder: decoder.stream.read_ulong
-    writer = lambda self, encoder: encoder.stream.write_ulong
+
+    def reader(self, decoder):
+        return decoder.stream.read_ulong
+
+    def writer(self, encoder):
+        return encoder.stream.write_ulong
 
 
 class DoubleVector(BaseVector):
     datatype = TYPE_DOUBLE_VECTOR
-    reader = lambda self, decoder: decoder.stream.read_double
-    writer = lambda self, encoder: encoder.stream.write_double
+
+    def reader(self, decoder):
+        return decoder.stream.read_double
+
+    def writer(self, encoder):
+        return encoder.stream.write_double
 
 
 class ObjectVector(BaseVector):
     classname = None
     datatype = TYPE_OBJECT_VECTOR
-    reader = lambda self, decoder: decoder.readElement
-    writer = lambda self, encoder: encoder.writeElement
+
+    def reader(self, decoder):
+        return decoder.readElement
+
+    def writer(self, encoder):
+        return encoder.writeElement
 
     def _get_attributes(self):
-        return (super(ObjectVector, self)._get_attributes() +
+        return (
+            super(ObjectVector, self)._get_attributes() +
             ', classname=' + repr(self.classname))
 
 
@@ -606,7 +626,8 @@ class ASDictionary(dict):
     weak_keys = False
 
     def __repr__(self):
-        return '%s(%s)' % (self.__class__.__name__,
+        return '%s(%s)' % (
+            self.__class__.__name__,
             super(ASDictionary, self).__repr__())
 
 
