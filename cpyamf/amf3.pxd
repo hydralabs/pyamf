@@ -47,10 +47,16 @@ cdef class Decoder(codec.Decoder):
     cdef int _readStatic(self, ClassDefinition class_def, dict obj) except -1
     cdef int _readDynamic(self, ClassDefinition class_def, dict obj) except -1
 
+    cdef object readASDictionary(self)
     cdef object readBytes(self)
     cdef object readInteger(self, int signed=?)
     cdef object readByteArray(self)
+    cdef object readDoubleVector(self)
+    cdef object readIntVector(self)
+    cdef object readObjectVector(self)
     cdef object readProxy(self, obj)
+    cdef object readUintVector(self)
+    cdef object readVector(self, vector_class)
 
 
 cdef class Encoder(codec.Encoder):
@@ -59,3 +65,5 @@ cdef class Encoder(codec.Encoder):
 
     cdef int writeByteArray(self, object obj) except -1
     cdef int writeProxy(self, obj) except -1
+    cdef int writeVector(self, object obj) except -1
+    cdef int writeASDictionary(self, object obj) except -1
