@@ -6,15 +6,16 @@ By states of issues and PR in [PyAMF](https://github.com/hydralabs/pyamf), it do
 And another PR that supports Py3 has been discontinued for over two years.
 This is the only Python AMF Project which trying to support Py3 under developing on GitHub.
 
+### State
+Work fine when encode/decode message with AMF3
+
 ### Warning
 This project isn't completed.
 If you want to make it fast, please send PR.
 
 ## TODO
-- print function
-- iterations
-- built-in functions
-- etc
+- Work with AMF0
+- Work with Service and Client
 
 ------------------------------------------------------
 
