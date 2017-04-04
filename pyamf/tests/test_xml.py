@@ -145,7 +145,7 @@ cases that have a python xml lib module attached to them. This allows the test
 writer to write the test once and ensure that it works for all the supported
 xml modules.
 """
-for name, value in globals().copy().iteritems():
+for name, value in list(globals().copy().items()):
     try:
         is_subclass = issubclass(value, _BaseTestCase)
     except TypeError:

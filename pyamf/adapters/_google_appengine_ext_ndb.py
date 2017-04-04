@@ -72,7 +72,7 @@ class NDBClassAlias(gae_base.BaseDatastoreClassAlias):
         # list of property names that are computed
         computed_props = {}
 
-        for name, prop in self.klass._properties.iteritems():
+        for name, prop in self.klass._properties.items():
             props[name] = prop
 
             if prop._repeated:
@@ -88,7 +88,7 @@ class NDBClassAlias(gae_base.BaseDatastoreClassAlias):
 
         # check if the property is a defined as a computed property. These
         # types of properties are read-only
-        for name, value in self.klass.__dict__.iteritems():
+        for name, value in self.klass.__dict__.items():
             if isinstance(value, ndb.ComputedProperty):
                 read_only_props.append(name)
 
@@ -110,7 +110,7 @@ class NDBClassAlias(gae_base.BaseDatastoreClassAlias):
         )
 
         if self.repeated_properties:
-            for name, prop in self.repeated_properties.iteritems():
+            for name, prop in self.repeated_properties.items():
                 try:
                     value = attrs[name]
                 except KeyError:
@@ -183,7 +183,7 @@ class NDBClassAlias(gae_base.BaseDatastoreClassAlias):
                 )
 
         if isinstance(obj, ndb.Expando):
-            for name, prop in obj._properties.iteritems():
+            for name, prop in obj._properties.items():
                 if name in self.model_properties:
                     continue
 

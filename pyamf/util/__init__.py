@@ -99,14 +99,14 @@ def set_attrs(obj, attrs):
     if hasattr(obj, '__setitem__'):
         o = type(obj).__setitem__
 
-    [o(obj, k, v) for k, v in attrs.iteritems()]
+    [o(obj, k, v) for k, v in attrs.items()]
 
 
 def get_class_alias(klass):
     """
     Tries to find a suitable L{pyamf.ClassAlias} subclass for C{klass}.
     """
-    for k, v in pyamf.ALIAS_TYPES.iteritems():
+    for k, v in list(pyamf.ALIAS_TYPES.items()):
         for kl in v:
             try:
                 if issubclass(klass, kl):
@@ -198,6 +198,9 @@ def get_module(mod_name):
     """
     Load and return a module based on C{mod_name}.
     """
+    if isinstance(mod_name, bytes):
+        mod_name = mod_name.decode()
+
     if mod_name is '':
         raise ImportError('Unable to import empty module')
 

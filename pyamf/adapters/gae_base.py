@@ -139,7 +139,7 @@ class StubCollection(object):
 
             return
 
-        for stub, (klass, key) in self.stubs.iteritems():
+        for stub, (klass, key) in self.stubs.items():
             self.transformStub(stub, klass, key)
 
 

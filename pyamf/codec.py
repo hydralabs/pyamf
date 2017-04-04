@@ -290,7 +290,7 @@ class _Codec(object):
 
     def __init__(self, stream=None, context=None, strict=False,
                  timezone_offset=None, forbid_dtd=True, forbid_entities=True):
-        if isinstance(stream, basestring) or stream is None:
+        if isinstance(stream, str) or stream is None:
             stream = util.BufferedByteStream(stream)
 
         self.stream = stream
@@ -524,7 +524,7 @@ class Encoder(_Codec):
             return self.writeNumber
         elif t in python.int_types:
             return self.writeNumber
-        elif t in (list, tuple):
+        elif t in (list, tuple, frozenset):
             return self.writeList
         elif t is types.GeneratorType:  # flake8: noqa
             return self.writeGenerator
@@ -536,7 +536,7 @@ class Encoder(_Codec):
             return self.writeXML
 
         # check for any overridden types
-        for type_, func in pyamf.TYPE_MAP.iteritems():
+        for type_, func in list(pyamf.TYPE_MAP.items()):
             try:
                 if isinstance(data, type_):
                     return _CustomTypeFunc(self, func)
@@ -544,7 +544,7 @@ class Encoder(_Codec):
                 if python.callable(type_) and type_(data):
                     return _CustomTypeFunc(self, func)
 
-        if isinstance(data, (list, tuple)):
+        if isinstance(data, (list, tuple, frozenset)):
             return self.writeSequence
 
         # now try some types that won't encode

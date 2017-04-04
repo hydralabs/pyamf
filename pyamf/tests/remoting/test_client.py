@@ -10,7 +10,7 @@ Tests for Remoting client.
 """
 
 import unittest
-import urllib2
+import urllib.request as urllib2
 
 import pyamf
 from pyamf import remoting, util
@@ -265,10 +265,10 @@ class BaseServiceTestCase(unittest.TestCase):
     """
 
     canned_response = (
-        '\x00\x00\x00\x00\x00\x01\x00\x0b/1/onResult\x00'
-        '\x04null\x00\x00\x00\x00\n\x00\x00\x00\x03\x00?\xf0\x00\x00'
-        '\x00\x00\x00\x00\x00@\x00\x00\x00\x00\x00\x00\x00\x00@\x08\x00'
-        '\x00\x00\x00\x00\x00'
+        b'\x00\x00\x00\x00\x00\x01\x00\x0b/1/onResult\x00'
+        b'\x04null\x00\x00\x00\x00\n\x00\x00\x00\x03\x00?\xf0\x00\x00'
+        b'\x00\x00\x00\x00\x00@\x00\x00\x00\x00\x00\x00\x00\x00@\x08\x00'
+        b'\x00\x00\x00\x00\x00'
     )
 
     headers = {
@@ -658,6 +658,6 @@ class GZipTestCase(BaseServiceTestCase):
 
     def test_bad_response(self):
         self.headers['Content-Length'] = len('foobar')
-        self.setResponse(200, 'foobar', self.headers)
+        self.setResponse(200, b'foobar', self.headers)
 
         self.assertRaises(IOError, self.gw._getResponse, None)

@@ -11,7 +11,6 @@ is compatible with the Adobe U{Flash Player
 @status: Production/Stable
 """
 
-import types
 import inspect
 
 from pyamf import util, _version
@@ -377,6 +376,9 @@ def load_class(alias):
     @return: Class registered to the alias.
     @rtype: C{classobj}
     """
+    if isinstance(alias, bytes):
+        alias = alias.decode()
+
     # Try the CLASS_CACHE first
     try:
         return CLASS_CACHE[alias]
@@ -399,10 +401,10 @@ def load_class(alias):
 
         raise TypeError("Expecting class object or ClassAlias from loader")
 
-    mod_class = alias.split('.')
+    mod_class = alias.split(b'.')
 
     if mod_class:
-        module = '.'.join(mod_class[:-1])
+        module = b'.'.join(mod_class[:-1])
         klass = mod_class[-1]
 
         try:
@@ -571,15 +573,15 @@ def flex_loader(alias):
     @raise UnknownClassAlias: Trying to load an unknown Flex compatibility
         class.
     """
-    if not alias.startswith('flex.'):
+    if not alias.startswith(b'flex.'):
         return
 
     try:
-        if alias.startswith('flex.messaging.messages'):
+        if alias.startswith(b'flex.messaging.messages'):
             import pyamf.flex.messaging
-        elif alias.startswith('flex.messaging.io'):
+        elif alias.startswith(b'flex.messaging.io'):
             import pyamf.flex
-        elif alias.startswith('flex.data.messages'):
+        elif alias.startswith(b'flex.data.messages'):
             import pyamf.flex.data  # noqa
 
         return CLASS_CACHE[alias]
@@ -611,7 +613,7 @@ def add_type(type_, func=None):
     if type_ in TYPE_MAP:
         raise KeyError('Type %r already exists' % (type_,))
 
-    if isinstance(type_, types.TupleType):
+    if isinstance(type_, tuple):
         for x in type_:
             _check_type(x)
     else:
@@ -630,7 +632,7 @@ def get_type(type_):
     if isinstance(type_, list):
         type_ = tuple(type_)
 
-    for k, v in TYPE_MAP.iteritems():
+    for k, v in TYPE_MAP.items():
         if k == type_:
             return v
 
@@ -757,7 +759,7 @@ def register_alias_type(klass, *args):
      - At least one type must be supplied
     """
     def check_type_registered(arg):
-        for k, v in ALIAS_TYPES.iteritems():
+        for k, v in list(ALIAS_TYPES.items()):
             for kl in v:
                 if arg is kl:
                     raise RuntimeError('%r is already registered under %r' % (
@@ -785,7 +787,7 @@ def register_alias_type(klass, *args):
 
     ALIAS_TYPES[klass] = args
 
-    for k, v in CLASS_CACHE.copy().iteritems():
+    for k, v in list(CLASS_CACHE.copy().items()):
         new_alias = util.get_class_alias(v.klass)
 
         if new_alias is klass:

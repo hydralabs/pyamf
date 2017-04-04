@@ -118,7 +118,7 @@ def encode(name, values, strict=True, encoding=pyamf.AMF0):
     stream.write(PADDING_BYTE * 3)
     stream.write_uchar(encoding)
 
-    for n, v in values.iteritems():
+    for n, v in values.items():
         encoder.serialiseString(n)
         encoder.writeElement(v)
 
@@ -153,7 +153,7 @@ def load(name_or_file):
     name, values = decode(f.read())
     s = SOL(name)
 
-    for n, v in values.iteritems():
+    for n, v in values.items():
         s[n] = v
 
     if opened is True:

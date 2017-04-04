@@ -16,7 +16,7 @@ import os
 try:
     from cStringIO import StringIO
 except ImportError:
-    from StringIO import StringIO
+    from io import BytesIO as StringIO
 
 try:
     import django as _django

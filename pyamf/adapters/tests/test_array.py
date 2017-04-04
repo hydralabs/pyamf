@@ -27,11 +27,11 @@ class ArrayTestCase(unittest.TestCase):
 
         self.orig = ['f', 'o', 'o']
 
-        self.obj = array.array('c')
+        self.obj = array.array('b')
 
-        self.obj.append('f')
-        self.obj.append('o')
-        self.obj.append('o')
+        self.obj.append(ord('f'))
+        self.obj.append(ord('o'))
+        self.obj.append(ord('o'))
 
     def encdec(self, encoding):
         return pyamf.decode(

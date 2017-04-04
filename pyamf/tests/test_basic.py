@@ -66,7 +66,7 @@ class ASObjectTestCase(unittest.TestCase):
 
         x = []
 
-        for k, v in bag.iteritems():
+        for k, v in bag.items():
             x.append((k, v))
 
         self.assertEqual(x, [('spam', 'eggs')])

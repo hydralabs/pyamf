@@ -140,6 +140,7 @@ def get_extras_require():
         'sqlalchemy': ['SQLAlchemy>=0.4'],
         'elixir': ['Elixir>=0.7.1'],
         'lxml': ['lxml>=2.2'],
+        'six': ['six>=1.10.0']
     }
 
 

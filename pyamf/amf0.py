@@ -24,70 +24,70 @@ from pyamf import util, codec, xml, python
 
 #: Represented as 9 bytes: 1 byte for C{0x00} and 8 bytes a double
 #: representing the value of the number.
-TYPE_NUMBER = '\x00'
+TYPE_NUMBER = b'\x00'
 #: Represented as 2 bytes: 1 byte for C{0x01} and a second, C{0x00}
 #: for C{False}, C{0x01} for C{True}.
-TYPE_BOOL = '\x01'
+TYPE_BOOL = b'\x01'
 #: Represented as 3 bytes + len(String): 1 byte C{0x02}, then a UTF8 string,
 #: including the top two bytes representing string length as a C{int}.
-TYPE_STRING = '\x02'
+TYPE_STRING = b'\x02'
 #: Represented as 1 byte, C{0x03}, then pairs of UTF8 string, the key, and
 #: an AMF element, ended by three bytes, C{0x00} C{0x00} C{0x09}.
-TYPE_OBJECT = '\x03'
+TYPE_OBJECT = b'\x03'
 #: MovieClip does not seem to be supported by Remoting.
 #: It may be used by other AMF clients such as SharedObjects.
-TYPE_MOVIECLIP = '\x04'
+TYPE_MOVIECLIP = b'\x04'
 #: 1 single byte, C{0x05} indicates null.
-TYPE_NULL = '\x05'
+TYPE_NULL = b'\x05'
 #: 1 single byte, C{0x06} indicates null.
-TYPE_UNDEFINED = '\x06'
+TYPE_UNDEFINED = b'\x06'
 #: When an ActionScript object refers to itself, such C{this.self = this},
 #: or when objects are repeated within the same scope (for example, as the
 #: two parameters of the same function called), a code of C{0x07} and an
 #: C{int}, the reference number, are written.
-TYPE_REFERENCE = '\x07'
+TYPE_REFERENCE = b'\x07'
 #: A MixedArray is indicated by code C{0x08}, then a Long representing the
 #: highest numeric index in the array, or 0 if there are none or they are
 #: all negative. After that follow the elements in key : value pairs.
-TYPE_MIXEDARRAY = '\x08'
+TYPE_MIXEDARRAY = b'\x08'
 #: @see: L{TYPE_OBJECT}
-TYPE_OBJECTTERM = '\x09'
+TYPE_OBJECTTERM = b'\x09'
 #: An array is indicated by C{0x0A}, then a Long for array length, then the
 #: array elements themselves. Arrays are always sparse; values for
 #: inexistant keys are set to null (C{0x06}) to maintain sparsity.
-TYPE_ARRAY = '\x0A'
+TYPE_ARRAY = b'\x0A'
 #: Date is represented as C{0x0B}, then a double, then an C{int}. The double
 #: represents the number of milliseconds since 01/01/1970. The C{int}
 #: represents the timezone offset in minutes between GMT. Note for the latter
 #: than values greater than 720 (12 hours) are represented as M{2^16} - the
 #: value. Thus GMT+1 is 60 while GMT-5 is 65236.
-TYPE_DATE = '\x0B'
+TYPE_DATE = b'\x0B'
 #: LongString is reserved for strings larger then M{2^16} characters long. It
 #: is represented as C{0x0C} then a LongUTF.
-TYPE_LONGSTRING = '\x0C'
+TYPE_LONGSTRING = b'\x0C'
 #: Trying to send values which don't make sense, such as prototypes, functions,
 #: built-in objects, etc. will be indicated by a single C{00x0D} byte.
-TYPE_UNSUPPORTED = '\x0D'
+TYPE_UNSUPPORTED = b'\x0D'
 #: Remoting Server -> Client only.
 #: @see: L{RecordSet}
 #: @see: U{RecordSet structure on OSFlash
 #: <http://osflash.org/documentation/amf/recordset>}
-TYPE_RECORDSET = '\x0E'
+TYPE_RECORDSET = b'\x0E'
 #: The XML element is indicated by C{0x0F} and followed by a LongUTF containing
 #: the string representation of the XML object. The receiving gateway may which
 #: to wrap this string inside a language-specific standard XML object, or
 #: simply pass as a string.
-TYPE_XML = '\x0F'
+TYPE_XML = b'\x0F'
 #: A typed object is indicated by C{0x10}, then a UTF string indicating class
 #: name, and then the same structure as a normal C{0x03} Object. The receiving
 #: gateway may use a mapping scheme, or send back as a vanilla object or
 #: associative array.
-TYPE_TYPEDOBJECT = '\x10'
+TYPE_TYPEDOBJECT = b'\x10'
 #: An AMF message sent from an AVM+ client such as the Flash Player 9 may break
 #: out into L{AMF3<pyamf.amf3>} mode. In this case the next byte will be the
 #: AMF3 type code and the data will be in AMF3 format until the decoded object
 #: reaches it's logical conclusion (for example, an object has no more keys).
-TYPE_AMF3 = '\x11'
+TYPE_AMF3 = b'\x11'
 
 
 class Context(codec.Context):
@@ -243,7 +243,7 @@ class Decoder(codec.Decoder):
 
         attrs = self.readObjectAttributes(obj)
 
-        for key, value in attrs.iteritems():
+        for key, value in attrs.items():
             try:
                 key = int(key)
             except ValueError:
@@ -261,7 +261,7 @@ class Decoder(codec.Decoder):
         self.context.addObject(obj)
         l = self.stream.read_ulong()
 
-        for i in xrange(l):
+        for i in range(l):
             obj.append(self.readElement())
 
         return obj
@@ -485,7 +485,7 @@ class Encoder(codec.Encoder):
         """
         Similar to L{writeString} but does not encode a type byte.
         """
-        if type(s) is unicode:
+        if type(s) is str:
             s = self.context.getBytesForString(s)
 
         l = len(s)
@@ -545,7 +545,7 @@ class Encoder(codec.Encoder):
 
         @param o: The C{dict} data to be encoded to the AMF0 data stream.
         """
-        for key, val in o.iteritems():
+        for key, val in o.items():
             if type(key) in python.int_types:
                 key = str(key)
 
@@ -570,7 +570,7 @@ class Encoder(codec.Encoder):
             # list comprehensions to save the day
             max_index = max([
                 y[0] for y in o.items()
-                if isinstance(y[0], (int, long))
+                if isinstance(y[0], int)
             ])
 
             if max_index < 0:
@@ -584,7 +584,7 @@ class Encoder(codec.Encoder):
         self._writeEndObject()
 
     def _writeEndObject(self):
-        self.stream.write('\x00\x00' + TYPE_OBJECTTERM)
+        self.stream.write(b'\x00\x00' + TYPE_OBJECTTERM)
 
     def writeObject(self, o):
         """
@@ -659,7 +659,7 @@ class Encoder(codec.Encoder):
 
         data = xml.tostring(e)
 
-        if isinstance(data, unicode):
+        if isinstance(data, str):
             data = data.encode('utf-8')
 
         self.stream.write_ulong(len(data))
