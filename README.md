@@ -7,15 +7,15 @@ And another PR that supports Py3 has been discontinued for over two years.
 This is the only Python AMF Project which trying to support Py3 under developing on GitHub.
 
 ### State
-Work fine when encode/decode message with AMF3
+Pass `setup.py test`
+But, adapters were not tested
 
 ### Warning
 This project isn't completed.
 If you want to make it fast, please send PR.
 
 ## TODO
-- Work with AMF0
-- Work with Service and Client
+- Check adapters
 
 ------------------------------------------------------
 
