@@ -264,6 +264,8 @@ def get_extensions():
 
     extensions = []
 
+    # Hide Cython extension
+    """
     for p in recursive_glob('.', '*.pyx'):
         mod_name = os.path.splitext(p)[0].replace(os.path.sep, '.')
 
@@ -271,6 +273,7 @@ def get_extensions():
 
         if e:
             extensions.append(e)
+    """
 
     return extensions
 
