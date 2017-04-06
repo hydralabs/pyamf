@@ -356,9 +356,9 @@ class DataInput(object):
         """
         byte = self.stream.read(1)
 
-        if byte == '\x00':
+        if byte == b'\x00':
             return False
-        elif byte == '\x01':
+        elif byte == b'\x01':
             return True
         else:
             raise ValueError("Error reading boolean")
@@ -508,7 +508,7 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
     <http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/utils/ByteArray.html>}
     """
 
-    _zlib_header = '\x78\x9c'
+    _zlib_header = b'\x78\x9c'
 
     class __amf__:
         amf3 = True
@@ -546,7 +546,17 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
 
         buf = zlib.compress(buf)
         # FIXME nick: hacked
-        return buf[0] + '\xda' + buf[2:]
+        return buf[0] + b'\xda' + buf[2:]
+
+    def __bytes__(self):
+        buf = self.getvalue()
+
+        if not self.compressed:
+            return buf
+
+        buf = zlib.compress(buf)
+        # FIXME nick: hacked
+        return buf[0] + b'\xda' + buf[2:]
 
     def compress(self):
         """
@@ -664,7 +674,9 @@ class Context(codec.Context):
 
         @raise TypeError: The parameter C{s} is not of C{basestring} type.
         """
-        if not isinstance(s, bytes):
+        if isinstance(s, str):
+            s = s.encode()
+        elif not isinstance(s, bytes):
             raise TypeError
 
         if len(s) == 0:
@@ -947,6 +959,8 @@ class Decoder(codec.Decoder):
         self.context.addObject(result)
 
         while key:
+            if isinstance(key, bytes):
+                key = key.decode()
             result[key] = self.readElement()
             key = self.readBytes()
 
@@ -1526,7 +1540,7 @@ class Encoder(codec.Encoder):
 
         self.context.addObject(n)
 
-        buf = str(n)
+        buf = bytes(n)
         l = len(buf)
         self._writeInteger(l << 1 | REFERENCE_BIT)
         self.stream.write(buf)
@@ -1548,7 +1562,7 @@ class Encoder(codec.Encoder):
 
         self.context.addObject(n)
 
-        self.serialiseString(xml.tostring(n).encode('utf-8'))
+        self.serialiseString(xml.tostring(n))
 
 
 def encode_int(n):

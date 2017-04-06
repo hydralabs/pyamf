@@ -8,9 +8,9 @@ import setupinfo
 from setuptools import setup, find_packages
 
 
-version = (0, 8, 0)
+version = (0, 8, 2)
 
-name = "PyAMF"
+name = "Py3AMF"
 description = "AMF support for Python"
 long_description = setupinfo.read('README.md')
 url = "https://github.com/StdCarrot/Py3AMF"

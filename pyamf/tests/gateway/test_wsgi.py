@@ -81,7 +81,7 @@ class WSGIServerTestCase(unittest.TestCase):
 
         response = self.doRequest(request, start_response)
 
-        envelope = remoting.decode(''.join(response))
+        envelope = remoting.decode(b''.join(response))
 
         message = envelope['/1']
 
@@ -185,7 +185,7 @@ class WSGIServerTestCase(unittest.TestCase):
 
         request = self.makeRequest('echo', now)
         response = self.doRequest(request, None)
-        envelope = remoting.decode(''.join(response))
+        envelope = remoting.decode(b''.join(response))
         message = envelope['/1']
 
         self.assertEqual(message.body, now)

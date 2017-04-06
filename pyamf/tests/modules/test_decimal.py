@@ -17,7 +17,7 @@ class DecimalTestCase(unittest.TestCase):
 
         self.assertEqual(
             pyamf.encode(x, encoding=pyamf.AMF0, strict=False).getvalue(),
-            '\x00?\xf3\xc0\xc6\xd8\xa18\xfa'
+            b'\x00?\xf3\xc0\xc6\xd8\xa18\xfa'
         )
 
         with self.assertRaises(pyamf.EncodeError):
@@ -28,7 +28,7 @@ class DecimalTestCase(unittest.TestCase):
 
         self.assertEqual(
             pyamf.encode(x, encoding=pyamf.AMF3, strict=False).getvalue(),
-            '\x05?\xf3\xc0\xc6\xd8\xa18\xfa'
+            b'\x05?\xf3\xc0\xc6\xd8\xa18\xfa'
         )
 
         with self.assertRaises(pyamf.EncodeError):

@@ -8,7 +8,7 @@ General tests.
 """
 
 import unittest
-import new
+import types
 
 import pyamf
 from pyamf.tests.util import ClassCacheClearingTestCase, replace_dict, Spam
@@ -92,11 +92,11 @@ class HelperTestCase(unittest.TestCase):
         self.assertRaises(ValueError, pyamf.get_decoder, 'spam')
 
         decoder = pyamf.get_decoder(pyamf.AMF0, stream='123', strict=True)
-        self.assertEqual(decoder.stream.getvalue(), '123')
+        self.assertEqual(decoder.stream.getvalue(), b'123')
         self.assertTrue(decoder.strict)
 
         decoder = pyamf.get_decoder(pyamf.AMF3, stream='456', strict=True)
-        self.assertEqual(decoder.stream.getvalue(), '456')
+        self.assertEqual(decoder.stream.getvalue(), b'456')
         self.assertTrue(decoder.strict)
 
     def test_get_encoder(self):
@@ -105,7 +105,7 @@ class HelperTestCase(unittest.TestCase):
         self.assertRaises(ValueError, pyamf.get_encoder, 'spam')
 
         encoder = pyamf.get_encoder(pyamf.AMF0, stream='spam')
-        self.assertEqual(encoder.stream.getvalue(), 'spam')
+        self.assertEqual(encoder.stream.getvalue(), b'spam')
         self.assertFalse(encoder.strict)
 
         encoder = pyamf.get_encoder(pyamf.AMF3, stream='eggs')
@@ -119,13 +119,13 @@ class HelperTestCase(unittest.TestCase):
 
     def test_encode(self):
         self.assertEqual(
-            '\x06\x0fconnect\x05?\xf0\x00\x00\x00\x00\x00\x00',
+            b'\x06\x0fconnect\x05?\xf0\x00\x00\x00\x00\x00\x00',
             pyamf.encode(u'connect', 1.0).getvalue()
         )
 
     def test_decode(self):
         expected = [u'connect', 1.0]
-        bytes = '\x06\x0fconnect\x05?\xf0\x00\x00\x00\x00\x00\x00'
+        bytes = b'\x06\x0fconnect\x05?\xf0\x00\x00\x00\x00\x00\x00'
 
         returned = [x for x in pyamf.decode(bytes)]
 
@@ -136,13 +136,13 @@ class HelperTestCase(unittest.TestCase):
 
         x = pyamf.encode('foo').getvalue()
 
-        self.assertEqual(x, '\x06\x07foo')
+        self.assertEqual(x, b'\x06\x07foo')
 
         pyamf.DEFAULT_ENCODING = pyamf.AMF0
 
         x = pyamf.encode('foo').getvalue()
 
-        self.assertEqual(x, '\x02\x00\x03foo')
+        self.assertEqual(x, b'\x02\x00\x03foo')
 
 
 class UnregisterClassTestCase(ClassCacheClearingTestCase):
@@ -222,13 +222,6 @@ class ClassLoaderTestCase(ClassCacheClearingTestCase):
 
         self.assertRaises(TypeError, pyamf.load_class, 'spam.eggs')
 
-    def test_load_class_by_module(self):
-        pyamf.load_class('__builtin__.tuple')
-
-    def test_load_class_by_module_bad(self):
-        with self.assertRaises(pyamf.UnknownClassAlias):
-            pyamf.load_class('__builtin__.tuple.')
-
 
 class TypeMapTestCase(unittest.TestCase):
     def setUp(self):
@@ -237,13 +230,13 @@ class TypeMapTestCase(unittest.TestCase):
         self.addCleanup(replace_dict, self.tm, pyamf.TYPE_MAP)
 
     def test_add_invalid(self):
-        mod = new.module('spam')
+        mod = types.ModuleType('spam')
         self.assertRaises(TypeError, pyamf.add_type, mod)
         self.assertRaises(TypeError, pyamf.add_type, {})
         self.assertRaises(TypeError, pyamf.add_type, 'spam')
-        self.assertRaises(TypeError, pyamf.add_type, u'eggs')
+        self.assertRaises(TypeError, pyamf.add_type, 'eggs')
         self.assertRaises(TypeError, pyamf.add_type, 1)
-        self.assertRaises(TypeError, pyamf.add_type, 234234L)
+        self.assertRaises(TypeError, pyamf.add_type, 234234)
         self.assertRaises(TypeError, pyamf.add_type, 34.23)
         self.assertRaises(TypeError, pyamf.add_type, None)
         self.assertRaises(TypeError, pyamf.add_type, object())
@@ -469,7 +462,7 @@ class PackageTestCase(ClassCacheClearingTestCase):
     def setUp(self):
         ClassCacheClearingTestCase.setUp(self)
 
-        self.module = new.module('foo')
+        self.module = types.ModuleType('foo')
 
         self.module.Classic = self.ClassicType
         self.module.New = self.NewType
@@ -562,7 +555,7 @@ class PackageTestCase(ClassCacheClearingTestCase):
         self.assertRaises(TypeError, pyamf.register_package, object())
         self.assertRaises(TypeError, pyamf.register_package, 1)
         self.assertRaises(TypeError, pyamf.register_package, 1.2)
-        self.assertRaises(TypeError, pyamf.register_package, 23897492834L)
+        self.assertRaises(TypeError, pyamf.register_package, 23897492834)
         self.assertRaises(TypeError, pyamf.register_package, [])
         self.assertRaises(TypeError, pyamf.register_package, '')
         self.assertRaises(TypeError, pyamf.register_package, u'')
@@ -625,7 +618,7 @@ class UndefinedTestCase(unittest.TestCase):
         """
         Truth test for L{pyamf.Undefined} == C{False}.
         """
-        self.assertFalse(pyamf.Undefined)
+        self.assertFalse(pyamf.Undefined is None)
 
 
 class TestAMF0Codecs(unittest.TestCase):

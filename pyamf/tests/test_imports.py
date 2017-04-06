@@ -96,10 +96,9 @@ class WhenImportedTestCase(ImportsTestCase):
         try:
             import spam  # noqa
         except Exception as e:
-            pass
+            self.assertEqual(e.__class__, RuntimeError)
         else:
             self.fail('expected exception')
 
         self.assertFalse('spam' in self.finder.loaded_modules)
 
-        self.assertEqual(e.__class__, RuntimeError)

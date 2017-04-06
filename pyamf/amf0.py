@@ -303,10 +303,12 @@ class Decoder(codec.Decoder):
         obj_attrs = {}
 
         key = self.readString(True)
+        key = key.decode() if isinstance(key, bytes) else key
 
         while self.stream.peek() != TYPE_OBJECTTERM:
             obj_attrs[key] = self.readElement()
             key = self.readString(True)
+            key = key.decode() if isinstance(key, bytes) else key
 
         # discard the end marker (TYPE_OBJECTTERM)
         self.stream.read(1)

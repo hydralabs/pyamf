@@ -162,10 +162,10 @@ class DecoderTestCase(unittest.TestCase):
         request_envelope = remoting.decode(request)
         it = iter(request_envelope)
 
-        self.assertEqual(it.next()[0], '/2')
-        self.assertEqual(it.next()[0], '/1')
+        self.assertEqual(next(it)[0], '/2')
+        self.assertEqual(next(it)[0], '/1')
 
-        self.assertRaises(StopIteration, it.next)
+        self.assertRaises(StopIteration, it.__next__)
 
     def test_multiple_request_header_references(self):
         msg = remoting.decode(
@@ -310,11 +310,11 @@ class EncoderTestCase(unittest.TestCase):
 
         it = iter(msg)
 
-        self.assertEqual(it.next()[0], '/3')
-        self.assertEqual(it.next()[0], '/1')
-        self.assertEqual(it.next()[0], '/2')
+        self.assertEqual(next(it)[0], '/3')
+        self.assertEqual(next(it)[0], '/1')
+        self.assertEqual(next(it)[0], '/2')
 
-        self.assertRaises(StopIteration, it.next)
+        self.assertRaises(StopIteration, it.__next__)
 
     def test_stream_pos(self):
         """

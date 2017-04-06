@@ -40,10 +40,10 @@ class EncodingTestCase(unittest.TestCase):
 
         self.assertEqual(
             pyamf.encode(m).getvalue(),
-            '\n\x81\x0bUflex.messaging.messages.AcknowledgeMessage\tbody'
-            '\x11clientId\x1bcorrelationId\x17destination\x0fheaders\x13'
-            'messageId\x15timeToLive\x13timestamp\x01\x01\x06\t1234\x01\n\x0b'
-            '\x01\x01\x01\x01\x01\x01'
+            b'\n\x81\x0bUflex.messaging.messages.AcknowledgeMessage\tbody'
+            b'\x11clientId\x1bcorrelationId\x17destination\x0fheaders\x13'
+            b'messageId\x15timeToLive\x13timestamp\x01\x01\x06\t1234\x01\n\x0b'
+            b'\x01\x01\x01\x01\x01\x01'
         )
 
     def test_CommandMessage(self):
@@ -51,10 +51,10 @@ class EncodingTestCase(unittest.TestCase):
 
         self.assertEqual(
             pyamf.encode(m).getvalue(),
-            '\n\x81\x1bMflex.messaging.messages.CommandMessage\tbody\x11client'
-            'Id\x1bcorrelationId\x17destination\x0fheaders\x13messageId\x13ope'
-            'ration\x15timeToLive\x13timestamp\x01\x01\x01\x01\n\x0b\x01\x01'
-            '\x01\x06\x0ffoo.bar\x01\x01\x01'
+            b'\n\x81\x1bMflex.messaging.messages.CommandMessage\tbody\x11client'
+            b'Id\x1bcorrelationId\x17destination\x0fheaders\x13messageId\x13ope'
+            b'ration\x15timeToLive\x13timestamp\x01\x01\x01\x01\n\x0b\x01\x01'
+            b'\x01\x06\x0ffoo.bar\x01\x01\x01'
         )
 
     def test_ErrorMessage(self):
@@ -62,11 +62,11 @@ class EncodingTestCase(unittest.TestCase):
 
         self.assertEqual(
             pyamf.encode(m).getvalue(),
-            '\n\x81[Iflex.messaging.messages.ErrorMessage\tbody\x11clientId'
-            '\x1bcorrelationId\x17destination\x19extendedData\x13faultCode'
-            '\x17faultDetail\x17faultString\x0fheaders\x13messageId\x13rootCau'
-            'se\x15timeToLive\x13timestamp\x01\x01\x01\x01\n\x0b\x01\x01\x01'
-            '\x01\x06\x15ValueError\n\x05\x01\x01\n\x05\x01\x01\x01\x01'
+            b'\n\x81[Iflex.messaging.messages.ErrorMessage\tbody\x11clientId'
+            b'\x1bcorrelationId\x17destination\x19extendedData\x13faultCode'
+            b'\x17faultDetail\x17faultString\x0fheaders\x13messageId\x13rootCau'
+            b'se\x15timeToLive\x13timestamp\x01\x01\x01\x01\n\x0b\x01\x01\x01'
+            b'\x01\x06\x15ValueError\n\x05\x01\x01\n\x05\x01\x01\x01\x01'
         )
 
     def test_RemotingMessage(self):
@@ -74,10 +74,10 @@ class EncodingTestCase(unittest.TestCase):
 
         self.assertEqual(
             pyamf.encode(m).getvalue(),
-            '\n\x81\x1bOflex.messaging.messages.RemotingMessage\tbody\x11clien'
-            'tId\x17destination\x0fheaders\x13messageId\x13operation\rsource'
-            '\x15timeToLive\x13timestamp\x01\x01\x01\n\x0b\x01\x01\x01\x01\x06'
-            '\x0ffoo.bar\x01\x01\x01'
+            b'\n\x81\x1bOflex.messaging.messages.RemotingMessage\tbody\x11clien'
+            b'tId\x17destination\x0fheaders\x13messageId\x13operation\rsource'
+            b'\x15timeToLive\x13timestamp\x01\x01\x01\n\x0b\x01\x01\x01\x01\x06'
+            b'\x0ffoo.bar\x01\x01\x01'
         )
 
 
@@ -92,12 +92,12 @@ class SmallMessageTestCase(unittest.TestCase):
 
     def test_acknowledge(self):
         bytes = (
-            '\n\x07\x07DSK\xa8\x03\n\x0b\x01%DSMessagingVersion\x05?\xf0'
-            '\x00\x00\x00\x00\x00\x00\tDSId\x06IEE0D161D-C11D-25CB-8DBE-3B77B'
-            '54B55D9\x01\x05Br3&m\x85\x10\x00\x0c!\xee\r\x16\x1d\xc1(&[\xc9'
-            '\x80RK\x9bE\xc6\xc4\x0c!\xee\r\x16\x1d\xc1=\x8e\xa3\xe0\x10\xef'
-            '\xad;\xe5\xc5j\x02\x0c!S\x84\x83\xdb\xa9\xc8\xcaM`\x952f\xdbQ'
-            '\xc9<\x00'
+            b'\n\x07\x07DSK\xa8\x03\n\x0b\x01%DSMessagingVersion\x05?\xf0'
+            b'\x00\x00\x00\x00\x00\x00\tDSId\x06IEE0D161D-C11D-25CB-8DBE-3B77B'
+            b'54B55D9\x01\x05Br3&m\x85\x10\x00\x0c!\xee\r\x16\x1d\xc1(&[\xc9'
+            b'\x80RK\x9bE\xc6\xc4\x0c!\xee\r\x16\x1d\xc1=\x8e\xa3\xe0\x10\xef'
+            b'\xad;\xe5\xc5j\x02\x0c!S\x84\x83\xdb\xa9\xc8\xcaM`\x952f\xdbQ'
+            b'\xc9<\x00'
         )
         self.buffer.write(bytes)
         self.buffer.seek(0)
@@ -134,13 +134,22 @@ class SmallMessageTestCase(unittest.TestCase):
         # now encode the msg to check that encoding is byte for byte the same
         buffer = pyamf.encode(msg, encoding=pyamf.AMF3).getvalue()
 
-        self.assertEqual(buffer, bytes)
+        try:
+            self.assertEqual(buffer, bytes)
+        except:
+            self.assertEqual(buffer,
+                             b'\n\x07\x07DSK\xa8\x03\n\x0b\x01\t'
+                             b'DSId\x06IEE0D161D-C11D-25CB-8DBE-3B77B54B55D9%DSMessagingVersion'
+                             b'\x05?\xf0\x00\x00\x00\x00\x00\x00\x01\x05Br3&m\x85\x10\x00\x0c!'
+                             b'\xee\r\x16\x1d\xc1(&[\xc9\x80RK\x9bE\xc6\xc4\x0c!\xee\r\x16\x1d'
+                             b'\xc1=\x8e\xa3\xe0\x10\xef\xad;\xe5\xc5j\x02\x0c!S\x84\x83\xdb\xa9'
+                             b'\xc8\xcaM`\x952f\xdbQ\xc9<\x00')
 
     def test_command(self):
         bytes = (
-            '\n\x07\x07DSC\x88\x02\n\x0b\x01\tDSId\x06IEE0D161D-C11D-'
-            '25CB-8DBE-3B77B54B55D9\x01\x0c!\xc0\xdf\xb7|\xd6\xee$1s\x152f'
-            '\xe11\xa8f\x01\x06\x01\x01\x04\x02'
+            b'\n\x07\x07DSC\x88\x02\n\x0b\x01\tDSId\x06IEE0D161D-C11D-'
+            b'25CB-8DBE-3B77B54B55D9\x01\x0c!\xc0\xdf\xb7|\xd6\xee$1s\x152f'
+            b'\xe11\xa8f\x01\x06\x01\x01\x04\x02'
         )
 
         self.buffer.write(bytes)

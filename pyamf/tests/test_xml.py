@@ -84,13 +84,13 @@ class ElementTreeTestCase(_BaseTestCase):
         bytes = pyamf.encode(element, encoding=pyamf.AMF0).getvalue()
         self.check_amf0(bytes, xml)
 
-        new_element = pyamf.decode(bytes, encoding=pyamf.AMF0).next()
+        new_element = next(pyamf.decode(bytes, encoding=pyamf.AMF0))
         self.assertIdentical(type(element), type(new_element))
 
         bytes = pyamf.encode(element, encoding=pyamf.AMF3).getvalue()
         self.check_amf3(bytes, xml)
 
-        new_element = pyamf.decode(bytes, encoding=pyamf.AMF3).next()
+        new_element = next(pyamf.decode(bytes, encoding=pyamf.AMF3))
         self.assertIdentical(type(element), type(new_element))
 
 

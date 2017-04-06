@@ -12,7 +12,7 @@ Tests for AMF utilities.
 import unittest
 
 from datetime import datetime
-from io import StringIO
+from io import BytesIO
 
 import pyamf
 from pyamf import util
@@ -86,7 +86,7 @@ class StringIOTestCase(unittest.TestCase):
         self.assertEqual(sp.getvalue(), b'spam')
         self.assertEqual(len(sp), 4)
 
-        sp = util.BufferedByteStream(StringIO('this is a test'))
+        sp = util.BufferedByteStream(BytesIO('this is a test'.encode()))
         self.assertEqual(sp.tell(), 0)
         self.assertEqual(sp.getvalue(), b'this is a test')
         self.assertEqual(len(sp), 14)

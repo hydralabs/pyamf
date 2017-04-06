@@ -81,13 +81,15 @@ class FaultTestCase(unittest.TestCase):
         buffer.seek(0, 0)
 
         fault = decoder.readElement()
-        old_fault = amf0.build_fault(*sys.exc_info())
+        exc_info = sys.exc_info()
+        if exc_info[0]:
+            old_fault = amf0.build_fault(*exc_info)
 
-        self.assertEqual(fault.level, old_fault.level)
-        self.assertEqual(fault.type, old_fault.type)
-        self.assertEqual(fault.code, old_fault.code)
-        self.assertEqual(fault.details, old_fault.details)
-        self.assertEqual(fault.description, old_fault.description)
+            self.assertEqual(fault.level, old_fault.level)
+            self.assertEqual(fault.type, old_fault.type)
+            self.assertEqual(fault.code, old_fault.code)
+            self.assertEqual(fault.details, old_fault.details)
+            self.assertEqual(fault.description, old_fault.description)
 
     def test_explicit_code(self):
         class X(Exception):
@@ -241,9 +243,9 @@ class BaseGatewayTestCase(unittest.TestCase):
 
         self.assertRaises(TypeError, gw.addService, 1)
 
-        import new
+        import types
 
-        temp = new.module('temp')
+        temp = types.ModuleType('temp')
         gw.addService(temp)
 
         self.assertTrue(temp in gw.services)

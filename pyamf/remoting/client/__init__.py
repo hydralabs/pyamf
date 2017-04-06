@@ -522,8 +522,8 @@ class RemotingService(object):
         self.addHeader(
             'Credentials',
             dict(
-                userid=username.decode('utf-8'),
-                password=password.decode('utf-8')
+                userid=username,
+                password=password
             ),
             True
         )

@@ -120,6 +120,8 @@ class BytesIOProxy(object):
         Writes the content of the specified C{s} into this buffer.
         @param s: Raw bytes
         """
+        if isinstance(s, str):
+            s = s.encode()
         self._buffer.write(s)
         self._len_changed = True
 

@@ -238,7 +238,7 @@ class ErrorAlias(ClassAlias):
     def getEncodableAttributes(self, obj, **kwargs):
         attrs = ClassAlias.getEncodableAttributes(self, obj, **kwargs)
 
-        attrs['message'] = unicode(obj)
+        attrs['message'] = str(obj)
         attrs['name'] = obj.__class__.__name__
 
         return attrs
@@ -401,10 +401,10 @@ def load_class(alias):
 
         raise TypeError("Expecting class object or ClassAlias from loader")
 
-    mod_class = alias.split(b'.')
+    mod_class = alias.split('.')
 
     if mod_class:
-        module = b'.'.join(mod_class[:-1])
+        module = '.'.join(mod_class[:-1])
         klass = mod_class[-1]
 
         try:
@@ -573,15 +573,15 @@ def flex_loader(alias):
     @raise UnknownClassAlias: Trying to load an unknown Flex compatibility
         class.
     """
-    if not alias.startswith(b'flex.'):
+    if not alias.startswith('flex.'):
         return
 
     try:
-        if alias.startswith(b'flex.messaging.messages'):
+        if alias.startswith('flex.messaging.messages'):
             import pyamf.flex.messaging
-        elif alias.startswith(b'flex.messaging.io'):
+        elif alias.startswith('flex.messaging.io'):
             import pyamf.flex
-        elif alias.startswith(b'flex.data.messages'):
+        elif alias.startswith('flex.data.messages'):
             import pyamf.flex.data  # noqa
 
         return CLASS_CACHE[alias]
@@ -727,7 +727,7 @@ def remove_error_class(klass):
         if klass not in classes:
             raise ValueError('Class %s is not registered' % (klass,))
 
-        klass = ERROR_CLASS_MAP.keys()[classes.index(klass)]
+        klass = list(ERROR_CLASS_MAP.keys())[list(classes).index(klass)]
     else:
         raise TypeError("Invalid type, expected class or string")
 

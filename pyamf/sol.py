@@ -18,11 +18,11 @@ import pyamf
 from pyamf import util
 
 #: Magic Number - 2 bytes
-HEADER_VERSION = '\x00\xbf'
+HEADER_VERSION = b'\x00\xbf'
 #: Marker - 10 bytes
-HEADER_SIGNATURE = 'TCSO\x00\x04\x00\x00\x00\x00'
+HEADER_SIGNATURE = b'TCSO\x00\x04\x00\x00\x00\x00'
 #: Padding - 4 bytes
-PADDING_BYTE = '\x00'
+PADDING_BYTE = b'\x00'
 
 
 def decode(stream, strict=True):
@@ -144,7 +144,7 @@ def load(name_or_file):
     f = name_or_file
     opened = False
 
-    if isinstance(name_or_file, basestring):
+    if isinstance(name_or_file, str):
         f = open(name_or_file, 'rb')
         opened = True
     elif not hasattr(f, 'read'):
@@ -172,7 +172,7 @@ def save(sol, name_or_file, encoding=pyamf.AMF0):
     f = name_or_file
     opened = False
 
-    if isinstance(name_or_file, basestring):
+    if isinstance(name_or_file, str):
         f = open(name_or_file, 'wb+')
         opened = True
     elif not hasattr(f, 'write'):

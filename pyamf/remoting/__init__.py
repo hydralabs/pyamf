@@ -353,7 +353,7 @@ class BaseFault(object):
         Raises an exception based on the fault object. There is no traceback
         available.
         """
-        raise (get_exception_from_fault(self), self.description, None)
+        raise get_exception_from_fault(self)(self.description, None)
 
 
 class ErrorFault(BaseFault):
@@ -447,14 +447,14 @@ def _read_body(stream, decoder, strict=False, logger=None):
         # does not keep the array of args in the object references lookup
         type_byte = stream.peek(1)
 
-        if type_byte == '\x11':
+        if type_byte == b'\x11':
             if not decoder.use_amf3:
                 raise pyamf.DecodeError(
                     "Unexpected AMF3 type with incorrect message type")
 
             return decoder.readElement()
 
-        if type_byte != '\x0a':
+        if type_byte != b'\x0a':
             raise pyamf.DecodeError("Array type required for request body")
 
         stream.read(1)

@@ -18,13 +18,6 @@ __all__ = [
     'Encoder'
 ]
 
-try:
-    unicode
-except NameError:
-    # py3k support
-    unicode = str
-    str = bytes
-
 
 class IndexedCollection(object):
     """
@@ -290,7 +283,7 @@ class _Codec(object):
 
     def __init__(self, stream=None, context=None, strict=False,
                  timezone_offset=None, forbid_dtd=True, forbid_entities=True):
-        if isinstance(stream, str) or stream is None:
+        if isinstance(stream, (str, bytes)) or stream is None:
             stream = util.BufferedByteStream(stream)
 
         self.stream = stream
@@ -341,7 +334,7 @@ class Decoder(_Codec):
         """
         self.stream.append(data)
 
-    def next(self):
+    def __next__(self):
         """
         Part of the iterator protocol.
         """
@@ -495,7 +488,7 @@ class Encoder(_Codec):
         """
         Iterates over a generator object and encodes all that is returned.
         """
-        n = getattr(gen, 'next')
+        n = getattr(gen, '__next__')
 
         while True:
             try:
@@ -514,9 +507,9 @@ class Encoder(_Codec):
         t = type(data)
 
         # try types that we know will work
-        if t is str or issubclass(t, str):
+        if t is bytes or issubclass(t, bytes):
             return self.writeBytes
-        if t is unicode or issubclass(t, unicode):
+        if t is str or issubclass(t, str):
             return self.writeString
         elif t is bool:
             return self.writeBoolean
@@ -585,7 +578,7 @@ class Encoder(_Codec):
     def send(self, element):
         self.bucket.append(element)
 
-    def next(self):
+    def __next__(self):
         try:
             element = self.bucket.pop(0)
         except IndexError:
