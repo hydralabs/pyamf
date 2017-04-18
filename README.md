@@ -14,6 +14,52 @@ But, adapters were not tested
 This project isn't completed.
 If you want to make it fast, please send PR.
 
+### Install
+This was tested on Ubuntu 16.04.2 and macOS 10.12.4
+
+To install, you can use pip3 on your environment. 
+```
+pip3 install Py3AMF
+```
+
+Or, you can use setup.py to develop.
+```
+git clone git@github.com:StdCarrot/Py3AMF.git
+cd Py3AMF
+# python3 setup.py test
+python3 setup.py install
+```
+
+### Simple example
+Everything is same with PyAMF, but you have to concern str and bytes types.
+```python
+import pyamf
+from pyamf import remoting
+from pyamf.flex import messaging
+import uuid
+import requests
+
+msg = messaging.RemotingMessage(operation='retrieveUser', 
+                                destination='so.stdc.flexact.common.User',
+                                messageId=str(uuid.uuid4()).upper(),
+                                body=['user_id'])
+req = remoting.Request(target='UserService', body=[msg])
+ev = remoting.Envelope(pyamf.AMF3)        
+ev['/0'] = req
+
+# Encode request 
+bin_msg = remoting.encode(ev)
+
+# Send request; You can use other channels like RTMP
+resp = requests.post('http://example.com/amf', 
+                     data=bin_msg.getvalue(), 
+                     headers={'Content-Type': 'application/x-amf'})
+
+# Decode response
+resp_msg = remoting.decode(resp.content)
+print(resp_msg.bodies)
+```
+
 ## TODO
 - Check adapters
 
