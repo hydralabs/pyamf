@@ -239,7 +239,7 @@ class MockHeaderCollection(object):
     def __init__(self, headers):
         self.headers = headers
 
-    def getheader(self, name):
+    def get(self, name):
         return self.headers.get(name, None)
 
     def __repr__(self):
