@@ -455,10 +455,10 @@ class RemotingService(object):
 
         http_message = fbh.info()
 
-        content_encoding = http_message.getheader('Content-Encoding')
-        content_length = http_message.getheader('Content-Length') or -1
-        content_type = http_message.getheader('Content-Type')
-        server = http_message.getheader('Server')
+        content_encoding = http_message.get('Content-Encoding')
+        content_length = http_message.get('Content-Length') or -1
+        content_type = http_message.get('Content-Type')
+        server = http_message.get('Server')
 
         if self.logger:
             self.logger.debug('Content-Type: %r', content_type)
