@@ -286,10 +286,13 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
             ),
             b'\x01'
         )
-        self.assertEncoded({12: True, 42: "Testing"}, (b'\n\x0b', (
-            b'\x01\x0542\x06\x0fTesting',
-            b'\x0512\x03\x01'
-        )))
+        self.assertEncoded({12: True, 42: "Testing"},
+                           b'\n\x0b\x01',
+                           (
+                               b'\x0512\x03',
+                               b'\x0542\x06\x0fTesting',
+                           ),
+                           b'\x01')
 
     def test_boolean(self):
         self.assertEncoded(True, b'\x03')
