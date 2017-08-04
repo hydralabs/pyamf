@@ -6,6 +6,15 @@ versions of PyAMF.
 
 .. contents::
 
+0.8.7 (2017-08-04)
+----------------
+- Fix http header getter to Python3
+
+0.8.3 (2017-04-06)
+----------------
+- Add support Python3
+- Remove Cython support on package info
+
 0.8 (2015-12-17)
 ----------------
 - Add support for Django>=1.8
