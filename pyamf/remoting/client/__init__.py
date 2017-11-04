@@ -495,9 +495,9 @@ class RemotingService(object):
             self.logger.debug('Response: %s', response)
 
         if remoting.APPEND_TO_GATEWAY_URL in response.headers:
-            self.original_url += response.headers[
+            self.original_url += str(response.headers[
                 remoting.APPEND_TO_GATEWAY_URL
-            ]
+            ])
 
             self._setUrl(self.original_url)
 
