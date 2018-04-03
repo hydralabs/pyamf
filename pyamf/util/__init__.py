@@ -215,5 +215,5 @@ def get_module(mod_name):
 
 try:
     datetime.datetime.utcfromtimestamp(-31536000.0)
-except ValueError:
+except (ValueError, OSError):
     negative_timestamp_broken = True
