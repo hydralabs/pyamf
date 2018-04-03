@@ -6,6 +6,10 @@ versions of PyAMF.
 
 .. contents::
 
+0.8.8 (2018-04-03)
+----------------
+- Improve compatibility with python 3.6
+
 0.8.7 (2017-08-04)
 ----------------
 - Fix http header getter to Python3
