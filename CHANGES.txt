@@ -6,6 +6,10 @@ versions of PyAMF.
 
 .. contents::
 
+0.8.9 (2018-07-18)
+----------------
+- Support SqlAlchemy
+
 0.8.8 (2018-04-03)
 ----------------
 - Improve compatibility with python 3.6
@@ -17,6 +21,7 @@ versions of PyAMF.
 0.8.3 (2017-04-06)
 ----------------
 - Add support Python3
+- Drop support Python2
 - Remove Cython support on package info
 
 0.8 (2015-12-17)

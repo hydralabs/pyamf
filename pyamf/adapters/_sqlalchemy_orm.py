@@ -22,7 +22,7 @@ UnmappedInstanceError = None
 
 try:
     class_mapper(dict)
-except Exception, e:
+except Exception as e:
     UnmappedInstanceError = e.__class__
 
 
@@ -73,10 +73,13 @@ class SaMappedClassAlias(pyamf.ClassAlias):
 
         if not self.exclude_sa_lazy:
             lazy_attrs = []
+            local_attrs = obj._sa_class_manager.local_attrs
 
             for attr in self.properties:
-                if attr not in obj.__dict__:
-                    lazy_attrs.append(attr)
+                if attr in local_attrs:
+                    lazy = getattr(local_attrs[attr].property, 'lazy', False)
+                    if lazy not in (False, 'joined'):
+                        lazy_attrs.append(attr)
 
             attrs[self.LAZY_ATTR] = lazy_attrs
 
