@@ -546,7 +546,7 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
 
         buf = zlib.compress(buf)
         # FIXME nick: hacked
-        return buf[0] + b'\xda' + buf[2:]
+        return buf[:1] + b'\xda' + buf[2:]
 
     def __bytes__(self):
         buf = self.getvalue()
@@ -556,7 +556,7 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
 
         buf = zlib.compress(buf)
         # FIXME nick: hacked
-        return buf[0] + b'\xda' + buf[2:]
+        return buf[:1] + b'\xda' + buf[2:]
 
     def compress(self):
         """
