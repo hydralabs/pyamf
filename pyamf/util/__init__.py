@@ -198,7 +198,7 @@ def get_module(mod_name):
     """
     Load and return a module based on C{mod_name}.
     """
-    if mod_name is '':
+    if mod_name == '':
         raise ImportError('Unable to import empty module')
 
     mod = __import__(mod_name)
