@@ -6,6 +6,10 @@ versions of PyAMF.
 
 .. contents::
 
+0.8.10 (2020-01-10)
+----------------
+- Support Python 3.7 and 3.8
+
 0.8.9 (2018-07-18)
 ----------------
 - Support SqlAlchemy

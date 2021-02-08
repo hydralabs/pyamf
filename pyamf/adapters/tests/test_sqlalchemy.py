@@ -297,6 +297,7 @@ class ClassAliasTestCase(BaseClassAliasTestCase):
             self.mappers['user'].primary_key_from_instance(u)
         )
         attrs = self.alias.getEncodableAttributes(u)
+        attrs['sa_lazy'] = sorted(attrs['sa_lazy'])
 
         self.assertEqual(attrs, {
             'addresses': u.addresses,
@@ -304,7 +305,7 @@ class ClassAliasTestCase(BaseClassAliasTestCase):
             'another_lazy_loaded': [],
             'id': None,
             'name': 'test_user',
-            'sa_lazy': ['lazy_loaded', 'another_lazy_loaded'],
+            'sa_lazy': sorted(['lazy_loaded', 'another_lazy_loaded']),
             'sa_key': (None, )
         })
 

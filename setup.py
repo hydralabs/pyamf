@@ -8,7 +8,7 @@ import setupinfo
 from setuptools import setup, find_packages
 
 
-version = (0, 8, 9)
+version = (0, 8, 10)
 
 name = "Py3AMF"
 description = "AMF support for Python"
@@ -31,6 +31,8 @@ Programming Language :: C
 Programming Language :: Python
 Programming Language :: Python :: 3.5
 Programming Language :: Python :: 3.6
+Programming Language :: Python :: 3.7
+Programming Language :: Python :: 3.8
 Topic :: Internet :: WWW/HTTP :: WSGI :: Application
 Topic :: Software Development :: Libraries :: Python Modules
 """
