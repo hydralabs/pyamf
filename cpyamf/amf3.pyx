@@ -636,7 +636,7 @@ cdef class Encoder(codec.Encoder):
             l = PyUnicode_GET_SIZE(u)
             is_unicode = 1
         elif PyString_Check(u):
-            l = PyString_GET_SIZE(u)
+            l = len(u)
         else:
             raise TypeError('Expected str or unicode')
 
@@ -654,7 +654,7 @@ cdef class Encoder(codec.Encoder):
 
         if is_unicode:
             u = self.context.getBytesForString(u)
-            l = PyString_GET_SIZE(u)
+            l = len(u)
 
         _encode_integer(self.stream, (l << 1) | REFERENCE_BIT)
 
@@ -967,7 +967,7 @@ cdef class Encoder(codec.Encoder):
         self.context.addObject(obj)
 
         buf = str(obj)
-        l = PyString_GET_SIZE(buf)
+        l = len(buf)
 
         _encode_integer(self.stream, (l << 1) | REFERENCE_BIT)
         self.stream.write(PyString_AS_STRING(buf), l)
@@ -991,7 +991,7 @@ cdef class Encoder(codec.Encoder):
         if not PyString_CheckExact(s):
             raise TypeError('Expected string from xml serialization')
 
-        i = PyString_GET_SIZE(s)
+        i = len(s)
 
         _encode_integer(self.stream, (i << 1) | REFERENCE_BIT)
         self.stream.write(PyString_AS_STRING(s), i)
