@@ -508,7 +508,7 @@ cdef class Decoder(codec.Decoder):
         cdef object s
 
         self.stream.read(&buf, ref)
-        s = PyUnicode_FromStringAndSize(buf, ref)
+        s = buf[:ref].decode()
 
         x = xml.fromstring(
             s,
@@ -540,7 +540,7 @@ cdef class Decoder(codec.Decoder):
         ref >>= 1
 
         self.stream.read(&buf, ref)
-        s = PyUnicode_FromStringAndSize(buf, ref)
+        s = buf[:ref].decode()
 
         if zlib:
             if ref > 2 and buf[0] == b'\x78' and buf[1] == b'\x9c':

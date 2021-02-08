@@ -365,7 +365,7 @@ cdef class cBufferedByteStream(object):
         """
         Get raw data from buffer.
         """
-        return PyUnicode_FromStringAndSize(self.buffer, self.length)
+        return self.buffer[:self.length].decode()
 
     cdef Py_ssize_t peek(self, char **buf, Py_ssize_t size) except -1:
         """
@@ -946,7 +946,8 @@ cdef class BufferedByteStream(cBufferedByteStream):
             self.endian = PyString_AsString(value)[0]
 
         def __get__(self):
-            return PyUnicode_FromStringAndSize(&self.endian, 1)
+            return (&self.endian)[:1].decode()
+            # return PyUnicode_FromStringAndSize(&self.endian, 1)
 
     def read(self, size=-1):
         """
@@ -966,8 +967,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         cdef char *buf = NULL
 
         cBufferedByteStream.read(self, &buf, s)
-
-        return PyUnicode_FromStringAndSize(buf, s)
+        return buf[:s].decode()
 
     def write(self, x, size=-1):
         """
@@ -1006,7 +1006,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
 
         size = cBufferedByteStream.peek(self, &buf, size)
 
-        return PyUnicode_FromStringAndSize(buf, size)
+        return buf[:size].decode()
 
     def write_char(self, x):
         """
