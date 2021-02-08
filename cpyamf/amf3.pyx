@@ -25,22 +25,22 @@ except ImportError:
     zlib = None
 
 
-cdef char TYPE_UNDEFINED = '\x00'
-cdef char TYPE_NULL = '\x01'
-cdef char TYPE_BOOL_FALSE = '\x02'
-cdef char TYPE_BOOL_TRUE = '\x03'
-cdef char TYPE_INTEGER = '\x04'
-cdef char TYPE_NUMBER = '\x05'
-cdef char TYPE_STRING = '\x06'
-cdef char TYPE_XML = '\x07'
-cdef char TYPE_DATE = '\x08'
-cdef char TYPE_ARRAY = '\x09'
-cdef char TYPE_OBJECT = '\x0A'
-cdef char TYPE_XMLSTRING = '\x0B'
-cdef char TYPE_BYTEARRAY = '\x0C'
+cdef char TYPE_UNDEFINED = b'\x00'
+cdef char TYPE_NULL = b'\x01'
+cdef char TYPE_BOOL_FALSE = b'\x02'
+cdef char TYPE_BOOL_TRUE = b'\x03'
+cdef char TYPE_INTEGER = b'\x04'
+cdef char TYPE_NUMBER = b'\x05'
+cdef char TYPE_STRING = b'\x06'
+cdef char TYPE_XML = b'\x07'
+cdef char TYPE_DATE = b'\x08'
+cdef char TYPE_ARRAY = b'\x09'
+cdef char TYPE_OBJECT = b'\x0A'
+cdef char TYPE_XMLSTRING = b'\x0B'
+cdef char TYPE_BYTEARRAY = b'\x0C'
 
 cdef unsigned int REFERENCE_BIT = 0x01
-cdef char REF_CHAR = '\x01'
+cdef char REF_CHAR = b'\x01'
 
 #: The maximum that can be represented by an signed 29 bit integer.
 cdef long MAX_29B_INT = 0x0FFFFFFF
@@ -543,7 +543,7 @@ cdef class Decoder(codec.Decoder):
         s = PyUnicode_FromStringAndSize(buf, ref)
 
         if zlib:
-            if ref > 2 and buf[0] == '\x78' and buf[1] == '\x9c':
+            if ref > 2 and buf[0] == b'\x78' and buf[1] == b'\x9c':
                 try:
                     s = zlib.decompress(s)
                 except zlib.error:
@@ -718,7 +718,7 @@ cdef class Encoder(codec.Encoder):
 
         _encode_integer(self.stream, (ref << 1) | REFERENCE_BIT)
 
-        self.writeType('\x01')
+        self.writeType(b'\x01')
 
         for i from 0 <= i < ref:
             x = PyList_GET_ITEM(n, i)
@@ -742,7 +742,7 @@ cdef class Encoder(codec.Encoder):
         ref = PyTuple_GET_SIZE(n)
 
         _encode_integer(self.stream, (ref << 1) | REFERENCE_BIT)
-        self.writeType('\x01')
+        self.writeType(b'\x01')
 
         for i from 0 <= i < ref:
             x = PyTuple_GET_ITEM(n, i)

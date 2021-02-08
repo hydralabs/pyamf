@@ -6,7 +6,6 @@ C-extension for L{pyamf.amf3} Python module in L{PyAMF<pyamf>}.
 
 :since: 0.6
 """
-
 from cpython cimport *
 from libc.stdlib cimport *
 from libc.string cimport *
@@ -20,24 +19,24 @@ import pyamf
 from pyamf import xml, util
 
 
-cdef char TYPE_NUMBER      = '\x00'
-cdef char TYPE_BOOL        = '\x01'
-cdef char TYPE_STRING      = '\x02'
-cdef char TYPE_OBJECT      = '\x03'
-cdef char TYPE_MOVIECLIP   = '\x04'
-cdef char TYPE_NULL        = '\x05'
-cdef char TYPE_UNDEFINED   = '\x06'
-cdef char TYPE_REFERENCE   = '\x07'
-cdef char TYPE_MIXEDARRAY  = '\x08'
-cdef char TYPE_OBJECTTERM  = '\x09'
-cdef char TYPE_ARRAY       = '\x0A'
-cdef char TYPE_DATE        = '\x0B'
-cdef char TYPE_LONGSTRING  = '\x0C'
-cdef char TYPE_UNSUPPORTED = '\x0D'
-cdef char TYPE_RECORDSET   = '\x0E'
-cdef char TYPE_XML         = '\x0F'
-cdef char TYPE_TYPEDOBJECT = '\x10'
-cdef char TYPE_AMF3        = '\x11'
+cdef char TYPE_NUMBER      = b'\x00'
+cdef char TYPE_BOOL        = b'\x01'
+cdef char TYPE_STRING      = b'\x02'
+cdef char TYPE_OBJECT      = b'\x03'
+cdef char TYPE_MOVIECLIP   = b'\x04'
+cdef char TYPE_NULL        = b'\x05'
+cdef char TYPE_UNDEFINED   = b'\x06'
+cdef char TYPE_REFERENCE   = b'\x07'
+cdef char TYPE_MIXEDARRAY  = b'\x08'
+cdef char TYPE_OBJECTTERM  = b'\x09'
+cdef char TYPE_ARRAY       = b'\x0A'
+cdef char TYPE_DATE        = b'\x0B'
+cdef char TYPE_LONGSTRING  = b'\x0C'
+cdef char TYPE_UNSUPPORTED = b'\x0D'
+cdef char TYPE_RECORDSET   = b'\x0E'
+cdef char TYPE_XML         = b'\x0F'
+cdef char TYPE_TYPEDOBJECT = b'\x10'
+cdef char TYPE_AMF3        = b'\x11'
 
 
 cdef object ASObject = pyamf.ASObject
@@ -329,9 +328,9 @@ cdef class Encoder(codec.Encoder):
         self.writeType(TYPE_BOOL)
 
         if b is True:
-            return self.writeType('\x01')
+            return self.writeType(b'\x01')
         else:
-            return self.writeType('\x00')
+            return self.writeType(b'\x00')
 
     cdef int writeUndefined(self, data) except -1:
         return self.writeType(TYPE_UNDEFINED)
