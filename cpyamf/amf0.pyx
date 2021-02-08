@@ -229,7 +229,7 @@ cdef class Decoder(codec.Decoder):
         l = self.stream.read_ulong()
 
         self.stream.read(&b, l)
-        s = PyString_FromStringAndSize(b, <Py_ssize_t>l)
+        s = PyUnicode_FromStringAndSize(b, <Py_ssize_t>l)
 
         if bytes:
             return s
