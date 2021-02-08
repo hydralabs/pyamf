@@ -26,10 +26,10 @@ cdef extern from "Python.h":
 from pyamf import python
 
 # module constant declarations
-DEF ENDIAN_NETWORK = "!"
-DEF ENDIAN_NATIVE = "@"
-DEF ENDIAN_LITTLE = "<"
-DEF ENDIAN_BIG = ">"
+DEF ENDIAN_NETWORK = b"!"
+DEF ENDIAN_NATIVE = b"@"
+DEF ENDIAN_LITTLE = b"<"
+DEF ENDIAN_BIG = b">"
 
 DEF MAX_BUFFER_EXTENSION = 1 << 14
 
@@ -56,7 +56,7 @@ cdef object empty_unicode = unicode('')
 
 
 @cython.profile(False)
-cdef int _memcpy_ensure_endian(void *src, void *dest, unsigned int size):
+cdef int _memcpy_ensure_endian(void *src, void *dest, unsigned int size) nogil:
     """
     """
     cdef unsigned char *buf = <unsigned char *>malloc(size)
@@ -117,7 +117,7 @@ cdef int build_platform_exceptional_floats() except -1:
 
 
 @cython.profile(False)
-cdef char get_native_endian():
+cdef char get_native_endian() nogil:
     """
     A quick hack to determine the system's endian-ness ...
 
@@ -133,7 +133,7 @@ cdef char get_native_endian():
 
 
 @cython.profile(False)
-cdef inline bint is_big_endian(char endian):
+cdef inline bint is_big_endian(char endian) nogil:
     """
     Returns a boolean value whether the supplied C{endian} is big.
     """
@@ -144,7 +144,7 @@ cdef inline bint is_big_endian(char endian):
 
 
 @cython.profile(False)
-cdef inline int is_native_endian(char endian):
+cdef inline int is_native_endian(char endian) nogil:
     if endian == ENDIAN_NATIVE:
         return 1
 
@@ -155,7 +155,7 @@ cdef inline int is_native_endian(char endian):
 
 
 @cython.profile(False)
-cdef inline int swap_bytes(unsigned char *buffer, Py_ssize_t size):
+cdef inline int swap_bytes(unsigned char *buffer, Py_ssize_t size) nogil:
     cdef unsigned char *buf = <unsigned char *>malloc(size)
 
     if buf == NULL:
