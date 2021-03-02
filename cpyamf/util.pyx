@@ -26,10 +26,10 @@ cdef extern from "Python.h":
 from pyamf import python
 
 # module constant declarations
-DEF ENDIAN_NETWORK = b"!"
-DEF ENDIAN_NATIVE = b"@"
-DEF ENDIAN_LITTLE = b"<"
-DEF ENDIAN_BIG = b">"
+cdef char ENDIAN_NETWORK = b"!"
+cdef char ENDIAN_NATIVE = b"@"
+cdef char ENDIAN_LITTLE = b"<"
+cdef char ENDIAN_BIG = b">"
 
 DEF MAX_BUFFER_EXTENSION = 1 << 14
 
@@ -37,9 +37,9 @@ cdef char SYSTEM_ENDIAN
 
 cdef int float_broken = -1
 
-cdef unsigned char *NaN = <unsigned char *>'\xff\xf8\x00\x00\x00\x00\x00\x00'
-cdef unsigned char *NegInf = <unsigned char *>'\xff\xf0\x00\x00\x00\x00\x00\x00'
-cdef unsigned char *PosInf = <unsigned char *>'\x7f\xf0\x00\x00\x00\x00\x00\x00'
+cdef unsigned char *NaN = <unsigned char *>b'\xff\xf8\x00\x00\x00\x00\x00\x00'
+cdef unsigned char *NegInf = <unsigned char *>b'\xff\xf0\x00\x00\x00\x00\x00\x00'
+cdef unsigned char *PosInf = <unsigned char *>b'\x7f\xf0\x00\x00\x00\x00\x00\x00'
 
 cdef double platform_nan
 cdef double platform_posinf
@@ -365,7 +365,7 @@ cdef class cBufferedByteStream(object):
         """
         Get raw data from buffer.
         """
-        return self.buffer[:self.length].decode()
+        return PyBytes_FromStringAndSize(self.buffer, self.length)
 
     cdef Py_ssize_t peek(self, char **buf, Py_ssize_t size) except -1:
         """
@@ -741,12 +741,12 @@ cdef class cBufferedByteStream(object):
 
         if PyUnicode_Check(obj) == 1:
             encoded_string = PyUnicode_AsUTF8String(obj)
-        elif PyString_Check(obj) == 1:
+        elif PyBytes_Check(obj) == 1:
             encoded_string = obj
         else:
             raise TypeError('value must be Unicode or str')
 
-        PyString_AsStringAndSize(encoded_string, &buf, &l)
+        PyBytes_AsStringAndSize(encoded_string, &buf, &l)
         self.write(buf, l)
 
         return 0
@@ -921,7 +921,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         elif isinstance(buf, cBufferedByteStream):
             x = <cBufferedByteStream>buf
             self.write(x.getvalue())
-        elif isinstance(buf, (str, unicode)):
+        elif isinstance(buf, (bytes, str)):
             self.write(buf)
         elif hasattr(buf, 'getvalue'):
             self.write(buf.getvalue())
@@ -937,17 +937,18 @@ cdef class BufferedByteStream(cBufferedByteStream):
 
     property endian:
         def __set__(self, value):
-            if PyString_Check(value) == 0:
+            if PyBytes_Check(value) == 0:
                 raise TypeError('String value expected')
 
-            if value not in [ENDIAN_NETWORK, ENDIAN_NATIVE, ENDIAN_LITTLE, ENDIAN_BIG]:
+            check_value = PyBytes_AsString(value)[0]
+
+            if check_value not in [ENDIAN_NETWORK, ENDIAN_NATIVE, ENDIAN_LITTLE, ENDIAN_BIG]:
                 raise ValueError('Not a valid endian type')
 
-            self.endian = PyString_AsString(value)[0]
+            self.endian = check_value
 
         def __get__(self):
-            return (&self.endian)[:1].decode()
-            # return PyUnicode_FromStringAndSize(&self.endian, 1)
+            return PyBytes_FromStringAndSize(&self.endian, 1)
 
     def read(self, size=-1):
         """
@@ -967,7 +968,8 @@ cdef class BufferedByteStream(cBufferedByteStream):
         cdef char *buf = NULL
 
         cBufferedByteStream.read(self, &buf, s)
-        return buf[:s].decode()
+
+        return PyBytes_FromStringAndSize(buf, s)
 
     def write(self, x, size=-1):
         """
@@ -1006,7 +1008,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
 
         size = cBufferedByteStream.peek(self, &buf, size)
 
-        return buf[:size].decode()
+        return PyBytes_FromStringAndSize(buf, size)
 
     def write_char(self, x):
         """
@@ -1016,7 +1018,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         @type x: C{int}
         @raise TypeError: Unexpected type for int C{x}.
         """
-        if PyInt_Check(x) == 0 and PyLong_Check(x) == 0:
+        if PyLong_Check(x) == 0:
             raise TypeError('expected int for x')
 
         cBufferedByteStream.write_char(self, <char>x)
@@ -1029,7 +1031,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         @type x: C{int}
         @raise TypeError: Unexpected type for int C{x}.
         """
-        if PyInt_Check(x) == 0 and PyLong_Check(x) == 0:
+        if PyLong_Check(x) == 0:
             raise TypeError('expected int for x')
 
         cBufferedByteStream.write_ushort(self, <unsigned short>x)
@@ -1042,7 +1044,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         @type x: C{int}
         @raise TypeError: Unexpected type for int C{x}.
         """
-        if PyInt_Check(x) == 0 and PyLong_Check(x) == 0:
+        if PyLong_Check(x) == 0:
             raise TypeError('expected int for x')
 
         cBufferedByteStream.write_short(self, <short>x)
@@ -1055,7 +1057,7 @@ cdef class BufferedByteStream(cBufferedByteStream):
         @type x: C{int}
         @raise TypeError: Unexpected type for int C{x}.
         """
-        if PyInt_Check(x) == 0 and PyLong_Check(x) == 0:
+        if PyLong_Check(x) == 0:
             raise TypeError('expected int for x')
 
         if x > 4294967295L or x < 0:
