@@ -327,7 +327,7 @@ class EncoderTestCase(ClassCacheClearingTestCase, EncoderMixIn):
             y.update({'': 1, 0: 1})
             self.encode(y)
 
-        self.failUnlessRaises(pyamf.EncodeError, x)
+        self.assertRaises(pyamf.EncodeError, x)
 
     def test_object(self):
         try:
@@ -807,7 +807,7 @@ class DecoderTestCase(ClassCacheClearingTestCase, DecoderMixIn):
 
         self.assertEqual(obj.__class__, Spam)
 
-        self.failUnless(hasattr(obj, 'baz'))
+        self.assertTrue(hasattr(obj, 'baz'))
         self.assertEqual(obj.baz, 'hello')
 
     def test_byte_array(self):
@@ -1141,7 +1141,9 @@ class ObjectDecodingTestCase(ClassCacheClearingTestCase, DecoderMixIn):
 
         class_def = self.context.getClass(Spam)
 
-        self.assertEqual(class_def.static_properties, [b'spam'])
+        self.assertTrue("spam" in obj.__dict__)
+
+        self.assertEqual(class_def.static_properties, ['spam'])
 
         self.assertTrue(isinstance(obj, Spam))
         self.assertEqual(obj.__dict__, {'spam': 'eggs'})
@@ -1175,7 +1177,7 @@ class ObjectDecodingTestCase(ClassCacheClearingTestCase, DecoderMixIn):
 
         class_def = self.context.getClass(Spam)
 
-        self.assertEqual(class_def.static_properties, [b'spam'])
+        self.assertEqual(class_def.static_properties, ['spam'])
 
         self.assertTrue(isinstance(obj, Spam))
         self.assertEqual(obj.__dict__, {'spam': 'eggs', 'baz': 'nat'})
