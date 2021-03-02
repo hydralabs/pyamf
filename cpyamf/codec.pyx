@@ -16,9 +16,6 @@ cdef extern from "datetime.h":
     int PyDate_CheckExact(object)
     int PyTime_CheckExact(object)
 
-cdef extern from "Python.h":
-    bint PyClass_Check(object)
-
 from cpyamf.util cimport cBufferedByteStream, BufferedByteStream
 
 import types
@@ -274,7 +271,7 @@ cdef class Context(object):
         try:
             alias = pyamf.get_class_alias(klass)
         except pyamf.UnknownClassAlias:
-            if isinstance(klass, basestring):
+            if isinstance(klass, (bytes, unicode)):
                 raise
 
             # no alias has been found yet .. check subclasses
@@ -286,7 +283,7 @@ cdef class Context(object):
 
         return alias
 
-    cpdef unicode getStringForBytes(self, object s):
+    cpdef str getStringForBytes(self, object s):
         """
         Returns the corresponding unicode object for a given string. If there
         is no unicode object, one is created.
@@ -298,14 +295,14 @@ cdef class Context(object):
         if ret is not None:
             return ret
 
-        cdef unicode u = s.decode('utf-8')
+        cdef str u = s.decode('utf-8')
 
         self.unicodes[s] = u
         self._strings[u] = s
 
         return u
 
-    cpdef str getBytesForString(self, object u):
+    cpdef bytes getBytesForString(self, object u):
         """
         Returns the corresponding utf-8 encoded string for a given unicode
         object. If there is no string, one is encoded.
@@ -317,7 +314,7 @@ cdef class Context(object):
         if ret is not None:
             return ret
 
-        cdef str s = u.encode('utf-8')
+        cdef bytes s = u.encode('utf-8')
 
         self.unicodes[s] = u
         self._strings[u] = s
@@ -518,6 +515,9 @@ cdef class Encoder(Codec):
     cpdef int writeList(self, object o, bint is_proxy=0) except -1:
         raise NotImplementedError
 
+    cdef int writeSet(self, object o) except -1:
+        raise NotImplementedError
+
     cdef int writeTuple(self, object o) except -1:
         raise NotImplementedError
 
@@ -525,11 +525,9 @@ cdef class Encoder(Codec):
         raise NotImplementedError
 
     cdef int writeGenerator(self, object o) except -1:
-        cdef object n = getattr(o, 'next')
-
         while True:
             try:
-                self.writeElement(n())
+                self.writeElement(next(o))
             except StopIteration:
                 return 0
 
@@ -563,7 +561,7 @@ cdef class Encoder(Codec):
         """
         cdef int ret = 1
 
-        if PyString_Check(element):
+        if PyBytes_Check(element):
             ret = self.writeBytes(element)
         elif PyUnicode_Check(element):
             ret = self.writeString(element)
@@ -571,8 +569,9 @@ cdef class Encoder(Codec):
             ret = self.writeNull(element)
         elif PyBool_Check(element):
             ret = self.writeBoolean(element)
-        elif PyInt_CheckExact(element):
-            ret = self.writeInt(element)
+        # Int is Long
+        # elif PyInt_CheckExact(element):
+        #     ret = self.writeInt(element)
         elif PyLong_CheckExact(element):
             ret = self.writeLong(element)
         elif PyFloat_CheckExact(element):
@@ -581,6 +580,8 @@ cdef class Encoder(Codec):
             ret = self.writeList(element)
         elif PyTuple_CheckExact(element):
             ret = self.writeTuple(element)
+        elif PyAnySet_CheckExact(element):
+            ret = self.writeSet(element)
         elif element is Undefined:
             ret = self.writeUndefined(element)
         elif PyDict_CheckExact(element):
@@ -609,7 +610,9 @@ cdef class Encoder(Codec):
             raise pyamf.EncodeError("Cannot encode functions %r" % (
                 element,
             ))
-        elif PyClass_Check(element) or PyType_CheckExact(element):
+        # elif PyClass_Check(element)  or PyType_CheckExact(element):
+        elif PyType_Check(element)  or PyType_CheckExact(element):
+            # TODO: chek if this ^^^ is correct, or we need a different check
             raise pyamf.EncodeError("Cannot encode class objects %r" % (
                 element,
             ))
@@ -678,7 +681,7 @@ cdef class Encoder(Codec):
 
         self.stream.read(&buf, end_pos - start_pos)
 
-        return PyString_FromStringAndSize(buf, end_pos - start_pos)
+        return PyBytes_FromStringAndSize(buf, end_pos - start_pos)
 
     def __iter__(self):
         return self
