@@ -517,7 +517,7 @@ class Encoder(_Codec):
             return self.writeNumber
         elif t in python.int_types:
             return self.writeNumber
-        elif t in (list, tuple, frozenset):
+        elif t in (list, tuple, set, frozenset):
             return self.writeList
         elif t is types.GeneratorType:  # flake8: noqa
             return self.writeGenerator
