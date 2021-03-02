@@ -31,7 +31,7 @@ class ASObjectTestCase(unittest.TestCase):
         bag = pyamf.ASObject()
 
         self.assertEqual(bag, {})
-        self.assertNotEquals(bag, {'spam': 'eggs'})
+        self.assertNotEqual(bag, {'spam': 'eggs'})
 
         bag2 = pyamf.ASObject()
 
@@ -645,7 +645,7 @@ class TestAMF0Codecs(unittest.TestCase):
         """
         try:
             from cpyamf import amf0
-        except ImportError:
+        except ImportError as err:
             self.skipTest('amf0 extension not available')
 
         decoder = pyamf.get_decoder(pyamf.AMF0, use_ext=True)

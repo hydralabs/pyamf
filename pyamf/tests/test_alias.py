@@ -126,7 +126,7 @@ class ClassAliasTestCase(ClassCacheClearingTestCase):
 
         self.assertEqual(x, A)
         self.assertEqual(x, y)
-        self.assertNotEquals(x, z)
+        self.assertNotEqual(x, z)
 
 
 class GetEncodableAttributesTestCase(unittest.TestCase):
@@ -302,7 +302,7 @@ class GetDecodableAttributesTestCase(unittest.TestCase):
 
         ret = self.alias.getDecodableAttributes(self.obj, attrs)
 
-        self.assertEquals(ret, {
+        self.assertEqual(ret, {
             'foo': 'foo',
             'bar': 'bar',
             'dyn2': 'dyn2',
@@ -981,9 +981,9 @@ class CompilationInheritanceTestCase(ClassCacheClearingTestCase):
         self.assertTrue(b._compiled)
         self.assertTrue(c._compiled)
 
-        self.assertEquals(a.synonym_attrs, {'foo': 'bar', 'bar': 'baz'})
-        self.assertEquals(b.synonym_attrs, {'foo': 'bar', 'bar': 'baz'})
-        self.assertEquals(c.synonym_attrs, {'foo': 'bar', 'bar': 'spam'})
+        self.assertEqual(a.synonym_attrs, {'foo': 'bar', 'bar': 'baz'})
+        self.assertEqual(b.synonym_attrs, {'foo': 'bar', 'bar': 'baz'})
+        self.assertEqual(c.synonym_attrs, {'foo': 'bar', 'bar': 'spam'})
 
 
 class CompilationIntegrationTestCase(unittest.TestCase):

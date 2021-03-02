@@ -141,7 +141,7 @@ class DecoderTestCase(unittest.TestCase):
             b'\x61\x02\x00\x01\x61\x00\x00\x09'
         )
 
-        self.failUnlessRaises(
+        self.assertRaises(
             pyamf.DecodeError,
             remoting.decode,
             b'\x00\x00\x00\x00\x00\x01\x00\x09test.test\x00\x02/1\x00\x00\x00'

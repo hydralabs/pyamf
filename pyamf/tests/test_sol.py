@@ -255,7 +255,7 @@ class SOLTestCase(unittest.TestCase):
             self.assertEqual(fp.closed, False)
 
             s.save(fp)
-            self.assertNotEquals(fp.tell(), 0)
+            self.assertNotEqual(fp.tell(), 0)
 
             fp.seek(0)
 

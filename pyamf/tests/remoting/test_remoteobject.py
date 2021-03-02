@@ -125,7 +125,7 @@ class RequestProcessorTestCase(unittest.TestCase):
         self.assertEqual(response.status, remoting.STATUS_ERROR)
         self.assertTrue(isinstance(ack, messaging.ErrorMessage))
         self.assertEqual(ack.faultCode, 'TypeError')
-        self.assertNotEquals(ack.extendedData, None)
+        self.assertNotEqual(ack.extendedData, None)
 
     def test_too_many_args(self):
         def spam(bar):
