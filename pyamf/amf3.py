@@ -1004,7 +1004,7 @@ class Decoder(codec.Decoder):
 
         if class_def.attr_len > 0:
             for i in range(class_def.attr_len):
-                key = self.readBytes()
+                key = self.readString()
 
                 class_def.static_properties.append(key)
 
