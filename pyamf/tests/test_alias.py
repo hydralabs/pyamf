@@ -210,7 +210,7 @@ class GetEncodableAttributesTestCase(unittest.TestCase):
 
         ret = self.alias.getEncodableAttributes(self.obj)
 
-        self.assertEquals(ret, {'bar': 'bar', 'spam': 'eggs'})
+        self.assertEqual(ret, {'bar': 'bar', 'spam': 'eggs'})
 
 
 class GetDecodableAttributesTestCase(unittest.TestCase):
@@ -385,7 +385,7 @@ class GetDecodableAttributesTestCase(unittest.TestCase):
 
         ret = self.alias.getDecodableAttributes(self.obj, attrs)
 
-        self.assertEquals(ret, {'foo': 'foo', 'spam': 'eggs'})
+        self.assertEqual(ret, {'foo': 'foo', 'spam': 'eggs'})
 
     def test_complex_synonym(self):
         self.alias.synonym_attrs = {'foo_syn': 'bar_syn'}
@@ -409,7 +409,7 @@ class GetDecodableAttributesTestCase(unittest.TestCase):
 
         ret = self.alias.getDecodableAttributes(self.obj, attrs)
 
-        self.assertEquals(ret, {'foo_syn': 'foo', 'spam': 'eggs'})
+        self.assertEqual(ret, {'foo_syn': 'foo', 'spam': 'eggs'})
 
 
 class ApplyAttributesTestCase(unittest.TestCase):
@@ -658,11 +658,11 @@ class SimpleCompliationTestCase(unittest.TestCase):
     def test_synonym_attrs(self):
         x = ClassAlias(Spam, synonym_attrs={'foo': 'bar'}, defer=True)
 
-        self.assertEquals(x.synonym_attrs, {'foo': 'bar'})
+        self.assertEqual(x.synonym_attrs, {'foo': 'bar'})
 
         x.compile()
 
-        self.assertEquals(x.synonym_attrs, {'foo': 'bar'})
+        self.assertEqual(x.synonym_attrs, {'foo': 'bar'})
 
 
 class CompilationInheritanceTestCase(ClassCacheClearingTestCase):

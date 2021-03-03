@@ -120,7 +120,7 @@ class ServiceWrapperTestCase(unittest.TestCase):
         z = gateway.ServiceWrapper('bleh')
 
         self.assertEqual(x, y)
-        self.assertNotEquals(y, z)
+        self.assertNotEqual(y, z)
 
     def test_call(self):
         def add(x, y):

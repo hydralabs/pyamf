@@ -75,7 +75,7 @@ class DecoderTestCase(unittest.TestCase):
             b'\x00\x00\x00\x00\x00\x00'
         )
 
-        self.failUnlessRaises(
+        self.assertRaises(
             pyamf.DecodeError,
             remoting.decode,
             b'\x00\x00\x00\x01\x00\x04name\x00\x00\x00\x00\x06\x0a\x00\x00\x00'
@@ -105,7 +105,7 @@ class DecoderTestCase(unittest.TestCase):
         self.assertEqual(y, [])
 
     def test_simple_body(self):
-        self.failUnlessRaises(
+        self.assertRaises(
             IOError,
             remoting.decode,
             '\x00\x00\x00\x00\x00\x01'
