@@ -386,6 +386,28 @@ cdef class Encoder(codec.Encoder):
 
         return 0
 
+    cdef int writeSet(self, object a) except -1:
+        cdef Py_ssize_t size = -1, i = -1
+
+        if self.writeReference(a) != -1:
+            return 0
+
+        self.context.addObject(a)
+
+        self.writeType(TYPE_ARRAY)
+        size = PySet_GET_SIZE(a)
+
+        self.stream.write_ulong(size)
+
+        set_iter = iter(a)
+        while True:
+            try:
+                self.writeElement(next(set_iter))
+            except StopIteration:
+                break
+
+        return 0
+
     cdef int writeInt(self, object a) except -1:
         self.writeType(TYPE_NUMBER)
 

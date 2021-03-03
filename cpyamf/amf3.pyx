@@ -730,6 +730,29 @@ cdef class Encoder(codec.Encoder):
 
         return 0
 
+    cdef int writeSet(self, object n) except -1:
+        cdef Py_ssize_t ref = self.context.getObjectReference(n)
+        cdef Py_ssize_t i
+
+        self.writeType(TYPE_ARRAY)
+
+        if ref != -1:
+            return _encode_integer(self.stream, ref << 1)
+
+        self.context.addObject(n)
+
+        ref = PySet_GET_SIZE(n)
+
+        _encode_integer(self.stream, (ref << 1) | REFERENCE_BIT)
+        self.writeType(b'\x01')
+
+        set_iter = iter(n)
+        while True:
+            try:
+                self.writeElement(next(set_iter))
+            except StopIteration:
+                break
+
     cdef int writeTuple(self, object n) except -1:
         cdef Py_ssize_t ref = self.context.getObjectReference(n)
         cdef Py_ssize_t i
