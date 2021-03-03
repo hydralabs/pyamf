@@ -56,8 +56,8 @@ cdef int OBJECT_ENCODING_PROXY = 0x03
 cdef object ByteArrayType = amf3.ByteArray
 cdef object DataInput = amf3.DataInput
 cdef object DataOutput = amf3.DataOutput
-cdef str empty_string = str('')
-cdef unicode empty_unicode = empty_string.decode('utf-8')
+cdef bytes empty_bytes = b''
+cdef unicode empty_unicode = u''
 cdef object undefined = pyamf.Undefined
 
 
@@ -435,7 +435,7 @@ cdef class Decoder(codec.Decoder):
 
                 break
 
-            attr = self.readBytes()
+            attr = self.readString()
 
             PyDict_SetItem(obj, attr, self.readElement())
 
@@ -508,7 +508,7 @@ cdef class Decoder(codec.Decoder):
         cdef object s
 
         self.stream.read(&buf, ref)
-        s = buf[:ref].decode()
+        s = PyBytes_FromStringAndSize(buf, ref)
 
         x = xml.fromstring(
             s,
@@ -540,7 +540,7 @@ cdef class Decoder(codec.Decoder):
         ref >>= 1
 
         self.stream.read(&buf, ref)
-        s = buf[:ref].decode()
+        s = PyBytes_FromStringAndSize(buf, ref)
 
         if zlib:
             if ref > 2 and buf[0] == b'\x78' and buf[1] == b'\x9c':
@@ -635,8 +635,8 @@ cdef class Encoder(codec.Encoder):
         if PyUnicode_Check(u):
             l = PyUnicode_GET_SIZE(u)
             is_unicode = 1
-        elif PyString_Check(u):
-            l = len(u)
+        elif PyBytes_Check(u):
+            l = PyBytes_GET_SIZE(u)
         else:
             raise TypeError('Expected str or unicode')
 
@@ -654,11 +654,11 @@ cdef class Encoder(codec.Encoder):
 
         if is_unicode:
             u = self.context.getBytesForString(u)
-            l = len(u)
+            l = PyBytes_GET_SIZE(u)
 
         _encode_integer(self.stream, (l << 1) | REFERENCE_BIT)
 
-        return self.stream.write(PyString_AS_STRING(u), l)
+        return self.stream.write(PyBytes_AS_STRING(u), l)
 
     cdef int writeString(self, object s) except -1:
         self.writeType(TYPE_STRING)
@@ -669,6 +669,8 @@ cdef class Encoder(codec.Encoder):
         self.serialiseString(s)
 
     cdef int writeInt(self, object n) except -1:
+        self.writeLong(n)
+        """
         cdef long x = PyInt_AS_LONG(n)
 
         if x < MIN_29B_INT or x > MAX_29B_INT:
@@ -676,6 +678,7 @@ cdef class Encoder(codec.Encoder):
 
         self.writeType(TYPE_INTEGER)
         _encode_integer(self.stream, x)
+        """
 
     cdef int writeLong(self, object n) except -1:
         cdef long x
@@ -782,7 +785,7 @@ cdef class Encoder(codec.Encoder):
         if class_ref == 0:
             self.stream.write(&REF_CHAR, 1)
 
-        for key, value in obj.iteritems():
+        for key, value in obj.items():
             if PyInt_Check(key) or PyLong_Check(key):
                 key = str(key)
 
@@ -966,11 +969,11 @@ cdef class Encoder(codec.Encoder):
 
         self.context.addObject(obj)
 
-        buf = str(obj)
-        l = len(buf)
+        buf = bytes(obj)
+        l = PyBytes_GET_SIZE(buf)
 
         _encode_integer(self.stream, (l << 1) | REFERENCE_BIT)
-        self.stream.write(PyString_AS_STRING(buf), l)
+        self.stream.write(PyBytes_AS_STRING(buf), l)
 
         return 0
 
@@ -986,15 +989,15 @@ cdef class Encoder(codec.Encoder):
 
         self.context.addObject(obj)
 
-        s = xml.tostring(obj).encode('utf-8')
+        s = xml.tostring(obj) #.encode('utf-8')
 
-        if not PyString_CheckExact(s):
-            raise TypeError('Expected string from xml serialization')
+        if not PyBytes_CheckExact(s):
+            raise TypeError('Expected byte string from xml serialization')
 
-        i = len(s)
+        i = PyBytes_GET_SIZE(s)
 
         _encode_integer(self.stream, (i << 1) | REFERENCE_BIT)
-        self.stream.write(PyString_AS_STRING(s), i)
+        self.stream.write(PyBytes_AS_STRING(s), i)
 
         return 0
 
