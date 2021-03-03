@@ -121,7 +121,7 @@ cdef class Decoder(codec.Decoder):
 
                 break
 
-            key = self.readBytes()
+            key = self.readString()
 
             PyDict_SetItem(obj_attrs, key, self.readElement())
 
@@ -180,7 +180,7 @@ cdef class Decoder(codec.Decoder):
 
         self.readObjectAttributes(attrs)
 
-        for key, value in attrs.iteritems():
+        for key, value in attrs.items():
             try:
                 key = int(key)
             except ValueError:
@@ -228,7 +228,7 @@ cdef class Decoder(codec.Decoder):
         l = self.stream.read_ulong()
 
         self.stream.read(&b, l)
-        s = b[:l].decode()
+        s = PyBytes_FromStringAndSize(b, <Py_ssize_t>l)
 
         if bytes:
             return s
@@ -405,7 +405,7 @@ cdef class Encoder(codec.Encoder):
         """
         Write a string of bytes to the data stream.
         """
-        cdef Py_ssize_t l = PyString_GET_SIZE(s)
+        cdef Py_ssize_t l = PyBytes_GET_SIZE(s)
 
         if l > 0xffff:
             self.writeType(TYPE_LONGSTRING)
@@ -417,7 +417,7 @@ cdef class Encoder(codec.Encoder):
         else:
             self.stream.write_ushort(l)
 
-        return self.stream.write(PyString_AS_STRING(s), l)
+        return self.stream.write(PyBytes_AS_STRING(s), l)
 
     cdef int writeString(self, u) except -1:
         """
@@ -434,14 +434,14 @@ cdef class Encoder(codec.Encoder):
         if PyUnicode_CheckExact(u):
             u = self.context.getBytesForString(u)
 
-        cdef Py_ssize_t l = PyString_GET_SIZE(u)
+        cdef Py_ssize_t l = PyBytes_GET_SIZE(u)
 
         if l > 0xffff:
             self.stream.write_ulong(l)
         else:
             self.stream.write_ushort(l)
 
-        return self.stream.write(PyString_AS_STRING(u), l)
+        return self.stream.write(PyBytes_AS_STRING(u), l)
 
     cdef int writeXML(self, e) except -1:
         """
@@ -454,14 +454,14 @@ cdef class Encoder(codec.Encoder):
         if isinstance(data, unicode):
             data = data.encode('utf-8')
 
-        if not PyString_CheckExact(data):
+        if not PyBytes_CheckExact(data):
             raise TypeError('expected str from xml.tostring')
 
-        cdef Py_ssize_t l = PyString_GET_SIZE(data)
+        cdef Py_ssize_t l = PyBytes_GET_SIZE(data)
 
         self.stream.write_ulong(l)
 
-        return self.stream.write(PyString_AS_STRING(data), l)
+        return self.stream.write(PyBytes_AS_STRING(data), l)
 
     cdef int writeDateTime(self, d) except -1:
         if self.timezone_offset is not None:
@@ -490,9 +490,9 @@ cdef class Encoder(codec.Encoder):
 
         @param o: The C{dict} data to be encoded to the AMF0 data stream.
         """
-        for key, value in attrs.iteritems():
-            if PyInt_Check(key) or PyLong_Check(key):
-                key = str(key)
+        for key, value in attrs.items():
+            if PyLong_Check(key):
+                key = str(key).encode()
 
             self.serialiseString(key)
             self.writeElement(value)
