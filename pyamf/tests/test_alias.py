@@ -49,7 +49,7 @@ class ClassAliasTestCase(ClassCacheClearingTestCase):
 
     def test_init_deferred(self):
         """
-        Test for initial deferred compliation
+        Test for initial deferred compilation
         """
         x = ClassAlias(Spam, defer=True)
 
@@ -502,7 +502,7 @@ class ApplyAttributesTestCase(unittest.TestCase):
 
 class SimpleCompliationTestCase(unittest.TestCase):
     """
-    Tests for L{ClassAlias} property compliation for no inheritance.
+    Tests for L{ClassAlias} property compilation for no inheritance.
     """
 
     def test_compiled(self):

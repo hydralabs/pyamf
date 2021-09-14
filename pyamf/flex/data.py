@@ -27,7 +27,7 @@ __all__ = [
 
 class DataMessage(AsyncMessage):
     """
-    I am used to transport an operation that occured on a managed object
+    I am used to transport an operation that occurred on a managed object
     or collection.
 
     This class of message is transmitted between clients subscribed to a
@@ -115,7 +115,7 @@ class DataErrorMessage(ErrorMessage):
 
     def __init__(self):
         ErrorMessage.__init__(self)
-        #: The client oringinated message which caused the conflict.
+        #: The client originated message which caused the conflict.
         self.cause = None
         #: An array of properties that were found to be conflicting
         #: between the client and server objects.

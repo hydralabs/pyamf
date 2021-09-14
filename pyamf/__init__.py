@@ -917,7 +917,7 @@ def register_package(module=None, package=None, separator='.', ignore=None,
 
 def set_default_etree(etree):
     """
-    Sets the default interface that will called apon to both de/serialise XML
+    Sets the default interface that will called upon to both de/serialise XML
     entities. This means providing both C{tostring} and C{fromstring}
     functions.
 
