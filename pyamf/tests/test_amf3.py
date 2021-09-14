@@ -1073,7 +1073,7 @@ class ObjectEncodingTestCase(ClassCacheClearingTestCase, EncoderMixIn):
     def test_anonymous_class_references(self):
         """
         Test to ensure anonymous class references with static attributes
-        are encoded propertly
+        are encoded properly
         """
         class Foo:
             class __amf__:

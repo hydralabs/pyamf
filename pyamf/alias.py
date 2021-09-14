@@ -462,7 +462,7 @@ class ClassAlias(object):
         based on the supplied C{attrs}. This allows for fine grain control
         over what will finally end up on the object or not.
 
-        @param obj: The object that will recieve the attributes.
+        @param obj: The object that will receive the attributes.
         @param attrs: The C{attrs} dictionary that has been decoded.
         @param codec: An optional argument that will contain the decoder
             instance calling this function.

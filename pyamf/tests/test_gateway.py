@@ -380,7 +380,7 @@ class BaseGatewayTestCase(unittest.TestCase):
         self.assertEqual(response.body, 'spam')
 
     def test_unknown_service(self):
-        # Test a non existant service call
+        # Test a non existent service call
         gw = gateway.BaseGateway({'test': TestService})
         envelope = remoting.Envelope()
 
@@ -398,11 +398,11 @@ class BaseGatewayTestCase(unittest.TestCase):
         self.assertEqual(response.body.details, None)
 
     def test_debug_traceback(self):
-        # Test a non existant service call
+        # Test a non existent service call
         gw = gateway.BaseGateway({'test': TestService}, debug=True)
         envelope = remoting.Envelope()
 
-        # Test a non existant service call
+        # Test a non existent service call
         request = remoting.Request('nope', envelope=envelope)
         processor = gw.getProcessor(request)
         response = processor(request)
