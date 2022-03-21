@@ -26,8 +26,7 @@ from distutils.core import Distribution
 
 _version = None
 
-jython = sys.platform.startswith('java')
-can_compile_extensions = not jython
+can_compile_extensions = sys.platform.python_implementation() == "CPython"
 
 
 class MyDistribution(Distribution):
