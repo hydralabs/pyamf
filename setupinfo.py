@@ -134,12 +134,11 @@ def get_version():
 
 def get_extras_require():
     return {
-        'wsgi': ['wsgiref'],
-        'twisted': ['Twisted>=2.5.0'],
+        'twisted': ['Twisted>=16.0.0'],
         'django': ['Django>=0.96'],
         'sqlalchemy': ['SQLAlchemy>=0.4'],
         'elixir': ['Elixir>=0.7.1'],
-        'lxml': ['lxml>=2.2'],
+        'lxml': ['lxml>=4.4.0'],
         'six': ['six>=1.10.0']
     }
 
@@ -177,7 +176,7 @@ def get_install_requirements():
 
     if 'dev' in get_version():
         if can_compile_extensions:
-            install_requires.extend(['Cython>=0.13'])
+            install_requires.extend(['Cython>=0.28'])
 
     return install_requires
 
