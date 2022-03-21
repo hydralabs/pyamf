@@ -175,9 +175,6 @@ def get_install_requirements():
     """
     install_requires = ['defusedxml']
 
-    if sys.version_info < (2, 5):
-        install_requires.extend(["elementtree>=1.2.6", "uuid>=1.30"])
-
     if 'dev' in get_version():
         if can_compile_extensions:
             install_requires.extend(['Cython>=0.13'])
@@ -190,9 +187,6 @@ def get_test_requirements():
     Returns a list of required packages to run the test suite.
     """
     tests_require = []
-
-    if sys.version_info < (2, 7):
-        tests_require.extend(['unittest2'])
 
     return tests_require
 
@@ -250,6 +244,7 @@ def get_extensions():
     Return a list of Extension instances that can be compiled.
     """
     if not can_compile_extensions:
+        # due to changes in pip these prints have no effect
         print(80 * '*')
         print('WARNING:')
         print(
