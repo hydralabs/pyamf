@@ -10,8 +10,14 @@ Twisted gateway tests.
 try:
     from twisted.internet import reactor, defer
     from twisted.python import failure
-    from twisted.web import http, server, client, error, resource
+    from twisted.web import http, server, client, error, resource, http_headers, _newclient
     from twisted.trial import unittest
+
+    from twisted.internet.defer import succeed
+    from twisted.internet.protocol import Protocol
+    from twisted.web.iweb import IBodyProducer
+
+    from zope.interface import implementer
 
     from pyamf.remoting.gateway import twisted
 except ImportError:
@@ -25,9 +31,26 @@ from pyamf.remoting import gateway
 from pyamf.flex import messaging
 
 
+@implementer(IBodyProducer)
+class BytesProducer(object):
+    def __init__(self, body):
+        self.body = body
+        self.length = len(body)
+
+    def startProducing(self, consumer):
+        consumer.write(self.body)
+        return succeed(None)
+
+    def pauseProducing(self):
+        pass
+
+    def stopProducing(self):
+        pass
+
+
 class TestService(object):
     def spam(self):
-        return 'spam'
+        return b'spam'
 
     def echo(self, x):
         return x
@@ -53,19 +76,34 @@ class TwistedServerTestCase(BaseTestCase):
 
         self.gw = twisted.TwistedGateway(expose_request=False)
         root = resource.Resource()
-        root.putChild('', self.gw)
+        root.putChild(b'', self.gw)
 
-        self.p = reactor.listenTCP(0, server.Site(root), interface="127.0.0.1")
-        self.port = self.p.getHost().port
+        self.tws_port = reactor.listenTCP(0, server.Site(root), interface=b"127.0.0.1")
+        self.port = self.tws_port.getHost().port
 
     def tearDown(self):
-        self.p.stopListening()
+        self.tws_port.stopListening()
 
     def getPage(self, data=None, **kwargs):
-        kwargs.setdefault('method', 'POST')
-        kwargs['postdata'] = data
+        body_producer = None
 
-        return client.getPage("http://127.0.0.1:%d/" % (self.port,), **kwargs)
+        if data:
+            if isinstance(data, str):
+                data = data.encode()
+            body_producer = BytesProducer(data)
+
+        method = kwargs.get('method', 'POST').encode()
+
+        agent = client.Agent(reactor)
+
+        return agent.request(
+            method,
+            b'http://127.0.0.1:%d/' % self.port,
+            http_headers.Headers({
+                'Content-Type': ['text/plain']
+            }),
+            body_producer
+        )
 
     def doRequest(self, service, body=missing, type=pyamf.AMF3, raw=False,
                   decode=True):
@@ -79,12 +117,18 @@ class TwistedServerTestCase(BaseTestCase):
             request = remoting.Request(service, body=body)
             env['/1'] = request
 
-            body = remoting.encode(env).getvalue()
+            body = pyamf.remoting.encode(env).getvalue()
 
         d = self.getPage(body)
 
+        @defer.inlineCallbacks
+        def decode_response(response):
+            resp_body = yield client.readBody(response)
+            data = remoting.decode(resp_body)
+            defer.returnValue(data)
+
         if decode:
-            d.addCallback(lambda result: remoting.decode(result))
+            d.addCallback(decode_response)
 
         return d
 
@@ -93,18 +137,23 @@ class TwistedServerTestCase(BaseTestCase):
         A classic GET on the xml server should return a NOT_ALLOWED.
         """
         d = self.getPage(method='GET')
-        d = self.assertFailure(d, error.Error)
-        d.addCallback(
-            lambda exc: self.assertEqual(int(exc.args[0]), http.NOT_ALLOWED))
+        # d = self.assertFailure(d, error.Error)
+
+        def cb(response):
+            self.assertEqual(response.code, http.NOT_ALLOWED)
+
+        d.addCallback(cb)
 
         return d
 
     def test_bad_content(self):
-        d = self.getPage('spamandeggs')
-        d = self.assertFailure(d, error.Error)
+        d = self.getPage(b'spamandeggs')
+        # d = self.assertFailure(d, error.Error)
 
-        d.addCallback(
-            lambda exc: self.assertEqual(int(exc.args[0]), http.BAD_REQUEST))
+        def cb(response):
+            self.assertEqual(response.code, http.BAD_REQUEST)
+
+        d.addCallback(cb)
 
         return d
 
@@ -177,11 +226,11 @@ class TwistedServerTestCase(BaseTestCase):
             self.assertEqual(amf_request.body, ['hello'])
             self.executed = True
 
-            return data
+            return data.encode()
 
         self.gw.addService(echo)
 
-        d = self.doRequest('echo', 'hello', type=pyamf.AMF0)
+        d = self.doRequest('echo', b'hello', type=pyamf.AMF0)
 
         def check_response(response):
             self.assertTrue(self.executed)
