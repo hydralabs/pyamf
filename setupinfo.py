@@ -5,9 +5,10 @@
 Meta data and helper functions for setup
 """
 
-import sys
-import os.path
 import fnmatch
+import os.path
+import platform
+import sys
 
 try:
     from Cython.Distutils import build_ext
@@ -26,7 +27,7 @@ from distutils.core import Distribution
 
 _version = None
 
-can_compile_extensions = sys.platform.python_implementation() == "CPython"
+can_compile_extensions = platform.python_implementation() == "CPython"
 
 
 class MyDistribution(Distribution):
