@@ -60,8 +60,8 @@ cdef class Context(object):
     cpdef Py_ssize_t getObjectReference(self, object obj) except -2
     cpdef Py_ssize_t addObject(self, object obj) except -1
 
-    cpdef unicode getStringForBytes(self, object s)
-    cpdef str getBytesForString(self, object u)
+    cpdef str getStringForBytes(self, object s)
+    cpdef bytes getBytesForString(self, object u)
 
 
 cdef class Codec(object):
@@ -117,6 +117,7 @@ cdef class Encoder(Codec):
     cdef int writeDate(self, object o) except -1
     cdef int writeXML(self, object o) except -1
     cpdef int writeList(self, object o, bint is_proxy=?) except -1
+    cdef int writeSet(self, object o) except -1
     cdef int writeTuple(self, object o) except -1
     cdef int writeSequence(self, object iterable) except -1
     cpdef int writeObject(self, object o, bint is_proxy=?) except -1

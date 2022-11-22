@@ -120,7 +120,7 @@ class ServiceWrapperTestCase(unittest.TestCase):
         z = gateway.ServiceWrapper('bleh')
 
         self.assertEqual(x, y)
-        self.assertNotEquals(y, z)
+        self.assertNotEqual(y, z)
 
     def test_call(self):
         def add(x, y):
@@ -415,7 +415,7 @@ class BaseGatewayTestCase(unittest.TestCase):
 
         self.assertEqual(response.body.code, 'Service.ResourceNotFound')
         self.assertEqual(response.body.description, 'Unknown service nope')
-        self.assertNotEquals(response.body.details, None)
+        self.assertNotEqual(response.body.details, None)
 
     def test_malformed_credentials_header(self):
         gw = gateway.BaseGateway({'test': TestService})

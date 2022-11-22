@@ -188,7 +188,15 @@ class DataTypeMixIn(object):
     #: Big endian
     ENDIAN_BIG = ">"
 
-    endian = ENDIAN_NETWORK
+    __endian = ENDIAN_NETWORK
+
+    @property
+    def endian(self):
+        return self.__endian
+
+    @endian.setter
+    def endian(self, value):
+        self.__endian = value.decode('utf-8') if isinstance(value, bytes) else value
 
     def _read(self, length):
         """

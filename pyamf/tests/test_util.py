@@ -261,7 +261,7 @@ class StringIOTestCase(unittest.TestCase):
 
 
 class DataTypeMixInTestCase(unittest.TestCase):
-    endians = ('>', '<')  # big, little
+    endians = (b'>', b'<')  # big, little
 
     def _write_endian(self, obj, func, args, expected):
         old_endian = obj.endian
@@ -621,15 +621,15 @@ class DataTypeMixInTestCase(unittest.TestCase):
 
         # now test little endian
         x = util.BufferedByteStream(b'\x00\x00\x00\x00\x00\x00\xf8\xff')
-        x.endian = '<'
+        x.endian = b'<'
         self.assertTrue(isNaN(x.read_double()))
 
         x = util.BufferedByteStream(b'\x00\x00\x00\x00\x00\x00\xf0\xff')
-        x.endian = '<'
+        x.endian = b'<'
         self.assertTrue(isNegInf(x.read_double()))
 
         x = util.BufferedByteStream(b'\x00\x00\x00\x00\x00\x00\xf0\x7f')
-        x.endian = '<'
+        x.endian = b'<'
         self.assertTrue(isPosInf(x.read_double()))
 
     def test_write_infinites(self):

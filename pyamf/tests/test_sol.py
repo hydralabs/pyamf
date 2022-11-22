@@ -247,26 +247,26 @@ class SOLTestCase(unittest.TestCase):
 
         self.assertTrue(check_buffer(x.getvalue(), HelperTestCase.contents))
 
-        x = tempfile.mkstemp()[1]
+        tmp_name = tempfile.mkstemp()[1]
 
         try:
-            fp = open(x, 'wb+')
+            with open(tmp_name, 'wb+') as fp:
+                self.assertEqual(fp.closed, False)
 
-            self.assertEqual(fp.closed, False)
+                s.save(fp)
+                self.assertNotEqual(fp.tell(), 0)
 
-            s.save(fp)
-            self.assertNotEquals(fp.tell(), 0)
+                fp.seek(0)
 
-            fp.seek(0)
+                self.assertTrue(check_buffer(fp.read(), HelperTestCase.contents))
+                self.assertEqual(fp.closed, False)
 
-            self.assertTrue(check_buffer(fp.read(), HelperTestCase.contents))
-            self.assertEqual(fp.closed, False)
-
-            self.assertTrue(
-                check_buffer(open(x, 'rb').read(), HelperTestCase.contents)
-            )
+                with open(tmp_name, 'rb') as fp2:
+                    self.assertTrue(
+                        check_buffer(fp2.read(), HelperTestCase.contents)
+                    )
         except:
-            if os.path.isfile(x):
-                os.unlink(x)
+            if os.path.isfile(tmp_name):
+                os.unlink(tmp_name)
 
             raise
