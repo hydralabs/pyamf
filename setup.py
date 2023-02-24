@@ -12,7 +12,7 @@ version = (0, 8, 11)
 
 name = "Py3AMF"
 description = "AMF support for Python"
-long_description = setupinfo.read('README.md')
+long_description = setupinfo.read('README.rst')
 url = "https://github.com/StdCarrot/Py3AMF"
 author = "The Py3AMF Project"
 author_email = "yhbu@stdc.so"
