@@ -5,6 +5,10 @@ This document contains information about the changes between the different
 versions of PyAMF.
 
 .. contents::
+0.8.11 (2022-02-25)
+----------------
+- Change str to binary 
+- Fix syntax errors
 
 0.8.10 (2020-01-10)
 ----------------

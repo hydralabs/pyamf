@@ -232,3 +232,4 @@ pyamf/_version.py
 .noseids
 cover
 htmlcov
+.DS_Store

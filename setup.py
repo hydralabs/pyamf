@@ -8,7 +8,7 @@ import setupinfo
 from setuptools import setup, find_packages
 
 
-version = (0, 8, 10)
+version = (0, 8, 11)
 
 name = "Py3AMF"
 description = "AMF support for Python"
