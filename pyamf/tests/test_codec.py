@@ -254,7 +254,7 @@ class ContextTestCase(unittest.TestCase):
         self.assertFalse(u is i)
 
     def test_bytes(self):
-        s = 'foo'.decode('ascii')
+        s = 'foo'
 
         b = self.context.getBytesForString(s)
 

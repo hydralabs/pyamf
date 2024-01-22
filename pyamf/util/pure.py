@@ -14,9 +14,9 @@ Do not reference directly, use L{pyamf.util.BufferedByteStream} instead.
 import struct
 
 try:
-    from cStringIO import StringIO
+    from cStringIO import StringIO as BytesIO
 except ImportError:
-    from StringIO import StringIO
+    from io import BytesIO
 
 from pyamf import python
 
@@ -24,10 +24,9 @@ from pyamf import python
 SYSTEM_ENDIAN = None
 
 
-class StringIOProxy(object):
+class BytesIOProxy(object):
     """
-    I am a C{StringIO} type object containing byte data from the AMF stream.
-
+    I am a C{BytesIO} type object containing byte data from the AMF stream.
     @see: U{ByteArray on OSFlash
         <http://osflash.org/documentation/amf3#x0c_-_bytearray>}
     @see: U{Parsing ByteArrays on OSFlash
@@ -36,24 +35,26 @@ class StringIOProxy(object):
 
     def __init__(self, buf=None):
         """
-        @raise TypeError: Unable to coerce C{buf} to C{StringIO}.
+        @raise TypeError: Unable to coerce C{buf} to C{BytesIO}.
         """
-        self._buffer = StringIO()
+        self._buffer = BytesIO()
 
-        if isinstance(buf, python.str_types):
+        if isinstance(buf, bytes):
             self._buffer.write(buf)
+        elif isinstance(buf, str):
+            self._buffer.write(buf.encode('utf-8'))
         elif hasattr(buf, 'getvalue'):
             self._buffer.write(buf.getvalue())
         elif (
-                hasattr(buf, 'read') and
-                hasattr(buf, 'seek') and
-                hasattr(buf, 'tell')):
+                        hasattr(buf, 'read') and
+                        hasattr(buf, 'seek') and
+                        hasattr(buf, 'tell')):
             old_pos = buf.tell()
             buf.seek(0)
             self._buffer.write(buf.read())
             buf.seek(old_pos)
         elif buf is not None:
-            raise TypeError("Unable to coerce buf->StringIO got %r" % (buf,))
+            raise TypeError("Unable to coerce buf->BytesIO got %r" % (buf,))
 
         self._get_len()
         self._len_changed = False
@@ -80,7 +81,6 @@ class StringIOProxy(object):
         """
         Sets the file-pointer offset, measured from the beginning of this
         stream, at which the next write operation will occur.
-
         @param pos:
         @type pos: C{int}
         @param mode:
@@ -97,12 +97,11 @@ class StringIOProxy(object):
     def truncate(self, size=0):
         """
         Truncates the stream to the specified length.
-
         @param size: The length of the stream, in bytes.
         @type size: C{int}
         """
         if size == 0:
-            self._buffer = StringIO()
+            self._buffer = BytesIO()
             self._len_changed = True
 
             return
@@ -110,7 +109,7 @@ class StringIOProxy(object):
         cur_pos = self.tell()
         self.seek(0)
         buf = self.read(size)
-        self._buffer = StringIO()
+        self._buffer = BytesIO()
 
         self._buffer.write(buf)
         self.seek(cur_pos)
@@ -119,9 +118,10 @@ class StringIOProxy(object):
     def write(self, s, size=None):
         """
         Writes the content of the specified C{s} into this buffer.
-
         @param s: Raw bytes
         """
+        if isinstance(s, str):
+            s = s.encode()
         self._buffer.write(s)
         self._len_changed = True
 
@@ -153,7 +153,6 @@ class StringIOProxy(object):
         """
         Chops the tail off the stream starting at 0 and ending at C{tell()}.
         The stream pointer is set to 0 at the end of this function.
-
         @since: 0.4
         """
         try:
@@ -172,7 +171,6 @@ class DataTypeMixIn(object):
     """
     Provides methods for reading and writing basic data types for file-like
     objects.
-
     @ivar endian: Byte ordering used to represent the data. Default byte order
         is L{ENDIAN_NETWORK}.
     @type endian: C{str}
@@ -190,7 +188,15 @@ class DataTypeMixIn(object):
     #: Big endian
     ENDIAN_BIG = ">"
 
-    endian = ENDIAN_NETWORK
+    __endian = ENDIAN_NETWORK
+
+    @property
+    def endian(self):
+        return self.__endian
+
+    @endian.setter
+    def endian(self, value):
+        self.__endian = value.decode('utf-8') if isinstance(value, bytes) else value
 
     def _read(self, length):
         """
@@ -227,7 +233,6 @@ class DataTypeMixIn(object):
     def write_uchar(self, c):
         """
         Writes an C{unsigned char} to the stream.
-
         @param c: Unsigned char
         @type c: C{int}
         @raise TypeError: Unexpected type for int C{c}.
@@ -250,7 +255,6 @@ class DataTypeMixIn(object):
     def write_char(self, c):
         """
         Write a C{char} to the stream.
-
         @param c: char
         @type c: C{int}
         @raise TypeError: Unexpected type for int C{c}.
@@ -273,7 +277,6 @@ class DataTypeMixIn(object):
     def write_ushort(self, s):
         """
         Writes a 2 byte unsigned integer to the stream.
-
         @param s: 2 byte unsigned integer
         @type s: C{int}
         @raise TypeError: Unexpected type for int C{s}.
@@ -296,7 +299,6 @@ class DataTypeMixIn(object):
     def write_short(self, s):
         """
         Writes a 2 byte integer to the stream.
-
         @param s: 2 byte integer
         @type s: C{int}
         @raise TypeError: Unexpected type for int C{s}.
@@ -319,7 +321,6 @@ class DataTypeMixIn(object):
     def write_ulong(self, l):
         """
         Writes a 4 byte unsigned integer to the stream.
-
         @param l: 4 byte unsigned integer
         @type l: C{int}
         @raise TypeError: Unexpected type for int C{l}.
@@ -342,7 +343,6 @@ class DataTypeMixIn(object):
     def write_long(self, l):
         """
         Writes a 4 byte integer to the stream.
-
         @param l: 4 byte integer
         @type l: C{int}
         @raise TypeError: Unexpected type for int C{l}.
@@ -359,7 +359,6 @@ class DataTypeMixIn(object):
     def read_24bit_uint(self):
         """
         Reads a 24 bit unsigned integer from the stream.
-
         @since: 0.4
         """
         order = None
@@ -379,7 +378,6 @@ class DataTypeMixIn(object):
     def write_24bit_uint(self, n):
         """
         Writes a 24 bit unsigned integer to the stream.
-
         @since: 0.4
         @param n: 24 bit unsigned integer
         @type n: C{int}
@@ -405,7 +403,6 @@ class DataTypeMixIn(object):
     def read_24bit_int(self):
         """
         Reads a 24 bit integer from the stream.
-
         @since: 0.4
         """
         n = self.read_24bit_uint()
@@ -419,7 +416,6 @@ class DataTypeMixIn(object):
     def write_24bit_int(self, n):
         """
         Writes a 24 bit integer to the stream.
-
         @since: 0.4
         @param n: 24 bit integer
         @type n: C{int}
@@ -454,7 +450,6 @@ class DataTypeMixIn(object):
     def write_double(self, d):
         """
         Writes an 8 byte float to the stream.
-
         @param d: 8 byte float
         @type d: C{float}
         @raise TypeError: Unexpected type for float C{d}.
@@ -473,7 +468,6 @@ class DataTypeMixIn(object):
     def write_float(self, f):
         """
         Writes a 4 byte float to the stream.
-
         @param f: 4 byte float
         @type f: C{float}
         @raise TypeError: Unexpected type for float C{f}.
@@ -486,20 +480,18 @@ class DataTypeMixIn(object):
     def read_utf8_string(self, length):
         """
         Reads a UTF-8 string from the stream.
-
         @rtype: C{unicode}
         """
         s = struct.unpack("%s%ds" % (
             self.endian, length),
-            self.read(length)
-        )
+                          self.read(length)
+                          )
 
         return s[0].decode('utf-8')
 
     def write_utf8_string(self, u):
         """
         Writes a unicode object to the stream in UTF-8.
-
         @param u: unicode object
         @raise TypeError: Unexpected type for str C{u}.
         """
@@ -508,13 +500,13 @@ class DataTypeMixIn(object):
 
         bytes = u
 
-        if isinstance(bytes, unicode):
+        if isinstance(bytes, str):
             bytes = u.encode("utf8")
 
         self.write(struct.pack("%s%ds" % (self.endian, len(bytes)), bytes))
 
 
-class BufferedByteStream(StringIOProxy, DataTypeMixIn):
+class BufferedByteStream(BytesIOProxy, DataTypeMixIn):
     """
     An extension of C{StringIO}.
 
@@ -529,7 +521,7 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
         @type buf: C{str} or C{StringIO} instance
         @param min_buf_size: Ignored in the pure Python version.
         """
-        StringIOProxy.__init__(self, buf=buf)
+        BytesIOProxy.__init__(self, buf=buf)
 
     def read(self, length=-1):
         """
@@ -547,7 +539,7 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
                 'remain' % (length, len(self) - self.tell())
             )
 
-        return StringIOProxy.read(self, length)
+        return BytesIOProxy.read(self, length)
 
     def peek(self, size=1):
         """
@@ -566,7 +558,7 @@ class BufferedByteStream(StringIOProxy, DataTypeMixIn):
         if size < -1:
             raise ValueError("Cannot peek backwards")
 
-        bytes = ''
+        bytes = b''
         pos = self.tell()
 
         while not self.at_eof() and len(bytes) != size:
@@ -642,7 +634,7 @@ def is_float_broken():
     @return: Boolean indicating whether floats are broken on this platform.
     """
     return str(python.NaN) != str(
-        struct.unpack("!d", '\xff\xf8\x00\x00\x00\x00\x00\x00')[0])
+        struct.unpack("!d", b'\xff\xf8\x00\x00\x00\x00\x00\x00')[0])
 
 
 # init the module from here ..

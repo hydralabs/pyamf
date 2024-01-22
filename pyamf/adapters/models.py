@@ -80,7 +80,7 @@ def decode_model_property(obj, prop, value):
     if handler:
         return handler(obj, prop, value)
 
-    for model_prop, handler in _property_decoders.iteritems():
+    for model_prop, handler in _property_decoders.items():
         if isinstance(prop, model_prop):
             _property_decoders[prop.__class__] = handler
 
@@ -97,7 +97,7 @@ def encode_model_property(obj, prop, value):
     if handler:
         return handler(obj, prop, value)
 
-    for model_prop, handler in _property_encoders.iteritems():
+    for model_prop, handler in _property_encoders.items():
         if isinstance(prop, model_prop):
             _property_encoders[prop.__class__] = handler
 

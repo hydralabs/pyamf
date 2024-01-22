@@ -6,7 +6,6 @@ C-extension for L{pyamf.amf3} Python module in L{PyAMF<pyamf>}.
 
 :since: 0.6
 """
-
 from cpython cimport *
 from libc.stdlib cimport *
 from libc.string cimport *
@@ -20,24 +19,24 @@ import pyamf
 from pyamf import xml, util
 
 
-cdef char TYPE_NUMBER      = '\x00'
-cdef char TYPE_BOOL        = '\x01'
-cdef char TYPE_STRING      = '\x02'
-cdef char TYPE_OBJECT      = '\x03'
-cdef char TYPE_MOVIECLIP   = '\x04'
-cdef char TYPE_NULL        = '\x05'
-cdef char TYPE_UNDEFINED   = '\x06'
-cdef char TYPE_REFERENCE   = '\x07'
-cdef char TYPE_MIXEDARRAY  = '\x08'
-cdef char TYPE_OBJECTTERM  = '\x09'
-cdef char TYPE_ARRAY       = '\x0A'
-cdef char TYPE_DATE        = '\x0B'
-cdef char TYPE_LONGSTRING  = '\x0C'
-cdef char TYPE_UNSUPPORTED = '\x0D'
-cdef char TYPE_RECORDSET   = '\x0E'
-cdef char TYPE_XML         = '\x0F'
-cdef char TYPE_TYPEDOBJECT = '\x10'
-cdef char TYPE_AMF3        = '\x11'
+cdef char TYPE_NUMBER      = b'\x00'
+cdef char TYPE_BOOL        = b'\x01'
+cdef char TYPE_STRING      = b'\x02'
+cdef char TYPE_OBJECT      = b'\x03'
+cdef char TYPE_MOVIECLIP   = b'\x04'
+cdef char TYPE_NULL        = b'\x05'
+cdef char TYPE_UNDEFINED   = b'\x06'
+cdef char TYPE_REFERENCE   = b'\x07'
+cdef char TYPE_MIXEDARRAY  = b'\x08'
+cdef char TYPE_OBJECTTERM  = b'\x09'
+cdef char TYPE_ARRAY       = b'\x0A'
+cdef char TYPE_DATE        = b'\x0B'
+cdef char TYPE_LONGSTRING  = b'\x0C'
+cdef char TYPE_UNSUPPORTED = b'\x0D'
+cdef char TYPE_RECORDSET   = b'\x0E'
+cdef char TYPE_XML         = b'\x0F'
+cdef char TYPE_TYPEDOBJECT = b'\x10'
+cdef char TYPE_AMF3        = b'\x11'
 
 
 cdef object ASObject = pyamf.ASObject
@@ -122,7 +121,7 @@ cdef class Decoder(codec.Decoder):
 
                 break
 
-            key = self.readBytes()
+            key = self.readString()
 
             PyDict_SetItem(obj_attrs, key, self.readElement())
 
@@ -181,7 +180,7 @@ cdef class Decoder(codec.Decoder):
 
         self.readObjectAttributes(attrs)
 
-        for key, value in attrs.iteritems():
+        for key, value in attrs.items():
             try:
                 key = int(key)
             except ValueError:
@@ -229,7 +228,7 @@ cdef class Decoder(codec.Decoder):
         l = self.stream.read_ulong()
 
         self.stream.read(&b, l)
-        s = PyString_FromStringAndSize(b, <Py_ssize_t>l)
+        s = PyBytes_FromStringAndSize(b, <Py_ssize_t>l)
 
         if bytes:
             return s
@@ -329,9 +328,9 @@ cdef class Encoder(codec.Encoder):
         self.writeType(TYPE_BOOL)
 
         if b is True:
-            return self.writeType('\x01')
+            return self.writeType(b'\x01')
         else:
-            return self.writeType('\x00')
+            return self.writeType(b'\x00')
 
     cdef int writeUndefined(self, data) except -1:
         return self.writeType(TYPE_UNDEFINED)
@@ -387,6 +386,28 @@ cdef class Encoder(codec.Encoder):
 
         return 0
 
+    cdef int writeSet(self, object a) except -1:
+        cdef Py_ssize_t size = -1, i = -1
+
+        if self.writeReference(a) != -1:
+            return 0
+
+        self.context.addObject(a)
+
+        self.writeType(TYPE_ARRAY)
+        size = PySet_GET_SIZE(a)
+
+        self.stream.write_ulong(size)
+
+        set_iter = iter(a)
+        while True:
+            try:
+                self.writeElement(next(set_iter))
+            except StopIteration:
+                break
+
+        return 0
+
     cdef int writeInt(self, object a) except -1:
         self.writeType(TYPE_NUMBER)
 
@@ -406,7 +427,7 @@ cdef class Encoder(codec.Encoder):
         """
         Write a string of bytes to the data stream.
         """
-        cdef Py_ssize_t l = PyString_GET_SIZE(s)
+        cdef Py_ssize_t l = PyBytes_GET_SIZE(s)
 
         if l > 0xffff:
             self.writeType(TYPE_LONGSTRING)
@@ -418,7 +439,7 @@ cdef class Encoder(codec.Encoder):
         else:
             self.stream.write_ushort(l)
 
-        return self.stream.write(PyString_AS_STRING(s), l)
+        return self.stream.write(PyBytes_AS_STRING(s), l)
 
     cdef int writeString(self, u) except -1:
         """
@@ -435,14 +456,14 @@ cdef class Encoder(codec.Encoder):
         if PyUnicode_CheckExact(u):
             u = self.context.getBytesForString(u)
 
-        cdef Py_ssize_t l = PyString_GET_SIZE(u)
+        cdef Py_ssize_t l = PyBytes_GET_SIZE(u)
 
         if l > 0xffff:
             self.stream.write_ulong(l)
         else:
             self.stream.write_ushort(l)
 
-        return self.stream.write(PyString_AS_STRING(u), l)
+        return self.stream.write(PyBytes_AS_STRING(u), l)
 
     cdef int writeXML(self, e) except -1:
         """
@@ -455,14 +476,14 @@ cdef class Encoder(codec.Encoder):
         if isinstance(data, unicode):
             data = data.encode('utf-8')
 
-        if not PyString_CheckExact(data):
+        if not PyBytes_CheckExact(data):
             raise TypeError('expected str from xml.tostring')
 
-        cdef Py_ssize_t l = PyString_GET_SIZE(data)
+        cdef Py_ssize_t l = PyBytes_GET_SIZE(data)
 
         self.stream.write_ulong(l)
 
-        return self.stream.write(PyString_AS_STRING(data), l)
+        return self.stream.write(PyBytes_AS_STRING(data), l)
 
     cdef int writeDateTime(self, d) except -1:
         if self.timezone_offset is not None:
@@ -491,9 +512,9 @@ cdef class Encoder(codec.Encoder):
 
         @param o: The C{dict} data to be encoded to the AMF0 data stream.
         """
-        for key, value in attrs.iteritems():
-            if PyInt_Check(key) or PyLong_Check(key):
-                key = str(key)
+        for key, value in attrs.items():
+            if PyLong_Check(key):
+                key = str(key).encode()
 
             self.serialiseString(key)
             self.writeElement(value)

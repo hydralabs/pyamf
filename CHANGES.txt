@@ -5,6 +5,32 @@ This document contains information about the changes between the different
 versions of PyAMF.
 
 .. contents::
+0.8.11 (2022-02-25)
+----------------
+- Change str to binary 
+- Fix syntax errors
+
+0.8.10 (2020-01-10)
+----------------
+- Support Python 3.7 and 3.8
+
+0.8.9 (2018-07-18)
+----------------
+- Support SqlAlchemy
+
+0.8.8 (2018-04-03)
+----------------
+- Improve compatibility with python 3.6
+
+0.8.7 (2017-08-04)
+----------------
+- Fix http header getter to Python3
+
+0.8.3 (2017-04-06)
+----------------
+- Add support Python3
+- Drop support Python2
+- Remove Cython support on package info
 
 0.8 (2015-12-17)
 ----------------

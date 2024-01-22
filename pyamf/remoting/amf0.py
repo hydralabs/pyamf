@@ -186,6 +186,6 @@ def build_fault(cls, e, tb, include_traceback=False):
 
     return remoting.ErrorFault(
         code=code,
-        description=unicode(e),
+        description=str(e),
         details=details
     )

@@ -19,17 +19,7 @@ func_types = (
 )
 class_types = [type]
 int_types = [int]
-str_types = [str]
-
-try:
-    int_types.append(long)
-except NameError:
-    pass
-
-try:
-    str_types.append(unicode)
-except NameError:
-    pass
+str_types = [str, bytes]
 
 try:
     class_types.append(types.ClassType)

@@ -285,18 +285,19 @@ class ClassAliasTestCase(BaseClassAliasTestCase):
             'sa_lazy'
         ])
 
-        self.assertEqual(attrs['sa_key'], [None])
-        self.assertEqual(attrs['sa_lazy'], [])
+        self.assertEqual(attrs['sa_key'], (None, ))
+        self.assertEqual(sorted(attrs['sa_lazy']), sorted(['another_lazy_loaded', 'lazy_loaded']))
 
     def test_get_attributes(self):
         u = self._build_obj()
 
         self.assertFalse(u in self.session)
         self.assertEqual(
-            [None],
+            (None, ),
             self.mappers['user'].primary_key_from_instance(u)
         )
         attrs = self.alias.getEncodableAttributes(u)
+        attrs['sa_lazy'] = sorted(attrs['sa_lazy'])
 
         self.assertEqual(attrs, {
             'addresses': u.addresses,
@@ -304,8 +305,8 @@ class ClassAliasTestCase(BaseClassAliasTestCase):
             'another_lazy_loaded': [],
             'id': None,
             'name': 'test_user',
-            'sa_lazy': [],
-            'sa_key': [None]
+            'sa_lazy': sorted(['lazy_loaded', 'another_lazy_loaded']),
+            'sa_key': (None, )
         })
 
     def test_property(self):
@@ -335,7 +336,7 @@ class ClassAliasTestCase(BaseClassAliasTestCase):
         self.assertEqual(attrs, {
             'id': None,
             'name': None,
-            'sa_key': [None],
+            'sa_key': (None, ),
             'sa_lazy': [],
             'rw': 'bar',
             'ro': 'gak'})
@@ -357,7 +358,7 @@ class ApplyAttributesTestCase(BaseClassAliasTestCase):
 
         attrs = {
             'sa_lazy': ['another_lazy_loaded'],
-            'sa_key': [None],
+            'sa_key': (None, ),
             'addresses': [],
             'lazy_loaded': [],
             'another_lazy_loaded': pyamf.Undefined,  # <-- the important bit

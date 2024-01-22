@@ -74,7 +74,7 @@ class DataStoreClassAlias(gae_base.BaseDatastoreClassAlias):
         self.properties = {}
         reverse_props = []
 
-        for name, prop in self.klass.properties().iteritems():
+        for name, prop in self.klass.properties().items():
             self.properties[name] = prop
 
             if isinstance(prop, db.ReferenceProperty):
@@ -86,7 +86,7 @@ class DataStoreClassAlias(gae_base.BaseDatastoreClassAlias):
         # check if the property is a defined as a collection_name. These types
         # of properties are read-only and the datastore freaks out if you
         # attempt to meddle with it. We delete the attribute entirely ..
-        for name, value in self.klass.__dict__.iteritems():
+        for name, value in self.klass.__dict__.items():
             if isinstance(value, db._ReverseReferenceProperty):
                 reverse_props.append(name)
 

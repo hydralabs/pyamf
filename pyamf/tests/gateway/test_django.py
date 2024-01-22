@@ -12,11 +12,12 @@ Django gateway tests.
 import unittest
 import sys
 import os
+import types
 
 try:
     from cStringIO import StringIO
 except ImportError:
-    from StringIO import StringIO
+    from io import BytesIO as StringIO
 
 try:
     import django as _django
@@ -34,6 +35,9 @@ def make_http_request(method, body=''):
     http_request.method = method
 
     version = _django.VERSION[:2]
+
+    if not isinstance(body, bytes):
+        body = body.encode()
 
     if version <= (1, 2):
         http_request.raw_post_data = body
@@ -58,10 +62,8 @@ class DjangoGatewayTestCase(BaseTestCase):
     def setUp(self):
         BaseTestCase.setUp(self)
 
-        import new
-
         self.mod_name = '%s.%s' % (__name__, 'settings')
-        self.settings = sys.modules[self.mod_name] = new.module(self.mod_name)
+        self.settings = sys.modules[self.mod_name] = types.ModuleType(self.mod_name)
 
         self.old_env = os.environ.get('DJANGO_SETTINGS_MODULE', None)
 
@@ -124,16 +126,16 @@ class DjangoGatewayTestCase(BaseTestCase):
 
         request = util.BufferedByteStream()
         request.write(
-            '\x00\x00\x00\x00\x00\x01\x00\x09test.test\x00'
-            '\x02/1\x00\x00\x00\x14\x0a\x00\x00\x00\x01\x08\x00\x00\x00\x00'
-            '\x00\x01\x61\x02\x00\x01\x61\x00\x00\x09'
+            b'\x00\x00\x00\x00\x00\x01\x00\x09test.test\x00'
+            b'\x02/1\x00\x00\x00\x14\x0a\x00\x00\x00\x01\x08\x00\x00\x00\x00'
+            b'\x00\x01\x61\x02\x00\x01\x61\x00\x00\x09'
         )
         request.seek(0, 0)
 
         http_request = make_http_request('POST', request.getvalue())
 
         http_response = gw(http_request)
-        envelope = remoting.decode(http_response.content)
+        envelope = remoting.decode(http_response.content.decode())
 
         message = envelope['/1']
 
@@ -155,8 +157,8 @@ class DjangoGatewayTestCase(BaseTestCase):
 
         request = util.BufferedByteStream()
         request.write(
-            '\x00\x00\x00\x00\x00\x01\x00\x09test.test\x00'
-            '\x02/1\x00\x00\x00\x05\x0a\x00\x00\x00\x00'
+            b'\x00\x00\x00\x00\x00\x01\x00\x09test.test\x00'
+            b'\x02/1\x00\x00\x00\x05\x0a\x00\x00\x00\x00'
         )
         request.seek(0, 0)
 
@@ -194,7 +196,7 @@ class DjangoGatewayTestCase(BaseTestCase):
         self.assertEqual(http_response.status_code, 500)
         self.assertEqual(
             http_response.content,
-            '500 Internal Server Error\n\nAn unexpected error occurred.'
+            b'500 Internal Server Error\n\nAn unexpected error occurred.'
         )
 
     def test_expected_exceptions_decode(self):

@@ -227,7 +227,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
     @type expose_request: C{bool}
     """
 
-    allowedMethods = ('POST',)
+    allowedMethods = (b'POST',)
 
     def __init__(self, *args, **kwargs):
         if 'expose_request' not in kwargs:
@@ -282,7 +282,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
             if self.debug:
                 body += "\n\nTraceback:\n\n%s" % failure.getTraceback()
 
-            self._finaliseRequest(request, 400, body)
+            self._finaliseRequest(request, 400, body.encode())
 
         request.content.seek(0, 0)
         timezone_offset = self._get_timezone_offset()
@@ -332,7 +332,7 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
             if self.debug:
                 body += "\n\nTraceback:\n\n%s" % failure.getTraceback()
 
-            self._finaliseRequest(request, 500, body)
+            self._finaliseRequest(request, 500, body.encode())
 
         timezone_offset = self._get_timezone_offset()
         d = threads.deferToThread(
@@ -399,9 +399,9 @@ class TwistedGateway(gateway.BaseGateway, resource.Resource):
                 "be successfully processed."
 
             if self.debug:
-                body += "\n\nTraceback:\n\n%s" % failure.getTraceback()
+                body += b"\n\nTraceback:\n\n%s" % failure.getTraceback()
 
-            self._finaliseRequest(http_request, 500, body)
+            self._finaliseRequest(http_request, 500, body.encode())
 
         d = defer.DeferredList(dl)
 

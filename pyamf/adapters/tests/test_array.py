@@ -25,18 +25,18 @@ class ArrayTestCase(unittest.TestCase):
         if not array:
             self.skipTest("'array' not available")
 
-        self.orig = ['f', 'o', 'o']
+        self.orig = [ord('f'), ord('o'), ord('o')]
 
-        self.obj = array.array('c')
+        self.obj = array.array('b')
 
-        self.obj.append('f')
-        self.obj.append('o')
-        self.obj.append('o')
+        self.obj.append(ord('f'))
+        self.obj.append(ord('o'))
+        self.obj.append(ord('o'))
 
     def encdec(self, encoding):
-        return pyamf.decode(
+        return next(pyamf.decode(
             pyamf.encode(self.obj, encoding=encoding),
-            encoding=encoding).next()
+            encoding=encoding))
 
     def test_amf0(self):
         self.assertEqual(self.encdec(pyamf.AMF0), self.orig)

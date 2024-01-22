@@ -8,14 +8,14 @@ import setupinfo
 from setuptools import setup, find_packages
 
 
-version = (0, 8, 0)
+version = (0, 8, 11)
 
-name = "PyAMF"
+name = "Py3AMF"
 description = "AMF support for Python"
 long_description = setupinfo.read('README.rst')
-url = "http://pyamf.org"
-author = "The PyAMF Project"
-author_email = "users@pyamf.org"
+url = "https://github.com/StdCarrot/Py3AMF"
+author = "The Py3AMF Project"
+author_email = "yhbu@stdc.so"
 license = "MIT License"
 
 classifiers = """
@@ -30,16 +30,16 @@ Operating System :: OS Independent
 Programming Language :: C
 Programming Language :: Python
 Programming Language :: Cython
-Programming Language :: Python :: 2.4
-Programming Language :: Python :: 2.5
-Programming Language :: Python :: 2.6
-Programming Language :: Python :: 2.7
+Programming Language :: Python :: 3.5
+Programming Language :: Python :: 3.6
+Programming Language :: Python :: 3.7
+Programming Language :: Python :: 3.8
 Topic :: Internet :: WWW/HTTP :: WSGI :: Application
 Topic :: Software Development :: Libraries :: Python Modules
 """
 
 keywords = """
-amf amf0 amf3 flex flash remoting rpc http flashplayer air bytearray
+python3 amf amf0 amf3 flex flash remoting rpc http flashplayer air bytearray
 objectproxy arraycollection recordset actionscript decoder encoder gateway
 remoteobject twisted pylons django sharedobject lso sol
 """

@@ -176,16 +176,12 @@ class Envelope(object):
         for body in self.bodies:
             yield body[0], body[1]
 
-        raise StopIteration
-
     def __len__(self):
         return len(self.bodies)
 
     def iteritems(self):
         for body in self.bodies:
             yield body
-
-        raise StopIteration
 
     def keys(self):
         return [body[0] for body in self.bodies]
@@ -353,7 +349,7 @@ class BaseFault(object):
         Raises an exception based on the fault object. There is no traceback
         available.
         """
-        raise get_exception_from_fault(self), self.description, None
+        raise get_exception_from_fault(self)(self.description, None)
 
 
 class ErrorFault(BaseFault):
@@ -447,20 +443,20 @@ def _read_body(stream, decoder, strict=False, logger=None):
         # does not keep the array of args in the object references lookup
         type_byte = stream.peek(1)
 
-        if type_byte == '\x11':
+        if type_byte == b'\x11':
             if not decoder.use_amf3:
                 raise pyamf.DecodeError(
                     "Unexpected AMF3 type with incorrect message type")
 
             return decoder.readElement()
 
-        if type_byte != '\x0a':
+        if type_byte != b'\x0a':
             raise pyamf.DecodeError("Array type required for request body")
 
         stream.read(1)
         x = stream.read_ulong()
 
-        return [decoder.readElement() for i in xrange(x)]
+        return [decoder.readElement() for i in range(x)]
 
     target = stream.read_utf8_string(stream.read_ushort())
     response = stream.read_utf8_string(stream.read_ushort())
@@ -468,7 +464,7 @@ def _read_body(stream, decoder, strict=False, logger=None):
     status = STATUS_OK
     is_request = True
 
-    for code, s in STATUS_CODES.iteritems():
+    for code, s in STATUS_CODES.items():
         if not target.endswith(s):
             continue
 
@@ -517,7 +513,7 @@ def _write_body(name, message, stream, encoder, strict=False):
 
             return
 
-        stream.write('\x0a')
+        stream.write(b'\x0a')
         stream.write_ulong(len(message.body))
         for x in message.body:
             encoder.writeElement(x)
@@ -528,7 +524,7 @@ def _write_body(name, message, stream, encoder, strict=False):
     target = None
 
     if isinstance(message, Request):
-        target = unicode(message.target)
+        target = str(message.target)
     else:
         target = u"%s%s" % (name, _get_status(message.status))
 
@@ -593,8 +589,8 @@ def get_fault(data):
 
     e = {}
 
-    for x, y in data.iteritems():
-        if isinstance(x, unicode):
+    for x, y in data.items():
+        if isinstance(x, str):
             e[str(x)] = y
         else:
             e[x] = y
@@ -650,7 +646,7 @@ def decode(stream, strict=False, logger=None, timezone_offset=None,
     decoder.use_amf3 = msg.amfVersion == pyamf.AMF3
     header_count = stream.read_ushort()
 
-    for i in xrange(header_count):
+    for i in range(header_count):
         name, required, data = _read_header(stream, decoder, strict)
         msg.headers[name] = data
 
@@ -659,7 +655,7 @@ def decode(stream, strict=False, logger=None, timezone_offset=None,
 
     body_count = stream.read_short()
 
-    for i in xrange(body_count):
+    for i in range(body_count):
         context.clear()
 
         target, payload = _read_body(stream, decoder, strict, logger)
@@ -706,7 +702,7 @@ def encode(msg, strict=False, logger=None, timezone_offset=None, **kwargs):
     stream.write_ushort(msg.amfVersion)
     stream.write_ushort(len(msg.headers))
 
-    for name, header in msg.headers.iteritems():
+    for name, header in msg.headers.items():
         _write_header(
             name,
             header,
@@ -718,7 +714,7 @@ def encode(msg, strict=False, logger=None, timezone_offset=None, **kwargs):
 
     stream.write_short(len(msg))
 
-    for name, message in msg.iteritems():
+    for name, message in msg.items():
         encoder.context.clear()
 
         _write_body(name, message, stream, encoder, strict)

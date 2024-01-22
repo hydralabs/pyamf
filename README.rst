@@ -1,43 +1,119 @@
-.. image:: https://travis-ci.org/hydralabs/pyamf.svg?branch=master
-    :target: https://travis-ci.org/hydralabs/pyamf
-.. image:: https://coveralls.io/repos/hydralabs/pyamf/badge.svg
-   :target: https://coveralls.io/r/hydralabs/pyamf
+Py3AMF
+======
 
-PyAMF_ provides Action Message Format (AMF_) support for Python_ that is
-compatible with the `Adobe Flash Player`_. It includes integration with
-Python web frameworks like Django_, Pylons_, Twisted_, SQLAlchemy_,
-web2py_ and more_.
+Py3AMF is fork of `PyAMF <https://github.com/hydralabs/pyamf>`__ to
+support Python3
 
-The `Adobe Integrated Runtime`_ and `Adobe Flash Player`_ use AMF to
+Why Py3AMF
+~~~~~~~~~~
+
+By states of issues and PR in
+`PyAMF <https://github.com/hydralabs/pyamf>`__, it dosen’t seems to be
+under developing. And another PR that supports Py3 has been discontinued
+for over two years. This is the only Python AMF Project which trying to
+support Py3 under developing on GitHub.
+
+State
+~~~~~
+
+Pass ``setup.py test`` But, adapters were not tested
+
+Warning
+~~~~~~~
+
+This project isn’t completed. If you want to make it fast, please send
+PR.
+
+Install
+~~~~~~~
+
+This was tested on Ubuntu 16.04.2 and macOS 10.12.4
+
+To install, you can use pip3 on your environment.
+
+::
+
+   pip3 install Py3AMF
+
+Or, you can use setup.py to develop.
+
+::
+
+   git clone git@github.com:StdCarrot/Py3AMF.git
+   cd Py3AMF
+   # python3 setup.py test
+   python3 setup.py install
+
+Simple example
+~~~~~~~~~~~~~~
+
+Everything is same with PyAMF, but you have to concern str and bytes
+types.
+
+::
+
+   import pyamf
+   from pyamf import remoting
+   from pyamf.flex import messaging
+   import uuid
+   import requests
+
+   msg = messaging.RemotingMessage(operation='retrieveUser',
+                                   destination='so.stdc.flexact.common.User',
+                                   messageId=str(uuid.uuid4()).upper(),
+                                   body=['user_id'])
+   req = remoting.Request(target='UserService', body=[msg])
+   ev = remoting.Envelope(pyamf.AMF3)
+   ev['/0'] = req
+
+   # Encode request
+   bin_msg = remoting.encode(ev)
+
+   # Send request; You can use other channels like RTMP
+   resp = requests.post('http://example.com/amf',
+                        data=bin_msg.getvalue(),
+                        headers={'Content-Type': 'application/x-amf'})
+
+   # Decode response
+   resp_msg = remoting.decode(resp.content)
+   print(resp_msg.bodies)
+
+TODO
+----
+
+-  Check adapters
+
+--------------
+
+`PyAMF <http://www.pyamf.org>`__ provides Action Message Format
+(`AMF <http://en.wikipedia.org/wiki/Action_Message_Format>`__) support
+for `Python <http://python.org>`__ that is compatible with the `Adobe
+Flash Player <http://en.wikipedia.org/wiki/Flash_Player>`__. It includes
+integration with Python web frameworks like
+`Django <http://djangoproject.com>`__, `Pylons <http://pylonshq.com>`__,
+`Twisted <http://twistedmatrix.com>`__,
+`SQLAlchemy <http://sqlalchemy.org>`__,
+`web2py <http://www.web2py.com>`__ and
+`more <http://pyamf.org/tutorials/index.html>`__.
+
+The `Adobe Integrated
+Runtime <http://en.wikipedia.org/wiki/Adobe_AIR>`__ and `Adobe Flash
+Player <http://en.wikipedia.org/wiki/Flash_Player>`__ use AMF to
 communicate between an application and a remote server. AMF encodes
 remote procedure calls (RPC) into a compact binary representation that
-can be transferred over HTTP/HTTPS or the `RTMP/RTMPS`_ protocol.
-Objects and data values are serialized into this binary format, which
-increases performance, allowing applications to load data up to 10 times
-faster than with text-based formats such as XML or SOAP.
+can be transferred over HTTP/HTTPS or the
+`RTMP/RTMPS <http://en.wikipedia.org/wiki/Real_Time_Messaging_Protocol>`__
+protocol. Objects and data values are serialized into this binary
+format, which increases performance, allowing applications to load data
+up to 10 times faster than with text-based formats such as XML or SOAP.
 
-AMF3, the default serialization for ActionScript_ 3.0, provides various
-advantages over AMF0, which is used for ActionScript 1.0 and 2.0. AMF3
-sends data over the network more efficiently than AMF0. AMF3 supports
-sending ``int`` and ``uint`` objects as integers and supports data types
-that are available only in ActionScript 3.0, such as ByteArray_,
-ArrayCollection_, ObjectProxy_ and IExternalizable_.
-
-
-.. _PyAMF: 	http://www.pyamf.org
-.. _AMF: 	http://en.wikipedia.org/wiki/Action_Message_Format
-.. _Python:	http://python.org
-.. _Adobe Flash Player: http://en.wikipedia.org/wiki/Flash_Player
-.. _Django:	http://djangoproject.com
-.. _Pylons:	http://pylonshq.com
-.. _Twisted:	http://twistedmatrix.com
-.. _SQLAlchemy: http://sqlalchemy.org
-.. _web2py:	http://www.web2py.com
-.. _more:	http://pyamf.org/tutorials/index.html
-.. _Adobe Integrated Runtime: http://en.wikipedia.org/wiki/Adobe_AIR
-.. _RTMP/RTMPS:	http://en.wikipedia.org/wiki/Real_Time_Messaging_Protocol
-.. _ActionScript: http://dev.pyamf.org/wiki/ActionScript
-.. _ByteArray:	http://dev.pyamf.org/wiki/ByteArray
-.. _ArrayCollection: http://dev.pyamf.org/wiki/ArrayCollection
-.. _ObjectProxy: http://dev.pyamf.org/wiki/ObjectProxy
-.. _IExternalizable: http://dev.pyamf.org/wiki/IExternalizable
+AMF3, the default serialization for
+`ActionScript <http://dev.pyamf.org/wiki/ActionScript>`__ 3.0, provides
+various advantages over AMF0, which is used for ActionScript 1.0 and
+2.0. AMF3 sends data over the network more efficiently than AMF0. AMF3
+supports sending ``int`` and ``uint`` objects as integers and supports
+data types that are available only in ActionScript 3.0, such as
+`ByteArray <http://dev.pyamf.org/wiki/ByteArray>`__,
+`ArrayCollection <http://dev.pyamf.org/wiki/ArrayCollection>`__,
+`ObjectProxy <http://dev.pyamf.org/wiki/ObjectProxy>`__ and
+`IExternalizable <http://dev.pyamf.org/wiki/IExternalizable>`__.

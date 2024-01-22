@@ -123,7 +123,7 @@ class ClassAlias(object):
             self.decodable_properties.update(self.klass.__slots__)
             self.encodable_properties.update(self.klass.__slots__)
 
-        for k, v in self.klass.__dict__.iteritems():
+        for k, v in list(self.klass.__dict__.items()):
             if not isinstance(v, property):
                 continue
 
@@ -318,7 +318,7 @@ class ClassAlias(object):
         )
 
     def __eq__(self, other):
-        if isinstance(other, basestring):
+        if isinstance(other, str):
             return self.alias == other
         elif isinstance(other, self.__class__):
             return self.klass == other.klass
@@ -439,14 +439,14 @@ class ClassAlias(object):
         if self.proxy_attrs is not None and attrs and codec:
             context = codec.context
 
-            for k, v in attrs.copy().iteritems():
+            for k, v in attrs.copy().items():
                 if k in self.proxy_attrs:
                     attrs[k] = context.getProxyForObject(v)
 
         if self.synonym_attrs:
             missing = object()
 
-            for k, v in self.synonym_attrs.iteritems():
+            for k, v in self.synonym_attrs.items():
                 value = attrs.pop(k, missing)
 
                 if value is missing:
@@ -474,7 +474,7 @@ class ClassAlias(object):
 
         changed = False
 
-        props = set(attrs.keys())
+        props = set(key.decode() if isinstance(key, bytes) else key for key in attrs.keys())
 
         if self.static_attrs:
             missing_attrs = self.static_attrs_set.difference(props)
@@ -528,7 +528,7 @@ class ClassAlias(object):
         if self.synonym_attrs:
             missing = object()
 
-            for k, v in self.synonym_attrs.iteritems():
+            for k, v in self.synonym_attrs.items():
                 value = attrs.pop(v, missing)
 
                 if value is missing:
@@ -551,6 +551,12 @@ class ClassAlias(object):
         """
         if not self._compiled:
             self.compile()
+
+        old_attrs = attrs
+        attrs = dict()
+        for key, value in old_attrs.items():
+            key = key.decode() if isinstance(key, bytes) else key
+            attrs[key] = value
 
         if not self.shortcut_decode:
             attrs = self.getDecodableAttributes(obj, attrs, codec=codec)

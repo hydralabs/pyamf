@@ -77,13 +77,13 @@ def generate_error(request, cls, e, tb, include_traceback=False):
     faultString = None
 
     if hasattr(e, 'message'):
-        faultString = unicode(e.message)
+        faultString = str(e.message)
     elif hasattr(e, 'args') and e.args:
         if isinstance(e.args[0], pyamf.python.str_types):
-            faultString = unicode(e.args[0])
+            faultString = str(e.args[0])
 
     if details:
-        faultDetail = unicode(details)
+        faultDetail = str(details)
 
     return messaging.ErrorMessage(
         messageId=generate_random_id(),

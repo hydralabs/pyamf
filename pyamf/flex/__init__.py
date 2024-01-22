@@ -203,11 +203,11 @@ class ObjectProxy(object):
         external = True
         amf3 = True
 
-    def __init__(self, object=None):
-        if object is None:
+    def __init__(self, obj=None):
+        if obj is None:
             self._amf_object = pyamf.ASObject()
         else:
-            self._amf_object = object
+            self._amf_object = obj
 
     def __repr__(self):
         return "<flex.messaging.io.ObjectProxy %r>" % self._amf_object
@@ -220,6 +220,12 @@ class ObjectProxy(object):
 
     def __setattr__(self, name, value):
         if name == '_amf_object':
+            if isinstance(value, dict):
+                old_value = value
+                value = dict()
+                for key, item in old_value.items():
+                    value[key.decode() if isinstance(key, bytes) else key] = item
+
             self.__dict__['_amf_object'] = value
         else:
             setattr(self._amf_object, name, value)

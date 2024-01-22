@@ -106,7 +106,7 @@ class WSGIGateway(gateway.BaseGateway):
             return [response]
         except (KeyboardInterrupt, SystemExit):
             raise
-        except:
+        except Exception as e:
             if self.logger:
                 self.logger.exception('Unexpected error decoding AMF request')
 

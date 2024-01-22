@@ -36,8 +36,8 @@ class WSGIServerTestCase(unittest.TestCase):
             self.executed = True
 
             return r
-
-        return self.gw(kwargs, sr)
+        response = self.gw(kwargs, sr)
+        return response
 
     def makeRequest(self, service, body, raw=False):
         if not raw:
@@ -62,7 +62,7 @@ class WSGIServerTestCase(unittest.TestCase):
 
     def test_bad_request(self):
         request = util.BufferedByteStream()
-        request.write('Bad request')
+        request.write(b'Bad request')
         request.seek(0, 0)
 
         def start_response(status, headers):
@@ -81,7 +81,7 @@ class WSGIServerTestCase(unittest.TestCase):
 
         response = self.doRequest(request, start_response)
 
-        envelope = remoting.decode(''.join(response))
+        envelope = remoting.decode(b''.join(response))
 
         message = envelope['/1']
 
@@ -183,8 +183,9 @@ class WSGIServerTestCase(unittest.TestCase):
         self.gw.addService(echo)
         self.gw.timezone_offset = -18000
 
-        response = self.doRequest(self.makeRequest('echo', now), None)
-        envelope = remoting.decode(''.join(response))
+        request = self.makeRequest('echo', now)
+        response = self.doRequest(request, None)
+        envelope = remoting.decode(b''.join(response))
         message = envelope['/1']
 
         self.assertEqual(message.body, now)

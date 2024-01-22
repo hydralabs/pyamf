@@ -26,9 +26,9 @@ class CollectionsTestCase(unittest.TestCase):
             self.skipTest("'collections' not available")
 
     def encdec(self, encoding):
-        return pyamf.decode(
+        return next(pyamf.decode(
             pyamf.encode(self.obj, encoding=encoding),
-            encoding=encoding).next()
+            encoding=encoding))
 
 
 class DequeTestCase(CollectionsTestCase):
