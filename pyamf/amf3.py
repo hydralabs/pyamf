@@ -25,8 +25,7 @@ import datetime
 import zlib
 
 import pyamf
-from pyamf import codec, util, xml, python
-
+from pyamf import codec, python, util, xml
 
 __all__ = [
     'ByteArray',
@@ -109,6 +108,19 @@ TYPE_XMLSTRING = b'\x0B'
 #: @see: U{Parsing ByteArrays on OSFlash (external)
 #: <http://osflash.org/documentation/amf3/parsing_byte_arrays>}
 TYPE_BYTEARRAY = b'\x0C'
+#: The Dictionary in ActionScript 3.0 (Flash Player 10) is a map of key-value 
+#: pairs where both the key and value can be any serializable objects. 
+#: The keys are matched based on identity using a strict-equality comparison. 
+#: A Dictionary can have weak references to keys, allowing objects to be garbage 
+#: collected if the Dictionary is the only reference to them. However, string keys are always strongly referenced. 
+#: It's important to note that QNames cannot be used as Dictionary keys.
+#: In AMF3, a Dictionary is encoded as follows:
+#: U29Dict-value: This represents the number of entries in the Dictionary. 
+#: The first bit is a flag (value 1), and the remaining 1 to 28 significant bits encode the number of entries.
+#: weak-keys: A Boolean U8 value indicating whether weakly-referenced keys are used (0x01) or not (0x00).
+#: entry-key and entry-value: Represent the keys and values in the dictionary, respectively. Both are of value-type, which can be any serializable type.
+#: The structure of the encoded dictionary in AMF3 is dictionary-type = dictionary-marker (U29O-ref | U29Dict-value weak-keys *(entry-key entry-value)).
+TYPE_DICTIONARY = b'\x11'
 
 #: Reference bit.
 REFERENCE_BIT = 0x01
@@ -545,7 +557,9 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
             return buf
 
         buf = zlib.compress(buf)
+        
         # FIXME nick: hacked
+        
         return buf[:1] + b'\xda' + buf[2:]
 
     def __bytes__(self):
@@ -555,7 +569,9 @@ class ByteArray(util.BufferedByteStream, DataInput, DataOutput):
             return buf
 
         buf = zlib.compress(buf)
+        
         # FIXME nick: hacked
+        
         return buf[:1] + b'\xda' + buf[2:]
 
     def compress(self):
@@ -807,7 +823,38 @@ class Decoder(codec.Decoder):
             return self.readXMLString
         elif data == TYPE_BYTEARRAY:
             return self.readByteArray
+        elif data == TYPE_DICTIONARY:
+            return self.readDictionary
+        else:
+            raise pyamf.DecodeError("Unknown data type %r" % data)
+        
+    def readDictionary(self):
+        # Read the U29Dict-value
+        dict_info = self.readInteger()
+        length = dict_info >> 1  # Number of key-value pairs
 
+        # Read the U8 boolean for weak keys
+        weak_keys_flag = DataInput(self).readBoolean()
+
+        # Dictionary to store the deserialized key-value pairs
+        result_dict = {}
+
+        for _ in range(length):
+            # Read the key
+            key_marker = self.stream.read(1)
+            read_key_func = self.getTypeFunc(key_marker)
+            key = read_key_func()
+
+            # Read the value
+            value_marker = self.stream.read(1)
+            read_value_func = self.getTypeFunc(value_marker)
+            value = read_value_func()
+
+            # Add the key-value pair to the dictionary
+            result_dict[key] = value
+
+        return result_dict, weak_keys_flag
+    
     def readProxy(self, obj):
         """
         Decodes a proxied object from the stream.
@@ -1018,7 +1065,6 @@ class Decoder(codec.Decoder):
 
     def _readDynamic(self, class_def, obj):
         attr = self.readBytes()
-
         while attr:
             obj[attr] = self.readElement()
             attr = self.readBytes()
